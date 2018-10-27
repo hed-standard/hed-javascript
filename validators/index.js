@@ -1,13 +1,13 @@
 // dependencies ------------------------------------------------------
 
-const HED = require("./hed");
+const HED = require('./hed')
 
 // public api --------------------------------------------------------
 
 const validate = {
-  HED: HED
-};
+  HED: HED,
+}
 
 // exports -----------------------------------------------------------
 
-module.exports = validate;
+module.exports = validate

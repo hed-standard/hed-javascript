@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 
 const validateHedTags = function(tags) {
-  return false;
-};
+  return false
+}
 
 module.exports = {
-  validateHedTags: validateHedTags
-};
+  validateHedTags: validateHedTags,
+}
