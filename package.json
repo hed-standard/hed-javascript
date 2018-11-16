@@ -20,7 +20,7 @@
   "bin": {
     "bids-validator": "./bin/hed-bids-validator"
   },
-  "author": "University of Texas at San Antonio",
+  "author": "Alexander Jones and Kay Robbins, UTSA",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/VisLab/HEDBidsValid/issues"
