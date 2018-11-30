@@ -33,6 +33,9 @@ const splitHedString = function(hedString, issues) {
       currentTag += character
     }
   }
+  if (!hedStringIsEmpty(currentTag)) {
+    hedTags.push(currentTag.trim())
+  }
   return hedTags
 }
 
