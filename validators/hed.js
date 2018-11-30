@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 const hedStringIsEmpty = function(hedString) {
-  return /s+/.test(hedString) || !hedString
+  return !hedString.trim()
 }
 
 const splitHedString = function(hedString, issues) {
@@ -18,7 +18,8 @@ const splitHedString = function(hedString, issues) {
 
   const hedTags = []
   let currentTag = ''
-  for (let character in hedString) {
+  for (let i = 0; i < hedString.length; i++) {
+    let character = hedString.charAt(i)
     if (character == doubleQuoteCharacter) {
       continue
     } else if (character == delimiter) {
@@ -28,6 +29,9 @@ const splitHedString = function(hedString, issues) {
       currentTag = ''
     } else if (character in currentlyInvalidCharacters) {
       issues.push('Unsupported grouping character')
+      if (!hedStringIsEmpty(currentTag)) {
+        hedTags.push(currentTag.trim())
+      }
       currentTag = ''
     } else {
       currentTag += character
