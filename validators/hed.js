@@ -27,7 +27,7 @@ const splitHedString = function(hedString, issues) {
         hedTags.push(currentTag.trim())
       }
       currentTag = ''
-    } else if (character in currentlyInvalidCharacters) {
+    } else if (currentlyInvalidCharacters.includes(character)) {
       issues.push('Unsupported grouping character')
       if (!hedStringIsEmpty(currentTag)) {
         hedTags.push(currentTag.trim())
@@ -41,6 +41,33 @@ const splitHedString = function(hedString, issues) {
     hedTags.push(currentTag.trim())
   }
   return hedTags
+}
+
+const findTopLevelTags = function(hedTags) {
+  let topLevelTags = hedTags.slice(0)
+  // TODO: Finish
+  return topLevelTags
+}
+
+const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
+  hedTag = hedTag.replace('\n', ' ')
+  if (onlyRemoveNewLine) {
+    return hedTag
+  }
+  hedTag.trim()
+  if (hedTag.startsWith('"')) {
+    hedTag = hedTag.slice(1)
+  }
+  if (hedTag.endsWith('"')) {
+    hedTag = hedTag.slice(0, -1)
+  }
+  if (hedTag.startsWith('/')) {
+    hedTag = hedTag.slice(1)
+  }
+  if (hedTag.endsWith('/')) {
+    hedTag = hedTag.slice(0, -1)
+  }
+  return hedTag.toLowerCase()
 }
 
 const validateHedTag = function(tag, issues) {
@@ -60,6 +87,8 @@ const validateHedString = function(hedString, issues) {
 module.exports = {
   hedStringIsEmpty: hedStringIsEmpty,
   splitHedString: splitHedString,
+  findTopLevelTags: findTopLevelTags,
+  formatHedTag: formatHedTag,
   validateHedTag: validateHedTag,
   validateHedString: validateHedString,
 }
