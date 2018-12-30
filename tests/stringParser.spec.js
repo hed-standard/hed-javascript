@@ -33,6 +33,21 @@ describe('Blank strings', function() {
   })
 })
 
+describe('HED tag groups', function() {
+  it('must be surrounded by parentheses', function() {
+    const groupString =
+      '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)'
+    const nonGroupString =
+      '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm'
+    const groupResult = validate.stringParser.hedStringIsAGroup(groupString)
+    const nonGroupResult = validate.stringParser.hedStringIsAGroup(
+      nonGroupString,
+    )
+    assert.strictEqual(groupResult, true)
+    assert.strictEqual(nonGroupResult, false)
+  })
+})
+
 describe('Lists of HED Tags', function() {
   it('should be an array', function() {
     const hedStr =
