@@ -136,8 +136,6 @@ describe('Top-level HED Tags', function() {
     const issues = []
     const hedTags = validate.stringParser.splitHedString(hedStr, issues)
     const result = validate.stringParser.findTopLevelTags(hedTags)
-    assert.equal(hedTags.length, 4)
     assert.equal(result.length, 3)
-    assert.equal(issues.length, 0)
   })
 })

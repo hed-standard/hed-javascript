@@ -37,7 +37,8 @@ const splitHedString = function(hedString, issues) {
       numberOfOpeningParentheses++
     } else if (character == closingGroupCharacter) {
       numberOfClosingParentheses++
-    } else if (
+    }
+    if (
       numberOfOpeningParentheses == numberOfClosingParentheses &&
       character == tilde
     ) {
@@ -71,8 +72,12 @@ const splitHedString = function(hedString, issues) {
 }
 
 const findTopLevelTags = function(hedTags) {
-  let topLevelTags = hedTags.slice(0)
-  // TODO: Finish
+  let topLevelTags = []
+  for (let tagOrGroup of hedTags) {
+    if (!hedStringIsAGroup(tagOrGroup)) {
+      topLevelTags.push(tagOrGroup)
+    }
+  }
   return topLevelTags
 }
 
