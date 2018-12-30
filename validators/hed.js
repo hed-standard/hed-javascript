@@ -86,7 +86,7 @@ const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
 
 const validateHedTag = function(tag, issues) {
   issues.push('Not yet implemented')
-  return false
+  return true
 }
 
 const validateHedString = function(hedString, issues) {
