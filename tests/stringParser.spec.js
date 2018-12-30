@@ -46,6 +46,15 @@ describe('HED tag groups', function() {
     assert.strictEqual(groupResult, true)
     assert.strictEqual(nonGroupResult, false)
   })
+
+  it('can have its parentheses removed', function() {
+    const groupString =
+      '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)'
+    const formattedString =
+      '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm'
+    const result = validate.stringParser.removeGroupParentheses(groupString)
+    assert.equal(result, formattedString)
+  })
 })
 
 describe('Lists of HED Tags', function() {

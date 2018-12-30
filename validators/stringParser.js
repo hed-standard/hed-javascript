@@ -15,6 +15,10 @@ const hedStringIsAGroup = function(hedString) {
   )
 }
 
+const removeGroupParentheses = function(tagGroup) {
+  return tagGroup.slice(1, -1)
+}
+
 const splitHedString = function(hedString, issues) {
   const delimiter = ','
   const doubleQuoteCharacter = '"'
@@ -96,6 +100,7 @@ const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
 module.exports = {
   hedStringIsEmpty: hedStringIsEmpty,
   hedStringIsAGroup: hedStringIsAGroup,
+  removeGroupParentheses: removeGroupParentheses,
   splitHedString: splitHedString,
   findTopLevelTags: findTopLevelTags,
   formatHedTag: formatHedTag,
