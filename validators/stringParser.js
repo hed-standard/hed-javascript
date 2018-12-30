@@ -84,25 +84,9 @@ const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
   return hedTag.toLowerCase()
 }
 
-const validateHedTag = function(tag, issues) {
-  issues.push('Not yet implemented')
-  return true
-}
-
-const validateHedString = function(hedString, issues) {
-  const hedTags = splitHedString(hedString, issues)
-  let valid = true
-  for (let hedTag of hedTags) {
-    valid = valid && validateHedTag(hedTag, issues)
-  }
-  return valid
-}
-
 module.exports = {
   hedStringIsEmpty: hedStringIsEmpty,
   splitHedString: splitHedString,
   findTopLevelTags: findTopLevelTags,
   formatHedTag: formatHedTag,
-  validateHedTag: validateHedTag,
-  validateHedString: validateHedString,
 }
