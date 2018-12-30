@@ -4,31 +4,31 @@ const validate = require('../index')
 describe('Blank strings', function() {
   it('may be empty', function() {
     const emptyString = ''
-    const result = validate.HED.hedStringIsEmpty(emptyString)
+    const result = validate.stringParser.hedStringIsEmpty(emptyString)
     assert.strictEqual(result, true)
   })
 
   it('may have only whitespace', function() {
     const spaceString = '     '
-    const result = validate.HED.hedStringIsEmpty(spaceString)
+    const result = validate.stringParser.hedStringIsEmpty(spaceString)
     assert.strictEqual(result, true)
   })
 
   it('may not contain letters', function() {
     const aString = 'a'
-    const result = validate.HED.hedStringIsEmpty(aString)
+    const result = validate.stringParser.hedStringIsEmpty(aString)
     assert.strictEqual(result, false)
   })
 
   it('may not contain numbers', function() {
     const oneString = '1'
-    const result = validate.HED.hedStringIsEmpty(oneString)
+    const result = validate.stringParser.hedStringIsEmpty(oneString)
     assert.strictEqual(result, false)
   })
 
   it('may not contain punctuation', function() {
     const slashString = '/'
-    const result = validate.HED.hedStringIsEmpty(slashString)
+    const result = validate.stringParser.hedStringIsEmpty(slashString)
     assert.strictEqual(result, false)
   })
 })
@@ -38,7 +38,7 @@ describe('Lists of HED Tags', function() {
     const hedStr =
       'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
     const issues = []
-    const result = validate.HED.splitHedString(hedStr, issues)
+    const result = validate.stringParser.splitHedString(hedStr, issues)
     assert(result instanceof Array)
   })
 
@@ -46,7 +46,7 @@ describe('Lists of HED Tags', function() {
     const hedStr =
       'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
     const issues = []
-    const result = validate.HED.splitHedString(hedStr, issues)
+    const result = validate.stringParser.splitHedString(hedStr, issues)
     assert.equal(result.length, 3)
   })
 
@@ -54,7 +54,7 @@ describe('Lists of HED Tags', function() {
     const hedStr =
       '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
     const issues = []
-    const result = validate.HED.splitHedString(hedStr, issues)
+    const result = validate.stringParser.splitHedString(hedStr, issues)
     assert.equal(result.length, 4)
   })
 })
@@ -96,10 +96,10 @@ describe('Formatted HED Tags', function() {
       openingAndClosingDoubleQuotedSlashHedTag,
     ]
     // Tests
-    let result = validate.HED.formatHedTag(formattedHedTag)
+    let result = validate.stringParser.formatHedTag(formattedHedTag)
     assert.equal(result, formattedHedTag)
     for (let badlyFormattedTag of badlyFormattedTags) {
-      result = validate.HED.formatHedTag(badlyFormattedTag)
+      result = validate.stringParser.formatHedTag(badlyFormattedTag)
       assert.equal(formattedHedTag, result)
     }
   })
@@ -110,8 +110,8 @@ describe('Top-level HED Tags', function() {
     const hedStr =
       '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
     const issues = []
-    const hedTags = validate.HED.splitHedString(hedStr, issues)
-    const result = validate.HED.findTopLevelTags(hedTags)
+    const hedTags = validate.stringParser.splitHedString(hedStr, issues)
+    const result = validate.stringParser.findTopLevelTags(hedTags)
     assert.equal(hedTags.length, 4)
     assert.equal(result.length, 3)
     assert.equal(issues.length, 0)
@@ -123,7 +123,7 @@ describe('HED Tags', function() {
     const hedStr =
       'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
     const issues = []
-    const result = validate.HED.validateHedString(hedStr, issues)
+    const result = validate.stringParser.validateHedString(hedStr, issues)
     assert.strictEqual(result, true)
   })
 
@@ -131,7 +131,7 @@ describe('HED Tags', function() {
     const hedStr =
       'Event/Category|Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
     const issues = []
-    const result = validate.HED.validateHedString(hedStr, issues)
+    const result = validate.stringParser.validateHedString(hedStr, issues)
     assert.strictEqual(result, false)
   })
 })
