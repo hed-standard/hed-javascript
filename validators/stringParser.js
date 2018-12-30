@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
 
@@ -71,14 +69,47 @@ const splitHedString = function(hedString, issues) {
   return hedTags
 }
 
-const findTopLevelTags = function(hedTags) {
-  let topLevelTags = []
+const findGroupTags = function(groupTagsList, parsedString, issues) {
+  for (let tagOrGroup of groupTagsList) {
+    if (hedStringIsAGroup(tagOrGroup)) {
+      const tagGroupString = removeGroupParentheses(tagOrGroup)
+      const nestedGroupTagList = splitHedString(tagGroupString, issues)
+      findGroupTags(nestedGroupTagList, parsedString, issues)
+      parsedString.groupTags.push(nestedGroupTagList)
+    } else if (!parsedString.tags.includes(tagOrGroup)) {
+      parsedString.tags.push(tagOrGroup)
+    }
+  }
+}
+
+const findTopLevelTags = function(hedTags, parsedString) {
+  const topLevelTags = []
   for (let tagOrGroup of hedTags) {
     if (!hedStringIsAGroup(tagOrGroup)) {
       topLevelTags.push(tagOrGroup)
+      if (!parsedString.tags.includes(tagOrGroup)) {
+        parsedString.tags.push(tagOrGroup)
+      }
     }
   }
   return topLevelTags
+}
+
+const formatHedTagsInList = function(hedTagList, onlyRemoveNewLine = false) {
+  const formattedTagList = []
+  for (let hedTag of hedTagList) {
+    if (hedTag instanceof Array) {
+      const nestedFormattedTagList = formatHedTagsInList(
+        hedTag,
+        onlyRemoveNewLine,
+      )
+      formattedTagList.push(nestedFormattedTagList)
+    } else {
+      const formattedHedTag = formatHedTag(hedTag, onlyRemoveNewLine)
+      formattedTagList.push(formattedHedTag)
+    }
+  }
+  return formattedTagList
 }
 
 const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
@@ -102,11 +133,30 @@ const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
   return hedTag.toLowerCase()
 }
 
+const parseHedString = function(hedString, issues) {
+  const parsedString = { tags: [], groupTags: [], topLevelTags: [] }
+  const hedTagList = splitHedString(hedString)
+  parsedString.topLevelTags = findTopLevelTags(hedTagList, parsedString)
+  findGroupTags(hedTagList, parsedString, issues)
+  parsedString.tags = formatHedTagsInList(parsedString.tags, true)
+  parsedString.groupTags = formatHedTagsInList(parsedString.groupTags, true)
+  parsedString.topLevelTags = formatHedTagsInList(
+    parsedString.topLevelTags,
+    true,
+  )
+  parsedString.formattedTags = formatHedTagsInList(parsedString.tags)
+  parsedString.formattedGroupTags = formatHedTagsInList(parsedString.groupTags)
+  parsedString.formattedTopLevelTags = formatHedTagsInList(
+    parsedString.topLevelTags,
+  )
+  return parsedString
+}
+
 module.exports = {
   hedStringIsEmpty: hedStringIsEmpty,
   hedStringIsAGroup: hedStringIsAGroup,
   removeGroupParentheses: removeGroupParentheses,
   splitHedString: splitHedString,
-  findTopLevelTags: findTopLevelTags,
   formatHedTag: formatHedTag,
+  parseHedString: parseHedString,
 }

@@ -53,7 +53,7 @@ describe('HED tag groups', function() {
     const formattedString =
       '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm'
     const result = validate.stringParser.removeGroupParentheses(groupString)
-    assert.equal(result, formattedString)
+    assert.strictEqual(result, formattedString)
   })
 })
 
@@ -71,7 +71,7 @@ describe('Lists of HED Tags', function() {
       'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
     const issues = []
     const result = validate.stringParser.splitHedString(hedStr, issues)
-    assert.equal(result.length, 3)
+    assert.strictEqual(result.length, 3)
   })
 
   it('should include each group as its own single element', function() {
@@ -79,7 +79,7 @@ describe('Lists of HED Tags', function() {
       '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
     const issues = []
     const result = validate.stringParser.splitHedString(hedStr, issues)
-    assert.equal(result.length, 4)
+    assert.strictEqual(result.length, 4)
   })
 })
 
@@ -121,10 +121,10 @@ describe('Formatted HED Tags', function() {
     ]
     // Tests
     let result = validate.stringParser.formatHedTag(formattedHedTag)
-    assert.equal(result, formattedHedTag)
+    assert.strictEqual(result, formattedHedTag)
     for (let badlyFormattedTag of badlyFormattedTags) {
       result = validate.stringParser.formatHedTag(badlyFormattedTag)
-      assert.equal(formattedHedTag, result)
+      assert.strictEqual(formattedHedTag, result)
     }
   })
 })
@@ -134,8 +134,44 @@ describe('Top-level HED Tags', function() {
     const hedStr =
       '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
     const issues = []
-    const hedTags = validate.stringParser.splitHedString(hedStr, issues)
-    const result = validate.stringParser.findTopLevelTags(hedTags)
-    assert.equal(result.length, 3)
+    const parsedString = validate.stringParser.parseHedString(hedStr, issues)
+    assert.strictEqual(parsedString.topLevelTags.length, 3)
+  })
+})
+
+describe('Parsed HED Tags', function() {
+  it('must have the correct number of tags, top-level tags, and groups', function() {
+    const hedStr =
+      '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
+    const issues = []
+    const parsedString = validate.stringParser.parseHedString(hedStr, issues)
+    assert.strictEqual(parsedString.tags.length, 5)
+    assert.strictEqual(parsedString.topLevelTags.length, 3)
+    assert.strictEqual(parsedString.groupTags.length, 1)
+  })
+
+  it('must include properly formatted tags', function() {
+    const hedStr =
+      '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
+    const formattedHedStr =
+      'action/reach/to touch,(attribute/object side/left,participant/effect/body part/arm),attribute/location/screen/top/70 px,attribute/location/screen/left/23 px'
+    const issues = []
+    const parsedString = validate.stringParser.parseHedString(hedStr, issues)
+    const parsedFormattedString = validate.stringParser.parseHedString(
+      formattedHedStr,
+      issues,
+    )
+    assert.deepStrictEqual(
+      parsedString.formattedTags,
+      parsedFormattedString.tags,
+    )
+    assert.deepStrictEqual(
+      parsedString.formattedGroupTags,
+      parsedFormattedString.groupTags,
+    )
+    assert.deepStrictEqual(
+      parsedString.formattedTopLevelTags,
+      parsedFormattedString.topLevelTags,
+    )
   })
 })

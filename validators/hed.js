@@ -6,7 +6,8 @@ const validateHedTag = function(tag, issues) {
 }
 
 const validateHedString = function(hedString, issues) {
-  const hedTags = stringParser.splitHedString(hedString, issues)
+  const parsedString = stringParser.parseHedString(hedString, issues)
+  const hedTags = parsedString.tags
   let valid = true
   for (let hedTag of hedTags) {
     valid = valid && validateHedTag(hedTag, issues)
