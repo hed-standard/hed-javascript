@@ -42,12 +42,20 @@ describe('Lists of HED Tags', function() {
     assert(result instanceof Array)
   })
 
-  it('should have the correct number of elements', function() {
+  it('should include each top-level tag as its own single element', function() {
     const hedStr =
       'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
     const issues = []
     const result = validate.HED.splitHedString(hedStr, issues)
     assert.equal(result.length, 3)
+  })
+
+  it('should include each group as its own single element', function() {
+    const hedStr =
+      '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
+    const issues = []
+    const result = validate.HED.splitHedString(hedStr, issues)
+    assert.equal(result.length, 4)
   })
 })
 

@@ -10,25 +10,39 @@ const splitHedString = function(hedString, issues) {
   const openingGroupCharacter = '('
   const closingGroupCharacter = ')'
   const tilde = '~'
-  const currentlyInvalidCharacters = [
-    openingGroupCharacter,
-    closingGroupCharacter,
-    tilde,
-  ]
+  const invalidCharacters = ['{', '}']
 
   const hedTags = []
+  let numberOfOpeningParentheses = 0
+  let numberOfClosingParentheses = 0
   let currentTag = ''
   for (let i = 0; i < hedString.length; i++) {
     let character = hedString.charAt(i)
     if (character == doubleQuoteCharacter) {
       continue
-    } else if (character == delimiter) {
+    } else if (character == openingGroupCharacter) {
+      numberOfOpeningParentheses++
+    } else if (character == closingGroupCharacter) {
+      numberOfClosingParentheses++
+    } else if (
+      numberOfOpeningParentheses == numberOfClosingParentheses &&
+      character == tilde
+    ) {
+      if (!hedStringIsEmpty(currentTag)) {
+        hedTags.push(currentTag.trim())
+      }
+      hedTags.push(tilde)
+      currentTag = ''
+    } else if (
+      numberOfOpeningParentheses == numberOfClosingParentheses &&
+      character == delimiter
+    ) {
       if (!hedStringIsEmpty(currentTag)) {
         hedTags.push(currentTag.trim())
       }
       currentTag = ''
-    } else if (currentlyInvalidCharacters.includes(character)) {
-      issues.push('Unsupported grouping character')
+    } else if (invalidCharacters.includes(character)) {
+      issues.push('Unsupported character')
       if (!hedStringIsEmpty(currentTag)) {
         hedTags.push(currentTag.trim())
       }
