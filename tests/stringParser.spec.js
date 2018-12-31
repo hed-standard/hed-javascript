@@ -1,38 +1,6 @@
 const assert = require('assert')
 const validate = require('../index')
 
-describe('Blank strings', function() {
-  it('may be empty', function() {
-    const emptyString = ''
-    const result = validate.stringParser.hedStringIsEmpty(emptyString)
-    assert.strictEqual(result, true)
-  })
-
-  it('may have only whitespace', function() {
-    const spaceString = '     '
-    const result = validate.stringParser.hedStringIsEmpty(spaceString)
-    assert.strictEqual(result, true)
-  })
-
-  it('may not contain letters', function() {
-    const aString = 'a'
-    const result = validate.stringParser.hedStringIsEmpty(aString)
-    assert.strictEqual(result, false)
-  })
-
-  it('may not contain numbers', function() {
-    const oneString = '1'
-    const result = validate.stringParser.hedStringIsEmpty(oneString)
-    assert.strictEqual(result, false)
-  })
-
-  it('may not contain punctuation', function() {
-    const slashString = '/'
-    const result = validate.stringParser.hedStringIsEmpty(slashString)
-    assert.strictEqual(result, false)
-  })
-})
-
 describe('HED tag groups', function() {
   it('must be surrounded by parentheses', function() {
     const groupString =

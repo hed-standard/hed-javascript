@@ -1,9 +1,7 @@
+const utils = require('../utils')
+
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
-
-const hedStringIsEmpty = function(hedString) {
-  return !hedString.trim()
-}
 
 const hedStringIsAGroup = function(hedString) {
   const trimmedHedString = hedString.trim()
@@ -40,7 +38,7 @@ const splitHedString = function(hedString, issues) {
       numberOfOpeningParentheses == numberOfClosingParentheses &&
       character == tilde
     ) {
-      if (!hedStringIsEmpty(currentTag)) {
+      if (!utils.string.stringIsEmpty(currentTag)) {
         hedTags.push(currentTag.trim())
       }
       hedTags.push(tilde)
@@ -49,13 +47,13 @@ const splitHedString = function(hedString, issues) {
       numberOfOpeningParentheses == numberOfClosingParentheses &&
       character == delimiter
     ) {
-      if (!hedStringIsEmpty(currentTag)) {
+      if (!utils.string.stringIsEmpty(currentTag)) {
         hedTags.push(currentTag.trim())
       }
       currentTag = ''
     } else if (invalidCharacters.includes(character)) {
       issues.push('Unsupported character')
-      if (!hedStringIsEmpty(currentTag)) {
+      if (!utils.string.stringIsEmpty(currentTag)) {
         hedTags.push(currentTag.trim())
       }
       currentTag = ''
@@ -63,7 +61,7 @@ const splitHedString = function(hedString, issues) {
       currentTag += character
     }
   }
-  if (!hedStringIsEmpty(currentTag)) {
+  if (!utils.string.stringIsEmpty(currentTag)) {
     hedTags.push(currentTag.trim())
   }
   return hedTags
@@ -153,7 +151,6 @@ const parseHedString = function(hedString, issues) {
 }
 
 module.exports = {
-  hedStringIsEmpty: hedStringIsEmpty,
   hedStringIsAGroup: hedStringIsAGroup,
   removeGroupParentheses: removeGroupParentheses,
   splitHedString: splitHedString,

@@ -1,3 +1,4 @@
+const utils = require('../utils')
 const stringParser = require('./stringParser')
 
 const openingGroupCharacter = '('
@@ -6,17 +7,9 @@ const comma = ','
 const tilde = '~'
 const delimiters = [comma, tilde]
 
-const stringIsEmpty = function(string) {
-  return !string.trim()
-}
-
-const getCharacterCount = function(string, characterToCount) {
-  return string.split(characterToCount).length - 1
-}
-
 const countTagGroupBrackets = function(hedString, issues) {
-  const numberOfOpeningBrackets = getCharacterCount(hedString, '(')
-  const numberOfClosingBrackets = getCharacterCount(hedString, ')')
+  const numberOfOpeningBrackets = utils.string.getCharacterCount(hedString, '(')
+  const numberOfClosingBrackets = utils.string.getCharacterCount(hedString, ')')
   if (numberOfOpeningBrackets !== numberOfClosingBrackets) {
     issues.push(
       'ERROR: Number of opening and closing brackets are unequal. ' +
@@ -59,7 +52,7 @@ const findCommaIssuesInHedString = function(hedString, issues) {
   for (let i = 0; i < hedString.length; i++) {
     const currentCharacter = hedString.charAt(i)
     currentTag += currentCharacter
-    if (stringIsEmpty(currentCharacter)) {
+    if (utils.string.stringIsEmpty(currentCharacter)) {
       continue
     }
     if (delimiters.includes(currentCharacter)) {
