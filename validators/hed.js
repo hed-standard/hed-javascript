@@ -83,26 +83,86 @@ const validateFullHedString = function(hedString, issues) {
   return issues.length === 0
 }
 
-const validateHedTag = function(tag, issues) {
-  issues.push('Not yet implemented')
+const camelCase = /([A-Z-]+\s*[a-z-]*)+/
+
+const checkCapitalization = function(originalTag, formattedTag, issues) {
+  const tagNames = originalTag.split('/')
+  /* if (tagTakesValue(formattedTag)) {
+    tagNames.pop()
+  } */
+  for (let tagName of tagNames) {
+    const correctTagName = utils.string.capitalizeString(tagName)
+    if (tagName !== correctTagName && !camelCase.test(tagName)) {
+      issues.push(
+        'WARNING: First word not capitalized or camel case - ' + originalTag,
+      )
+      return false
+    }
+  }
   return true
 }
 
-const validateHedString = function(hedString, issues) {
+const validateIndividualHedTag = function(
+  originalTag,
+  formattedTag,
+  previousOriginalTag,
+  previousFormattedTag,
+  issues,
+  checkForWarnings,
+) {
+  let valid = true
+  // TODO: Implement semantic validations
+  if (checkForWarnings) {
+    valid = valid && checkCapitalization(originalTag, formattedTag, issues)
+  }
+  return valid
+}
+
+const validateIndividualHedTags = function(
+  parsedString,
+  issues,
+  checkForWarnings,
+) {
+  let valid = true
+  let previousOriginalTag = ''
+  let previousFormattedTag = ''
+  for (let i = 0; i < parsedString.tags.length; i++) {
+    const originalTag = parsedString.tags[i]
+    const formattedTag = parsedString.formattedTags[i]
+    valid =
+      valid &&
+      validateIndividualHedTag(
+        originalTag,
+        formattedTag,
+        previousOriginalTag,
+        previousFormattedTag,
+        issues,
+        checkForWarnings,
+      )
+    previousOriginalTag = originalTag
+    previousFormattedTag = formattedTag
+  }
+  return valid
+}
+
+const validateHedString = function(
+  hedString,
+  issues,
+  checkForWarnings = false,
+) {
   const isFullHedStringValid = validateFullHedString(hedString, issues)
   if (!isFullHedStringValid) {
     return false
   }
   const parsedString = stringParser.parseHedString(hedString, issues)
-  const hedTags = parsedString.tags
   let valid = true
-  for (let hedTag of hedTags) {
-    valid = valid && validateHedTag(hedTag, issues)
-  }
+  valid =
+    valid && validateIndividualHedTags(parsedString, issues, checkForWarnings)
   return valid
 }
 
 module.exports = {
   validateFullHedString: validateFullHedString,
+  validateIndividualHedTags: validateIndividualHedTags,
   validateHedString: validateHedString,
 }

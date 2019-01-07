@@ -64,6 +64,50 @@ describe('Full HED Strings', function() {
   })
 })
 
+describe('Individual HED Tags', function() {
+  it('should have properly capitalized names', function() {
+    const properTag = 'Event/Category/Experimental stimulus'
+    const camelCaseTag = 'DoubleEvent/Something'
+    const badTag = 'Event/something'
+    const properTagIssues = []
+    const camelCaseTagIssues = []
+    const badTagIssues = []
+    const parsedProperTag = validate.stringParser.parseHedString(
+      properTag,
+      properTagIssues,
+    )
+    const parsedCamelCaseTag = validate.stringParser.parseHedString(
+      camelCaseTag,
+      camelCaseTagIssues,
+    )
+    const parsedBadTag = validate.stringParser.parseHedString(
+      badTag,
+      badTagIssues,
+    )
+    const properTagResult = validate.HED.validateIndividualHedTags(
+      parsedProperTag,
+      properTagIssues,
+      true,
+    )
+    const camelCaseTagResult = validate.HED.validateIndividualHedTags(
+      parsedCamelCaseTag,
+      camelCaseTagIssues,
+      true,
+    )
+    const badTagResult = validate.HED.validateIndividualHedTags(
+      parsedBadTag,
+      badTagIssues,
+      true,
+    )
+    assert.strictEqual(properTagResult, true)
+    assert.strictEqual(camelCaseTagResult, true)
+    assert.strictEqual(badTagResult, false)
+    assert.strictEqual(properTagIssues.length, 0)
+    assert.strictEqual(camelCaseTagIssues.length, 0)
+    assert.strictEqual(badTagIssues.length, 1)
+  })
+})
+
 describe('HED Tags', function() {
   it('should comprise valid comma-separated paths', function() {
     const hedStr =
