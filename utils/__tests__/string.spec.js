@@ -32,3 +32,17 @@ describe('Blank strings', function() {
     assert.strictEqual(result, false)
   })
 })
+
+describe('Capitalized strings', function() {
+  it('must have a capitalized first letter', function() {
+    const testString = 'to be'
+    const result = utils.string.capitalizeString(testString)
+    assert.strictEqual(result, 'To be')
+  })
+
+  it('must not change letters after the first letter', function() {
+    const testString = 'to BE or NOT to BE'
+    const result = utils.string.capitalizeString(testString)
+    assert.strictEqual(result, 'To BE or NOT to BE')
+  })
+})
