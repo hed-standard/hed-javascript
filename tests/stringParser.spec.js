@@ -1,6 +1,29 @@
 const assert = require('assert')
 const validate = require('../index')
 
+describe('HED strings', function() {
+  it('cannot have invalid characters', function() {
+    const invalidString1 =
+      '/Attribute/Object side/Left,/Participant/Effect{/Body part/Arm'
+    const invalidString2 =
+      '/Attribute/Object side/Left,/Participant/Effect}/Body part/Arm'
+    const issues1 = []
+    const issues2 = []
+    const result1 = validate.stringParser.splitHedString(
+      invalidString1,
+      issues1,
+    )
+    const result2 = validate.stringParser.splitHedString(
+      invalidString2,
+      issues2,
+    )
+    assert.strictEqual(issues1.length, 1)
+    assert.strictEqual(issues2.length, 1)
+    assert.strictEqual(result1.length, 3)
+    assert.strictEqual(result2.length, 3)
+  })
+})
+
 describe('HED tag groups', function() {
   it('must be surrounded by parentheses', function() {
     const groupString =
@@ -48,6 +71,36 @@ describe('Lists of HED Tags', function() {
     const issues = []
     const result = validate.stringParser.splitHedString(hedStr, issues)
     assert.strictEqual(result.length, 4)
+  })
+
+  it('should handle tildes', function() {
+    const hedStr =
+      '/Item/Object/Vehicle/Car ~ /Attribute/Object control/Perturb'
+    const issues = []
+    const result = validate.stringParser.splitHedString(hedStr, issues)
+    assert.strictEqual(issues.length, 0)
+    assert.strictEqual(result.length, 3)
+    assert.strictEqual(result[1], '~')
+  })
+
+  it('should not include double quotes', function() {
+    const doubleQuoteString =
+      'Event/Category/Experimental stimulus,"Item/Object/Vehicle/Train",Attribute/Visual/Color/Purple'
+    const normalString =
+      'Event/Category/Experimental stimulus,"Item/Object/Vehicle/Train",Attribute/Visual/Color/Purple'
+    const doubleQuoteIssues = []
+    const normalIssues = []
+    const doubleQuoteResult = validate.stringParser.splitHedString(
+      doubleQuoteString,
+      doubleQuoteIssues,
+    )
+    const normalResult = validate.stringParser.splitHedString(
+      normalString,
+      normalIssues,
+    )
+    assert.strictEqual(doubleQuoteIssues.length, 0)
+    assert.strictEqual(normalIssues.length, 0)
+    assert.deepStrictEqual(doubleQuoteResult, normalResult)
   })
 })
 
