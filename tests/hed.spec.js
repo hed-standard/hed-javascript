@@ -108,6 +108,50 @@ describe('Individual HED Tags', function() {
   })
 })
 
+describe('HED Tag Levels', function() {
+  it('should not contain duplicates', function() {
+    const topLevelDuplicateString =
+      'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus'
+    const groupDuplicateString =
+      'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Event/Category/Experimental stimulus)'
+    const validString =
+      'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
+    const topLevelDuplicateIssues = []
+    const groupDuplicateIssues = []
+    const validIssues = []
+    const parsedTopLevelDuplicateString = validate.stringParser.parseHedString(
+      topLevelDuplicateString,
+      topLevelDuplicateIssues,
+    )
+    const parsedGroupDuplicateString = validate.stringParser.parseHedString(
+      groupDuplicateString,
+      groupDuplicateIssues,
+    )
+    const parsedValidString = validate.stringParser.parseHedString(
+      validString,
+      validIssues,
+    )
+    const topLevelDuplicateResult = validate.HED.validateHedTagLevels(
+      parsedTopLevelDuplicateString,
+      topLevelDuplicateIssues,
+    )
+    const groupDuplicateResult = validate.HED.validateHedTagLevels(
+      parsedGroupDuplicateString,
+      groupDuplicateIssues,
+    )
+    const validResult = validate.HED.validateHedTagLevels(
+      parsedValidString,
+      validIssues,
+    )
+    assert.deepStrictEqual(topLevelDuplicateResult, false)
+    assert.deepStrictEqual(groupDuplicateResult, false)
+    assert.deepStrictEqual(validResult, true)
+    assert.deepStrictEqual(topLevelDuplicateIssues.length, 1)
+    assert.deepStrictEqual(groupDuplicateIssues.length, 1)
+    assert.deepStrictEqual(validIssues.length, 0)
+  })
+})
+
 describe('HED Tags', function() {
   it('should comprise valid comma-separated paths', function() {
     const hedStr =

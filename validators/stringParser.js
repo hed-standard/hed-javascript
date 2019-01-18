@@ -67,13 +67,13 @@ const splitHedString = function(hedString, issues) {
   return hedTags
 }
 
-const findGroupTags = function(groupTagsList, parsedString, issues) {
+const findTagGroups = function(groupTagsList, parsedString, issues) {
   for (let tagOrGroup of groupTagsList) {
     if (hedStringIsAGroup(tagOrGroup)) {
       const tagGroupString = removeGroupParentheses(tagOrGroup)
       const nestedGroupTagList = splitHedString(tagGroupString, issues)
-      findGroupTags(nestedGroupTagList, parsedString, issues)
-      parsedString.groupTags.push(nestedGroupTagList)
+      findTagGroups(nestedGroupTagList, parsedString, issues)
+      parsedString.tagGroups.push(nestedGroupTagList)
     } else if (!parsedString.tags.includes(tagOrGroup)) {
       parsedString.tags.push(tagOrGroup)
     }
@@ -132,18 +132,18 @@ const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
 }
 
 const parseHedString = function(hedString, issues) {
-  const parsedString = { tags: [], groupTags: [], topLevelTags: [] }
+  const parsedString = { tags: [], tagGroups: [], topLevelTags: [] }
   const hedTagList = splitHedString(hedString)
   parsedString.topLevelTags = findTopLevelTags(hedTagList, parsedString)
-  findGroupTags(hedTagList, parsedString, issues)
+  findTagGroups(hedTagList, parsedString, issues)
   parsedString.tags = formatHedTagsInList(parsedString.tags, true)
-  parsedString.groupTags = formatHedTagsInList(parsedString.groupTags, true)
+  parsedString.tagGroups = formatHedTagsInList(parsedString.tagGroups, true)
   parsedString.topLevelTags = formatHedTagsInList(
     parsedString.topLevelTags,
     true,
   )
   parsedString.formattedTags = formatHedTagsInList(parsedString.tags)
-  parsedString.formattedGroupTags = formatHedTagsInList(parsedString.groupTags)
+  parsedString.formattedTagGroups = formatHedTagsInList(parsedString.tagGroups)
   parsedString.formattedTopLevelTags = formatHedTagsInList(
     parsedString.topLevelTags,
   )

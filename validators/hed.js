@@ -86,6 +86,7 @@ const validateFullHedString = function(hedString, issues) {
 const camelCase = /([A-Z-]+\s*[a-z-]*)+/
 
 const checkCapitalization = function(originalTag, formattedTag, issues) {
+  let valid = true
   const tagNames = originalTag.split('/')
   /* if (tagTakesValue(formattedTag)) {
     tagNames.pop()
@@ -96,10 +97,38 @@ const checkCapitalization = function(originalTag, formattedTag, issues) {
       issues.push(
         'WARNING: First word not capitalized or camel case - ' + originalTag,
       )
-      return false
+      valid = false
     }
   }
-  return true
+  return valid
+}
+
+const checkForDuplicateTags = function(
+  originalTagList,
+  formattedTagList,
+  issues,
+) {
+  let valid = true
+  const tagListLength = formattedTagList.length
+  const duplicateIndices = []
+  for (let i = 0; i < tagListLength; i++) {
+    for (let j = 0; j < tagListLength; j++) {
+      if (i === j) {
+        continue
+      }
+      if (
+        formattedTagList[i] !== tilde &&
+        formattedTagList[i] === formattedTagList[j] &&
+        !duplicateIndices.includes(i) &&
+        !duplicateIndices.includes(j)
+      ) {
+        duplicateIndices.push(i, j)
+        issues.push('ERROR: Duplicate tag - "' + originalTagList[i] + '"')
+        valid = false
+      }
+    }
+  }
+  return valid
 }
 
 const validateIndividualHedTag = function(
@@ -145,6 +174,36 @@ const validateIndividualHedTags = function(
   return valid
 }
 
+const validateHedTagLevel = function(
+  originalTagList,
+  formattedTagList,
+  issues,
+) {
+  let valid = true
+  // TODO: Implement semantic validations
+  // valid = valid && checkForMultipleUniqueTags(originalTagList, formattedTagList)
+  valid =
+    valid && checkForDuplicateTags(originalTagList, formattedTagList, issues)
+  return valid
+}
+
+const validateHedTagLevels = function(parsedString, issues) {
+  let valid = true
+  for (let i = 0; i < parsedString.tagGroups.length; i++) {
+    const originalTag = parsedString.tagGroups[i]
+    const formattedTag = parsedString.formattedTagGroups[i]
+    valid = valid && validateHedTagLevel(originalTag, formattedTag, issues)
+  }
+  valid =
+    valid &&
+    validateHedTagLevel(
+      parsedString.topLevelTags,
+      parsedString.formattedTopLevelTags,
+      issues,
+    )
+  return valid
+}
+
 const validateHedString = function(
   hedString,
   issues,
@@ -158,11 +217,13 @@ const validateHedString = function(
   let valid = true
   valid =
     valid && validateIndividualHedTags(parsedString, issues, checkForWarnings)
+  valid = valid && validateHedTagLevels(parsedString, issues)
   return valid
 }
 
 module.exports = {
   validateFullHedString: validateFullHedString,
   validateIndividualHedTags: validateIndividualHedTags,
+  validateHedTagLevels: validateHedTagLevels,
   validateHedString: validateHedString,
 }

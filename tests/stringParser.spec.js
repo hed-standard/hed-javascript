@@ -168,7 +168,7 @@ describe('Parsed HED Tags', function() {
     const parsedString = validate.stringParser.parseHedString(hedStr, issues)
     assert.strictEqual(parsedString.tags.length, 5)
     assert.strictEqual(parsedString.topLevelTags.length, 3)
-    assert.strictEqual(parsedString.groupTags.length, 1)
+    assert.strictEqual(parsedString.tagGroups.length, 1)
   })
 
   it('must include properly formatted tags', function() {
@@ -187,8 +187,8 @@ describe('Parsed HED Tags', function() {
       parsedFormattedString.tags,
     )
     assert.deepStrictEqual(
-      parsedString.formattedGroupTags,
-      parsedFormattedString.groupTags,
+      parsedString.formattedTagGroups,
+      parsedFormattedString.tagGroups,
     )
     assert.deepStrictEqual(
       parsedString.formattedTopLevelTags,
