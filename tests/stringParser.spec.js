@@ -7,8 +7,14 @@ describe('HED strings', function() {
       '/Attribute/Object side/Left,/Participant/Effect{/Body part/Arm'
     const invalidString2 =
       '/Attribute/Object side/Left,/Participant/Effect}/Body part/Arm'
+    const invalidString3 =
+      '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm'
+    const invalidString4 =
+      '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm'
     const issues1 = []
     const issues2 = []
+    const issues3 = []
+    const issues4 = []
     const result1 = validate.stringParser.splitHedString(
       invalidString1,
       issues1,
@@ -17,10 +23,22 @@ describe('HED strings', function() {
       invalidString2,
       issues2,
     )
+    const result3 = validate.stringParser.splitHedString(
+      invalidString3,
+      issues3,
+    )
+    const result4 = validate.stringParser.splitHedString(
+      invalidString4,
+      issues4,
+    )
     assert.strictEqual(issues1.length, 1)
     assert.strictEqual(issues2.length, 1)
+    assert.strictEqual(issues3.length, 1)
+    assert.strictEqual(issues4.length, 1)
     assert.strictEqual(result1.length, 3)
     assert.strictEqual(result2.length, 3)
+    assert.strictEqual(result3.length, 3)
+    assert.strictEqual(result4.length, 3)
   })
 })
 

@@ -19,7 +19,7 @@ const splitHedString = function(hedString, issues) {
   const delimiter = ','
   const doubleQuoteCharacter = '"'
   const tilde = '~'
-  const invalidCharacters = ['{', '}']
+  const invalidCharacters = ['{', '}', '[', ']']
 
   const hedTags = []
   let numberOfOpeningParentheses = 0
