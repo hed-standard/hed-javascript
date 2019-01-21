@@ -137,6 +137,15 @@ const checkForDuplicateTags = function(
   return valid
 }
 
+const checkNumberOfGroupTildes = function(originalTagGroup, issues) {
+  const tildeCount = utils.string.getCharacterCount(originalTagGroup, tilde)
+  if (tildeCount > 2) {
+    issues.push('ERROR: Too many tildes - group "' + originalTagGroup + '"')
+    return false
+  }
+  return true
+}
+
 const validateIndividualHedTag = function(
   originalTag,
   formattedTag,
@@ -210,6 +219,21 @@ const validateHedTagLevels = function(parsedString, issues) {
   return valid
 }
 
+const validateHedTagGroup = function(originalTagGroup, issues) {
+  let valid = true
+  valid = valid && checkNumberOfGroupTildes(originalTagGroup, issues)
+  return valid
+}
+
+const validateHedTagGroups = function(parsedString, issues) {
+  let valid = true
+  for (let i = 0; i < parsedString.tagGroups.length; i++) {
+    const originalTag = parsedString.tagGroups[i]
+    valid = valid && validateHedTagGroup(originalTag, issues)
+  }
+  return valid
+}
+
 const validateHedString = function(
   hedString,
   issues,
@@ -224,12 +248,14 @@ const validateHedString = function(
   valid =
     valid && validateIndividualHedTags(parsedString, issues, checkForWarnings)
   valid = valid && validateHedTagLevels(parsedString, issues)
+  valid = valid && validateHedTagGroups(parsedString, issues)
   return valid
 }
 
 module.exports = {
   validateFullHedString: validateFullHedString,
   validateIndividualHedTags: validateIndividualHedTags,
+  validateHedTagGroups: validateHedTagGroups,
   validateHedTagLevels: validateHedTagLevels,
   validateHedString: validateHedString,
 }
