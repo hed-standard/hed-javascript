@@ -7,21 +7,27 @@ const comma = ','
 const tilde = '~'
 const delimiters = [comma, tilde]
 
-const countTagGroupBrackets = function(hedString, issues) {
-  const numberOfOpeningBrackets = utils.string.getCharacterCount(hedString, '(')
-  const numberOfClosingBrackets = utils.string.getCharacterCount(hedString, ')')
-  if (numberOfOpeningBrackets !== numberOfClosingBrackets) {
+const countTagGroupParentheses = function(hedString, issues) {
+  const numberOfOpeningParentheses = utils.string.getCharacterCount(
+    hedString,
+    openingGroupCharacter,
+  )
+  const numberOfClosingParentheses = utils.string.getCharacterCount(
+    hedString,
+    closingGroupCharacter,
+  )
+  if (numberOfOpeningParentheses !== numberOfClosingParentheses) {
     issues.push(
-      'ERROR: Number of opening and closing brackets are unequal. ' +
-        numberOfOpeningBrackets +
-        ' opening brackets. ' +
-        numberOfClosingBrackets +
-        ' closing brackets',
+      'ERROR: Number of opening and closing parentheses are unequal. ' +
+        numberOfOpeningParentheses +
+        ' opening parentheses. ' +
+        numberOfClosingParentheses +
+        ' closing parentheses',
     )
   }
 }
 
-const isCommaMissingBeforeOpeningBracket = function(
+const isCommaMissingBeforeOpeningParenthesis = function(
   lastNonEmptyCharacter,
   currentCharacter,
 ) {
@@ -32,7 +38,7 @@ const isCommaMissingBeforeOpeningBracket = function(
   )
 }
 
-const isCommaMissingBeforeClosingBracket = function(
+const isCommaMissingBeforeClosingParenthesis = function(
   lastNonEmptyCharacter,
   currentCharacter,
 ) {
@@ -61,11 +67,11 @@ const findCommaIssuesInHedString = function(hedString, issues) {
     /*if () {
       // TODO: Semantic validation.
     } else */ if (
-      isCommaMissingBeforeOpeningBracket(
+      isCommaMissingBeforeOpeningParenthesis(
         lastNonEmptyCharacter,
         currentCharacter,
       ) ||
-      isCommaMissingBeforeClosingBracket(
+      isCommaMissingBeforeClosingParenthesis(
         lastNonEmptyCharacter,
         currentCharacter,
       )
@@ -78,7 +84,7 @@ const findCommaIssuesInHedString = function(hedString, issues) {
 }
 
 const validateFullHedString = function(hedString, issues) {
-  countTagGroupBrackets(hedString, issues)
+  countTagGroupParentheses(hedString, issues)
   findCommaIssuesInHedString(hedString, issues)
   return issues.length === 0
 }
