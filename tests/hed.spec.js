@@ -113,12 +113,15 @@ describe('HED Tag Levels', function() {
     const topLevelDuplicateString =
       'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus'
     const groupDuplicateString =
-      'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Event/Category/Experimental stimulus)'
-    const validString =
+      'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Attribute/Visual/Color/Purple,Event/Category/Experimental stimulus)'
+    const noDuplicateString =
       'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
+    const legalDuplicateString =
+      'Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)'
     const topLevelDuplicateIssues = []
     const groupDuplicateIssues = []
-    const validIssues = []
+    const noDuplicateIssues = []
+    const legalDuplicateIssues = []
     const parsedTopLevelDuplicateString = validate.stringParser.parseHedString(
       topLevelDuplicateString,
       topLevelDuplicateIssues,
@@ -127,9 +130,13 @@ describe('HED Tag Levels', function() {
       groupDuplicateString,
       groupDuplicateIssues,
     )
-    const parsedValidString = validate.stringParser.parseHedString(
-      validString,
-      validIssues,
+    const parsedNoDuplicateString = validate.stringParser.parseHedString(
+      noDuplicateString,
+      noDuplicateIssues,
+    )
+    const parsedLegalDuplicateString = validate.stringParser.parseHedString(
+      legalDuplicateString,
+      legalDuplicateIssues,
     )
     const topLevelDuplicateResult = validate.HED.validateHedTagLevels(
       parsedTopLevelDuplicateString,
@@ -139,16 +146,22 @@ describe('HED Tag Levels', function() {
       parsedGroupDuplicateString,
       groupDuplicateIssues,
     )
-    const validResult = validate.HED.validateHedTagLevels(
-      parsedValidString,
-      validIssues,
+    const noDuplicateResult = validate.HED.validateHedTagLevels(
+      parsedNoDuplicateString,
+      noDuplicateIssues,
+    )
+    const legalDuplicateResult = validate.HED.validateHedTagLevels(
+      parsedLegalDuplicateString,
+      legalDuplicateIssues,
     )
     assert.deepStrictEqual(topLevelDuplicateResult, false)
     assert.deepStrictEqual(groupDuplicateResult, false)
-    assert.deepStrictEqual(validResult, true)
+    assert.deepStrictEqual(legalDuplicateResult, true)
+    assert.deepStrictEqual(noDuplicateResult, true)
     assert.deepStrictEqual(topLevelDuplicateIssues.length, 1)
     assert.deepStrictEqual(groupDuplicateIssues.length, 1)
-    assert.deepStrictEqual(validIssues.length, 0)
+    assert.deepStrictEqual(noDuplicateIssues.length, 0)
+    assert.deepStrictEqual(legalDuplicateIssues.length, 0)
   })
 })
 
