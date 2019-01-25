@@ -253,7 +253,6 @@ const validateHedString = function(
 }
 
 module.exports = {
-  validateFullHedString: validateFullHedString,
   validateIndividualHedTags: validateIndividualHedTags,
   validateHedTagGroups: validateHedTagGroups,
   validateHedTagLevels: validateHedTagLevels,

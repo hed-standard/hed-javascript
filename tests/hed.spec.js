@@ -10,20 +10,17 @@ describe('Full HED Strings', function() {
     const validString =
       '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
     const extraOpeningIssues = []
-    const extraOpeningResult = validate.HED.validateFullHedString(
+    const extraOpeningResult = validate.HED.validateHedString(
       extraOpeningString,
       extraOpeningIssues,
     )
     const extraClosingIssues = []
-    const extraClosingResult = validate.HED.validateFullHedString(
+    const extraClosingResult = validate.HED.validateHedString(
       extraClosingString,
       extraClosingIssues,
     )
     const validIssues = []
-    const validResult = validate.HED.validateFullHedString(
-      validString,
-      validIssues,
-    )
+    const validResult = validate.HED.validateHedString(validString, validIssues)
     assert.strictEqual(extraOpeningResult, false)
     assert.strictEqual(extraClosingResult, false)
     assert.strictEqual(validResult, true)
@@ -41,20 +38,17 @@ describe('Full HED Strings', function() {
     const validString =
       '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
     const missingOpeningIssues = []
-    const missingOpeningResult = validate.HED.validateFullHedString(
+    const missingOpeningResult = validate.HED.validateHedString(
       missingOpeningString,
       missingOpeningIssues,
     )
     const missingClosingIssues = []
-    const missingClosingResult = validate.HED.validateFullHedString(
+    const missingClosingResult = validate.HED.validateHedString(
       missingClosingString,
       missingClosingIssues,
     )
     const validIssues = []
-    const validResult = validate.HED.validateFullHedString(
-      validString,
-      validIssues,
-    )
+    const validResult = validate.HED.validateHedString(validString, validIssues)
     assert.strictEqual(missingOpeningResult, false)
     assert.strictEqual(missingClosingResult, false)
     assert.strictEqual(validResult, true)
