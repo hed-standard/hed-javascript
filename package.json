@@ -17,7 +17,7 @@
     "codecov": "./node_modules/.bin/codecov",
     "npmPublish": "publish"
   },
-  "author": [
+  "contributors": [
     "Alexander Jones",
     "Kay Robbins"
   ],
