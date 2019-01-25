@@ -1,5 +1,5 @@
 {
-  "name": "hed-bids-validator",
+  "name": "hed-validator",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
