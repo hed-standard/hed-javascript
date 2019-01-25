@@ -120,6 +120,60 @@ describe('Lists of HED Tags', function() {
     assert.strictEqual(normalIssues.length, 0)
     assert.deepStrictEqual(doubleQuoteResult, normalResult)
   })
+
+  it('should not include blanks', function() {
+    const doubleTildeString =
+      '/Item/Object/Vehicle/Car~~/Attribute/Object control/Perturb'
+    const doubleCommaString =
+      '/Item/Object/Vehicle/Car,,/Attribute/Object control/Perturb'
+    const doubleInvalidCharacterString =
+      '/Item/Object/Vehicle/Car[]/Attribute/Object control/Perturb'
+    const trailingBlankString =
+      '/Item/Object/Vehicle/Car,/Attribute/Object control/Perturb,'
+    const doubleTildeIssues = []
+    const doubleCommaIssues = []
+    const doubleInvalidCharacterIssues = []
+    const trailingBlankIssues = []
+    const correctDoubleTildeList = [
+      '/Item/Object/Vehicle/Car',
+      '~',
+      '~',
+      '/Attribute/Object control/Perturb',
+    ]
+    const correctDoubleCommaList = [
+      '/Item/Object/Vehicle/Car',
+      '/Attribute/Object control/Perturb',
+    ]
+    const correctDoubleInvalidCharacterList = correctDoubleCommaList
+    const correctTrailingCharacterList = correctDoubleCommaList
+    const doubleTildeResult = validate.stringParser.splitHedString(
+      doubleTildeString,
+      doubleTildeIssues,
+    )
+    const doubleCommaResult = validate.stringParser.splitHedString(
+      doubleCommaString,
+      doubleCommaIssues,
+    )
+    const doubleInvalidCharacterResult = validate.stringParser.splitHedString(
+      doubleInvalidCharacterString,
+      doubleInvalidCharacterIssues,
+    )
+    const trailingBlankResult = validate.stringParser.splitHedString(
+      trailingBlankString,
+      trailingBlankIssues,
+    )
+    assert.deepStrictEqual(doubleTildeResult, correctDoubleTildeList)
+    assert.deepStrictEqual(doubleCommaResult, correctDoubleCommaList)
+    assert.deepStrictEqual(
+      doubleInvalidCharacterResult,
+      correctDoubleInvalidCharacterList,
+    )
+    assert.deepStrictEqual(trailingBlankResult, correctTrailingCharacterList)
+    assert.strictEqual(doubleTildeIssues.length, 0)
+    assert.strictEqual(doubleCommaIssues.length, 0)
+    assert.strictEqual(doubleInvalidCharacterIssues.length, 2)
+    assert.strictEqual(trailingBlankIssues.length, 0)
+  })
 })
 
 describe('Formatted HED Tags', function() {
