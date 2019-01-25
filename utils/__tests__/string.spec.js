@@ -46,3 +46,21 @@ describe('Capitalized strings', function() {
     assert.strictEqual(result, 'To BE or NOT to BE')
   })
 })
+
+describe('Character counts', function() {
+  it('must be correct', function() {
+    const testString = 'abcabcaaabccccdddfdddd'
+    const resultA = utils.string.getCharacterCount(testString, 'a')
+    const resultB = utils.string.getCharacterCount(testString, 'b')
+    const resultC = utils.string.getCharacterCount(testString, 'c')
+    const resultD = utils.string.getCharacterCount(testString, 'd')
+    const resultE = utils.string.getCharacterCount(testString, 'e')
+    const resultF = utils.string.getCharacterCount(testString, 'f')
+    assert.strictEqual(resultA, 5)
+    assert.strictEqual(resultB, 3)
+    assert.strictEqual(resultC, 6)
+    assert.strictEqual(resultD, 7)
+    assert.strictEqual(resultE, 0)
+    assert.strictEqual(resultF, 1)
+  })
+})
