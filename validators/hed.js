@@ -138,7 +138,7 @@ const checkForDuplicateTags = function(
 }
 
 const checkNumberOfGroupTildes = function(originalTagGroup, issues) {
-  const tildeCount = utils.string.getCharacterCount(originalTagGroup, tilde)
+  const tildeCount = utils.array.getElementCount(originalTagGroup, tilde)
   if (tildeCount > 2) {
     issues.push('ERROR: Too many tildes - group "' + originalTagGroup + '"')
     return false

@@ -182,3 +182,60 @@ describe('HED Tags', function() {
     assert.strictEqual(result, false)
   })
 })
+
+describe('HED Tag Groups', function() {
+  it('should have no more than two tildes', function() {
+    const noTildeGroupString =
+      'Event/Category/Experimental stimulus,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)'
+    const oneTildeGroupString =
+      'Event/Category/Experimental stimulus,(Item/Object/Vehicle/Car ~ Attribute/Object control/Perturb)'
+    const twoTildeGroupString =
+      'Event/Category/Experimental stimulus,(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red)'
+    const invalidTildeGroupString =
+      'Event/Category/Experimental stimulus,(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb)'
+    const noTildeGroupIssues = []
+    const oneTildeGroupIssues = []
+    const twoTildeGroupIssues = []
+    const invalidTildeGroupIssues = []
+    const parsedNoTildeGroupString = validate.stringParser.parseHedString(
+      noTildeGroupString,
+      noTildeGroupIssues,
+    )
+    const parsedOneTildeGroupString = validate.stringParser.parseHedString(
+      oneTildeGroupString,
+      oneTildeGroupIssues,
+    )
+    const parsedTwoTildeGroupString = validate.stringParser.parseHedString(
+      twoTildeGroupString,
+      twoTildeGroupIssues,
+    )
+    const parsedInvalidTildeGroupString = validate.stringParser.parseHedString(
+      invalidTildeGroupString,
+      invalidTildeGroupIssues,
+    )
+    const noTildeGroupResult = validate.HED.validateHedTagGroups(
+      parsedNoTildeGroupString,
+      noTildeGroupIssues,
+    )
+    const oneTildeGroupResult = validate.HED.validateHedTagGroups(
+      parsedOneTildeGroupString,
+      oneTildeGroupIssues,
+    )
+    const twoTildeGroupResult = validate.HED.validateHedTagGroups(
+      parsedTwoTildeGroupString,
+      twoTildeGroupIssues,
+    )
+    const invalidTildeGroupResult = validate.HED.validateHedTagGroups(
+      parsedInvalidTildeGroupString,
+      invalidTildeGroupIssues,
+    )
+    assert.strictEqual(noTildeGroupResult, true)
+    assert.strictEqual(oneTildeGroupResult, true)
+    assert.strictEqual(twoTildeGroupResult, true)
+    assert.strictEqual(invalidTildeGroupResult, false)
+    assert.strictEqual(noTildeGroupIssues.length, 0)
+    assert.strictEqual(oneTildeGroupIssues.length, 0)
+    assert.strictEqual(twoTildeGroupIssues.length, 0)
+    assert.strictEqual(invalidTildeGroupIssues.length, 1)
+  })
+})
