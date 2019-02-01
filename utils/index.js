@@ -7,7 +7,7 @@ const string = require('./string')
 // public api --------------------------------------------------------
 
 const utils = {
-  //HED: HED,
+  // HED: HED,
   array: array,
   string: string,
 }

@@ -7,6 +7,9 @@ const comma = ','
 const tilde = '~'
 const delimiters = [comma, tilde]
 
+/**
+ * Check if group parentheses match. Pushes an issue if they don't match.
+ */
 const countTagGroupParentheses = function(hedString, issues) {
   const numberOfOpeningParentheses = utils.string.getCharacterCount(
     hedString,
@@ -27,6 +30,9 @@ const countTagGroupParentheses = function(hedString, issues) {
   }
 }
 
+/**
+ * Check if a comma is missing before an opening parenthesis.
+ */
 const isCommaMissingBeforeOpeningParenthesis = function(
   lastNonEmptyCharacter,
   currentCharacter,
@@ -38,7 +44,10 @@ const isCommaMissingBeforeOpeningParenthesis = function(
   )
 }
 
-const isCommaMissingBeforeClosingParenthesis = function(
+/**
+ * Check if a comma is missing after an opening parenthesis.
+ */
+const isCommaMissingAfterClosingParenthesis = function(
   lastNonEmptyCharacter,
   currentCharacter,
 ) {
@@ -48,10 +57,9 @@ const isCommaMissingBeforeClosingParenthesis = function(
   )
 }
 
-const addCommaErrorIssue = function(currentTag, issues) {
-  issues.push('ERROR: Comma missing after - "' + currentTag + '"\n')
-}
-
+/**
+ * Check for comma issues in a HED string (e.g. missing commas adjacent to groups).
+ */
 const findCommaIssuesInHedString = function(hedString, issues) {
   let lastNonEmptyCharacter = ''
   let currentTag = ''
@@ -71,26 +79,23 @@ const findCommaIssuesInHedString = function(hedString, issues) {
         lastNonEmptyCharacter,
         currentCharacter,
       ) ||
-      isCommaMissingBeforeClosingParenthesis(
+      isCommaMissingAfterClosingParenthesis(
         lastNonEmptyCharacter,
         currentCharacter,
       )
     ) {
-      addCommaErrorIssue(currentTag, issues)
+      issues.push('ERROR: Comma missing after - "' + currentTag + '"\n')
       break
     }
     lastNonEmptyCharacter = currentCharacter
   }
 }
 
-const validateFullHedString = function(hedString, issues) {
-  countTagGroupParentheses(hedString, issues)
-  findCommaIssuesInHedString(hedString, issues)
-  return issues.length === 0
-}
-
 const camelCase = /([A-Z-]+\s*[a-z-]*)+/
 
+/**
+ * Check if tag level capitalization is valid (CamelCase).
+ */
 const checkCapitalization = function(originalTag, formattedTag, issues) {
   let valid = true
   const tagNames = originalTag.split('/')
@@ -109,6 +114,10 @@ const checkCapitalization = function(originalTag, formattedTag, issues) {
   return valid
 }
 
+/**
+ * Check for duplicate tags at the top level or within a single group.
+ * NOTE: Nested groups are treated as single tags for this validation.
+ */
 const checkForDuplicateTags = function(
   originalTagList,
   formattedTagList,
@@ -137,6 +146,9 @@ const checkForDuplicateTags = function(
   return valid
 }
 
+/**
+ * Verify that the tilde count in a single group does not exceed 2.
+ */
 const checkNumberOfGroupTildes = function(originalTagGroup, issues) {
   const tildeCount = utils.array.getElementCount(originalTagGroup, tilde)
   if (tildeCount > 2) {
@@ -146,6 +158,18 @@ const checkNumberOfGroupTildes = function(originalTagGroup, issues) {
   return true
 }
 
+/**
+ * Validate the full HED string.
+ */
+const validateFullHedString = function(hedString, issues) {
+  countTagGroupParentheses(hedString, issues)
+  findCommaIssuesInHedString(hedString, issues)
+  return issues.length === 0
+}
+
+/**
+ * Validate an individual HED tag.
+ */
 const validateIndividualHedTag = function(
   originalTag,
   formattedTag,
@@ -162,6 +186,9 @@ const validateIndividualHedTag = function(
   return valid
 }
 
+/**
+ * Validate the individual HED tags in a parsed HED string object.
+ */
 const validateIndividualHedTags = function(
   parsedString,
   issues,
@@ -189,6 +216,9 @@ const validateIndividualHedTags = function(
   return valid
 }
 
+/**
+ * Validate a HED tag level.
+ */
 const validateHedTagLevel = function(
   originalTagList,
   formattedTagList,
@@ -202,6 +232,9 @@ const validateHedTagLevel = function(
   return valid
 }
 
+/**
+ * Validate the HED tag levels in a parsed HED string object.
+ */
 const validateHedTagLevels = function(parsedString, issues) {
   let valid = true
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
@@ -219,12 +252,18 @@ const validateHedTagLevels = function(parsedString, issues) {
   return valid
 }
 
+/**
+ * Validate a HED tag group.
+ */
 const validateHedTagGroup = function(originalTagGroup, issues) {
   let valid = true
   valid = valid && checkNumberOfGroupTildes(originalTagGroup, issues)
   return valid
 }
 
+/**
+ * Validate the HED tag groups in a parsed HED string.
+ */
 const validateHedTagGroups = function(parsedString, issues) {
   let valid = true
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
@@ -234,6 +273,14 @@ const validateHedTagGroups = function(parsedString, issues) {
   return valid
 }
 
+/**
+ * Validate a HED string.
+ *
+ * @param hedString The HED string to validate
+ * @param issues An array to which issues are pushed.
+ * @param checkForWarnings Whether to check for warnings or only errors.
+ * @returns {boolean} Whether the HED string is valid.
+ */
 const validateHedString = function(
   hedString,
   issues,
