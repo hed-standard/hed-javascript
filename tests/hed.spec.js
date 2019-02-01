@@ -148,14 +148,14 @@ describe('HED Tag Levels', function() {
       parsedLegalDuplicateString,
       legalDuplicateIssues,
     )
-    assert.deepStrictEqual(topLevelDuplicateResult, false)
-    assert.deepStrictEqual(groupDuplicateResult, false)
-    assert.deepStrictEqual(legalDuplicateResult, true)
-    assert.deepStrictEqual(noDuplicateResult, true)
-    assert.deepStrictEqual(topLevelDuplicateIssues.length, 1)
-    assert.deepStrictEqual(groupDuplicateIssues.length, 1)
-    assert.deepStrictEqual(noDuplicateIssues.length, 0)
-    assert.deepStrictEqual(legalDuplicateIssues.length, 0)
+    assert.strictEqual(topLevelDuplicateResult, false)
+    assert.strictEqual(groupDuplicateResult, false)
+    assert.strictEqual(legalDuplicateResult, true)
+    assert.strictEqual(noDuplicateResult, true)
+    assert.strictEqual(topLevelDuplicateIssues.length, 1)
+    assert.strictEqual(groupDuplicateIssues.length, 1)
+    assert.strictEqual(noDuplicateIssues.length, 0)
+    assert.strictEqual(legalDuplicateIssues.length, 0)
   })
 })
 
