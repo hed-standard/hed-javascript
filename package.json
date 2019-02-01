@@ -14,7 +14,6 @@
     "lint": "./node_modules/eslint/bin/eslint.js ./**/*.js",
     "test": "./node_modules/.bin/jest",
     "coverage": "./node_modules/.bin/jest --coverage",
-    "codecov": "./node_modules/.bin/codecov",
     "npmPublish": "publish"
   },
   "contributors": [
@@ -28,7 +27,6 @@
   "homepage": "https://github.com/VisLab/HEDBidsValid",
   "dependencies": {},
   "devDependencies": {
-    "codecov": "^3.1.0",
     "eslint": "^5.12.0",
     "eslint-config-prettier": "^2.10.0",
     "eslint-plugin-prettier": "^2.6.2",
