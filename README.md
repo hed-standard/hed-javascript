@@ -26,32 +26,44 @@ To check for warnings, pass `true` as the optional third argument.
 
 ## Examples
 
+All of the examples assume that the `hed-validator` has been loaded:
+
 ```
     // For all examples
     const hedValidator = require('hed-validator')
+```
 
-    // Example 1: Valid HED string
+### Example 1: Calling `hed-validator` on a valid HED string
+
+```
+    // Initializing parameters and making the call
     const validHedString = 'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
     const issues1 = []
     const isValid1 = hedValidator.HED.validateHedString(validHedString, issues1)
-    // isValid1 === true
-    // issues1 is empty
+ ```
+ 
+ After the call the `isValid1` variable is `true` and `issues1` is empty.
+  
+### Example 2: Calling `hed-validator` when the HED string has an error (mismatched parentheses)
 
-    // Example 2: Invalid HED string (error for mismatched parentheses)
+```
+    // Initializing parameters and making the call
     const invalidHedString = '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px'
     const issues2 = []
     const isValid2 = hedValidator.HED.validateHedString(invalidHedString, issues2)
-    // isValid2 === false
-    // issues2 == ['ERROR: Number of opening and closing parentheses are unequal. 2 opening parentheses. 1 closing parentheses']
-
-    // Example 3: Invalid HED string (warning for bad capitalization)
+ ```
+ 
+ After the call `isValid2` is `false` and `issues2` has the value `['ERROR: Number of opening and closing parentheses are unequal. 2 opening parentheses. 1 closing parentheses']`.
+ 
+ ### Example 3: calling `hed-validator` when the HED string has an warning (bad capitalization), but no errors
+ 
+ ```
     const warningHedString = 'Event/something'
     const errorIssues = []
     const warningIssues = []
     const isErrorFree = hedValidator.HED.validateHedString(warningHedString, errorIssues)
     const isWarningFree = hedValidator.HED.validateHedString(warningHedString, warningIssues, true)
-    // isErrorFree === true
-    // isWarningFree === false
-    // errorIssues is empty
-    // warningIssues == ['WARNING: First word not capitalized or camel case - Event/something']
+ ```
+ 
+ After the call `isErrorFree` is `true` and `isWarningFree` is `false`. The `errorIssues` variable is empty, while the `warningIssues` variable contains `['WARNING: First word not capitalized or camel case - Event/something']`.
 ```
