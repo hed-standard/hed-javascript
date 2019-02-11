@@ -2,7 +2,7 @@
 
 This package contains a validator for HED strings.
 
-[HED](http://www.hedtags.org/) is a standard for neuroimaging event tagging.
+[HED](http://www.hedtags.org/) is a standard for EEG event tagging.
 
 ## Usage
 
