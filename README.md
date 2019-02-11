@@ -13,16 +13,18 @@ To use the validator, follow these instructions:
 1. Create an array in which to store any validation issues (we'll call it `issues`).
 1. Call the validator as follows (assuming `hedString` is the string to validate):
 
-
+```
     hedValidator.HED.validateHedString(
         hedString,
         issues
     )
+```
 
 To check for warnings, pass `true` as the optional third argument.
 
 ## Examples
 
+```
     // For all examples
     const hedValidator = require('hed-validator')
 
@@ -50,3 +52,4 @@ To check for warnings, pass `true` as the optional third argument.
     // isWarningFree === false
     // errorIssues is empty
     // warningIssues == ['WARNING: First word not capitalized or camel case - Event/something']
+```
