@@ -55,7 +55,7 @@ All of the examples assume that the `hed-validator` has been loaded:
  
  After the call `isValid2` is `false` and `issues2` has the value `['ERROR: Number of opening and closing parentheses are unequal. 2 opening parentheses. 1 closing parentheses']`.
  
- ### Example 3: calling `hed-validator` when the HED string has an warning (bad capitalization), but no errors
+ ### Example 3: Calling `hed-validator` when the HED string has a warning (bad capitalization), but no errors
  
  ```
     const warningHedString = 'Event/something'
