@@ -1,8 +1,10 @@
 # hed-validator
 
-This package contains a validator for HED strings.
+This package contains a JavaScript validator for HED (hierarchical event descriptor) strings.
 
-[HED](http://www.hedtags.org/) is a standard for EEG event tagging.
+[HED](http://www.hedtags.org/) is a system for annotating events using comma-separated path strings. Any type of event can be annotated using HED-type syntax, and the current version of `hed-validator` performs synatic validation only. 
+
+The HED annotation strategy is very general and a standardized vocabulary for a particular domain can be represented using a HED schema. HED provides one [standardized schema](https://github.com/BigEEGConsortium/HED-schema/wiki/HED-Schema) for annotating events in neuroimaging experiments. Validation of HED strings against a particular HED schema is called semantic validation. Semantic validation is currently supported for the [web version of the HED validator](http://visual.cs.utsa.edu/hed). Development of a semantic validator in JavaScript is in progress.
 
 ## Usage
 
