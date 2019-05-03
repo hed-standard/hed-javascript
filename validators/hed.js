@@ -25,7 +25,7 @@ const countTagGroupParentheses = function(hedString, issues) {
         numberOfOpeningParentheses +
         ' opening parentheses. ' +
         numberOfClosingParentheses +
-        ' closing parentheses',
+        ' closing parentheses.',
     )
   }
 }
@@ -84,7 +84,7 @@ const findCommaIssuesInHedString = function(hedString, issues) {
         currentCharacter,
       )
     ) {
-      issues.push('ERROR: Comma missing after - "' + currentTag + '"\n')
+      issues.push('ERROR: Comma missing after - "' + currentTag + '"')
       break
     }
     lastNonEmptyCharacter = currentCharacter
@@ -106,7 +106,9 @@ const checkCapitalization = function(originalTag, formattedTag, issues) {
     const correctTagName = utils.string.capitalizeString(tagName)
     if (tagName !== correctTagName && !camelCase.test(tagName)) {
       issues.push(
-        'WARNING: First word not capitalized or camel case - ' + originalTag,
+        'WARNING: First word not capitalized or camel case - "' +
+          originalTag +
+          '"',
       )
       valid = false
     }
