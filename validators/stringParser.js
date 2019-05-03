@@ -71,7 +71,7 @@ const splitHedString = function(hedString, issues) {
       currentTag = ''
     } else if (invalidCharacters.includes(character)) {
       // Found an invalid character, so push an issue.
-      issues.push('ERROR: Unsupported character - "' + character + '"')
+      issues.push('ERROR: Invalid character - "' + character + '"')
       if (!utils.string.stringIsEmpty(currentTag)) {
         hedTags.push(currentTag.trim())
       }
