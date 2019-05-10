@@ -56,6 +56,33 @@ describe('Full HED Strings', function() {
     assert.strictEqual(missingClosingIssues.length, 1)
     assert.strictEqual(validIssues.length, 0)
   })
+
+  it('should not have invalid characters', function() {
+    const invalidString1 =
+      '/Attribute/Object side/Left,/Participant/Effect{/Body part/Arm'
+    const invalidString2 =
+      '/Attribute/Object side/Left,/Participant/Effect}/Body part/Arm'
+    const invalidString3 =
+      '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm'
+    const invalidString4 =
+      '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm'
+    const issues1 = []
+    const issues2 = []
+    const issues3 = []
+    const issues4 = []
+    const result1 = validate.HED.validateHedString(invalidString1, issues1)
+    const result2 = validate.HED.validateHedString(invalidString2, issues2)
+    const result3 = validate.HED.validateHedString(invalidString3, issues3)
+    const result4 = validate.HED.validateHedString(invalidString4, issues4)
+    assert.strictEqual(result1, false)
+    assert.strictEqual(result2, false)
+    assert.strictEqual(result3, false)
+    assert.strictEqual(result4, false)
+    assert.strictEqual(issues1.length, 1)
+    assert.strictEqual(issues2.length, 1)
+    assert.strictEqual(issues3.length, 1)
+    assert.strictEqual(issues4.length, 1)
+  })
 })
 
 describe('Individual HED Tags', function() {

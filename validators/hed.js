@@ -292,7 +292,12 @@ const validateHedString = function(
   if (!isFullHedStringValid) {
     return false
   }
+
   const parsedString = stringParser.parseHedString(hedString, issues)
+  if (issues.length !== 0) {
+    return false
+  }
+
   let valid = true
   valid =
     valid && validateIndividualHedTags(parsedString, issues, checkForWarnings)
