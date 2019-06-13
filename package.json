@@ -25,7 +25,10 @@
     "url": "https://github.com/VisLab/HEDBidsValid/issues"
   },
   "homepage": "https://github.com/VisLab/HEDBidsValid",
-  "dependencies": {},
+  "dependencies": {
+    "xml2js": "^0.4.19",
+    "xml2js-xpath": "^0.10.0"
+  },
   "devDependencies": {
     "eslint": "^5.12.0",
     "eslint-config-prettier": "^2.10.0",
