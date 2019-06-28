@@ -1,4 +1,5 @@
 const fs = require('fs')
+const rp = require('request-promise-native')
 
 /**
  * Read
@@ -12,9 +13,9 @@ const fs = require('fs')
  * In node the file should be a path to a file.
  *
  */
-function readFile(file) {
+function readFile(fileName) {
   return new Promise(resolve => {
-    fs.readFile(file, 'utf8', function(err, data) {
+    fs.readFile(fileName, 'utf8', function(err, data) {
       process.nextTick(function() {
         return resolve(data)
       })
@@ -22,4 +23,11 @@ function readFile(file) {
   })
 }
 
-module.exports = readFile
+function readHTTPSFile(url) {
+  return rp(url)
+}
+
+module.exports = {
+  readFile: readFile,
+  readHTTPSFile: readHTTPSFile,
+}

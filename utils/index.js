@@ -2,7 +2,7 @@
 
 // const HED = require('./hed')
 const array = require('./array')
-const readFile = require('./readFile')
+const files = require('./files')
 const string = require('./string')
 
 // public api --------------------------------------------------------
@@ -10,7 +10,7 @@ const string = require('./string')
 const utils = {
   // HED: HED,
   array: array,
-  readFile: readFile,
+  files: files,
   string: string,
 }
 
