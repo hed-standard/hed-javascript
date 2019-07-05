@@ -199,7 +199,7 @@ const Schema = {
   },
 }
 
-const loadSchema = function(version = 'Latest', issues) {
+const loadRemoteSchema = function(version = 'Latest', issues) {
   const fileName = 'HED' + version + '.xml'
   const basePath =
     'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
@@ -216,13 +216,39 @@ const loadSchema = function(version = 'Latest', issues) {
     })
 }
 
-const buildSchema = function(version = 'Latest', issues) {
-  return loadSchema(version, issues).then(xmlData => {
-    const schema = Object.create(Schema)
-    schema.rootElement = xmlData.root()
-    schema.populateDictionaries()
-    return schema
+const loadLocalSchema = function(path, issues) {
+  return files
+    .readFile(path)
+    .then(data => {
+      return libxmljs.parseXmlString(data)
+    })
+    .catch(error => {
+      issues.push(
+        'Could not load HED schema from path "' + path + '" - "' + error + '"',
+      )
+    })
+}
+
+const buildRemoteSchema = function(version = 'Latest', issues) {
+  return loadRemoteSchema(version, issues).then(xmlData => {
+    return buildSchema(xmlData)
   })
 }
 
-module.exports = buildSchema
+const buildLocalSchema = function(path, issues) {
+  return loadLocalSchema(path, issues).then(xmlData => {
+    return buildSchema(xmlData)
+  })
+}
+
+const buildSchema = function(xmlData) {
+  const schema = Object.create(Schema)
+  schema.rootElement = xmlData.root()
+  schema.populateDictionaries()
+  return schema
+}
+
+module.exports = {
+  buildRemoteSchema: buildRemoteSchema,
+  buildLocalSchema: buildLocalSchema,
+}
