@@ -1,14 +1,14 @@
 // dependencies ------------------------------------------------------
 
 const HED = require('./hed')
-const schema = require('./schema')
+const buildSchema = require('./schema')
 const stringParser = require('./stringParser')
 
 // public api --------------------------------------------------------
 
 const validate = {
   HED: HED,
-  schema: schema,
+  buildSchema: buildSchema,
   stringParser: stringParser,
 }
 

@@ -5,11 +5,8 @@ const validate = require('../index')
 describe('HED schemas', function() {
   it('has the current version', async done => {
     const issues = []
-    validate.schema.loadSchema('Latest', issues).then(hedSchema => {
-      const hedSchemaVersion = hedSchema
-        .root()
-        .attr('version')
-        .value()
+    validate.buildSchema('Latest', issues).then(hedSchema => {
+      const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
       assert.strictEqual(hedSchemaVersion, '7.0.2')
       assert.deepStrictEqual(issues, [])
       done()
