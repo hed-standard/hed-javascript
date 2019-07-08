@@ -95,7 +95,7 @@ const splitHedString = function(hedString, issues) {
  * @param issues The array of issues.
  */
 const findTagGroups = function(groupTagsList, parsedString, issues) {
-  for (let tagOrGroup of groupTagsList) {
+  for (const tagOrGroup of groupTagsList) {
     if (hedStringIsAGroup(tagOrGroup)) {
       const tagGroupString = removeGroupParentheses(tagOrGroup)
       // Split the group tag and recurse.
@@ -117,7 +117,7 @@ const findTagGroups = function(groupTagsList, parsedString, issues) {
  */
 const findTopLevelTags = function(hedTags, parsedString) {
   const topLevelTags = []
-  for (let tagOrGroup of hedTags) {
+  for (const tagOrGroup of hedTags) {
     if (!hedStringIsAGroup(tagOrGroup)) {
       topLevelTags.push(tagOrGroup)
       if (!parsedString.tags.includes(tagOrGroup)) {
@@ -137,7 +137,7 @@ const findTopLevelTags = function(hedTags, parsedString) {
  */
 const formatHedTagsInList = function(hedTagList, onlyRemoveNewLine = false) {
   const formattedTagList = []
-  for (let hedTag of hedTagList) {
+  for (const hedTag of hedTagList) {
     if (hedTag instanceof Array) {
       // Recurse
       const nestedFormattedTagList = formatHedTagsInList(

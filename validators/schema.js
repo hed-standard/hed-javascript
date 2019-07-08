@@ -23,15 +23,16 @@ const unitClassElement = 'unitClass'
 const unitClassUnitsElement = 'units'
 const unitsElement = 'units'
 
-const Schema = {
+const SchemaDictionaries = {
   populateDictionaries: function() {
     this.dictionaries = {}
     this.populateTagDictionaries()
     this.populateUnitClassDictionaries()
+    return this.dictionaries
   },
 
   populateTagDictionaries: function() {
-    for (let dictionaryKey of tagDictionaryKeys) {
+    for (const dictionaryKey of tagDictionaryKeys) {
       const [tags, tagElements] = this.getTagsByAttribute(dictionaryKey)
       if (dictionaryKey === extensionAllowedAttribute) {
         const leafTags = this.getAllLeafTags()
@@ -70,7 +71,7 @@ const Schema = {
 
   populateUnitClassUnitsDictionary: function(unitClassElements) {
     this.dictionaries[unitsElement] = {}
-    for (let unitClassElement of unitClassElements) {
+    for (const unitClassElement of unitClassElements) {
       const elementName = this.getElementTagValue(unitClassElement)
       const elementUnits = this.getElementTagValue(
         unitClassElement,
@@ -82,7 +83,7 @@ const Schema = {
 
   populateUnitClassDefaultUnitDictionary: function(unitClassElements) {
     this.dictionaries[defaultUnitAttribute] = {}
-    for (let unitClassElement of unitClassElements) {
+    for (const unitClassElement of unitClassElements) {
       const elementName = this.getElementTagValue(unitClassElement)
       this.dictionaries[defaultUnitAttribute][
         elementName
@@ -106,7 +107,7 @@ const Schema = {
 
   stringListToLowercaseDictionary: function(stringList) {
     const lowercaseDictionary = {}
-    for (let stringElement of stringList) {
+    for (const stringElement of stringList) {
       lowercaseDictionary[stringElement.toLowerCase()] = stringElement
     }
     return lowercaseDictionary
@@ -125,12 +126,12 @@ const Schema = {
   },
 
   getElementTagValue: function(element, tagName = 'name') {
-    return element.find('//' + tagName)[0].text()
+    return element.find(tagName)[0].text()
   },
 
   getParentTagName: function(tagElement) {
     const parentTagElement = tagElement.parent()
-    if (parentTagElement !== this.rootElement) {
+    if (parentTagElement && parentTagElement !== this.rootElement) {
       return parentTagElement.find('name')[0].text()
     } else {
       return ''
@@ -147,27 +148,21 @@ const Schema = {
   getTagsByAttribute: function(attributeName) {
     const tags = []
     const tagElements = this.rootElement.find('.//node[@' + attributeName + ']')
-    for (let attributeTagElement of tagElements) {
+    for (const attributeTagElement of tagElements) {
       const tag = this.getTagPathFromTagElement(attributeTagElement)
       tags.push(tag)
     }
     return [tags, tagElements]
   },
 
-  getAllTags: function(tagElementName) {
+  getAllTags: function(tagElementName = 'node') {
     const tags = []
     const tagElements = this.rootElement.find('.//' + tagElementName)
-    for (let tagElement of tagElements) {
+    for (const tagElement of tagElements) {
       const tag = this.getTagPathFromTagElement(tagElement)
       tags.push(tag)
     }
     return [tags, tagElements]
-  },
-
-  getElementsByAttribute: function(attributeName, elementName = 'node') {
-    return this.rootElement.find(
-      './/' + elementName + '[@' + attributeName + ']',
-    )
   },
 
   getElementsByName: function(elementName = 'node', parentElement) {
@@ -181,7 +176,7 @@ const Schema = {
   getAllLeafTags: function(elementName = 'node', excludeTakeValueTags = true) {
     const leafTags = []
     const tagElements = this.getElementsByName(elementName)
-    for (let tagElement of tagElements) {
+    for (const tagElement of tagElements) {
       const tagElementChildren = this.getElementsByName(elementName, tagElement)
       if (tagElementChildren.length === 0) {
         const tag = this.getTagPathFromTagElement(tagElement)
@@ -193,10 +188,16 @@ const Schema = {
     }
     return leafTags
   },
+}
 
-  tagHasAttribute: function(tag, tagAttribute) {
-    return tag.toLowerCase() in this.dictionaries[tagAttribute]
-  },
+const tagHasAttribute = function(tag, tagAttribute) {
+  return tag.toLowerCase() in this.dictionaries[tagAttribute]
+}
+
+const Schema = function(rootElement, dictionaries) {
+  this.rootElement = rootElement
+  this.dictionaries = dictionaries
+  this.tagHasAttribute = tagHasAttribute
 }
 
 const loadRemoteSchema = function(version = 'Latest', issues) {
@@ -242,9 +243,11 @@ const buildLocalSchema = function(path, issues) {
 }
 
 const buildSchema = function(xmlData) {
-  const schema = Object.create(Schema)
-  schema.rootElement = xmlData.root()
-  schema.populateDictionaries()
+  const schemaDictionaries = Object.create(SchemaDictionaries)
+  const rootElement = xmlData.root()
+  schemaDictionaries.rootElement = rootElement
+  const dictionaries = schemaDictionaries.populateDictionaries()
+  const schema = new Schema(rootElement, dictionaries)
   return schema
 }
 

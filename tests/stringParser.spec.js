@@ -215,7 +215,7 @@ describe('Formatted HED Tags', function() {
     // Tests
     let result = validate.stringParser.formatHedTag(formattedHedTag)
     assert.strictEqual(result, formattedHedTag)
-    for (let badlyFormattedTag of badlyFormattedTags) {
+    for (const badlyFormattedTag of badlyFormattedTags) {
       result = validate.stringParser.formatHedTag(badlyFormattedTag)
       assert.strictEqual(formattedHedTag, result)
     }

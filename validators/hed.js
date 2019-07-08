@@ -102,7 +102,7 @@ const checkCapitalization = function(originalTag, formattedTag, issues) {
   /* if (tagTakesValue(formattedTag)) {
     tagNames.pop()
   } */
-  for (let tagName of tagNames) {
+  for (const tagName of tagNames) {
     const correctTagName = utils.string.capitalizeString(tagName)
     if (tagName !== correctTagName && !camelCase.test(tagName)) {
       issues.push(
