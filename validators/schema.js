@@ -201,7 +201,7 @@ const Schema = function(rootElement, dictionaries) {
   this.tagHasAttribute = tagHasAttribute
 }
 
-const loadRemoteSchema = function(version = 'Latest', issues) {
+const loadRemoteSchema = function(issues, version) {
   const fileName = 'HED' + version + '.xml'
   const basePath =
     'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
@@ -218,7 +218,7 @@ const loadRemoteSchema = function(version = 'Latest', issues) {
     })
 }
 
-const loadLocalSchema = function(path, issues) {
+const loadLocalSchema = function(issues, path) {
   return files
     .readFile(path)
     .then(data => {
@@ -231,14 +231,14 @@ const loadLocalSchema = function(path, issues) {
     })
 }
 
-const buildRemoteSchema = function(version = 'Latest', issues) {
-  return loadRemoteSchema(version, issues).then(xmlData => {
+const buildRemoteSchema = function(issues, version = 'Latest') {
+  return loadRemoteSchema(issues, version).then(xmlData => {
     return buildSchema(xmlData)
   })
 }
 
-const buildLocalSchema = function(path, issues) {
-  return loadLocalSchema(path, issues).then(xmlData => {
+const buildLocalSchema = function(issues, path) {
+  return loadLocalSchema(issues, path).then(xmlData => {
     return buildSchema(xmlData)
   })
 }

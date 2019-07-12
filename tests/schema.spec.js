@@ -9,7 +9,7 @@ describe('Remote HED schemas', function() {
     const issues = []
     const remoteHedSchemaVersion = '7.0.3'
     validate.schema
-      .buildRemoteSchema(remoteHedSchemaVersion, issues)
+      .buildRemoteSchema(issues, remoteHedSchemaVersion)
       .then(hedSchema => {
         assert.deepStrictEqual(issues, [])
 
@@ -24,7 +24,7 @@ describe('Local HED schemas', function() {
   it('can be loaded from a file', async done => {
     const issues = []
     validate.schema
-      .buildLocalSchema(localHedSchemaFile, issues)
+      .buildLocalSchema(issues, localHedSchemaFile)
       .then(hedSchema => {
         assert.deepStrictEqual(issues, [])
 
@@ -45,8 +45,8 @@ describe('HED schemas', function() {
 
   beforeAll(() => {
     hedSchemaPromise = validate.schema.buildLocalSchema(
-      localHedSchemaFile,
       issues,
+      localHedSchemaFile,
     )
   })
 
