@@ -5,11 +5,11 @@ const validate = require('../index')
 describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', async done => {
     const issues = []
-    validate.schema.buildRemoteSchema('7.0.2', issues).then(hedSchema => {
+    validate.schema.buildRemoteSchema('7.0.3', issues).then(hedSchema => {
       assert.deepStrictEqual(issues, [])
 
       const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
-      assert.strictEqual(hedSchemaVersion, '7.0.2')
+      assert.strictEqual(hedSchemaVersion, '7.0.3')
       done()
     })
   })
@@ -19,12 +19,12 @@ describe('Local HED schemas', function() {
   it('can be loaded from a file', async done => {
     const issues = []
     validate.schema
-      .buildLocalSchema('tests/data/HED7.0.2.xml', issues)
+      .buildLocalSchema('tests/data/HED7.0.3.xml', issues)
       .then(hedSchema => {
         assert.deepStrictEqual(issues, [])
 
         const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
-        assert.strictEqual(hedSchemaVersion, '7.0.2')
+        assert.strictEqual(hedSchemaVersion, '7.0.3')
         done()
       })
   })
@@ -40,7 +40,7 @@ describe('HED schemas', function() {
 
   beforeAll(() => {
     hedSchemaPromise = validate.schema.buildLocalSchema(
-      'tests/data/HED7.0.2.xml',
+      'tests/data/HED7.0.3.xml',
       issues,
     )
   })
@@ -147,22 +147,39 @@ describe('HED schemas', function() {
     })
   })
 
+  it('contains all of the tags with default units', async done => {
+    hedSchemaPromise.then(hedSchema => {
+      assert.deepStrictEqual(issues, [])
+
+      const defaultUnitTags = {
+        'attribute/blink/time shut/#': 's',
+        'attribute/blink/duration/#': 's',
+        'attribute/blink/pavr/#': 'centiseconds',
+        'attribute/blink/navr/#': 'centiseconds',
+      }
+      const dictionariesDefaultUnitTags = hedSchema.dictionaries['default']
+      assert.deepStrictEqual(dictionariesDefaultUnitTags, defaultUnitTags)
+      done()
+    })
+  })
+
   it('contains the correct (large) numbers of tags with certain attributes', async done => {
     hedSchemaPromise.then(hedSchema => {
       assert.deepStrictEqual(issues, [])
 
       const expectedTagCount = {
-        // TODO: Fix default collision
-        // default: 18,
         // TODO: Add new test for extensionAllowed to reflect leaf tags.
         // extensionAllowed: 17,
         isNumeric: 80,
         predicateType: 20,
         recommended: 0,
         requireChild: 64,
-        tags: 1114,
+        tags: 1113,
         takesValue: 119,
         unitClass: 63,
+        // TODO: Add better unit class test
+        default_units: 14,
+        units: 14,
       }
       const dictionaries = hedSchema.dictionaries
       for (const attribute in expectedTagCount) {

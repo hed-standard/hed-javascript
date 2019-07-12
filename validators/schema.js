@@ -2,6 +2,7 @@ const libxmljs = require('libxmljs')
 const files = require('../utils/files')
 
 const defaultUnitAttribute = 'default'
+const defaultUnitsForTypeAttribute = 'default_units'
 const extensionAllowedAttribute = 'extensionAllowed'
 const tagDictionaryKeys = [
   'default',
@@ -82,10 +83,10 @@ const SchemaDictionaries = {
   },
 
   populateUnitClassDefaultUnitDictionary: function(unitClassElements) {
-    this.dictionaries[defaultUnitAttribute] = {}
+    this.dictionaries[defaultUnitsForTypeAttribute] = {}
     for (const unitClassElement of unitClassElements) {
       const elementName = this.getElementTagValue(unitClassElement)
-      this.dictionaries[defaultUnitAttribute][
+      this.dictionaries[defaultUnitsForTypeAttribute][
         elementName
       ] = unitClassElement.attr(defaultUnitAttribute).value()
     }
