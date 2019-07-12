@@ -1,17 +1,22 @@
 const assert = require('assert')
 const validate = require('../index')
 
-// Temporary test
+const localHedSchemaFile = 'tests/data/HEDTest.xml'
+const localHedSchemaVersion = '7.0.3'
+
 describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', async done => {
     const issues = []
-    validate.schema.buildRemoteSchema('7.0.3', issues).then(hedSchema => {
-      assert.deepStrictEqual(issues, [])
+    const remoteHedSchemaVersion = '7.0.3'
+    validate.schema
+      .buildRemoteSchema(remoteHedSchemaVersion, issues)
+      .then(hedSchema => {
+        assert.deepStrictEqual(issues, [])
 
-      const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
-      assert.strictEqual(hedSchemaVersion, '7.0.3')
-      done()
-    })
+        const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
+        assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
+        done()
+      })
   })
 })
 
@@ -19,12 +24,12 @@ describe('Local HED schemas', function() {
   it('can be loaded from a file', async done => {
     const issues = []
     validate.schema
-      .buildLocalSchema('tests/data/HED7.0.3.xml', issues)
+      .buildLocalSchema(localHedSchemaFile, issues)
       .then(hedSchema => {
         assert.deepStrictEqual(issues, [])
 
         const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
-        assert.strictEqual(hedSchemaVersion, '7.0.3')
+        assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
         done()
       })
   })
@@ -40,7 +45,7 @@ describe('HED schemas', function() {
 
   beforeAll(() => {
     hedSchemaPromise = validate.schema.buildLocalSchema(
-      'tests/data/HED7.0.3.xml',
+      localHedSchemaFile,
       issues,
     )
   })
@@ -241,8 +246,6 @@ describe('HED schemas', function() {
       assert.deepStrictEqual(issues, [])
 
       const expectedTagCount = {
-        // TODO: Add new test for extensionAllowed to reflect leaf tags.
-        // extensionAllowed: 17,
         isNumeric: 80,
         predicateType: 20,
         recommended: 0,
