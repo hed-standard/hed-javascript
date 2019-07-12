@@ -181,7 +181,7 @@ const SchemaDictionaries = {
       const tagElementChildren = this.getElementsByName(elementName, tagElement)
       if (tagElementChildren.length === 0) {
         const tag = this.getTagPathFromTagElement(tagElement)
-        if (excludeTakeValueTags && tag[-1] === '#') {
+        if (excludeTakeValueTags && tag.endsWith('#')) {
           continue
         }
         leafTags.push(tag)

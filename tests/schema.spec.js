@@ -263,4 +263,76 @@ describe('HED schemas', function() {
       done()
     })
   })
+
+  it('should identify if a tag has a certain attribute', async done => {
+    hedSchemaPromise.then(hedSchema => {
+      assert.deepStrictEqual(issues, [])
+
+      const testTag1 =
+        'Attribute/Location/Reference frame/Relative to participant/Azimuth/#'
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'default'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag1, 'extensionAllowed'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'isNumeric'), true)
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'position'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag1, 'predicateType'),
+        false,
+      )
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag1, 'recommended'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'required'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag1, 'requireChild'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'tags'), true)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag1, 'takesValue'),
+        true,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'unique'), false)
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'unitClass'), true)
+
+      const testTag2 = 'Item/Object/Road sign'
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'default'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag2, 'extensionAllowed'),
+        true,
+      )
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag2, 'isNumeric'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'position'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag2, 'predicateType'),
+        false,
+      )
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag2, 'recommended'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'required'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag2, 'requireChild'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'tags'), true)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag2, 'takesValue'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'unique'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag2, 'unitClass'),
+        false,
+      )
+      done()
+    })
+  })
 })
