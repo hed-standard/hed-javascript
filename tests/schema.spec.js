@@ -163,6 +163,79 @@ describe('HED schemas', function() {
     })
   })
 
+  it('contains all of the unit classes with their units and default units', async done => {
+    hedSchemaPromise.then(hedSchema => {
+      assert.deepStrictEqual(issues, [])
+
+      const defaultUnits = {
+        acceleration: 'cm-per-s2',
+        currency: '$',
+        angle: 'radians',
+        frequency: 'Hz',
+        intensity: 'dB',
+        jerk: 'cm-per-s3',
+        luminousIntensity: 'cd',
+        memorySize: 'mb',
+        physicalLength: 'cm',
+        pixels: 'px',
+        speed: 'cm-per-sec',
+        time: 's',
+        area: 'cm2',
+        volume: 'cm3',
+      }
+      const allUnits = {
+        acceleration: ['m-per-s2', 'cm-per-s2'],
+        currency: ['dollars', '$', 'points', 'fraction'],
+        angle: ['degrees', 'degree', 'radian', 'radians'],
+        frequency: ['Hz', 'mHz', 'Hertz', 'kHz'],
+        intensity: ['dB'],
+        jerk: ['m-per-s3', 'cm-per-s3'],
+        luminousIntensity: ['candela', 'cd'],
+        memorySize: ['mb', 'kb', 'gb', 'tb'],
+        physicalLength: [
+          'm',
+          'cm',
+          'km',
+          'mm',
+          'feet',
+          'foot',
+          'meter',
+          'meters',
+          'mile',
+          'miles',
+        ],
+        pixels: ['pixels', 'px', 'pixel'],
+        speed: ['m-per-s', 'mph', 'kph', 'cm-per-s'],
+        time: [
+          's',
+          'second',
+          'seconds',
+          'centiseconds',
+          'centisecond',
+          'cs',
+          'hour:min',
+          'day',
+          'days',
+          'ms',
+          'milliseconds',
+          'millisecond',
+          'minute',
+          'minutes',
+          'hour',
+          'hours',
+        ],
+        area: ['m2', 'cm2', 'km2', 'pixels2', 'px2', 'pixel2', 'mm2'],
+        volume: ['m3', 'cm3', 'mm3', 'km3'],
+      }
+
+      const dictionariesDefaultUnits = hedSchema.dictionaries['default_units']
+      const dictionariesAllUnits = hedSchema.dictionaries['units']
+      assert.deepStrictEqual(dictionariesDefaultUnits, defaultUnits)
+      assert.deepStrictEqual(dictionariesAllUnits, allUnits)
+      done()
+    })
+  })
+
   it('contains the correct (large) numbers of tags with certain attributes', async done => {
     hedSchemaPromise.then(hedSchema => {
       assert.deepStrictEqual(issues, [])
@@ -177,10 +250,8 @@ describe('HED schemas', function() {
         tags: 1113,
         takesValue: 119,
         unitClass: 63,
-        // TODO: Add better unit class test
-        default_units: 14,
-        units: 14,
       }
+
       const dictionaries = hedSchema.dictionaries
       for (const attribute in expectedTagCount) {
         assert.strictEqual(
@@ -192,6 +263,4 @@ describe('HED schemas', function() {
       done()
     })
   })
-
-  // TODO: Add unit class tests
 })
