@@ -1,5 +1,5 @@
 const assert = require('assert')
-const validate = require('../index')
+const validate = require('../validators')
 
 describe('Full HED Strings', function() {
   it('should not have mismatched parentheses', function() {

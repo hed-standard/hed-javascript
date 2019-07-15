@@ -1,5 +1,5 @@
 const assert = require('assert')
-const validate = require('../index')
+const validate = require('../validators')
 
 const localHedSchemaFile = 'tests/data/HEDTest.xml'
 const localHedSchemaVersion = '7.0.3'

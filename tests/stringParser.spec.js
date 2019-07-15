@@ -1,5 +1,5 @@
 const assert = require('assert')
-const validate = require('../index')
+const validate = require('../validators')
 
 describe('HED strings', function() {
   it('cannot have invalid characters', function() {

@@ -1,5 +1,5 @@
-// import validations
+// Import
 var validate = require('./validators')
 
-// export validations for use in other applications
-module.exports = validate
+// Export validation function for use in other applications
+module.exports = validate.HED.validateHedString
