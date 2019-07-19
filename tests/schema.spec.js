@@ -8,7 +8,7 @@ describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', async done => {
     const remoteHedSchemaVersion = '7.0.3'
     validate.schema
-      .buildRemoteSchema(remoteHedSchemaVersion)
+      .buildSchema({ version: remoteHedSchemaVersion })
       .then(hedSchema => {
         const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
         assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
@@ -19,11 +19,13 @@ describe('Remote HED schemas', function() {
 
 describe('Local HED schemas', function() {
   it('can be loaded from a file', async done => {
-    validate.schema.buildLocalSchema(localHedSchemaFile).then(hedSchema => {
-      const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
-      assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
-      done()
-    })
+    validate.schema
+      .buildSchema({ path: localHedSchemaFile })
+      .then(hedSchema => {
+        const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
+        assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
+        done()
+      })
   })
 })
 
@@ -31,7 +33,7 @@ describe('HED schemas', function() {
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = validate.schema.buildLocalSchema(localHedSchemaFile)
+    hedSchemaPromise = validate.schema.buildSchema({ path: localHedSchemaFile })
   })
 
   it("should have a root element with the name 'HED'", async done => {

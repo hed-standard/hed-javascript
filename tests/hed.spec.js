@@ -102,16 +102,19 @@ describe('Individual HED Tags', function() {
     const properTagResult = validate.HED.validateIndividualHedTags(
       parsedProperTag,
       properTagIssues,
+      false,
       true,
     )
     const camelCaseTagResult = validate.HED.validateIndividualHedTags(
       parsedCamelCaseTag,
       camelCaseTagIssues,
+      false,
       true,
     )
     const badTagResult = validate.HED.validateIndividualHedTags(
       parsedBadTag,
       badTagIssues,
+      false,
       true,
     )
     assert.strictEqual(properTagResult, true)
@@ -156,18 +159,22 @@ describe('HED Tag Levels', function() {
     const topLevelDuplicateResult = validate.HED.validateHedTagLevels(
       parsedTopLevelDuplicateString,
       topLevelDuplicateIssues,
+      false,
     )
     const groupDuplicateResult = validate.HED.validateHedTagLevels(
       parsedGroupDuplicateString,
       groupDuplicateIssues,
+      false,
     )
     const noDuplicateResult = validate.HED.validateHedTagLevels(
       parsedNoDuplicateString,
       noDuplicateIssues,
+      false,
     )
     const legalDuplicateResult = validate.HED.validateHedTagLevels(
       parsedLegalDuplicateString,
       legalDuplicateIssues,
+      false,
     )
     assert.strictEqual(topLevelDuplicateResult, false)
     assert.strictEqual(groupDuplicateResult, false)

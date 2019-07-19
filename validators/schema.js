@@ -237,17 +237,17 @@ const loadLocalSchema = function(path) {
 
 const buildRemoteSchema = function(version = 'Latest') {
   return loadRemoteSchema(version).then(xmlData => {
-    return buildSchema(xmlData)
+    return buildSchemaObject(xmlData)
   })
 }
 
 const buildLocalSchema = function(path) {
   return loadLocalSchema(path).then(xmlData => {
-    return buildSchema(xmlData)
+    return buildSchemaObject(xmlData)
   })
 }
 
-const buildSchema = function(xmlData) {
+const buildSchemaObject = function(xmlData) {
   const schemaDictionaries = Object.create(SchemaDictionaries)
   const rootElement = xmlData.root()
   schemaDictionaries.rootElement = rootElement
@@ -256,7 +256,17 @@ const buildSchema = function(xmlData) {
   return schema
 }
 
+const buildSchema = function(schemaDef) {
+  if (schemaDef.path) {
+    return buildLocalSchema(schemaDef.path)
+  } else if (schemaDef.version) {
+    return buildRemoteSchema(schemaDef.version)
+  } else {
+    return buildRemoteSchema()
+  }
+}
+
 module.exports = {
-  buildRemoteSchema: buildRemoteSchema,
-  buildLocalSchema: buildLocalSchema,
+  buildSchema: buildSchema,
+  Schema: Schema,
 }

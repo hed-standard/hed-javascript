@@ -1,5 +1,6 @@
 const utils = require('../utils')
 const stringParser = require('./stringParser')
+const Schema = require('./schema').Schema
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -178,10 +179,13 @@ const validateIndividualHedTag = function(
   previousOriginalTag,
   previousFormattedTag,
   issues,
+  doSemanticValidation,
   checkForWarnings,
 ) {
   let valid = true
-  // TODO: Implement semantic validations
+  if (doSemanticValidation) {
+    // TODO: Implement semantic validations
+  }
   if (checkForWarnings) {
     valid = valid && checkCapitalization(originalTag, formattedTag, issues)
   }
@@ -194,6 +198,7 @@ const validateIndividualHedTag = function(
 const validateIndividualHedTags = function(
   parsedString,
   issues,
+  doSemanticValidation,
   checkForWarnings,
 ) {
   let valid = true
@@ -210,6 +215,7 @@ const validateIndividualHedTags = function(
         previousOriginalTag,
         previousFormattedTag,
         issues,
+        doSemanticValidation,
         checkForWarnings,
       )
     previousOriginalTag = originalTag
@@ -225,10 +231,12 @@ const validateHedTagLevel = function(
   originalTagList,
   formattedTagList,
   issues,
+  doSemanticValidation,
 ) {
   let valid = true
-  // TODO: Implement semantic validations
-  // valid = valid && checkForMultipleUniqueTags(originalTagList, formattedTagList)
+  /*if (doSemanticValidation) {
+    valid = valid && checkForMultipleUniqueTags(originalTagList, formattedTagList)
+  }*/
   valid =
     valid && checkForDuplicateTags(originalTagList, formattedTagList, issues)
   return valid
@@ -237,7 +245,11 @@ const validateHedTagLevel = function(
 /**
  * Validate the HED tag levels in a parsed HED string object.
  */
-const validateHedTagLevels = function(parsedString, issues) {
+const validateHedTagLevels = function(
+  parsedString,
+  issues,
+  doSemanticValidation,
+) {
   let valid = true
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
     const originalTag = parsedString.tagGroups[i]
@@ -250,6 +262,7 @@ const validateHedTagLevels = function(parsedString, issues) {
       parsedString.topLevelTags,
       parsedString.formattedTopLevelTags,
       issues,
+      doSemanticValidation,
     )
   return valid
 }
@@ -289,6 +302,7 @@ const validateHedString = function(
   checkForWarnings = false,
 ) {
   const issues = []
+  const doSemanticValidation = hedSchema instanceof Schema
   const isFullHedStringValid = validateFullHedString(hedString, issues)
   if (!isFullHedStringValid) {
     return [false, issues]
@@ -301,8 +315,15 @@ const validateHedString = function(
 
   let valid = true
   valid =
-    valid && validateIndividualHedTags(parsedString, issues, checkForWarnings)
-  valid = valid && validateHedTagLevels(parsedString, issues)
+    valid &&
+    validateIndividualHedTags(
+      parsedString,
+      issues,
+      doSemanticValidation,
+      checkForWarnings,
+    )
+  valid =
+    valid && validateHedTagLevels(parsedString, issues, doSemanticValidation)
   valid = valid && validateHedTagGroups(parsedString, issues)
   return [valid, issues]
 }
