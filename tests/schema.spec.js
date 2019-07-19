@@ -6,13 +6,10 @@ const localHedSchemaVersion = '7.0.3'
 
 describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', async done => {
-    const issues = []
     const remoteHedSchemaVersion = '7.0.3'
     validate.schema
-      .buildRemoteSchema(issues, remoteHedSchemaVersion)
+      .buildRemoteSchema(remoteHedSchemaVersion)
       .then(hedSchema => {
-        assert.deepStrictEqual(issues, [])
-
         const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
         assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
         done()
@@ -22,38 +19,23 @@ describe('Remote HED schemas', function() {
 
 describe('Local HED schemas', function() {
   it('can be loaded from a file', async done => {
-    const issues = []
-    validate.schema
-      .buildLocalSchema(issues, localHedSchemaFile)
-      .then(hedSchema => {
-        assert.deepStrictEqual(issues, [])
-
-        const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
-        assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
-        done()
-      })
+    validate.schema.buildLocalSchema(localHedSchemaFile).then(hedSchema => {
+      const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
+      assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
+      done()
+    })
   })
 })
 
 describe('HED schemas', function() {
   let hedSchemaPromise
-  let issues
-
-  beforeEach(() => {
-    issues = []
-  })
 
   beforeAll(() => {
-    hedSchemaPromise = validate.schema.buildLocalSchema(
-      issues,
-      localHedSchemaFile,
-    )
+    hedSchemaPromise = validate.schema.buildLocalSchema(localHedSchemaFile)
   })
 
   it("should have a root element with the name 'HED'", async done => {
     hedSchemaPromise.then(hedSchema => {
-      assert.deepStrictEqual(issues, [])
-
       const hedSchemaRootName = hedSchema.rootElement.name()
       assert.strictEqual(hedSchemaRootName, 'HED')
       done()
@@ -76,8 +58,6 @@ describe('HED schemas', function() {
       'unitClass',
     ]
     hedSchemaPromise.then(hedSchema => {
-      assert.deepStrictEqual(issues, [])
-
       const dictionaries = hedSchema.dictionaries
       for (const dictionaryKey of tagDictionaryKeys) {
         assert(
@@ -91,8 +71,6 @@ describe('HED schemas', function() {
 
   it('contains all of the required tags', async done => {
     hedSchemaPromise.then(hedSchema => {
-      assert.deepStrictEqual(issues, [])
-
       const requiredTags = [
         'event/category',
         'event/description',
@@ -112,8 +90,6 @@ describe('HED schemas', function() {
 
   it('contains all of the positioned tags', async done => {
     hedSchemaPromise.then(hedSchema => {
-      assert.deepStrictEqual(issues, [])
-
       const positionedTags = [
         'event/category',
         'event/description',
@@ -137,8 +113,6 @@ describe('HED schemas', function() {
 
   it('contains all of the unique tags', async done => {
     hedSchemaPromise.then(hedSchema => {
-      assert.deepStrictEqual(issues, [])
-
       const uniqueTags = ['event/description', 'event/label', 'event/long name']
       const dictionariesUniqueTags = hedSchema.dictionaries['unique']
       assert.strictEqual(
@@ -154,8 +128,6 @@ describe('HED schemas', function() {
 
   it('contains all of the tags with default units', async done => {
     hedSchemaPromise.then(hedSchema => {
-      assert.deepStrictEqual(issues, [])
-
       const defaultUnitTags = {
         'attribute/blink/time shut/#': 's',
         'attribute/blink/duration/#': 's',
@@ -170,8 +142,6 @@ describe('HED schemas', function() {
 
   it('contains all of the unit classes with their units and default units', async done => {
     hedSchemaPromise.then(hedSchema => {
-      assert.deepStrictEqual(issues, [])
-
       const defaultUnits = {
         acceleration: 'cm-per-s2',
         currency: '$',
@@ -243,8 +213,6 @@ describe('HED schemas', function() {
 
   it('contains the correct (large) numbers of tags with certain attributes', async done => {
     hedSchemaPromise.then(hedSchema => {
-      assert.deepStrictEqual(issues, [])
-
       const expectedTagCount = {
         isNumeric: 80,
         predicateType: 20,
@@ -269,8 +237,6 @@ describe('HED schemas', function() {
 
   it('should identify if a tag has a certain attribute', async done => {
     hedSchemaPromise.then(hedSchema => {
-      assert.deepStrictEqual(issues, [])
-
       const testTag1 =
         'Attribute/Location/Reference frame/Relative to participant/Azimuth/#'
       assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'default'), false)

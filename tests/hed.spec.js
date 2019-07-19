@@ -9,18 +9,17 @@ describe('Full HED Strings', function() {
       '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
     const validString =
       '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-    const extraOpeningIssues = []
-    const extraOpeningResult = validate.HED.validateHedString(
-      extraOpeningString,
+    const [
+      extraOpeningResult,
       extraOpeningIssues,
-    )
-    const extraClosingIssues = []
-    const extraClosingResult = validate.HED.validateHedString(
-      extraClosingString,
+    ] = validate.HED.validateHedString(extraOpeningString)
+    const [
+      extraClosingResult,
       extraClosingIssues,
+    ] = validate.HED.validateHedString(extraClosingString)
+    const [validResult, validIssues] = validate.HED.validateHedString(
+      validString,
     )
-    const validIssues = []
-    const validResult = validate.HED.validateHedString(validString, validIssues)
     assert.strictEqual(extraOpeningResult, false)
     assert.strictEqual(extraClosingResult, false)
     assert.strictEqual(validResult, true)
@@ -37,18 +36,17 @@ describe('Full HED Strings', function() {
       '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
     const validString =
       '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-    const missingOpeningIssues = []
-    const missingOpeningResult = validate.HED.validateHedString(
-      missingOpeningString,
+    const [
+      missingOpeningResult,
       missingOpeningIssues,
-    )
-    const missingClosingIssues = []
-    const missingClosingResult = validate.HED.validateHedString(
-      missingClosingString,
+    ] = validate.HED.validateHedString(missingOpeningString)
+    const [
+      missingClosingResult,
       missingClosingIssues,
+    ] = validate.HED.validateHedString(missingClosingString)
+    const [validResult, validIssues] = validate.HED.validateHedString(
+      validString,
     )
-    const validIssues = []
-    const validResult = validate.HED.validateHedString(validString, validIssues)
     assert.strictEqual(missingOpeningResult, false)
     assert.strictEqual(missingClosingResult, false)
     assert.strictEqual(validResult, true)
@@ -66,14 +64,10 @@ describe('Full HED Strings', function() {
       '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm'
     const invalidString4 =
       '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm'
-    const issues1 = []
-    const issues2 = []
-    const issues3 = []
-    const issues4 = []
-    const result1 = validate.HED.validateHedString(invalidString1, issues1)
-    const result2 = validate.HED.validateHedString(invalidString2, issues2)
-    const result3 = validate.HED.validateHedString(invalidString3, issues3)
-    const result4 = validate.HED.validateHedString(invalidString4, issues4)
+    const [result1, issues1] = validate.HED.validateHedString(invalidString1)
+    const [result2, issues2] = validate.HED.validateHedString(invalidString2)
+    const [result3, issues3] = validate.HED.validateHedString(invalidString3)
+    const [result4, issues4] = validate.HED.validateHedString(invalidString4)
     assert.strictEqual(result1, false)
     assert.strictEqual(result2, false)
     assert.strictEqual(result3, false)
@@ -190,9 +184,9 @@ describe('HED Tags', function() {
   it('should comprise valid comma-separated paths', function() {
     const hedStr =
       'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
-    const issues = []
-    const result = validate.HED.validateHedString(hedStr, issues)
+    const [result, issues] = validate.HED.validateHedString(hedStr)
     assert.strictEqual(result, true)
+    assert.deepStrictEqual(issues, [])
   })
 })
 

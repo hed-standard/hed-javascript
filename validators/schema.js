@@ -201,7 +201,7 @@ const Schema = function(rootElement, dictionaries) {
   this.tagHasAttribute = tagHasAttribute
 }
 
-const loadRemoteSchema = function(issues, version) {
+const loadRemoteSchema = function(version) {
   const fileName = 'HED' + version + '.xml'
   const basePath =
     'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
@@ -212,33 +212,37 @@ const loadRemoteSchema = function(issues, version) {
       return libxmljs.parseXmlString(data)
     })
     .catch(error => {
-      issues.push(
-        'Could not load HED schema version "' + version + '" - "' + error + '"',
+      throw new Error(
+        'Could not load HED schema version "' +
+          version +
+          '" from remote repository - "' +
+          error +
+          '".',
       )
     })
 }
 
-const loadLocalSchema = function(issues, path) {
+const loadLocalSchema = function(path) {
   return files
     .readFile(path)
     .then(data => {
       return libxmljs.parseXmlString(data)
     })
     .catch(error => {
-      issues.push(
-        'Could not load HED schema from path "' + path + '" - "' + error + '"',
+      throw new Error(
+        'Could not load HED schema from path "' + path + '" - "' + error + '".',
       )
     })
 }
 
-const buildRemoteSchema = function(issues, version = 'Latest') {
-  return loadRemoteSchema(issues, version).then(xmlData => {
+const buildRemoteSchema = function(version = 'Latest') {
+  return loadRemoteSchema(version).then(xmlData => {
     return buildSchema(xmlData)
   })
 }
 
-const buildLocalSchema = function(issues, path) {
-  return loadLocalSchema(issues, path).then(xmlData => {
+const buildLocalSchema = function(path) {
+  return loadLocalSchema(path).then(xmlData => {
     return buildSchema(xmlData)
   })
 }

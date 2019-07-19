@@ -1,17 +1,24 @@
-// dependencies ------------------------------------------------------
-
 const HED = require('./hed')
 const schema = require('./schema')
 const stringParser = require('./stringParser')
 
-// public api --------------------------------------------------------
+const validate = function(hedString, schemaData, checkForWarnings = false) {
+  let schemaPromise
+  if (schemaData.path) {
+    schemaPromise = schema.buildLocalSchema(schemaData.path)
+  } else if (schemaData.version) {
+    schemaPromise = schema.buildRemoteSchema(schemaData.version)
+  } else {
+    schemaPromise = schema.buildRemoteSchema()
+  }
+  schemaPromise.then(hedSchema => {
+    return HED.validateHedString(hedString, hedSchema, checkForWarnings)
+  })
+}
 
-const validate = {
+module.exports = {
   HED: HED,
   schema: schema,
   stringParser: stringParser,
+  validate: validate,
 }
-
-// exports -----------------------------------------------------------
-
-module.exports = validate

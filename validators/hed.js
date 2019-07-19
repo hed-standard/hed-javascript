@@ -278,24 +278,25 @@ const validateHedTagGroups = function(parsedString, issues) {
 /**
  * Validate a HED string.
  *
- * @param hedString The HED string to validate
- * @param issues An array to which issues are pushed.
+ * @param hedString The HED string to validate.
+ * @param hedSchema The HED schema to validate against.
  * @param checkForWarnings Whether to check for warnings or only errors.
- * @returns {boolean} Whether the HED string is valid.
+ * @returns {Array} Whether the HED string is valid and any issues found.
  */
 const validateHedString = function(
   hedString,
-  issues,
+  hedSchema = {},
   checkForWarnings = false,
 ) {
+  const issues = []
   const isFullHedStringValid = validateFullHedString(hedString, issues)
   if (!isFullHedStringValid) {
-    return false
+    return [false, issues]
   }
 
   const parsedString = stringParser.parseHedString(hedString, issues)
   if (issues.length !== 0) {
-    return false
+    return [false, issues]
   }
 
   let valid = true
@@ -303,7 +304,7 @@ const validateHedString = function(
     valid && validateIndividualHedTags(parsedString, issues, checkForWarnings)
   valid = valid && validateHedTagLevels(parsedString, issues)
   valid = valid && validateHedTagGroups(parsedString, issues)
-  return valid
+  return [valid, issues]
 }
 
 module.exports = {
