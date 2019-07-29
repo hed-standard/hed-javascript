@@ -9,6 +9,7 @@ const tilde = '~'
 const delimiters = [comma, tilde]
 
 const uniqueType = 'unique'
+const requiredType = 'required'
 
 /**
  * Check if group parentheses match. Pushes an issue if they don't match.
@@ -151,6 +152,9 @@ const checkForDuplicateTags = function(
   return valid
 }
 
+/**
+ * Check for multiple instances of a unique tag.
+ */
 const checkForMultipleUniqueTags = function(
   originalTagList,
   formattedTagList,
@@ -158,7 +162,7 @@ const checkForMultipleUniqueTags = function(
   issues,
 ) {
   const uniqueTagPrefixes = hedSchema.dictionaries[uniqueType]
-  let passed = true
+  let valid = true
   for (const uniqueTagPrefix in uniqueTagPrefixes) {
     let foundOne = false
     for (const formattedTag of formattedTagList) {
@@ -168,16 +172,16 @@ const checkForMultipleUniqueTags = function(
         } else {
           issues.push(
             'ERROR: Multiple unique tags with prefix - "' +
-              uniqueTagPrefix +
+              hedSchema.dictionaries[uniqueType][uniqueTagPrefix] +
               '"',
           )
-          passed = false
+          valid = false
           break
         }
       }
     }
   }
-  return passed
+  return valid
 }
 
 /**
@@ -190,6 +194,33 @@ const checkNumberOfGroupTildes = function(originalTagGroup, issues) {
     return false
   }
   return true
+}
+
+/**
+ * Check that all required tags are present.
+ */
+const checkForRequiredTags = function(parsedString, hedSchema, issues) {
+  const formattedTopLevelTagList = parsedString.formattedTopLevelTags
+  const requiredTagPrefixes = hedSchema.dictionaries[requiredType]
+  let valid = true
+  for (const requiredTagPrefix in requiredTagPrefixes) {
+    let foundOne = false
+    for (const formattedTag of formattedTopLevelTagList) {
+      if (formattedTag.startsWith(requiredTagPrefix)) {
+        foundOne = true
+        break
+      }
+    }
+    if (!foundOne) {
+      valid = false
+      issues.push(
+        'WARNING: Tag with prefix "' +
+          hedSchema.dictionaries[requiredType][requiredTagPrefix] +
+          '" is required',
+      )
+    }
+  }
+  return valid
 }
 
 /**
@@ -334,6 +365,13 @@ const validateHedTagGroups = function(parsedString, issues) {
 }
 
 /**
+ * Validate the top-level HED tags in a parsed HED string.
+ */
+const validateTopLevelTags = function(parsedString, hedSchema, issues) {
+  return checkForRequiredTags(parsedString, hedSchema, issues)
+}
+
+/**
  * Validate a HED string.
  *
  * @param hedString The HED string to validate.
@@ -359,6 +397,9 @@ const validateHedString = function(
   }
 
   let valid = true
+  if (checkForWarnings) {
+    valid = valid && validateTopLevelTags(parsedString, hedSchema, issues)
+  }
   valid =
     valid &&
     validateIndividualHedTags(
@@ -379,5 +420,6 @@ module.exports = {
   validateIndividualHedTags: validateIndividualHedTags,
   validateHedTagGroups: validateHedTagGroups,
   validateHedTagLevels: validateHedTagLevels,
+  validateTopLevelTags: validateTopLevelTags,
   validateHedString: validateHedString,
 }

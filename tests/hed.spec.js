@@ -239,6 +239,70 @@ describe('HED strings', function() {
     })
   })
 
+  describe('Top-level Tags', function() {
+    it('should include all required tags', async done => {
+      const completeString =
+        'Event/Label/Bus,Event/Category/Experimental stimulus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus'
+      const incompleteString1 =
+        'Event/Category/Experimental stimulus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus'
+      const incompleteString2 =
+        'Event/Label/Bus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus'
+      const incompleteString3 =
+        'Event/Label/Bus,Event/Category/Experimental stimulus,Item/Object/Vehicle/Bus'
+      const completeIssues = []
+      const incompleteIssues1 = []
+      const incompleteIssues2 = []
+      const incompleteIssues3 = []
+      const parsedCompleteString = validate.stringParser.parseHedString(
+        completeString,
+        completeIssues,
+      )
+      const parsedIncompleteString1 = validate.stringParser.parseHedString(
+        incompleteString1,
+        incompleteIssues1,
+      )
+      const parsedIncompleteString2 = validate.stringParser.parseHedString(
+        incompleteString2,
+        incompleteIssues2,
+      )
+      const parsedIncompleteString3 = validate.stringParser.parseHedString(
+        incompleteString3,
+        incompleteIssues3,
+      )
+      hedSchemaPromise.then(schema => {
+        const completeResult = validate.HED.validateTopLevelTags(
+          parsedCompleteString,
+          schema,
+          completeIssues,
+        )
+        const incompleteResult1 = validate.HED.validateTopLevelTags(
+          parsedIncompleteString1,
+          schema,
+          incompleteIssues1,
+        )
+        const incompleteResult2 = validate.HED.validateTopLevelTags(
+          parsedIncompleteString2,
+          schema,
+          incompleteIssues2,
+        )
+        const incompleteResult3 = validate.HED.validateTopLevelTags(
+          parsedIncompleteString3,
+          schema,
+          incompleteIssues3,
+        )
+        assert.strictEqual(completeResult, true)
+        assert.strictEqual(incompleteResult1, false)
+        assert.strictEqual(incompleteResult2, false)
+        assert.strictEqual(incompleteResult3, false)
+        assert.strictEqual(completeIssues.length, 0)
+        assert.strictEqual(incompleteIssues1.length, 1)
+        assert.strictEqual(incompleteIssues2.length, 1)
+        assert.strictEqual(incompleteIssues3.length, 1)
+        done()
+      })
+    })
+  })
+
   describe('HED Tags', function() {
     it('should comprise valid comma-separated paths', function() {
       const hedStr =
