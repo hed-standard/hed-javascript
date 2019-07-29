@@ -8,6 +8,8 @@ const comma = ','
 const tilde = '~'
 const delimiters = [comma, tilde]
 
+const uniqueType = 'unique'
+
 /**
  * Check if group parentheses match. Pushes an issue if they don't match.
  */
@@ -149,6 +151,35 @@ const checkForDuplicateTags = function(
   return valid
 }
 
+const checkForMultipleUniqueTags = function(
+  originalTagList,
+  formattedTagList,
+  hedSchema,
+  issues,
+) {
+  const uniqueTagPrefixes = hedSchema.dictionaries[uniqueType]
+  let passed = true
+  for (const uniqueTagPrefix in uniqueTagPrefixes) {
+    let foundOne = false
+    for (const formattedTag of formattedTagList) {
+      if (formattedTag.startsWith(uniqueTagPrefix)) {
+        if (!foundOne) {
+          foundOne = true
+        } else {
+          issues.push(
+            'ERROR: Multiple unique tags with prefix - "' +
+              uniqueTagPrefix +
+              '"',
+          )
+          passed = false
+          break
+        }
+      }
+    }
+  }
+  return passed
+}
+
 /**
  * Verify that the tilde count in a single group does not exceed 2.
  */
@@ -178,6 +209,7 @@ const validateIndividualHedTag = function(
   formattedTag,
   previousOriginalTag,
   previousFormattedTag,
+  hedSchema,
   issues,
   doSemanticValidation,
   checkForWarnings,
@@ -197,6 +229,7 @@ const validateIndividualHedTag = function(
  */
 const validateIndividualHedTags = function(
   parsedString,
+  hedSchema,
   issues,
   doSemanticValidation,
   checkForWarnings,
@@ -214,6 +247,7 @@ const validateIndividualHedTags = function(
         formattedTag,
         previousOriginalTag,
         previousFormattedTag,
+        hedSchema,
         issues,
         doSemanticValidation,
         checkForWarnings,
@@ -230,13 +264,21 @@ const validateIndividualHedTags = function(
 const validateHedTagLevel = function(
   originalTagList,
   formattedTagList,
+  hedSchema,
   issues,
   doSemanticValidation,
 ) {
   let valid = true
-  /*if (doSemanticValidation) {
-    valid = valid && checkForMultipleUniqueTags(originalTagList, formattedTagList)
-  }*/
+  if (doSemanticValidation) {
+    valid =
+      valid &&
+      checkForMultipleUniqueTags(
+        originalTagList,
+        formattedTagList,
+        hedSchema,
+        issues,
+      )
+  }
   valid =
     valid && checkForDuplicateTags(originalTagList, formattedTagList, issues)
   return valid
@@ -247,6 +289,7 @@ const validateHedTagLevel = function(
  */
 const validateHedTagLevels = function(
   parsedString,
+  hedSchema,
   issues,
   doSemanticValidation,
 ) {
@@ -254,13 +297,15 @@ const validateHedTagLevels = function(
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
     const originalTag = parsedString.tagGroups[i]
     const formattedTag = parsedString.formattedTagGroups[i]
-    valid = valid && validateHedTagLevel(originalTag, formattedTag, issues)
+    valid =
+      valid && validateHedTagLevel(originalTag, formattedTag, hedSchema, issues)
   }
   valid =
     valid &&
     validateHedTagLevel(
       parsedString.topLevelTags,
       parsedString.formattedTopLevelTags,
+      hedSchema,
       issues,
       doSemanticValidation,
     )
@@ -318,12 +363,14 @@ const validateHedString = function(
     valid &&
     validateIndividualHedTags(
       parsedString,
+      hedSchema,
       issues,
       doSemanticValidation,
       checkForWarnings,
     )
   valid =
-    valid && validateHedTagLevels(parsedString, issues, doSemanticValidation)
+    valid &&
+    validateHedTagLevels(parsedString, hedSchema, issues, doSemanticValidation)
   valid = valid && validateHedTagGroups(parsedString, issues)
   return [valid, issues]
 }
