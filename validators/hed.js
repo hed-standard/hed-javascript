@@ -10,6 +10,7 @@ const delimiters = [comma, tilde]
 
 const uniqueType = 'unique'
 const requiredType = 'required'
+const requireChildType = 'requireChild'
 
 /**
  * Check if group parentheses match. Pushes an issue if they don't match.
@@ -197,6 +198,22 @@ const checkNumberOfGroupTildes = function(originalTagGroup, issues) {
 }
 
 /**
+ * Check if a tag is missing a required child.
+ */
+const checkIfTagRequiresChild = function(
+  originalTag,
+  formattedTag,
+  hedSchema,
+  issues,
+) {
+  const invalid = formattedTag in hedSchema.dictionaries[requireChildType]
+  if (invalid) {
+    issues.push('ERROR: Descendant tag required - "' + originalTag + '"')
+  }
+  return !invalid
+}
+
+/**
  * Check that all required tags are present.
  */
 const checkForRequiredTags = function(parsedString, hedSchema, issues) {
@@ -248,6 +265,9 @@ const validateIndividualHedTag = function(
   let valid = true
   if (doSemanticValidation) {
     // TODO: Implement semantic validations
+    valid =
+      valid &&
+      checkIfTagRequiresChild(originalTag, formattedTag, hedSchema, issues)
   }
   if (checkForWarnings) {
     valid = valid && checkCapitalization(originalTag, formattedTag, issues)

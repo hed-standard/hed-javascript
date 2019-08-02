@@ -136,6 +136,42 @@ describe('HED strings', function() {
       assert.strictEqual(camelCaseTagIssues.length, 0)
       assert.strictEqual(badTagIssues.length, 1)
     })
+
+    it('should have a child when required', async done => {
+      const properTag = 'Event/Category/Experimental stimulus'
+      const badTag = 'Event/Category'
+      const properTagIssues = []
+      const badTagIssues = []
+      const parsedProperTag = validate.stringParser.parseHedString(
+        properTag,
+        properTagIssues,
+      )
+      const parsedBadTag = validate.stringParser.parseHedString(
+        badTag,
+        badTagIssues,
+      )
+      hedSchemaPromise.then(hedSchema => {
+        const properTagResult = validate.HED.validateIndividualHedTags(
+          parsedProperTag,
+          hedSchema,
+          properTagIssues,
+          true,
+          true,
+        )
+        const badTagResult = validate.HED.validateIndividualHedTags(
+          parsedBadTag,
+          hedSchema,
+          badTagIssues,
+          true,
+          true,
+        )
+        assert.strictEqual(properTagResult, true)
+        assert.strictEqual(badTagResult, false)
+        assert.strictEqual(properTagIssues.length, 0)
+        assert.strictEqual(badTagIssues.length, 1)
+        done()
+      })
+    })
   })
 
   describe('HED Tag Levels', function() {
