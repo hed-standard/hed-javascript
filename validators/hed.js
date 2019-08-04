@@ -10,6 +10,8 @@ const delimiters = [comma, tilde]
 
 const defaultUnitAttribute = 'default'
 const defaultUnitsForTypeAttribute = 'default_units'
+const tagsDictionaryKey = 'tags'
+const takesValueType = 'takesValue'
 const unitClassType = 'unitClass'
 const uniqueType = 'unique'
 const requiredType = 'required'
@@ -20,11 +22,22 @@ const digitExpression = /^-?[\d.]+(?:e-?\d+)?$/
 // Utility functions
 
 /**
+ * Determine if a HED tag is in the schema.
+ */
+const tagIsValid = function(formattedTag, hedSchema) {
+  return formattedTag in hedSchema.dictionaries[tagsDictionaryKey]
+}
+
+/**
+ * Checks if a HED tag has the 'takesValue' attribute.
+ */
+const tagTakesValue = function(formattedTag, hedSchema) {
+  const takesValueTag = utils.HED.replaceTagNameWithPound(formattedTag)
+  return hedSchema.tagHasAttribute(takesValueTag, takesValueType)
+}
+
+/**
  * Checks if a HED tag has the 'unitClass' attribute.
- *
- * @param formattedTag The formatted HED tag to check.
- * @param hedSchema The HED schema to check against.
- * @return {boolean} Whether this tag has the 'unitClass' attribute.
  */
 const isUnitClassTag = function(formattedTag, hedSchema) {
   const takesValueTag = utils.HED.replaceTagNameWithPound(formattedTag)
@@ -33,10 +46,6 @@ const isUnitClassTag = function(formattedTag, hedSchema) {
 
 /**
  * Get the default unit for a particular HED tag.
- *
- * @param formattedTag A formatted HED tag.
- * @param hedSchema The HED schema being checked.
- * @return {String} The default unit for this tag.
  */
 const getUnitClassDefaultUnit = function(formattedTag, hedSchema) {
   if (isUnitClassTag(formattedTag, hedSchema)) {
@@ -58,6 +67,28 @@ const getUnitClassDefaultUnit = function(formattedTag, hedSchema) {
     }
   } else {
     return ''
+  }
+}
+
+/**
+ * Check if a HED tag is valid with parentheses.
+ */
+const isValidTagWithParentheses = function(
+  hedString,
+  currentTag,
+  characterIndex,
+  hedSchema,
+) {
+  currentTag = currentTag.slice(0, -1)
+  const restOfHedString = hedString.substring(characterIndex)
+  const [currentTagWithParentheses] = utils.string.getNextSetOfParentheses(
+    currentTag + restOfHedString,
+  )
+  const currentTagWithParenthesesLower = currentTagWithParentheses.toLowerCase()
+  if (tagTakesValue(currentTagWithParenthesesLower, hedSchema)) {
+    return true
+  } else {
+    return tagIsValid(currentTagWithParenthesesLower, hedSchema)
   }
 }
 
@@ -116,7 +147,12 @@ const isCommaMissingAfterClosingParenthesis = function(
 /**
  * Check for comma issues in a HED string (e.g. missing commas adjacent to groups).
  */
-const findCommaIssuesInHedString = function(hedString, issues) {
+const findCommaIssuesInHedString = function(
+  hedString,
+  hedSchema,
+  issues,
+  doSemanticValidation,
+) {
   let lastNonEmptyCharacter = ''
   let currentTag = ''
   for (let i = 0; i < hedString.length; i++) {
@@ -128,9 +164,24 @@ const findCommaIssuesInHedString = function(hedString, issues) {
     if (delimiters.includes(currentCharacter)) {
       currentTag = ''
     }
-    /*if () {
-      // TODO: Semantic validation.
-    } else */ if (
+    if (currentCharacter === openingGroupCharacter) {
+      if (currentTag.trim() === openingGroupCharacter) {
+        currentTag = ''
+      } else if (
+        doSemanticValidation &&
+        isValidTagWithParentheses(hedString, currentTag, i, hedSchema)
+      ) {
+        const indexAfterParentheses = utils.HED.getIndexAtEndOfParentheses(
+          hedString,
+          currentTag,
+          i,
+        )
+        i = indexAfterParentheses
+        currentTag = ''
+      } else {
+        issues.push('ERROR: Invalid tag - "' + currentTag + '"')
+      }
+    } else if (
       isCommaMissingBeforeOpeningParenthesis(
         lastNonEmptyCharacter,
         currentCharacter,
@@ -321,9 +372,14 @@ const checkIfTagUnitClassUnitsExist = function(
 /**
  * Validate the full HED string.
  */
-const validateFullHedString = function(hedString, issues) {
+const validateFullHedString = function(
+  hedString,
+  hedSchema,
+  issues,
+  doSemanticValidation,
+) {
   countTagGroupParentheses(hedString, issues)
-  findCommaIssuesInHedString(hedString, issues)
+  findCommaIssuesInHedString(hedString, hedSchema, issues, doSemanticValidation)
   return issues.length === 0
 }
 
@@ -494,7 +550,12 @@ const validateHedString = function(
 ) {
   const issues = []
   const doSemanticValidation = hedSchema instanceof Schema
-  const isFullHedStringValid = validateFullHedString(hedString, issues)
+  const isFullHedStringValid = validateFullHedString(
+    hedString,
+    hedSchema,
+    issues,
+    doSemanticValidation,
+  )
   if (!isFullHedStringValid) {
     return [false, issues]
   }
