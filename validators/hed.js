@@ -8,9 +8,60 @@ const comma = ','
 const tilde = '~'
 const delimiters = [comma, tilde]
 
+const defaultUnitAttribute = 'default'
+const defaultUnitsForTypeAttribute = 'default_units'
+const unitClassType = 'unitClass'
 const uniqueType = 'unique'
 const requiredType = 'required'
 const requireChildType = 'requireChild'
+
+const digitExpression = /^-?[\d.]+(?:e-?\d+)?$/
+
+// Utility functions
+
+/**
+ * Checks if a HED tag has the 'unitClass' attribute.
+ *
+ * @param formattedTag The formatted HED tag to check.
+ * @param hedSchema The HED schema to check against.
+ * @return {boolean} Whether this tag has the 'unitClass' attribute.
+ */
+const isUnitClassTag = function(formattedTag, hedSchema) {
+  const takesValueTag = utils.HED.replaceTagNameWithPound(formattedTag)
+  return hedSchema.tagHasAttribute(takesValueTag, unitClassType)
+}
+
+/**
+ * Get the default unit for a particular HED tag.
+ *
+ * @param formattedTag A formatted HED tag.
+ * @param hedSchema The HED schema being checked.
+ * @return {String} The default unit for this tag.
+ */
+const getUnitClassDefaultUnit = function(formattedTag, hedSchema) {
+  if (isUnitClassTag(formattedTag, hedSchema)) {
+    const unitClassTag = utils.HED.replaceTagNameWithPound(formattedTag)
+    const hasDefaultAttribute = hedSchema.tagHasAttribute(
+      unitClassTag,
+      defaultUnitAttribute,
+    )
+    if (hasDefaultAttribute) {
+      return hedSchema.dictionaries[defaultUnitAttribute][unitClassTag]
+    } else if (unitClassTag in hedSchema.dictionaries[unitClassType]) {
+      const unitClasses = hedSchema.dictionaries[unitClassType][
+        unitClassTag
+      ].split(',')
+      const firstUnitClass = unitClasses[0]
+      return hedSchema.dictionaries[defaultUnitsForTypeAttribute][
+        firstUnitClass
+      ]
+    }
+  } else {
+    return ''
+  }
+}
+
+// Validation tests
 
 /**
  * Check if group parentheses match. Pushes an issue if they don't match.
@@ -240,6 +291,33 @@ const checkForRequiredTags = function(parsedString, hedSchema, issues) {
   return valid
 }
 
+const checkIfTagUnitClassUnitsExist = function(
+  originalTag,
+  formattedTag,
+  hedSchema,
+  issues,
+) {
+  if (isUnitClassTag(formattedTag, hedSchema)) {
+    const tagUnitValues = utils.HED.getTagName(formattedTag)
+    const invalid = digitExpression.test(tagUnitValues)
+    if (invalid) {
+      const defaultUnit = getUnitClassDefaultUnit(formattedTag, hedSchema)
+      issues.push(
+        'WARNING: No unit specified. Using "' +
+          defaultUnit +
+          '" as the default - "' +
+          originalTag +
+          '"',
+      )
+    }
+    return !invalid
+  } else {
+    return true
+  }
+}
+
+// Validation groups
+
 /**
  * Validate the full HED string.
  */
@@ -268,6 +346,16 @@ const validateIndividualHedTag = function(
     valid =
       valid &&
       checkIfTagRequiresChild(originalTag, formattedTag, hedSchema, issues)
+    if (checkForWarnings) {
+      valid =
+        valid &&
+        checkIfTagUnitClassUnitsExist(
+          originalTag,
+          formattedTag,
+          hedSchema,
+          issues,
+        )
+    }
   }
   if (checkForWarnings) {
     valid = valid && checkCapitalization(originalTag, formattedTag, issues)
