@@ -27,8 +27,26 @@ const getTagName = function(tag) {
   }
 }
 
+/**
+ * Get the index at the end of the next set of parentheses in a HED string.
+ */
+const getIndexAtEndOfParentheses = function(
+  hedString,
+  currentTag,
+  characterIndex,
+) {
+  currentTag = currentTag.slice(0, -1)
+  const restOfHedString = hedString.substring(characterIndex)
+  const [, parenthesesLength] = strings.getNextSetOfParentheses(
+    currentTag + restOfHedString,
+  )
+  const finalIndex = characterIndex - currentTag.length + parenthesesLength
+  return finalIndex
+}
+
 module.exports = {
   replaceTagNameWithPound: replaceTagNameWithPound,
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
+  getIndexAtEndOfParentheses: getIndexAtEndOfParentheses,
 }
