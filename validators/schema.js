@@ -191,6 +191,13 @@ const SchemaDictionaries = {
   },
 }
 
+/**
+ * Determine if a HED tag has a particular attribute in this schema.
+ *
+ * @param tag The HED tag to check.
+ * @param tagAttribute The attribute to check for.
+ * @return {boolean} Whether this tag has this attribute.
+ */
 const tagHasAttribute = function(tag, tagAttribute) {
   return tag.toLowerCase() in this.dictionaries[tagAttribute]
 }
