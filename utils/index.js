@@ -1,6 +1,6 @@
 // dependencies ------------------------------------------------------
 
-// const HED = require('./hed')
+const HED = require('./hed')
 const array = require('./array')
 const files = require('./files')
 const string = require('./string')
@@ -8,7 +8,7 @@ const string = require('./string')
 // public api --------------------------------------------------------
 
 const utils = {
-  // HED: HED,
+  HED: HED,
   array: array,
   files: files,
   string: string,
