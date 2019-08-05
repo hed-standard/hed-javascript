@@ -13,9 +13,11 @@ const defaultUnitsForTypeAttribute = 'default_units'
 const tagsDictionaryKey = 'tags'
 const takesValueType = 'takesValue'
 const unitClassType = 'unitClass'
+const unitClassUnitsType = 'units'
 const uniqueType = 'unique'
 const requiredType = 'required'
 const requireChildType = 'requireChild'
+const timeUnitClass = 'time'
 
 const digitExpression = /^-?[\d.]+(?:e-?\d+)?$/
 
@@ -90,6 +92,38 @@ const isValidTagWithParentheses = function(
   } else {
     return tagIsValid(currentTagWithParenthesesLower, hedSchema)
   }
+}
+
+/**
+ * Get the unit classes for a particular HED tag.
+ */
+const getTagUnitClasses = function(formattedTag, hedSchema) {
+  if (isUnitClassTag(formattedTag, hedSchema)) {
+    const unitClassTag = utils.HED.replaceTagNameWithPound(formattedTag)
+    const unitClassesString =
+      hedSchema.dictionaries[unitClassType][unitClassTag]
+    return unitClassesString.split(',')
+  } else {
+    return []
+  }
+}
+
+/**
+ * Get the legal units for a particular HED tag.
+ */
+const getTagUnitClassUnits = function(formattedTag, hedSchema) {
+  const tagUnitClasses = getTagUnitClasses(formattedTag, hedSchema)
+  const units = []
+  for (const unitClass of tagUnitClasses) {
+    const unitClassUnits = hedSchema.dictionaries[unitClassUnitsType][unitClass]
+    Array.prototype.push.apply(
+      units,
+      unitClassUnits.map(unit => {
+        return unit.toLowerCase()
+      }),
+    )
+  }
+  return units
 }
 
 // Validation tests
@@ -342,6 +376,9 @@ const checkForRequiredTags = function(parsedString, hedSchema, issues) {
   return valid
 }
 
+/**
+ * Check that the unit exists if the tag has a declared unit class.
+ */
 const checkIfTagUnitClassUnitsExist = function(
   originalTag,
   formattedTag,
@@ -362,6 +399,43 @@ const checkIfTagUnitClassUnitsExist = function(
       )
     }
     return !invalid
+  } else {
+    return true
+  }
+}
+
+/**
+ * Check that the unit is valid for the tag's unit class.
+ */
+const checkIfTagUnitClassUnitsAreValid = function(
+  originalTag,
+  formattedTag,
+  hedSchema,
+  issues,
+) {
+  if (
+    !tagIsValid(formattedTag, hedSchema) &&
+    isUnitClassTag(formattedTag, hedSchema)
+  ) {
+    const tagUnitClasses = getTagUnitClasses(formattedTag, hedSchema)
+    const tagUnitValues = utils.HED.getTagName(formattedTag)
+    const tagUnitClassUnits = getTagUnitClassUnits(formattedTag, hedSchema)
+    const valid =
+      (tagUnitClasses.includes(timeUnitClass) &&
+        utils.string.isHourMinuteTime(tagUnitValues)) ||
+      digitExpression.test(
+        utils.HED.stripOffUnitsIfValid(tagUnitValues, tagUnitClassUnits),
+      )
+    if (!valid) {
+      issues.push(
+        'ERROR: Invalid unit - "' +
+          originalTag +
+          '" valid units are "' +
+          tagUnitClassUnits.join(',') +
+          '"',
+      )
+    }
+    return valid
   } else {
     return true
   }
@@ -399,6 +473,14 @@ const validateIndividualHedTag = function(
   let valid = true
   if (doSemanticValidation) {
     // TODO: Implement semantic validations
+    valid =
+      valid &&
+      checkIfTagUnitClassUnitsAreValid(
+        originalTag,
+        formattedTag,
+        hedSchema,
+        issues,
+      )
     valid =
       valid &&
       checkIfTagRequiresChild(originalTag, formattedTag, hedSchema, issues)

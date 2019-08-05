@@ -208,6 +208,42 @@ describe('HED strings', function() {
         done()
       })
     })
+
+    it('should have a proper unit when required', async done => {
+      const properTag = 'Event/Duration/3 ms'
+      const badTag = 'Event/Duration/3 cm'
+      const properTagIssues = []
+      const badTagIssues = []
+      const parsedProperTag = validate.stringParser.parseHedString(
+        properTag,
+        properTagIssues,
+      )
+      const parsedBadTag = validate.stringParser.parseHedString(
+        badTag,
+        badTagIssues,
+      )
+      hedSchemaPromise.then(hedSchema => {
+        const properTagResult = validate.HED.validateIndividualHedTags(
+          parsedProperTag,
+          hedSchema,
+          properTagIssues,
+          true,
+          false,
+        )
+        const badTagResult = validate.HED.validateIndividualHedTags(
+          parsedBadTag,
+          hedSchema,
+          badTagIssues,
+          true,
+          false,
+        )
+        assert.strictEqual(properTagResult, true)
+        assert.strictEqual(badTagResult, false)
+        assert.strictEqual(properTagIssues.length, 0)
+        assert.strictEqual(badTagIssues.length, 1)
+        done()
+      })
+    })
   })
 
   describe('HED Tag Levels', function() {
