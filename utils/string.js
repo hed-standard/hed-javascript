@@ -1,3 +1,5 @@
+const date = require('date-and-time')
+
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
 
@@ -88,6 +90,16 @@ const getNextSetOfParentheses = function(string) {
   return [setOfParentheses, i]
 }
 
+/**
+ * Determine if a string is a valid hour-minute time.
+ *
+ * @param timeString The string to check.
+ * @return {boolean} Whether the string is a valid hour-minute time.
+ */
+const isHourMinuteTime = function(timeString) {
+  return date.isValid(timeString, 'HH:mm')
+}
+
 module.exports = {
   stringIsEmpty: stringIsEmpty,
   getCharacterCount: getCharacterCount,
@@ -95,4 +107,5 @@ module.exports = {
   capitalizeString: capitalizeString,
   replaceTagNameWithNewEnding: replaceTagNameWithNewEnding,
   getNextSetOfParentheses: getNextSetOfParentheses,
+  isHourMinuteTime: isHourMinuteTime,
 }
