@@ -8,116 +8,13 @@ const comma = ','
 const tilde = '~'
 const delimiters = [comma, tilde]
 
-const defaultUnitAttribute = 'default'
-const defaultUnitsForTypeAttribute = 'default_units'
-const extensionAllowedAttribute = 'extensionAllowed'
 const tagsDictionaryKey = 'tags'
-const takesValueType = 'takesValue'
-const unitClassType = 'unitClass'
-const unitClassUnitsType = 'units'
 const uniqueType = 'unique'
 const requiredType = 'required'
 const requireChildType = 'requireChild'
 const timeUnitClass = 'time'
 
 const digitExpression = /^-?[\d.]+(?:e-?\d+)?$/
-
-// Utility functions
-
-/**
- * Determine if a HED tag is in the schema.
- */
-const tagIsValid = function(formattedTag, hedSchema) {
-  return formattedTag in hedSchema.dictionaries[tagsDictionaryKey]
-}
-
-/**
- * Checks if a HED tag has the 'takesValue' attribute.
- */
-const tagTakesValue = function(formattedTag, hedSchema) {
-  const takesValueTag = utils.HED.replaceTagNameWithPound(formattedTag)
-  return hedSchema.tagHasAttribute(takesValueTag, takesValueType)
-}
-
-/**
- * Checks if a HED tag has the 'unitClass' attribute.
- */
-const isUnitClassTag = function(formattedTag, hedSchema) {
-  const takesValueTag = utils.HED.replaceTagNameWithPound(formattedTag)
-  return hedSchema.tagHasAttribute(takesValueTag, unitClassType)
-}
-
-/**
- * Get the default unit for a particular HED tag.
- */
-const getUnitClassDefaultUnit = function(formattedTag, hedSchema) {
-  if (isUnitClassTag(formattedTag, hedSchema)) {
-    const unitClassTag = utils.HED.replaceTagNameWithPound(formattedTag)
-    const hasDefaultAttribute = hedSchema.tagHasAttribute(
-      unitClassTag,
-      defaultUnitAttribute,
-    )
-    if (hasDefaultAttribute) {
-      return hedSchema.dictionaries[defaultUnitAttribute][unitClassTag]
-    } else if (unitClassTag in hedSchema.dictionaries[unitClassType]) {
-      const unitClasses = hedSchema.dictionaries[unitClassType][
-        unitClassTag
-      ].split(',')
-      const firstUnitClass = unitClasses[0]
-      return hedSchema.dictionaries[defaultUnitsForTypeAttribute][
-        firstUnitClass
-      ]
-    }
-  } else {
-    return ''
-  }
-}
-
-/**
- * Get the unit classes for a particular HED tag.
- */
-const getTagUnitClasses = function(formattedTag, hedSchema) {
-  if (isUnitClassTag(formattedTag, hedSchema)) {
-    const unitClassTag = utils.HED.replaceTagNameWithPound(formattedTag)
-    const unitClassesString =
-      hedSchema.dictionaries[unitClassType][unitClassTag]
-    return unitClassesString.split(',')
-  } else {
-    return []
-  }
-}
-
-/**
- * Get the legal units for a particular HED tag.
- */
-const getTagUnitClassUnits = function(formattedTag, hedSchema) {
-  const tagUnitClasses = getTagUnitClasses(formattedTag, hedSchema)
-  const units = []
-  for (const unitClass of tagUnitClasses) {
-    const unitClassUnits = hedSchema.dictionaries[unitClassUnitsType][unitClass]
-    Array.prototype.push.apply(
-      units,
-      unitClassUnits.map(unit => {
-        return unit.toLowerCase()
-      }),
-    )
-  }
-  return units
-}
-
-/**
- * Check if any level of a HED tag allows extensions.
- */
-const isExtensionAllowedTag = function(formattedTag, hedSchema) {
-  const tagSlashIndices = utils.HED.getTagSlashIndices(formattedTag)
-  for (const tagSlashIndex of tagSlashIndices) {
-    const tagSubstring = formattedTag.slice(0, tagSlashIndex)
-    if (hedSchema.tagHasAttribute(tagSubstring, extensionAllowedAttribute)) {
-      return true
-    }
-  }
-  return false
-}
 
 // Validation tests
 
@@ -223,7 +120,10 @@ const checkCapitalization = function(
 ) {
   let valid = true
   const tagNames = originalTag.split('/')
-  if (doSemanticValidation && tagTakesValue(formattedTag, hedSchema)) {
+  if (
+    doSemanticValidation &&
+    utils.HED.tagTakesValue(formattedTag, hedSchema)
+  ) {
     tagNames.pop()
   }
   for (const tagName of tagNames) {
@@ -368,11 +268,14 @@ const checkIfTagUnitClassUnitsExist = function(
   hedSchema,
   issues,
 ) {
-  if (isUnitClassTag(formattedTag, hedSchema)) {
+  if (utils.HED.isUnitClassTag(formattedTag, hedSchema)) {
     const tagUnitValues = utils.HED.getTagName(formattedTag)
     const invalid = digitExpression.test(tagUnitValues)
     if (invalid) {
-      const defaultUnit = getUnitClassDefaultUnit(formattedTag, hedSchema)
+      const defaultUnit = utils.HED.getUnitClassDefaultUnit(
+        formattedTag,
+        hedSchema,
+      )
       issues.push(
         'WARNING: No unit specified. Using "' +
           defaultUnit +
@@ -397,12 +300,15 @@ const checkIfTagUnitClassUnitsAreValid = function(
   issues,
 ) {
   if (
-    !tagIsValid(formattedTag, hedSchema) &&
-    isUnitClassTag(formattedTag, hedSchema)
+    !utils.HED.tagIsValid(formattedTag, hedSchema) &&
+    utils.HED.isUnitClassTag(formattedTag, hedSchema)
   ) {
-    const tagUnitClasses = getTagUnitClasses(formattedTag, hedSchema)
+    const tagUnitClasses = utils.HED.getTagUnitClasses(formattedTag, hedSchema)
     const tagUnitValues = utils.HED.getTagName(formattedTag)
-    const tagUnitClassUnits = getTagUnitClassUnits(formattedTag, hedSchema)
+    const tagUnitClassUnits = utils.HED.getTagUnitClassUnits(
+      formattedTag,
+      hedSchema,
+    )
     const valid =
       (tagUnitClasses.includes(timeUnitClass) &&
         utils.string.isHourMinuteTime(tagUnitValues)) ||
@@ -437,13 +343,19 @@ const checkIfTagIsValid = function(
 ) {
   if (
     formattedTag in hedSchema.dictionaries[tagsDictionaryKey] ||
-    tagTakesValue(formattedTag, hedSchema) ||
+    utils.HED.tagTakesValue(formattedTag, hedSchema) ||
     formattedTag === tilde
   ) {
     return true
   }
-  const isExtensionTag = isExtensionAllowedTag(formattedTag, hedSchema)
-  if (!isExtensionTag && tagTakesValue(previousFormattedTag, hedSchema)) {
+  const isExtensionTag = utils.HED.isExtensionAllowedTag(
+    formattedTag,
+    hedSchema,
+  )
+  if (
+    !isExtensionTag &&
+    utils.HED.tagTakesValue(previousFormattedTag, hedSchema)
+  ) {
     issues.push(
       'ERROR: Either "' +
         previousOriginalTag +
