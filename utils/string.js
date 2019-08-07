@@ -1,8 +1,5 @@
 const date = require('date-and-time')
 
-const openingGroupCharacter = '('
-const closingGroupCharacter = ')'
-
 /**
  * Check if a string is empty or only whitespace.
  *
@@ -69,28 +66,6 @@ const replaceTagNameWithNewEnding = function(formattedTag, newEnding) {
 }
 
 /**
- * Gets the next set of parentheses in a HED string.
- *
- * @param string A HED string.
- * @return {Array} The next set of parentheses and the length of the string inside, or string if a set wasn't found.
- */
-const getNextSetOfParentheses = function(string) {
-  let setOfParentheses = ''
-  let openingParenthesesFound = false
-  let i
-  for (i = 0; i < string.length; i++) {
-    const character = string.charAt(i)
-    setOfParentheses += character
-    if (character === openingGroupCharacter) {
-      openingParenthesesFound = true
-    } else if (character == closingGroupCharacter && openingParenthesesFound) {
-      return [setOfParentheses, i + 1]
-    }
-  }
-  return [setOfParentheses, i]
-}
-
-/**
  * Determine if a string is a valid hour-minute time.
  *
  * @param timeString The string to check.
@@ -106,6 +81,5 @@ module.exports = {
   getCharacterIndices: getCharacterIndices,
   capitalizeString: capitalizeString,
   replaceTagNameWithNewEnding: replaceTagNameWithNewEnding,
-  getNextSetOfParentheses: getNextSetOfParentheses,
   isHourMinuteTime: isHourMinuteTime,
 }

@@ -14,8 +14,9 @@ describe('HED strings', function() {
     it('should not have mismatched parentheses', function() {
       const extraOpeningString =
         '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
+      // The extra comma is needed to avoid a comma error.
       const extraClosingString =
-        '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
+        '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
       const validString =
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
       const [
@@ -32,9 +33,8 @@ describe('HED strings', function() {
       assert.strictEqual(extraOpeningResult, false)
       assert.strictEqual(extraClosingResult, false)
       assert.strictEqual(validResult, true)
-      /* This also triggers a comma error, which means 2 issues. */
-      assert.strictEqual(extraOpeningIssues.length, 2)
-      assert.strictEqual(extraClosingIssues.length, 2)
+      assert.strictEqual(extraOpeningIssues.length, 1)
+      assert.strictEqual(extraClosingIssues.length, 1)
       assert.strictEqual(validIssues.length, 0)
     })
 
@@ -89,6 +89,77 @@ describe('HED strings', function() {
   })
 
   describe('Individual HED Tags', function() {
+    it('should exist in the schema or be an allowed extension', async done => {
+      // Legal takesValue tag
+      const properTag1 = 'Event/Duration/3 ms'
+      // Legal "full" tag
+      const properTag2 = 'Attribute/Object side/Left'
+      // Legal extensionAllowed tag
+      const properTag3 = 'Item/Object/Person/Driver'
+      // Illegal tag (not in schema, no extension allowed)
+      const badTag1 = 'Item/Nonsense'
+      // TODO: Check takesValue error
+      const properTag1Issues = []
+      const properTag2Issues = []
+      const properTag3Issues = []
+      const badTag1Issues = []
+      const parsedProperTag1 = validate.stringParser.parseHedString(
+        properTag1,
+        properTag1Issues,
+      )
+      const parsedProperTag2 = validate.stringParser.parseHedString(
+        properTag2,
+        properTag2Issues,
+      )
+      const parsedProperTag3 = validate.stringParser.parseHedString(
+        properTag3,
+        properTag3Issues,
+      )
+      const parsedBadTag1 = validate.stringParser.parseHedString(
+        badTag1,
+        badTag1Issues,
+      )
+      hedSchemaPromise.then(hedSchema => {
+        const properTag1Result = validate.HED.validateIndividualHedTags(
+          parsedProperTag1,
+          hedSchema,
+          properTag1Issues,
+          true,
+          false,
+        )
+        const properTag2Result = validate.HED.validateIndividualHedTags(
+          parsedProperTag2,
+          hedSchema,
+          properTag2Issues,
+          true,
+          false,
+        )
+        const properTag3Result = validate.HED.validateIndividualHedTags(
+          parsedProperTag3,
+          hedSchema,
+          properTag3Issues,
+          true,
+          false,
+        )
+        const badTag1Result = validate.HED.validateIndividualHedTags(
+          parsedBadTag1,
+          hedSchema,
+          badTag1Issues,
+          true,
+          false,
+        )
+        assert.strictEqual(properTag1Result, true)
+        assert.strictEqual(properTag2Result, true)
+        assert.strictEqual(properTag3Result, true)
+        assert.strictEqual(badTag1Result, false)
+        assert.strictEqual(properTag1Issues.length, 0)
+        assert.strictEqual(properTag2Issues.length, 0)
+        assert.strictEqual(properTag3Issues.length, 0)
+        assert.strictEqual(badTag1Issues.length, 1)
+        done()
+      })
+    })
+
     it('should have properly capitalized names', function() {
       const properTag = 'Event/Category/Experimental stimulus'
       const camelCaseTag = 'DoubleEvent/Something'
