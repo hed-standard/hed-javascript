@@ -1,6 +1,3 @@
-// Wrappers around more basic functions.
-const strings = require('./string')
-
 const defaultUnitAttribute = 'default'
 const defaultUnitsForTypeAttribute = 'default_units'
 const extensionAllowedAttribute = 'extensionAllowed'
@@ -13,14 +10,24 @@ const unitClassUnitsType = 'units'
  * Replace the end of a HED tag with a pound sign.
  */
 const replaceTagNameWithPound = function(formattedTag) {
-  return strings.replaceTagNameWithNewEnding(formattedTag, '#')
+  const lastTagSlashIndex = formattedTag.lastIndexOf('/')
+  if (lastTagSlashIndex !== -1) {
+    return formattedTag.substring(0, lastTagSlashIndex) + '/#'
+  } else {
+    return '#'
+  }
 }
 
 /**
  * Get the indices of all slashes in a HED tag.
  */
 const getTagSlashIndices = function(tag) {
-  return strings.getCharacterIndices(tag, '/')
+  const indices = []
+  let i = -1
+  while ((i = tag.indexOf('/', i + 1)) >= 0) {
+    indices.push(i)
+  }
+  return indices
 }
 
 /**

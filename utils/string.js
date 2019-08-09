@@ -22,24 +22,6 @@ const getCharacterCount = function(string, characterToCount) {
 }
 
 /**
- * Get all indices of a given character in a string.
- *
- * Courtesy of https://stackoverflow.com/a/10710406/6147595.
- *
- * @param string The string to search.
- * @param characterToFind The character to search for.
- * @return {Array} The list of all indices of that character in this string.
- */
-const getCharacterIndices = function(string, characterToFind) {
-  const indices = []
-  let i = -1
-  while ((i = string.indexOf(characterToFind, i + 1)) >= 0) {
-    indices.push(i)
-  }
-  return indices
-}
-
-/**
  * Get a copy of a string with the first letter capitalized.
  *
  * @param string The string to capitalize.
@@ -47,22 +29,6 @@ const getCharacterIndices = function(string, characterToFind) {
  */
 const capitalizeString = function(string) {
   return string.charAt(0).toUpperCase() + string.substring(1)
-}
-
-/**
- * Replace the last part of a HED tag with a new ending.
- *
- * @param formattedTag The formatted HED tag to check.
- * @param newEnding The new ending for the HED tag.
- * @returns {string} The HED tag with the last part replaced with the new ending.
- */
-const replaceTagNameWithNewEnding = function(formattedTag, newEnding) {
-  let newTag = newEnding
-  const lastTagSlashIndex = formattedTag.lastIndexOf('/')
-  if (lastTagSlashIndex !== -1) {
-    newTag = formattedTag.substring(0, lastTagSlashIndex) + '/' + newEnding
-  }
-  return newTag
 }
 
 /**
@@ -78,8 +44,6 @@ const isHourMinuteTime = function(timeString) {
 module.exports = {
   stringIsEmpty: stringIsEmpty,
   getCharacterCount: getCharacterCount,
-  getCharacterIndices: getCharacterIndices,
   capitalizeString: capitalizeString,
-  replaceTagNameWithNewEnding: replaceTagNameWithNewEnding,
   isHourMinuteTime: isHourMinuteTime,
 }
