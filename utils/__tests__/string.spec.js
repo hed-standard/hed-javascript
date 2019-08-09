@@ -64,3 +64,29 @@ describe('Character counts', function() {
     assert.strictEqual(resultF, 1)
   })
 })
+
+describe('Valid HED times', function() {
+  it('must be of the form HH:MM', function() {
+    const validTime1 = '23:52'
+    const validTime2 = '00:55'
+    const validTime3 = '11:00'
+    const invalidTime1 = '8/8/2019'
+    const invalidTime2 = '25:11'
+    const invalidTime3 = '12:65'
+    const invalidTime4 = 'not a time'
+    const validTime1Result = utils.string.isHourMinuteTime(validTime1)
+    const validTime2Result = utils.string.isHourMinuteTime(validTime2)
+    const validTime3Result = utils.string.isHourMinuteTime(validTime3)
+    const invalidTime1Result = utils.string.isHourMinuteTime(invalidTime1)
+    const invalidTime2Result = utils.string.isHourMinuteTime(invalidTime2)
+    const invalidTime3Result = utils.string.isHourMinuteTime(invalidTime3)
+    const invalidTime4Result = utils.string.isHourMinuteTime(invalidTime4)
+    assert.strictEqual(validTime1Result, true)
+    assert.strictEqual(validTime2Result, true)
+    assert.strictEqual(validTime3Result, true)
+    assert.strictEqual(invalidTime1Result, false)
+    assert.strictEqual(invalidTime2Result, false)
+    assert.strictEqual(invalidTime3Result, false)
+    assert.strictEqual(invalidTime4Result, false)
+  })
+})

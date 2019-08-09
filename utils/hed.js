@@ -155,6 +155,8 @@ const isExtensionAllowedTag = function(formattedTag, hedSchema) {
 }
 
 module.exports = {
+  replaceTagNameWithPound: replaceTagNameWithPound,
+  getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
   stripOffUnitsIfValid: stripOffUnitsIfValid,
   tagIsValid: tagIsValid,
