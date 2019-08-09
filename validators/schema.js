@@ -1,5 +1,6 @@
 const libxmljs = require('libxmljs')
 const files = require('../utils/files')
+const arrayUtil = require('../utils/array')
 
 const defaultUnitAttribute = 'default'
 const defaultUnitsForTypeAttribute = 'default_units'
@@ -8,6 +9,7 @@ const tagDictionaryKeys = [
   'default',
   'extensionAllowed',
   'isNumeric',
+  'leaf',
   'position',
   'predicateType',
   'recommended',
@@ -18,6 +20,7 @@ const tagDictionaryKeys = [
   'unique',
   'unitClass',
 ]
+const leafTagsDictionaryKey = 'leaf'
 const tagsDictionaryKey = 'tags'
 const tagUnitClassAttribute = 'unitClass'
 const unitClassElement = 'unitClass'
@@ -36,15 +39,20 @@ const SchemaDictionaries = {
     for (const dictionaryKey of tagDictionaryKeys) {
       const [tags, tagElements] = this.getTagsByAttribute(dictionaryKey)
       if (dictionaryKey === extensionAllowedAttribute) {
-        const leafTags = this.getAllLeafTags()
-        const leafTagsDictionary = this.stringListToLowercaseDictionary(
-          leafTags,
-        )
         const tagDictionary = this.stringListToLowercaseDictionary(tags)
+        const childTagElements = arrayUtil.flattenDeep(
+          tagElements.map(tagElement => {
+            return this.getAllChildTags(tagElement)
+          }),
+        )
+        const childTags = childTagElements.map(tagElement => {
+          return this.getTagPathFromTagElement(tagElement)
+        })
+        const childDictionary = this.stringListToLowercaseDictionary(childTags)
         this.dictionaries[extensionAllowedAttribute] = Object.assign(
           {},
-          leafTagsDictionary,
           tagDictionary,
+          childDictionary,
         )
       } else if (
         dictionaryKey === defaultUnitAttribute ||
@@ -56,6 +64,12 @@ const SchemaDictionaries = {
         this.dictionaries[
           tagsDictionaryKey
         ] = this.stringListToLowercaseDictionary(tags)
+      } else if (dictionaryKey === leafTagsDictionaryKey) {
+        const leafTags = this.getAllLeafTags()
+        const leafTagsDictionary = this.stringListToLowercaseDictionary(
+          leafTags,
+        )
+        this.dictionaries[leafTagsDictionaryKey] = leafTagsDictionary
       } else {
         this.dictionaries[dictionaryKey] = this.stringListToLowercaseDictionary(
           tags,
@@ -166,12 +180,30 @@ const SchemaDictionaries = {
     return [tags, tagElements]
   },
 
-  getElementsByName: function(elementName = 'node', parentElement) {
+  getElementsByName: function(elementName = 'node', parentElement = undefined) {
     if (!parentElement) {
       return this.rootElement.find('.//' + elementName)
     } else {
       return parentElement.find('.//' + elementName)
     }
+  },
+
+  getAllChildTags: function(
+    parentElement,
+    elementName = 'node',
+    excludeTakeValueTags = true,
+  ) {
+    const tagElementChildren = this.getElementsByName(
+      elementName,
+      parentElement,
+    )
+    const childTags = arrayUtil.flattenDeep(
+      tagElementChildren.map(child => {
+        return this.getAllChildTags(child, elementName, excludeTakeValueTags)
+      }),
+    )
+    childTags.push(parentElement)
+    return childTags
   },
 
   getAllLeafTags: function(elementName = 'node', excludeTakeValueTags = true) {

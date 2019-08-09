@@ -15,6 +15,23 @@ const getElementCount = function(array, elementToCount) {
   return count
 }
 
+/**
+ * Recursively flatten an array.
+ *
+ * @param array The array to flatten.
+ * @return {Array} The flattened array.
+ */
+function flattenDeep(array) {
+  return array.reduce(
+    (accumulator, value) =>
+      Array.isArray(value)
+        ? accumulator.concat(flattenDeep(value))
+        : accumulator.concat(value),
+    [],
+  )
+}
+
 module.exports = {
   getElementCount: getElementCount,
+  flattenDeep: flattenDeep,
 }

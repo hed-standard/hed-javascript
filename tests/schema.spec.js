@@ -49,6 +49,7 @@ describe('HED schemas', function() {
       'default',
       'extensionAllowed',
       'isNumeric',
+      'leaf',
       'position',
       'predicateType',
       'recommended',
@@ -244,9 +245,10 @@ describe('HED schemas', function() {
       assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'default'), false)
       assert.strictEqual(
         hedSchema.tagHasAttribute(testTag1, 'extensionAllowed'),
-        false,
+        true,
       )
       assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'isNumeric'), true)
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'leaf'), false)
       assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'position'), false)
       assert.strictEqual(
         hedSchema.tagHasAttribute(testTag1, 'predicateType'),
@@ -279,6 +281,7 @@ describe('HED schemas', function() {
         hedSchema.tagHasAttribute(testTag2, 'isNumeric'),
         false,
       )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'leaf'), true)
       assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'position'), false)
       assert.strictEqual(
         hedSchema.tagHasAttribute(testTag2, 'predicateType'),
@@ -301,6 +304,78 @@ describe('HED schemas', function() {
       assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'unique'), false)
       assert.strictEqual(
         hedSchema.tagHasAttribute(testTag2, 'unitClass'),
+        false,
+      )
+
+      const testTag3 = 'Item/Object/Food'
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'default'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag3, 'extensionAllowed'),
+        true,
+      )
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag3, 'isNumeric'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'leaf'), false)
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'position'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag3, 'predicateType'),
+        false,
+      )
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag3, 'recommended'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'required'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag3, 'requireChild'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'tags'), true)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag3, 'takesValue'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'unique'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag3, 'unitClass'),
+        false,
+      )
+
+      const testTag4 = 'Action/Involuntary/Cough'
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'default'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag4, 'extensionAllowed'),
+        false,
+      )
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag4, 'isNumeric'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'leaf'), true)
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'position'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag4, 'predicateType'),
+        false,
+      )
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag4, 'recommended'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'required'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag4, 'requireChild'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'tags'), true)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag4, 'takesValue'),
+        false,
+      )
+      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'unique'), false)
+      assert.strictEqual(
+        hedSchema.tagHasAttribute(testTag4, 'unitClass'),
         false,
       )
       done()
