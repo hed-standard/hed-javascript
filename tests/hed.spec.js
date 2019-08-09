@@ -96,13 +96,18 @@ describe('HED strings', function() {
       const properTag2 = 'Attribute/Object side/Left'
       // Legal extensionAllowed tag
       const properTag3 = 'Item/Object/Person/Driver'
+      // Leaf tag (extension allowed with flag)
+      const properTag4 = 'Action/Hum/Song'
       // Illegal tag (not in schema, no extension allowed)
       const badTag1 = 'Item/Nonsense'
-      // TODO: Check takesValue error
+      // Illegal comma
+      const badTag2 = 'Event/Label/This is a label,This/Is/A/Tag'
       const properTag1Issues = []
       const properTag2Issues = []
       const properTag3Issues = []
+      const properTag4Issues = []
       const badTag1Issues = []
+      const badTag2Issues = []
       const parsedProperTag1 = validate.stringParser.parseHedString(
         properTag1,
         properTag1Issues,
@@ -115,9 +120,17 @@ describe('HED strings', function() {
         properTag3,
         properTag3Issues,
       )
+      const parsedProperTag4 = validate.stringParser.parseHedString(
+        properTag4,
+        properTag4Issues,
+      )
       const parsedBadTag1 = validate.stringParser.parseHedString(
         badTag1,
         badTag1Issues,
+      )
+      const parsedBadTag2 = validate.stringParser.parseHedString(
+        badTag2,
+        badTag2Issues,
       )
       hedSchemaPromise.then(hedSchema => {
         const properTag1Result = validate.HED.validateIndividualHedTags(
@@ -126,12 +139,14 @@ describe('HED strings', function() {
           properTag1Issues,
           true,
           false,
+          false,
         )
         const properTag2Result = validate.HED.validateIndividualHedTags(
           parsedProperTag2,
           hedSchema,
           properTag2Issues,
           true,
+          false,
           false,
         )
         const properTag3Result = validate.HED.validateIndividualHedTags(
@@ -140,6 +155,15 @@ describe('HED strings', function() {
           properTag3Issues,
           true,
           false,
+          false,
+        )
+        const properTag4Result = validate.HED.validateIndividualHedTags(
+          parsedProperTag4,
+          hedSchema,
+          properTag4Issues,
+          true,
+          false,
+          true,
         )
         const badTag1Result = validate.HED.validateIndividualHedTags(
           parsedBadTag1,
@@ -147,15 +171,28 @@ describe('HED strings', function() {
           badTag1Issues,
           true,
           false,
+          false,
+        )
+        const badTag2Result = validate.HED.validateIndividualHedTags(
+          parsedBadTag2,
+          hedSchema,
+          badTag2Issues,
+          true,
+          false,
+          false,
         )
         assert.strictEqual(properTag1Result, true)
         assert.strictEqual(properTag2Result, true)
         assert.strictEqual(properTag3Result, true)
+        assert.strictEqual(properTag4Result, true)
         assert.strictEqual(badTag1Result, false)
+        assert.strictEqual(badTag2Result, false)
         assert.strictEqual(properTag1Issues.length, 0)
         assert.strictEqual(properTag2Issues.length, 0)
         assert.strictEqual(properTag3Issues.length, 0)
+        assert.strictEqual(properTag4Issues.length, 0)
         assert.strictEqual(badTag1Issues.length, 1)
+        assert.strictEqual(badTag2Issues.length, 1)
         done()
       })
     })

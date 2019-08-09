@@ -338,6 +338,7 @@ const checkIfTagIsValid = function(
   formattedTag,
   previousOriginalTag,
   previousFormattedTag,
+  leafExtensionsAllowed,
   hedSchema,
   issues,
 ) {
@@ -352,7 +353,14 @@ const checkIfTagIsValid = function(
     formattedTag,
     hedSchema,
   )
-  if (
+  if (!leafExtensionsAllowed && isExtensionTag) {
+    return true
+  } else if (
+    leafExtensionsAllowed &&
+    utils.HED.tagIsLeafExtension(formattedTag, hedSchema)
+  ) {
+    return true
+  } else if (
     !isExtensionTag &&
     utils.HED.tagTakesValue(previousFormattedTag, hedSchema)
   ) {
@@ -395,6 +403,7 @@ const validateIndividualHedTag = function(
   issues,
   doSemanticValidation,
   checkForWarnings,
+  leafExtensionsAllowed,
 ) {
   let valid = true
   if (doSemanticValidation) {
@@ -405,6 +414,7 @@ const validateIndividualHedTag = function(
         formattedTag,
         previousOriginalTag,
         previousFormattedTag,
+        leafExtensionsAllowed,
         hedSchema,
         issues,
       )
@@ -453,6 +463,7 @@ const validateIndividualHedTags = function(
   issues,
   doSemanticValidation,
   checkForWarnings,
+  leafExtensionsAllowed,
 ) {
   let valid = true
   let previousOriginalTag = ''
@@ -471,6 +482,7 @@ const validateIndividualHedTags = function(
         issues,
         doSemanticValidation,
         checkForWarnings,
+        leafExtensionsAllowed,
       )
     previousOriginalTag = originalTag
     previousFormattedTag = formattedTag
@@ -566,12 +578,14 @@ const validateTopLevelTags = function(parsedString, hedSchema, issues) {
  * @param hedString The HED string to validate.
  * @param hedSchema The HED schema to validate against.
  * @param checkForWarnings Whether to check for warnings or only errors.
+ * @param leafExtensionsAllowed Whether to allow all leaf extensions.
  * @returns {Array} Whether the HED string is valid and any issues found.
  */
 const validateHedString = function(
   hedString,
   hedSchema = {},
   checkForWarnings = false,
+  leafExtensionsAllowed = false,
 ) {
   const issues = []
   const doSemanticValidation = hedSchema instanceof Schema
@@ -597,6 +611,7 @@ const validateHedString = function(
       issues,
       doSemanticValidation,
       checkForWarnings,
+      leafExtensionsAllowed,
     )
   valid =
     valid &&

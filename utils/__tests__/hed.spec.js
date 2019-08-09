@@ -90,6 +90,48 @@ describe('HED tag schema-based utility functions', function() {
     })
   })
 
+  it('should correctly determine if a tag is a child of a leaf node', async done => {
+    const leafExtensionTag1 = 'action/hum/song'
+    const leafExtensionTag2 = 'item/object/building/city hall'
+    const leafExtensionTag3 = 'custom/work'
+    const notLeafExtensionTag1 = 'event/id/2'
+    const notLeafExtensionTag2 = 'sensory presentation/auditory/cash register'
+    const notLeafExtensionTag3 = 'participant/effect/cognitive/penalty/low'
+    hedSchemaPromise.then(hedSchema => {
+      const leafExtensionTag1Result = hed.tagIsLeafExtension(
+        leafExtensionTag1,
+        hedSchema,
+      )
+      const leafExtensionTag2Result = hed.tagIsLeafExtension(
+        leafExtensionTag2,
+        hedSchema,
+      )
+      const leafExtensionTag3Result = hed.tagIsLeafExtension(
+        leafExtensionTag3,
+        hedSchema,
+      )
+      const notLeafExtensionTag1Result = hed.tagIsLeafExtension(
+        notLeafExtensionTag1,
+        hedSchema,
+      )
+      const notLeafExtensionTag2Result = hed.tagIsLeafExtension(
+        notLeafExtensionTag2,
+        hedSchema,
+      )
+      const notLeafExtensionTag3Result = hed.tagIsLeafExtension(
+        notLeafExtensionTag3,
+        hedSchema,
+      )
+      assert.strictEqual(leafExtensionTag1Result, true)
+      assert.strictEqual(leafExtensionTag2Result, true)
+      assert.strictEqual(leafExtensionTag3Result, true)
+      assert.strictEqual(notLeafExtensionTag1Result, false)
+      assert.strictEqual(notLeafExtensionTag2Result, false)
+      assert.strictEqual(notLeafExtensionTag3Result, false)
+      done()
+    })
+  })
+
   it('should correctly determine if a tag takes a value', async done => {
     const valueTag1 = 'attribute/direction/left/35 px'
     const valueTag2 = 'item/id/35'

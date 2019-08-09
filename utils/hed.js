@@ -1,6 +1,7 @@
 const defaultUnitAttribute = 'default'
 const defaultUnitsForTypeAttribute = 'default_units'
 const extensionAllowedAttribute = 'extensionAllowed'
+const leafTagsDictionaryKey = 'leaf'
 const tagsDictionaryKey = 'tags'
 const takesValueType = 'takesValue'
 const unitClassType = 'unitClass'
@@ -64,6 +65,18 @@ const stripOffUnitsIfValid = function(tagUnitValues, tagUnitClassUnits) {
  */
 const tagIsValid = function(formattedTag, hedSchema) {
   return formattedTag in hedSchema.dictionaries[tagsDictionaryKey]
+}
+
+/**
+ * Determine if a HED tag is a leaf extension tag.
+ */
+const tagIsLeafExtension = function(formattedTag, hedSchema) {
+  const tagSlashIndices = getTagSlashIndices(formattedTag)
+  const parentTag = formattedTag.slice(
+    0,
+    tagSlashIndices[tagSlashIndices.length - 1],
+  )
+  return parentTag in hedSchema.dictionaries[leafTagsDictionaryKey]
 }
 
 /**
@@ -160,6 +173,7 @@ module.exports = {
   getTagName: getTagName,
   stripOffUnitsIfValid: stripOffUnitsIfValid,
   tagIsValid: tagIsValid,
+  tagIsLeafExtension: tagIsLeafExtension,
   tagTakesValue: tagTakesValue,
   isUnitClassTag: isUnitClassTag,
   getUnitClassDefaultUnit: getUnitClassDefaultUnit,
