@@ -338,7 +338,7 @@ const checkIfTagIsValid = function(
   formattedTag,
   previousOriginalTag,
   previousFormattedTag,
-  leafExtensionsAllowed,
+  allowLeafExtensionsFlag,
   hedSchema,
   issues,
 ) {
@@ -349,19 +349,19 @@ const checkIfTagIsValid = function(
   ) {
     return true
   }
-  const isExtensionTag = utils.HED.isExtensionAllowedTag(
+  const isExtensionAllowedTag = utils.HED.isExtensionAllowedTag(
     formattedTag,
     hedSchema,
   )
-  if (!leafExtensionsAllowed && isExtensionTag) {
+  if (!allowLeafExtensionsFlag && isExtensionAllowedTag) {
     return true
   } else if (
-    leafExtensionsAllowed &&
+    allowLeafExtensionsFlag &&
     utils.HED.tagIsLeafExtension(formattedTag, hedSchema)
   ) {
     return true
   } else if (
-    !isExtensionTag &&
+    !isExtensionAllowedTag &&
     utils.HED.tagTakesValue(previousFormattedTag, hedSchema)
   ) {
     issues.push(
@@ -372,7 +372,7 @@ const checkIfTagIsValid = function(
         '" is not a valid tag',
     )
     return false
-  } else if (!isExtensionTag) {
+  } else if (!isExtensionAllowedTag) {
     issues.push('ERROR: Invalid tag - "' + originalTag + '"')
     return false
   } else {
@@ -403,7 +403,7 @@ const validateIndividualHedTag = function(
   issues,
   doSemanticValidation,
   checkForWarnings,
-  leafExtensionsAllowed,
+  allowLeafExtensionsFlag,
 ) {
   let valid = true
   if (doSemanticValidation) {
@@ -414,7 +414,7 @@ const validateIndividualHedTag = function(
         formattedTag,
         previousOriginalTag,
         previousFormattedTag,
-        leafExtensionsAllowed,
+        allowLeafExtensionsFlag,
         hedSchema,
         issues,
       )
@@ -463,7 +463,7 @@ const validateIndividualHedTags = function(
   issues,
   doSemanticValidation,
   checkForWarnings,
-  leafExtensionsAllowed,
+  allowLeafExtensionsFlag,
 ) {
   let valid = true
   let previousOriginalTag = ''
@@ -482,7 +482,7 @@ const validateIndividualHedTags = function(
         issues,
         doSemanticValidation,
         checkForWarnings,
-        leafExtensionsAllowed,
+        allowLeafExtensionsFlag,
       )
     previousOriginalTag = originalTag
     previousFormattedTag = formattedTag
@@ -578,14 +578,14 @@ const validateTopLevelTags = function(parsedString, hedSchema, issues) {
  * @param hedString The HED string to validate.
  * @param hedSchema The HED schema to validate against.
  * @param checkForWarnings Whether to check for warnings or only errors.
- * @param leafExtensionsAllowed Whether to allow all leaf extensions.
+ * @param allowLeafExtensionsFlag Whether to allow all leaf extensions.
  * @returns {Array} Whether the HED string is valid and any issues found.
  */
 const validateHedString = function(
   hedString,
   hedSchema = {},
   checkForWarnings = false,
-  leafExtensionsAllowed = false,
+  allowLeafExtensionsFlag = false,
 ) {
   const issues = []
   const doSemanticValidation = hedSchema instanceof Schema
@@ -611,7 +611,7 @@ const validateHedString = function(
       issues,
       doSemanticValidation,
       checkForWarnings,
-      leafExtensionsAllowed,
+      allowLeafExtensionsFlag,
     )
   valid =
     valid &&
