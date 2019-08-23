@@ -293,7 +293,7 @@ describe('HED strings', function() {
       const properTag = 'Event/Duration/3 ms'
       const badTag = 'Event/Duration/3'
       const noUnitRequiredTag1 = 'Attribute/Color/Red/0.5'
-      const noUnitRequiredTag2 = 'Attribute/Color/Red/5e-1'
+      const noUnitRequiredTag2 = 'Attribute/Color/Red/5.2e-1'
       const properTimeTag = 'Item/2D shape/Clock face/8:30'
       const properTagIssues = []
       const badTagIssues = []
@@ -372,7 +372,7 @@ describe('HED strings', function() {
 
     it('should have a proper unit when required', async done => {
       const properTag1 = 'Event/Duration/3 ms'
-      const properTag2 = 'Event/Duration/3e1 ms'
+      const properTag2 = 'Event/Duration/3.5e1 ms'
       const badUnitTag = 'Event/Duration/3 cm'
       const noUnitRequiredTag1 = 'Attribute/Color/Red/0.5'
       const noUnitRequiredTag2 = 'Attribute/Color/Red/5e-1'
