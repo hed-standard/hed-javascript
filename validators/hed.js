@@ -343,27 +343,32 @@ const checkIfTagIsValid = function(
   issues,
 ) {
   if (
-    formattedTag in hedSchema.dictionaries[tagsDictionaryKey] ||
-    utils.HED.tagTakesValue(formattedTag, hedSchema) ||
-    formattedTag === tilde
+    formattedTag in hedSchema.dictionaries[tagsDictionaryKey] || // This tag itself exists in the HED schema.
+    utils.HED.tagTakesValue(formattedTag, hedSchema) || // This tag is a valid value-taking tag in the HED schema.
+    formattedTag === tilde // This "tag" is a tilde.
   ) {
     return true
   }
+  // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
   const isExtensionAllowedTag = utils.HED.isExtensionAllowedTag(
     formattedTag,
     hedSchema,
   )
   if (!allowLeafExtensionsFlag && isExtensionAllowedTag) {
+    // This tag is valid if it is such an allowed extension.
     return true
   } else if (
     allowLeafExtensionsFlag &&
     utils.HED.tagIsLeafExtension(formattedTag, hedSchema)
   ) {
+    // This tag extends a leaf node when all leaf extensions are allowed.
     return true
   } else if (
     !isExtensionAllowedTag &&
     utils.HED.tagTakesValue(previousFormattedTag, hedSchema)
   ) {
+    // This tag isn't an allowed extension, but the previous tag takes a value.
+    // This is likely caused by an extraneous comma.
     issues.push(
       'ERROR: Either "' +
         previousOriginalTag +
@@ -373,6 +378,7 @@ const checkIfTagIsValid = function(
     )
     return false
   } else if (!isExtensionAllowedTag) {
+    // This is not a valid tag.
     issues.push('ERROR: Invalid tag - "' + originalTag + '"')
     return false
   } else {
