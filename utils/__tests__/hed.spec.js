@@ -189,10 +189,11 @@ describe('HED tag schema-based utility functions', function() {
     })
   })
 
-  it("should correctly determine a tag's default unit class, if any", async done => {
+  it("should correctly determine a tag's default unit, if any", async done => {
     const unitClassTag1 = 'attribute/blink/duration/35 ms'
     const unitClassTag2 = 'participant/effect/cognitive/reward/11 dollars'
     const noUnitClassTag = 'attribute/color/red/0.5'
+    const noValueTag = 'attribute/color/black'
     hedSchemaPromise.then(hedSchema => {
       const unitClassTag1Result = hed.getUnitClassDefaultUnit(
         unitClassTag1,
@@ -206,9 +207,14 @@ describe('HED tag schema-based utility functions', function() {
         noUnitClassTag,
         hedSchema,
       )
+      const noValueTagResult = hed.getUnitClassDefaultUnit(
+        noValueTag,
+        hedSchema,
+      )
       assert.strictEqual(unitClassTag1Result, 's')
       assert.strictEqual(unitClassTag2Result, '$')
       assert.strictEqual(noUnitClassTagResult, '')
+      assert.strictEqual(noValueTagResult, '')
       done()
     })
   })
