@@ -38,7 +38,7 @@ const capitalizeString = function(string) {
  * @return {boolean} Whether the string is a valid hour-minute time.
  */
 const isHourMinuteTime = function(timeString) {
-  return date.isValid(timeString, 'HH:mm')
+  return date.isValid(timeString, 'H:mm')
 }
 
 module.exports = {
