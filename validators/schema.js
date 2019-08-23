@@ -66,10 +66,9 @@ const SchemaDictionaries = {
         ] = this.stringListToLowercaseDictionary(tags)
       } else if (dictionaryKey === leafTagsDictionaryKey) {
         const leafTags = this.getAllLeafTags()
-        const leafTagsDictionary = this.stringListToLowercaseDictionary(
-          leafTags,
-        )
-        this.dictionaries[leafTagsDictionaryKey] = leafTagsDictionary
+        this.dictionaries[
+          leafTagsDictionaryKey
+        ] = this.stringListToLowercaseDictionary(leafTags)
       } else {
         this.dictionaries[dictionaryKey] = this.stringListToLowercaseDictionary(
           tags,
@@ -237,6 +236,7 @@ const tagHasAttribute = function(tag, tagAttribute) {
 const Schema = function(rootElement, dictionaries) {
   this.rootElement = rootElement
   this.dictionaries = dictionaries
+  this.version = rootElement.attr('version').value()
   this.tagHasAttribute = tagHasAttribute
 }
 

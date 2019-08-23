@@ -10,7 +10,7 @@ describe('Remote HED schemas', function() {
     validate.schema
       .buildSchema({ version: remoteHedSchemaVersion })
       .then(hedSchema => {
-        const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
+        const hedSchemaVersion = hedSchema.version
         assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
         done()
       })
@@ -22,7 +22,7 @@ describe('Local HED schemas', function() {
     validate.schema
       .buildSchema({ path: localHedSchemaFile })
       .then(hedSchema => {
-        const hedSchemaVersion = hedSchema.rootElement.attr('version').value()
+        const hedSchemaVersion = hedSchema.version
         assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
         done()
       })
