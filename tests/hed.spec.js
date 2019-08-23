@@ -45,6 +45,8 @@ describe('HED strings', function() {
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
       const validString =
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
+      const nestedParenthesesString =
+        '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Event/Duration/3 ms'
       const [
         missingOpeningResult,
         missingOpeningIssues,
@@ -56,12 +58,18 @@ describe('HED strings', function() {
       const [validResult, validIssues] = validate.HED.validateHedString(
         validString,
       )
+      const [
+        nestedParenthesesResult,
+        nestedParenthesesIssues,
+      ] = validate.HED.validateHedString(nestedParenthesesString)
       assert.strictEqual(missingOpeningResult, false)
       assert.strictEqual(missingClosingResult, false)
       assert.strictEqual(validResult, true)
+      assert.strictEqual(nestedParenthesesResult, true)
       assert.strictEqual(missingOpeningIssues.length, 1)
       assert.strictEqual(missingClosingIssues.length, 1)
       assert.strictEqual(validIssues.length, 0)
+      assert.strictEqual(nestedParenthesesIssues.length, 0)
     })
 
     it('should not have invalid characters', function() {
@@ -284,8 +292,14 @@ describe('HED strings', function() {
     it('should have a unit when required', async done => {
       const properTag = 'Event/Duration/3 ms'
       const badTag = 'Event/Duration/3'
+      const noUnitRequiredTag1 = 'Attribute/Color/Red/0.5'
+      const noUnitRequiredTag2 = 'Attribute/Color/Red/5e-1'
+      const properTimeTag = 'Item/2D shape/Clock face/8:30'
       const properTagIssues = []
       const badTagIssues = []
+      const noUnitRequiredTag1Issues = []
+      const noUnitRequiredTag2Issues = []
+      const properTimeTagIssues = []
       const parsedProperTag = validate.stringParser.parseHedString(
         properTag,
         properTagIssues,
@@ -293,6 +307,18 @@ describe('HED strings', function() {
       const parsedBadTag = validate.stringParser.parseHedString(
         badTag,
         badTagIssues,
+      )
+      const parsedNoUnitRequiredTag1 = validate.stringParser.parseHedString(
+        noUnitRequiredTag1,
+        noUnitRequiredTag1Issues,
+      )
+      const parsedNoUnitRequiredTag2 = validate.stringParser.parseHedString(
+        noUnitRequiredTag2,
+        noUnitRequiredTag2Issues,
+      )
+      const parsedProperTimeTag = validate.stringParser.parseHedString(
+        properTimeTag,
+        properTimeTagIssues,
       )
       hedSchemaPromise.then(hedSchema => {
         const properTagResult = validate.HED.validateIndividualHedTags(
@@ -309,46 +335,148 @@ describe('HED strings', function() {
           true,
           true,
         )
+        const noUnitRequiredTag1Result = validate.HED.validateIndividualHedTags(
+          parsedNoUnitRequiredTag1,
+          hedSchema,
+          noUnitRequiredTag1Issues,
+          true,
+          true,
+        )
+        const noUnitRequiredTag2Result = validate.HED.validateIndividualHedTags(
+          parsedNoUnitRequiredTag2,
+          hedSchema,
+          noUnitRequiredTag2Issues,
+          true,
+          true,
+        )
+        const properTimeTagResult = validate.HED.validateIndividualHedTags(
+          parsedProperTimeTag,
+          hedSchema,
+          properTimeTagIssues,
+          true,
+          false,
+        )
         assert.strictEqual(properTagResult, true)
         assert.strictEqual(badTagResult, false)
+        assert.strictEqual(noUnitRequiredTag1Result, true)
+        assert.strictEqual(noUnitRequiredTag2Result, true)
+        assert.strictEqual(properTimeTagResult, true)
         assert.strictEqual(properTagIssues.length, 0)
         assert.strictEqual(badTagIssues.length, 1)
+        assert.strictEqual(noUnitRequiredTag1Issues.length, 0)
+        assert.strictEqual(noUnitRequiredTag2Issues.length, 0)
+        assert.strictEqual(properTimeTagIssues.length, 0)
         done()
       })
     })
 
     it('should have a proper unit when required', async done => {
-      const properTag = 'Event/Duration/3 ms'
-      const badTag = 'Event/Duration/3 cm'
-      const properTagIssues = []
-      const badTagIssues = []
-      const parsedProperTag = validate.stringParser.parseHedString(
-        properTag,
-        properTagIssues,
+      const properTag1 = 'Event/Duration/3 ms'
+      const properTag2 = 'Event/Duration/3e1 ms'
+      const badUnitTag = 'Event/Duration/3 cm'
+      const noUnitRequiredTag1 = 'Attribute/Color/Red/0.5'
+      const noUnitRequiredTag2 = 'Attribute/Color/Red/5e-1'
+      const properTimeTag = 'Item/2D shape/Clock face/8:30'
+      const badTimeTag = 'Item/2D shape/Clock face/54:54'
+      const properTag1Issues = []
+      const properTag2Issues = []
+      const badUnitTagIssues = []
+      const noUnitRequiredTag1Issues = []
+      const noUnitRequiredTag2Issues = []
+      const properTimeTagIssues = []
+      const badTimeTagIssues = []
+      const parsedProperTag1 = validate.stringParser.parseHedString(
+        properTag1,
+        properTag1Issues,
       )
-      const parsedBadTag = validate.stringParser.parseHedString(
-        badTag,
-        badTagIssues,
+      const parsedProperTag2 = validate.stringParser.parseHedString(
+        properTag2,
+        properTag2Issues,
+      )
+      const parsedBadUnitTag = validate.stringParser.parseHedString(
+        badUnitTag,
+        badUnitTagIssues,
+      )
+      const parsedNoUnitRequiredTag1 = validate.stringParser.parseHedString(
+        noUnitRequiredTag1,
+        noUnitRequiredTag1Issues,
+      )
+      const parsedNoUnitRequiredTag2 = validate.stringParser.parseHedString(
+        noUnitRequiredTag2,
+        noUnitRequiredTag2Issues,
+      )
+      const parsedProperTimeTag = validate.stringParser.parseHedString(
+        properTimeTag,
+        properTimeTagIssues,
+      )
+      const parsedBadTimeTag = validate.stringParser.parseHedString(
+        badTimeTag,
+        badTimeTagIssues,
       )
       hedSchemaPromise.then(hedSchema => {
-        const properTagResult = validate.HED.validateIndividualHedTags(
-          parsedProperTag,
+        const properTag1Result = validate.HED.validateIndividualHedTags(
+          parsedProperTag1,
           hedSchema,
-          properTagIssues,
+          properTag1Issues,
           true,
           false,
         )
-        const badTagResult = validate.HED.validateIndividualHedTags(
-          parsedBadTag,
+        const properTag2Result = validate.HED.validateIndividualHedTags(
+          parsedProperTag2,
           hedSchema,
-          badTagIssues,
+          properTag2Issues,
           true,
           false,
         )
-        assert.strictEqual(properTagResult, true)
-        assert.strictEqual(badTagResult, false)
-        assert.strictEqual(properTagIssues.length, 0)
-        assert.strictEqual(badTagIssues.length, 1)
+        const badUnitTagResult = validate.HED.validateIndividualHedTags(
+          parsedBadUnitTag,
+          hedSchema,
+          badUnitTagIssues,
+          true,
+          false,
+        )
+        const noUnitRequiredTag1Result = validate.HED.validateIndividualHedTags(
+          parsedNoUnitRequiredTag1,
+          hedSchema,
+          noUnitRequiredTag1Issues,
+          true,
+          false,
+        )
+        const noUnitRequiredTag2Result = validate.HED.validateIndividualHedTags(
+          parsedNoUnitRequiredTag2,
+          hedSchema,
+          noUnitRequiredTag2Issues,
+          true,
+          false,
+        )
+        const properTimeTagResult = validate.HED.validateIndividualHedTags(
+          parsedProperTimeTag,
+          hedSchema,
+          properTimeTagIssues,
+          true,
+          false,
+        )
+        const badTimeTagResult = validate.HED.validateIndividualHedTags(
+          parsedBadTimeTag,
+          hedSchema,
+          badTimeTagIssues,
+          true,
+          false,
+        )
+        assert.strictEqual(properTag1Result, true)
+        assert.strictEqual(properTag2Result, true)
+        assert.strictEqual(badUnitTagResult, false)
+        assert.strictEqual(noUnitRequiredTag1Result, true)
+        assert.strictEqual(noUnitRequiredTag2Result, true)
+        assert.strictEqual(properTimeTagResult, true)
+        assert.strictEqual(badTimeTagResult, false)
+        assert.strictEqual(properTag1Issues.length, 0)
+        assert.strictEqual(properTag2Issues.length, 0)
+        assert.strictEqual(badUnitTagIssues.length, 1)
+        assert.strictEqual(noUnitRequiredTag1Issues.length, 0)
+        assert.strictEqual(noUnitRequiredTag2Issues.length, 0)
+        assert.strictEqual(properTimeTagIssues.length, 0)
+        assert.strictEqual(badTimeTagIssues.length, 1)
         done()
       })
     })
