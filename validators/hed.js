@@ -32,11 +32,10 @@ const countTagGroupParentheses = function(hedString, issues) {
   )
   if (numberOfOpeningParentheses !== numberOfClosingParentheses) {
     issues.push(
-      'ERROR: Number of opening and closing parentheses are unequal. ' +
-        numberOfOpeningParentheses +
-        ' opening parentheses. ' +
-        numberOfClosingParentheses +
-        ' closing parentheses.',
+      utils.generateIssue('parentheses', {
+        opening: numberOfOpeningParentheses,
+        closing: numberOfClosingParentheses,
+      }),
     )
   }
 }
@@ -87,7 +86,7 @@ const findCommaIssuesInHedString = function(hedString, issues) {
       if (currentTag.trim() === openingGroupCharacter) {
         currentTag = ''
       } else {
-        issues.push('ERROR: Invalid tag - "' + currentTag + '"')
+        issues.push(utils.generateIssue('invalidTag', { tag: currentTag }))
       }
     } else if (
       isCommaMissingBeforeOpeningParenthesis(
@@ -99,7 +98,7 @@ const findCommaIssuesInHedString = function(hedString, issues) {
         currentCharacter,
       )
     ) {
-      issues.push('ERROR: Comma missing after - "' + currentTag + '"')
+      issues.push(utils.generateIssue('commaMissing', { tag: currentTag }))
       break
     }
     lastNonEmptyCharacter = currentCharacter
@@ -129,11 +128,7 @@ const checkCapitalization = function(
   for (const tagName of tagNames) {
     const correctTagName = utils.string.capitalizeString(tagName)
     if (tagName !== correctTagName && !camelCase.test(tagName)) {
-      issues.push(
-        'WARNING: First word not capitalized or camel case - "' +
-          originalTag +
-          '"',
-      )
+      issues.push(utils.generateIssue('capitalization', { tag: originalTag }))
       valid = false
     }
   }
@@ -164,7 +159,9 @@ const checkForDuplicateTags = function(
         !duplicateIndices.includes(j)
       ) {
         duplicateIndices.push(i, j)
-        issues.push('ERROR: Duplicate tag - "' + originalTagList[i] + '"')
+        issues.push(
+          utils.generateIssue('duplicateTag', { tag: originalTagList[i] }),
+        )
         valid = false
       }
     }
@@ -191,9 +188,9 @@ const checkForMultipleUniqueTags = function(
           foundOne = true
         } else {
           issues.push(
-            'ERROR: Multiple unique tags with prefix - "' +
-              hedSchema.dictionaries[uniqueType][uniqueTagPrefix] +
-              '"',
+            utils.generateIssue('multipleUniqueTags', {
+              tag: hedSchema.dictionaries[uniqueType][uniqueTagPrefix],
+            }),
           )
           valid = false
           break
@@ -210,7 +207,9 @@ const checkForMultipleUniqueTags = function(
 const checkNumberOfGroupTildes = function(originalTagGroup, issues) {
   const tildeCount = utils.array.getElementCount(originalTagGroup, tilde)
   if (tildeCount > 2) {
-    issues.push('ERROR: Too many tildes - group "' + originalTagGroup + '"')
+    issues.push(
+      utils.generateIssue('tooManyTildes', { tagGroup: originalTagGroup }),
+    )
     return false
   }
   return true
@@ -227,7 +226,7 @@ const checkIfTagRequiresChild = function(
 ) {
   const invalid = formattedTag in hedSchema.dictionaries[requireChildType]
   if (invalid) {
-    issues.push('ERROR: Descendant tag required - "' + originalTag + '"')
+    issues.push(utils.generateIssue('childRequired', { tag: originalTag }))
   }
   return !invalid
 }
@@ -250,9 +249,9 @@ const checkForRequiredTags = function(parsedString, hedSchema, issues) {
     if (!foundOne) {
       valid = false
       issues.push(
-        'WARNING: Tag with prefix "' +
-          hedSchema.dictionaries[requiredType][requiredTagPrefix] +
-          '" is required',
+        utils.generateIssue('requiredPrefixMissing', {
+          tagPrefix: hedSchema.dictionaries[requiredType][requiredTagPrefix],
+        }),
       )
     }
   }
@@ -277,11 +276,10 @@ const checkIfTagUnitClassUnitsExist = function(
         hedSchema,
       )
       issues.push(
-        'WARNING: No unit specified. Using "' +
-          defaultUnit +
-          '" as the default - "' +
-          originalTag +
-          '"',
+        utils.generateIssue('unitClassDefaultUsed', {
+          tag: originalTag,
+          defaultUnit: defaultUnit,
+        }),
       )
     }
     return !invalid
@@ -317,11 +315,10 @@ const checkIfTagUnitClassUnitsAreValid = function(
       )
     if (!valid) {
       issues.push(
-        'ERROR: Invalid unit - "' +
-          originalTag +
-          '" valid units are "' +
-          tagUnitClassUnits.join(',') +
-          '"',
+        utils.generateIssue('unitClassInvalidUnit', {
+          tag: originalTag,
+          unitClassUnits: tagUnitClassUnits.join(','),
+        }),
       )
     }
     return valid
@@ -370,16 +367,15 @@ const checkIfTagIsValid = function(
     // This tag isn't an allowed extension, but the previous tag takes a value.
     // This is likely caused by an extraneous comma.
     issues.push(
-      'ERROR: Either "' +
-        previousOriginalTag +
-        '" contains a comma when it should not or "' +
-        originalTag +
-        '" is not a valid tag',
+      utils.generateIssue('extraCommaOrInvalid', {
+        tag: originalTag,
+        previousTag: previousOriginalTag,
+      }),
     )
     return false
   } else if (!isExtensionAllowedTag) {
     // This is not a valid tag.
-    issues.push('ERROR: Invalid tag - "' + originalTag + '"')
+    issues.push(utils.generateIssue('invalidTag', { tag: originalTag }))
     return false
   } else {
     return true
