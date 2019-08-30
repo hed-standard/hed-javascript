@@ -2,11 +2,11 @@ const assert = require('assert')
 const validate = require('../validators')
 
 const localHedSchemaFile = 'tests/data/HEDTest.xml'
-const localHedSchemaVersion = '7.0.3'
+const localHedSchemaVersion = '7.0.4'
 
 describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', async done => {
-    const remoteHedSchemaVersion = '7.0.3'
+    const remoteHedSchemaVersion = '7.0.4'
     validate.schema
       .buildSchema({ version: remoteHedSchemaVersion })
       .then(hedSchema => {
@@ -156,7 +156,7 @@ describe('HED schemas', function() {
         memorySize: 'mb',
         physicalLength: 'cm',
         pixels: 'px',
-        speed: 'cm-per-sec',
+        speed: 'cm-per-s',
         time: 's',
         area: 'cm2',
         volume: 'cm3',
