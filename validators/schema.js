@@ -296,12 +296,14 @@ const buildSchemaObject = function(xmlData) {
 }
 
 const buildSchema = function(schemaDef) {
-  if (schemaDef.path) {
+  if (schemaDef === undefined) {
+    return buildRemoteSchema()
+  } else if (schemaDef.path) {
     return buildLocalSchema(schemaDef.path)
   } else if (schemaDef.version) {
     return buildRemoteSchema(schemaDef.version)
   } else {
-    return buildRemoteSchema()
+    return Promise.reject('Invalid input.')
   }
 }
 
