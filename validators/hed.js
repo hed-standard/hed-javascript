@@ -80,6 +80,19 @@ const findCommaIssuesInHedString = function(hedString, issues) {
       continue
     }
     if (delimiters.includes(currentCharacter)) {
+      if (utils.string.stringIsEmpty(currentTag)) {
+        let messageString
+        if (i === 0) {
+          messageString = 'beginning of string'
+        } else {
+          messageString = hedString.substring(0, i)
+        }
+        issues.push(
+          utils.generateIssue('extraComma', {
+            string: messageString,
+          }),
+        )
+      }
       currentTag = ''
     }
     if (currentCharacter === openingGroupCharacter) {
