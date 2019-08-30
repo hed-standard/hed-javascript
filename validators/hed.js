@@ -41,20 +41,6 @@ const countTagGroupParentheses = function(hedString, issues) {
 }
 
 /**
- * Check if a comma is missing before an opening parenthesis.
- */
-const isCommaMissingBeforeOpeningParenthesis = function(
-  lastNonEmptyCharacter,
-  currentCharacter,
-) {
-  return (
-    lastNonEmptyCharacter &&
-    !delimiters.includes(lastNonEmptyCharacter) &&
-    currentCharacter === openingGroupCharacter
-  )
-}
-
-/**
  * Check if a comma is missing after an opening parenthesis.
  */
 const isCommaMissingAfterClosingParenthesis = function(
@@ -68,9 +54,9 @@ const isCommaMissingAfterClosingParenthesis = function(
 }
 
 /**
- * Check for comma issues in a HED string (e.g. missing commas adjacent to groups).
+ * Check for delimiter issues in a HED string (e.g. missing commas adjacent to groups, extra commas or tildes).
  */
-const findCommaIssuesInHedString = function(hedString, issues) {
+const findDelimiterIssuesInHedString = function(hedString, issues) {
   let lastNonEmptyCharacter = ''
   let currentTag = ''
   for (let i = 0; i < hedString.length; i++) {
@@ -80,32 +66,23 @@ const findCommaIssuesInHedString = function(hedString, issues) {
       continue
     }
     if (delimiters.includes(currentCharacter)) {
-      if (utils.string.stringIsEmpty(currentTag)) {
-        let messageString
-        if (i === 0) {
-          messageString = 'beginning of string'
-        } else {
-          messageString = hedString.substring(0, i)
-        }
+      if (currentTag.trim() === currentCharacter) {
         issues.push(
-          utils.generateIssue('extraComma', {
-            string: messageString,
+          utils.generateIssue('extraDelimiter', {
+            character: currentCharacter,
+            index: i,
+            string: hedString,
           }),
         )
       }
       currentTag = ''
-    }
-    if (currentCharacter === openingGroupCharacter) {
+    } else if (currentCharacter === openingGroupCharacter) {
       if (currentTag.trim() === openingGroupCharacter) {
         currentTag = ''
       } else {
         issues.push(utils.generateIssue('invalidTag', { tag: currentTag }))
       }
     } else if (
-      isCommaMissingBeforeOpeningParenthesis(
-        lastNonEmptyCharacter,
-        currentCharacter,
-      ) ||
       isCommaMissingAfterClosingParenthesis(
         lastNonEmptyCharacter,
         currentCharacter,
@@ -402,7 +379,7 @@ const checkIfTagIsValid = function(
  */
 const validateFullHedString = function(hedString, issues) {
   countTagGroupParentheses(hedString, issues)
-  findCommaIssuesInHedString(hedString, issues)
+  findDelimiterIssuesInHedString(hedString, issues)
   return issues.length === 0
 }
 

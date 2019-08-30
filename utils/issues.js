@@ -9,8 +9,10 @@ const generateIssue = function(code, parameters) {
     case 'invalidTag':
       issueObject.message = `ERROR: Invalid tag - "${parameters.tag}"`
       break
-    case 'extraComma':
-      issueObject.message = `ERROR: Extra comma after - "${parameters.string}"`
+    case 'extraDelimiter':
+      issueObject.message = `ERROR: Extra delimiter "${
+        parameters.character
+      }" at index ${parameters.index} of string "${parameters.string}"`
       break
     case 'commaMissing':
       issueObject.message = `ERROR: Comma missing after - "${parameters.tag}"`
