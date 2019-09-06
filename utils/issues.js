@@ -63,9 +63,9 @@ const generateIssue = function(code, parameters) {
       }" is not a valid tag`
       break
     case 'invalidCharacter':
-      issueObject.message = `ERROR: Invalid character - "${
+      issueObject.message = `ERROR: Invalid character "${
         parameters.character
-      }"`
+      }" at index ${parameters.index} of string "${parameters.string}"`
       break
     default:
       issueObject.message = `ERROR: Unknown HED error.`
