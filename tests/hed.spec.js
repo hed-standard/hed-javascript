@@ -12,31 +12,49 @@ describe('HED strings', function() {
   })
 
   describe('Full HED Strings', function() {
+    const validator = function(testStrings, expectedResults, expectedIssues) {
+      for (const testStringKey in testStrings) {
+        const [testResult, testIssues] = validate.HED.validateHedString(
+          testStrings[testStringKey],
+        )
+        assert.strictEqual(
+          testResult,
+          expectedResults[testStringKey],
+          testStrings[testStringKey],
+        )
+        assert.sameDeepMembers(
+          testIssues,
+          expectedIssues[testStringKey],
+          testStrings[testStringKey],
+        )
+      }
+    }
+
     it('should not have mismatched parentheses', function() {
-      const extraOpeningString =
-        '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-      // The extra comma is needed to avoid a comma error.
-      const extraClosingString =
-        '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-      const validString =
-        '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-      const [
-        extraOpeningResult,
-        extraOpeningIssues,
-      ] = validate.HED.validateHedString(extraOpeningString)
-      const [
-        extraClosingResult,
-        extraClosingIssues,
-      ] = validate.HED.validateHedString(extraClosingString)
-      const [validResult, validIssues] = validate.HED.validateHedString(
-        validString,
-      )
-      assert.strictEqual(extraOpeningResult, false)
-      assert.strictEqual(extraClosingResult, false)
-      assert.strictEqual(validResult, true)
-      assert.strictEqual(extraOpeningIssues.length, 1)
-      assert.strictEqual(extraClosingIssues.length, 1)
-      assert.strictEqual(validIssues.length, 0)
+      const testStrings = {
+        extraOpeningString:
+          '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+        // The extra comma is needed to avoid a comma error.
+        extraClosingString:
+          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+        validString:
+          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+      }
+      const expectedResults = {
+        extraOpeningString: false,
+        extraClosingString: false,
+        validString: true,
+      }
+      const expectedIssues = {
+        extraOpeningString: [
+          generateIssue('parentheses', { opening: 2, closing: 1 }),
+        ],
+        extraClosingString: [
+          generateIssue('parentheses', { opening: 1, closing: 2 }),
+        ],
+        validString: [],
+      }
+      validator(testStrings, expectedResults, expectedIssues)
     })
 
     it('should not have malformed delimiters', function() {
@@ -47,12 +65,12 @@ describe('HED strings', function() {
           '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
         extraOpeningCommaString:
           ',/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-        /*extraClosingCommaString:
-          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px,',*/
+        extraClosingCommaString:
+          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px,',
         extraOpeningTildeString:
           '~/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-        /*extraClosingTildeString:
-          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px~',*/
+        extraClosingTildeString:
+          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px~',
         multipleExtraOpeningDelimiterString:
           ',~,/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
         multipleExtraClosingDelimiterString:
@@ -64,28 +82,20 @@ describe('HED strings', function() {
         validNestedParenthesesString:
           '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Event/Duration/3 ms',
       }
-      const testResults = {}
-      const testIssues = {}
-      for (const testStringKey in testStrings) {
-        ;[
-          testResults[testStringKey],
-          testIssues[testStringKey],
-        ] = validate.HED.validateHedString(testStrings[testStringKey])
-      }
-      const expectedTestResults = {
+      const expectedResults = {
         missingOpeningCommaString: false,
         missingClosingCommaString: false,
         extraOpeningCommaString: false,
-        //extraClosingCommaString: false,
+        extraClosingCommaString: false,
         extraOpeningTildeString: false,
-        //extraClosingTildeString: false,
+        extraClosingTildeString: false,
         multipleExtraOpeningDelimiterString: false,
         multipleExtraClosingDelimiterString: false,
         multipleExtraMiddleDelimiterString: false,
         validString: true,
         validNestedParenthesesString: true,
       }
-      const expectedTestIssues = {
+      const expectedIssues = {
         missingOpeningCommaString: [
           generateIssue('invalidTag', { tag: '/Action/Reach/To touch(' }),
         ],
@@ -101,13 +111,13 @@ describe('HED strings', function() {
             string: testStrings.extraOpeningCommaString,
           }),
         ],
-        /*extraClosingCommaString: [
+        extraClosingCommaString: [
           generateIssue('extraDelimiter', {
             character: ',',
             index: testStrings.extraClosingCommaString.length - 1,
             string: testStrings.extraClosingCommaString,
           }),
-        ],*/
+        ],
         extraOpeningTildeString: [
           generateIssue('extraDelimiter', {
             character: '~',
@@ -115,13 +125,13 @@ describe('HED strings', function() {
             string: testStrings.extraOpeningTildeString,
           }),
         ],
-        /*extraClosingTildeString: [
+        extraClosingTildeString: [
           generateIssue('extraDelimiter', {
             character: '~',
             index: testStrings.extraClosingTildeString.length - 1,
             string: testStrings.extraClosingTildeString,
           }),
-        ],*/
+        ],
         multipleExtraOpeningDelimiterString: [
           generateIssue('extraDelimiter', {
             character: ',',
@@ -155,11 +165,11 @@ describe('HED strings', function() {
             index: testStrings.multipleExtraClosingDelimiterString.length - 3,
             string: testStrings.multipleExtraClosingDelimiterString,
           }),
-          /*generateIssue('extraDelimiter', {
+          generateIssue('extraDelimiter', {
             character: ',',
             index: testStrings.multipleExtraClosingDelimiterString.length - 4,
             string: testStrings.multipleExtraClosingDelimiterString,
-          }),*/
+          }),
         ],
         multipleExtraMiddleDelimiterString: [
           generateIssue('extraDelimiter', {
@@ -181,41 +191,57 @@ describe('HED strings', function() {
         validString: [],
         validNestedParenthesesString: [],
       }
-      for (const testStringKey in testStrings) {
-        assert.strictEqual(
-          testResults[testStringKey],
-          expectedTestResults[testStringKey],
-          testStrings[testStringKey],
-        )
-        assert.sameDeepMembers(
-          testIssues[testStringKey],
-          expectedTestIssues[testStringKey],
-          testStrings[testStringKey],
-        )
-      }
+      validator(testStrings, expectedResults, expectedIssues)
     })
 
     it('should not have invalid characters', function() {
-      const invalidString1 =
-        '/Attribute/Object side/Left,/Participant/Effect{/Body part/Arm'
-      const invalidString2 =
-        '/Attribute/Object side/Left,/Participant/Effect}/Body part/Arm'
-      const invalidString3 =
-        '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm'
-      const invalidString4 =
-        '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm'
-      const [result1, issues1] = validate.HED.validateHedString(invalidString1)
-      const [result2, issues2] = validate.HED.validateHedString(invalidString2)
-      const [result3, issues3] = validate.HED.validateHedString(invalidString3)
-      const [result4, issues4] = validate.HED.validateHedString(invalidString4)
-      assert.strictEqual(result1, false)
-      assert.strictEqual(result2, false)
-      assert.strictEqual(result3, false)
-      assert.strictEqual(result4, false)
-      assert.strictEqual(issues1.length, 1)
-      assert.strictEqual(issues2.length, 1)
-      assert.strictEqual(issues3.length, 1)
-      assert.strictEqual(issues4.length, 1)
+      const testStrings = {
+        openingBraceString:
+          '/Attribute/Object side/Left,/Participant/Effect{/Body part/Arm',
+        closingBraceString:
+          '/Attribute/Object side/Left,/Participant/Effect}/Body part/Arm',
+        openingBracketString:
+          '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm',
+        closingBracketString:
+          '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm',
+      }
+      const expectedResults = {
+        openingBraceString: false,
+        closingBraceString: false,
+        openingBracketString: false,
+        closingBracketString: false,
+      }
+      const expectedIssues = {
+        openingBraceString: [
+          generateIssue('invalidCharacter', {
+            character: '{',
+            index: 47,
+            string: testStrings.openingBraceString,
+          }),
+        ],
+        closingBraceString: [
+          generateIssue('invalidCharacter', {
+            character: '}',
+            index: 47,
+            string: testStrings.closingBraceString,
+          }),
+        ],
+        openingBracketString: [
+          generateIssue('invalidCharacter', {
+            character: '[',
+            index: 47,
+            string: testStrings.openingBracketString,
+          }),
+        ],
+        closingBracketString: [
+          generateIssue('invalidCharacter', {
+            character: ']',
+            index: 47,
+            string: testStrings.closingBracketString,
+          }),
+        ],
+      }
+      validator(testStrings, expectedResults, expectedIssues)
     })
   })
 
