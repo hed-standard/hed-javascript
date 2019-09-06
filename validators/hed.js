@@ -179,7 +179,7 @@ const checkForMultipleUniqueTags = function(
         } else {
           issues.push(
             utils.generateIssue('multipleUniqueTags', {
-              tag: hedSchema.dictionaries[uniqueType][uniqueTagPrefix],
+              tag: uniqueTagPrefix,
             }),
           )
           valid = false
