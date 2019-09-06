@@ -1,5 +1,6 @@
-const assert = require('assert')
+const assert = require('chai').assert
 const validate = require('../validators')
+const generateIssue = require('../utils/issues')
 
 const localHedSchemaFile = 'tests/data/HEDTest.xml'
 
@@ -38,38 +39,160 @@ describe('HED strings', function() {
       assert.strictEqual(validIssues.length, 0)
     })
 
-    it('should not have missing commas', function() {
-      const missingOpeningString =
-        '/Action/Reach/To touch(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-      const missingClosingString =
-        '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-      const validString =
-        '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-      const nestedParenthesesString =
-        '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Event/Duration/3 ms'
-      const [
-        missingOpeningResult,
-        missingOpeningIssues,
-      ] = validate.HED.validateHedString(missingOpeningString)
-      const [
-        missingClosingResult,
-        missingClosingIssues,
-      ] = validate.HED.validateHedString(missingClosingString)
-      const [validResult, validIssues] = validate.HED.validateHedString(
-        validString,
-      )
-      const [
-        nestedParenthesesResult,
-        nestedParenthesesIssues,
-      ] = validate.HED.validateHedString(nestedParenthesesString)
-      assert.strictEqual(missingOpeningResult, false)
-      assert.strictEqual(missingClosingResult, false)
-      assert.strictEqual(validResult, true)
-      assert.strictEqual(nestedParenthesesResult, true)
-      assert.strictEqual(missingOpeningIssues.length, 1)
-      assert.strictEqual(missingClosingIssues.length, 1)
-      assert.strictEqual(validIssues.length, 0)
-      assert.strictEqual(nestedParenthesesIssues.length, 0)
+    it('should not have malformed delimiters', function() {
+      const testStrings = {
+        missingOpeningCommaString:
+          '/Action/Reach/To touch(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+        missingClosingCommaString:
+          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+        extraOpeningCommaString:
+          ',/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+        /*extraClosingCommaString:
+          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px,',*/
+        extraOpeningTildeString:
+          '~/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+        /*extraClosingTildeString:
+          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px~',*/
+        multipleExtraOpeningDelimiterString:
+          ',~,/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+        multipleExtraClosingDelimiterString:
+          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px,~~,',
+        multipleExtraMiddleDelimiterString:
+          '/Action/Reach/To touch,,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,~,/Attribute/Location/Screen/Left/23 px',
+        validString:
+          '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+        validNestedParenthesesString:
+          '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Event/Duration/3 ms',
+      }
+      const testResults = {}
+      const testIssues = {}
+      for (const testStringKey in testStrings) {
+        ;[
+          testResults[testStringKey],
+          testIssues[testStringKey],
+        ] = validate.HED.validateHedString(testStrings[testStringKey])
+      }
+      const expectedTestResults = {
+        missingOpeningCommaString: false,
+        missingClosingCommaString: false,
+        extraOpeningCommaString: false,
+        //extraClosingCommaString: false,
+        extraOpeningTildeString: false,
+        //extraClosingTildeString: false,
+        multipleExtraOpeningDelimiterString: false,
+        multipleExtraClosingDelimiterString: false,
+        multipleExtraMiddleDelimiterString: false,
+        validString: true,
+        validNestedParenthesesString: true,
+      }
+      const expectedTestIssues = {
+        missingOpeningCommaString: [
+          generateIssue('invalidTag', { tag: '/Action/Reach/To touch(' }),
+        ],
+        missingClosingCommaString: [
+          generateIssue('commaMissing', {
+            tag: '/Participant/Effect/Body part/Arm)/',
+          }),
+        ],
+        extraOpeningCommaString: [
+          generateIssue('extraDelimiter', {
+            character: ',',
+            index: 0,
+            string: testStrings.extraOpeningCommaString,
+          }),
+        ],
+        /*extraClosingCommaString: [
+          generateIssue('extraDelimiter', {
+            character: ',',
+            index: testStrings.extraClosingCommaString.length - 1,
+            string: testStrings.extraClosingCommaString,
+          }),
+        ],*/
+        extraOpeningTildeString: [
+          generateIssue('extraDelimiter', {
+            character: '~',
+            index: 0,
+            string: testStrings.extraOpeningTildeString,
+          }),
+        ],
+        /*extraClosingTildeString: [
+          generateIssue('extraDelimiter', {
+            character: '~',
+            index: testStrings.extraClosingTildeString.length - 1,
+            string: testStrings.extraClosingTildeString,
+          }),
+        ],*/
+        multipleExtraOpeningDelimiterString: [
+          generateIssue('extraDelimiter', {
+            character: ',',
+            index: 0,
+            string: testStrings.multipleExtraOpeningDelimiterString,
+          }),
+          generateIssue('extraDelimiter', {
+            character: '~',
+            index: 1,
+            string: testStrings.multipleExtraOpeningDelimiterString,
+          }),
+          generateIssue('extraDelimiter', {
+            character: ',',
+            index: 2,
+            string: testStrings.multipleExtraOpeningDelimiterString,
+          }),
+        ],
+        multipleExtraClosingDelimiterString: [
+          generateIssue('extraDelimiter', {
+            character: ',',
+            index: testStrings.multipleExtraClosingDelimiterString.length - 1,
+            string: testStrings.multipleExtraClosingDelimiterString,
+          }),
+          generateIssue('extraDelimiter', {
+            character: '~',
+            index: testStrings.multipleExtraClosingDelimiterString.length - 2,
+            string: testStrings.multipleExtraClosingDelimiterString,
+          }),
+          generateIssue('extraDelimiter', {
+            character: '~',
+            index: testStrings.multipleExtraClosingDelimiterString.length - 3,
+            string: testStrings.multipleExtraClosingDelimiterString,
+          }),
+          /*generateIssue('extraDelimiter', {
+            character: ',',
+            index: testStrings.multipleExtraClosingDelimiterString.length - 4,
+            string: testStrings.multipleExtraClosingDelimiterString,
+          }),*/
+        ],
+        multipleExtraMiddleDelimiterString: [
+          generateIssue('extraDelimiter', {
+            character: ',',
+            index: 23,
+            string: testStrings.multipleExtraMiddleDelimiterString,
+          }),
+          generateIssue('extraDelimiter', {
+            character: '~',
+            index: 125,
+            string: testStrings.multipleExtraMiddleDelimiterString,
+          }),
+          generateIssue('extraDelimiter', {
+            character: ',',
+            index: 126,
+            string: testStrings.multipleExtraMiddleDelimiterString,
+          }),
+        ],
+        validString: [],
+        validNestedParenthesesString: [],
+      }
+      for (const testStringKey in testStrings) {
+        assert.strictEqual(
+          testResults[testStringKey],
+          expectedTestResults[testStringKey],
+          testStrings[testStringKey],
+        )
+        assert.sameDeepMembers(
+          testIssues[testStringKey],
+          expectedTestIssues[testStringKey],
+          testStrings[testStringKey],
+        )
+      }
     })
 
     it('should not have invalid characters', function() {
@@ -300,6 +423,12 @@ describe('HED strings', function() {
       const noUnitRequiredTag1Issues = []
       const noUnitRequiredTag2Issues = []
       const properTimeTagIssues = []
+      const expectedBadTagIssues = [
+        generateIssue('unitClassDefaultUsed', {
+          defaultUnit: 's',
+          tag: badTag,
+        }),
+      ]
       const parsedProperTag = validate.stringParser.parseHedString(
         properTag,
         properTagIssues,
@@ -361,11 +490,11 @@ describe('HED strings', function() {
         assert.strictEqual(noUnitRequiredTag1Result, true)
         assert.strictEqual(noUnitRequiredTag2Result, true)
         assert.strictEqual(properTimeTagResult, true)
-        assert.strictEqual(properTagIssues.length, 0)
-        assert.strictEqual(badTagIssues.length, 1)
-        assert.strictEqual(noUnitRequiredTag1Issues.length, 0)
-        assert.strictEqual(noUnitRequiredTag2Issues.length, 0)
-        assert.strictEqual(properTimeTagIssues.length, 0)
+        assert.sameDeepMembers(properTagIssues, [])
+        assert.sameDeepMembers(badTagIssues, expectedBadTagIssues)
+        assert.sameDeepMembers(noUnitRequiredTag1Issues, [])
+        assert.sameDeepMembers(noUnitRequiredTag2Issues, [])
+        assert.sameDeepMembers(properTimeTagIssues, [])
         done()
       })
     })
@@ -553,6 +682,9 @@ describe('HED strings', function() {
         'Event/Description/Rail vehicles,Event/Description/Locomotive-pulled or multiple units,Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)'
       const legalIssues = []
       const multipleDescIssues = []
+      const expectedMultipleDescIssues = [
+        generateIssue('multipleUniqueTags', { tag: 'event/description' }),
+      ]
       const parsedLegalString = validate.stringParser.parseHedString(
         legalString,
         legalIssues,
@@ -576,8 +708,8 @@ describe('HED strings', function() {
         )
         assert.strictEqual(legalResult, true)
         assert.strictEqual(multipleDescResult, false)
-        assert.strictEqual(legalIssues.length, 0)
-        assert.strictEqual(multipleDescIssues.length, 1)
+        assert.sameDeepMembers(legalIssues, [])
+        assert.sameDeepMembers(multipleDescIssues, expectedMultipleDescIssues)
         done()
       })
     })
@@ -703,13 +835,23 @@ describe('HED strings', function() {
         parsedInvalidTildeGroupString,
         invalidTildeGroupIssues,
       )
+      const expectedInvalidTildeGroupIssues = [
+        generateIssue('tooManyTildes', {
+          tagGroup:
+            'Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb',
+        }),
+      ]
       assert.strictEqual(noTildeGroupResult, true)
       assert.strictEqual(oneTildeGroupResult, true)
       assert.strictEqual(twoTildeGroupResult, true)
       assert.strictEqual(invalidTildeGroupResult, false)
-      assert.strictEqual(noTildeGroupIssues.length, 0)
-      assert.strictEqual(oneTildeGroupIssues.length, 0)
-      assert.strictEqual(twoTildeGroupIssues.length, 0)
+      assert.sameDeepMembers(noTildeGroupIssues, [])
+      assert.sameDeepMembers(oneTildeGroupIssues, [])
+      assert.sameDeepMembers(twoTildeGroupIssues, [])
+      // assert.sameDeepMembers(invalidTildeGroupIssues, expectedInvalidTildeGroupIssues)
+      // assert.strictEqual(noTildeGroupIssues.length, 0)
+      // assert.strictEqual(oneTildeGroupIssues.length, 0)
+      // assert.strictEqual(twoTildeGroupIssues.length, 0)
       assert.strictEqual(invalidTildeGroupIssues.length, 1)
     })
   })
