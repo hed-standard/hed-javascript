@@ -32,212 +32,212 @@ describe('HED strings', function() {
 
     it('should not have mismatched parentheses', function() {
       const testStrings = {
-        extraOpeningString:
+        extraOpening:
           '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
         // The extra comma is needed to avoid a comma error.
-        extraClosingString:
+        extraClosing:
           '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-        validString:
+        valid:
           '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
       }
       const expectedResults = {
-        extraOpeningString: false,
-        extraClosingString: false,
-        validString: true,
+        extraOpening: false,
+        extraClosing: false,
+        valid: true,
       }
       const expectedIssues = {
-        extraOpeningString: [
+        extraOpening: [
           generateIssue('parentheses', { opening: 2, closing: 1 }),
         ],
-        extraClosingString: [
+        extraClosing: [
           generateIssue('parentheses', { opening: 1, closing: 2 }),
         ],
-        validString: [],
+        valid: [],
       }
       validator(testStrings, expectedResults, expectedIssues)
     })
 
     it('should not have malformed delimiters', function() {
       const testStrings = {
-        missingOpeningCommaString:
+        missingOpeningComma:
           '/Action/Reach/To touch(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-        missingClosingCommaString:
+        missingClosingComma:
           '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-        extraOpeningCommaString:
+        extraOpeningComma:
           ',/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-        extraClosingCommaString:
+        extraClosingComma:
           '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px,',
-        extraOpeningTildeString:
+        extraOpeningTilde:
           '~/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-        extraClosingTildeString:
+        extraClosingTilde:
           '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px~',
-        multipleExtraOpeningDelimiterString:
+        multipleExtraOpeningDelimiter:
           ',~,/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-        multipleExtraClosingDelimiterString:
+        multipleExtraClosingDelimiter:
           '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px,~~,',
-        multipleExtraMiddleDelimiterString:
+        multipleExtraMiddleDelimiter:
           '/Action/Reach/To touch,,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,~,/Attribute/Location/Screen/Left/23 px',
-        validString:
+        valid:
           '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-        validNestedParenthesesString:
+        validNestedParentheses:
           '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Event/Duration/3 ms',
       }
       const expectedResults = {
-        missingOpeningCommaString: false,
-        missingClosingCommaString: false,
-        extraOpeningCommaString: false,
-        extraClosingCommaString: false,
-        extraOpeningTildeString: false,
-        extraClosingTildeString: false,
-        multipleExtraOpeningDelimiterString: false,
-        multipleExtraClosingDelimiterString: false,
-        multipleExtraMiddleDelimiterString: false,
-        validString: true,
-        validNestedParenthesesString: true,
+        missingOpeningComma: false,
+        missingClosingComma: false,
+        extraOpeningComma: false,
+        extraClosingComma: false,
+        extraOpeningTilde: false,
+        extraClosingTilde: false,
+        multipleExtraOpeningDelimiter: false,
+        multipleExtraClosingDelimiter: false,
+        multipleExtraMiddleDelimiter: false,
+        valid: true,
+        validNestedParentheses: true,
       }
       const expectedIssues = {
-        missingOpeningCommaString: [
+        missingOpeningComma: [
           generateIssue('invalidTag', { tag: '/Action/Reach/To touch(' }),
         ],
-        missingClosingCommaString: [
+        missingClosingComma: [
           generateIssue('commaMissing', {
             tag: '/Participant/Effect/Body part/Arm)/',
           }),
         ],
-        extraOpeningCommaString: [
+        extraOpeningComma: [
           generateIssue('extraDelimiter', {
             character: ',',
             index: 0,
-            string: testStrings.extraOpeningCommaString,
+            string: testStrings.extraOpeningComma,
           }),
         ],
-        extraClosingCommaString: [
+        extraClosingComma: [
           generateIssue('extraDelimiter', {
             character: ',',
-            index: testStrings.extraClosingCommaString.length - 1,
-            string: testStrings.extraClosingCommaString,
+            index: testStrings.extraClosingComma.length - 1,
+            string: testStrings.extraClosingComma,
           }),
         ],
-        extraOpeningTildeString: [
+        extraOpeningTilde: [
           generateIssue('extraDelimiter', {
             character: '~',
             index: 0,
-            string: testStrings.extraOpeningTildeString,
+            string: testStrings.extraOpeningTilde,
           }),
         ],
-        extraClosingTildeString: [
+        extraClosingTilde: [
           generateIssue('extraDelimiter', {
             character: '~',
-            index: testStrings.extraClosingTildeString.length - 1,
-            string: testStrings.extraClosingTildeString,
+            index: testStrings.extraClosingTilde.length - 1,
+            string: testStrings.extraClosingTilde,
           }),
         ],
-        multipleExtraOpeningDelimiterString: [
+        multipleExtraOpeningDelimiter: [
           generateIssue('extraDelimiter', {
             character: ',',
             index: 0,
-            string: testStrings.multipleExtraOpeningDelimiterString,
+            string: testStrings.multipleExtraOpeningDelimiter,
           }),
           generateIssue('extraDelimiter', {
             character: '~',
             index: 1,
-            string: testStrings.multipleExtraOpeningDelimiterString,
+            string: testStrings.multipleExtraOpeningDelimiter,
           }),
           generateIssue('extraDelimiter', {
             character: ',',
             index: 2,
-            string: testStrings.multipleExtraOpeningDelimiterString,
+            string: testStrings.multipleExtraOpeningDelimiter,
           }),
         ],
-        multipleExtraClosingDelimiterString: [
+        multipleExtraClosingDelimiter: [
           generateIssue('extraDelimiter', {
             character: ',',
-            index: testStrings.multipleExtraClosingDelimiterString.length - 1,
-            string: testStrings.multipleExtraClosingDelimiterString,
+            index: testStrings.multipleExtraClosingDelimiter.length - 1,
+            string: testStrings.multipleExtraClosingDelimiter,
           }),
           generateIssue('extraDelimiter', {
             character: '~',
-            index: testStrings.multipleExtraClosingDelimiterString.length - 2,
-            string: testStrings.multipleExtraClosingDelimiterString,
+            index: testStrings.multipleExtraClosingDelimiter.length - 2,
+            string: testStrings.multipleExtraClosingDelimiter,
           }),
           generateIssue('extraDelimiter', {
             character: '~',
-            index: testStrings.multipleExtraClosingDelimiterString.length - 3,
-            string: testStrings.multipleExtraClosingDelimiterString,
+            index: testStrings.multipleExtraClosingDelimiter.length - 3,
+            string: testStrings.multipleExtraClosingDelimiter,
           }),
           generateIssue('extraDelimiter', {
             character: ',',
-            index: testStrings.multipleExtraClosingDelimiterString.length - 4,
-            string: testStrings.multipleExtraClosingDelimiterString,
+            index: testStrings.multipleExtraClosingDelimiter.length - 4,
+            string: testStrings.multipleExtraClosingDelimiter,
           }),
         ],
-        multipleExtraMiddleDelimiterString: [
+        multipleExtraMiddleDelimiter: [
           generateIssue('extraDelimiter', {
             character: ',',
             index: 23,
-            string: testStrings.multipleExtraMiddleDelimiterString,
+            string: testStrings.multipleExtraMiddleDelimiter,
           }),
           generateIssue('extraDelimiter', {
             character: '~',
             index: 125,
-            string: testStrings.multipleExtraMiddleDelimiterString,
+            string: testStrings.multipleExtraMiddleDelimiter,
           }),
           generateIssue('extraDelimiter', {
             character: ',',
             index: 126,
-            string: testStrings.multipleExtraMiddleDelimiterString,
+            string: testStrings.multipleExtraMiddleDelimiter,
           }),
         ],
-        validString: [],
-        validNestedParenthesesString: [],
+        valid: [],
+        validNestedParentheses: [],
       }
       validator(testStrings, expectedResults, expectedIssues)
     })
 
     it('should not have invalid characters', function() {
       const testStrings = {
-        openingBraceString:
+        openingBrace:
           '/Attribute/Object side/Left,/Participant/Effect{/Body part/Arm',
-        closingBraceString:
+        closingBrace:
           '/Attribute/Object side/Left,/Participant/Effect}/Body part/Arm',
-        openingBracketString:
+        openingBracket:
           '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm',
-        closingBracketString:
+        closingBracket:
           '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm',
       }
       const expectedResults = {
-        openingBraceString: false,
-        closingBraceString: false,
-        openingBracketString: false,
-        closingBracketString: false,
+        openingBrace: false,
+        closingBrace: false,
+        openingBracket: false,
+        closingBracket: false,
       }
       const expectedIssues = {
-        openingBraceString: [
+        openingBrace: [
           generateIssue('invalidCharacter', {
             character: '{',
             index: 47,
-            string: testStrings.openingBraceString,
+            string: testStrings.openingBrace,
           }),
         ],
-        closingBraceString: [
+        closingBrace: [
           generateIssue('invalidCharacter', {
             character: '}',
             index: 47,
-            string: testStrings.closingBraceString,
+            string: testStrings.closingBrace,
           }),
         ],
-        openingBracketString: [
+        openingBracket: [
           generateIssue('invalidCharacter', {
             character: '[',
             index: 47,
-            string: testStrings.openingBracketString,
+            string: testStrings.openingBracket,
           }),
         ],
-        closingBracketString: [
+        closingBracket: [
           generateIssue('invalidCharacter', {
             character: ']',
             index: 47,
-            string: testStrings.closingBracketString,
+            string: testStrings.closingBracket,
           }),
         ],
       }
