@@ -240,7 +240,7 @@ const checkForRequiredTags = function(parsedString, hedSchema, issues) {
       valid = false
       issues.push(
         utils.generateIssue('requiredPrefixMissing', {
-          tagPrefix: hedSchema.dictionaries[requiredType][requiredTagPrefix],
+          tagPrefix: requiredTagPrefix,
         }),
       )
     }
@@ -307,7 +307,7 @@ const checkIfTagUnitClassUnitsAreValid = function(
       issues.push(
         utils.generateIssue('unitClassInvalidUnit', {
           tag: originalTag,
-          unitClassUnits: tagUnitClassUnits.join(','),
+          unitClassUnits: tagUnitClassUnits.sort().join(','),
         }),
       )
     }
