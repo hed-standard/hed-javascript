@@ -11,6 +11,62 @@ describe('HED strings', function() {
     hedSchemaPromise = validate.schema.buildSchema({ path: localHedSchemaFile })
   })
 
+  const validatorSemanticBase = function(
+    testStrings,
+    expectedResults,
+    expectedIssues,
+    done,
+    testFunction,
+  ) {
+    hedSchemaPromise.then(schema => {
+      for (const testStringKey in testStrings) {
+        const testIssues = []
+        const parsedTestString = validate.stringParser.parseHedString(
+          testStrings[testStringKey],
+          testIssues,
+        )
+        const testResult = testFunction(parsedTestString, testIssues, schema)
+        assert.strictEqual(
+          testResult,
+          expectedResults[testStringKey],
+          testStrings[testStringKey],
+        )
+        assert.sameDeepMembers(
+          testIssues,
+          expectedIssues[testStringKey],
+          testStrings[testStringKey],
+        )
+      }
+      done()
+    })
+  }
+
+  const validatorSyntacticBase = function(
+    testStrings,
+    expectedResults,
+    expectedIssues,
+    testFunction,
+  ) {
+    for (const testStringKey in testStrings) {
+      const testIssues = []
+      const parsedTestString = validate.stringParser.parseHedString(
+        testStrings[testStringKey],
+        testIssues,
+      )
+      const testResult = testFunction(parsedTestString, testIssues)
+      assert.strictEqual(
+        testResult,
+        expectedResults[testStringKey],
+        testStrings[testStringKey],
+      )
+      assert.sameDeepMembers(
+        testIssues,
+        expectedIssues[testStringKey],
+        testStrings[testStringKey],
+      )
+    }
+  }
+
   describe('Full HED Strings', function() {
     const validator = function(testStrings, expectedResults, expectedIssues) {
       for (const testStringKey in testStrings) {
@@ -246,562 +302,466 @@ describe('HED strings', function() {
   })
 
   describe('Individual HED Tags', function() {
+    const validatorSyntactic = function(
+      testStrings,
+      expectedResults,
+      expectedIssues,
+      checkForWarnings,
+    ) {
+      validatorSyntacticBase(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        function(parsedTestString, testIssues) {
+          return validate.HED.validateIndividualHedTags(
+            parsedTestString,
+            {},
+            testIssues,
+            false,
+            checkForWarnings,
+          )
+        },
+      )
+    }
+
+    const validatorSemantic = function(
+      testStrings,
+      expectedResults,
+      expectedIssues,
+      checkForWarnings,
+      allowLeafExtensions,
+      done,
+    ) {
+      validatorSemanticBase(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        done,
+        function(parsedTestString, testIssues, schema) {
+          return validate.HED.validateIndividualHedTags(
+            parsedTestString,
+            schema,
+            testIssues,
+            true,
+            checkForWarnings,
+            allowLeafExtensions,
+          )
+        },
+      )
+    }
+
     it('should exist in the schema or be an allowed extension', async done => {
-      // Legal takesValue tag
-      const properTag1 = 'Event/Duration/3 ms'
-      // Legal "full" tag
-      const properTag2 = 'Attribute/Object side/Left'
-      // Legal extensionAllowed tag
-      const properTag3 = 'Item/Object/Person/Driver'
-      // Leaf tag (extension allowed with flag)
-      const properTag4 = 'Action/Hum/Song'
-      // Illegal tag (not in schema, no extension allowed)
-      const badTag1 = 'Item/Nonsense'
-      // Illegal comma
-      const badTag2 = 'Event/Label/This is a label,This/Is/A/Tag'
-      const properTag1Issues = []
-      const properTag2Issues = []
-      const properTag3Issues = []
-      const properTag4Issues = []
-      const badTag1Issues = []
-      const badTag2Issues = []
-      const parsedProperTag1 = validate.stringParser.parseHedString(
-        properTag1,
-        properTag1Issues,
+      const testStrings = {
+        takesValue: 'Event/Duration/3 ms',
+        full: 'Attribute/Object side/Left',
+        extensionAllowed: 'Item/Object/Person/Driver',
+        nonExtensionAllowed: 'Item/Nonsense',
+        illegalComma: 'Event/Label/This is a label,This/Is/A/Tag',
+      }
+      const expectedResults = {
+        takesValue: true,
+        full: true,
+        extensionAllowed: true,
+        nonExtensionAllowed: false,
+        illegalComma: false,
+      }
+      const expectedIssues = {
+        takesValue: [],
+        full: [],
+        extensionAllowed: [],
+        nonExtensionAllowed: [
+          generateIssue('invalidTag', { tag: testStrings.nonExtensionAllowed }),
+        ],
+        illegalComma: [
+          generateIssue('extraCommaOrInvalid', {
+            previousTag: 'Event/Label/This is a label',
+            tag: 'This/Is/A/Tag',
+          }),
+        ],
+      }
+      validatorSemantic(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        false,
+        false,
+        done,
       )
-      const parsedProperTag2 = validate.stringParser.parseHedString(
-        properTag2,
-        properTag2Issues,
+    })
+
+    it('should allow any leaf extensions given the required flag', async done => {
+      const testStrings = {
+        leafExtension: 'Action/Hum/Song',
+        nonLeafExtension: 'Item/Nonsense',
+      }
+      const expectedResults = {
+        leafExtension: true,
+        nonLeafExtension: false,
+      }
+      const expectedIssues = {
+        leafExtension: [],
+        nonLeafExtension: [
+          generateIssue('invalidTag', { tag: testStrings.nonLeafExtension }),
+        ],
+      }
+      validatorSemantic(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        false,
+        true,
+        done,
       )
-      const parsedProperTag3 = validate.stringParser.parseHedString(
-        properTag3,
-        properTag3Issues,
-      )
-      const parsedProperTag4 = validate.stringParser.parseHedString(
-        properTag4,
-        properTag4Issues,
-      )
-      const parsedBadTag1 = validate.stringParser.parseHedString(
-        badTag1,
-        badTag1Issues,
-      )
-      const parsedBadTag2 = validate.stringParser.parseHedString(
-        badTag2,
-        badTag2Issues,
-      )
-      hedSchemaPromise.then(hedSchema => {
-        const properTag1Result = validate.HED.validateIndividualHedTags(
-          parsedProperTag1,
-          hedSchema,
-          properTag1Issues,
-          true,
-          false,
-          false,
-        )
-        const properTag2Result = validate.HED.validateIndividualHedTags(
-          parsedProperTag2,
-          hedSchema,
-          properTag2Issues,
-          true,
-          false,
-          false,
-        )
-        const properTag3Result = validate.HED.validateIndividualHedTags(
-          parsedProperTag3,
-          hedSchema,
-          properTag3Issues,
-          true,
-          false,
-          false,
-        )
-        const properTag4Result = validate.HED.validateIndividualHedTags(
-          parsedProperTag4,
-          hedSchema,
-          properTag4Issues,
-          true,
-          false,
-          true,
-        )
-        const badTag1Result = validate.HED.validateIndividualHedTags(
-          parsedBadTag1,
-          hedSchema,
-          badTag1Issues,
-          true,
-          false,
-          false,
-        )
-        const badTag2Result = validate.HED.validateIndividualHedTags(
-          parsedBadTag2,
-          hedSchema,
-          badTag2Issues,
-          true,
-          false,
-          false,
-        )
-        assert.strictEqual(properTag1Result, true)
-        assert.strictEqual(properTag2Result, true)
-        assert.strictEqual(properTag3Result, true)
-        assert.strictEqual(properTag4Result, true)
-        assert.strictEqual(badTag1Result, false)
-        assert.strictEqual(badTag2Result, false)
-        assert.strictEqual(properTag1Issues.length, 0)
-        assert.strictEqual(properTag2Issues.length, 0)
-        assert.strictEqual(properTag3Issues.length, 0)
-        assert.strictEqual(properTag4Issues.length, 0)
-        assert.strictEqual(badTag1Issues.length, 1)
-        assert.strictEqual(badTag2Issues.length, 1)
-        done()
-      })
     })
 
     it('should have properly capitalized names', function() {
-      const properTag = 'Event/Category/Experimental stimulus'
-      const camelCaseTag = 'DoubleEvent/Something'
-      const badTag = 'Event/something'
-      const properTagIssues = []
-      const camelCaseTagIssues = []
-      const badTagIssues = []
-      const parsedProperTag = validate.stringParser.parseHedString(
-        properTag,
-        properTagIssues,
-      )
-      const parsedCamelCaseTag = validate.stringParser.parseHedString(
-        camelCaseTag,
-        camelCaseTagIssues,
-      )
-      const parsedBadTag = validate.stringParser.parseHedString(
-        badTag,
-        badTagIssues,
-      )
-      const properTagResult = validate.HED.validateIndividualHedTags(
-        parsedProperTag,
-        {},
-        properTagIssues,
-        false,
-        true,
-      )
-      const camelCaseTagResult = validate.HED.validateIndividualHedTags(
-        parsedCamelCaseTag,
-        {},
-        camelCaseTagIssues,
-        false,
-        true,
-      )
-      const badTagResult = validate.HED.validateIndividualHedTags(
-        parsedBadTag,
-        {},
-        badTagIssues,
-        false,
-        true,
-      )
-      assert.strictEqual(properTagResult, true)
-      assert.strictEqual(camelCaseTagResult, true)
-      assert.strictEqual(badTagResult, false)
-      assert.strictEqual(properTagIssues.length, 0)
-      assert.strictEqual(camelCaseTagIssues.length, 0)
-      assert.strictEqual(badTagIssues.length, 1)
+      const testStrings = {
+        proper: 'Event/Category/Experimental stimulus',
+        camelCase: 'DoubleEvent/Something',
+        lowercase: 'Event/something',
+      }
+      const expectedResults = {
+        proper: true,
+        camelCase: true,
+        lowercase: false,
+      }
+      const expectedIssues = {
+        proper: [],
+        camelCase: [],
+        lowercase: [
+          generateIssue('capitalization', { tag: testStrings.lowercase }),
+        ],
+      }
+      validatorSyntactic(testStrings, expectedResults, expectedIssues, true)
     })
 
     it('should have a child when required', async done => {
-      const properTag = 'Event/Category/Experimental stimulus'
-      const badTag = 'Event/Category'
-      const properTagIssues = []
-      const badTagIssues = []
-      const parsedProperTag = validate.stringParser.parseHedString(
-        properTag,
-        properTagIssues,
+      const testStrings = {
+        hasChild: 'Event/Category/Experimental stimulus',
+        missingChild: 'Event/Category',
+      }
+      const expectedResults = {
+        hasChild: true,
+        missingChild: false,
+      }
+      const expectedIssues = {
+        hasChild: [],
+        missingChild: [
+          generateIssue('childRequired', { tag: testStrings.missingChild }),
+        ],
+      }
+      validatorSemantic(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        true,
+        false,
+        done,
       )
-      const parsedBadTag = validate.stringParser.parseHedString(
-        badTag,
-        badTagIssues,
-      )
-      hedSchemaPromise.then(hedSchema => {
-        const properTagResult = validate.HED.validateIndividualHedTags(
-          parsedProperTag,
-          hedSchema,
-          properTagIssues,
-          true,
-          true,
-        )
-        const badTagResult = validate.HED.validateIndividualHedTags(
-          parsedBadTag,
-          hedSchema,
-          badTagIssues,
-          true,
-          true,
-        )
-        assert.strictEqual(properTagResult, true)
-        assert.strictEqual(badTagResult, false)
-        assert.strictEqual(properTagIssues.length, 0)
-        assert.strictEqual(badTagIssues.length, 1)
-        done()
-      })
     })
 
     it('should have a unit when required', async done => {
-      const properTag = 'Event/Duration/3 ms'
-      const badTag = 'Event/Duration/3'
-      const noUnitRequiredTag1 = 'Attribute/Color/Red/0.5'
-      const noUnitRequiredTag2 = 'Attribute/Color/Red/5.2e-1'
-      const properTimeTag = 'Item/2D shape/Clock face/8:30'
-      const properTagIssues = []
-      const badTagIssues = []
-      const noUnitRequiredTag1Issues = []
-      const noUnitRequiredTag2Issues = []
-      const properTimeTagIssues = []
-      const expectedBadTagIssues = [
-        generateIssue('unitClassDefaultUsed', {
-          defaultUnit: 's',
-          tag: badTag,
-        }),
-      ]
-      const parsedProperTag = validate.stringParser.parseHedString(
-        properTag,
-        properTagIssues,
+      const testStrings = {
+        hasRequiredUnit: 'Event/Duration/3 ms',
+        missingRequiredUnit: 'Event/Duration/3',
+        notRequiredNumber: 'Attribute/Color/Red/0.5',
+        notRequiredScientific: 'Attribute/Color/Red/5.2e-1',
+        timeValue: 'Item/2D shape/Clock face/8:30',
+      }
+      const expectedResults = {
+        hasRequiredUnit: true,
+        missingRequiredUnit: false,
+        notRequiredNumber: true,
+        notRequiredScientific: true,
+        timeValue: true,
+      }
+      const expectedIssues = {
+        hasRequiredUnit: [],
+        missingRequiredUnit: [
+          generateIssue('unitClassDefaultUsed', {
+            defaultUnit: 's',
+            tag: testStrings.missingRequiredUnit,
+          }),
+        ],
+        notRequiredNumber: [],
+        notRequiredScientific: [],
+        timeValue: [],
+      }
+      validatorSemantic(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        true,
+        false,
+        done,
       )
-      const parsedBadTag = validate.stringParser.parseHedString(
-        badTag,
-        badTagIssues,
-      )
-      const parsedNoUnitRequiredTag1 = validate.stringParser.parseHedString(
-        noUnitRequiredTag1,
-        noUnitRequiredTag1Issues,
-      )
-      const parsedNoUnitRequiredTag2 = validate.stringParser.parseHedString(
-        noUnitRequiredTag2,
-        noUnitRequiredTag2Issues,
-      )
-      const parsedProperTimeTag = validate.stringParser.parseHedString(
-        properTimeTag,
-        properTimeTagIssues,
-      )
-      hedSchemaPromise.then(hedSchema => {
-        const properTagResult = validate.HED.validateIndividualHedTags(
-          parsedProperTag,
-          hedSchema,
-          properTagIssues,
-          true,
-          true,
-        )
-        const badTagResult = validate.HED.validateIndividualHedTags(
-          parsedBadTag,
-          hedSchema,
-          badTagIssues,
-          true,
-          true,
-        )
-        const noUnitRequiredTag1Result = validate.HED.validateIndividualHedTags(
-          parsedNoUnitRequiredTag1,
-          hedSchema,
-          noUnitRequiredTag1Issues,
-          true,
-          true,
-        )
-        const noUnitRequiredTag2Result = validate.HED.validateIndividualHedTags(
-          parsedNoUnitRequiredTag2,
-          hedSchema,
-          noUnitRequiredTag2Issues,
-          true,
-          true,
-        )
-        const properTimeTagResult = validate.HED.validateIndividualHedTags(
-          parsedProperTimeTag,
-          hedSchema,
-          properTimeTagIssues,
-          true,
-          false,
-        )
-        assert.strictEqual(properTagResult, true)
-        assert.strictEqual(badTagResult, false)
-        assert.strictEqual(noUnitRequiredTag1Result, true)
-        assert.strictEqual(noUnitRequiredTag2Result, true)
-        assert.strictEqual(properTimeTagResult, true)
-        assert.sameDeepMembers(properTagIssues, [])
-        assert.sameDeepMembers(badTagIssues, expectedBadTagIssues)
-        assert.sameDeepMembers(noUnitRequiredTag1Issues, [])
-        assert.sameDeepMembers(noUnitRequiredTag2Issues, [])
-        assert.sameDeepMembers(properTimeTagIssues, [])
-        done()
-      })
     })
 
     it('should have a proper unit when required', async done => {
-      const properTag1 = 'Event/Duration/3 ms'
-      const properTag2 = 'Event/Duration/3.5e1 ms'
-      const badUnitTag = 'Event/Duration/3 cm'
-      const noUnitRequiredTag1 = 'Attribute/Color/Red/0.5'
-      const noUnitRequiredTag2 = 'Attribute/Color/Red/5e-1'
-      const properTimeTag = 'Item/2D shape/Clock face/8:30'
-      const badTimeTag = 'Item/2D shape/Clock face/54:54'
-      const properTag1Issues = []
-      const properTag2Issues = []
-      const badUnitTagIssues = []
-      const noUnitRequiredTag1Issues = []
-      const noUnitRequiredTag2Issues = []
-      const properTimeTagIssues = []
-      const badTimeTagIssues = []
-      const parsedProperTag1 = validate.stringParser.parseHedString(
-        properTag1,
-        properTag1Issues,
+      const testStrings = {
+        correctUnit: 'Event/Duration/3 ms',
+        correctUnitScientific: 'Event/Duration/3.5e1 ms',
+        incorrectUnit: 'Event/Duration/3 cm',
+        notRequiredNumber: 'Attribute/Color/Red/0.5',
+        notRequiredScientific: 'Attribute/Color/Red/5e-1',
+        properTime: 'Item/2D shape/Clock face/8:30',
+        invalidTime: 'Item/2D shape/Clock face/54:54',
+      }
+      const expectedResults = {
+        correctUnit: true,
+        correctUnitScientific: true,
+        incorrectUnit: false,
+        notRequiredNumber: true,
+        notRequiredScientific: true,
+        properTime: true,
+        invalidTime: false,
+      }
+      const legalTimeUnits = [
+        's',
+        'second',
+        'seconds',
+        'centiseconds',
+        'centisecond',
+        'cs',
+        'hour:min',
+        'day',
+        'days',
+        'ms',
+        'milliseconds',
+        'millisecond',
+        'minute',
+        'minutes',
+        'hour',
+        'hours',
+      ]
+      const expectedIssues = {
+        correctUnit: [],
+        correctUnitScientific: [],
+        incorrectUnit: [
+          generateIssue('unitClassInvalidUnit', {
+            tag: testStrings.incorrectUnit,
+            unitClassUnits: legalTimeUnits.sort().join(','),
+          }),
+        ],
+        notRequiredNumber: [],
+        notRequiredScientific: [],
+        properTime: [],
+        invalidTime: [
+          generateIssue('unitClassInvalidUnit', {
+            tag: testStrings.invalidTime,
+            unitClassUnits: legalTimeUnits.sort().join(','),
+          }),
+        ],
+      }
+      validatorSemantic(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        false,
+        false,
+        done,
       )
-      const parsedProperTag2 = validate.stringParser.parseHedString(
-        properTag2,
-        properTag2Issues,
-      )
-      const parsedBadUnitTag = validate.stringParser.parseHedString(
-        badUnitTag,
-        badUnitTagIssues,
-      )
-      const parsedNoUnitRequiredTag1 = validate.stringParser.parseHedString(
-        noUnitRequiredTag1,
-        noUnitRequiredTag1Issues,
-      )
-      const parsedNoUnitRequiredTag2 = validate.stringParser.parseHedString(
-        noUnitRequiredTag2,
-        noUnitRequiredTag2Issues,
-      )
-      const parsedProperTimeTag = validate.stringParser.parseHedString(
-        properTimeTag,
-        properTimeTagIssues,
-      )
-      const parsedBadTimeTag = validate.stringParser.parseHedString(
-        badTimeTag,
-        badTimeTagIssues,
-      )
-      hedSchemaPromise.then(hedSchema => {
-        const properTag1Result = validate.HED.validateIndividualHedTags(
-          parsedProperTag1,
-          hedSchema,
-          properTag1Issues,
-          true,
-          false,
-        )
-        const properTag2Result = validate.HED.validateIndividualHedTags(
-          parsedProperTag2,
-          hedSchema,
-          properTag2Issues,
-          true,
-          false,
-        )
-        const badUnitTagResult = validate.HED.validateIndividualHedTags(
-          parsedBadUnitTag,
-          hedSchema,
-          badUnitTagIssues,
-          true,
-          false,
-        )
-        const noUnitRequiredTag1Result = validate.HED.validateIndividualHedTags(
-          parsedNoUnitRequiredTag1,
-          hedSchema,
-          noUnitRequiredTag1Issues,
-          true,
-          false,
-        )
-        const noUnitRequiredTag2Result = validate.HED.validateIndividualHedTags(
-          parsedNoUnitRequiredTag2,
-          hedSchema,
-          noUnitRequiredTag2Issues,
-          true,
-          false,
-        )
-        const properTimeTagResult = validate.HED.validateIndividualHedTags(
-          parsedProperTimeTag,
-          hedSchema,
-          properTimeTagIssues,
-          true,
-          false,
-        )
-        const badTimeTagResult = validate.HED.validateIndividualHedTags(
-          parsedBadTimeTag,
-          hedSchema,
-          badTimeTagIssues,
-          true,
-          false,
-        )
-        assert.strictEqual(properTag1Result, true)
-        assert.strictEqual(properTag2Result, true)
-        assert.strictEqual(badUnitTagResult, false)
-        assert.strictEqual(noUnitRequiredTag1Result, true)
-        assert.strictEqual(noUnitRequiredTag2Result, true)
-        assert.strictEqual(properTimeTagResult, true)
-        assert.strictEqual(badTimeTagResult, false)
-        assert.strictEqual(properTag1Issues.length, 0)
-        assert.strictEqual(properTag2Issues.length, 0)
-        assert.strictEqual(badUnitTagIssues.length, 1)
-        assert.strictEqual(noUnitRequiredTag1Issues.length, 0)
-        assert.strictEqual(noUnitRequiredTag2Issues.length, 0)
-        assert.strictEqual(properTimeTagIssues.length, 0)
-        assert.strictEqual(badTimeTagIssues.length, 1)
-        done()
-      })
     })
   })
 
   describe('HED Tag Levels', function() {
+    const validatorSyntactic = function(
+      testStrings,
+      expectedResults,
+      expectedIssues,
+    ) {
+      validatorSyntacticBase(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        function(parsedTestString, testIssues) {
+          return validate.HED.validateHedTagLevels(
+            parsedTestString,
+            {},
+            testIssues,
+            false,
+          )
+        },
+      )
+    }
+
+    const validatorSemantic = function(
+      testStrings,
+      expectedResults,
+      expectedIssues,
+      done,
+    ) {
+      validatorSemanticBase(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        done,
+        function(parsedTestString, testIssues, schema) {
+          return validate.HED.validateHedTagLevels(
+            parsedTestString,
+            schema,
+            testIssues,
+            true,
+          )
+        },
+      )
+    }
+
     it('should not contain duplicates', function() {
-      const topLevelDuplicateString =
-        'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus'
-      const groupDuplicateString =
-        'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Attribute/Visual/Color/Purple,Event/Category/Experimental stimulus)'
-      const noDuplicateString =
-        'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
-      const legalDuplicateString =
-        'Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)'
-      const topLevelDuplicateIssues = []
-      const groupDuplicateIssues = []
-      const noDuplicateIssues = []
-      const legalDuplicateIssues = []
-      const parsedTopLevelDuplicateString = validate.stringParser.parseHedString(
-        topLevelDuplicateString,
-        topLevelDuplicateIssues,
-      )
-      const parsedGroupDuplicateString = validate.stringParser.parseHedString(
-        groupDuplicateString,
-        groupDuplicateIssues,
-      )
-      const parsedNoDuplicateString = validate.stringParser.parseHedString(
-        noDuplicateString,
-        noDuplicateIssues,
-      )
-      const parsedLegalDuplicateString = validate.stringParser.parseHedString(
-        legalDuplicateString,
-        legalDuplicateIssues,
-      )
-      const topLevelDuplicateResult = validate.HED.validateHedTagLevels(
-        parsedTopLevelDuplicateString,
-        {},
-        topLevelDuplicateIssues,
-        false,
-      )
-      const groupDuplicateResult = validate.HED.validateHedTagLevels(
-        parsedGroupDuplicateString,
-        {},
-        groupDuplicateIssues,
-        false,
-      )
-      const noDuplicateResult = validate.HED.validateHedTagLevels(
-        parsedNoDuplicateString,
-        {},
-        noDuplicateIssues,
-        false,
-      )
-      const legalDuplicateResult = validate.HED.validateHedTagLevels(
-        parsedLegalDuplicateString,
-        {},
-        legalDuplicateIssues,
-        false,
-      )
-      assert.strictEqual(topLevelDuplicateResult, false)
-      assert.strictEqual(groupDuplicateResult, false)
-      assert.strictEqual(legalDuplicateResult, true)
-      assert.strictEqual(noDuplicateResult, true)
-      assert.strictEqual(topLevelDuplicateIssues.length, 1)
-      assert.strictEqual(groupDuplicateIssues.length, 1)
-      assert.strictEqual(noDuplicateIssues.length, 0)
-      assert.strictEqual(legalDuplicateIssues.length, 0)
+      const testStrings = {
+        topLevelDuplicate:
+          'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
+        groupDuplicate:
+          'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Attribute/Visual/Color/Purple,Event/Category/Experimental stimulus)',
+        noDuplicate:
+          'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple',
+        legalDuplicate:
+          'Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
+      }
+      const expectedResults = {
+        topLevelDuplicate: false,
+        groupDuplicate: false,
+        legalDuplicate: true,
+        noDuplicate: true,
+      }
+      const expectedIssues = {
+        topLevelDuplicate: [
+          generateIssue('duplicateTag', {
+            tag: 'Event/Category/Experimental stimulus',
+          }),
+        ],
+        groupDuplicate: [
+          generateIssue('duplicateTag', {
+            tag: 'Event/Category/Experimental stimulus',
+          }),
+        ],
+        legalDuplicate: [],
+        noDuplicate: [],
+      }
+      validatorSyntactic(testStrings, expectedResults, expectedIssues)
     })
 
     it('should not have multiple copies of a unique tag', async done => {
-      const legalString =
-        'Event/Description/Rail vehicles,Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)'
-      const multipleDescString =
-        'Event/Description/Rail vehicles,Event/Description/Locomotive-pulled or multiple units,Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)'
-      const legalIssues = []
-      const multipleDescIssues = []
-      const expectedMultipleDescIssues = [
-        generateIssue('multipleUniqueTags', { tag: 'event/description' }),
-      ]
-      const parsedLegalString = validate.stringParser.parseHedString(
-        legalString,
-        legalIssues,
-      )
-      const parsedMultipleDescString = validate.stringParser.parseHedString(
-        multipleDescString,
-        multipleDescIssues,
-      )
-      hedSchemaPromise.then(schema => {
-        const legalResult = validate.HED.validateHedTagLevels(
-          parsedLegalString,
-          schema,
-          legalIssues,
-          true,
-        )
-        const multipleDescResult = validate.HED.validateHedTagLevels(
-          parsedMultipleDescString,
-          schema,
-          multipleDescIssues,
-          true,
-        )
-        assert.strictEqual(legalResult, true)
-        assert.strictEqual(multipleDescResult, false)
-        assert.sameDeepMembers(legalIssues, [])
-        assert.sameDeepMembers(multipleDescIssues, expectedMultipleDescIssues)
-        done()
-      })
+      const testStrings = {
+        legal:
+          'Event/Description/Rail vehicles,Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
+        multipleDesc:
+          'Event/Description/Rail vehicles,Event/Description/Locomotive-pulled or multiple units,Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
+      }
+      const expectedResults = {
+        legal: true,
+        multipleDesc: false,
+      }
+      const expectedIssues = {
+        legal: [],
+        multipleDesc: [
+          generateIssue('multipleUniqueTags', { tag: 'event/description' }),
+        ],
+      }
+      validatorSemantic(testStrings, expectedResults, expectedIssues, done)
     })
   })
 
   describe('Top-level Tags', function() {
+    const validator = function(
+      testStrings,
+      expectedResults,
+      expectedIssues,
+      done,
+    ) {
+      validatorSemanticBase(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        done,
+        function(parsedTestString, testIssues, schema) {
+          return validate.HED.validateTopLevelTags(
+            parsedTestString,
+            schema,
+            testIssues,
+          )
+        },
+      )
+    }
+
     it('should include all required tags', async done => {
-      const completeString =
-        'Event/Label/Bus,Event/Category/Experimental stimulus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus'
-      const incompleteString1 =
-        'Event/Category/Experimental stimulus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus'
-      const incompleteString2 =
-        'Event/Label/Bus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus'
-      const incompleteString3 =
-        'Event/Label/Bus,Event/Category/Experimental stimulus,Item/Object/Vehicle/Bus'
-      const completeIssues = []
-      const incompleteIssues1 = []
-      const incompleteIssues2 = []
-      const incompleteIssues3 = []
-      const parsedCompleteString = validate.stringParser.parseHedString(
-        completeString,
-        completeIssues,
+      const testStrings = {
+        complete:
+          'Event/Label/Bus,Event/Category/Experimental stimulus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus',
+        missingLabel:
+          'Event/Category/Experimental stimulus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus',
+        missingCategory:
+          'Event/Label/Bus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus',
+        missingDescription:
+          'Event/Label/Bus,Event/Category/Experimental stimulus,Item/Object/Vehicle/Bus',
+      }
+      const expectedResults = {
+        complete: true,
+        missingLabel: false,
+        missingCategory: false,
+        missingDescription: false,
+      }
+      const expectedIssues = {
+        complete: [],
+        missingLabel: [
+          generateIssue('requiredPrefixMissing', { tagPrefix: 'event/label' }),
+        ],
+        missingCategory: [
+          generateIssue('requiredPrefixMissing', {
+            tagPrefix: 'event/category',
+          }),
+        ],
+        missingDescription: [
+          generateIssue('requiredPrefixMissing', {
+            tagPrefix: 'event/description',
+          }),
+        ],
+      }
+      validator(testStrings, expectedResults, expectedIssues, done)
+    })
+  })
+
+  describe('HED Tag Groups', function() {
+    const validator = function(testStrings, expectedResults, expectedIssues) {
+      validatorSyntacticBase(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        function(parsedTestString, testIssues) {
+          return validate.HED.validateHedTagGroups(parsedTestString, testIssues)
+        },
       )
-      const parsedIncompleteString1 = validate.stringParser.parseHedString(
-        incompleteString1,
-        incompleteIssues1,
-      )
-      const parsedIncompleteString2 = validate.stringParser.parseHedString(
-        incompleteString2,
-        incompleteIssues2,
-      )
-      const parsedIncompleteString3 = validate.stringParser.parseHedString(
-        incompleteString3,
-        incompleteIssues3,
-      )
-      hedSchemaPromise.then(schema => {
-        const completeResult = validate.HED.validateTopLevelTags(
-          parsedCompleteString,
-          schema,
-          completeIssues,
-        )
-        const incompleteResult1 = validate.HED.validateTopLevelTags(
-          parsedIncompleteString1,
-          schema,
-          incompleteIssues1,
-        )
-        const incompleteResult2 = validate.HED.validateTopLevelTags(
-          parsedIncompleteString2,
-          schema,
-          incompleteIssues2,
-        )
-        const incompleteResult3 = validate.HED.validateTopLevelTags(
-          parsedIncompleteString3,
-          schema,
-          incompleteIssues3,
-        )
-        assert.strictEqual(completeResult, true)
-        assert.strictEqual(incompleteResult1, false)
-        assert.strictEqual(incompleteResult2, false)
-        assert.strictEqual(incompleteResult3, false)
-        assert.strictEqual(completeIssues.length, 0)
-        assert.strictEqual(incompleteIssues1.length, 1)
-        assert.strictEqual(incompleteIssues2.length, 1)
-        assert.strictEqual(incompleteIssues3.length, 1)
-        done()
-      })
+    }
+
+    it('should have no more than two tildes', function() {
+      const testStrings = {
+        noTildeGroup:
+          'Event/Category/Experimental stimulus,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
+        oneTildeGroup:
+          'Event/Category/Experimental stimulus,(Item/Object/Vehicle/Car ~ Attribute/Object control/Perturb)',
+        twoTildeGroup:
+          'Event/Category/Experimental stimulus,(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red)',
+        invalidTildeGroup:
+          'Event/Category/Experimental stimulus,(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb)',
+      }
+      const expectedResults = {
+        noTildeGroup: true,
+        oneTildeGroup: true,
+        twoTildeGroup: true,
+        invalidTildeGroup: false,
+      }
+      const expectedIssues = {
+        noTildeGroup: [],
+        oneTildeGroup: [],
+        twoTildeGroup: [],
+        invalidTildeGroup: [
+          generateIssue('tooManyTildes', {
+            tagGroup:
+              'Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb',
+          }),
+        ],
+      }
+      validator(testStrings, expectedResults, expectedIssues)
     })
   })
 
@@ -812,73 +772,6 @@ describe('HED strings', function() {
       const [result, issues] = validate.HED.validateHedString(hedStr)
       assert.strictEqual(result, true)
       assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  describe('HED Tag Groups', function() {
-    it('should have no more than two tildes', function() {
-      const noTildeGroupString =
-        'Event/Category/Experimental stimulus,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)'
-      const oneTildeGroupString =
-        'Event/Category/Experimental stimulus,(Item/Object/Vehicle/Car ~ Attribute/Object control/Perturb)'
-      const twoTildeGroupString =
-        'Event/Category/Experimental stimulus,(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red)'
-      const invalidTildeGroupString =
-        'Event/Category/Experimental stimulus,(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb)'
-      const noTildeGroupIssues = []
-      const oneTildeGroupIssues = []
-      const twoTildeGroupIssues = []
-      const invalidTildeGroupIssues = []
-      const parsedNoTildeGroupString = validate.stringParser.parseHedString(
-        noTildeGroupString,
-        noTildeGroupIssues,
-      )
-      const parsedOneTildeGroupString = validate.stringParser.parseHedString(
-        oneTildeGroupString,
-        oneTildeGroupIssues,
-      )
-      const parsedTwoTildeGroupString = validate.stringParser.parseHedString(
-        twoTildeGroupString,
-        twoTildeGroupIssues,
-      )
-      const parsedInvalidTildeGroupString = validate.stringParser.parseHedString(
-        invalidTildeGroupString,
-        invalidTildeGroupIssues,
-      )
-      const noTildeGroupResult = validate.HED.validateHedTagGroups(
-        parsedNoTildeGroupString,
-        noTildeGroupIssues,
-      )
-      const oneTildeGroupResult = validate.HED.validateHedTagGroups(
-        parsedOneTildeGroupString,
-        oneTildeGroupIssues,
-      )
-      const twoTildeGroupResult = validate.HED.validateHedTagGroups(
-        parsedTwoTildeGroupString,
-        twoTildeGroupIssues,
-      )
-      const invalidTildeGroupResult = validate.HED.validateHedTagGroups(
-        parsedInvalidTildeGroupString,
-        invalidTildeGroupIssues,
-      )
-      const expectedInvalidTildeGroupIssues = [
-        generateIssue('tooManyTildes', {
-          tagGroup:
-            'Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb',
-        }),
-      ]
-      assert.strictEqual(noTildeGroupResult, true)
-      assert.strictEqual(oneTildeGroupResult, true)
-      assert.strictEqual(twoTildeGroupResult, true)
-      assert.strictEqual(invalidTildeGroupResult, false)
-      assert.sameDeepMembers(noTildeGroupIssues, [])
-      assert.sameDeepMembers(oneTildeGroupIssues, [])
-      assert.sameDeepMembers(twoTildeGroupIssues, [])
-      // assert.sameDeepMembers(invalidTildeGroupIssues, expectedInvalidTildeGroupIssues)
-      // assert.strictEqual(noTildeGroupIssues.length, 0)
-      // assert.strictEqual(oneTildeGroupIssues.length, 0)
-      // assert.strictEqual(twoTildeGroupIssues.length, 0)
-      assert.strictEqual(invalidTildeGroupIssues.length, 1)
     })
   })
 })
