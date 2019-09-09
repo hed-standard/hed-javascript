@@ -355,6 +355,7 @@ describe('HED strings', function() {
         takesValue: 'Event/Duration/3 ms',
         full: 'Attribute/Object side/Left',
         extensionAllowed: 'Item/Object/Person/Driver',
+        leafExtension: 'Action/Hum/Song',
         nonExtensionAllowed: 'Item/Nonsense',
         illegalComma: 'Event/Label/This is a label,This/Is/A/Tag',
       }
@@ -362,6 +363,7 @@ describe('HED strings', function() {
         takesValue: true,
         full: true,
         extensionAllowed: true,
+        leafExtension: false,
         nonExtensionAllowed: false,
         illegalComma: false,
       }
@@ -369,6 +371,9 @@ describe('HED strings', function() {
         takesValue: [],
         full: [],
         extensionAllowed: [],
+        leafExtension: [
+          generateIssue('invalidTag', { tag: testStrings.leafExtension }),
+        ],
         nonExtensionAllowed: [
           generateIssue('invalidTag', { tag: testStrings.nonExtensionAllowed }),
         ],
