@@ -423,16 +423,22 @@ describe('HED strings', function() {
       const testStrings = {
         proper: 'Event/Category/Experimental stimulus',
         camelCase: 'DoubleEvent/Something',
+        takesValue: 'Attribute/Temporal rate/20 Hz',
+        numeric: 'Attribute/Repetition/20',
         lowercase: 'Event/something',
       }
       const expectedResults = {
         proper: true,
         camelCase: true,
+        takesValue: true,
+        numeric: true,
         lowercase: false,
       }
       const expectedIssues = {
         proper: [],
         camelCase: [],
+        takesValue: [],
+        numeric: [],
         lowercase: [
           generateIssue('capitalization', { tag: testStrings.lowercase }),
         ],
@@ -699,12 +705,14 @@ describe('HED strings', function() {
           'Event/Label/Bus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus',
         missingDescription:
           'Event/Label/Bus,Event/Category/Experimental stimulus,Item/Object/Vehicle/Bus',
+        missingAllRequired: 'Item/Object/Vehicle/Bus',
       }
       const expectedResults = {
         complete: true,
         missingLabel: false,
         missingCategory: false,
         missingDescription: false,
+        missingAllRequired: false,
       }
       const expectedIssues = {
         complete: [],
@@ -717,6 +725,17 @@ describe('HED strings', function() {
           }),
         ],
         missingDescription: [
+          generateIssue('requiredPrefixMissing', {
+            tagPrefix: 'event/description',
+          }),
+        ],
+        missingAllRequired: [
+          generateIssue('requiredPrefixMissing', {
+            tagPrefix: 'event/label',
+          }),
+          generateIssue('requiredPrefixMissing', {
+            tagPrefix: 'event/category',
+          }),
           generateIssue('requiredPrefixMissing', {
             tagPrefix: 'event/description',
           }),
