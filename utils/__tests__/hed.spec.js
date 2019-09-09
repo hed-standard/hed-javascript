@@ -3,7 +3,7 @@ const hed = require('../hed')
 const schema = require('../../validators/schema')
 
 describe('HED tag string utility functions', function() {
-  it('properly replaces tag values with the pound character', function() {
+  it('should properly replace tag values with the pound character', function() {
     const slashString = 'Event/Duration/4 ms'
     const noSlashString = 'Something'
     const replacedSlashString = hed.replaceTagNameWithPound(slashString)
@@ -12,7 +12,7 @@ describe('HED tag string utility functions', function() {
     assert.strictEqual(replacedNoSlashString, '#')
   })
 
-  it('detects the locations of slashes in a tag', function() {
+  it('should detect the locations of slashes in a tag', function() {
     const string1 = 'Event/Description/Something'
     const string2 = 'Attribute/Direction/Left'
     const slashIndices1 = hed.getTagSlashIndices(string1)
@@ -21,7 +21,7 @@ describe('HED tag string utility functions', function() {
     assert.deepStrictEqual(slashIndices2, [9, 19])
   })
 
-  it('extracts the last part of a tag', function() {
+  it('should extract the last part of a tag', function() {
     const string1 = 'Event/Description/Something'
     const string2 = 'Attribute/Direction/Left'
     const noSlashString = 'Participant'
@@ -33,7 +33,7 @@ describe('HED tag string utility functions', function() {
     assert.strictEqual(noSlashName, 'Participant')
   })
 
-  it('strips valid units from a value', function() {
+  it('should strip valid units from a value', function() {
     const dollarsString = '$25.99'
     const volumeString = '100 m3'
     const invalidVolumeString = '200 cm'
@@ -74,12 +74,12 @@ describe('HED tag schema-based utility functions', function() {
     const invalidTag2 = 'attribute/nothing'
     const invalidTag3 = 'participant/#'
     hedSchemaPromise.then(hedSchema => {
-      const validTag1Result = hed.tagIsValid(validTag1, hedSchema)
-      const validTag2Result = hed.tagIsValid(validTag2, hedSchema)
-      const validTag3Result = hed.tagIsValid(validTag3, hedSchema)
-      const invalidTag1Result = hed.tagIsValid(invalidTag1, hedSchema)
-      const invalidTag2Result = hed.tagIsValid(invalidTag2, hedSchema)
-      const invalidTag3Result = hed.tagIsValid(invalidTag3, hedSchema)
+      const validTag1Result = hed.tagExistsInSchema(validTag1, hedSchema)
+      const validTag2Result = hed.tagExistsInSchema(validTag2, hedSchema)
+      const validTag3Result = hed.tagExistsInSchema(validTag3, hedSchema)
+      const invalidTag1Result = hed.tagExistsInSchema(invalidTag1, hedSchema)
+      const invalidTag2Result = hed.tagExistsInSchema(invalidTag2, hedSchema)
+      const invalidTag3Result = hed.tagExistsInSchema(invalidTag3, hedSchema)
       assert.strictEqual(validTag1Result, true)
       assert.strictEqual(validTag2Result, true)
       assert.strictEqual(validTag3Result, true)

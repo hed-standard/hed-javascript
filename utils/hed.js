@@ -63,7 +63,7 @@ const stripOffUnitsIfValid = function(tagUnitValues, tagUnitClassUnits) {
 /**
  * Determine if a HED tag is in the schema.
  */
-const tagIsValid = function(formattedTag, hedSchema) {
+const tagExistsInSchema = function(formattedTag, hedSchema) {
   return formattedTag in hedSchema.dictionaries[tagsDictionaryKey]
 }
 
@@ -157,6 +157,9 @@ const getTagUnitClassUnits = function(formattedTag, hedSchema) {
  * Check if any level of a HED tag allows extensions.
  */
 const isExtensionAllowedTag = function(formattedTag, hedSchema) {
+  if (hedSchema.tagHasAttribute(formattedTag, extensionAllowedAttribute)) {
+    return true
+  }
   const tagSlashIndices = getTagSlashIndices(formattedTag)
   for (const tagSlashIndex of tagSlashIndices) {
     const tagSubstring = formattedTag.slice(0, tagSlashIndex)
@@ -172,7 +175,7 @@ module.exports = {
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
   stripOffUnitsIfValid: stripOffUnitsIfValid,
-  tagIsValid: tagIsValid,
+  tagExistsInSchema: tagExistsInSchema,
   tagIsLeafExtension: tagIsLeafExtension,
   tagTakesValue: tagTakesValue,
   isUnitClassTag: isUnitClassTag,
