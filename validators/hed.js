@@ -8,7 +8,6 @@ const comma = ','
 const tilde = '~'
 const delimiters = [comma, tilde]
 
-const tagsDictionaryKey = 'tags'
 const uniqueType = 'unique'
 const requiredType = 'required'
 const requireChildType = 'requireChild'
@@ -292,7 +291,7 @@ const checkIfTagUnitClassUnitsAreValid = function(
   issues,
 ) {
   if (
-    !utils.HED.tagIsValid(formattedTag, hedSchema) &&
+    !utils.HED.tagExistsInSchema(formattedTag, hedSchema) &&
     utils.HED.isUnitClassTag(formattedTag, hedSchema)
   ) {
     const tagUnitClasses = utils.HED.getTagUnitClasses(formattedTag, hedSchema)
@@ -334,7 +333,7 @@ const checkIfTagIsValid = function(
   issues,
 ) {
   if (
-    formattedTag in hedSchema.dictionaries[tagsDictionaryKey] || // This tag itself exists in the HED schema.
+    utils.HED.tagExistsInSchema(formattedTag, hedSchema) || // This tag itself exists in the HED schema.
     utils.HED.tagTakesValue(formattedTag, hedSchema) || // This tag is a valid value-taking tag in the HED schema.
     formattedTag === tilde // This "tag" is a tilde.
   ) {
