@@ -107,6 +107,7 @@ const findTagGroups = function(groupTagsList, parsedString, issues) {
       // Split the group tag and recurse.
       const nestedGroupTagList = splitHedString(tagGroupString, issues)
       findTagGroups(nestedGroupTagList, parsedString, issues)
+      parsedString.tagGroupStrings.push(tagOrGroup)
       parsedString.tagGroups.push(nestedGroupTagList)
     } else if (!parsedString.tags.includes(tagOrGroup)) {
       parsedString.tags.push(tagOrGroup)
@@ -195,7 +196,12 @@ const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
  * @returns {{tagGroups: Array, topLevelTags: Array, tags: Array, formattedTagGroups: Array, formattedTopLevelTags: Array, formattedTags: Array}} The parsed HED tag data.
  */
 const parseHedString = function(hedString, issues) {
-  const parsedString = { tags: [], tagGroups: [], topLevelTags: [] }
+  const parsedString = {
+    tags: [],
+    tagGroups: [],
+    tagGroupStrings: [],
+    topLevelTags: [],
+  }
   const hedTagList = splitHedString(hedString, issues)
   parsedString.topLevelTags = findTopLevelTags(hedTagList, parsedString)
   findTagGroups(hedTagList, parsedString, issues)
