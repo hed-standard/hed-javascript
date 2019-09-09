@@ -329,7 +329,6 @@ describe('HED strings', function() {
       expectedResults,
       expectedIssues,
       checkForWarnings,
-      allowLeafExtensions,
       done,
     ) {
       validatorSemanticBase(
@@ -344,7 +343,6 @@ describe('HED strings', function() {
             testIssues,
             true,
             checkForWarnings,
-            allowLeafExtensions,
           )
         },
       )
@@ -389,32 +387,6 @@ describe('HED strings', function() {
         expectedResults,
         expectedIssues,
         false,
-        false,
-        done,
-      )
-    })
-
-    it('should allow any leaf extensions given the required flag', async done => {
-      const testStrings = {
-        leafExtension: 'Action/Hum/Song',
-        nonLeafExtension: 'Item/Nonsense',
-      }
-      const expectedResults = {
-        leafExtension: true,
-        nonLeafExtension: false,
-      }
-      const expectedIssues = {
-        leafExtension: [],
-        nonLeafExtension: [
-          generateIssue('invalidTag', { tag: testStrings.nonLeafExtension }),
-        ],
-      }
-      validatorSemantic(
-        testStrings,
-        expectedResults,
-        expectedIssues,
-        false,
-        true,
         done,
       )
     })
@@ -466,7 +438,6 @@ describe('HED strings', function() {
         expectedResults,
         expectedIssues,
         true,
-        false,
         done,
       )
     })
@@ -503,7 +474,6 @@ describe('HED strings', function() {
         expectedResults,
         expectedIssues,
         true,
-        false,
         done,
       )
     })
@@ -568,7 +538,6 @@ describe('HED strings', function() {
         testStrings,
         expectedResults,
         expectedIssues,
-        false,
         false,
         done,
       )
