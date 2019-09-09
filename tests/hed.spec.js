@@ -762,7 +762,7 @@ describe('HED strings', function() {
         invalidTildeGroup: [
           generateIssue('tooManyTildes', {
             tagGroup:
-              'Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb',
+              '(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb)',
           }),
         ],
       }
