@@ -193,7 +193,7 @@ const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
  *
  * @param hedString The full HED string to parse.
  * @param issues The array of issues.
- * @returns {{tagGroups: Array, topLevelTags: Array, tags: Array, formattedTagGroups: Array, formattedTopLevelTags: Array, formattedTags: Array}} The parsed HED tag data.
+ * @returns {{tagGroups: Array, tagGroupStrings: Array, topLevelTags: Array, tags: Array, formattedTagGroups: Array, formattedTopLevelTags: Array, formattedTags: Array}} The parsed HED tag data.
  */
 const parseHedString = function(hedString, issues) {
   const parsedString = {
