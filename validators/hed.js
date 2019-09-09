@@ -56,7 +56,8 @@ const isCommaMissingAfterClosingParenthesis = function(
  * Check for delimiter issues in a HED string (e.g. missing commas adjacent to groups, extra commas or tildes).
  */
 const findDelimiterIssuesInHedString = function(hedString, issues) {
-  let lastNonEmptyCharacter = ''
+  let lastNonEmptyValidCharacter = ''
+  let lastNonEmptyValidIndex = 0
   let currentTag = ''
   for (let i = 0; i < hedString.length; i++) {
     const currentCharacter = hedString.charAt(i)
@@ -73,6 +74,8 @@ const findDelimiterIssuesInHedString = function(hedString, issues) {
             string: hedString,
           }),
         )
+        currentTag = ''
+        continue
       }
       currentTag = ''
     } else if (currentCharacter === openingGroupCharacter) {
@@ -83,14 +86,24 @@ const findDelimiterIssuesInHedString = function(hedString, issues) {
       }
     } else if (
       isCommaMissingAfterClosingParenthesis(
-        lastNonEmptyCharacter,
+        lastNonEmptyValidCharacter,
         currentCharacter,
       )
     ) {
       issues.push(utils.generateIssue('commaMissing', { tag: currentTag }))
       break
     }
-    lastNonEmptyCharacter = currentCharacter
+    lastNonEmptyValidCharacter = currentCharacter
+    lastNonEmptyValidIndex = i
+  }
+  if (delimiters.includes(lastNonEmptyValidCharacter)) {
+    issues.push(
+      utils.generateIssue('extraDelimiter', {
+        character: lastNonEmptyValidCharacter,
+        index: lastNonEmptyValidIndex,
+        string: hedString,
+      }),
+    )
   }
 }
 
