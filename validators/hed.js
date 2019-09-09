@@ -194,8 +194,12 @@ const checkForMultipleUniqueTags = function(
 /**
  * Verify that the tilde count in a single group does not exceed 2.
  */
-const checkNumberOfGroupTildes = function(originalTagGroup, issues) {
-  const tildeCount = utils.array.getElementCount(originalTagGroup, tilde)
+const checkNumberOfGroupTildes = function(
+  originalTagGroup,
+  parsedTagGroup,
+  issues,
+) {
+  const tildeCount = utils.array.getElementCount(parsedTagGroup, tilde)
   if (tildeCount > 2) {
     issues.push(
       utils.generateIssue('tooManyTildes', { tagGroup: originalTagGroup }),
@@ -539,9 +543,10 @@ const validateHedTagLevels = function(
 /**
  * Validate a HED tag group.
  */
-const validateHedTagGroup = function(originalTagGroup, issues) {
+const validateHedTagGroup = function(originalTagGroup, parsedTagGroup, issues) {
   let valid = true
-  valid = valid && checkNumberOfGroupTildes(originalTagGroup, issues)
+  valid =
+    valid && checkNumberOfGroupTildes(originalTagGroup, parsedTagGroup, issues)
   return valid
 }
 
@@ -551,8 +556,9 @@ const validateHedTagGroup = function(originalTagGroup, issues) {
 const validateHedTagGroups = function(parsedString, issues) {
   let valid = true
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
-    const originalTag = parsedString.tagGroups[i]
-    valid = valid && validateHedTagGroup(originalTag, issues)
+    const parsedTag = parsedString.tagGroups[i]
+    const originalTag = parsedString.tagGroupStrings[i]
+    valid = valid && validateHedTagGroup(originalTag, parsedTag, issues)
   }
   return valid
 }
