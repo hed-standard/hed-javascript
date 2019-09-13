@@ -72,7 +72,7 @@ describe('HED schemas', function() {
     })
   })
 
-  it('contains all of the required tags', async done => {
+  it('should contain all of the required tags', async done => {
     hedSchemaPromise.then(hedSchema => {
       const requiredTags = [
         'event/category',
@@ -91,7 +91,7 @@ describe('HED schemas', function() {
     })
   })
 
-  it('contains all of the positioned tags', async done => {
+  it('should contain all of the positioned tags', async done => {
     hedSchemaPromise.then(hedSchema => {
       const positionedTags = [
         'event/category',
@@ -114,7 +114,7 @@ describe('HED schemas', function() {
     })
   })
 
-  it('contains all of the unique tags', async done => {
+  it('should contain all of the unique tags', async done => {
     hedSchemaPromise.then(hedSchema => {
       const uniqueTags = ['event/description', 'event/label', 'event/long name']
       const dictionariesUniqueTags = hedSchema.dictionaries['unique']
@@ -129,7 +129,7 @@ describe('HED schemas', function() {
     })
   })
 
-  it('contains all of the tags with default units', async done => {
+  it('should contain all of the tags with default units', async done => {
     hedSchemaPromise.then(hedSchema => {
       const defaultUnitTags = {
         'attribute/blink/time shut/#': 's',
@@ -143,7 +143,7 @@ describe('HED schemas', function() {
     })
   })
 
-  it('contains all of the unit classes with their units and default units', async done => {
+  it('should contain all of the unit classes with their units and default units', async done => {
     hedSchemaPromise.then(hedSchema => {
       const defaultUnits = {
         acceleration: 'cm-per-s2',
@@ -214,7 +214,7 @@ describe('HED schemas', function() {
     })
   })
 
-  it('contains the correct (large) numbers of tags with certain attributes', async done => {
+  it('should contain the correct (large) numbers of tags with certain attributes', async done => {
     hedSchemaPromise.then(hedSchema => {
       const expectedTagCount = {
         isNumeric: 80,
