@@ -9,7 +9,6 @@ const tagDictionaryKeys = [
   'default',
   'extensionAllowed',
   'isNumeric',
-  'leaf',
   'position',
   'predicateType',
   'recommended',
@@ -20,7 +19,6 @@ const tagDictionaryKeys = [
   'unique',
   'unitClass',
 ]
-const leafTagsDictionaryKey = 'leaf'
 const tagsDictionaryKey = 'tags'
 const tagUnitClassAttribute = 'unitClass'
 const unitClassElement = 'unitClass'
@@ -64,11 +62,6 @@ const SchemaDictionaries = {
         this.dictionaries[
           tagsDictionaryKey
         ] = this.stringListToLowercaseDictionary(tags)
-      } else if (dictionaryKey === leafTagsDictionaryKey) {
-        const leafTags = this.getAllLeafTags()
-        this.dictionaries[
-          leafTagsDictionaryKey
-        ] = this.stringListToLowercaseDictionary(leafTags)
       } else {
         this.dictionaries[dictionaryKey] = this.stringListToLowercaseDictionary(
           tags,
@@ -203,22 +196,6 @@ const SchemaDictionaries = {
     )
     childTags.push(parentElement)
     return childTags
-  },
-
-  getAllLeafTags: function(elementName = 'node', excludeTakeValueTags = true) {
-    const leafTags = []
-    const tagElements = this.getElementsByName(elementName)
-    for (const tagElement of tagElements) {
-      const tagElementChildren = this.getElementsByName(elementName, tagElement)
-      if (tagElementChildren.length === 0) {
-        const tag = this.getTagPathFromTagElement(tagElement)
-        if (excludeTakeValueTags && tag.endsWith('#')) {
-          continue
-        }
-        leafTags.push(tag)
-      }
-    }
-    return leafTags
   },
 }
 

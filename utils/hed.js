@@ -1,7 +1,6 @@
 const defaultUnitAttribute = 'default'
 const defaultUnitsForTypeAttribute = 'default_units'
 const extensionAllowedAttribute = 'extensionAllowed'
-const leafTagsDictionaryKey = 'leaf'
 const tagsDictionaryKey = 'tags'
 const takesValueType = 'takesValue'
 const unitClassType = 'unitClass'
