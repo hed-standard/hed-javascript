@@ -9,7 +9,7 @@ describe('Blank strings', function() {
   })
 
   it('may have only whitespace', function() {
-    const spaceString = '     '
+    const spaceString = ' \n  \t  '
     const result = utils.string.stringIsEmpty(spaceString)
     assert.strictEqual(result, true)
   })
