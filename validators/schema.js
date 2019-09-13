@@ -291,8 +291,7 @@ const buildSchemaObject = function(xmlData) {
   const rootElement = xmlData.root()
   schemaDictionaries.rootElement = rootElement
   const dictionaries = schemaDictionaries.populateDictionaries()
-  const schema = new Schema(rootElement, dictionaries)
-  return schema
+  return new Schema(rootElement, dictionaries)
 }
 
 const buildSchema = function(schemaDef) {
