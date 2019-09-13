@@ -1,4 +1,4 @@
-const assert = require('assert')
+const assert = require('chai').assert
 const validate = require('../validators')
 
 const localHedSchemaFile = 'tests/data/HEDTest.xml'
@@ -80,13 +80,7 @@ describe('HED schemas', function() {
         'event/label',
       ]
       const dictionariesRequiredTags = hedSchema.dictionaries['required']
-      assert.strictEqual(
-        Object.keys(dictionariesRequiredTags).length,
-        requiredTags.length,
-      )
-      for (const requiredTag in dictionariesRequiredTags) {
-        assert(requiredTags.includes(requiredTag), requiredTag + ' not found.')
-      }
+      assert.sameMembers(Object.keys(dictionariesRequiredTags), requiredTags)
       done()
     })
   })
@@ -100,16 +94,10 @@ describe('HED schemas', function() {
         'event/long name',
       ]
       const dictionariesPositionedTags = hedSchema.dictionaries['position']
-      assert.strictEqual(
-        Object.keys(dictionariesPositionedTags).length,
-        positionedTags.length,
+      assert.sameMembers(
+        Object.keys(dictionariesPositionedTags),
+        positionedTags,
       )
-      for (const positionedTag in dictionariesPositionedTags) {
-        assert(
-          positionedTags.includes(positionedTag),
-          positionedTag + ' not found.',
-        )
-      }
       done()
     })
   })
@@ -118,13 +106,7 @@ describe('HED schemas', function() {
     hedSchemaPromise.then(hedSchema => {
       const uniqueTags = ['event/description', 'event/label', 'event/long name']
       const dictionariesUniqueTags = hedSchema.dictionaries['unique']
-      assert.strictEqual(
-        Object.keys(dictionariesUniqueTags).length,
-        uniqueTags.length,
-      )
-      for (const uniqueTag in dictionariesUniqueTags) {
-        assert(uniqueTags.includes(uniqueTag), uniqueTag + ' not found.')
-      }
+      assert.sameMembers(Object.keys(dictionariesUniqueTags), uniqueTags)
       done()
     })
   })
@@ -240,144 +222,87 @@ describe('HED schemas', function() {
 
   it('should identify if a tag has a certain attribute', async done => {
     hedSchemaPromise.then(hedSchema => {
-      const testTag1 =
-        'Attribute/Location/Reference frame/Relative to participant/Azimuth/#'
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'default'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag1, 'extensionAllowed'),
-        true,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'isNumeric'), true)
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'leaf'), false)
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'position'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag1, 'predicateType'),
-        false,
-      )
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag1, 'recommended'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'required'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag1, 'requireChild'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'tags'), true)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag1, 'takesValue'),
-        true,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'unique'), false)
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag1, 'unitClass'), true)
+      const testStrings = {
+        value:
+          'Attribute/Location/Reference frame/Relative to participant/Azimuth/#',
+        extensionAllowed: 'Item/Object/Road sign',
+        nonLeaf: 'Item/Object/Food',
+        leaf: 'Action/Involuntary/Cough',
+      }
+      const expectedResults = {
+        value: {
+          default: false,
+          extensionAllowed: true,
+          isNumeric: true,
+          leaf: false,
+          position: false,
+          predicateType: false,
+          recommended: false,
+          required: false,
+          requireChild: false,
+          tags: true,
+          takesValue: true,
+          unique: false,
+          unitClass: true,
+        },
+        extensionAllowed: {
+          default: false,
+          extensionAllowed: true,
+          isNumeric: false,
+          leaf: true,
+          position: false,
+          predicateType: false,
+          recommended: false,
+          required: false,
+          requireChild: false,
+          tags: true,
+          takesValue: false,
+          unique: false,
+          unitClass: false,
+        },
+        nonLeaf: {
+          default: false,
+          extensionAllowed: true,
+          isNumeric: false,
+          leaf: false,
+          position: false,
+          predicateType: false,
+          recommended: false,
+          required: false,
+          requireChild: false,
+          tags: true,
+          takesValue: false,
+          unique: false,
+          unitClass: false,
+        },
+        leaf: {
+          default: false,
+          extensionAllowed: false,
+          isNumeric: false,
+          leaf: true,
+          position: false,
+          predicateType: false,
+          recommended: false,
+          required: false,
+          requireChild: false,
+          tags: true,
+          takesValue: false,
+          unique: false,
+          unitClass: false,
+        },
+      }
 
-      const testTag2 = 'Item/Object/Road sign'
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'default'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag2, 'extensionAllowed'),
-        true,
-      )
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag2, 'isNumeric'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'leaf'), true)
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'position'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag2, 'predicateType'),
-        false,
-      )
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag2, 'recommended'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'required'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag2, 'requireChild'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'tags'), true)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag2, 'takesValue'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag2, 'unique'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag2, 'unitClass'),
-        false,
-      )
-
-      const testTag3 = 'Item/Object/Food'
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'default'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag3, 'extensionAllowed'),
-        true,
-      )
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag3, 'isNumeric'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'leaf'), false)
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'position'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag3, 'predicateType'),
-        false,
-      )
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag3, 'recommended'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'required'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag3, 'requireChild'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'tags'), true)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag3, 'takesValue'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag3, 'unique'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag3, 'unitClass'),
-        false,
-      )
-
-      const testTag4 = 'Action/Involuntary/Cough'
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'default'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag4, 'extensionAllowed'),
-        false,
-      )
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag4, 'isNumeric'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'leaf'), true)
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'position'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag4, 'predicateType'),
-        false,
-      )
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag4, 'recommended'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'required'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag4, 'requireChild'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'tags'), true)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag4, 'takesValue'),
-        false,
-      )
-      assert.strictEqual(hedSchema.tagHasAttribute(testTag4, 'unique'), false)
-      assert.strictEqual(
-        hedSchema.tagHasAttribute(testTag4, 'unitClass'),
-        false,
-      )
+      for (const testStringKey in testStrings) {
+        const testString = testStrings[testStringKey]
+        const expected = expectedResults[testStringKey]
+        for (const expectedKey in expected) {
+          assert.strictEqual(
+            hedSchema.tagHasAttribute(testString, expectedKey),
+            expected[expectedKey],
+            `Test string: ${testString}. Attribute: ${expectedKey}.`,
+          )
+        }
+      }
       done()
     })
   })
