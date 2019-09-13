@@ -217,7 +217,7 @@ describe('Formatted HED Tags', function() {
     assert.strictEqual(result, formattedHedTag)
     for (const badlyFormattedTag of badlyFormattedTags) {
       result = validate.stringParser.formatHedTag(badlyFormattedTag)
-      assert.strictEqual(formattedHedTag, result)
+      assert.strictEqual(result, formattedHedTag)
     }
   })
 })
