@@ -294,8 +294,8 @@ const buildSchemaObject = function(xmlData) {
   return new Schema(rootElement, dictionaries)
 }
 
-const buildSchema = function(schemaDef) {
-  if (schemaDef === undefined) {
+const buildSchema = function(schemaDef = {}) {
+  if (Object.entries(schemaDef).length === 0) {
     return buildRemoteSchema()
   } else if (schemaDef.path) {
     return buildLocalSchema(schemaDef.path)

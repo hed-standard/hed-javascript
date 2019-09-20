@@ -13,7 +13,7 @@ To use the validator, follow these instructions:
 1. Install the npm package `hed-validator`.
 1. Add `const hedValidator = require('hed-validator')`.
 1. (Semantic validation)
-   1. Load a schema version using `hedValidator.buildSchema()`. This returns a JavaScript `Promise` object. An optional object may be passed to `buildSchema()`. A `path` value is the path to a locally stored schema, while passing a `version` value will download that version.
+   1. Load a HED schema version using `hedValidator.buildSchema()`. This returns a JavaScript `Promise` object. An optional object may be passed to `buildSchema()`. A `path` value is the path to a locally stored schema, while passing a `version` value will download that version. If no object or an empty object is passed, the latest version of the HED schema will be downloaded.
    1. Call the validator as follows (assuming `hedString` is the string to validate).
    ```javascript
    hedValidator.buildSchema().then(hedSchema => {
