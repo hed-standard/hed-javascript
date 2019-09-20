@@ -90,7 +90,7 @@ After the calls, `isErrorFree` is `true` and `isWarningFree` is `false`. The `er
 ```javascript
 ;[
   {
-    code: 'captitalization',
+    code: 'capitalization',
     message:
       'WARNING: First word not capitalized or camel case - "Event/something"',
   },
