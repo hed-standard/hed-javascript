@@ -54,9 +54,9 @@ After the call, the `isValid1` variable is `true` and `issues1` is empty.
 
 ```javascript
 // Initializing parameters and making the call
-const invalidHedString =
+const invalidHedString2 =
   '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px'
-const [isValid2, issues2] = hedValidator.validateHedString(invalidHedString)
+const [isValid2, issues2] = hedValidator.validateHedString(invalidHedString2)
 ```
 
 After the call, `isValid2` is `false` and `issues2` has the value
@@ -95,4 +95,57 @@ After the calls, `isErrorFree` is `true` and `isWarningFree` is `false`. The `er
       'WARNING: First word not capitalized or camel case - "Event/something"',
   },
 ]
+```
+
+### Example 4: Calling `hed-validator` when the HED string has an semantic error (invalid tag)
+
+```javascript
+// Initialize parameter
+const invalidHedString4 = 'Item/Nonsense'
+// Build schema
+hedValidator.buildSchema().then(hedSchema => {
+  // Validate
+  const [isValid4, issues4] = hedValidator.validateHedString(
+    invalidHedString4,
+    hedSchema,
+  )
+})
+```
+
+After the call, but inside the `then()` block, `isValid4` is `false` and `issues4` has the value
+
+```javascript
+;[
+  {
+    code: 'invalidTag',
+    message: 'ERROR: Invalid tag - "Item/Nonsense"',
+  },
+]
+```
+
+### Example 5: Loading a non-default HED schema version
+
+```javascript
+const validHedString =
+  'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
+
+// Load a remotely hosted schema version.
+hedValidator.buildSchema({ version: '7.0.4' }).then(hedSchema => {
+  // Validate
+  const [isValid5Remote, issues5Remote] = hedValidator.validateHedString(
+    validHedString,
+    hedSchema,
+  )
+  // Do something with results...
+})
+
+// Load a local schema file.
+hedValidator.buildSchema({ path: '/path/to/schema/file' }).then(hedSchema => {
+  // Validate
+  const [isValid5Local, issues5Local] = hedValidator.validateHedString(
+    validHedString,
+    hedSchema,
+  )
+  // Do something with results...
+})
 ```
