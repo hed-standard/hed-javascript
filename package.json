@@ -1,7 +1,7 @@
 {
   "name": "hed-validator",
-  "version": "0.3.0",
-  "description": "",
+  "version": "1.0.0",
+  "description": "A JavaScript validator for HED (Hierarchical Event Descriptor) strings.",
   "main": "index.js",
   "repository": {
     "type": "git",
