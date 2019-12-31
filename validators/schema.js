@@ -211,7 +211,6 @@ const tagHasAttribute = function(tag, tagAttribute) {
 }
 
 const Schema = function(rootElement, dictionaries) {
-  this.rootElement = rootElement
   this.dictionaries = dictionaries
   this.version = rootElement.attr('version').value()
   this.tagHasAttribute = tagHasAttribute
