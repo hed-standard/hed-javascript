@@ -94,7 +94,6 @@ const SchemaDictionaries = {
   populateUnitClassUnitsDictionary: function(unitClassElements) {
     this.dictionaries[unitsElement] = {}
     for (const unitClassElement of unitClassElements) {
-      //console.dir(unitClassElement)
       const elementName = this.getElementTagValue(unitClassElement)
       const elementUnits = this.getElementTagValue(
         unitClassElement,
