@@ -36,14 +36,6 @@ describe('HED schemas', function() {
     hedSchemaPromise = validate.schema.buildSchema({ path: localHedSchemaFile })
   })
 
-  it("should have a root element with the name 'HED'", async done => {
-    hedSchemaPromise.then(hedSchema => {
-      const hedSchemaRootName = hedSchema.rootElement.name()
-      assert.strictEqual(hedSchemaRootName, 'HED')
-      done()
-    })
-  })
-
   it('should have tag dictionaries for all required attributes', async done => {
     const tagDictionaryKeys = [
       'default',

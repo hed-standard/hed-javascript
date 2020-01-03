@@ -1,4 +1,10 @@
-const libxmljs = require('libxmljs')
+const xml2js = require('xml2js')
+
+// TODO: Switch require once upstream bugs are fixed.
+// const xpath = require('xml2js-xpath')
+// Temporary
+const xpath = require('../utils/xpath')
+
 const files = require('../utils/files')
 const arrayUtil = require('../utils/array')
 
@@ -26,10 +32,19 @@ const unitClassUnitsElement = 'units'
 const unitsElement = 'units'
 
 const SchemaDictionaries = {
+  setParent: function(node, parent) {
+    node.$parent = parent
+    if (node.node) {
+      for (const child of node.node) {
+        this.setParent(child, node)
+      }
+    }
+  },
+
   populateDictionaries: function() {
     this.dictionaries = {}
-    this.populateTagDictionaries()
     this.populateUnitClassDictionaries()
+    this.populateTagDictionaries()
     return this.dictionaries
   },
 
@@ -92,9 +107,8 @@ const SchemaDictionaries = {
     this.dictionaries[defaultUnitsForTypeAttribute] = {}
     for (const unitClassElement of unitClassElements) {
       const elementName = this.getElementTagValue(unitClassElement)
-      this.dictionaries[defaultUnitsForTypeAttribute][
-        elementName
-      ] = unitClassElement.attr(defaultUnitAttribute).value()
+      this.dictionaries[defaultUnitsForTypeAttribute][elementName] =
+        unitClassElement.$[defaultUnitAttribute]
     }
   },
 
@@ -106,9 +120,8 @@ const SchemaDictionaries = {
     this.dictionaries[attributeName] = {}
     for (let i = 0; i < tagList.length; i++) {
       const tag = tagList[i]
-      this.dictionaries[attributeName][tag.toLowerCase()] = tagElementList[i]
-        .attr(attributeName)
-        .value()
+      this.dictionaries[attributeName][tag.toLowerCase()] =
+        tagElementList[i].$[attributeName]
     }
   },
 
@@ -123,23 +136,23 @@ const SchemaDictionaries = {
   getAncestorTagNames: function(tagElement) {
     const ancestorTags = []
     let parentTagName = this.getParentTagName(tagElement)
-    let parentElement = tagElement.parent()
+    let parentElement = tagElement.$parent
     while (parentTagName) {
       ancestorTags.push(parentTagName)
       parentTagName = this.getParentTagName(parentElement)
-      parentElement = parentElement.parent()
+      parentElement = parentElement.$parent
     }
     return ancestorTags
   },
 
   getElementTagValue: function(element, tagName = 'name') {
-    return element.find(tagName)[0].text()
+    return element[tagName][0]
   },
 
   getParentTagName: function(tagElement) {
-    const parentTagElement = tagElement.parent()
+    const parentTagElement = tagElement.$parent
     if (parentTagElement && parentTagElement !== this.rootElement) {
-      return parentTagElement.find('name')[0].text()
+      return parentTagElement.name
     } else {
       return ''
     }
@@ -154,7 +167,10 @@ const SchemaDictionaries = {
 
   getTagsByAttribute: function(attributeName) {
     const tags = []
-    const tagElements = this.rootElement.find('.//node[@' + attributeName + ']')
+    const tagElements = xpath.find(
+      this.rootElement,
+      '//node[@' + attributeName + ']',
+    )
     for (const attributeTagElement of tagElements) {
       const tag = this.getTagPathFromTagElement(attributeTagElement)
       tags.push(tag)
@@ -164,7 +180,7 @@ const SchemaDictionaries = {
 
   getAllTags: function(tagElementName = 'node') {
     const tags = []
-    const tagElements = this.rootElement.find('.//' + tagElementName)
+    const tagElements = xpath.find(this.rootElement, '//' + tagElementName)
     for (const tagElement of tagElements) {
       const tag = this.getTagPathFromTagElement(tagElement)
       tags.push(tag)
@@ -174,9 +190,9 @@ const SchemaDictionaries = {
 
   getElementsByName: function(elementName = 'node', parentElement = undefined) {
     if (!parentElement) {
-      return this.rootElement.find('.//' + elementName)
+      return xpath.find(this.rootElement, '//' + elementName)
     } else {
-      return parentElement.find('.//' + elementName)
+      return xpath.find(parentElement, '//' + elementName)
     }
   },
 
@@ -211,9 +227,8 @@ const tagHasAttribute = function(tag, tagAttribute) {
 }
 
 const Schema = function(rootElement, dictionaries) {
-  this.rootElement = rootElement
   this.dictionaries = dictionaries
-  this.version = rootElement.attr('version').value()
+  this.version = rootElement.$.version
   this.tagHasAttribute = tagHasAttribute
 }
 
@@ -225,7 +240,7 @@ const loadRemoteSchema = function(version) {
   return files
     .readHTTPSFile(url)
     .then(data => {
-      return libxmljs.parseXmlString(data)
+      return xml2js.parseStringPromise(data)
     })
     .catch(error => {
       throw new Error(
@@ -242,7 +257,7 @@ const loadLocalSchema = function(path) {
   return files
     .readFile(path)
     .then(data => {
-      return libxmljs.parseXmlString(data)
+      return xml2js.parseStringPromise(data)
     })
     .catch(error => {
       throw new Error(
@@ -265,7 +280,8 @@ const buildLocalSchema = function(path) {
 
 const buildSchemaObject = function(xmlData) {
   const schemaDictionaries = Object.create(SchemaDictionaries)
-  const rootElement = xmlData.root()
+  const rootElement = xmlData.HED
+  schemaDictionaries.setParent(rootElement, xmlData)
   schemaDictionaries.rootElement = rootElement
   const dictionaries = schemaDictionaries.populateDictionaries()
   return new Schema(rootElement, dictionaries)
