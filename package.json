@@ -1,6 +1,6 @@
 {
   "name": "hed-validator",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A JavaScript validator for HED (Hierarchical Event Descriptor) strings.",
   "main": "index.js",
   "repository": {
@@ -50,5 +50,8 @@
   },
   "jest": {
     "testEnvironment": "node"
+  },
+  "browser": {
+    "fs": false
   }
 }
