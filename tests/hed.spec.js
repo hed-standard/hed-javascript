@@ -2,7 +2,7 @@ const assert = require('chai').assert
 const validate = require('../validators')
 const generateIssue = require('../utils/issues')
 
-const localHedSchemaFile = 'tests/data/HEDTest.xml'
+const localHedSchemaFile = 'tests/data/HEDv1.1.1-devunit.xml'
 
 describe('HED strings', function() {
   let hedSchemaPromise
@@ -31,6 +31,7 @@ describe('HED strings', function() {
           expectedResults[testStringKey],
           testStrings[testStringKey],
         )
+        console.dir(testIssues, expectedIssues[testStringKey])
         assert.sameDeepMembers(
           testIssues,
           expectedIssues[testStringKey],
@@ -136,7 +137,7 @@ describe('HED strings', function() {
         valid:
           '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
         validNestedParentheses:
-          '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Event/Duration/3 ms',
+          '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Attribute/Duration/3 ms',
       }
       const expectedResults = {
         missingOpeningComma: false,
@@ -350,11 +351,11 @@ describe('HED strings', function() {
 
     it('should exist in the schema or be an allowed extension', async done => {
       const testStrings = {
-        takesValue: 'Event/Duration/3 ms',
+        takesValue: 'Attribute/Duration/3 ms',
         full: 'Attribute/Object side/Left',
         extensionAllowed: 'Item/Object/Person/Driver',
-        leafExtension: 'Action/Hum/Song',
-        nonExtensionAllowed: 'Item/Nonsense',
+        leafExtension: 'Event/Category/Initial context/Something',
+        nonExtensionAllowed: 'Event/Nonsense',
         illegalComma: 'Event/Label/This is a label,This/Is/A/Tag',
       }
       const expectedResults = {
@@ -444,8 +445,8 @@ describe('HED strings', function() {
 
     it('should have a unit when required', async done => {
       const testStrings = {
-        hasRequiredUnit: 'Event/Duration/3 ms',
-        missingRequiredUnit: 'Event/Duration/3',
+        hasRequiredUnit: 'Attribute/Duration/3 ms',
+        missingRequiredUnit: 'Attribute/Duration/3',
         notRequiredNumber: 'Attribute/Color/Red/0.5',
         notRequiredScientific: 'Attribute/Color/Red/5.2e-1',
         timeValue: 'Item/2D shape/Clock face/8:30',
@@ -480,9 +481,9 @@ describe('HED strings', function() {
 
     it('should have a proper unit when required', async done => {
       const testStrings = {
-        correctUnit: 'Event/Duration/3 ms',
-        correctUnitScientific: 'Event/Duration/3.5e1 ms',
-        incorrectUnit: 'Event/Duration/3 cm',
+        correctUnit: 'Attribute/Duration/3 ms',
+        correctUnitScientific: 'Attribute/Duration/3.5e1 ms',
+        incorrectUnit: 'Attribute/Duration/3 cm',
         notRequiredNumber: 'Attribute/Color/Red/0.5',
         notRequiredScientific: 'Attribute/Color/Red/5e-1',
         properTime: 'Item/2D shape/Clock face/8:30',
@@ -500,20 +501,14 @@ describe('HED strings', function() {
       const legalTimeUnits = [
         's',
         'second',
-        'seconds',
-        'centiseconds',
         'centisecond',
         'cs',
         'hour:min',
         'day',
-        'days',
         'ms',
-        'milliseconds',
         'millisecond',
         'minute',
-        'minutes',
         'hour',
-        'hours',
       ]
       const expectedIssues = {
         correctUnit: [],

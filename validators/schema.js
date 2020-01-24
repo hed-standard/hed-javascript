@@ -8,7 +8,7 @@ const xpath = require('../utils/xpath')
 const files = require('../utils/files')
 const arrayUtil = require('../utils/array')
 
-const defaultUnitAttribute = 'default'
+const defaultUnitAttribute = 'defaultUnits'
 const defaultUnitsForTypeAttribute = 'default_units'
 const extensionAllowedAttribute = 'extensionAllowed'
 const tagDictionaryKeys = [
@@ -28,6 +28,7 @@ const tagDictionaryKeys = [
 const tagsDictionaryKey = 'tags'
 const tagUnitClassAttribute = 'unitClass'
 const unitClassElement = 'unitClass'
+const unitClassUnitElement = 'unit'
 const unitClassUnitsElement = 'units'
 const unitsElement = 'units'
 
@@ -95,11 +96,12 @@ const SchemaDictionaries = {
     this.dictionaries[unitsElement] = {}
     for (const unitClassElement of unitClassElements) {
       const elementName = this.getElementTagValue(unitClassElement)
-      const elementUnits = this.getElementTagValue(
-        unitClassElement,
-        unitClassUnitsElement,
-      )
-      this.dictionaries[unitsElement][elementName] = elementUnits.split(',')
+      const elementUnits =
+        unitClassElement[unitClassUnitsElement][0][unitClassUnitElement]
+      const elementUnitNames = elementUnits.map(element => {
+        return element._
+      })
+      this.dictionaries[unitsElement][elementName] = elementUnitNames
     }
   },
 
@@ -146,13 +148,13 @@ const SchemaDictionaries = {
   },
 
   getElementTagValue: function(element, tagName = 'name') {
-    return element[tagName][0]
+    return element[tagName][0]._
   },
 
   getParentTagName: function(tagElement) {
     const parentTagElement = tagElement.$parent
     if (parentTagElement && parentTagElement !== this.rootElement) {
-      return parentTagElement.name
+      return parentTagElement.name[0]._
     } else {
       return ''
     }
@@ -233,14 +235,14 @@ const Schema = function(rootElement, dictionaries) {
 }
 
 const loadRemoteSchema = function(version) {
-  const fileName = 'HED' + version + '.xml'
+  const fileName = 'HEDv' + version + '-devunit.xml'
   const basePath =
-    'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
+    'https://raw.githubusercontent.com/hed-standard/hed-specification/HED-devunit/hedxml-devunit/'
   const url = basePath + fileName
   return files
     .readHTTPSFile(url)
     .then(data => {
-      return xml2js.parseStringPromise(data)
+      return xml2js.parseStringPromise(data, { explicitCharkey: true })
     })
     .catch(error => {
       throw new Error(
@@ -257,7 +259,7 @@ const loadLocalSchema = function(path) {
   return files
     .readFile(path)
     .then(data => {
-      return xml2js.parseStringPromise(data)
+      return xml2js.parseStringPromise(data, { explicitCharkey: true })
     })
     .catch(error => {
       throw new Error(
