@@ -31,7 +31,7 @@ describe('HED strings', function() {
           expectedResults[testStringKey],
           testStrings[testStringKey],
         )
-        console.dir(testIssues, expectedIssues[testStringKey])
+        // console.dir(testIssues, expectedIssues[testStringKey])
         assert.sameDeepMembers(
           testIssues,
           expectedIssues[testStringKey],
