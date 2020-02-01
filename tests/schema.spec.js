@@ -1,12 +1,12 @@
 const assert = require('chai').assert
 const validate = require('../validators')
 
-const localHedSchemaFile = 'tests/data/HEDv1.1.1-devunit.xml'
+const localHedSchemaFile = 'tests/data/HED-devunit.xml'
 const localHedSchemaVersion = 'v1.1.1-devunit'
 
 describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', async done => {
-    const remoteHedSchemaVersion = '1.1.1'
+    const remoteHedSchemaVersion = 'v1.1.1-devunit'
     validate.schema
       .buildSchema({ version: remoteHedSchemaVersion })
       .then(hedSchema => {
@@ -121,7 +121,7 @@ describe('HED schemas', function() {
       const defaultUnits = {
         acceleration: 'cm-per-s^2',
         currency: '$',
-        angle: 'radians',
+        angle: 'radian',
         frequency: 'Hz',
         intensity: 'dB',
         jerk: 'cm-per-s^3',
@@ -138,11 +138,11 @@ describe('HED schemas', function() {
         acceleration: ['m-per-s^2', 'cm-per-s^2'],
         currency: ['dollar', '$', 'point', 'fraction'],
         angle: ['degree', 'radian'],
-        frequency: ['Hz', 'mHz', 'Hertz', 'kHz'],
+        frequency: ['Hz', 'MHz', 'hertz', 'kHz'],
         intensity: ['dB'],
         jerk: ['m-per-s^3', 'cm-per-s^3'],
         luminousIntensity: ['candela', 'cd'],
-        memorySize: ['mb', 'kb', 'gb', 'tb'],
+        memorySize: ['Mb', 'kb', 'gb', 'tb'],
         physicalLength: ['m', 'cm', 'km', 'mm', 'foot', 'meter', 'mile'],
         pixels: ['px', 'pixel'],
         speed: ['m-per-s', 'mph', 'kph', 'cm-per-s'],
@@ -162,7 +162,7 @@ describe('HED schemas', function() {
         volume: ['m^3', 'cm^3', 'mm^3', 'km^3'],
       }
 
-      const dictionariesDefaultUnits = hedSchema.dictionaries['default_units']
+      const dictionariesDefaultUnits = hedSchema.dictionaries['defaultUnits']
       const dictionariesAllUnits = hedSchema.dictionaries['units']
       assert.deepStrictEqual(dictionariesDefaultUnits, defaultUnits)
       assert.deepStrictEqual(dictionariesAllUnits, allUnits)
