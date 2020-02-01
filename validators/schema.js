@@ -8,8 +8,8 @@ const xpath = require('../utils/xpath')
 const files = require('../utils/files')
 const arrayUtil = require('../utils/array')
 
-const defaultUnitAttribute = 'defaultUnits'
-const defaultUnitsForTypeAttribute = 'default_units'
+const defaultUnitForTagAttribute = 'default'
+const defaultUnitForUnitClassAttribute = 'defaultUnits'
 const extensionAllowedAttribute = 'extensionAllowed'
 const tagDictionaryKeys = [
   'default',
@@ -69,7 +69,7 @@ const SchemaDictionaries = {
           childDictionary,
         )
       } else if (
-        dictionaryKey === defaultUnitAttribute ||
+        dictionaryKey === defaultUnitForTagAttribute ||
         dictionaryKey === tagUnitClassAttribute
       ) {
         this.populateTagToAttributeDictionary(tags, tagElements, dictionaryKey)
@@ -106,11 +106,11 @@ const SchemaDictionaries = {
   },
 
   populateUnitClassDefaultUnitDictionary: function(unitClassElements) {
-    this.dictionaries[defaultUnitsForTypeAttribute] = {}
+    this.dictionaries[defaultUnitForUnitClassAttribute] = {}
     for (const unitClassElement of unitClassElements) {
       const elementName = this.getElementTagValue(unitClassElement)
-      this.dictionaries[defaultUnitsForTypeAttribute][elementName] =
-        unitClassElement.$[defaultUnitAttribute]
+      this.dictionaries[defaultUnitForUnitClassAttribute][elementName] =
+        unitClassElement.$[defaultUnitForUnitClassAttribute]
     }
   },
 
@@ -235,7 +235,7 @@ const Schema = function(rootElement, dictionaries) {
 }
 
 const loadRemoteSchema = function(version) {
-  const fileName = 'HEDv' + version + '-devunit.xml'
+  const fileName = 'HED' + version + '.xml'
   const basePath =
     'https://raw.githubusercontent.com/hed-standard/hed-specification/HED-devunit/hedxml-devunit/'
   const url = basePath + fileName

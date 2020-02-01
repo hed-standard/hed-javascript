@@ -1,5 +1,5 @@
-const defaultUnitAttribute = 'default'
-const defaultUnitsForTypeAttribute = 'default_units'
+const defaultUnitForTagAttribute = 'default'
+const defaultUnitsForUnitClassAttribute = 'defaultUnits'
 const extensionAllowedAttribute = 'extensionAllowed'
 const tagsDictionaryKey = 'tags'
 const takesValueType = 'takesValue'
@@ -90,16 +90,16 @@ const getUnitClassDefaultUnit = function(formattedTag, hedSchema) {
     const unitClassTag = replaceTagNameWithPound(formattedTag)
     const hasDefaultAttribute = hedSchema.tagHasAttribute(
       unitClassTag,
-      defaultUnitAttribute,
+      defaultUnitForTagAttribute,
     )
     if (hasDefaultAttribute) {
-      return hedSchema.dictionaries[defaultUnitAttribute][unitClassTag]
+      return hedSchema.dictionaries[defaultUnitForTagAttribute][unitClassTag]
     } else if (unitClassTag in hedSchema.dictionaries[unitClassType]) {
       const unitClasses = hedSchema.dictionaries[unitClassType][
         unitClassTag
       ].split(',')
       const firstUnitClass = unitClasses[0]
-      return hedSchema.dictionaries[defaultUnitsForTypeAttribute][
+      return hedSchema.dictionaries[defaultUnitsForUnitClassAttribute][
         firstUnitClass
       ]
     }

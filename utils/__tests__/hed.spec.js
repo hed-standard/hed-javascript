@@ -57,7 +57,7 @@ describe('HED tag string utility functions', function() {
   })
 })
 
-const localHedSchemaFile = 'tests/data/HEDTest.xml'
+const localHedSchemaFile = 'tests/data/HED-devunit.xml'
 
 describe('HED tag schema-based utility functions', function() {
   let hedSchemaPromise
@@ -69,7 +69,7 @@ describe('HED tag schema-based utility functions', function() {
   it('should correctly determine if a tag exists', async done => {
     const validTag1 = 'attribute/direction/left'
     const validTag2 = 'item/object/person'
-    const validTag3 = 'event/duration/#'
+    const validTag3 = 'attribute/duration/#'
     const invalidTag1 = 'something'
     const invalidTag2 = 'attribute/nothing'
     const invalidTag3 = 'participant/#'
@@ -92,8 +92,8 @@ describe('HED tag schema-based utility functions', function() {
 
   it('should correctly determine if a tag takes a value', async done => {
     const valueTag1 = 'attribute/direction/left/35 px'
-    const valueTag2 = 'item/id/35'
-    const valueTag3 = 'event/duration/#'
+    const valueTag2 = 'attribute/id/value/35'
+    const valueTag3 = 'attribute/duration/#'
     const noValueTag1 = 'something'
     const noValueTag2 = 'attribute/color/black'
     const noValueTag3 = 'participant/#'
@@ -117,7 +117,7 @@ describe('HED tag schema-based utility functions', function() {
   it('should correctly determine if a tag has a unit class', async done => {
     const unitClassTag1 = 'attribute/direction/left/35 px'
     const unitClassTag2 = 'participant/effect/cognitive/reward/$10.55'
-    const unitClassTag3 = 'event/duration/#'
+    const unitClassTag3 = 'attribute/duration/#'
     const noUnitClassTag1 = 'something'
     const noUnitClassTag2 = 'attribute/color/red/0.5'
     const noUnitClassTag3 = 'participant/#'
@@ -180,7 +180,7 @@ describe('HED tag schema-based utility functions', function() {
   it("should correctly determine a tag's unit classes, if any", async done => {
     const unitClassTag1 = 'attribute/direction/left/35 px'
     const unitClassTag2 = 'participant/effect/cognitive/reward/$10.55'
-    const unitClassTag3 = 'event/duration/#'
+    const unitClassTag3 = 'attribute/duration/#'
     const noUnitClassTag = 'attribute/color/red/0.5'
     hedSchemaPromise.then(hedSchema => {
       const unitClassTag1Result = hed.getTagUnitClasses(
@@ -229,28 +229,22 @@ describe('HED tag schema-based utility functions', function() {
         hedSchema,
       )
       assert.deepStrictEqual(unitClassTag1Result, [
-        'degrees',
         'degree',
         'radian',
-        'radians',
         'm',
         'cm',
         'km',
         'mm',
-        'feet',
         'foot',
         'meter',
-        'meters',
         'mile',
-        'miles',
-        'pixels',
         'px',
         'pixel',
       ])
       assert.deepStrictEqual(unitClassTag2Result, [
-        'dollars',
+        'dollar',
         '$',
-        'points',
+        'point',
         'fraction',
       ])
       assert.deepStrictEqual(noUnitClassTagResult, [])
@@ -261,8 +255,7 @@ describe('HED tag schema-based utility functions', function() {
   it('should correctly determine if a tag allows extensions', async done => {
     const extensionTag1 = 'item/object/vehicle/boat'
     const extensionTag2 = 'attribute/color/red/0.5'
-    const noExtensionTag1 = 'event/duration/22 s'
-    const noExtensionTag2 = 'participant/id/45'
+    const noExtensionTag = 'event/nonsense'
     hedSchemaPromise.then(hedSchema => {
       const extensionTag1Result = hed.isExtensionAllowedTag(
         extensionTag1,
@@ -272,18 +265,13 @@ describe('HED tag schema-based utility functions', function() {
         extensionTag2,
         hedSchema,
       )
-      const noExtensionTag1Result = hed.isExtensionAllowedTag(
-        noExtensionTag1,
-        hedSchema,
-      )
-      const noExtensionTag2Result = hed.isExtensionAllowedTag(
-        noExtensionTag2,
+      const noExtensionTagResult = hed.isExtensionAllowedTag(
+        noExtensionTag,
         hedSchema,
       )
       assert.strictEqual(extensionTag1Result, true)
       assert.strictEqual(extensionTag2Result, true)
-      assert.strictEqual(noExtensionTag1Result, false)
-      assert.strictEqual(noExtensionTag2Result, false)
+      assert.strictEqual(noExtensionTagResult, false)
       done()
     })
   })
