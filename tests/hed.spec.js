@@ -483,7 +483,11 @@ describe('HED strings', function() {
       const testStrings = {
         correctUnit: 'Attribute/Duration/3 ms',
         correctUnitScientific: 'Attribute/Duration/3.5e1 ms',
+        correctSingularUnit: 'Attribute/Duration/1 millisecond',
+        correctPluralUnit: 'Attribute/Duration/3 milliseconds',
+        correctNoPluralUnit: 'Attribute/Temporal rate/3 hertz',
         incorrectUnit: 'Attribute/Duration/3 cm',
+        incorrectPluralUnit: 'Attribute/Temporal rate/3 hertzs',
         notRequiredNumber: 'Attribute/Color/Red/0.5',
         notRequiredScientific: 'Attribute/Color/Red/5e-1',
         properTime: 'Item/2D shape/Clock face/8:30',
@@ -492,7 +496,11 @@ describe('HED strings', function() {
       const expectedResults = {
         correctUnit: true,
         correctUnitScientific: true,
+        correctSingularUnit: true,
+        correctPluralUnit: true,
+        correctNoPluralUnit: true,
         incorrectUnit: false,
+        incorrectPluralUnit: false,
         notRequiredNumber: true,
         notRequiredScientific: true,
         properTime: true,
@@ -510,13 +518,23 @@ describe('HED strings', function() {
         'minute',
         'hour',
       ]
+      const legalFrequencyUnits = ['hz', 'mhz', 'hertz', 'khz']
       const expectedIssues = {
         correctUnit: [],
         correctUnitScientific: [],
+        correctSingularUnit: [],
+        correctPluralUnit: [],
+        correctNoPluralUnit: [],
         incorrectUnit: [
           generateIssue('unitClassInvalidUnit', {
             tag: testStrings.incorrectUnit,
             unitClassUnits: legalTimeUnits.sort().join(','),
+          }),
+        ],
+        incorrectPluralUnit: [
+          generateIssue('unitClassInvalidUnit', {
+            tag: testStrings.incorrectPluralUnit,
+            unitClassUnits: legalFrequencyUnits.sort().join(','),
           }),
         ],
         notRequiredNumber: [],

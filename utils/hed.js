@@ -1,3 +1,6 @@
+const pluralize = require('pluralize')
+pluralize.addUncountableRule('hertz')
+
 const defaultUnitForTagAttribute = 'default'
 const defaultUnitsForUnitClassAttribute = 'defaultUnits'
 const extensionAllowedAttribute = 'extensionAllowed'
@@ -5,6 +8,7 @@ const tagsDictionaryKey = 'tags'
 const takesValueType = 'takesValue'
 const unitClassType = 'unitClass'
 const unitClassUnitsType = 'units'
+const unitSymbolType = 'unitSymbol'
 
 /**
  * Replace the end of a HED tag with a pound sign.
@@ -45,18 +49,29 @@ const getTagName = function(tag) {
 /**
  * Check for a valid unit and remove it.
  */
-const stripOffUnitsIfValid = function(tagUnitValues, tagUnitClassUnits) {
+const stripOffUnitsIfValid = function(
+  tagUnitValue,
+  tagUnitClassUnits,
+  hedSchema,
+) {
   tagUnitClassUnits.sort(function(first, second) {
     return first.length < second.length
   })
-  for (const units of tagUnitClassUnits) {
-    if (tagUnitValues.startsWith(units)) {
-      return tagUnitValues.substring(units.length).trim()
-    } else if (tagUnitValues.endsWith(units)) {
-      return tagUnitValues.slice(0, -units.length).trim()
+  for (const unit of tagUnitClassUnits) {
+    if (tagUnitValue.startsWith(unit)) {
+      return tagUnitValue.substring(unit.length).trim()
+    } else if (tagUnitValue.endsWith(unit)) {
+      return tagUnitValue.slice(0, -unit.length).trim()
+    } else if (hedSchema.dictionaries[unitSymbolType][unit] === undefined) {
+      const pluralUnit = pluralize.plural(unit)
+      if (tagUnitValue.startsWith(pluralUnit)) {
+        return tagUnitValue.substring(pluralUnit.length).trim()
+      } else if (tagUnitValue.endsWith(pluralUnit)) {
+        return tagUnitValue.slice(0, -pluralUnit.length).trim()
+      }
     }
   }
-  return tagUnitValues
+  return tagUnitValue
 }
 
 /**

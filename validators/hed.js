@@ -317,7 +317,11 @@ const checkIfTagUnitClassUnitsAreValid = function(
       (tagUnitClasses.includes(timeUnitClass) &&
         utils.string.isHourMinuteTime(tagUnitValues)) ||
       digitExpression.test(
-        utils.HED.stripOffUnitsIfValid(tagUnitValues, tagUnitClassUnits),
+        utils.HED.stripOffUnitsIfValid(
+          tagUnitValues,
+          tagUnitClassUnits,
+          hedSchema,
+        ),
       )
     if (!valid) {
       issues.push(
