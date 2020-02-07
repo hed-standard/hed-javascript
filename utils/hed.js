@@ -47,6 +47,17 @@ const getTagName = function(tag) {
 }
 
 /**
+ * Get the list of valid derivatives of a unit.
+ */
+const getValidDerivativeUnits = function(unit, hedSchema) {
+  const derivativeUnits = [unit]
+  if (hedSchema.dictionaries[unitSymbolType][unit] === undefined) {
+    derivativeUnits.push(pluralize.plural(unit))
+  }
+  return derivativeUnits
+}
+
+/**
  * Check for a valid unit and remove it.
  */
 const stripOffUnitsIfValid = function(
@@ -58,16 +69,12 @@ const stripOffUnitsIfValid = function(
     return first.length < second.length
   })
   for (const unit of tagUnitClassUnits) {
-    if (tagUnitValue.startsWith(unit)) {
-      return tagUnitValue.substring(unit.length).trim()
-    } else if (tagUnitValue.endsWith(unit)) {
-      return tagUnitValue.slice(0, -unit.length).trim()
-    } else if (hedSchema.dictionaries[unitSymbolType][unit] === undefined) {
-      const pluralUnit = pluralize.plural(unit)
-      if (tagUnitValue.startsWith(pluralUnit)) {
-        return tagUnitValue.substring(pluralUnit.length).trim()
-      } else if (tagUnitValue.endsWith(pluralUnit)) {
-        return tagUnitValue.slice(0, -pluralUnit.length).trim()
+    const derivativeUnits = getValidDerivativeUnits(unit, hedSchema)
+    for (const derivativeUnit of derivativeUnits) {
+      if (tagUnitValue.startsWith(derivativeUnit)) {
+        return tagUnitValue.substring(derivativeUnit.length).trim()
+      } else if (tagUnitValue.endsWith(derivativeUnit)) {
+        return tagUnitValue.slice(0, -derivativeUnit.length).trim()
       }
     }
   }
