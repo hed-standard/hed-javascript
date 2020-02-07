@@ -25,6 +25,7 @@ const tagDictionaryKeys = [
   'unique',
   'unitClass',
 ]
+const unitClassDictionaryKeys = ['SIUnit', 'unitSymbol']
 const tagsDictionaryKey = 'tags'
 const tagUnitClassAttribute = 'unitClass'
 const unitClassElement = 'unitClass'
@@ -94,6 +95,9 @@ const SchemaDictionaries = {
 
   populateUnitClassUnitsDictionary: function(unitClassElements) {
     this.dictionaries[unitsElement] = {}
+    for (const unitClassKey of unitClassDictionaryKeys) {
+      this.dictionaries[unitClassKey] = {}
+    }
     for (const unitClassElement of unitClassElements) {
       const elementName = this.getElementTagValue(unitClassElement)
       const elementUnits =
@@ -102,6 +106,15 @@ const SchemaDictionaries = {
         return element._
       })
       this.dictionaries[unitsElement][elementName] = elementUnitNames
+      for (const elementUnit of elementUnits) {
+        if (elementUnit.$) {
+          const lowercaseUnit = elementUnit._.toLowerCase()
+          for (const unitClassKey of unitClassDictionaryKeys) {
+            this.dictionaries[unitClassKey][lowercaseUnit] =
+              elementUnit.$[unitClassKey]
+          }
+        }
+      }
     }
   },
 
