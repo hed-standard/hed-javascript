@@ -61,7 +61,8 @@ const getValidDerivativeUnits = function(unit, hedSchema) {
  * Check for a valid unit and remove it.
  */
 const stripOffUnitsIfValid = function(
-  tagUnitValue,
+  originalTagUnitValue,
+  formattedTagUnitValue,
   tagUnitClassUnits,
   hedSchema,
 ) {
@@ -71,14 +72,22 @@ const stripOffUnitsIfValid = function(
   for (const unit of tagUnitClassUnits) {
     const derivativeUnits = getValidDerivativeUnits(unit, hedSchema)
     for (const derivativeUnit of derivativeUnits) {
-      if (tagUnitValue.startsWith(derivativeUnit)) {
-        return tagUnitValue.substring(derivativeUnit.length).trim()
-      } else if (tagUnitValue.endsWith(derivativeUnit)) {
-        return tagUnitValue.slice(0, -derivativeUnit.length).trim()
+      if (hedSchema.dictionaries[unitSymbolType][unit]) {
+        if (originalTagUnitValue.startsWith(derivativeUnit)) {
+          return formattedTagUnitValue.substring(derivativeUnit.length).trim()
+        } else if (originalTagUnitValue.endsWith(derivativeUnit)) {
+          return formattedTagUnitValue.slice(0, -derivativeUnit.length).trim()
+        }
+      } else {
+        if (formattedTagUnitValue.startsWith(derivativeUnit)) {
+          return formattedTagUnitValue.substring(derivativeUnit.length).trim()
+        } else if (formattedTagUnitValue.endsWith(derivativeUnit)) {
+          return formattedTagUnitValue.slice(0, -derivativeUnit.length).trim()
+        }
       }
     }
   }
-  return tagUnitValue
+  return formattedTagUnitValue
 }
 
 /**
@@ -152,12 +161,7 @@ const getTagUnitClassUnits = function(formattedTag, hedSchema) {
   const units = []
   for (const unitClass of tagUnitClasses) {
     const unitClassUnits = hedSchema.dictionaries[unitClassUnitsType][unitClass]
-    Array.prototype.push.apply(
-      units,
-      unitClassUnits.map(unit => {
-        return unit.toLowerCase()
-      }),
-    )
+    Array.prototype.push.apply(units, unitClassUnits)
   }
   return units
 }

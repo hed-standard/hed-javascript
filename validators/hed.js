@@ -308,17 +308,19 @@ const checkIfTagUnitClassUnitsAreValid = function(
     utils.HED.isUnitClassTag(formattedTag, hedSchema)
   ) {
     const tagUnitClasses = utils.HED.getTagUnitClasses(formattedTag, hedSchema)
-    const tagUnitValues = utils.HED.getTagName(formattedTag)
+    const originalTagUnitValue = utils.HED.getTagName(originalTag)
+    const formattedTagUnitValue = utils.HED.getTagName(formattedTag)
     const tagUnitClassUnits = utils.HED.getTagUnitClassUnits(
       formattedTag,
       hedSchema,
     )
     const valid =
       (tagUnitClasses.includes(timeUnitClass) &&
-        utils.string.isHourMinuteTime(tagUnitValues)) ||
+        utils.string.isHourMinuteTime(formattedTagUnitValue)) ||
       digitExpression.test(
         utils.HED.stripOffUnitsIfValid(
-          tagUnitValues,
+          originalTagUnitValue,
+          formattedTagUnitValue,
           tagUnitClassUnits,
           hedSchema,
         ),
