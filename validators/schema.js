@@ -99,19 +99,18 @@ const SchemaDictionaries = {
       this.dictionaries[unitClassKey] = {}
     }
     for (const unitClassElement of unitClassElements) {
-      const elementName = this.getElementTagValue(unitClassElement)
-      const elementUnits =
+      const unitClassName = this.getElementTagValue(unitClassElement)
+      const units =
         unitClassElement[unitClassUnitsElement][0][unitClassUnitElement]
-      const elementUnitNames = elementUnits.map(element => {
+      const unitNames = units.map(element => {
         return element._
       })
-      this.dictionaries[unitsElement][elementName] = elementUnitNames
-      for (const elementUnit of elementUnits) {
-        if (elementUnit.$) {
-          const lowercaseUnit = elementUnit._.toLowerCase()
+      this.dictionaries[unitsElement][unitClassName] = unitNames
+      for (const unit of units) {
+        if (unit.$) {
+          const unitName = unit._
           for (const unitClassKey of unitClassDictionaryKeys) {
-            this.dictionaries[unitClassKey][lowercaseUnit] =
-              elementUnit.$[unitClassKey]
+            this.dictionaries[unitClassKey][unitName] = unit.$[unitClassKey]
           }
         }
       }
