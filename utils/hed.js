@@ -67,7 +67,7 @@ const stripOffUnitsIfValid = function(
   hedSchema,
 ) {
   tagUnitClassUnits.sort(function(first, second) {
-    return first.length < second.length
+    return second.length - first.length
   })
   for (const unit of tagUnitClassUnits) {
     const derivativeUnits = getValidDerivativeUnits(unit, hedSchema)
