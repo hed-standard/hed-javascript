@@ -2,7 +2,7 @@ const assert = require('chai').assert
 const validate = require('../validators')
 const generateIssue = require('../utils/issues')
 
-const localHedSchemaFile = 'tests/data/HEDv1.1.1-devunit.xml'
+const localHedSchemaFile = 'tests/data/HEDv1.2.0-devunit.xml'
 
 describe('HED strings', function() {
   let hedSchemaPromise
@@ -515,16 +515,12 @@ describe('HED strings', function() {
       const legalTimeUnits = [
         's',
         'second',
-        'centisecond',
-        'cs',
         'hour:min',
         'day',
-        'ms',
-        'millisecond',
         'minute',
         'hour',
       ]
-      const legalFrequencyUnits = ['Hz', 'MHz', 'hertz', 'kHz']
+      const legalFrequencyUnits = ['Hz', 'hertz']
       const expectedIssues = {
         correctUnit: [],
         correctUnitScientific: [],

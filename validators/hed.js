@@ -13,7 +13,7 @@ const requiredType = 'required'
 const requireChildType = 'requireChild'
 const timeUnitClass = 'time'
 
-const digitExpression = /^-?[\d.]+(?:e-?\d+)?$/
+const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
 
 // Validation tests
 
@@ -318,7 +318,7 @@ const checkIfTagUnitClassUnitsAreValid = function(
       (tagUnitClasses.includes(timeUnitClass) &&
         utils.string.isHourMinuteTime(formattedTagUnitValue)) ||
       digitExpression.test(
-        utils.HED.stripOffUnitsIfValid(
+        utils.HED.validateUnits(
           originalTagUnitValue,
           formattedTagUnitValue,
           tagUnitClassUnits,

@@ -37,6 +37,10 @@ const find = function(element, query) {
     for (const unitClass of element.unitClasses[0].unitClass) {
       result.push(unitClass)
     }
+  } else if (elementName === 'unitModifier') {
+    for (const unitModifier of element.unitModifiers[0].unitModifier) {
+      result.push(unitModifier)
+    }
   } else if (elementName === 'node') {
     if (elementName in element) {
       for (const child of element[elementName]) {

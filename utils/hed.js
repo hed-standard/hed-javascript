@@ -9,6 +9,8 @@ const takesValueType = 'takesValue'
 const unitClassType = 'unitClass'
 const unitClassUnitsType = 'units'
 const unitSymbolType = 'unitSymbol'
+const SIUnitModifierKey = 'SIUnitModifier'
+const SIUnitSymbolModifierKey = 'SIUnitSymbolModifier'
 
 /**
  * Replace the end of a HED tag with a pound sign.
@@ -61,6 +63,39 @@ const getValidDerivativeUnits = function(unit, hedSchema) {
  * Check for a valid unit and remove it.
  */
 const stripOffUnitsIfValid = function(
+  tagUnitValue,
+  hedSchema,
+  unit,
+  isUnitSymbol,
+) {
+  let foundUnit = false
+  let strippedValue = ''
+  if (tagUnitValue.startsWith(unit)) {
+    foundUnit = true
+    strippedValue = tagUnitValue.substring(unit.length).trim()
+  } else if (tagUnitValue.endsWith(unit)) {
+    foundUnit = true
+    strippedValue = tagUnitValue.slice(0, -unit.length).trim()
+  }
+  if (foundUnit) {
+    const modifierKey = isUnitSymbol
+      ? SIUnitSymbolModifierKey
+      : SIUnitModifierKey
+    for (const unitModifier in hedSchema.dictionaries[modifierKey]) {
+      if (strippedValue.startsWith(unitModifier)) {
+        strippedValue = strippedValue.substring(unitModifier.length).trim()
+      } else if (strippedValue.endsWith(unitModifier)) {
+        strippedValue = strippedValue.slice(0, -unitModifier.length).trim()
+      }
+    }
+  }
+  return [foundUnit, strippedValue]
+}
+
+/**
+ * Validate a unit and strip it from the value.
+ */
+const validateUnits = function(
   originalTagUnitValue,
   formattedTagUnitValue,
   tagUnitClassUnits,
@@ -72,18 +107,24 @@ const stripOffUnitsIfValid = function(
   for (const unit of tagUnitClassUnits) {
     const derivativeUnits = getValidDerivativeUnits(unit, hedSchema)
     for (const derivativeUnit of derivativeUnits) {
+      let foundUnit, strippedValue
       if (hedSchema.dictionaries[unitSymbolType][unit]) {
-        if (originalTagUnitValue.startsWith(derivativeUnit)) {
-          return formattedTagUnitValue.substring(derivativeUnit.length).trim()
-        } else if (originalTagUnitValue.endsWith(derivativeUnit)) {
-          return formattedTagUnitValue.slice(0, -derivativeUnit.length).trim()
-        }
+        ;[foundUnit, strippedValue] = stripOffUnitsIfValid(
+          originalTagUnitValue,
+          hedSchema,
+          derivativeUnit,
+          true,
+        )
       } else {
-        if (formattedTagUnitValue.startsWith(derivativeUnit)) {
-          return formattedTagUnitValue.substring(derivativeUnit.length).trim()
-        } else if (formattedTagUnitValue.endsWith(derivativeUnit)) {
-          return formattedTagUnitValue.slice(0, -derivativeUnit.length).trim()
-        }
+        ;[foundUnit, strippedValue] = stripOffUnitsIfValid(
+          formattedTagUnitValue,
+          hedSchema,
+          derivativeUnit,
+          false,
+        )
+      }
+      if (foundUnit) {
+        return strippedValue
       }
     }
   }
@@ -188,6 +229,7 @@ module.exports = {
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
   stripOffUnitsIfValid: stripOffUnitsIfValid,
+  validateUnits: validateUnits,
   tagExistsInSchema: tagExistsInSchema,
   tagTakesValue: tagTakesValue,
   isUnitClassTag: isUnitClassTag,

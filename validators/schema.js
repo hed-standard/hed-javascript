@@ -26,12 +26,14 @@ const tagDictionaryKeys = [
   'unitClass',
 ]
 const unitClassDictionaryKeys = ['SIUnit', 'unitSymbol']
+const unitModifierDictionaryKeys = ['SIUnitModifier', 'SIUnitSymbolModifier']
 const tagsDictionaryKey = 'tags'
 const tagUnitClassAttribute = 'unitClass'
 const unitClassElement = 'unitClass'
 const unitClassUnitElement = 'unit'
 const unitClassUnitsElement = 'units'
 const unitsElement = 'units'
+const unitModifierElement = 'unitModifier'
 
 const SchemaDictionaries = {
   setParent: function(node, parent) {
@@ -46,6 +48,7 @@ const SchemaDictionaries = {
   populateDictionaries: function() {
     this.dictionaries = {}
     this.populateUnitClassDictionaries()
+    this.populateUnitModifierDictionaries()
     this.populateTagDictionaries()
     return this.dictionaries
   },
@@ -123,6 +126,24 @@ const SchemaDictionaries = {
       const elementName = this.getElementTagValue(unitClassElement)
       this.dictionaries[defaultUnitForUnitClassAttribute][elementName] =
         unitClassElement.$[defaultUnitForUnitClassAttribute]
+    }
+  },
+
+  populateUnitModifierDictionaries: function() {
+    const unitModifierElements = this.getElementsByName(unitModifierElement)
+    for (const unitModifierKey of unitModifierDictionaryKeys) {
+      this.dictionaries[unitModifierKey] = {}
+    }
+    for (const unitModifierElement of unitModifierElements) {
+      const unitModifierName = this.getElementTagValue(unitModifierElement)
+      if (unitModifierElement.$) {
+        for (const unitModifierKey of unitModifierDictionaryKeys) {
+          if (unitModifierElement.$[unitModifierKey] !== undefined) {
+            this.dictionaries[unitModifierKey][unitModifierName] =
+              unitModifierElement.$[unitModifierKey]
+          }
+        }
+      }
     }
   },
 
