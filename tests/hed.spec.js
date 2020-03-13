@@ -447,6 +447,7 @@ describe('HED strings', function() {
       const testStrings = {
         hasRequiredUnit: 'Attribute/Duration/3 ms',
         missingRequiredUnit: 'Attribute/Duration/3',
+        notRequiredNoNumber: 'Attribute/Color/Red',
         notRequiredNumber: 'Attribute/Color/Red/0.5',
         notRequiredScientific: 'Attribute/Color/Red/5.2e-1',
         timeValue: 'Item/2D shape/Clock face/8:30',
@@ -454,6 +455,7 @@ describe('HED strings', function() {
       const expectedResults = {
         hasRequiredUnit: true,
         missingRequiredUnit: false,
+        notRequiredNoNumber: true,
         notRequiredNumber: true,
         notRequiredScientific: true,
         timeValue: true,
@@ -466,6 +468,7 @@ describe('HED strings', function() {
             tag: testStrings.missingRequiredUnit,
           }),
         ],
+        notRequiredNoNumber: [],
         notRequiredNumber: [],
         notRequiredScientific: [],
         timeValue: [],
@@ -490,7 +493,8 @@ describe('HED strings', function() {
         correctSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 kHz',
         incorrectUnit: 'Attribute/Duration/3 cm',
         incorrectPluralUnit: 'Attribute/Temporal rate/3 hertzs',
-        incorrectSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 KHz',
+        incorrectSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 hz',
+        incorrectSymbolCapitalizedUnitModifier: 'Attribute/Temporal rate/3 KHz',
         notRequiredNumber: 'Attribute/Color/Red/0.5',
         notRequiredScientific: 'Attribute/Color/Red/5e-1',
         properTime: 'Item/2D shape/Clock face/8:30',
@@ -507,6 +511,7 @@ describe('HED strings', function() {
         incorrectUnit: false,
         incorrectPluralUnit: false,
         incorrectSymbolCapitalizedUnit: false,
+        incorrectSymbolCapitalizedUnitModifier: false,
         notRequiredNumber: true,
         notRequiredScientific: true,
         properTime: true,
@@ -544,6 +549,12 @@ describe('HED strings', function() {
         incorrectSymbolCapitalizedUnit: [
           generateIssue('unitClassInvalidUnit', {
             tag: testStrings.incorrectSymbolCapitalizedUnit,
+            unitClassUnits: legalFrequencyUnits.sort().join(','),
+          }),
+        ],
+        incorrectSymbolCapitalizedUnitModifier: [
+          generateIssue('unitClassInvalidUnit', {
+            tag: testStrings.incorrectSymbolCapitalizedUnitModifier,
             unitClassUnits: legalFrequencyUnits.sort().join(','),
           }),
         ],
