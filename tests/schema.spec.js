@@ -5,26 +5,24 @@ const localHedSchemaFile = 'tests/data/HEDTest.xml'
 const localHedSchemaVersion = '7.0.4'
 
 describe('Remote HED schemas', function() {
-  it('can be loaded from a central GitHub repository', async done => {
+  it('can be loaded from a central GitHub repository', () => {
     const remoteHedSchemaVersion = '7.0.4'
-    validate.schema
+    return validate.schema
       .buildSchema({ version: remoteHedSchemaVersion })
       .then(hedSchema => {
         const hedSchemaVersion = hedSchema.version
         assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
-        done()
       })
   })
 })
 
 describe('Local HED schemas', function() {
-  it('can be loaded from a file', async done => {
-    validate.schema
+  it('can be loaded from a file', () => {
+    return validate.schema
       .buildSchema({ path: localHedSchemaFile })
       .then(hedSchema => {
         const hedSchemaVersion = hedSchema.version
         assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
-        done()
       })
   })
 })
@@ -36,7 +34,7 @@ describe('HED schemas', function() {
     hedSchemaPromise = validate.schema.buildSchema({ path: localHedSchemaFile })
   })
 
-  it('should have tag dictionaries for all required attributes', async done => {
+  it('should have tag dictionaries for all required attributes', () => {
     const tagDictionaryKeys = [
       'default',
       'extensionAllowed',
@@ -51,7 +49,7 @@ describe('HED schemas', function() {
       'unique',
       'unitClass',
     ]
-    hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchema => {
       const dictionaries = hedSchema.dictionaries
       for (const dictionaryKey of tagDictionaryKeys) {
         assert(
@@ -59,12 +57,11 @@ describe('HED schemas', function() {
           dictionaryKey + ' not found.',
         )
       }
-      done()
     })
   })
 
-  it('should contain all of the required tags', async done => {
-    hedSchemaPromise.then(hedSchema => {
+  it('should contain all of the required tags', () => {
+    return hedSchemaPromise.then(hedSchema => {
       const requiredTags = [
         'event/category',
         'event/description',
@@ -72,12 +69,11 @@ describe('HED schemas', function() {
       ]
       const dictionariesRequiredTags = hedSchema.dictionaries['required']
       assert.sameMembers(Object.keys(dictionariesRequiredTags), requiredTags)
-      done()
     })
   })
 
-  it('should contain all of the positioned tags', async done => {
-    hedSchemaPromise.then(hedSchema => {
+  it('should contain all of the positioned tags', () => {
+    return hedSchemaPromise.then(hedSchema => {
       const positionedTags = [
         'event/category',
         'event/description',
@@ -89,21 +85,19 @@ describe('HED schemas', function() {
         Object.keys(dictionariesPositionedTags),
         positionedTags,
       )
-      done()
     })
   })
 
-  it('should contain all of the unique tags', async done => {
-    hedSchemaPromise.then(hedSchema => {
+  it('should contain all of the unique tags', () => {
+    return hedSchemaPromise.then(hedSchema => {
       const uniqueTags = ['event/description', 'event/label', 'event/long name']
       const dictionariesUniqueTags = hedSchema.dictionaries['unique']
       assert.sameMembers(Object.keys(dictionariesUniqueTags), uniqueTags)
-      done()
     })
   })
 
-  it('should contain all of the tags with default units', async done => {
-    hedSchemaPromise.then(hedSchema => {
+  it('should contain all of the tags with default units', () => {
+    return hedSchemaPromise.then(hedSchema => {
       const defaultUnitTags = {
         'attribute/blink/time shut/#': 's',
         'attribute/blink/duration/#': 's',
@@ -112,12 +106,11 @@ describe('HED schemas', function() {
       }
       const dictionariesDefaultUnitTags = hedSchema.dictionaries['default']
       assert.deepStrictEqual(dictionariesDefaultUnitTags, defaultUnitTags)
-      done()
     })
   })
 
-  it('should contain all of the unit classes with their units and default units', async done => {
-    hedSchemaPromise.then(hedSchema => {
+  it('should contain all of the unit classes with their units and default units', () => {
+    return hedSchemaPromise.then(hedSchema => {
       const defaultUnits = {
         acceleration: 'cm-per-s2',
         currency: '$',
@@ -183,12 +176,11 @@ describe('HED schemas', function() {
       const dictionariesAllUnits = hedSchema.dictionaries['units']
       assert.deepStrictEqual(dictionariesDefaultUnits, defaultUnits)
       assert.deepStrictEqual(dictionariesAllUnits, allUnits)
-      done()
     })
   })
 
-  it('should contain the correct (large) numbers of tags with certain attributes', async done => {
-    hedSchemaPromise.then(hedSchema => {
+  it('should contain the correct (large) numbers of tags with certain attributes', () => {
+    return hedSchemaPromise.then(hedSchema => {
       const expectedTagCount = {
         isNumeric: 80,
         predicateType: 20,
@@ -207,12 +199,11 @@ describe('HED schemas', function() {
           'Mismatch on attribute ' + attribute,
         )
       }
-      done()
     })
   })
 
-  it('should identify if a tag has a certain attribute', async done => {
-    hedSchemaPromise.then(hedSchema => {
+  it('should identify if a tag has a certain attribute', () => {
+    return hedSchemaPromise.then(hedSchema => {
       const testStrings = {
         value:
           'Attribute/Location/Reference frame/Relative to participant/Azimuth/#',
@@ -260,7 +251,6 @@ describe('HED schemas', function() {
           )
         }
       }
-      done()
     })
   })
 })

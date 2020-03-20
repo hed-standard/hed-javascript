@@ -2,8 +2,8 @@ const assert = require('assert')
 const hed = require('../hed')
 const schema = require('../../validators/schema')
 
-describe('HED tag string utility functions', function() {
-  it('should properly replace tag values with the pound character', function() {
+describe('HED tag string utility functions', () => {
+  it('should properly replace tag values with the pound character', () => {
     const slashString = 'Event/Duration/4 ms'
     const noSlashString = 'Something'
     const replacedSlashString = hed.replaceTagNameWithPound(slashString)
@@ -12,7 +12,7 @@ describe('HED tag string utility functions', function() {
     assert.strictEqual(replacedNoSlashString, '#')
   })
 
-  it('should detect the locations of slashes in a tag', function() {
+  it('should detect the locations of slashes in a tag', () => {
     const string1 = 'Event/Description/Something'
     const string2 = 'Attribute/Direction/Left'
     const slashIndices1 = hed.getTagSlashIndices(string1)
@@ -21,7 +21,7 @@ describe('HED tag string utility functions', function() {
     assert.deepStrictEqual(slashIndices2, [9, 19])
   })
 
-  it('should extract the last part of a tag', function() {
+  it('should extract the last part of a tag', () => {
     const string1 = 'Event/Description/Something'
     const string2 = 'Attribute/Direction/Left'
     const noSlashString = 'Participant'
@@ -33,7 +33,7 @@ describe('HED tag string utility functions', function() {
     assert.strictEqual(noSlashName, 'Participant')
   })
 
-  it('should strip valid units from a value', function() {
+  it('should strip valid units from a value', () => {
     const dollarsString = '$25.99'
     const volumeString = '100 m3'
     const invalidVolumeString = '200 cm'
@@ -59,21 +59,21 @@ describe('HED tag string utility functions', function() {
 
 const localHedSchemaFile = 'tests/data/HEDTest.xml'
 
-describe('HED tag schema-based utility functions', function() {
+describe('HED tag schema-based utility functions', () => {
   let hedSchemaPromise
 
   beforeAll(() => {
     hedSchemaPromise = schema.buildSchema({ path: localHedSchemaFile })
   })
 
-  it('should correctly determine if a tag exists', async done => {
+  it('should correctly determine if a tag exists', () => {
     const validTag1 = 'attribute/direction/left'
     const validTag2 = 'item/object/person'
     const validTag3 = 'event/duration/#'
     const invalidTag1 = 'something'
     const invalidTag2 = 'attribute/nothing'
     const invalidTag3 = 'participant/#'
-    hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchema => {
       const validTag1Result = hed.tagExistsInSchema(validTag1, hedSchema)
       const validTag2Result = hed.tagExistsInSchema(validTag2, hedSchema)
       const validTag3Result = hed.tagExistsInSchema(validTag3, hedSchema)
@@ -86,18 +86,17 @@ describe('HED tag schema-based utility functions', function() {
       assert.strictEqual(invalidTag1Result, false)
       assert.strictEqual(invalidTag2Result, false)
       assert.strictEqual(invalidTag3Result, false)
-      done()
     })
   })
 
-  it('should correctly determine if a tag takes a value', async done => {
+  it('should correctly determine if a tag takes a value', () => {
     const valueTag1 = 'attribute/direction/left/35 px'
     const valueTag2 = 'item/id/35'
     const valueTag3 = 'event/duration/#'
     const noValueTag1 = 'something'
     const noValueTag2 = 'attribute/color/black'
     const noValueTag3 = 'participant/#'
-    hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchema => {
       const valueTag1Result = hed.tagTakesValue(valueTag1, hedSchema)
       const valueTag2Result = hed.tagTakesValue(valueTag2, hedSchema)
       const valueTag3Result = hed.tagTakesValue(valueTag3, hedSchema)
@@ -110,18 +109,17 @@ describe('HED tag schema-based utility functions', function() {
       assert.strictEqual(noValueTag1Result, false)
       assert.strictEqual(noValueTag2Result, false)
       assert.strictEqual(noValueTag3Result, false)
-      done()
     })
   })
 
-  it('should correctly determine if a tag has a unit class', async done => {
+  it('should correctly determine if a tag has a unit class', () => {
     const unitClassTag1 = 'attribute/direction/left/35 px'
     const unitClassTag2 = 'participant/effect/cognitive/reward/$10.55'
     const unitClassTag3 = 'event/duration/#'
     const noUnitClassTag1 = 'something'
     const noUnitClassTag2 = 'attribute/color/red/0.5'
     const noUnitClassTag3 = 'participant/#'
-    hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchema => {
       const unitClassTag1Result = hed.isUnitClassTag(unitClassTag1, hedSchema)
       const unitClassTag2Result = hed.isUnitClassTag(unitClassTag2, hedSchema)
       const unitClassTag3Result = hed.isUnitClassTag(unitClassTag3, hedSchema)
@@ -143,16 +141,15 @@ describe('HED tag schema-based utility functions', function() {
       assert.strictEqual(noUnitClassTag1Result, false)
       assert.strictEqual(noUnitClassTag2Result, false)
       assert.strictEqual(noUnitClassTag3Result, false)
-      done()
     })
   })
 
-  it("should correctly determine a tag's default unit, if any", async done => {
+  it("should correctly determine a tag's default unit, if any", () => {
     const unitClassTag1 = 'attribute/blink/duration/35 ms'
     const unitClassTag2 = 'participant/effect/cognitive/reward/11 dollars'
     const noUnitClassTag = 'attribute/color/red/0.5'
     const noValueTag = 'attribute/color/black'
-    hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchema => {
       const unitClassTag1Result = hed.getUnitClassDefaultUnit(
         unitClassTag1,
         hedSchema,
@@ -173,16 +170,15 @@ describe('HED tag schema-based utility functions', function() {
       assert.strictEqual(unitClassTag2Result, '$')
       assert.strictEqual(noUnitClassTagResult, '')
       assert.strictEqual(noValueTagResult, '')
-      done()
     })
   })
 
-  it("should correctly determine a tag's unit classes, if any", async done => {
+  it("should correctly determine a tag's unit classes, if any", () => {
     const unitClassTag1 = 'attribute/direction/left/35 px'
     const unitClassTag2 = 'participant/effect/cognitive/reward/$10.55'
     const unitClassTag3 = 'event/duration/#'
     const noUnitClassTag = 'attribute/color/red/0.5'
-    hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchema => {
       const unitClassTag1Result = hed.getTagUnitClasses(
         unitClassTag1,
         hedSchema,
@@ -207,15 +203,14 @@ describe('HED tag schema-based utility functions', function() {
       assert.deepStrictEqual(unitClassTag2Result, ['currency'])
       assert.deepStrictEqual(unitClassTag3Result, ['time'])
       assert.deepStrictEqual(noUnitClassTagResult, [])
-      done()
     })
   })
 
-  it("should correctly determine a tag's legal units, if any", async done => {
+  it("should correctly determine a tag's legal units, if any", () => {
     const unitClassTag1 = 'attribute/direction/left/35 px'
     const unitClassTag2 = 'participant/effect/cognitive/reward/$10.55'
     const noUnitClassTag = 'attribute/color/red/0.5'
-    hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchema => {
       const unitClassTag1Result = hed.getTagUnitClassUnits(
         unitClassTag1,
         hedSchema,
@@ -254,16 +249,15 @@ describe('HED tag schema-based utility functions', function() {
         'fraction',
       ])
       assert.deepStrictEqual(noUnitClassTagResult, [])
-      done()
     })
   })
 
-  it('should correctly determine if a tag allows extensions', async done => {
+  it('should correctly determine if a tag allows extensions', () => {
     const extensionTag1 = 'item/object/vehicle/boat'
     const extensionTag2 = 'attribute/color/red/0.5'
     const noExtensionTag1 = 'event/duration/22 s'
     const noExtensionTag2 = 'participant/id/45'
-    hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchema => {
       const extensionTag1Result = hed.isExtensionAllowedTag(
         extensionTag1,
         hedSchema,
@@ -284,7 +278,6 @@ describe('HED tag schema-based utility functions', function() {
       assert.strictEqual(extensionTag2Result, true)
       assert.strictEqual(noExtensionTag1Result, false)
       assert.strictEqual(noExtensionTag2Result, false)
-      done()
     })
   })
 })
