@@ -46,8 +46,8 @@ const getTagName = function(tag) {
  * Check for a valid unit and remove it.
  */
 const stripOffUnitsIfValid = function(tagUnitValues, tagUnitClassUnits) {
-  tagUnitClassUnits.sort(function(first, second) {
-    return first.length < second.length
+  tagUnitClassUnits.sort((first, second) => {
+    return second.length - first.length
   })
   for (const units of tagUnitClassUnits) {
     if (tagUnitValues.startsWith(units)) {
