@@ -1,4 +1,4 @@
-const assert = require('assert')
+const assert = require('chai').assert
 const hed = require('../hed')
 const schema = require('../../validators/schema')
 
@@ -31,29 +31,6 @@ describe('HED tag string utility functions', () => {
     assert.strictEqual(name1, 'Something')
     assert.strictEqual(name2, 'Left')
     assert.strictEqual(noSlashName, 'Participant')
-  })
-
-  it('should strip valid units from a value', () => {
-    const dollarsString = '$25.99'
-    const volumeString = '100 m3'
-    const invalidVolumeString = '200 cm'
-    const currencyUnits = ['dollars', '$', 'points', 'fraction']
-    const volumeUnits = ['m3', 'cm3', 'mm3', 'km3']
-    const strippedDollarsString = hed.stripOffUnitsIfValid(
-      dollarsString,
-      currencyUnits,
-    )
-    const strippedVolumeString = hed.stripOffUnitsIfValid(
-      volumeString,
-      volumeUnits,
-    )
-    const strippedInvalidVolumeString = hed.stripOffUnitsIfValid(
-      invalidVolumeString,
-      volumeUnits,
-    )
-    assert.strictEqual(strippedDollarsString, '25.99')
-    assert.strictEqual(strippedVolumeString, '100')
-    assert.strictEqual(strippedInvalidVolumeString, '200 cm')
   })
 })
 
@@ -195,13 +172,13 @@ describe('HED tag schema-based utility functions', () => {
         noUnitClassTag,
         hedSchema,
       )
-      assert.deepStrictEqual(unitClassTag1Result, [
+      assert.sameDeepMembers(unitClassTag1Result, [
         'angle',
         'physicalLength',
         'pixels',
       ])
-      assert.deepStrictEqual(unitClassTag2Result, ['currency'])
-      assert.deepStrictEqual(unitClassTag3Result, ['time'])
+      assert.sameDeepMembers(unitClassTag2Result, ['currency'])
+      assert.sameDeepMembers(unitClassTag3Result, ['time'])
       assert.deepStrictEqual(noUnitClassTagResult, [])
     })
   })
@@ -223,26 +200,63 @@ describe('HED tag schema-based utility functions', () => {
         noUnitClassTag,
         hedSchema,
       )
-      assert.deepStrictEqual(unitClassTag1Result, [
+      assert.sameDeepMembers(unitClassTag1Result, [
         'degree',
         'radian',
+        'rad',
         'm',
-        'cm',
-        'km',
-        'mm',
         'foot',
-        'meter',
+        'metre',
         'mile',
         'px',
         'pixel',
       ])
-      assert.deepStrictEqual(unitClassTag2Result, [
+      assert.sameDeepMembers(unitClassTag2Result, [
         'dollar',
         '$',
         'point',
         'fraction',
       ])
       assert.deepStrictEqual(noUnitClassTagResult, [])
+    })
+  })
+
+  it('should strip valid units from a value', () => {
+    const dollarsString = '$25.99'
+    const volumeString = '100 m^3'
+    const prefixedVolumeString = '100 cm^3'
+    const invalidVolumeString = '200 cm'
+    const currencyUnits = ['dollars', '$', 'points', 'fraction']
+    const volumeUnits = ['m^3']
+    return hedSchemaPromise.then(hedSchema => {
+      const strippedDollarsString = hed.validateUnits(
+        dollarsString,
+        dollarsString,
+        currencyUnits,
+        hedSchema,
+      )
+      const strippedVolumeString = hed.validateUnits(
+        volumeString,
+        volumeString,
+        volumeUnits,
+        hedSchema,
+      )
+      const strippedPrefixedVolumeString = hed.validateUnits(
+        prefixedVolumeString,
+        prefixedVolumeString,
+        volumeUnits,
+        hedSchema,
+      )
+      const strippedInvalidVolumeString = hed.validateUnits(
+        invalidVolumeString,
+        invalidVolumeString,
+        volumeUnits,
+        hedSchema,
+      )
+      assert.strictEqual(strippedDollarsString, '25.99')
+      assert.strictEqual(strippedVolumeString, '100')
+      assert.strictEqual(strippedPrefixedVolumeString, '100')
+      assert.strictEqual(strippedInvalidVolumeString, '200 cm')
     })
   })
 
