@@ -4,7 +4,7 @@ const generateIssue = require('../utils/issues')
 
 const localHedSchemaFile = 'tests/data/HEDv1.2.0-devunit.xml'
 
-describe('HED strings', function() {
+describe('HED strings', () => {
   let hedSchemaPromise
 
   beforeAll(() => {
@@ -15,10 +15,9 @@ describe('HED strings', function() {
     testStrings,
     expectedResults,
     expectedIssues,
-    done,
     testFunction,
   ) {
-    hedSchemaPromise.then(schema => {
+    return hedSchemaPromise.then(schema => {
       for (const testStringKey in testStrings) {
         const testIssues = []
         const parsedTestString = validate.stringParser.parseHedString(
@@ -38,7 +37,6 @@ describe('HED strings', function() {
           testStrings[testStringKey],
         )
       }
-      done()
     })
   }
 
@@ -68,7 +66,7 @@ describe('HED strings', function() {
     }
   }
 
-  describe('Full HED Strings', function() {
+  describe('Full HED Strings', () => {
     const validator = function(testStrings, expectedResults, expectedIssues) {
       for (const testStringKey in testStrings) {
         const [testResult, testIssues] = validate.HED.validateHedString(
@@ -87,7 +85,7 @@ describe('HED strings', function() {
       }
     }
 
-    it('should not have mismatched parentheses', function() {
+    it('should not have mismatched parentheses', () => {
       const testStrings = {
         extraOpening:
           '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
@@ -114,7 +112,7 @@ describe('HED strings', function() {
       validator(testStrings, expectedResults, expectedIssues)
     })
 
-    it('should not have malformed delimiters', function() {
+    it('should not have malformed delimiters', () => {
       const testStrings = {
         missingOpeningComma:
           '/Action/Reach/To touch(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
@@ -251,7 +249,7 @@ describe('HED strings', function() {
       validator(testStrings, expectedResults, expectedIssues)
     })
 
-    it('should not have invalid characters', function() {
+    it('should not have invalid characters', () => {
       const testStrings = {
         openingBrace:
           '/Attribute/Object side/Left,/Participant/Effect{/Body part/Arm',
@@ -302,7 +300,7 @@ describe('HED strings', function() {
     })
   })
 
-  describe('Individual HED Tags', function() {
+  describe('Individual HED Tags', () => {
     const validatorSyntactic = function(
       testStrings,
       expectedResults,
@@ -330,13 +328,11 @@ describe('HED strings', function() {
       expectedResults,
       expectedIssues,
       checkForWarnings,
-      done,
     ) {
-      validatorSemanticBase(
+      return validatorSemanticBase(
         testStrings,
         expectedResults,
         expectedIssues,
-        done,
         function(parsedTestString, testIssues, schema) {
           return validate.HED.validateIndividualHedTags(
             parsedTestString,
@@ -349,7 +345,7 @@ describe('HED strings', function() {
       )
     }
 
-    it('should exist in the schema or be an allowed extension', async done => {
+    it('should exist in the schema or be an allowed extension', () => {
       const testStrings = {
         takesValue: 'Attribute/Duration/3 ms',
         full: 'Attribute/Object side/Left',
@@ -383,16 +379,15 @@ describe('HED strings', function() {
           }),
         ],
       }
-      validatorSemantic(
+      return validatorSemantic(
         testStrings,
         expectedResults,
         expectedIssues,
         false,
-        done,
       )
     })
 
-    it('should have properly capitalized names', function() {
+    it('should have properly capitalized names', () => {
       const testStrings = {
         proper: 'Event/Category/Experimental stimulus',
         camelCase: 'DoubleEvent/Something',
@@ -419,7 +414,7 @@ describe('HED strings', function() {
       validatorSyntactic(testStrings, expectedResults, expectedIssues, true)
     })
 
-    it('should have a child when required', async done => {
+    it('should have a child when required', () => {
       const testStrings = {
         hasChild: 'Event/Category/Experimental stimulus',
         missingChild: 'Event/Category',
@@ -434,16 +429,15 @@ describe('HED strings', function() {
           generateIssue('childRequired', { tag: testStrings.missingChild }),
         ],
       }
-      validatorSemantic(
+      return validatorSemantic(
         testStrings,
         expectedResults,
         expectedIssues,
         true,
-        done,
       )
     })
 
-    it('should have a unit when required', async done => {
+    it('should have a unit when required', () => {
       const testStrings = {
         hasRequiredUnit: 'Attribute/Duration/3 ms',
         missingRequiredUnit: 'Attribute/Duration/3',
@@ -473,16 +467,15 @@ describe('HED strings', function() {
         notRequiredScientific: [],
         timeValue: [],
       }
-      validatorSemantic(
+      return validatorSemantic(
         testStrings,
         expectedResults,
         expectedIssues,
         true,
-        done,
       )
     })
 
-    it('should have a proper unit when required', async done => {
+    it('should have a proper unit when required', () => {
       const testStrings = {
         correctUnit: 'Attribute/Duration/3 ms',
         correctUnitScientific: 'Attribute/Duration/3.5e1 ms',
@@ -568,17 +561,16 @@ describe('HED strings', function() {
           }),
         ],
       }
-      validatorSemantic(
+      return validatorSemantic(
         testStrings,
         expectedResults,
         expectedIssues,
         false,
-        done,
       )
     })
   })
 
-  describe('HED Tag Levels', function() {
+  describe('HED Tag Levels', () => {
     const validatorSyntactic = function(
       testStrings,
       expectedResults,
@@ -603,13 +595,11 @@ describe('HED strings', function() {
       testStrings,
       expectedResults,
       expectedIssues,
-      done,
     ) {
-      validatorSemanticBase(
+      return validatorSemanticBase(
         testStrings,
         expectedResults,
         expectedIssues,
-        done,
         function(parsedTestString, testIssues, schema) {
           return validate.HED.validateHedTagLevels(
             parsedTestString,
@@ -621,7 +611,7 @@ describe('HED strings', function() {
       )
     }
 
-    it('should not contain duplicates', function() {
+    it('should not contain duplicates', () => {
       const testStrings = {
         topLevelDuplicate:
           'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
@@ -655,7 +645,7 @@ describe('HED strings', function() {
       validatorSyntactic(testStrings, expectedResults, expectedIssues)
     })
 
-    it('should not have multiple copies of a unique tag', async done => {
+    it('should not have multiple copies of a unique tag', () => {
       const testStrings = {
         legal:
           'Event/Description/Rail vehicles,Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
@@ -672,22 +662,16 @@ describe('HED strings', function() {
           generateIssue('multipleUniqueTags', { tag: 'event/description' }),
         ],
       }
-      validatorSemantic(testStrings, expectedResults, expectedIssues, done)
+      return validatorSemantic(testStrings, expectedResults, expectedIssues)
     })
   })
 
-  describe('Top-level Tags', function() {
-    const validator = function(
-      testStrings,
-      expectedResults,
-      expectedIssues,
-      done,
-    ) {
-      validatorSemanticBase(
+  describe('Top-level Tags', () => {
+    const validator = function(testStrings, expectedResults, expectedIssues) {
+      return validatorSemanticBase(
         testStrings,
         expectedResults,
         expectedIssues,
-        done,
         function(parsedTestString, testIssues, schema) {
           return validate.HED.validateTopLevelTags(
             parsedTestString,
@@ -698,7 +682,7 @@ describe('HED strings', function() {
       )
     }
 
-    it('should include all required tags', async done => {
+    it('should include all required tags', () => {
       const testStrings = {
         complete:
           'Event/Label/Bus,Event/Category/Experimental stimulus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus',
@@ -744,11 +728,11 @@ describe('HED strings', function() {
           }),
         ],
       }
-      validator(testStrings, expectedResults, expectedIssues, done)
+      return validator(testStrings, expectedResults, expectedIssues)
     })
   })
 
-  describe('HED Tag Groups', function() {
+  describe('HED Tag Groups', () => {
     const validator = function(testStrings, expectedResults, expectedIssues) {
       validatorSyntacticBase(
         testStrings,
@@ -760,7 +744,7 @@ describe('HED strings', function() {
       )
     }
 
-    it('should have no more than two tildes', function() {
+    it('should have no more than two tildes', () => {
       const testStrings = {
         noTildeGroup:
           'Event/Category/Experimental stimulus,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
@@ -792,8 +776,8 @@ describe('HED strings', function() {
     })
   })
 
-  describe('HED Tags', function() {
-    it('should comprise valid comma-separated paths', function() {
+  describe('HED Tags', () => {
+    it('should comprise valid comma-separated paths', () => {
       const hedStr =
         'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
       const [result, issues] = validate.HED.validateHedString(hedStr)

@@ -101,7 +101,7 @@ const validateUnits = function(
   tagUnitClassUnits,
   hedSchema,
 ) {
-  tagUnitClassUnits.sort(function(first, second) {
+  tagUnitClassUnits.sort((first, second) => {
     return second.length - first.length
   })
   for (const unit of tagUnitClassUnits) {

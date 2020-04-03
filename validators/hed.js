@@ -528,10 +528,11 @@ const validateHedTagLevels = function(
 ) {
   let valid = true
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
-    const originalTag = parsedString.tagGroups[i]
-    const formattedTag = parsedString.formattedTagGroups[i]
+    const originalTagList = parsedString.tagGroups[i]
+    const formattedTagList = parsedString.formattedTagGroups[i]
     valid =
-      valid && validateHedTagLevel(originalTag, formattedTag, hedSchema, issues)
+      valid &&
+      validateHedTagLevel(originalTagList, formattedTagList, hedSchema, issues)
   }
   valid =
     valid &&
