@@ -2,11 +2,11 @@ const assert = require('chai').assert
 const validate = require('../validators')
 
 const localHedSchemaFile = 'tests/data/HED-devunit.xml'
-const localHedSchemaVersion = 'v1.1.1-devunit'
+const localHedSchemaVersion = 'v1.2.0-devunit'
 
 describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', () => {
-    const remoteHedSchemaVersion = 'v1.1.1-devunit'
+    const remoteHedSchemaVersion = 'v1.2.0-devunit'
     return validate.schema
       .buildSchema({ version: remoteHedSchemaVersion })
       .then(hedSchema => {
@@ -112,47 +112,36 @@ describe('HED schemas', function() {
   it('should contain all of the unit classes with their units and default units', () => {
     return hedSchemaPromise.then(hedSchema => {
       const defaultUnits = {
-        acceleration: 'cm-per-s^2',
+        acceleration: 'm-per-s^2',
         currency: '$',
         angle: 'radian',
         frequency: 'Hz',
         intensity: 'dB',
-        jerk: 'cm-per-s^3',
+        jerk: 'm-per-s^3',
         luminousIntensity: 'cd',
-        memorySize: 'mb',
+        memorySize: 'B',
         physicalLength: 'cm',
         pixels: 'px',
         speed: 'cm-per-s',
         time: 's',
-        area: 'cm^2',
-        volume: 'cm^3',
+        area: 'm^2',
+        volume: 'm^3',
       }
       const allUnits = {
-        acceleration: ['m-per-s^2', 'cm-per-s^2'],
+        acceleration: ['m-per-s^2'],
         currency: ['dollar', '$', 'point', 'fraction'],
-        angle: ['degree', 'radian'],
-        frequency: ['Hz', 'MHz', 'hertz', 'kHz'],
+        angle: ['radian', 'rad', 'degree'],
+        frequency: ['hertz', 'Hz'],
         intensity: ['dB'],
-        jerk: ['m-per-s^3', 'cm-per-s^3'],
+        jerk: ['m-per-s^3'],
         luminousIntensity: ['candela', 'cd'],
-        memorySize: ['Mb', 'kb', 'gb', 'tb'],
-        physicalLength: ['m', 'cm', 'km', 'mm', 'foot', 'meter', 'mile'],
-        pixels: ['px', 'pixel'],
-        speed: ['m-per-s', 'mph', 'kph', 'cm-per-s'],
-        time: [
-          's',
-          'second',
-          'centisecond',
-          'cs',
-          'hour:min',
-          'day',
-          'ms',
-          'millisecond',
-          'minute',
-          'hour',
-        ],
-        area: ['m^2', 'cm^2', 'km^2', 'px^2', 'pixel^2', 'mm^2'],
-        volume: ['m^3', 'cm^3', 'mm^3', 'km^3'],
+        memorySize: ['byte', 'B'],
+        physicalLength: ['metre', 'm', 'foot', 'mile'],
+        pixels: ['pixel', 'px'],
+        speed: ['m-per-s', 'mph', 'kph'],
+        time: ['second', 's', 'hour:min', 'day', 'minute', 'hour'],
+        area: ['m^2', 'px^2', 'pixel^2'],
+        volume: ['m^3'],
       }
 
       const dictionariesDefaultUnits = hedSchema.dictionaries['defaultUnits']
