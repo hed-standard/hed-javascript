@@ -107,11 +107,8 @@ const validateUnits = function(
   tagUnitClassUnits.sort((first, second) => {
     return second.length - first.length
   })
-  // console.log(originalTagUnitValue, formattedTagUnitValue)
-  // console.dir(tagUnitClassUnits)
   for (const unit of tagUnitClassUnits) {
     const derivativeUnits = getValidDerivativeUnits(unit, hedSchema)
-    console.dir(derivativeUnits)
     for (const derivativeUnit of derivativeUnits) {
       let foundUnit, strippedValue
       if (
