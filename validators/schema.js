@@ -10,6 +10,7 @@ const arrayUtil = require('../utils/array')
 
 const defaultUnitForTagAttribute = 'default'
 const defaultUnitForUnitClassAttribute = 'defaultUnits'
+const defaultUnitForOldUnitClassAttribute = 'default'
 const extensionAllowedAttribute = 'extensionAllowed'
 const tagDictionaryKeys = [
   'default',
@@ -92,6 +93,11 @@ const SchemaDictionaries = {
 
   populateUnitClassDictionaries: function() {
     const unitClassElements = this.getElementsByName(unitClassElement)
+    if (unitClassElements.length === 0) {
+      this.hasUnitClasses = false
+      return
+    }
+    this.hasUnitClasses = true
     this.populateUnitClassUnitsDictionary(unitClassElements)
     this.populateUnitClassDefaultUnitDictionary(unitClassElements)
   },
@@ -105,6 +111,17 @@ const SchemaDictionaries = {
       const unitClassName = this.getElementTagValue(unitClassElement)
       const units =
         unitClassElement[unitClassUnitsElement][0][unitClassUnitElement]
+      if (units === undefined) {
+        const elementUnits = this.getElementTagValue(
+          unitClassElement,
+          unitClassUnitsElement,
+        )
+        const units = elementUnits.split(',')
+        this.dictionaries[unitsElement][unitClassName] = units.map(unit => {
+          return unit.toLowerCase()
+        })
+        continue
+      }
       const unitNames = units.map(element => {
         return element._
       })
@@ -124,13 +141,25 @@ const SchemaDictionaries = {
     this.dictionaries[defaultUnitForUnitClassAttribute] = {}
     for (const unitClassElement of unitClassElements) {
       const elementName = this.getElementTagValue(unitClassElement)
-      this.dictionaries[defaultUnitForUnitClassAttribute][elementName] =
-        unitClassElement.$[defaultUnitForUnitClassAttribute]
+      const defaultUnit = unitClassElement.$[defaultUnitForUnitClassAttribute]
+      if (defaultUnit === undefined) {
+        this.dictionaries[defaultUnitForUnitClassAttribute][elementName] =
+          unitClassElement.$[defaultUnitForOldUnitClassAttribute]
+      } else {
+        this.dictionaries[defaultUnitForUnitClassAttribute][
+          elementName
+        ] = defaultUnit
+      }
     }
   },
 
   populateUnitModifierDictionaries: function() {
     const unitModifierElements = this.getElementsByName(unitModifierElement)
+    if (unitModifierElements.length === 0) {
+      this.hasUnitModifiers = false
+      return
+    }
+    this.hasUnitModifiers = true
     for (const unitModifierKey of unitModifierDictionaryKeys) {
       this.dictionaries[unitModifierKey] = {}
     }
@@ -261,8 +290,15 @@ const tagHasAttribute = function(tag, tagAttribute) {
   return tag.toLowerCase() in this.dictionaries[tagAttribute]
 }
 
-const Schema = function(rootElement, dictionaries) {
+const Schema = function(
+  rootElement,
+  dictionaries,
+  hasUnitClasses,
+  hasUnitModifiers,
+) {
   this.dictionaries = dictionaries
+  this.hasUnitClasses = hasUnitClasses
+  this.hasUnitModifiers = hasUnitModifiers
   this.version = rootElement.$.version
   this.tagHasAttribute = tagHasAttribute
 }
@@ -319,7 +355,12 @@ const buildSchemaObject = function(xmlData) {
   schemaDictionaries.setParent(rootElement, xmlData)
   schemaDictionaries.rootElement = rootElement
   const dictionaries = schemaDictionaries.populateDictionaries()
-  return new Schema(rootElement, dictionaries)
+  return new Schema(
+    rootElement,
+    dictionaries,
+    schemaDictionaries.hasUnitClasses,
+    schemaDictionaries.hasUnitModifiers,
+  )
 }
 
 const buildSchema = function(schemaDef = {}) {

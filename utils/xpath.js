@@ -34,11 +34,19 @@ const find = function(element, query) {
   }
 
   if (elementName === 'unitClass') {
-    for (const unitClass of element.unitClasses[0].unitClass) {
+    const unitClassesList = element.unitClasses
+    if (unitClassesList === undefined) {
+      return []
+    }
+    for (const unitClass of unitClassesList[0].unitClass) {
       result.push(unitClass)
     }
   } else if (elementName === 'unitModifier') {
-    for (const unitModifier of element.unitModifiers[0].unitModifier) {
+    const unitModifiersList = element.unitModifiers
+    if (unitModifiersList === undefined) {
+      return []
+    }
+    for (const unitModifier of unitModifiersList[0].unitModifier) {
       result.push(unitModifier)
     }
   } else if (elementName === 'node') {

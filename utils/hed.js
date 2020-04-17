@@ -53,7 +53,10 @@ const getTagName = function(tag) {
  */
 const getValidDerivativeUnits = function(unit, hedSchema) {
   const derivativeUnits = [unit]
-  if (hedSchema.dictionaries[unitSymbolType][unit] === undefined) {
+  if (
+    hedSchema.hasUnitModifiers &&
+    hedSchema.dictionaries[unitSymbolType][unit] === undefined
+  ) {
     derivativeUnits.push(pluralize.plural(unit))
   }
   return derivativeUnits
@@ -77,7 +80,7 @@ const stripOffUnitsIfValid = function(
     foundUnit = true
     strippedValue = tagUnitValue.slice(0, -unit.length).trim()
   }
-  if (foundUnit) {
+  if (foundUnit && hedSchema.hasUnitModifiers) {
     const modifierKey = isUnitSymbol
       ? SIUnitSymbolModifierKey
       : SIUnitModifierKey
@@ -104,11 +107,17 @@ const validateUnits = function(
   tagUnitClassUnits.sort((first, second) => {
     return second.length - first.length
   })
+  // console.log(originalTagUnitValue, formattedTagUnitValue)
+  // console.dir(tagUnitClassUnits)
   for (const unit of tagUnitClassUnits) {
     const derivativeUnits = getValidDerivativeUnits(unit, hedSchema)
+    console.dir(derivativeUnits)
     for (const derivativeUnit of derivativeUnits) {
       let foundUnit, strippedValue
-      if (hedSchema.dictionaries[unitSymbolType][unit]) {
+      if (
+        hedSchema.hasUnitModifiers &&
+        hedSchema.dictionaries[unitSymbolType][unit]
+      ) {
         ;[foundUnit, strippedValue] = stripOffUnitsIfValid(
           originalTagUnitValue,
           hedSchema,
@@ -150,6 +159,9 @@ const tagTakesValue = function(formattedTag, hedSchema) {
  * Checks if a HED tag has the 'unitClass' attribute.
  */
 const isUnitClassTag = function(formattedTag, hedSchema) {
+  if (!hedSchema.hasUnitClasses) {
+    return false
+  }
   const takesValueTag = replaceTagNameWithPound(formattedTag)
   return hedSchema.tagHasAttribute(takesValueTag, unitClassType)
 }
