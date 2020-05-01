@@ -34,7 +34,7 @@ describe('HED tag string utility functions', () => {
   })
 })
 
-const localHedSchemaFile = 'tests/data/HED-devunit.xml'
+const localHedSchemaFile = 'tests/data/HEDv1.2.0-devunit.xml'
 
 describe('HED tag schema-based utility functions', () => {
   let hedSchemaPromise

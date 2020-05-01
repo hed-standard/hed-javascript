@@ -1,7 +1,7 @@
 const assert = require('chai').assert
 const validate = require('../validators')
 
-const localHedSchemaFile = 'tests/data/HED-devunit.xml'
+const localHedSchemaFile = 'tests/data/HEDv1.2.0-devunit.xml'
 const localHedSchemaVersion = 'v1.2.0-devunit'
 
 describe('Remote HED schemas', function() {
@@ -154,12 +154,12 @@ describe('HED schemas', function() {
   it('should contain the correct (large) numbers of tags with certain attributes', () => {
     return hedSchemaPromise.then(hedSchema => {
       const expectedTagCount = {
-        isNumeric: 80,
-        predicateType: 20,
+        isNumeric: 79,
+        predicateType: 8,
         recommended: 0,
-        requireChild: 64,
-        tags: 1113,
-        takesValue: 119,
+        requireChild: 59,
+        tags: 1093,
+        takesValue: 98,
         unitClass: 63,
       }
 

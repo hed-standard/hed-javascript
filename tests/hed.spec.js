@@ -2,13 +2,12 @@ const assert = require('chai').assert
 const validate = require('../validators')
 const generateIssue = require('../utils/issues')
 
-const localHedSchemaFile = 'tests/data/HEDv1.2.0-devunit.xml'
-
-describe('HED strings', () => {
+describe('Latest HED Schema', () => {
+  const hedSchemaFile = 'tests/data/HEDv1.2.0-devunit.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = validate.schema.buildSchema({ path: localHedSchemaFile })
+    hedSchemaPromise = validate.schema.buildSchema({ path: hedSchemaFile })
   })
 
   const validatorSemanticBase = function(
@@ -30,7 +29,6 @@ describe('HED strings', () => {
           expectedResults[testStringKey],
           testStrings[testStringKey],
         )
-        // console.dir(testIssues, expectedIssues[testStringKey])
         assert.sameDeepMembers(
           testIssues,
           expectedIssues[testStringKey],
@@ -783,6 +781,187 @@ describe('HED strings', () => {
       const [result, issues] = validate.HED.validateHedString(hedStr)
       assert.strictEqual(result, true)
       assert.deepStrictEqual(issues, [])
+    })
+  })
+})
+
+describe('Pre-v8.0.0 HED Schemas', function() {
+  const hedSchemaFile = 'tests/data/HEDv7.0.4.xml'
+  let hedSchemaPromise
+
+  beforeAll(() => {
+    hedSchemaPromise = validate.schema.buildSchema({
+      path: hedSchemaFile,
+    })
+  })
+
+  const validatorSemanticBase = function(
+    testStrings,
+    expectedResults,
+    expectedIssues,
+    testFunction,
+  ) {
+    return hedSchemaPromise.then(schema => {
+      for (const testStringKey in testStrings) {
+        const testIssues = []
+        const parsedTestString = validate.stringParser.parseHedString(
+          testStrings[testStringKey],
+          testIssues,
+        )
+        const testResult = testFunction(parsedTestString, testIssues, schema)
+        assert.strictEqual(
+          testResult,
+          expectedResults[testStringKey],
+          testStrings[testStringKey],
+        )
+        assert.sameDeepMembers(
+          testIssues,
+          expectedIssues[testStringKey],
+          testStrings[testStringKey],
+        )
+      }
+    })
+  }
+
+  describe('Individual HED Tags', function() {
+    const validatorSemantic = function(
+      testStrings,
+      expectedResults,
+      expectedIssues,
+      checkForWarnings,
+    ) {
+      return validatorSemanticBase(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        function(parsedTestString, testIssues, schema) {
+          return validate.HED.validateIndividualHedTags(
+            parsedTestString,
+            schema,
+            testIssues,
+            true,
+            checkForWarnings,
+          )
+        },
+      )
+    }
+
+    it('should have a unit when required', () => {
+      const testStrings = {
+        hasRequiredUnit: 'Event/Duration/3 ms',
+        missingRequiredUnit: 'Event/Duration/3',
+        notRequiredNumber: 'Attribute/Color/Red/0.5',
+        notRequiredScientific: 'Attribute/Color/Red/5.2e-1',
+        timeValue: 'Item/2D shape/Clock face/8:30',
+      }
+      const expectedResults = {
+        hasRequiredUnit: true,
+        missingRequiredUnit: false,
+        notRequiredNumber: true,
+        notRequiredScientific: true,
+        timeValue: true,
+      }
+      const expectedIssues = {
+        hasRequiredUnit: [],
+        missingRequiredUnit: [
+          generateIssue('unitClassDefaultUsed', {
+            defaultUnit: 's',
+            tag: testStrings.missingRequiredUnit,
+          }),
+        ],
+        notRequiredNumber: [],
+        notRequiredScientific: [],
+        timeValue: [],
+      }
+      return validatorSemantic(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        true,
+      )
+    })
+
+    it('should have a proper unit when required', () => {
+      const testStrings = {
+        correctUnit: 'Event/Duration/3 ms',
+        correctUnitWord: 'Event/Duration/3 milliseconds',
+        correctUnitScientific: 'Event/Duration/3.5e1 ms',
+        incorrectUnit: 'Event/Duration/3 cm',
+        incorrectUnitWord: 'Event/Duration/3 nanoseconds',
+        incorrectPrefix: 'Event/Duration/3 ns',
+        notRequiredNumber: 'Attribute/Color/Red/0.5',
+        notRequiredScientific: 'Attribute/Color/Red/5e-1',
+        properTime: 'Item/2D shape/Clock face/8:30',
+        invalidTime: 'Item/2D shape/Clock face/54:54',
+      }
+      const expectedResults = {
+        correctUnit: true,
+        correctUnitWord: true,
+        correctUnitScientific: true,
+        incorrectUnit: false,
+        incorrectUnitWord: false,
+        incorrectPrefix: false,
+        notRequiredNumber: true,
+        notRequiredScientific: true,
+        properTime: true,
+        invalidTime: false,
+      }
+      const legalTimeUnits = [
+        's',
+        'second',
+        'seconds',
+        'centiseconds',
+        'centisecond',
+        'cs',
+        'hour:min',
+        'day',
+        'days',
+        'ms',
+        'milliseconds',
+        'millisecond',
+        'minute',
+        'minutes',
+        'hour',
+        'hours',
+      ]
+      const expectedIssues = {
+        correctUnit: [],
+        correctUnitWord: [],
+        correctUnitScientific: [],
+        incorrectUnit: [
+          generateIssue('unitClassInvalidUnit', {
+            tag: testStrings.incorrectUnit,
+            unitClassUnits: legalTimeUnits.sort().join(','),
+          }),
+        ],
+        incorrectUnitWord: [
+          generateIssue('unitClassInvalidUnit', {
+            tag: testStrings.incorrectUnitWord,
+            unitClassUnits: legalTimeUnits.sort().join(','),
+          }),
+        ],
+        incorrectPrefix: [
+          generateIssue('unitClassInvalidUnit', {
+            tag: testStrings.incorrectPrefix,
+            unitClassUnits: legalTimeUnits.sort().join(','),
+          }),
+        ],
+        notRequiredNumber: [],
+        notRequiredScientific: [],
+        properTime: [],
+        invalidTime: [
+          generateIssue('unitClassInvalidUnit', {
+            tag: testStrings.invalidTime,
+            unitClassUnits: legalTimeUnits.sort().join(','),
+          }),
+        ],
+      }
+      return validatorSemantic(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        false,
+      )
     })
   })
 })
