@@ -51,7 +51,7 @@ const getTagName = function(tag) {
 /**
  * Get the list of valid derivatives of a unit.
  */
-const getValidDerivativeUnits = function(unit, hedSchema) {
+const getValidUnitPlural = function(unit, hedSchema) {
   const derivativeUnits = [unit]
   if (
     hedSchema.hasUnitModifiers &&
@@ -108,7 +108,7 @@ const validateUnits = function(
     return second.length - first.length
   })
   for (const unit of tagUnitClassUnits) {
-    const derivativeUnits = getValidDerivativeUnits(unit, hedSchema)
+    const derivativeUnits = getValidUnitPlural(unit, hedSchema)
     for (const derivativeUnit of derivativeUnits) {
       let foundUnit, strippedValue
       if (
