@@ -1,12 +1,12 @@
 const assert = require('chai').assert
 const validate = require('../validators')
 
-const localHedSchemaFile = 'tests/data/HEDv1.2.0-devunit.xml'
-const localHedSchemaVersion = 'v1.2.0-devunit'
+const localHedSchemaFile = 'tests/data/HED7.1.0.xml'
+const localHedSchemaVersion = '7.1.0'
 
 describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', () => {
-    const remoteHedSchemaVersion = 'v1.2.0-devunit'
+    const remoteHedSchemaVersion = '7.1.0'
     return validate.schema
       .buildSchema({ version: remoteHedSchemaVersion })
       .then(hedSchema => {

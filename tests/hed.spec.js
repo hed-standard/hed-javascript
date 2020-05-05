@@ -3,7 +3,7 @@ const validate = require('../validators')
 const generateIssue = require('../utils/issues')
 
 describe('Latest HED Schema', () => {
-  const hedSchemaFile = 'tests/data/HEDv1.2.0-devunit.xml'
+  const hedSchemaFile = 'tests/data/HED7.1.0.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
@@ -133,7 +133,7 @@ describe('Latest HED Schema', () => {
         valid:
           '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
         validNestedParentheses:
-          '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Attribute/Duration/3 ms',
+          '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Event/Duration/3 ms',
       }
       const expectedResults = {
         missingOpeningComma: false,
@@ -345,7 +345,7 @@ describe('Latest HED Schema', () => {
 
     it('should exist in the schema or be an allowed extension', () => {
       const testStrings = {
-        takesValue: 'Attribute/Duration/3 ms',
+        takesValue: 'Event/Duration/3 ms',
         full: 'Attribute/Object side/Left',
         extensionAllowed: 'Item/Object/Person/Driver',
         leafExtension: 'Event/Category/Initial context/Something',
@@ -437,8 +437,8 @@ describe('Latest HED Schema', () => {
 
     it('should have a unit when required', () => {
       const testStrings = {
-        hasRequiredUnit: 'Attribute/Duration/3 ms',
-        missingRequiredUnit: 'Attribute/Duration/3',
+        hasRequiredUnit: 'Event/Duration/3 ms',
+        missingRequiredUnit: 'Event/Duration/3',
         notRequiredNoNumber: 'Attribute/Color/Red',
         notRequiredNumber: 'Attribute/Color/Red/0.5',
         notRequiredScientific: 'Attribute/Color/Red/5.2e-1',
@@ -475,14 +475,14 @@ describe('Latest HED Schema', () => {
 
     it('should have a proper unit when required', () => {
       const testStrings = {
-        correctUnit: 'Attribute/Duration/3 ms',
-        correctUnitScientific: 'Attribute/Duration/3.5e1 ms',
-        correctSingularUnit: 'Attribute/Duration/1 millisecond',
-        correctPluralUnit: 'Attribute/Duration/3 milliseconds',
+        correctUnit: 'Event/Duration/3 ms',
+        correctUnitScientific: 'Event/Duration/3.5e1 ms',
+        correctSingularUnit: 'Event/Duration/1 millisecond',
+        correctPluralUnit: 'Event/Duration/3 milliseconds',
         correctNoPluralUnit: 'Attribute/Temporal rate/3 hertz',
-        correctNonSymbolCapitalizedUnit: 'Attribute/Duration/3 MilliSeconds',
+        correctNonSymbolCapitalizedUnit: 'Event/Duration/3 MilliSeconds',
         correctSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 kHz',
-        incorrectUnit: 'Attribute/Duration/3 cm',
+        incorrectUnit: 'Event/Duration/3 cm',
         incorrectPluralUnit: 'Attribute/Temporal rate/3 hertzs',
         incorrectSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 hz',
         incorrectSymbolCapitalizedUnitModifier: 'Attribute/Temporal rate/3 KHz',
@@ -785,7 +785,7 @@ describe('Latest HED Schema', () => {
   })
 })
 
-describe('Pre-v8.0.0 HED Schemas', function() {
+describe('Pre-v7.1.0 HED Schemas', function() {
   const hedSchemaFile = 'tests/data/HEDv7.0.4.xml'
   let hedSchemaPromise
 

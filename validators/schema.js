@@ -116,6 +116,7 @@ const SchemaDictionaries = {
           unitClassElement,
           unitClassUnitsElement,
         )
+        console.log(elementUnits)
         const units = elementUnits.split(',')
         this.dictionaries[unitsElement][unitClassName] = units.map(unit => {
           return unit.toLowerCase()
@@ -306,7 +307,7 @@ const Schema = function(
 const loadRemoteSchema = function(version) {
   const fileName = 'HED' + version + '.xml'
   const basePath =
-    'https://raw.githubusercontent.com/hed-standard/hed-specification/HED-devunit/hedxml-devunit/'
+    'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
   const url = basePath + fileName
   return files
     .readHTTPSFile(url)
