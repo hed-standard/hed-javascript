@@ -116,7 +116,6 @@ const SchemaDictionaries = {
           unitClassElement,
           unitClassUnitsElement,
         )
-        console.log(elementUnits)
         const units = elementUnits.split(',')
         this.dictionaries[unitsElement][unitClassName] = units.map(unit => {
           return unit.toLowerCase()
