@@ -34,7 +34,7 @@ describe('HED tag string utility functions', () => {
   })
 })
 
-const localHedSchemaFile = 'tests/data/HEDv1.2.0-devunit.xml'
+const localHedSchemaFile = 'tests/data/HED7.1.0.xml'
 
 describe('HED tag schema-based utility functions', () => {
   let hedSchemaPromise
@@ -46,7 +46,7 @@ describe('HED tag schema-based utility functions', () => {
   it('should correctly determine if a tag exists', () => {
     const validTag1 = 'attribute/direction/left'
     const validTag2 = 'item/object/person'
-    const validTag3 = 'attribute/duration/#'
+    const validTag3 = 'event/duration/#'
     const invalidTag1 = 'something'
     const invalidTag2 = 'attribute/nothing'
     const invalidTag3 = 'participant/#'
@@ -68,8 +68,8 @@ describe('HED tag schema-based utility functions', () => {
 
   it('should correctly determine if a tag takes a value', () => {
     const valueTag1 = 'attribute/direction/left/35 px'
-    const valueTag2 = 'attribute/id/value/35'
-    const valueTag3 = 'attribute/duration/#'
+    const valueTag2 = 'event/id/35'
+    const valueTag3 = 'event/duration/#'
     const noValueTag1 = 'something'
     const noValueTag2 = 'attribute/color/black'
     const noValueTag3 = 'participant/#'
@@ -92,7 +92,7 @@ describe('HED tag schema-based utility functions', () => {
   it('should correctly determine if a tag has a unit class', () => {
     const unitClassTag1 = 'attribute/direction/left/35 px'
     const unitClassTag2 = 'participant/effect/cognitive/reward/$10.55'
-    const unitClassTag3 = 'attribute/duration/#'
+    const unitClassTag3 = 'event/duration/#'
     const noUnitClassTag1 = 'something'
     const noUnitClassTag2 = 'attribute/color/red/0.5'
     const noUnitClassTag3 = 'participant/#'
@@ -153,7 +153,7 @@ describe('HED tag schema-based utility functions', () => {
   it("should correctly determine a tag's unit classes, if any", () => {
     const unitClassTag1 = 'attribute/direction/left/35 px'
     const unitClassTag2 = 'participant/effect/cognitive/reward/$10.55'
-    const unitClassTag3 = 'attribute/duration/#'
+    const unitClassTag3 = 'event/duration/#'
     const noUnitClassTag = 'attribute/color/red/0.5'
     return hedSchemaPromise.then(hedSchema => {
       const unitClassTag1Result = hed.getTagUnitClasses(

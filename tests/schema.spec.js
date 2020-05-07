@@ -120,9 +120,9 @@ describe('HED schemas', function() {
         jerk: 'm-per-s^3',
         luminousIntensity: 'cd',
         memorySize: 'B',
-        physicalLength: 'cm',
+        physicalLength: 'm',
         pixels: 'px',
-        speed: 'cm-per-s',
+        speed: 'm-per-s',
         time: 's',
         area: 'm^2',
         volume: 'm^3',
@@ -154,12 +154,12 @@ describe('HED schemas', function() {
   it('should contain the correct (large) numbers of tags with certain attributes', () => {
     return hedSchemaPromise.then(hedSchema => {
       const expectedTagCount = {
-        isNumeric: 79,
-        predicateType: 8,
+        isNumeric: 80,
+        predicateType: 20,
         recommended: 0,
-        requireChild: 59,
-        tags: 1093,
-        takesValue: 98,
+        requireChild: 64,
+        tags: 1116,
+        takesValue: 119,
         unitClass: 63,
       }
 

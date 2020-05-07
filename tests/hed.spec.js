@@ -786,7 +786,7 @@ describe('Latest HED Schema', () => {
 })
 
 describe('Pre-v7.1.0 HED Schemas', function() {
-  const hedSchemaFile = 'tests/data/HEDv7.0.4.xml'
+  const hedSchemaFile = 'tests/data/HED7.0.4.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
