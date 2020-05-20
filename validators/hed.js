@@ -316,7 +316,7 @@ const checkIfTagUnitClassUnitsAreValid = function(
     )
     const valid =
       (tagUnitClasses.includes(timeUnitClass) &&
-        utils.string.isHourMinuteTime(formattedTagUnitValue)) ||
+        utils.string.isClockFaceTime(formattedTagUnitValue)) ||
       digitExpression.test(
         utils.HED.validateUnits(
           originalTagUnitValue,
