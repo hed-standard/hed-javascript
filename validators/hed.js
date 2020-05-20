@@ -11,6 +11,8 @@ const delimiters = [comma, tilde]
 const uniqueType = 'unique'
 const requiredType = 'required'
 const requireChildType = 'requireChild'
+const unitsElement = 'units'
+const clockTimeUnitClass = 'clockTime'
 const timeUnitClass = 'time'
 
 const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
@@ -314,18 +316,30 @@ const checkIfTagUnitClassUnitsAreValid = function(
       formattedTag,
       hedSchema,
     )
-    const valid =
-      (tagUnitClasses.includes(timeUnitClass) &&
-        utils.string.isClockFaceTime(formattedTagUnitValue)) ||
-      digitExpression.test(
-        utils.HED.validateUnits(
-          originalTagUnitValue,
-          formattedTagUnitValue,
-          tagUnitClassUnits,
-          hedSchema,
-        ),
-      )
-    if (!valid) {
+    if (clockTimeUnitClass in hedSchema.dictionaries[unitsElement]) {
+      if (
+        tagUnitClasses.includes(clockTimeUnitClass) &&
+        utils.string.isClockFaceTime(formattedTagUnitValue)
+      ) {
+        return true
+      }
+    } else if (timeUnitClass in hedSchema.dictionaries[unitsElement]) {
+      if (
+        tagUnitClasses.includes(timeUnitClass) &&
+        utils.string.isClockFaceTime(formattedTagUnitValue)
+      ) {
+        return true
+      }
+    }
+    const validUnit = digitExpression.test(
+      utils.HED.validateUnits(
+        originalTagUnitValue,
+        formattedTagUnitValue,
+        tagUnitClassUnits,
+        hedSchema,
+      ),
+    )
+    if (!validUnit) {
       issues.push(
         utils.generateIssue('unitClassInvalidUnit', {
           tag: originalTag,
@@ -333,7 +347,7 @@ const checkIfTagUnitClassUnitsAreValid = function(
         }),
       )
     }
-    return valid
+    return validUnit
   } else {
     return true
   }

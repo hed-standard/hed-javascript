@@ -62,7 +62,7 @@ describe('HED tag string utility functions', () => {
     })
   })
 
-  const localHedSchemaFile = 'tests/data/HED7.1.0.xml'
+  const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
 
   describe('HED tag schema-based utility functions', () => {
     let hedSchemaPromise
@@ -260,7 +260,7 @@ describe('HED tag string utility functions', () => {
         'pixel',
       ]
       const currencyUnits = ['dollar', '$', 'point', 'fraction']
-      const timeUnits = ['second', 's', 'hour:min', 'day', 'minute', 'hour']
+      const timeUnits = ['second', 's', 'day', 'minute', 'hour']
       const expectedResults = {
         suffixed: directionUnits,
         prefixed: currencyUnits,
