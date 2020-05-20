@@ -3,7 +3,7 @@ const validate = require('../validators')
 const generateIssue = require('../utils/issues')
 
 describe('Latest HED Schema', () => {
-  const hedSchemaFile = 'tests/data/HED7.1.0.xml'
+  const hedSchemaFile = 'tests/data/HED7.1.1.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
@@ -508,14 +508,8 @@ describe('Latest HED Schema', () => {
         properTime: true,
         invalidTime: false,
       }
-      const legalTimeUnits = [
-        's',
-        'second',
-        'hour:min',
-        'day',
-        'minute',
-        'hour',
-      ]
+      const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
+      const legalClockTimeUnits = ['h:m', 'h:m:s', 'hour:min', 'hour:min:sec']
       const legalFrequencyUnits = ['Hz', 'hertz']
       const expectedIssues = {
         correctUnit: [],
@@ -555,7 +549,7 @@ describe('Latest HED Schema', () => {
         invalidTime: [
           generateIssue('unitClassInvalidUnit', {
             tag: testStrings.invalidTime,
-            unitClassUnits: legalTimeUnits.sort().join(','),
+            unitClassUnits: legalClockTimeUnits.sort().join(','),
           }),
         ],
       }
@@ -675,6 +669,8 @@ describe('Latest HED Schema', () => {
             parsedTestString,
             schema,
             testIssues,
+            true,
+            true,
           )
         },
       )

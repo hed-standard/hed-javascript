@@ -1,12 +1,12 @@
 const assert = require('chai').assert
 const validate = require('../validators')
 
-const localHedSchemaFile = 'tests/data/HED7.1.0.xml'
-const localHedSchemaVersion = '7.1.0'
+const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
+const localHedSchemaVersion = '7.1.1'
 
 describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', () => {
-    const remoteHedSchemaVersion = '7.1.0'
+    const remoteHedSchemaVersion = '7.1.1'
     return validate.schema
       .buildSchema({ version: remoteHedSchemaVersion })
       .then(hedSchema => {
@@ -124,6 +124,7 @@ describe('HED schemas', function() {
         pixels: 'px',
         speed: 'm-per-s',
         time: 's',
+        clockTime: 'hour:min',
         area: 'm^2',
         volume: 'm^3',
       }
@@ -139,7 +140,8 @@ describe('HED schemas', function() {
         physicalLength: ['metre', 'm', 'foot', 'mile'],
         pixels: ['pixel', 'px'],
         speed: ['m-per-s', 'mph', 'kph'],
-        time: ['second', 's', 'hour:min', 'day', 'minute', 'hour'],
+        time: ['second', 's', 'day', 'minute', 'hour'],
+        clockTime: ['hour:min', 'h:m', 'hour:min:sec', 'h:m:s'],
         area: ['m^2', 'px^2', 'pixel^2'],
         volume: ['m^3'],
       }

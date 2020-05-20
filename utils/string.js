@@ -32,18 +32,18 @@ const capitalizeString = function(string) {
 }
 
 /**
- * Determine if a string is a valid hour-minute time.
+ * Determine if a string is a valid clock face time.
  *
  * @param timeString The string to check.
- * @return {boolean} Whether the string is a valid hour-minute time.
+ * @return {boolean} Whether the string is a valid clock face time.
  */
-const isHourMinuteTime = function(timeString) {
-  return date.isValid(timeString, 'H:mm')
+const isClockFaceTime = function(timeString) {
+  return date.isValid(timeString, 'H:mm') || date.isValid(timeString, 'H:mm:ss')
 }
 
 module.exports = {
   stringIsEmpty: stringIsEmpty,
   getCharacterCount: getCharacterCount,
   capitalizeString: capitalizeString,
-  isHourMinuteTime: isHourMinuteTime,
+  isClockFaceTime: isClockFaceTime,
 }
