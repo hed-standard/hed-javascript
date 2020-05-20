@@ -675,6 +675,8 @@ describe('Latest HED Schema', () => {
             parsedTestString,
             schema,
             testIssues,
+            true,
+            true,
           )
         },
       )

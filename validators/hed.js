@@ -572,8 +572,18 @@ const validateHedTagGroups = function(parsedString, issues) {
 /**
  * Validate the top-level HED tags in a parsed HED string.
  */
-const validateTopLevelTags = function(parsedString, hedSchema, issues) {
-  return checkForRequiredTags(parsedString, hedSchema, issues)
+const validateTopLevelTags = function(
+  parsedString,
+  hedSchema,
+  issues,
+  doSemanticValidation,
+  checkForWarnings,
+) {
+  if (doSemanticValidation && checkForWarnings) {
+    return checkForRequiredTags(parsedString, hedSchema, issues)
+  } else {
+    return true
+  }
 }
 
 /**
@@ -602,9 +612,15 @@ const validateHedString = function(
   }
 
   let valid = true
-  if (checkForWarnings) {
-    valid = valid && validateTopLevelTags(parsedString, hedSchema, issues)
-  }
+  valid =
+    valid &&
+    validateTopLevelTags(
+      parsedString,
+      hedSchema,
+      issues,
+      doSemanticValidation,
+      checkForWarnings,
+    )
   valid =
     valid &&
     validateIndividualHedTags(
