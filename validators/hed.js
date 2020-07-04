@@ -92,7 +92,11 @@ const findDelimiterIssuesInHedString = function(hedString, issues) {
         currentCharacter,
       )
     ) {
-      issues.push(utils.generateIssue('commaMissing', { tag: currentTag }))
+      issues.push(
+        utils.generateIssue('commaMissing', {
+          tag: currentTag.slice(0, -1),
+        }),
+      )
       break
     }
     lastNonEmptyValidCharacter = currentCharacter

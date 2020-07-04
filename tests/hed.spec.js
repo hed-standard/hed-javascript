@@ -154,7 +154,7 @@ describe('Latest HED Schema', () => {
         ],
         missingClosingComma: [
           generateIssue('commaMissing', {
-            tag: '/Participant/Effect/Body part/Arm)/',
+            tag: '/Participant/Effect/Body part/Arm)',
           }),
         ],
         extraOpeningComma: [
