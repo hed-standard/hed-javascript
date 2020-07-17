@@ -38,7 +38,9 @@ const capitalizeString = function(string) {
  * @return {boolean} Whether the string is a valid clock face time.
  */
 const isClockFaceTime = function(timeString) {
-  return date.isValid(timeString, 'H:mm') || date.isValid(timeString, 'H:mm:ss')
+  return (
+    date.isValid(timeString, 'HH:mm') || date.isValid(timeString, 'HH:mm:ss')
+  )
 }
 
 module.exports = {
