@@ -442,7 +442,7 @@ describe('Latest HED Schema', () => {
         notRequiredNoNumber: 'Attribute/Color/Red',
         notRequiredNumber: 'Attribute/Color/Red/0.5',
         notRequiredScientific: 'Attribute/Color/Red/5.2e-1',
-        timeValue: 'Item/2D shape/Clock face/8:30',
+        timeValue: 'Item/2D shape/Clock face/08:30',
       }
       const expectedResults = {
         hasRequiredUnit: true,
@@ -488,7 +488,7 @@ describe('Latest HED Schema', () => {
         incorrectSymbolCapitalizedUnitModifier: 'Attribute/Temporal rate/3 KHz',
         notRequiredNumber: 'Attribute/Color/Red/0.5',
         notRequiredScientific: 'Attribute/Color/Red/5e-1',
-        properTime: 'Item/2D shape/Clock face/8:30',
+        properTime: 'Item/2D shape/Clock face/08:30',
         invalidTime: 'Item/2D shape/Clock face/54:54',
       }
       const expectedResults = {
@@ -848,7 +848,7 @@ describe('Pre-v7.1.0 HED Schemas', function() {
         missingRequiredUnit: 'Event/Duration/3',
         notRequiredNumber: 'Attribute/Color/Red/0.5',
         notRequiredScientific: 'Attribute/Color/Red/5.2e-1',
-        timeValue: 'Item/2D shape/Clock face/8:30',
+        timeValue: 'Item/2D shape/Clock face/08:30',
       }
       const expectedResults = {
         hasRequiredUnit: true,
@@ -887,7 +887,7 @@ describe('Pre-v7.1.0 HED Schemas', function() {
         incorrectPrefix: 'Event/Duration/3 ns',
         notRequiredNumber: 'Attribute/Color/Red/0.5',
         notRequiredScientific: 'Attribute/Color/Red/5e-1',
-        properTime: 'Item/2D shape/Clock face/8:30',
+        properTime: 'Item/2D shape/Clock face/08:30',
         invalidTime: 'Item/2D shape/Clock face/54:54',
       }
       const expectedResults = {

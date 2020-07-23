@@ -71,12 +71,13 @@ describe('Valid HED times', function() {
       validPM: '23:52',
       validMidnight: '00:55',
       validHour: '11:00',
-      validSingleDigitHour: '8:24',
+      validSingleDigitHour: '08:30',
       validSeconds: '19:33:47',
     }
     const invalidTestStrings = {
       invalidDate: '8/8/2019',
       invalidHour: '25:11',
+      invalidSingleDigitHour: '8:30',
       invalidMinute: '12:65',
       invalidSecond: '15:45:82',
       invalidString: 'not a time',
