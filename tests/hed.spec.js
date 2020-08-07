@@ -509,7 +509,7 @@ describe('Latest HED Schema', () => {
         invalidTime: false,
       }
       const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
-      const legalClockTimeUnits = ['h:m', 'h:m:s', 'hour:min', 'hour:min:sec']
+      const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
       const legalFrequencyUnits = ['Hz', 'hertz']
       const expectedIssues = {
         correctUnit: [],

@@ -125,6 +125,7 @@ describe('HED schemas', function() {
         speed: 'm-per-s',
         time: 's',
         clockTime: 'hour:min',
+        dateTime: 'YYYY-MM-DDThh:mm:ss',
         area: 'm^2',
         volume: 'm^3',
       }
@@ -141,7 +142,8 @@ describe('HED schemas', function() {
         pixels: ['pixel', 'px'],
         speed: ['m-per-s', 'mph', 'kph'],
         time: ['second', 's', 'day', 'minute', 'hour'],
-        clockTime: ['hour:min', 'h:m', 'hour:min:sec', 'h:m:s'],
+        clockTime: ['hour:min', 'hour:min:sec'],
+        dateTime: ['YYYY-MM-DDThh:mm:ss'],
         area: ['m^2', 'px^2', 'pixel^2'],
         volume: ['m^3'],
       }
