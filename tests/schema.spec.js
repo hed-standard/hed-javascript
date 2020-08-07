@@ -183,12 +183,14 @@ describe('HED schemas', function() {
       const testStrings = {
         value:
           'Attribute/Location/Reference frame/Relative to participant/Azimuth/#',
+        valueParent:
+          'Attribute/Location/Reference frame/Relative to participant/Azimuth',
         extensionAllowed: 'Item/Object/Road sign',
       }
       const expectedResults = {
         value: {
           default: false,
-          extensionAllowed: true,
+          extensionAllowed: false,
           isNumeric: true,
           position: false,
           predicateType: false,
@@ -199,6 +201,20 @@ describe('HED schemas', function() {
           takesValue: true,
           unique: false,
           unitClass: true,
+        },
+        valueParent: {
+          default: false,
+          extensionAllowed: true,
+          isNumeric: false,
+          position: false,
+          predicateType: false,
+          recommended: false,
+          required: false,
+          requireChild: true,
+          tags: true,
+          takesValue: false,
+          unique: false,
+          unitClass: false,
         },
         extensionAllowed: {
           default: false,

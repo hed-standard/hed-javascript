@@ -265,6 +265,12 @@ const SchemaDictionaries = {
     elementName = 'node',
     excludeTakeValueTags = true,
   ) {
+    if (
+      excludeTakeValueTags &&
+      this.getElementTagValue(parentElement) === '#'
+    ) {
+      return []
+    }
     const tagElementChildren = this.getElementsByName(
       elementName,
       parentElement,
