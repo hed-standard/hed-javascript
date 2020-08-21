@@ -112,6 +112,7 @@ describe('Valid HED date-times', function() {
     }
     const invalidTestStrings = {
       invalidDate: '8/8/2019',
+      invalidTime: '00:55:00',
       invalidHour: '2000-01-01T25:11',
       invalidSingleDigitHour: '2000-01-01T8:30',
       invalidMinute: '2000-01-01T12:65',
