@@ -1,4 +1,7 @@
 const date = require('date-and-time')
+const parseISO = require('date-fns/parseISO')
+const dateIsValid = require('date-fns/isValid')
+const rfc3339ish = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?$/
 
 /**
  * Check if a string is empty or only whitespace.
@@ -43,9 +46,22 @@ const isClockFaceTime = function(timeString) {
   )
 }
 
+/**
+ * Determine if a string is a valid date-time.
+ *
+ * @param dateTimeString The string to check.
+ * @return {boolean} Whether the string is a valid date-time.
+ */
+const isDateTime = function(dateTimeString) {
+  return (
+    dateIsValid(parseISO(dateTimeString)) && rfc3339ish.test(dateTimeString)
+  )
+}
+
 module.exports = {
   stringIsEmpty: stringIsEmpty,
   getCharacterCount: getCharacterCount,
   capitalizeString: capitalizeString,
   isClockFaceTime: isClockFaceTime,
+  isDateTime: isDateTime,
 }

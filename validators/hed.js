@@ -13,6 +13,7 @@ const requiredType = 'required'
 const requireChildType = 'requireChild'
 const unitsElement = 'units'
 const clockTimeUnitClass = 'clockTime'
+const dateTimeUnitClass = 'dateTime'
 const timeUnitClass = 'time'
 
 const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
@@ -320,6 +321,14 @@ const checkIfTagUnitClassUnitsAreValid = function(
       formattedTag,
       hedSchema,
     )
+    if (dateTimeUnitClass in hedSchema.dictionaries[unitsElement]) {
+      if (
+        tagUnitClasses.includes(dateTimeUnitClass) &&
+        utils.string.isDateTime(formattedTagUnitValue)
+      ) {
+        return true
+      }
+    }
     if (clockTimeUnitClass in hedSchema.dictionaries[unitsElement]) {
       if (
         tagUnitClasses.includes(clockTimeUnitClass) &&
