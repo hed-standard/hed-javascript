@@ -18,19 +18,19 @@ describe('Latest HED Schema', () => {
   ) {
     return hedSchemaPromise.then(schema => {
       for (const testStringKey in testStrings) {
-        const testIssues = []
-        const parsedTestString = validate.stringParser.parseHedString(
+        const [parsedTestString, parseIssues] = validate.stringParser.parseHedString(
           testStrings[testStringKey],
-          testIssues,
         )
-        const testResult = testFunction(parsedTestString, testIssues, schema)
+        const testIssues = testFunction(parsedTestString, schema)
+        const issues = [].concat(parseIssues, testIssues)
+        const testResult = issues.length === 0
         assert.strictEqual(
           testResult,
           expectedResults[testStringKey],
           testStrings[testStringKey],
         )
         assert.sameDeepMembers(
-          testIssues,
+          issues,
           expectedIssues[testStringKey],
           testStrings[testStringKey],
         )
@@ -45,19 +45,19 @@ describe('Latest HED Schema', () => {
     testFunction,
   ) {
     for (const testStringKey in testStrings) {
-      const testIssues = []
-      const parsedTestString = validate.stringParser.parseHedString(
+      const [parsedTestString, parseIssues] = validate.stringParser.parseHedString(
         testStrings[testStringKey],
-        testIssues,
       )
-      const testResult = testFunction(parsedTestString, testIssues)
+      const testIssues = testFunction(parsedTestString)
+      const issues = [].concat(parseIssues, testIssues)
+      const testResult = issues.length === 0
       assert.strictEqual(
         testResult,
         expectedResults[testStringKey],
         testStrings[testStringKey],
       )
       assert.sameDeepMembers(
-        testIssues,
+        issues,
         expectedIssues[testStringKey],
         testStrings[testStringKey],
       )
@@ -309,11 +309,10 @@ describe('Latest HED Schema', () => {
         testStrings,
         expectedResults,
         expectedIssues,
-        function(parsedTestString, testIssues) {
+        function(parsedTestString) {
           return validate.HED.validateIndividualHedTags(
             parsedTestString,
             {},
-            testIssues,
             false,
             checkForWarnings,
           )
@@ -331,11 +330,10 @@ describe('Latest HED Schema', () => {
         testStrings,
         expectedResults,
         expectedIssues,
-        function(parsedTestString, testIssues, schema) {
+        function(parsedTestString, schema) {
           return validate.HED.validateIndividualHedTags(
             parsedTestString,
             schema,
-            testIssues,
             true,
             checkForWarnings,
           )
@@ -572,13 +570,8 @@ describe('Latest HED Schema', () => {
         testStrings,
         expectedResults,
         expectedIssues,
-        function(parsedTestString, testIssues) {
-          return validate.HED.validateHedTagLevels(
-            parsedTestString,
-            {},
-            testIssues,
-            false,
-          )
+        function(parsedTestString) {
+          return validate.HED.validateHedTagLevels(parsedTestString, {}, false)
         },
       )
     }
@@ -592,13 +585,8 @@ describe('Latest HED Schema', () => {
         testStrings,
         expectedResults,
         expectedIssues,
-        function(parsedTestString, testIssues, schema) {
-          return validate.HED.validateHedTagLevels(
-            parsedTestString,
-            schema,
-            testIssues,
-            true,
-          )
+        function(parsedTestString, schema) {
+          return validate.HED.validateHedTagLevels(parsedTestString, schema, true)
         },
       )
     }
@@ -664,11 +652,10 @@ describe('Latest HED Schema', () => {
         testStrings,
         expectedResults,
         expectedIssues,
-        function(parsedTestString, testIssues, schema) {
+        function(parsedTestString, schema) {
           return validate.HED.validateTopLevelTags(
             parsedTestString,
             schema,
-            testIssues,
             true,
             true,
           )
@@ -732,8 +719,8 @@ describe('Latest HED Schema', () => {
         testStrings,
         expectedResults,
         expectedIssues,
-        function(parsedTestString, testIssues) {
-          return validate.HED.validateHedTagGroups(parsedTestString, testIssues)
+        function(parsedTestString) {
+          return validate.HED.validateHedTagGroups(parsedTestString)
         },
       )
     }
@@ -799,19 +786,19 @@ describe('Pre-v7.1.0 HED Schemas', function() {
   ) {
     return hedSchemaPromise.then(schema => {
       for (const testStringKey in testStrings) {
-        const testIssues = []
-        const parsedTestString = validate.stringParser.parseHedString(
+        const [parsedTestString, parseIssues] = validate.stringParser.parseHedString(
           testStrings[testStringKey],
-          testIssues,
         )
-        const testResult = testFunction(parsedTestString, testIssues, schema)
+        const testIssues = testFunction(parsedTestString, schema)
+        const issues = [].concat(parseIssues, testIssues)
+        const testResult = issues.length === 0
         assert.strictEqual(
           testResult,
           expectedResults[testStringKey],
           testStrings[testStringKey],
         )
         assert.sameDeepMembers(
-          testIssues,
+          issues,
           expectedIssues[testStringKey],
           testStrings[testStringKey],
         )
@@ -830,11 +817,10 @@ describe('Pre-v7.1.0 HED Schemas', function() {
         testStrings,
         expectedResults,
         expectedIssues,
-        function(parsedTestString, testIssues, schema) {
+        function(parsedTestString, schema) {
           return validate.HED.validateIndividualHedTags(
             parsedTestString,
             schema,
-            testIssues,
             true,
             checkForWarnings,
           )

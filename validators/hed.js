@@ -23,7 +23,8 @@ const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
 /**
  * Check if group parentheses match. Pushes an issue if they don't match.
  */
-const countTagGroupParentheses = function(hedString, issues) {
+const countTagGroupParentheses = function(hedString) {
+  const issues = []
   const numberOfOpeningParentheses = utils.string.getCharacterCount(
     hedString,
     openingGroupCharacter,
@@ -40,6 +41,7 @@ const countTagGroupParentheses = function(hedString, issues) {
       }),
     )
   }
+  return issues
 }
 
 /**
@@ -58,7 +60,8 @@ const isCommaMissingAfterClosingParenthesis = function(
 /**
  * Check for delimiter issues in a HED string (e.g. missing commas adjacent to groups, extra commas or tildes).
  */
-const findDelimiterIssuesInHedString = function(hedString, issues) {
+const findDelimiterIssuesInHedString = function(hedString) {
+  const issues = []
   let lastNonEmptyValidCharacter = ''
   let lastNonEmptyValidIndex = 0
   let currentTag = ''
@@ -112,6 +115,7 @@ const findDelimiterIssuesInHedString = function(hedString, issues) {
       }),
     )
   }
+  return issues
 }
 
 const camelCase = /([A-Z-]+\s*[a-z-]*)+/
@@ -123,10 +127,9 @@ const checkCapitalization = function(
   originalTag,
   formattedTag,
   hedSchema,
-  issues,
   doSemanticValidation,
 ) {
-  let valid = true
+  const issues = []
   const tagNames = originalTag.split('/')
   if (
     doSemanticValidation &&
@@ -138,22 +141,17 @@ const checkCapitalization = function(
     const correctTagName = utils.string.capitalizeString(tagName)
     if (tagName !== correctTagName && !camelCase.test(tagName)) {
       issues.push(utils.generateIssue('capitalization', { tag: originalTag }))
-      valid = false
     }
   }
-  return valid
+  return issues
 }
 
 /**
  * Check for duplicate tags at the top level or within a single group.
  * NOTE: Nested groups are treated as single tags for this validation.
  */
-const checkForDuplicateTags = function(
-  originalTagList,
-  formattedTagList,
-  issues,
-) {
-  let valid = true
+const checkForDuplicateTags = function(originalTagList, formattedTagList) {
+  const issues = []
   const tagListLength = formattedTagList.length
   const duplicateIndices = []
   for (let i = 0; i < tagListLength; i++) {
@@ -171,11 +169,10 @@ const checkForDuplicateTags = function(
         issues.push(
           utils.generateIssue('duplicateTag', { tag: originalTagList[i] }),
         )
-        valid = false
       }
     }
   }
-  return valid
+  return issues
 }
 
 /**
@@ -185,10 +182,9 @@ const checkForMultipleUniqueTags = function(
   originalTagList,
   formattedTagList,
   hedSchema,
-  issues,
 ) {
+  const issues = []
   const uniqueTagPrefixes = hedSchema.dictionaries[uniqueType]
-  let valid = true
   for (const uniqueTagPrefix in uniqueTagPrefixes) {
     let foundOne = false
     for (const formattedTag of formattedTagList) {
@@ -201,56 +197,48 @@ const checkForMultipleUniqueTags = function(
               tag: uniqueTagPrefix,
             }),
           )
-          valid = false
           break
         }
       }
     }
   }
-  return valid
+  return issues
 }
 
 /**
  * Verify that the tilde count in a single group does not exceed 2.
  */
-const checkNumberOfGroupTildes = function(
-  originalTagGroup,
-  parsedTagGroup,
-  issues,
-) {
+const checkNumberOfGroupTildes = function(originalTagGroup, parsedTagGroup) {
+  const issues = []
   const tildeCount = utils.array.getElementCount(parsedTagGroup, tilde)
   if (tildeCount > 2) {
     issues.push(
       utils.generateIssue('tooManyTildes', { tagGroup: originalTagGroup }),
     )
-    return false
+    return issues
   }
-  return true
+  return []
 }
 
 /**
  * Check if a tag is missing a required child.
  */
-const checkIfTagRequiresChild = function(
-  originalTag,
-  formattedTag,
-  hedSchema,
-  issues,
-) {
+const checkIfTagRequiresChild = function(originalTag, formattedTag, hedSchema) {
+  const issues = []
   const invalid = formattedTag in hedSchema.dictionaries[requireChildType]
   if (invalid) {
     issues.push(utils.generateIssue('childRequired', { tag: originalTag }))
   }
-  return !invalid
+  return issues
 }
 
 /**
  * Check that all required tags are present.
  */
-const checkForRequiredTags = function(parsedString, hedSchema, issues) {
+const checkForRequiredTags = function(parsedString, hedSchema) {
+  const issues = []
   const formattedTopLevelTagList = parsedString.formattedTopLevelTags
   const requiredTagPrefixes = hedSchema.dictionaries[requiredType]
-  let valid = true
   for (const requiredTagPrefix in requiredTagPrefixes) {
     let foundOne = false
     for (const formattedTag of formattedTopLevelTagList) {
@@ -260,7 +248,6 @@ const checkForRequiredTags = function(parsedString, hedSchema, issues) {
       }
     }
     if (!foundOne) {
-      valid = false
       issues.push(
         utils.generateIssue('requiredPrefixMissing', {
           tagPrefix: requiredTagPrefix,
@@ -268,7 +255,7 @@ const checkForRequiredTags = function(parsedString, hedSchema, issues) {
       )
     }
   }
-  return valid
+  return issues
 }
 
 /**
@@ -278,8 +265,8 @@ const checkIfTagUnitClassUnitsExist = function(
   originalTag,
   formattedTag,
   hedSchema,
-  issues,
 ) {
+  const issues = []
   if (utils.HED.isUnitClassTag(formattedTag, hedSchema)) {
     const tagUnitValues = utils.HED.getTagName(formattedTag)
     const invalid = digitExpression.test(tagUnitValues)
@@ -295,9 +282,9 @@ const checkIfTagUnitClassUnitsExist = function(
         }),
       )
     }
-    return !invalid
+    return issues
   } else {
-    return true
+    return []
   }
 }
 
@@ -308,8 +295,8 @@ const checkIfTagUnitClassUnitsAreValid = function(
   originalTag,
   formattedTag,
   hedSchema,
-  issues,
 ) {
+  const issues = []
   if (
     !utils.HED.tagExistsInSchema(formattedTag, hedSchema) &&
     utils.HED.isUnitClassTag(formattedTag, hedSchema)
@@ -326,7 +313,7 @@ const checkIfTagUnitClassUnitsAreValid = function(
         tagUnitClasses.includes(dateTimeUnitClass) &&
         utils.string.isDateTime(formattedTagUnitValue)
       ) {
-        return true
+        return []
       }
     }
     if (clockTimeUnitClass in hedSchema.dictionaries[unitsElement]) {
@@ -334,14 +321,14 @@ const checkIfTagUnitClassUnitsAreValid = function(
         tagUnitClasses.includes(clockTimeUnitClass) &&
         utils.string.isClockFaceTime(formattedTagUnitValue)
       ) {
-        return true
+        return []
       }
     } else if (timeUnitClass in hedSchema.dictionaries[unitsElement]) {
       if (
         tagUnitClasses.includes(timeUnitClass) &&
         utils.string.isClockFaceTime(formattedTagUnitValue)
       ) {
-        return true
+        return []
       }
     }
     const validUnit = digitExpression.test(
@@ -360,9 +347,9 @@ const checkIfTagUnitClassUnitsAreValid = function(
         }),
       )
     }
-    return validUnit
+    return issues
   } else {
-    return true
+    return []
   }
 }
 
@@ -375,14 +362,14 @@ const checkIfTagIsValid = function(
   previousOriginalTag,
   previousFormattedTag,
   hedSchema,
-  issues,
 ) {
+  const issues = []
   if (
     utils.HED.tagExistsInSchema(formattedTag, hedSchema) || // This tag itself exists in the HED schema.
     utils.HED.tagTakesValue(formattedTag, hedSchema) || // This tag is a valid value-taking tag in the HED schema.
     formattedTag === tilde // This "tag" is a tilde.
   ) {
-    return true
+    return []
   }
   // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
   const isExtensionAllowedTag = utils.HED.isExtensionAllowedTag(
@@ -401,14 +388,14 @@ const checkIfTagIsValid = function(
         previousTag: previousOriginalTag,
       }),
     )
-    return false
+    return issues
   } else if (!isExtensionAllowedTag) {
     // This is not a valid tag.
     issues.push(utils.generateIssue('invalidTag', { tag: originalTag }))
-    return false
+    return issues
   } else {
     // This is an allowed extension.
-    return true
+    return []
   }
 }
 
@@ -417,10 +404,12 @@ const checkIfTagIsValid = function(
 /**
  * Validate the full HED string.
  */
-const validateFullHedString = function(hedString, issues) {
-  countTagGroupParentheses(hedString, issues)
-  findDelimiterIssuesInHedString(hedString, issues)
-  return issues.length === 0
+const validateFullHedString = function(hedString) {
+  const issues = [].concat(
+    countTagGroupParentheses(hedString),
+    findDelimiterIssuesInHedString(hedString),
+  )
+  return issues
 }
 
 /**
@@ -432,56 +421,39 @@ const validateIndividualHedTag = function(
   previousOriginalTag,
   previousFormattedTag,
   hedSchema,
-  issues,
   doSemanticValidation,
   checkForWarnings,
 ) {
-  let valid = true
+  let issues = []
   if (doSemanticValidation) {
-    valid =
-      valid &&
+    issues = issues.concat(
       checkIfTagIsValid(
         originalTag,
         formattedTag,
         previousOriginalTag,
         previousFormattedTag,
         hedSchema,
-        issues,
-      )
-    valid =
-      valid &&
-      checkIfTagUnitClassUnitsAreValid(
-        originalTag,
-        formattedTag,
-        hedSchema,
-        issues,
-      )
-    valid =
-      valid &&
-      checkIfTagRequiresChild(originalTag, formattedTag, hedSchema, issues)
+      ),
+      checkIfTagUnitClassUnitsAreValid(originalTag, formattedTag, hedSchema),
+      checkIfTagRequiresChild(originalTag, formattedTag, hedSchema),
+    )
     if (checkForWarnings) {
-      valid =
-        valid &&
-        checkIfTagUnitClassUnitsExist(
-          originalTag,
-          formattedTag,
-          hedSchema,
-          issues,
-        )
+      issues = issues.concat(
+        checkIfTagUnitClassUnitsExist(originalTag, formattedTag, hedSchema),
+      )
     }
   }
   if (checkForWarnings) {
-    valid =
-      valid &&
+    issues = issues.concat(
       checkCapitalization(
         originalTag,
         formattedTag,
         hedSchema,
-        issues,
         doSemanticValidation,
-      )
+      ),
+    )
   }
-  return valid
+  return issues
 }
 
 /**
@@ -490,32 +462,30 @@ const validateIndividualHedTag = function(
 const validateIndividualHedTags = function(
   parsedString,
   hedSchema,
-  issues,
   doSemanticValidation,
   checkForWarnings,
 ) {
-  let valid = true
+  let issues = []
   let previousOriginalTag = ''
   let previousFormattedTag = ''
   for (let i = 0; i < parsedString.tags.length; i++) {
     const originalTag = parsedString.tags[i]
     const formattedTag = parsedString.formattedTags[i]
-    valid =
-      valid &&
+    issues = issues.concat(
       validateIndividualHedTag(
         originalTag,
         formattedTag,
         previousOriginalTag,
         previousFormattedTag,
         hedSchema,
-        issues,
         doSemanticValidation,
         checkForWarnings,
-      )
+      ),
+    )
     previousOriginalTag = originalTag
     previousFormattedTag = formattedTag
   }
-  return valid
+  return issues
 }
 
 /**
@@ -525,23 +495,18 @@ const validateHedTagLevel = function(
   originalTagList,
   formattedTagList,
   hedSchema,
-  issues,
   doSemanticValidation,
 ) {
-  let valid = true
+  let issues = []
   if (doSemanticValidation) {
-    valid =
-      valid &&
-      checkForMultipleUniqueTags(
-        originalTagList,
-        formattedTagList,
-        hedSchema,
-        issues,
-      )
+    issues = issues.concat(
+      checkForMultipleUniqueTags(originalTagList, formattedTagList, hedSchema),
+    )
   }
-  valid =
-    valid && checkForDuplicateTags(originalTagList, formattedTagList, issues)
-  return valid
+  issues = issues.concat(
+    checkForDuplicateTags(originalTagList, formattedTagList),
+  )
+  return issues
 }
 
 /**
@@ -550,50 +515,45 @@ const validateHedTagLevel = function(
 const validateHedTagLevels = function(
   parsedString,
   hedSchema,
-  issues,
   doSemanticValidation,
 ) {
-  let valid = true
+  let issues = []
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
     const originalTagList = parsedString.tagGroups[i]
     const formattedTagList = parsedString.formattedTagGroups[i]
-    valid =
-      valid &&
-      validateHedTagLevel(originalTagList, formattedTagList, hedSchema, issues)
+    issues = issues.concat(
+      validateHedTagLevel(originalTagList, formattedTagList, hedSchema),
+    )
   }
-  valid =
-    valid &&
+  issues = issues.concat(
     validateHedTagLevel(
       parsedString.topLevelTags,
       parsedString.formattedTopLevelTags,
       hedSchema,
-      issues,
       doSemanticValidation,
-    )
-  return valid
+    ),
+  )
+  return issues
 }
 
 /**
  * Validate a HED tag group.
  */
-const validateHedTagGroup = function(originalTagGroup, parsedTagGroup, issues) {
-  let valid = true
-  valid =
-    valid && checkNumberOfGroupTildes(originalTagGroup, parsedTagGroup, issues)
-  return valid
+const validateHedTagGroup = function(originalTagGroup, parsedTagGroup) {
+  return checkNumberOfGroupTildes(originalTagGroup, parsedTagGroup)
 }
 
 /**
  * Validate the HED tag groups in a parsed HED string.
  */
-const validateHedTagGroups = function(parsedString, issues) {
-  let valid = true
+const validateHedTagGroups = function(parsedString) {
+  let issues = []
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
     const parsedTag = parsedString.tagGroups[i]
     const originalTag = parsedString.tagGroupStrings[i]
-    valid = valid && validateHedTagGroup(originalTag, parsedTag, issues)
+    issues = issues.concat(validateHedTagGroup(originalTag, parsedTag))
   }
-  return valid
+  return issues
 }
 
 /**
@@ -602,14 +562,13 @@ const validateHedTagGroups = function(parsedString, issues) {
 const validateTopLevelTags = function(
   parsedString,
   hedSchema,
-  issues,
   doSemanticValidation,
   checkForWarnings,
 ) {
   if (doSemanticValidation && checkForWarnings) {
-    return checkForRequiredTags(parsedString, hedSchema, issues)
+    return checkForRequiredTags(parsedString, hedSchema)
   } else {
-    return true
+    return []
   }
 }
 
@@ -626,42 +585,40 @@ const validateHedString = function(
   hedSchema = {},
   checkForWarnings = false,
 ) {
-  const issues = []
   const doSemanticValidation = hedSchema instanceof Schema
-  const isFullHedStringValid = validateFullHedString(hedString, issues)
-  if (!isFullHedStringValid) {
-    return [false, issues]
+  const fullHedStringIssues = validateFullHedString(hedString)
+  if (fullHedStringIssues.length !== 0) {
+    return [false, fullHedStringIssues]
   }
 
-  const parsedString = stringParser.parseHedString(hedString, issues)
-  if (issues.length !== 0) {
-    return [false, issues]
+  const [parsedString, parsedStringIssues] = stringParser.parseHedString(
+    hedString,
+  )
+  if (parsedStringIssues.length !== 0) {
+    return [false, parsedStringIssues]
   }
 
-  let valid = true
-  valid =
-    valid &&
+  const issues = [].concat(
     validateTopLevelTags(
       parsedString,
       hedSchema,
-      issues,
       doSemanticValidation,
       checkForWarnings,
-    )
-  valid =
-    valid &&
+    ),
     validateIndividualHedTags(
       parsedString,
       hedSchema,
-      issues,
       doSemanticValidation,
       checkForWarnings,
-    )
-  valid =
-    valid &&
-    validateHedTagLevels(parsedString, hedSchema, issues, doSemanticValidation)
-  valid = valid && validateHedTagGroups(parsedString, issues)
-  return [valid, issues]
+    ),
+    validateHedTagLevels(parsedString, hedSchema, doSemanticValidation),
+    validateHedTagGroups(parsedString),
+  )
+  if (issues.length === 0) {
+    return [true, []]
+  } else {
+    return [false, issues]
+  }
 }
 
 module.exports = {

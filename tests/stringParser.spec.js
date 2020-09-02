@@ -294,11 +294,8 @@ describe('HED string parsing', () => {
     it('must have the correct number of tags, top-level tags, and groups', () => {
       const hedString =
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-      const issues = []
-      const parsedString = validate.stringParser.parseHedString(
-        hedString,
-        issues,
-      )
+      const [parsedString, issues] = validate.stringParser.parseHedString(hedString)
+      assert.deepStrictEqual(issues, [])
       assert.sameDeepMembers(parsedString.tags, [
         '/Action/Reach/To touch',
         '/Attribute/Object side/Left',
@@ -321,15 +318,13 @@ describe('HED string parsing', () => {
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
       const formattedHedString =
         'action/reach/to touch,(attribute/object side/left,participant/effect/body part/arm),attribute/location/screen/top/70 px,attribute/location/screen/left/23 px'
-      const issues = []
-      const parsedString = validate.stringParser.parseHedString(
-        hedString,
-        issues,
-      )
-      const parsedFormattedString = validate.stringParser.parseHedString(
-        formattedHedString,
-        issues,
-      )
+      const [parsedString, issues] = validate.stringParser.parseHedString(hedString)
+      const [
+        parsedFormattedString,
+        formattedIssues,
+      ] = validate.stringParser.parseHedString(formattedHedString)
+      assert.deepStrictEqual(issues, [])
+      assert.deepStrictEqual(formattedIssues, [])
       assert.deepStrictEqual(
         parsedString.formattedTags,
         parsedFormattedString.tags,
