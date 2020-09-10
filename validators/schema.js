@@ -5,8 +5,8 @@ const xml2js = require('xml2js')
 // Temporary
 const xpath = require('../utils/xpath')
 
-const files = require('../utils/files')
-const arrayUtil = require('../utils/array')
+const arrayUtils = require('../utils/array')
+const schemaUtils = require('../utils/schema')
 
 const defaultUnitForTagAttribute = 'default'
 const defaultUnitForUnitClassAttribute = 'defaultUnits'
@@ -59,7 +59,7 @@ const SchemaDictionaries = {
       const [tags, tagElements] = this.getTagsByAttribute(dictionaryKey)
       if (dictionaryKey === extensionAllowedAttribute) {
         const tagDictionary = this.stringListToLowercaseDictionary(tags)
-        const childTagElements = arrayUtil.flattenDeep(
+        const childTagElements = arrayUtils.flattenDeep(
           tagElements.map(tagElement => {
             return this.getAllChildTags(tagElement)
           }),
@@ -275,7 +275,7 @@ const SchemaDictionaries = {
       elementName,
       parentElement,
     )
-    const childTags = arrayUtil.flattenDeep(
+    const childTags = arrayUtils.flattenDeep(
       tagElementChildren.map(child => {
         return this.getAllChildTags(child, elementName, excludeTakeValueTags)
       }),
@@ -309,48 +309,14 @@ const Schema = function(
   this.tagHasAttribute = tagHasAttribute
 }
 
-const loadRemoteSchema = function(version) {
-  const fileName = 'HED' + version + '.xml'
-  const basePath =
-    'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
-  const url = basePath + fileName
-  return files
-    .readHTTPSFile(url)
-    .then(data => {
-      return xml2js.parseStringPromise(data, { explicitCharkey: true })
-    })
-    .catch(error => {
-      throw new Error(
-        'Could not load HED schema version "' +
-          version +
-          '" from remote repository - "' +
-          error +
-          '".',
-      )
-    })
-}
-
-const loadLocalSchema = function(path) {
-  return files
-    .readFile(path)
-    .then(data => {
-      return xml2js.parseStringPromise(data, { explicitCharkey: true })
-    })
-    .catch(error => {
-      throw new Error(
-        'Could not load HED schema from path "' + path + '" - "' + error + '".',
-      )
-    })
-}
-
 const buildRemoteSchema = function(version = 'Latest') {
-  return loadRemoteSchema(version).then(xmlData => {
+  return schemaUtils.loadRemoteSchema(version).then(xmlData => {
     return buildSchemaObject(xmlData)
   })
 }
 
 const buildLocalSchema = function(path) {
-  return loadLocalSchema(path).then(xmlData => {
+  return schemaUtils.loadLocalSchema(path).then(xmlData => {
     return buildSchemaObject(xmlData)
   })
 }
@@ -369,6 +335,12 @@ const buildSchemaObject = function(xmlData) {
   )
 }
 
+/**
+ * Build a schema object.
+ *
+ * @param {{path: String, version: String}} schemaDef The description of which schema to use.
+ * @return {Promise<never>|Promise<Mapping>} The schema object or an error.
+ */
 const buildSchema = function(schemaDef = {}) {
   if (Object.entries(schemaDef).length === 0) {
     return buildRemoteSchema()
