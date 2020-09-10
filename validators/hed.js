@@ -575,14 +575,14 @@ const validateTopLevelTags = function(
 /**
  * Validate a HED string.
  *
- * @param hedString The HED string to validate.
- * @param hedSchema The HED schema to validate against.
- * @param checkForWarnings Whether to check for warnings or only errors.
+ * @param {String} hedString The HED string to validate.
+ * @param {Schema} hedSchema The HED schema to validate against.
+ * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @returns {Array} Whether the HED string is valid and any issues found.
  */
 const validateHedString = function(
   hedString,
-  hedSchema = {},
+  hedSchema,
   checkForWarnings = false,
 ) {
   const doSemanticValidation = hedSchema instanceof Schema
