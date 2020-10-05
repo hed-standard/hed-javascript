@@ -1,6 +1,6 @@
 const assert = require('chai').assert
 const hed = require('../hed')
-const schema = require('../../validators/schema')
+const schema = require('../../validator/schema')
 
 describe('HED tag string utility functions', () => {
   describe('Syntactic utility functions', () => {

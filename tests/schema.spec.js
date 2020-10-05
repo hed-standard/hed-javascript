@@ -1,5 +1,5 @@
 const assert = require('chai').assert
-const validate = require('../validators')
+const schema = require('../validator/schema')
 
 const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
 const localHedSchemaVersion = '7.1.1'
@@ -7,7 +7,7 @@ const localHedSchemaVersion = '7.1.1'
 describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', () => {
     const remoteHedSchemaVersion = '7.1.1'
-    return validate.schema
+    return schema
       .buildSchema({ version: remoteHedSchemaVersion })
       .then(hedSchema => {
         const hedSchemaVersion = hedSchema.version
@@ -18,12 +18,10 @@ describe('Remote HED schemas', function() {
 
 describe('Local HED schemas', function() {
   it('can be loaded from a file', () => {
-    return validate.schema
-      .buildSchema({ path: localHedSchemaFile })
-      .then(hedSchema => {
-        const hedSchemaVersion = hedSchema.version
-        assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
-      })
+    return schema.buildSchema({ path: localHedSchemaFile }).then(hedSchema => {
+      const hedSchemaVersion = hedSchema.version
+      assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
+    })
   })
 })
 
@@ -31,7 +29,7 @@ describe('HED schemas', function() {
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = validate.schema.buildSchema({ path: localHedSchemaFile })
+    hedSchemaPromise = schema.buildSchema({ path: localHedSchemaFile })
   })
 
   it('should have tag dictionaries for all required attributes', () => {

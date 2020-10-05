@@ -1,5 +1,5 @@
 const assert = require('chai').assert
-const validate = require('../validators')
+const stringParser = require('../validator/stringParser')
 const generateIssue = require('../utils/issues')
 
 describe('HED string parsing', () => {
@@ -98,7 +98,7 @@ describe('HED string parsing', () => {
         expectedResults,
         expectedIssues,
         (string, issues) => {
-          return validate.stringParser.splitHedString(string, issues)
+          return stringParser.splitHedString(string, issues)
         },
       )
     })
@@ -110,10 +110,8 @@ describe('HED string parsing', () => {
         '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)'
       const nonGroupString =
         '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm'
-      const groupResult = validate.stringParser.hedStringIsAGroup(groupString)
-      const nonGroupResult = validate.stringParser.hedStringIsAGroup(
-        nonGroupString,
-      )
+      const groupResult = stringParser.hedStringIsAGroup(groupString)
+      const nonGroupResult = stringParser.hedStringIsAGroup(nonGroupString)
       assert.strictEqual(groupResult, true)
       assert.strictEqual(nonGroupResult, false)
     })
@@ -123,7 +121,7 @@ describe('HED string parsing', () => {
         '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)'
       const formattedString =
         '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm'
-      const result = validate.stringParser.removeGroupParentheses(groupString)
+      const result = stringParser.removeGroupParentheses(groupString)
       assert.strictEqual(result, formattedString)
     })
   })
@@ -133,7 +131,7 @@ describe('HED string parsing', () => {
       const hedString =
         'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
       const issues = []
-      const result = validate.stringParser.splitHedString(hedString, issues)
+      const result = stringParser.splitHedString(hedString, issues)
       assert(result instanceof Array)
     })
 
@@ -141,7 +139,7 @@ describe('HED string parsing', () => {
       const hedString =
         'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
       const issues = []
-      const result = validate.stringParser.splitHedString(hedString, issues)
+      const result = stringParser.splitHedString(hedString, issues)
       assert.deepStrictEqual(result, [
         'Event/Category/Experimental stimulus',
         'Item/Object/Vehicle/Train',
@@ -153,7 +151,7 @@ describe('HED string parsing', () => {
       const hedString =
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
       const issues = []
-      const result = validate.stringParser.splitHedString(hedString, issues)
+      const result = stringParser.splitHedString(hedString, issues)
       assert.deepStrictEqual(result, [
         '/Action/Reach/To touch',
         '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
@@ -166,7 +164,7 @@ describe('HED string parsing', () => {
       const hedString =
         '/Item/Object/Vehicle/Car ~ /Attribute/Object control/Perturb'
       const issues = []
-      const result = validate.stringParser.splitHedString(hedString, issues)
+      const result = stringParser.splitHedString(hedString, issues)
       assert.deepStrictEqual(issues, [])
       assert.deepStrictEqual(result, [
         '/Item/Object/Vehicle/Car',
@@ -182,11 +180,11 @@ describe('HED string parsing', () => {
         'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
       const doubleQuoteIssues = []
       const normalIssues = []
-      const doubleQuoteResult = validate.stringParser.splitHedString(
+      const doubleQuoteResult = stringParser.splitHedString(
         doubleQuoteString,
         doubleQuoteIssues,
       )
-      const normalResult = validate.stringParser.splitHedString(
+      const normalResult = stringParser.splitHedString(
         normalString,
         normalIssues,
       )
@@ -243,7 +241,7 @@ describe('HED string parsing', () => {
         expectedResults,
         expectedIssues,
         (string, issues) => {
-          return validate.stringParser.splitHedString(string, issues)
+          return stringParser.splitHedString(string, issues)
         },
       )
     })
@@ -285,7 +283,7 @@ describe('HED string parsing', () => {
         openingAndClosingDoubleQuotedSlash: formattedHedTag,
       }
       validatorWithoutIssues(testStrings, expectedResults, string => {
-        return validate.stringParser.formatHedTag(string)
+        return stringParser.formatHedTag(string)
       })
     })
   })
@@ -294,7 +292,7 @@ describe('HED string parsing', () => {
     it('must have the correct number of tags, top-level tags, and groups', () => {
       const hedString =
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-      const [parsedString, issues] = validate.stringParser.parseHedString(hedString)
+      const [parsedString, issues] = stringParser.parseHedString(hedString)
       assert.deepStrictEqual(issues, [])
       assert.sameDeepMembers(parsedString.tags, [
         '/Action/Reach/To touch',
@@ -318,11 +316,11 @@ describe('HED string parsing', () => {
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
       const formattedHedString =
         'action/reach/to touch,(attribute/object side/left,participant/effect/body part/arm),attribute/location/screen/top/70 px,attribute/location/screen/left/23 px'
-      const [parsedString, issues] = validate.stringParser.parseHedString(hedString)
+      const [parsedString, issues] = stringParser.parseHedString(hedString)
       const [
         parsedFormattedString,
         formattedIssues,
-      ] = validate.stringParser.parseHedString(formattedHedString)
+      ] = stringParser.parseHedString(formattedHedString)
       assert.deepStrictEqual(issues, [])
       assert.deepStrictEqual(formattedIssues, [])
       assert.deepStrictEqual(

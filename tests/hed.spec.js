@@ -1,5 +1,7 @@
 const assert = require('chai').assert
-const validate = require('../validators')
+const hed = require('../validator/hed')
+const schema = require('../validator/schema')
+const stringParser = require('../validator/stringParser')
 const generateIssue = require('../utils/issues')
 
 describe('Latest HED Schema', () => {
@@ -7,7 +9,7 @@ describe('Latest HED Schema', () => {
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = validate.schema.buildSchema({ path: hedSchemaFile })
+    hedSchemaPromise = schema.buildSchema({ path: hedSchemaFile })
   })
 
   const validatorSemanticBase = function(
@@ -18,7 +20,7 @@ describe('Latest HED Schema', () => {
   ) {
     return hedSchemaPromise.then(schema => {
       for (const testStringKey in testStrings) {
-        const [parsedTestString, parseIssues] = validate.stringParser.parseHedString(
+        const [parsedTestString, parseIssues] = stringParser.parseHedString(
           testStrings[testStringKey],
         )
         const testIssues = testFunction(parsedTestString, schema)
@@ -45,7 +47,7 @@ describe('Latest HED Schema', () => {
     testFunction,
   ) {
     for (const testStringKey in testStrings) {
-      const [parsedTestString, parseIssues] = validate.stringParser.parseHedString(
+      const [parsedTestString, parseIssues] = stringParser.parseHedString(
         testStrings[testStringKey],
       )
       const testIssues = testFunction(parsedTestString)
@@ -67,7 +69,7 @@ describe('Latest HED Schema', () => {
   describe('Full HED Strings', () => {
     const validator = function(testStrings, expectedResults, expectedIssues) {
       for (const testStringKey in testStrings) {
-        const [testResult, testIssues] = validate.HED.validateHedString(
+        const [testResult, testIssues] = hed.validateHedString(
           testStrings[testStringKey],
         )
         assert.strictEqual(
@@ -310,7 +312,7 @@ describe('Latest HED Schema', () => {
         expectedResults,
         expectedIssues,
         function(parsedTestString) {
-          return validate.HED.validateIndividualHedTags(
+          return hed.validateIndividualHedTags(
             parsedTestString,
             {},
             false,
@@ -331,7 +333,7 @@ describe('Latest HED Schema', () => {
         expectedResults,
         expectedIssues,
         function(parsedTestString, schema) {
-          return validate.HED.validateIndividualHedTags(
+          return hed.validateIndividualHedTags(
             parsedTestString,
             schema,
             true,
@@ -571,7 +573,7 @@ describe('Latest HED Schema', () => {
         expectedResults,
         expectedIssues,
         function(parsedTestString) {
-          return validate.HED.validateHedTagLevels(parsedTestString, {}, false)
+          return hed.validateHedTagLevels(parsedTestString, {}, false)
         },
       )
     }
@@ -586,7 +588,7 @@ describe('Latest HED Schema', () => {
         expectedResults,
         expectedIssues,
         function(parsedTestString, schema) {
-          return validate.HED.validateHedTagLevels(parsedTestString, schema, true)
+          return hed.validateHedTagLevels(parsedTestString, schema, true)
         },
       )
     }
@@ -653,12 +655,7 @@ describe('Latest HED Schema', () => {
         expectedResults,
         expectedIssues,
         function(parsedTestString, schema) {
-          return validate.HED.validateTopLevelTags(
-            parsedTestString,
-            schema,
-            true,
-            true,
-          )
+          return hed.validateTopLevelTags(parsedTestString, schema, true, true)
         },
       )
     }
@@ -720,7 +717,7 @@ describe('Latest HED Schema', () => {
         expectedResults,
         expectedIssues,
         function(parsedTestString) {
-          return validate.HED.validateHedTagGroups(parsedTestString)
+          return hed.validateHedTagGroups(parsedTestString)
         },
       )
     }
@@ -761,7 +758,7 @@ describe('Latest HED Schema', () => {
     it('should comprise valid comma-separated paths', () => {
       const hedStr =
         'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
-      const [result, issues] = validate.HED.validateHedString(hedStr)
+      const [result, issues] = hed.validateHedString(hedStr, {})
       assert.strictEqual(result, true)
       assert.deepStrictEqual(issues, [])
     })
@@ -773,7 +770,7 @@ describe('Pre-v7.1.0 HED Schemas', function() {
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = validate.schema.buildSchema({
+    hedSchemaPromise = schema.buildSchema({
       path: hedSchemaFile,
     })
   })
@@ -786,7 +783,7 @@ describe('Pre-v7.1.0 HED Schemas', function() {
   ) {
     return hedSchemaPromise.then(schema => {
       for (const testStringKey in testStrings) {
-        const [parsedTestString, parseIssues] = validate.stringParser.parseHedString(
+        const [parsedTestString, parseIssues] = stringParser.parseHedString(
           testStrings[testStringKey],
         )
         const testIssues = testFunction(parsedTestString, schema)
@@ -818,7 +815,7 @@ describe('Pre-v7.1.0 HED Schemas', function() {
         expectedResults,
         expectedIssues,
         function(parsedTestString, schema) {
-          return validate.HED.validateIndividualHedTags(
+          return hed.validateIndividualHedTags(
             parsedTestString,
             schema,
             true,
