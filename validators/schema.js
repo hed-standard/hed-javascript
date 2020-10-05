@@ -338,8 +338,8 @@ const buildSchemaObject = function(xmlData) {
 /**
  * Build a schema object.
  *
- * @param {{path: String, version: String}} schemaDef The description of which schema to use.
- * @return {Promise<never>|Promise<Mapping>} The schema object or an error.
+ * @param {{path: String?, version: String?}} schemaDef The description of which schema to use.
+ * @return {Promise<never>|Promise<Schema>} The schema object or an error.
  */
 const buildSchema = function(schemaDef = {}) {
   if (Object.entries(schemaDef).length === 0) {
