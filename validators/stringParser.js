@@ -40,7 +40,7 @@ const splitHedString = function(hedString, issues) {
   let currentTag = ''
   // Loop a character at a time.
   for (let i = 0; i < hedString.length; i++) {
-    let character = hedString.charAt(i)
+    const character = hedString.charAt(i)
     if (character === doubleQuoteCharacter) {
       // Skip double quotes
       continue
