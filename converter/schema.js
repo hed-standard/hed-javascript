@@ -21,17 +21,18 @@ const buildMappingObject = function(xmlData) {
     }
     const tagPath = getTagPathFromTagElement(tagElement)
     const shortPath = tagPath[0]
+    const cleanedShortPath = shortPath.toLowerCase()
     tagPath.reverse()
     const longPath = tagPath.join('/')
     const tagObject = new TagEntry(shortPath, longPath)
-    if (!(shortPath in nodeData)) {
-      nodeData[shortPath] = tagObject
+    if (!(cleanedShortPath in nodeData)) {
+      nodeData[cleanedShortPath] = tagObject
     } else {
       hasNoDuplicates = false
-      if (!Array.isArray(nodeData[shortPath])) {
-        nodeData[shortPath] = [nodeData[shortPath]]
+      if (!Array.isArray(nodeData[cleanedShortPath])) {
+        nodeData[cleanedShortPath] = [nodeData[cleanedShortPath]]
       }
-      nodeData[shortPath].push(tagObject)
+      nodeData[cleanedShortPath].push(tagObject)
     }
   }
   return new Mapping(nodeData, hasNoDuplicates)

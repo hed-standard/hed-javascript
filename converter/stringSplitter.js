@@ -10,7 +10,7 @@ const tagDelimiters = [',', '(', ')', '~']
 const stringSplitter = function(hedString) {
   const resultPositions = []
   let currentSpacing = 0
-  let insideDelimiter = false
+  let insideDelimiter = true
   let startPosition = -1
   let lastEndPosition = 0
 
