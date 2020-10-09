@@ -22,9 +22,10 @@ const removeSlashesAndSpaces = function(hedString) {
  *
  * @param {Mapping} mapping The short-to-long mapping.
  * @param {string} hedTag The HED tag to convert.
+ * @param {number[]} offset The offset of this tag within the HED string.
  * @return {[string, []]} The long-form tag and any issues.
  */
-const convertTagToLong = function(mapping, hedTag) {
+const convertTagToLong = function(mapping, hedTag, offset) {
   if (hedTag.startsWith('/')) {
     hedTag = hedTag.slice(1)
   }
@@ -57,8 +58,8 @@ const convertTagToLong = function(mapping, hedTag) {
           return [
             hedTag,
             generateIssue('noValidTagFound', hedTag, {}, [
-              startingIndex,
-              endingIndex,
+              startingIndex + offset[0],
+              endingIndex + offset[1],
             ]),
           ]
         }
@@ -77,7 +78,7 @@ const convertTagToLong = function(mapping, hedTag) {
               'invalidParentNode',
               hedTag,
               { parentTag: tagEntry.longTag },
-              [startingIndex, endingIndex],
+              [startingIndex + offset[0], endingIndex + offset[1]],
             ),
           ],
         ]
@@ -93,7 +94,7 @@ const convertTagToLong = function(mapping, hedTag) {
             'invalidParentNode',
             hedTag,
             { parentTag: mapping.mappingData[hedTag].longTag },
-            [startingIndex, endingIndex],
+            [startingIndex + offset[0], endingIndex + offset[1]],
           ),
         ],
       ]
@@ -110,9 +111,10 @@ const convertTagToLong = function(mapping, hedTag) {
  *
  * @param {Mapping} mapping The short-to-long mapping.
  * @param {string} hedTag The HED tag to convert.
+ * @param {number[]} offset The offset of this tag within the HED string.
  * @return {[string, []]} The short-form tag and any issues.
  */
-const convertTagToShort = function(mapping, hedTag) {
+const convertTagToShort = function(mapping, hedTag, offset) {
   if (hedTag.startsWith('/')) {
     hedTag = hedTag.slice(1)
   }
@@ -150,7 +152,12 @@ const convertTagToShort = function(mapping, hedTag) {
   if (foundTagEntry === null) {
     return [
       hedTag,
-      [generateIssue('noValidTagFound', hedTag, {}, [index, lastFoundIndex])],
+      [
+        generateIssue('noValidTagFound', hedTag, {}, [
+          index + offset[0],
+          lastFoundIndex + offset[1],
+        ]),
+      ],
     ]
   }
 
@@ -164,7 +171,7 @@ const convertTagToShort = function(mapping, hedTag) {
           'invalidParentNode',
           hedTag,
           { parentTag: foundTagEntry.longTag },
-          [index, lastFoundIndex],
+          [index + offset[0], lastFoundIndex + offset[1]],
         ),
       ],
     ]
@@ -180,7 +187,7 @@ const convertTagToShort = function(mapping, hedTag) {
  *
  * @param {Mapping} mapping The short-to-long mapping.
  * @param {string} hedString The HED tag to convert.
- * @param {function (Mapping, string): [string, []]} conversionFn The conversion function for a tag.
+ * @param {function (Mapping, string, number[]): [string, []]} conversionFn The conversion function for a tag.
  * @return {[string, []]} The converted string and any issues.
  */
 const convertHedString = function(mapping, hedString, conversionFn) {
@@ -203,7 +210,10 @@ const convertHedString = function(mapping, hedString, conversionFn) {
   for (const [isHedTag, [startPosition, endPosition]] of hedTags) {
     const tag = hedString.slice(startPosition, endPosition)
     if (isHedTag) {
-      const [shortTagString, singleError] = conversionFn(mapping, tag)
+      const [shortTagString, singleError] = conversionFn(mapping, tag, [
+        startPosition,
+        endPosition,
+      ])
       issues = issues.concat(singleError)
       finalString += shortTagString
     } else {
