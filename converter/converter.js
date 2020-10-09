@@ -249,4 +249,5 @@ const convertHedStringToShort = function(mapping, hedString) {
 module.exports = {
   convertHedStringToShort: convertHedStringToShort,
   convertHedStringToLong: convertHedStringToLong,
+  removeSlashesAndSpaces: removeSlashesAndSpaces,
 }
