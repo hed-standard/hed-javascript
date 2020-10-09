@@ -75,7 +75,7 @@ const getParentTagName = function(tagElement) {
 /**
  * Build a short-long mapping from a remote schema.
  *
- * @param {String} version The schema version to use. Leave empty for the latest version.
+ * @param {string} version The schema version to use. Leave empty for the latest version.
  * @return {Promise<Mapping>} The mapping object.
  */
 const buildRemoteMapping = function(version = 'Latest') {
@@ -87,7 +87,7 @@ const buildRemoteMapping = function(version = 'Latest') {
 /**
  * Build a short-long mapping from a local file.
  *
- * @param {String} path The path to the schema data.
+ * @param {string} path The path to the schema data.
  * @return {Promise<Mapping>} The mapping object.
  */
 const buildLocalMapping = function(path) {
@@ -99,7 +99,7 @@ const buildLocalMapping = function(path) {
 /**
  * Build a short-long mapping from a schema.
  *
- * @param {{path: String?, version: String?}} schemaDef The description of which schema to use.
+ * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<Mapping>} The mapping object or an error.
  */
 const buildMapping = function(schemaDef = {}) {
@@ -116,5 +116,4 @@ const buildMapping = function(schemaDef = {}) {
 
 module.exports = {
   buildMapping: buildMapping,
-  Mapping: Mapping,
 }

@@ -3,7 +3,7 @@ const tagDelimiters = [',', '(', ')', '~']
 /**
  * Split a HED string into delimiters and tags.
  *
- * @param {String} hedString The HED string to split.
+ * @param {string} hedString The HED string to split.
  * @return {Array[]} A list of string parts. The boolean is true if the part is
  * a tag and false if it is a delimiter. The numbers are the bounds of the part.
  */
