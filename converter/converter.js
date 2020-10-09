@@ -18,6 +18,94 @@ const removeSlashesAndSpaces = function(hedString) {
 }
 
 /**
+ * Convert a HED tag to long form.
+ *
+ * @param {Mapping} mapping The short-to-long mapping.
+ * @param {string} hedTag The HED tag to convert.
+ * @return {[string, []]} The long-form tag and any issues.
+ */
+const convertTagToLong = function(mapping, hedTag) {
+  if (hedTag.startsWith('/')) {
+    hedTag = hedTag.slice(1)
+  }
+  if (hedTag.endsWith('/')) {
+    hedTag = hedTag.slice(0, -1)
+  }
+
+  const cleanedTag = hedTag.toLowerCase()
+  const splitTag = cleanedTag.split('/')
+
+  /**
+   * @type {TagEntry}
+   */
+  let foundTagEntry = null
+  let endingIndex = 0
+  let foundUnknownExtension = false
+  let foundEndingIndex = 0
+
+  for (const tag of splitTag) {
+    if (endingIndex !== 0) {
+      endingIndex++
+    }
+    const startingIndex = endingIndex
+    endingIndex += tag.length
+
+    if (!foundUnknownExtension) {
+      if (!(tag in mapping.mappingData)) {
+        foundUnknownExtension = true
+        if (foundTagEntry === null) {
+          return [
+            hedTag,
+            generateIssue('noValidTagFound', hedTag, {}, [
+              startingIndex,
+              endingIndex,
+            ]),
+          ]
+        }
+        continue
+      }
+
+      const tagEntry = mapping.mappingData[tag]
+      const tagString = tagEntry.longFormattedTag
+      const mainHedPortion = cleanedTag.slice(0, endingIndex)
+
+      if (!tagString.endsWith(mainHedPortion)) {
+        return [
+          hedTag,
+          [
+            generateIssue(
+              'invalidParentNode',
+              hedTag,
+              { parentTag: tagEntry.longTag },
+              [startingIndex, endingIndex],
+            ),
+          ],
+        ]
+      }
+
+      foundEndingIndex = endingIndex
+      foundTagEntry = tagEntry
+    } else if (tag in mapping.mappingData) {
+      return [
+        hedTag,
+        [
+          generateIssue(
+            'invalidParentNode',
+            hedTag,
+            { parentTag: mapping.mappingData[hedTag].longTag },
+            [startingIndex, endingIndex],
+          ),
+        ],
+      ]
+    }
+  }
+
+  const remainder = hedTag.slice(foundEndingIndex)
+  const longTagString = foundTagEntry.longTag + remainder
+  return [longTagString, []]
+}
+
+/**
  * Convert a HED tag to short form.
  *
  * @param {Mapping} mapping The short-to-long mapping.
@@ -88,13 +176,14 @@ const convertTagToShort = function(mapping, hedTag) {
 }
 
 /**
- * Convert a HED string to short form.
+ * Convert a HED string.
  *
  * @param {Mapping} mapping The short-to-long mapping.
  * @param {string} hedString The HED tag to convert.
- * @return {[string, []]} The short-form string and any issues.
+ * @param {function (Mapping, string): [string, []]} conversionFn The conversion function for a tag.
+ * @return {[string, []]} The converted string and any issues.
  */
-const convertHedStringToShort = function(mapping, hedString) {
+const convertHedString = function(mapping, hedString, conversionFn) {
   let issues = []
   if (!mapping.hasNoDuplicates) {
     issues.push(generateIssue('duplicateTagsInSchema', ''))
@@ -114,7 +203,7 @@ const convertHedStringToShort = function(mapping, hedString) {
   for (const [isHedTag, [startPosition, endPosition]] of hedTags) {
     const tag = hedString.slice(startPosition, endPosition)
     if (isHedTag) {
-      const [shortTagString, singleError] = convertTagToShort(mapping, tag)
+      const [shortTagString, singleError] = conversionFn(mapping, tag)
       issues = issues.concat(singleError)
       finalString += shortTagString
     } else {
@@ -125,6 +214,29 @@ const convertHedStringToShort = function(mapping, hedString) {
   return [finalString, issues]
 }
 
+/**
+ * Convert a HED string to long form.
+ *
+ * @param {Mapping} mapping The short-to-long mapping.
+ * @param {string} hedString The HED tag to convert.
+ * @return {[string, []]} The long-form string and any issues.
+ */
+const convertHedStringToLong = function(mapping, hedString) {
+  return convertHedString(mapping, hedString, convertTagToLong)
+}
+
+/**
+ * Convert a HED string to short form.
+ *
+ * @param {Mapping} mapping The short-to-long mapping.
+ * @param {string} hedString The HED tag to convert.
+ * @return {[string, []]} The short-form string and any issues.
+ */
+const convertHedStringToShort = function(mapping, hedString) {
+  return convertHedString(mapping, hedString, convertTagToShort)
+}
+
 module.exports = {
   convertHedStringToShort: convertHedStringToShort,
+  convertHedStringToLong: convertHedStringToLong,
 }
