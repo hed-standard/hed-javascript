@@ -5,7 +5,7 @@ const Mapping = types.Mapping
 const generateIssue = require('./issues')
 const splitHedString = require('./stringSplitter')
 
-const doubleSlashPattern = /[\s/]*\/+[\s/]*/
+const doubleSlashPattern = /[\s/]*\/+[\s/]*/g
 
 /**
  * Remove extra slashes and spaces from a HED string.
