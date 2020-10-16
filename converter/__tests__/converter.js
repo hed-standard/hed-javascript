@@ -15,10 +15,10 @@ describe('HED string conversion', () => {
     /**
      * Base validation function.
      *
-     * @param {Object<string, string>} testStrings
-     * @param {Object<string, string>} expectedResults
-     * @param {Object<string, Array>} expectedIssues
-     * @param {function (Mapping, string, number): [string, []]} testFunction
+     * @param {Object<string, string>} testStrings The test strings.
+     * @param {Object<string, string>} expectedResults The expected results.
+     * @param {Object<string, Array>} expectedIssues The expected issues.
+     * @param {function (Mapping, string, number): [string, []]} testFunction The test function.
      * @return {Promise<void> | PromiseLike<any> | Promise<any>}
      */
     const validatorBase = function(
@@ -629,6 +629,503 @@ describe('HED string conversion', () => {
           bothExtension: [],
           bothMultiLevel: [],
           bothMultiLevelExtension: [],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+    })
+  })
+
+  describe('HED strings', () => {
+    /**
+     * Base validation function.
+     *
+     * @param {Object<string, string>} testStrings The test strings.
+     * @param {Object<string, string>} expectedResults The expected results.
+     * @param {Object<string, Array>} expectedIssues The expected issues.
+     * @param {function (Mapping, string): [string, []]} testFunction The test function.
+     * @return {Promise<void> | PromiseLike<any> | Promise<any>}
+     */
+    const validatorBase = function(
+      testStrings,
+      expectedResults,
+      expectedIssues,
+      testFunction,
+    ) {
+      return mappingPromise.then(mapping => {
+        for (const testStringKey in testStrings) {
+          const [testResult, issues] = testFunction(
+            mapping,
+            testStrings[testStringKey],
+          )
+          assert.strictEqual(
+            testResult,
+            expectedResults[testStringKey],
+            testStrings[testStringKey],
+          )
+          assert.sameDeepMembers(
+            issues,
+            expectedIssues[testStringKey],
+            testStrings[testStringKey],
+          )
+        }
+      })
+    }
+
+    describe('Long-to-short', () => {
+      const validator = function(testStrings, expectedResults, expectedIssues) {
+        return validatorBase(
+          testStrings,
+          expectedResults,
+          expectedIssues,
+          converter.convertHedStringToShort,
+        )
+      }
+
+      it('should properly convert HED strings to short form', () => {
+        const testStrings = {
+          singleLevel: 'Event',
+          multiLevel: 'Event/Sensory-event',
+          twoSingle: 'Event, Attribute',
+          oneExtension: 'Event/Extension',
+          threeMulti:
+            'Event/Sensory-event, Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
+          simpleGroup:
+            '(Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5)',
+          groupAndTag:
+            '(Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5), Item/Object/Man-made/Vehicle/Car',
+          oneTildeGroup:
+            'Event/Sensory-event, (Item/Sound/Named-object-sound/Siren ~ Attribute/Environmental/Indoors)',
+          twoTildeGroup:
+            'Event/Sensory-event, (Attribute/Agent-related/Cognitive-state/Awake ~ Attribute/Agent-related/Trait/Age/15 ~' +
+            ' Item/Sound/Named-object-sound/Siren, Item/Object/Man-made/Vehicle/Car, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5),' +
+            ' Item/Object/Geometric',
+        }
+        const expectedResults = {
+          singleLevel: 'Event',
+          multiLevel: 'Sensory-event',
+          twoSingle: 'Event, Attribute',
+          oneExtension: 'Event/Extension',
+          threeMulti: 'Sensory-event, Train, RGB-red/0.5',
+          simpleGroup: '(Train, RGB-red/0.5)',
+          groupAndTag: '(Train, RGB-red/0.5), Car',
+          oneTildeGroup: 'Sensory-event, (Siren ~ Indoors)',
+          twoTildeGroup:
+            'Sensory-event, (Awake ~ Age/15 ~ Siren, Car, RGB-red/0.5), Geometric',
+        }
+        const expectedIssues = {
+          singleLevel: [],
+          multiLevel: [],
+          twoSingle: [],
+          oneExtension: [],
+          threeMulti: [],
+          simpleGroup: [],
+          groupAndTag: [],
+          oneTildeGroup: [],
+          twoTildeGroup: [],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+
+      it('should raise an issue if an invalid node is found', () => {
+        const single = 'InvalidEvent'
+        const double = 'InvalidEvent/InvalidExtension'
+        const testStrings = {
+          single: single,
+          double: double,
+          both: single + ', ' + double,
+          singleWithTwoValid: 'Attribute, ' + single + ', Event',
+          doubleWithValid:
+            double + ', Item/Object/Man-made/Vehicle/Car/Minivan',
+        }
+        const expectedResults = {
+          single: single,
+          double: double,
+          both: single + ', ' + double,
+          singleWithTwoValid: 'Attribute, ' + single + ', Event',
+          doubleWithValid: double + ', Car/Minivan',
+        }
+        const expectedIssues = {
+          single: [generateIssue('noValidTagFound', single, {}, [0, 12])],
+          double: [generateIssue('noValidTagFound', double, {}, [0, 12])],
+          both: [
+            generateIssue('noValidTagFound', single, {}, [0, 12]),
+            generateIssue('noValidTagFound', double, {}, [14, 26]),
+          ],
+          singleWithTwoValid: [
+            generateIssue('noValidTagFound', single, {}, [11, 23]),
+          ],
+          doubleWithValid: [
+            generateIssue('noValidTagFound', double, {}, [0, 12]),
+          ],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+
+      it('should ignore leading and trailing spaces', () => {
+        const testStrings = {
+          leadingSpace: ' Item/Sound/Environmental-sound/Unique Value',
+          trailingSpace: 'Item/Sound/Environmental-sound/Unique Value ',
+          bothSpace: ' Item/Sound/Environmental-sound/Unique Value ',
+          leadingSpaceTwo:
+            ' Item/Sound/Environmental-sound/Unique Value, Event',
+          trailingSpaceTwo:
+            'Event, Item/Sound/Environmental-sound/Unique Value ',
+          bothSpaceTwo: ' Event, Item/Sound/Environmental-sound/Unique Value ',
+        }
+        const expectedResults = {
+          leadingSpace: ' Environmental-sound/Unique Value',
+          trailingSpace: 'Environmental-sound/Unique Value ',
+          bothSpace: ' Environmental-sound/Unique Value ',
+          leadingSpaceTwo: ' Environmental-sound/Unique Value, Event',
+          trailingSpaceTwo: 'Event, Environmental-sound/Unique Value ',
+          bothSpaceTwo: ' Event, Environmental-sound/Unique Value ',
+        }
+        const expectedIssues = {
+          leadingSpace: [],
+          trailingSpace: [],
+          bothSpace: [],
+          leadingSpaceTwo: [],
+          trailingSpaceTwo: [],
+          bothSpaceTwo: [],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+
+      it('should strip leading and trailing slashes', () => {
+        const testStrings = {
+          leadingSingle: '/Event',
+          leadingMultiLevel: '/Object/Man-made/Vehicle/Train',
+          trailingSingle: 'Event/',
+          trailingMultiLevel: 'Object/Man-made/Vehicle/Train/',
+          bothSingle: '/Event/',
+          bothMultiLevel: '/Object/Man-made/Vehicle/Train/',
+          twoMixedOuter: '/Event,Object/Man-made/Vehicle/Train/',
+          twoMixedInner: 'Event/,/Object/Man-made/Vehicle/Train',
+          twoMixedBoth: '/Event/,/Object/Man-made/Vehicle/Train/',
+          twoMixedBothGroup: '(/Event/,/Object/Man-made/Vehicle/Train/)',
+        }
+        const expectedEvent = 'Event'
+        const expectedTrain = 'Train'
+        const expectedMixed = expectedEvent + ',' + expectedTrain
+        const expectedResults = {
+          leadingSingle: expectedEvent,
+          leadingMultiLevel: expectedTrain,
+          trailingSingle: expectedEvent,
+          trailingMultiLevel: expectedTrain,
+          bothSingle: expectedEvent,
+          bothMultiLevel: expectedTrain,
+          twoMixedOuter: expectedMixed,
+          twoMixedInner: expectedMixed,
+          twoMixedBoth: expectedMixed,
+          twoMixedBothGroup: '(' + expectedMixed + ')',
+        }
+        const expectedIssues = {
+          leadingSingle: [],
+          leadingMultiLevel: [],
+          trailingSingle: [],
+          trailingMultiLevel: [],
+          bothSingle: [],
+          bothMultiLevel: [],
+          twoMixedOuter: [],
+          twoMixedInner: [],
+          twoMixedBoth: [],
+          twoMixedBothGroup: [],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+
+      it('should replace extra spaces and slashes with single slashes', () => {
+        const testStrings = {
+          twoLevelDoubleSlash: 'Event//Extension',
+          threeLevelDoubleSlash: 'Item//Object//Geometric',
+          tripleSlashes: 'Item///Object///Geometric',
+          mixedSingleAndDoubleSlashes: 'Item///Object/Geometric',
+          singleSlashWithSpace: 'Event/ Extension',
+          doubleSlashSurroundingSpace: 'Event/ /Extension',
+          doubleSlashThenSpace: 'Event// Extension',
+          sosPattern: 'Event///   ///Extension',
+          alternatingSlashSpace: 'Item/ / Object/ / Geometric',
+          leadingDoubleSlash: '//Event/Extension',
+          trailingDoubleSlash: 'Event/Extension//',
+          leadingDoubleSlashWithSpace: '/ /Event/Extension',
+          trailingDoubleSlashWithSpace: 'Event/Extension/ /',
+        }
+        const expectedEventExtension = 'Event/Extension'
+        const expectedGeometric = 'Geometric'
+        const expectedResults = {
+          twoLevelDoubleSlash: expectedEventExtension,
+          threeLevelDoubleSlash: expectedGeometric,
+          tripleSlashes: expectedGeometric,
+          mixedSingleAndDoubleSlashes: expectedGeometric,
+          singleSlashWithSpace: expectedEventExtension,
+          doubleSlashSurroundingSpace: expectedEventExtension,
+          doubleSlashThenSpace: expectedEventExtension,
+          sosPattern: expectedEventExtension,
+          alternatingSlashSpace: expectedGeometric,
+          leadingDoubleSlash: expectedEventExtension,
+          trailingDoubleSlash: expectedEventExtension,
+          leadingDoubleSlashWithSpace: expectedEventExtension,
+          trailingDoubleSlashWithSpace: expectedEventExtension,
+        }
+        const expectedIssues = {
+          twoLevelDoubleSlash: [],
+          threeLevelDoubleSlash: [],
+          tripleSlashes: [],
+          mixedSingleAndDoubleSlashes: [],
+          singleSlashWithSpace: [],
+          doubleSlashSurroundingSpace: [],
+          doubleSlashThenSpace: [],
+          sosPattern: [],
+          alternatingSlashSpace: [],
+          leadingDoubleSlash: [],
+          trailingDoubleSlash: [],
+          leadingDoubleSlashWithSpace: [],
+          trailingDoubleSlashWithSpace: [],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+
+      it('should raise an error if an empty string is passed', () => {
+        const testStrings = {
+          emptyString: '',
+        }
+        const expectedResults = {
+          emptyString: '',
+        }
+        const expectedIssues = {
+          emptyString: [
+            generateIssue('emptyTagFound', testStrings.emptyString),
+          ],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+    })
+
+    describe('Short-to-long', () => {
+      const validator = function(testStrings, expectedResults, expectedIssues) {
+        return validatorBase(
+          testStrings,
+          expectedResults,
+          expectedIssues,
+          converter.convertHedStringToLong,
+        )
+      }
+
+      it('should properly convert HED strings to long form', () => {
+        const testStrings = {
+          singleLevel: 'Event',
+          multiLevel: 'Sensory-event',
+          twoSingle: 'Event, Attribute',
+          oneExtension: 'Event/Extension',
+          threeMulti: 'Sensory-event, Train, RGB-red/0.5',
+          simpleGroup: '(Train, RGB-red/0.5)',
+          groupAndTag: '(Train, RGB-red/0.5), Car',
+          oneTildeGroup: 'Sensory-event, (Siren ~ Indoors)',
+          twoTildeGroup:
+            'Sensory-event, (Awake ~ Age/15 ~ Siren, Car, RGB-red/0.5), Geometric',
+        }
+        const expectedResults = {
+          singleLevel: 'Event',
+          multiLevel: 'Event/Sensory-event',
+          twoSingle: 'Event, Attribute',
+          oneExtension: 'Event/Extension',
+          threeMulti:
+            'Event/Sensory-event, Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
+          simpleGroup:
+            '(Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5)',
+          groupAndTag:
+            '(Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5), Item/Object/Man-made/Vehicle/Car',
+          oneTildeGroup:
+            'Event/Sensory-event, (Item/Sound/Named-object-sound/Siren ~ Attribute/Environmental/Indoors)',
+          twoTildeGroup:
+            'Event/Sensory-event, (Attribute/Agent-related/Cognitive-state/Awake ~ Attribute/Agent-related/Trait/Age/15 ~' +
+            ' Item/Sound/Named-object-sound/Siren, Item/Object/Man-made/Vehicle/Car, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5),' +
+            ' Item/Object/Geometric',
+        }
+        const expectedIssues = {
+          singleLevel: [],
+          multiLevel: [],
+          twoSingle: [],
+          oneExtension: [],
+          threeMulti: [],
+          simpleGroup: [],
+          groupAndTag: [],
+          oneTildeGroup: [],
+          twoTildeGroup: [],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+
+      it('should raise an issue if an invalid node is found', () => {
+        const single = 'InvalidEvent'
+        const double = 'InvalidEvent/InvalidExtension'
+        const testStrings = {
+          single: single,
+          double: double,
+          both: single + ', ' + double,
+          singleWithTwoValid: 'Attribute, ' + single + ', Event',
+          doubleWithValid: double + ', Car/Minivan',
+        }
+        const expectedResults = {
+          single: single,
+          double: double,
+          both: single + ', ' + double,
+          singleWithTwoValid: 'Attribute, ' + single + ', Event',
+          doubleWithValid:
+            double + ', Item/Object/Man-made/Vehicle/Car/Minivan',
+        }
+        const expectedIssues = {
+          single: [generateIssue('noValidTagFound', single, {}, [0, 12])],
+          double: [generateIssue('noValidTagFound', double, {}, [0, 12])],
+          both: [
+            generateIssue('noValidTagFound', single, {}, [0, 12]),
+            generateIssue('noValidTagFound', double, {}, [14, 26]),
+          ],
+          singleWithTwoValid: [
+            generateIssue('noValidTagFound', single, {}, [11, 23]),
+          ],
+          doubleWithValid: [
+            generateIssue('noValidTagFound', double, {}, [0, 12]),
+          ],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+
+      it('should ignore leading and trailing spaces', () => {
+        const testStrings = {
+          leadingSpace: ' Environmental-sound/Unique Value',
+          trailingSpace: 'Environmental-sound/Unique Value ',
+          bothSpace: ' Environmental-sound/Unique Value ',
+          leadingSpaceTwo: ' Environmental-sound/Unique Value, Event',
+          trailingSpaceTwo: 'Event, Environmental-sound/Unique Value ',
+          bothSpaceTwo: ' Event, Environmental-sound/Unique Value ',
+        }
+        const expectedResults = {
+          leadingSpace: ' Item/Sound/Environmental-sound/Unique Value',
+          trailingSpace: 'Item/Sound/Environmental-sound/Unique Value ',
+          bothSpace: ' Item/Sound/Environmental-sound/Unique Value ',
+          leadingSpaceTwo:
+            ' Item/Sound/Environmental-sound/Unique Value, Event',
+          trailingSpaceTwo:
+            'Event, Item/Sound/Environmental-sound/Unique Value ',
+          bothSpaceTwo: ' Event, Item/Sound/Environmental-sound/Unique Value ',
+        }
+        const expectedIssues = {
+          leadingSpace: [],
+          trailingSpace: [],
+          bothSpace: [],
+          leadingSpaceTwo: [],
+          trailingSpaceTwo: [],
+          bothSpaceTwo: [],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+
+      it('should strip leading and trailing slashes', () => {
+        const testStrings = {
+          leadingSingle: '/Event',
+          leadingMultiLevel: '/Vehicle/Train',
+          trailingSingle: 'Event/',
+          trailingMultiLevel: 'Vehicle/Train/',
+          bothSingle: '/Event/',
+          bothMultiLevel: '/Vehicle/Train/',
+          twoMixedOuter: '/Event,Vehicle/Train/',
+          twoMixedInner: 'Event/,/Vehicle/Train',
+          twoMixedBoth: '/Event/,/Vehicle/Train/',
+          twoMixedBothGroup: '(/Event/,/Vehicle/Train/)',
+        }
+        const expectedEvent = 'Event'
+        const expectedTrain = 'Item/Object/Man-made/Vehicle/Train'
+        const expectedMixed = expectedEvent + ',' + expectedTrain
+        const expectedResults = {
+          leadingSingle: expectedEvent,
+          leadingMultiLevel: expectedTrain,
+          trailingSingle: expectedEvent,
+          trailingMultiLevel: expectedTrain,
+          bothSingle: expectedEvent,
+          bothMultiLevel: expectedTrain,
+          twoMixedOuter: expectedMixed,
+          twoMixedInner: expectedMixed,
+          twoMixedBoth: expectedMixed,
+          twoMixedBothGroup: '(' + expectedMixed + ')',
+        }
+        const expectedIssues = {
+          leadingSingle: [],
+          leadingMultiLevel: [],
+          trailingSingle: [],
+          trailingMultiLevel: [],
+          bothSingle: [],
+          bothMultiLevel: [],
+          twoMixedOuter: [],
+          twoMixedInner: [],
+          twoMixedBoth: [],
+          twoMixedBothGroup: [],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+
+      it('should replace extra spaces and slashes with single slashes', () => {
+        const testStrings = {
+          twoLevelDoubleSlash: 'Event//Extension',
+          threeLevelDoubleSlash: 'Vehicle//Boat//Tanker',
+          tripleSlashes: 'Vehicle///Boat///Tanker',
+          mixedSingleAndDoubleSlashes: 'Vehicle///Boat/Tanker',
+          singleSlashWithSpace: 'Event/ Extension',
+          doubleSlashSurroundingSpace: 'Event/ /Extension',
+          doubleSlashThenSpace: 'Event// Extension',
+          sosPattern: 'Event///   ///Extension',
+          alternatingSlashSpace: 'Vehicle/ / Boat/ / Tanker',
+          leadingDoubleSlash: '//Event/Extension',
+          trailingDoubleSlash: 'Event/Extension//',
+          leadingDoubleSlashWithSpace: '/ /Event/Extension',
+          trailingDoubleSlashWithSpace: 'Event/Extension/ /',
+        }
+        const expectedEventExtension = 'Event/Extension'
+        const expectedTanker = 'Item/Object/Man-made/Vehicle/Boat/Tanker'
+        const expectedResults = {
+          twoLevelDoubleSlash: expectedEventExtension,
+          threeLevelDoubleSlash: expectedTanker,
+          tripleSlashes: expectedTanker,
+          mixedSingleAndDoubleSlashes: expectedTanker,
+          singleSlashWithSpace: expectedEventExtension,
+          doubleSlashSurroundingSpace: expectedEventExtension,
+          doubleSlashThenSpace: expectedEventExtension,
+          sosPattern: expectedEventExtension,
+          alternatingSlashSpace: expectedTanker,
+          leadingDoubleSlash: expectedEventExtension,
+          trailingDoubleSlash: expectedEventExtension,
+          leadingDoubleSlashWithSpace: expectedEventExtension,
+          trailingDoubleSlashWithSpace: expectedEventExtension,
+        }
+        const expectedIssues = {
+          twoLevelDoubleSlash: [],
+          threeLevelDoubleSlash: [],
+          tripleSlashes: [],
+          mixedSingleAndDoubleSlashes: [],
+          singleSlashWithSpace: [],
+          doubleSlashSurroundingSpace: [],
+          doubleSlashThenSpace: [],
+          sosPattern: [],
+          alternatingSlashSpace: [],
+          leadingDoubleSlash: [],
+          trailingDoubleSlash: [],
+          leadingDoubleSlashWithSpace: [],
+          trailingDoubleSlashWithSpace: [],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
+
+      it('should raise an error if an empty string is passed', () => {
+        const testStrings = {
+          emptyString: '',
+        }
+        const expectedResults = {
+          emptyString: '',
+        }
+        const expectedIssues = {
+          emptyString: [
+            generateIssue('emptyTagFound', testStrings.emptyString),
+          ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
