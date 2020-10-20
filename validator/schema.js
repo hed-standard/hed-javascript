@@ -321,6 +321,12 @@ const buildLocalSchema = function(path) {
   })
 }
 
+/**
+ * Build a schema object from schema XML data.
+ *
+ * @param {object} xmlData The schema XML data.
+ * @return {Schema} The schema object.
+ */
 const buildSchemaObject = function(xmlData) {
   const schemaDictionaries = Object.create(SchemaDictionaries)
   const rootElement = xmlData.HED
@@ -336,7 +342,7 @@ const buildSchemaObject = function(xmlData) {
 }
 
 /**
- * Build a schema object.
+ * Build a schema object from a schema version or path description.
  *
  * @param {{path: String?, version: String?}} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<Schema>} The schema object or an error.
@@ -355,5 +361,6 @@ const buildSchema = function(schemaDef = {}) {
 
 module.exports = {
   buildSchema: buildSchema,
+  buildSchemaObject: buildSchemaObject,
   Schema: Schema,
 }

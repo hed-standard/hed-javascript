@@ -9,6 +9,12 @@ const types = require('./types')
 const TagEntry = types.TagEntry
 const Mapping = types.Mapping
 
+/**
+ * Build a short-long mapping object from schema XML data.
+ *
+ * @param {object} xmlData The schema XML data.
+ * @return {Mapping} The mapping object.
+ */
 const buildMappingObject = function(xmlData) {
   const nodeData = {}
   let hasNoDuplicates = true
@@ -97,7 +103,7 @@ const buildLocalMapping = function(path) {
 }
 
 /**
- * Build a short-long mapping from a schema.
+ * Build a short-long mapping from a schema version or path description.
  *
  * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<Mapping>} The mapping object or an error.
@@ -116,4 +122,5 @@ const buildMapping = function(schemaDef = {}) {
 
 module.exports = {
   buildMapping: buildMapping,
+  buildMappingObject: buildMappingObject,
 }
