@@ -3,7 +3,7 @@ const TagEntry = types.TagEntry
 const Mapping = types.Mapping
 
 const generateIssue = require('./issues')
-const splitHedString = require('./stringSplitter')
+const splitHedString = require('./splitHedString')
 
 const doubleSlashPattern = /[\s/]*\/+[\s/]*/g
 
