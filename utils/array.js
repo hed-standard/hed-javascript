@@ -1,8 +1,8 @@
 /**
  * Get number of instances of an element in an array.
  *
- * @param array The array to search.
- * @param elementToCount The element to search for.
+ * @param {Array} array The array to search.
+ * @param {*} elementToCount The element to search for.
  * @returns {number} The number of instances of the element in the array.
  */
 const getElementCount = function(array, elementToCount) {
@@ -18,7 +18,7 @@ const getElementCount = function(array, elementToCount) {
 /**
  * Recursively flatten an array.
  *
- * @param array The array to flatten.
+ * @param {Array[]} array The array to flatten.
  * @return {Array} The flattened array.
  */
 function flattenDeep(array) {

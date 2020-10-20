@@ -333,7 +333,7 @@ const buildSchemaObject = function(xmlData) {
 /**
  * Build a schema object from a schema version or path description.
  *
- * @param {{path: String?, version: String?}} schemaDef The description of which schema to use.
+ * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<Schema>} The schema object or an error.
  */
 const buildSchema = function(schemaDef = {}) {

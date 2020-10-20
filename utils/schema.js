@@ -5,8 +5,8 @@ const files = require('../utils/files')
 /**
  * Load schema data from the HED specification GitHub repository.
  *
- * @param version The schema version to load.
- * @return {Promise<Object>} The schema data.
+ * @param {string} version The schema version to load.
+ * @return {Promise<object>} The schema data.
  */
 const loadRemoteSchema = function(version) {
   const fileName = 'HED' + version + '.xml'
@@ -32,8 +32,8 @@ const loadRemoteSchema = function(version) {
 /**
  * Load schema data from a local file.
  *
- * @param path The path to the schema data.
- * @return {Promise<Object>} The schema data.
+ * @param {string} path The path to the schema data.
+ * @return {Promise<object>} The schema data.
  */
 const loadLocalSchema = function(path) {
   return files

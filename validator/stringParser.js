@@ -24,8 +24,8 @@ const removeGroupParentheses = function(tagGroup) {
 /**
  * Split a full HED string into tags.
  *
- * @param hedString The full HED string.
- * @param issues The array of issues.
+ * @param {string} hedString The full HED string.
+ * @param {Array} issues The array of issues.
  * @returns {Array} An array of HED tags (top-level relative to the passed string).
  */
 const splitHedString = function(hedString, issues) {
@@ -96,9 +96,9 @@ const splitHedString = function(hedString, issues) {
 /**
  * Find and parse the group tags in a provided list.
  *
- * @param groupTagsList The list of possible group tags.
- * @param parsedString The object to store parsed output in.
- * @param issues The array of issues.
+ * @param {Array} groupTagsList The list of possible group tags.
+ * @param {object} parsedString The object to store parsed output in.
+ * @param {Array} issues The array of issues.
  */
 const findTagGroups = function(groupTagsList, parsedString, issues) {
   for (const tagOrGroup of groupTagsList) {
@@ -118,8 +118,8 @@ const findTagGroups = function(groupTagsList, parsedString, issues) {
 /**
  * Find top-level tags in a split HED tag list.
  *
- * @param hedTags A list of split HED tags.
- * @param parsedString The object to store sorted output in.
+ * @param {string[]} hedTags A list of split HED tags.
+ * @param {object} parsedString The object to store sorted output in.
  * @returns {Array} The top-level tags from a HED string.
  */
 const findTopLevelTags = function(hedTags, parsedString) {
@@ -138,8 +138,8 @@ const findTopLevelTags = function(hedTags, parsedString) {
 /**
  * Format the HED tags in a list.
  *
- * @param hedTagList An array of unformatted HED tags.
- * @param onlyRemoveNewLine Whether to only remove newlines.
+ * @param {string[]} hedTagList An array of unformatted HED tags.
+ * @param {boolean} onlyRemoveNewLine Whether to only remove newlines.
  * @returns {Array} An array of formatted HED tags corresponding to hedTagList.
  */
 const formatHedTagsInList = function(hedTagList, onlyRemoveNewLine = false) {
@@ -163,9 +163,9 @@ const formatHedTagsInList = function(hedTagList, onlyRemoveNewLine = false) {
 /**
  * Format an individual HED tag by removing newlines, and optionally double quotes and slashes.
  *
- * @param hedTag The HED tag to format.
- * @param onlyRemoveNewLine Whether to only remove newlines.
- * @returns {String} The formatted HED tag.
+ * @param {string} hedTag The HED tag to format.
+ * @param {boolean} onlyRemoveNewLine Whether to only remove newlines.
+ * @returns {string} The formatted HED tag.
  */
 const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
   hedTag = hedTag.replace('\n', ' ')
@@ -191,8 +191,7 @@ const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
 /**
  * Parse a full HED string into a object of tag types.
  *
- * @param hedString The full HED string to parse.
- * @param issues The array of issues.
+ * @param {string} hedString The full HED string to parse.
  * @returns {[{tagGroups: Array, tagGroupStrings: Array, topLevelTags: Array, tags: Array, formattedTagGroups: Array, formattedTopLevelTags: Array, formattedTags: Array}, Array]} The parsed HED tag data and list of issues.
  */
 const parseHedString = function(hedString) {

@@ -6,7 +6,7 @@ const rfc3339ish = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?$/
 /**
  * Check if a string is empty or only whitespace.
  *
- * @param string The string to check.
+ * @param {string} string The string to check.
  * @returns {boolean} Whether the string is empty.
  */
 const stringIsEmpty = function(string) {
@@ -16,8 +16,8 @@ const stringIsEmpty = function(string) {
 /**
  * Get number of instances of an character in a string.
  *
- * @param string The string to search.
- * @param characterToCount The character to search for.
+ * @param {string} string The string to search.
+ * @param {string} characterToCount The character to search for.
  * @returns {number} The number of instances of the character in the string.
  */
 const getCharacterCount = function(string, characterToCount) {
@@ -27,7 +27,7 @@ const getCharacterCount = function(string, characterToCount) {
 /**
  * Get a copy of a string with the first letter capitalized.
  *
- * @param string The string to capitalize.
+ * @param {string} string The string to capitalize.
  * @returns {string} The capitalized string.
  */
 const capitalizeString = function(string) {
@@ -37,7 +37,7 @@ const capitalizeString = function(string) {
 /**
  * Determine if a string is a valid clock face time.
  *
- * @param timeString The string to check.
+ * @param {string} timeString The string to check.
  * @return {boolean} Whether the string is a valid clock face time.
  */
 const isClockFaceTime = function(timeString) {
@@ -49,7 +49,7 @@ const isClockFaceTime = function(timeString) {
 /**
  * Determine if a string is a valid date-time.
  *
- * @param dateTimeString The string to check.
+ * @param {string} dateTimeString The string to check.
  * @return {boolean} Whether the string is a valid date-time.
  */
 const isDateTime = function(dateTimeString) {

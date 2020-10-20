@@ -575,7 +575,7 @@ const validateTopLevelTags = function(
 /**
  * Validate a HED string.
  *
- * @param {String} hedString The HED string to validate.
+ * @param {string} hedString The HED string to validate.
  * @param {Schema} hedSchema The HED schema to validate against.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @returns {Array} Whether the HED string is valid and any issues found.
