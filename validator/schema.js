@@ -1,5 +1,3 @@
-const xml2js = require('xml2js')
-
 // TODO: Switch require once upstream bugs are fixed.
 // const xpath = require('xml2js-xpath')
 // Temporary
@@ -37,15 +35,6 @@ const unitsElement = 'units'
 const unitModifierElement = 'unitModifier'
 
 const SchemaDictionaries = {
-  setParent: function(node, parent) {
-    node.$parent = parent
-    if (node.node) {
-      for (const child of node.node) {
-        this.setParent(child, node)
-      }
-    }
-  },
-
   populateDictionaries: function() {
     this.dictionaries = {}
     this.populateUnitClassDictionaries()
@@ -288,8 +277,8 @@ const SchemaDictionaries = {
 /**
  * Determine if a HED tag has a particular attribute in this schema.
  *
- * @param tag The HED tag to check.
- * @param tagAttribute The attribute to check for.
+ * @param {string} tag The HED tag to check.
+ * @param {string} tagAttribute The attribute to check for.
  * @return {boolean} Whether this tag has this attribute.
  */
 const tagHasAttribute = function(tag, tagAttribute) {
@@ -330,7 +319,7 @@ const buildLocalSchema = function(path) {
 const buildSchemaObject = function(xmlData) {
   const schemaDictionaries = Object.create(SchemaDictionaries)
   const rootElement = xmlData.HED
-  schemaDictionaries.setParent(rootElement, xmlData)
+  schemaUtils.setParent(rootElement, xmlData)
   schemaDictionaries.rootElement = rootElement
   const dictionaries = schemaDictionaries.populateDictionaries()
   return new Schema(

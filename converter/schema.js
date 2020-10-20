@@ -19,7 +19,7 @@ const buildMappingObject = function(xmlData) {
   const nodeData = {}
   let hasNoDuplicates = true
   const rootElement = xmlData.HED
-  setParent(rootElement, null)
+  schemaUtils.setParent(rootElement, null)
   const tagElements = xpath.find(rootElement, '//node')
   for (const tagElement of tagElements) {
     if (getElementTagValue(tagElement) === '#') {
@@ -42,15 +42,6 @@ const buildMappingObject = function(xmlData) {
     }
   }
   return new Mapping(nodeData, hasNoDuplicates)
-}
-
-const setParent = function(node, parent) {
-  node.$parent = parent
-  if (node.node) {
-    for (const child of node.node) {
-      setParent(child, node)
-    }
-  }
 }
 
 const getTagPathFromTagElement = function(tagElement) {

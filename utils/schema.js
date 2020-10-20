@@ -48,7 +48,27 @@ const loadLocalSchema = function(path) {
     })
 }
 
+/**
+ * Recursively set a field on each node of the tree pointing to the node's parent.
+ *
+ * @param {object} node The child node.
+ * @param {object} parent The parent node.
+ */
+const setParent = function(node, parent) {
+  // Assume that we've already run this function if so.
+  if ('$parent' in node) {
+    return
+  }
+  node.$parent = parent
+  if (node.node) {
+    for (const child of node.node) {
+      setParent(child, node)
+    }
+  }
+}
+
 module.exports = {
   loadRemoteSchema: loadRemoteSchema,
   loadLocalSchema: loadLocalSchema,
+  setParent: setParent,
 }
