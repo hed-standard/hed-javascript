@@ -8,7 +8,7 @@ describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', () => {
     const remoteHedSchemaVersion = '7.1.1'
     return schema
-      .buildSchema({ version: remoteHedSchemaVersion })
+      .buildSchemaAttributes({ version: remoteHedSchemaVersion })
       .then(hedSchema => {
         const hedSchemaVersion = hedSchema.version
         assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
@@ -18,10 +18,12 @@ describe('Remote HED schemas', function() {
 
 describe('Local HED schemas', function() {
   it('can be loaded from a file', () => {
-    return schema.buildSchema({ path: localHedSchemaFile }).then(hedSchema => {
-      const hedSchemaVersion = hedSchema.version
-      assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
-    })
+    return schema
+      .buildSchemaAttributes({ path: localHedSchemaFile })
+      .then(hedSchema => {
+        const hedSchemaVersion = hedSchema.version
+        assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
+      })
   })
 })
 
@@ -29,7 +31,9 @@ describe('HED schemas', function() {
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = schema.buildSchema({ path: localHedSchemaFile })
+    hedSchemaPromise = schema.buildSchemaAttributes({
+      path: localHedSchemaFile,
+    })
   })
 
   it('should have tag dictionaries for all required attributes', () => {

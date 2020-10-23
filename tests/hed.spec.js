@@ -9,7 +9,7 @@ describe('Latest HED Schema', () => {
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = schema.buildSchema({ path: hedSchemaFile })
+    hedSchemaPromise = schema.buildSchemaAttributes({ path: hedSchemaFile })
   })
 
   const validatorSemanticBase = function(
@@ -770,7 +770,7 @@ describe('Pre-v7.1.0 HED Schemas', function() {
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = schema.buildSchema({
+    hedSchemaPromise = schema.buildSchemaAttributes({
       path: hedSchemaFile,
     })
   })

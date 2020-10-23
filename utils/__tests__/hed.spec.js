@@ -68,7 +68,9 @@ describe('HED tag string utility functions', () => {
     let hedSchemaPromise
 
     beforeAll(() => {
-      hedSchemaPromise = schema.buildSchema({ path: localHedSchemaFile })
+      hedSchemaPromise = schema.buildSchemaAttributes({
+        path: localHedSchemaFile,
+      })
     })
 
     const validatorString = function(

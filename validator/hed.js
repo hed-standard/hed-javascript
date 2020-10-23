@@ -1,6 +1,6 @@
 const utils = require('../utils')
 const stringParser = require('./stringParser')
-const Schema = require('./schema').Schema
+const SchemaAttributes = require('./schema').SchemaAttributes
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -585,7 +585,7 @@ const validateHedString = function(
   hedSchema,
   checkForWarnings = false,
 ) {
-  const doSemanticValidation = hedSchema instanceof Schema
+  const doSemanticValidation = hedSchema instanceof SchemaAttributes
   const fullHedStringIssues = validateFullHedString(hedString)
   if (fullHedStringIssues.length !== 0) {
     return [false, fullHedStringIssues]

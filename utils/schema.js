@@ -3,12 +3,30 @@ const xml2js = require('xml2js')
 const files = require('../utils/files')
 
 /**
- * Load schema data from the HED specification GitHub repository.
+ * Load schema XML data from a schema version or path description.
+ *
+ * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
+ * @return {Promise<never>|Promise<object>} The schema XML data or an error.
+ */
+const loadSchema = function(schemaDef = {}) {
+  if (Object.entries(schemaDef).length === 0) {
+    return loadRemoteSchema()
+  } else if (schemaDef.path) {
+    return loadLocalSchema(schemaDef.path)
+  } else if (schemaDef.version) {
+    return loadRemoteSchema(schemaDef.version)
+  } else {
+    return Promise.reject('Invalid input.')
+  }
+}
+
+/**
+ * Load schema XML data from the HED specification GitHub repository.
  *
  * @param {string} version The schema version to load.
- * @return {Promise<object>} The schema data.
+ * @return {Promise<object>} The schema XML data.
  */
-const loadRemoteSchema = function(version) {
+const loadRemoteSchema = function(version = 'Latest') {
   const fileName = 'HED' + version + '.xml'
   const basePath =
     'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
@@ -30,10 +48,10 @@ const loadRemoteSchema = function(version) {
 }
 
 /**
- * Load schema data from a local file.
+ * Load schema XML data from a local file.
  *
- * @param {string} path The path to the schema data.
- * @return {Promise<object>} The schema data.
+ * @param {string} path The path to the schema XML data.
+ * @return {Promise<object>} The schema XML data.
  */
 const loadLocalSchema = function(path) {
   return files
@@ -68,7 +86,6 @@ const setParent = function(node, parent) {
 }
 
 module.exports = {
-  loadRemoteSchema: loadRemoteSchema,
-  loadLocalSchema: loadLocalSchema,
+  loadSchema: loadSchema,
   setParent: setParent,
 }

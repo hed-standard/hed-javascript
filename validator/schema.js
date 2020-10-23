@@ -285,7 +285,7 @@ const tagHasAttribute = function(tag, tagAttribute) {
   return tag.toLowerCase() in this.dictionaries[tagAttribute]
 }
 
-const Schema = function(
+const SchemaAttributes = function(
   rootElement,
   dictionaries,
   hasUnitClasses,
@@ -298,31 +298,19 @@ const Schema = function(
   this.tagHasAttribute = tagHasAttribute
 }
 
-const buildRemoteSchema = function(version = 'Latest') {
-  return schemaUtils.loadRemoteSchema(version).then(xmlData => {
-    return buildSchemaObject(xmlData)
-  })
-}
-
-const buildLocalSchema = function(path) {
-  return schemaUtils.loadLocalSchema(path).then(xmlData => {
-    return buildSchemaObject(xmlData)
-  })
-}
-
 /**
  * Build a schema object from schema XML data.
  *
  * @param {object} xmlData The schema XML data.
- * @return {Schema} The schema object.
+ * @return {SchemaAttributes} The schema object.
  */
-const buildSchemaObject = function(xmlData) {
+const buildSchemaAttributesObject = function(xmlData) {
   const schemaDictionaries = Object.create(SchemaDictionaries)
   const rootElement = xmlData.HED
   schemaUtils.setParent(rootElement, xmlData)
   schemaDictionaries.rootElement = rootElement
   const dictionaries = schemaDictionaries.populateDictionaries()
-  return new Schema(
+  return new SchemaAttributes(
     rootElement,
     dictionaries,
     schemaDictionaries.hasUnitClasses,
@@ -331,25 +319,19 @@ const buildSchemaObject = function(xmlData) {
 }
 
 /**
- * Build a schema object from a schema version or path description.
+ * Build a schema attributes object from a schema version or path description.
  *
  * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
- * @return {Promise<never>|Promise<Schema>} The schema object or an error.
+ * @return {Promise<never>|Promise<SchemaAttributes>} The schema attributes object or an error.
  */
-const buildSchema = function(schemaDef = {}) {
-  if (Object.entries(schemaDef).length === 0) {
-    return buildRemoteSchema()
-  } else if (schemaDef.path) {
-    return buildLocalSchema(schemaDef.path)
-  } else if (schemaDef.version) {
-    return buildRemoteSchema(schemaDef.version)
-  } else {
-    return Promise.reject('Invalid input.')
-  }
+const buildSchemaAttributes = function(schemaDef = {}) {
+  return schemaUtils.loadSchema(schemaDef).then(xmlData => {
+    return buildSchemaAttributesObject(xmlData)
+  })
 }
 
 module.exports = {
-  buildSchema: buildSchema,
-  buildSchemaObject: buildSchemaObject,
-  Schema: Schema,
+  buildSchemaAttributes: buildSchemaAttributes,
+  buildSchemaAttributesObject: buildSchemaAttributesObject,
+  SchemaAttributes: SchemaAttributes,
 }
