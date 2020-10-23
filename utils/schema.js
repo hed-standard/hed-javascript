@@ -2,6 +2,9 @@ const xml2js = require('xml2js')
 
 const files = require('../utils/files')
 
+const Mapping = require('../converter/types').Mapping
+const SchemaAttributes = require('../validator/schema').SchemaAttributes
+
 /**
  * Load schema XML data from a schema version or path description.
  *
@@ -85,7 +88,22 @@ const setParent = function(node, parent) {
   }
 }
 
+/**
+ * An imported HED schema object.
+ *
+ * @param {object} xmlData The schema XML data.
+ * @param {SchemaAttributes} attributes A description of tag attributes.
+ * @param {Mapping} mapping A mapping between short and long tags.
+ * @constructor
+ */
+const Schema = function(xmlData, attributes, mapping) {
+  this.xmlData = xmlData
+  this.attributes = attributes
+  this.mapping = mapping
+}
+
 module.exports = {
   loadSchema: loadSchema,
   setParent: setParent,
+  Schema: Schema,
 }
