@@ -29,6 +29,7 @@
     "date-and-time": "^0.14.1",
     "date-fns": "^2.16.1",
     "pluralize": "^8.0.0",
+    "semver": "^7.3.2",
     "then-request": "^6.0.2",
     "xml2js": "^0.4.23"
   },
