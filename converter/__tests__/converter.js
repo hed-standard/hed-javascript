@@ -5,10 +5,10 @@ const generateIssue = require('../issues')
 
 describe('HED string conversion', () => {
   const hedSchemaFile = 'tests/data/HEDv1.6.10-reduced.xml'
-  let mappingPromise
+  let schemaPromise
 
   beforeAll(() => {
-    mappingPromise = schema.buildMapping({ path: hedSchemaFile })
+    schemaPromise = schema.buildSchema({ path: hedSchemaFile })
   })
 
   describe('HED tags', () => {
@@ -27,10 +27,10 @@ describe('HED string conversion', () => {
       expectedIssues,
       testFunction,
     ) {
-      return mappingPromise.then(mapping => {
+      return schemaPromise.then(schema => {
         for (const testStringKey in testStrings) {
           const [testResult, issues] = testFunction(
-            mapping,
+            schema.mapping,
             testStrings[testStringKey],
             0,
           )
@@ -642,7 +642,7 @@ describe('HED string conversion', () => {
      * @param {Object<string, string>} testStrings The test strings.
      * @param {Object<string, string>} expectedResults The expected results.
      * @param {Object<string, Array>} expectedIssues The expected issues.
-     * @param {function (Mapping, string): [string, []]} testFunction The test function.
+     * @param {function (Schema, string): [string, []]} testFunction The test function.
      * @return {Promise<void> | PromiseLike<any> | Promise<any>}
      */
     const validatorBase = function(
@@ -651,10 +651,10 @@ describe('HED string conversion', () => {
       expectedIssues,
       testFunction,
     ) {
-      return mappingPromise.then(mapping => {
+      return schemaPromise.then(schema => {
         for (const testStringKey in testStrings) {
           const [testResult, issues] = testFunction(
-            mapping,
+            schema,
             testStrings[testStringKey],
           )
           assert.strictEqual(

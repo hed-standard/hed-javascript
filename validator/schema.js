@@ -1,3 +1,5 @@
+const semver = require('semver')
+
 // TODO: Switch require once upstream bugs are fixed.
 // const xpath = require('xml2js-xpath')
 // Temporary
@@ -5,6 +7,8 @@ const xpath = require('../utils/xpath')
 
 const arrayUtils = require('../utils/array')
 const schemaUtils = require('../utils/schema')
+
+const buildMappingObject = require('../converter/schema').buildMappingObject
 
 const defaultUnitForTagAttribute = 'default'
 const defaultUnitForUnitClassAttribute = 'defaultUnits'
@@ -285,8 +289,15 @@ const tagHasAttribute = function(tag, tagAttribute) {
   return tag.toLowerCase() in this.dictionaries[tagAttribute]
 }
 
+/**
+ * A description of a HED schema's attributes.
+ *
+ * @param {object<string, string[]>} dictionaries A mapping from a HED schema's attributes to a list of tags with that attribute.
+ * @param {boolean} hasUnitClasses Whether the schema has unit classes.
+ * @param {boolean} hasUnitModifiers Whether the schema has unit modifiers.
+ * @constructor
+ */
 const SchemaAttributes = function(
-  rootElement,
   dictionaries,
   hasUnitClasses,
   hasUnitModifiers,
@@ -294,15 +305,14 @@ const SchemaAttributes = function(
   this.dictionaries = dictionaries
   this.hasUnitClasses = hasUnitClasses
   this.hasUnitModifiers = hasUnitModifiers
-  this.version = rootElement.$.version
   this.tagHasAttribute = tagHasAttribute
 }
 
 /**
- * Build a schema object from schema XML data.
+ * Build a schema attributes object from schema XML data.
  *
  * @param {object} xmlData The schema XML data.
- * @return {SchemaAttributes} The schema object.
+ * @return {SchemaAttributes} The schema attributes object.
  */
 const buildSchemaAttributesObject = function(xmlData) {
   const schemaDictionaries = Object.create(SchemaDictionaries)
@@ -311,7 +321,6 @@ const buildSchemaAttributesObject = function(xmlData) {
   schemaDictionaries.rootElement = rootElement
   const dictionaries = schemaDictionaries.populateDictionaries()
   return new SchemaAttributes(
-    rootElement,
     dictionaries,
     schemaDictionaries.hasUnitClasses,
     schemaDictionaries.hasUnitModifiers,
@@ -319,19 +328,24 @@ const buildSchemaAttributesObject = function(xmlData) {
 }
 
 /**
- * Build a schema attributes object from a schema version or path description.
+ * Build a schema object from a schema version or path description.
  *
  * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
- * @return {Promise<never>|Promise<SchemaAttributes>} The schema attributes object or an error.
+ * @return {Promise<never>|Promise<Schema>} The schema object or an error.
  */
-const buildSchemaAttributes = function(schemaDef = {}) {
+const buildSchema = function(schemaDef = {}) {
   return schemaUtils.loadSchema(schemaDef).then(xmlData => {
-    return buildSchemaAttributesObject(xmlData)
+    const schemaAttributes = buildSchemaAttributesObject(xmlData)
+    let mapping
+    if (semver.gte(xmlData.HED.$.version, '8.0.0')) {
+      mapping = buildMappingObject(xmlData)
+    }
+    return new schemaUtils.Schema(xmlData, schemaAttributes, mapping)
   })
 }
 
 module.exports = {
-  buildSchemaAttributes: buildSchemaAttributes,
+  buildSchema: buildSchema,
   buildSchemaAttributesObject: buildSchemaAttributesObject,
   SchemaAttributes: SchemaAttributes,
 }

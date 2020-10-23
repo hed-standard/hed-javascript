@@ -68,7 +68,7 @@ describe('HED tag string utility functions', () => {
     let hedSchemaPromise
 
     beforeAll(() => {
-      hedSchemaPromise = schema.buildSchemaAttributes({
+      hedSchemaPromise = schema.buildSchema({
         path: localHedSchemaFile,
       })
     })
@@ -124,7 +124,7 @@ describe('HED tag string utility functions', () => {
         testStrings,
         expectedResults,
         (string, hedSchema) => {
-          return hed.tagExistsInSchema(string, hedSchema)
+          return hed.tagExistsInSchema(string, hedSchema.attributes)
         },
       )
     })
@@ -150,7 +150,7 @@ describe('HED tag string utility functions', () => {
         testStrings,
         expectedResults,
         (string, hedSchema) => {
-          return hed.tagTakesValue(string, hedSchema)
+          return hed.tagTakesValue(string, hedSchema.attributes)
         },
       )
     })
@@ -176,7 +176,7 @@ describe('HED tag string utility functions', () => {
         testStrings,
         expectedResults,
         (string, hedSchema) => {
-          return hed.isUnitClassTag(string, hedSchema)
+          return hed.isUnitClassTag(string, hedSchema.attributes)
         },
       )
     })
@@ -205,7 +205,7 @@ describe('HED tag string utility functions', () => {
         testStrings,
         expectedResults,
         (string, hedSchema) => {
-          return hed.getUnitClassDefaultUnit(string, hedSchema)
+          return hed.getUnitClassDefaultUnit(string, hedSchema.attributes)
         },
       )
     })
@@ -234,7 +234,7 @@ describe('HED tag string utility functions', () => {
         testStrings,
         expectedResults,
         (string, hedSchema) => {
-          return hed.getTagUnitClasses(string, hedSchema)
+          return hed.getTagUnitClasses(string, hedSchema.attributes)
         },
       )
     })
@@ -276,7 +276,7 @@ describe('HED tag string utility functions', () => {
         testStrings,
         expectedResults,
         (string, hedSchema) => {
-          return hed.getTagUnitClassUnits(string, hedSchema)
+          return hed.getTagUnitClassUnits(string, hedSchema.attributes)
         },
       )
     })
@@ -293,25 +293,25 @@ describe('HED tag string utility functions', () => {
           dollarsString,
           dollarsString,
           currencyUnits,
-          hedSchema,
+          hedSchema.attributes,
         )
         const strippedVolumeString = hed.validateUnits(
           volumeString,
           volumeString,
           volumeUnits,
-          hedSchema,
+          hedSchema.attributes,
         )
         const strippedPrefixedVolumeString = hed.validateUnits(
           prefixedVolumeString,
           prefixedVolumeString,
           volumeUnits,
-          hedSchema,
+          hedSchema.attributes,
         )
         const strippedInvalidVolumeString = hed.validateUnits(
           invalidVolumeString,
           invalidVolumeString,
           volumeUnits,
-          hedSchema,
+          hedSchema.attributes,
         )
         assert.strictEqual(strippedDollarsString, '25.99')
         assert.strictEqual(strippedVolumeString, '100')
@@ -335,7 +335,7 @@ describe('HED tag string utility functions', () => {
         testStrings,
         expectedResults,
         (string, hedSchema) => {
-          return hed.isExtensionAllowedTag(string, hedSchema)
+          return hed.isExtensionAllowedTag(string, hedSchema.attributes)
         },
       )
     })

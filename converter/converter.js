@@ -187,13 +187,15 @@ const convertTagToShort = function(mapping, hedTag, offset) {
 /**
  * Convert a HED string.
  *
- * @param {Mapping} mapping The short-to-long mapping.
+ * @param {Schema} schema The schema object containing a short-to-long mapping.
  * @param {string} hedString The HED tag to convert.
  * @param {function (Mapping, string, number): [string, []]} conversionFn The conversion function for a tag.
  * @return {[string, []]} The converted string and any issues.
  */
-const convertHedString = function(mapping, hedString, conversionFn) {
+const convertHedString = function(schema, hedString, conversionFn) {
   let issues = []
+  const mapping = schema.mapping
+
   if (!mapping.hasNoDuplicates) {
     issues.push(generateIssue('duplicateTagsInSchema', ''))
     return [hedString, issues]
@@ -230,23 +232,23 @@ const convertHedString = function(mapping, hedString, conversionFn) {
 /**
  * Convert a HED string to long form.
  *
- * @param {Mapping} mapping The short-to-long mapping.
+ * @param {Schema} schema The schema object containing a short-to-long mapping.
  * @param {string} hedString The HED tag to convert.
  * @return {[string, []]} The long-form string and any issues.
  */
-const convertHedStringToLong = function(mapping, hedString) {
-  return convertHedString(mapping, hedString, convertTagToLong)
+const convertHedStringToLong = function(schema, hedString) {
+  return convertHedString(schema, hedString, convertTagToLong)
 }
 
 /**
  * Convert a HED string to short form.
  *
- * @param {Mapping} mapping The short-to-long mapping.
+ * @param {Schema} schema The schema object containing a short-to-long mapping.
  * @param {string} hedString The HED tag to convert.
  * @return {[string, []]} The short-form string and any issues.
  */
-const convertHedStringToShort = function(mapping, hedString) {
-  return convertHedString(mapping, hedString, convertTagToShort)
+const convertHedStringToShort = function(schema, hedString) {
+  return convertHedString(schema, hedString, convertTagToShort)
 }
 
 module.exports = {

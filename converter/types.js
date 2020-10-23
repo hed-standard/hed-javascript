@@ -14,7 +14,7 @@ const TagEntry = function(shortTag, longTag) {
 /**
  * Short-to-long mapping.
  *
- * @param {object} mappingData A dictionary mapping forms to Tag instances.
+ * @param {object<string, (TagEntry|TagEntry[])>} mappingData A dictionary mapping forms to TagEntry instances.
  * @param {boolean} hasNoDuplicates Whether the mapping has no duplicates.
  * @constructor
  */

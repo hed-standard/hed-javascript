@@ -70,18 +70,19 @@ const getParentTagName = function(tagElement) {
 }
 
 /**
- * Build a short-long mapping from a schema version or path description.
+ * Build a schema object containing short-long mapping from a schema version or path description.
  *
  * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
- * @return {Promise<never>|Promise<Mapping>} The mapping object or an error.
+ * @return {Promise<never>|Promise<Schema>} The schema object or an error.
  */
-const buildMapping = function(schemaDef = {}) {
+const buildSchema = function(schemaDef = {}) {
   return schemaUtils.loadSchema(schemaDef).then(xmlData => {
-    return buildMappingObject(xmlData)
+    const mapping = buildMappingObject(xmlData)
+    return new schemaUtils.Schema(xmlData, undefined, mapping)
   })
 }
 
 module.exports = {
-  buildMapping: buildMapping,
+  buildSchema: buildSchema,
   buildMappingObject: buildMappingObject,
 }

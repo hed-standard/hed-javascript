@@ -2,7 +2,7 @@ const converter = require('./converter')
 const schema = require('./schema')
 
 module.exports = {
-  buildMapping: schema.buildMapping,
+  buildSchema: schema.buildSchema,
   convertHedStringToShort: converter.convertHedStringToShort,
   convertHedStringToLong: converter.convertHedStringToLong,
 }

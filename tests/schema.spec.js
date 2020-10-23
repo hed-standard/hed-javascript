@@ -8,7 +8,7 @@ describe('Remote HED schemas', function() {
   it('can be loaded from a central GitHub repository', () => {
     const remoteHedSchemaVersion = '7.1.1'
     return schema
-      .buildSchemaAttributes({ version: remoteHedSchemaVersion })
+      .buildSchema({ version: remoteHedSchemaVersion })
       .then(hedSchema => {
         const hedSchemaVersion = hedSchema.version
         assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
@@ -18,12 +18,10 @@ describe('Remote HED schemas', function() {
 
 describe('Local HED schemas', function() {
   it('can be loaded from a file', () => {
-    return schema
-      .buildSchemaAttributes({ path: localHedSchemaFile })
-      .then(hedSchema => {
-        const hedSchemaVersion = hedSchema.version
-        assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
-      })
+    return schema.buildSchema({ path: localHedSchemaFile }).then(hedSchema => {
+      const hedSchemaVersion = hedSchema.version
+      assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
+    })
   })
 })
 
@@ -31,7 +29,7 @@ describe('HED schemas', function() {
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = schema.buildSchemaAttributes({
+    hedSchemaPromise = schema.buildSchema({
       path: localHedSchemaFile,
     })
   })
@@ -52,7 +50,7 @@ describe('HED schemas', function() {
       'unitClass',
     ]
     return hedSchemaPromise.then(hedSchema => {
-      const dictionaries = hedSchema.dictionaries
+      const dictionaries = hedSchema.attributes.dictionaries
       for (const dictionaryKey of tagDictionaryKeys) {
         assert(
           dictionaries[dictionaryKey] instanceof Object,
@@ -69,7 +67,8 @@ describe('HED schemas', function() {
         'event/description',
         'event/label',
       ]
-      const dictionariesRequiredTags = hedSchema.dictionaries['required']
+      const dictionariesRequiredTags =
+        hedSchema.attributes.dictionaries['required']
       assert.sameMembers(Object.keys(dictionariesRequiredTags), requiredTags)
     })
   })
@@ -82,7 +81,8 @@ describe('HED schemas', function() {
         'event/label',
         'event/long name',
       ]
-      const dictionariesPositionedTags = hedSchema.dictionaries['position']
+      const dictionariesPositionedTags =
+        hedSchema.attributes.dictionaries['position']
       assert.sameMembers(
         Object.keys(dictionariesPositionedTags),
         positionedTags,
@@ -93,7 +93,7 @@ describe('HED schemas', function() {
   it('should contain all of the unique tags', () => {
     return hedSchemaPromise.then(hedSchema => {
       const uniqueTags = ['event/description', 'event/label', 'event/long name']
-      const dictionariesUniqueTags = hedSchema.dictionaries['unique']
+      const dictionariesUniqueTags = hedSchema.attributes.dictionaries['unique']
       assert.sameMembers(Object.keys(dictionariesUniqueTags), uniqueTags)
     })
   })
@@ -106,7 +106,8 @@ describe('HED schemas', function() {
         'attribute/blink/pavr/#': 'centiseconds',
         'attribute/blink/navr/#': 'centiseconds',
       }
-      const dictionariesDefaultUnitTags = hedSchema.dictionaries['default']
+      const dictionariesDefaultUnitTags =
+        hedSchema.attributes.dictionaries['default']
       assert.deepStrictEqual(dictionariesDefaultUnitTags, defaultUnitTags)
     })
   })
@@ -150,8 +151,9 @@ describe('HED schemas', function() {
         volume: ['m^3'],
       }
 
-      const dictionariesDefaultUnits = hedSchema.dictionaries['defaultUnits']
-      const dictionariesAllUnits = hedSchema.dictionaries['units']
+      const dictionariesDefaultUnits =
+        hedSchema.attributes.dictionaries['defaultUnits']
+      const dictionariesAllUnits = hedSchema.attributes.dictionaries['units']
       assert.deepStrictEqual(dictionariesDefaultUnits, defaultUnits)
       assert.deepStrictEqual(dictionariesAllUnits, allUnits)
     })
@@ -169,7 +171,7 @@ describe('HED schemas', function() {
         unitClass: 63,
       }
 
-      const dictionaries = hedSchema.dictionaries
+      const dictionaries = hedSchema.attributes.dictionaries
       for (const attribute in expectedTagCount) {
         assert.strictEqual(
           Object.keys(dictionaries[attribute]).length,
@@ -239,7 +241,7 @@ describe('HED schemas', function() {
         const expected = expectedResults[testStringKey]
         for (const expectedKey in expected) {
           assert.strictEqual(
-            hedSchema.tagHasAttribute(testString, expectedKey),
+            hedSchema.attributes.tagHasAttribute(testString, expectedKey),
             expected[expectedKey],
             `Test string: ${testString}. Attribute: ${expectedKey}.`,
           )

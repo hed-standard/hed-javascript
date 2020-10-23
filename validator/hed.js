@@ -1,6 +1,7 @@
 const utils = require('../utils')
 const stringParser = require('./stringParser')
-const SchemaAttributes = require('./schema').SchemaAttributes
+const { buildSchemaAttributesObject } = require('./schema')
+const Schema = require('../utils/schema').Schema
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -133,7 +134,7 @@ const checkCapitalization = function(
   const tagNames = originalTag.split('/')
   if (
     doSemanticValidation &&
-    utils.HED.tagTakesValue(formattedTag, hedSchema)
+    utils.HED.tagTakesValue(formattedTag, hedSchema.attributes)
   ) {
     tagNames.pop()
   }
@@ -184,7 +185,7 @@ const checkForMultipleUniqueTags = function(
   hedSchema,
 ) {
   const issues = []
-  const uniqueTagPrefixes = hedSchema.dictionaries[uniqueType]
+  const uniqueTagPrefixes = hedSchema.attributes.dictionaries[uniqueType]
   for (const uniqueTagPrefix in uniqueTagPrefixes) {
     let foundOne = false
     for (const formattedTag of formattedTagList) {
@@ -225,7 +226,8 @@ const checkNumberOfGroupTildes = function(originalTagGroup, parsedTagGroup) {
  */
 const checkIfTagRequiresChild = function(originalTag, formattedTag, hedSchema) {
   const issues = []
-  const invalid = formattedTag in hedSchema.dictionaries[requireChildType]
+  const invalid =
+    formattedTag in hedSchema.attributes.dictionaries[requireChildType]
   if (invalid) {
     issues.push(utils.generateIssue('childRequired', { tag: originalTag }))
   }
@@ -238,7 +240,7 @@ const checkIfTagRequiresChild = function(originalTag, formattedTag, hedSchema) {
 const checkForRequiredTags = function(parsedString, hedSchema) {
   const issues = []
   const formattedTopLevelTagList = parsedString.formattedTopLevelTags
-  const requiredTagPrefixes = hedSchema.dictionaries[requiredType]
+  const requiredTagPrefixes = hedSchema.attributes.dictionaries[requiredType]
   for (const requiredTagPrefix in requiredTagPrefixes) {
     let foundOne = false
     for (const formattedTag of formattedTopLevelTagList) {
@@ -267,13 +269,13 @@ const checkIfTagUnitClassUnitsExist = function(
   hedSchema,
 ) {
   const issues = []
-  if (utils.HED.isUnitClassTag(formattedTag, hedSchema)) {
+  if (utils.HED.isUnitClassTag(formattedTag, hedSchema.attributes)) {
     const tagUnitValues = utils.HED.getTagName(formattedTag)
     const invalid = digitExpression.test(tagUnitValues)
     if (invalid) {
       const defaultUnit = utils.HED.getUnitClassDefaultUnit(
         formattedTag,
-        hedSchema,
+        hedSchema.attributes,
       )
       issues.push(
         utils.generateIssue('unitClassDefaultUsed', {
@@ -298,17 +300,20 @@ const checkIfTagUnitClassUnitsAreValid = function(
 ) {
   const issues = []
   if (
-    !utils.HED.tagExistsInSchema(formattedTag, hedSchema) &&
-    utils.HED.isUnitClassTag(formattedTag, hedSchema)
+    !utils.HED.tagExistsInSchema(formattedTag, hedSchema.attributes) &&
+    utils.HED.isUnitClassTag(formattedTag, hedSchema.attributes)
   ) {
-    const tagUnitClasses = utils.HED.getTagUnitClasses(formattedTag, hedSchema)
+    const tagUnitClasses = utils.HED.getTagUnitClasses(
+      formattedTag,
+      hedSchema.attributes,
+    )
     const originalTagUnitValue = utils.HED.getTagName(originalTag)
     const formattedTagUnitValue = utils.HED.getTagName(formattedTag)
     const tagUnitClassUnits = utils.HED.getTagUnitClassUnits(
       formattedTag,
-      hedSchema,
+      hedSchema.attributes,
     )
-    if (dateTimeUnitClass in hedSchema.dictionaries[unitsElement]) {
+    if (dateTimeUnitClass in hedSchema.attributes.dictionaries[unitsElement]) {
       if (
         tagUnitClasses.includes(dateTimeUnitClass) &&
         utils.string.isDateTime(formattedTagUnitValue)
@@ -316,14 +321,16 @@ const checkIfTagUnitClassUnitsAreValid = function(
         return []
       }
     }
-    if (clockTimeUnitClass in hedSchema.dictionaries[unitsElement]) {
+    if (clockTimeUnitClass in hedSchema.attributes.dictionaries[unitsElement]) {
       if (
         tagUnitClasses.includes(clockTimeUnitClass) &&
         utils.string.isClockFaceTime(formattedTagUnitValue)
       ) {
         return []
       }
-    } else if (timeUnitClass in hedSchema.dictionaries[unitsElement]) {
+    } else if (
+      timeUnitClass in hedSchema.attributes.dictionaries[unitsElement]
+    ) {
       if (
         tagUnitClasses.includes(timeUnitClass) &&
         utils.string.isClockFaceTime(formattedTagUnitValue)
@@ -336,7 +343,7 @@ const checkIfTagUnitClassUnitsAreValid = function(
         originalTagUnitValue,
         formattedTagUnitValue,
         tagUnitClassUnits,
-        hedSchema,
+        hedSchema.attributes,
       ),
     )
     if (!validUnit) {
@@ -365,8 +372,8 @@ const checkIfTagIsValid = function(
 ) {
   const issues = []
   if (
-    utils.HED.tagExistsInSchema(formattedTag, hedSchema) || // This tag itself exists in the HED schema.
-    utils.HED.tagTakesValue(formattedTag, hedSchema) || // This tag is a valid value-taking tag in the HED schema.
+    utils.HED.tagExistsInSchema(formattedTag, hedSchema.attributes) || // This tag itself exists in the HED schema.
+    utils.HED.tagTakesValue(formattedTag, hedSchema.attributes) || // This tag is a valid value-taking tag in the HED schema.
     formattedTag === tilde // This "tag" is a tilde.
   ) {
     return []
@@ -374,11 +381,11 @@ const checkIfTagIsValid = function(
   // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
   const isExtensionAllowedTag = utils.HED.isExtensionAllowedTag(
     formattedTag,
-    hedSchema,
+    hedSchema.attributes,
   )
   if (
     !isExtensionAllowedTag &&
-    utils.HED.tagTakesValue(previousFormattedTag, hedSchema)
+    utils.HED.tagTakesValue(previousFormattedTag, hedSchema.attributes)
   ) {
     // This tag isn't an allowed extension, but the previous tag takes a value.
     // This is likely caused by an extraneous comma.
@@ -585,7 +592,10 @@ const validateHedString = function(
   hedSchema,
   checkForWarnings = false,
 ) {
-  const doSemanticValidation = hedSchema instanceof SchemaAttributes
+  const doSemanticValidation = hedSchema instanceof Schema
+  if (doSemanticValidation && !hedSchema.attributes) {
+    hedSchema.attributes = buildSchemaAttributesObject(hedSchema.xmlData)
+  }
   const fullHedStringIssues = validateFullHedString(hedString)
   if (fullHedStringIssues.length !== 0) {
     return [false, fullHedStringIssues]
