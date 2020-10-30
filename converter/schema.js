@@ -70,7 +70,7 @@ const getParentTagName = function(tagElement) {
 }
 
 /**
- * Build a schema object containing short-long mapping from a schema version or path description.
+ * Build a schema object containing a short-long mapping from a schema version or path description.
  *
  * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<Schema>} The schema object or an error.
