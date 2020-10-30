@@ -13,11 +13,11 @@ To use the validator, follow these instructions:
 1. Install the npm package `hed-validator`.
 1. Add `const hedValidator = require('hed-validator')`.
 1. (Semantic validation)
-   1. Load a HED schema version using `hedValidator.buildSchema()`. This returns a JavaScript `Promise` object. An optional object may be passed to `buildSchema()`. A `path` value is the path to a locally stored schema, while passing a `version` value will download that version. If no object or an empty object is passed, the latest version of the HED schema will be downloaded.
+   1. Load a HED schema version using `hedValidator.validator.buildSchema()`. This returns a JavaScript `Promise` object. An optional object may be passed to `buildSchema()`. A `path` value is the path to a locally stored schema, while passing a `version` value will download that version. If no object or an empty object is passed, the latest version of the HED schema will be downloaded.
    1. Call the validator as follows (assuming `hedString` is the string to validate).
    ```javascript
-   hedValidator.buildSchema().then(hedSchema => {
-     const [result, issues] = hedValidator.validateHedString(
+   hedValidator.validator.buildSchema().then(hedSchema => {
+     const [result, issues] = hedValidator.validator.validateHedString(
        hedString,
        hedSchema,
      )
@@ -25,7 +25,10 @@ To use the validator, follow these instructions:
    ```
 1. (Syntactic validation only) Call the validator as follows (assuming `hedString` is the string to validate). The second parameter is only required if checking for warnings.
    ```javascript
-   const [result, issues] = hedValidator.validateHedString(hedString, {})
+   const [result, issues] = hedValidator.validator.validateHedString(
+     hedString,
+     {},
+   )
    ```
 
 To check for warnings, pass `true` as the optional third argument.
@@ -45,7 +48,9 @@ const hedValidator = require('hed-validator')
 // Initializing parameters and making the call
 const validHedString =
   'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
-const [isValid1, issues1] = hedValidator.validateHedString(validHedString)
+const [isValid1, issues1] = hedValidator.validator.validateHedString(
+  validHedString,
+)
 ```
 
 After the call, the `isValid1` variable is `true` and `issues1` is empty.
@@ -56,7 +61,9 @@ After the call, the `isValid1` variable is `true` and `issues1` is empty.
 // Initializing parameters and making the call
 const invalidHedString2 =
   '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px'
-const [isValid2, issues2] = hedValidator.validateHedString(invalidHedString2)
+const [isValid2, issues2] = hedValidator.validator.validateHedString(
+  invalidHedString2,
+)
 ```
 
 After the call, `isValid2` is `false` and `issues2` has the value
@@ -75,10 +82,10 @@ After the call, `isValid2` is `false` and `issues2` has the value
 
 ```javascript
 const warningHedString = 'Event/something'
-const [isErrorFree, errorIssues] = hedValidator.validateHedString(
+const [isErrorFree, errorIssues] = hedValidator.validator.validateHedString(
   warningHedString,
 )
-const [isWarningFree, warningIssues] = hedValidator.validateHedString(
+const [isWarningFree, warningIssues] = hedValidator.validator.validateHedString(
   warningHedString,
   {},
   true,
@@ -103,9 +110,9 @@ After the calls, `isErrorFree` is `true` and `isWarningFree` is `false`. The `er
 // Initialize parameter
 const invalidHedString4 = 'Item/Nonsense'
 // Build schema
-hedValidator.buildSchema().then(hedSchema => {
+hedValidator.validator.buildSchema().then(hedSchema => {
   // Validate
-  const [isValid4, issues4] = hedValidator.validateHedString(
+  const [isValid4, issues4] = hedValidator.validator.validateHedString(
     invalidHedString4,
     hedSchema,
   )
@@ -130,22 +137,24 @@ const validHedString =
   'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
 
 // Load a remotely hosted schema version.
-hedValidator.buildSchema({ version: '7.0.4' }).then(hedSchema => {
+hedValidator.validator.buildSchema({ version: '7.0.4' }).then(hedSchema => {
   // Validate
-  const [isValid5Remote, issues5Remote] = hedValidator.validateHedString(
-    validHedString,
-    hedSchema,
-  )
+  const [
+    isValid5Remote,
+    issues5Remote,
+  ] = hedValidator.validator.validateHedString(validHedString, hedSchema)
   // Do something with results...
 })
 
 // Load a local schema file.
-hedValidator.buildSchema({ path: '/path/to/schema/file' }).then(hedSchema => {
-  // Validate
-  const [isValid5Local, issues5Local] = hedValidator.validateHedString(
-    validHedString,
-    hedSchema,
-  )
-  // Do something with results...
-})
+hedValidator.validator
+  .buildSchema({ path: '/path/to/schema/file' })
+  .then(hedSchema => {
+    // Validate
+    const [
+      isValid5Local,
+      issues5Local,
+    ] = hedValidator.validator.validateHedString(validHedString, hedSchema)
+    // Do something with results...
+  })
 ```
