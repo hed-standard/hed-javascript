@@ -1,6 +1,7 @@
 const assert = require('chai').assert
 const hed = require('../validator/hed')
 const schema = require('../validator/schema')
+const converterSchema = require('../converter/schema')
 const stringParser = require('../validator/stringParser')
 const generateIssue = require('../utils/issues')
 
@@ -941,6 +942,80 @@ describe('Pre-v7.1.0 HED Schemas', function() {
         expectedIssues,
         false,
       )
+    })
+  })
+})
+
+describe('Post-v8.0.0 HED Schemas', function() {
+  const hedSchemaFile = 'tests/data/HEDv1.6.10-reduced.xml'
+  let hedSchemaPromise
+
+  beforeAll(() => {
+    hedSchemaPromise = converterSchema.buildSchema({
+      path: hedSchemaFile,
+    })
+  })
+
+  describe('Full HED Strings', function() {
+    const validator = function(testStrings, expectedResults, expectedIssues) {
+      return hedSchemaPromise.then(hedSchema => {
+        for (const testStringKey in testStrings) {
+          const [testResult, testIssues] = hed.validateHedString(
+            testStrings[testStringKey],
+            hedSchema,
+            false,
+          )
+          assert.strictEqual(
+            testResult,
+            expectedResults[testStringKey],
+            testStrings[testStringKey],
+          )
+          assert.sameDeepMembers(
+            testIssues,
+            expectedIssues[testStringKey],
+            testStrings[testStringKey],
+          )
+        }
+      })
+    }
+
+    it('properly validate short tags', () => {
+      const testStrings = {
+        simple: 'Car',
+        groupAndValues: '(Train/Maglev,Age/15,RGB-red/0.5),Operate',
+        invalidUnit: 'Duration/20 cm',
+        duplicate: 'Train,Vehicle/Train',
+        missingChild: 'Label',
+      }
+      const expectedResults = {
+        simple: true,
+        groupAndValues: true,
+        invalidUnit: false,
+        duplicate: false,
+        missingChild: false,
+      }
+      const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
+      const expectedIssues = {
+        simple: [],
+        groupAndValues: [],
+        invalidUnit: [
+          generateIssue('unitClassInvalidUnit', {
+            tag: 'Attribute/Spatiotemporal/Temporal/Duration/20 cm',
+            unitClassUnits: legalTimeUnits.sort().join(','),
+          }),
+        ],
+        duplicate: [
+          generateIssue('duplicateTag', {
+            tag: 'Item/Object/Man-made/Vehicle/Train',
+          }),
+        ],
+        missingChild: [
+          generateIssue('childRequired', {
+            tag: 'Attribute/Informational/Label',
+          }),
+        ],
+      }
+      return validator(testStrings, expectedResults, expectedIssues)
     })
   })
 })
