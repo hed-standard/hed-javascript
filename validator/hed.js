@@ -1,5 +1,6 @@
 const utils = require('../utils')
 const stringParser = require('./stringParser')
+const { convertHedStringToLong } = require('../converter/converter')
 const { buildSchemaAttributesObject } = require('./schema')
 const Schema = require('../utils/schema').Schema
 
@@ -593,8 +594,20 @@ const validateHedString = function(
   checkForWarnings = false,
 ) {
   const doSemanticValidation = hedSchema instanceof Schema
-  if (doSemanticValidation && !hedSchema.attributes) {
-    hedSchema.attributes = buildSchemaAttributesObject(hedSchema.xmlData)
+  if (doSemanticValidation) {
+    if (!hedSchema.attributes) {
+      hedSchema.attributes = buildSchemaAttributesObject(hedSchema.xmlData)
+    }
+    if (hedSchema.mapping) {
+      let hedStringConversionIssues
+      ;[hedString, hedStringConversionIssues] = convertHedStringToLong(
+        hedSchema,
+        hedString,
+      )
+      if (hedStringConversionIssues.length !== 0) {
+        return [false, hedStringConversionIssues]
+      }
+    }
   }
   const fullHedStringIssues = validateFullHedString(hedString)
   if (fullHedStringIssues.length !== 0) {
