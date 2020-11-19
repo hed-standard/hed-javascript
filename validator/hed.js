@@ -1,8 +1,8 @@
 const utils = require('../utils')
-const stringParser = require('./stringParser')
+const { parseHedString } = require('./stringParser')
 const { convertHedStringToLong } = require('../converter/converter')
 const { buildSchemaAttributesObject } = require('./schema')
-const Schema = require('../utils/schema').Schema
+const { Schema } = require('../utils/schema')
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -614,9 +614,7 @@ const validateHedString = function(
     return [false, fullHedStringIssues]
   }
 
-  const [parsedString, parsedStringIssues] = stringParser.parseHedString(
-    hedString,
-  )
+  const [parsedString, parsedStringIssues] = parseHedString(hedString)
   if (parsedStringIssues.length !== 0) {
     return [false, parsedStringIssues]
   }
