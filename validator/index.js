@@ -1,7 +1,7 @@
-const HED = require('./hed')
+const hedString = require('./hedString')
 const schema = require('./schema')
 
 module.exports = {
   buildSchema: schema.buildSchema,
-  validateHedString: HED.validateHedString,
+  validateHedString: hedString.validateHedString,
 }
