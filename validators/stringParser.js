@@ -172,7 +172,7 @@ const formatHedTag = function(hedTag, onlyRemoveNewLine = false) {
   if (onlyRemoveNewLine) {
     return hedTag
   }
-  hedTag.trim()
+  hedTag = hedTag.trim()
   if (hedTag.startsWith('"')) {
     hedTag = hedTag.slice(1)
   }
