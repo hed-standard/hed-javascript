@@ -337,7 +337,7 @@ const buildSchema = function(schemaDef = {}) {
   return schemaUtils.loadSchema(schemaDef).then(xmlData => {
     const schemaAttributes = buildSchemaAttributesObject(xmlData)
     let mapping
-    if (semver.gte(xmlData.HED.$.version, '8.0.0')) {
+    if (semver.gte(xmlData.HED.$.version, '8.0.0-alpha')) {
       mapping = buildMappingObject(xmlData)
     }
     return new schemaUtils.Schema(xmlData, schemaAttributes, mapping)
