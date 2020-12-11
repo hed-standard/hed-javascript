@@ -49,6 +49,18 @@ const getTagName = function(tag) {
 }
 
 /**
+ * Get the last part of a HED tag.
+ */
+const getParentTag = function(tag) {
+  const lastSlashIndex = tag.lastIndexOf('/')
+  if (lastSlashIndex === -1) {
+    return tag
+  } else {
+    return tag.substring(0, lastSlashIndex)
+  }
+}
+
+/**
  * Get the list of valid derivatives of a unit.
  */
 const getValidUnitPlural = function(unit, hedSchemaAttributes) {
@@ -249,6 +261,7 @@ module.exports = {
   replaceTagNameWithPound: replaceTagNameWithPound,
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
+  getParentTag: getParentTag,
   stripOffUnitsIfValid: stripOffUnitsIfValid,
   validateUnits: validateUnits,
   tagExistsInSchema: tagExistsInSchema,

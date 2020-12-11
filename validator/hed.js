@@ -23,6 +23,33 @@ const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
 // Validation tests
 
 /**
+ * Substitute certain illegal characters and report warnings when found.
+ */
+const substituteCharacters = function(hedString) {
+  const issues = []
+  const illegalCharacterMap = { '\0': ['ASCII NUL', ' '] }
+  const flaggedCharacters = /[^\w\d./ -]/g
+  const replaceFunction = function(match, offset) {
+    if (match in illegalCharacterMap) {
+      const [name, replacement] = illegalCharacterMap[match]
+      issues.push(
+        utils.generateIssue('invalidCharacter', {
+          character: name,
+          index: offset,
+          string: hedString,
+        }),
+      )
+      return replacement
+    } else {
+      return match
+    }
+  }
+  const fixedString = hedString.replace(flaggedCharacters, replaceFunction)
+
+  return [fixedString, issues]
+}
+
+/**
  * Check if group parentheses match. Pushes an issue if they don't match.
  */
 const countTagGroupParentheses = function(hedString) {
@@ -370,6 +397,7 @@ const checkIfTagIsValid = function(
   previousOriginalTag,
   previousFormattedTag,
   hedSchema,
+  allowPlaceholders,
 ) {
   const issues = []
   if (
@@ -384,6 +412,16 @@ const checkIfTagIsValid = function(
     formattedTag,
     hedSchema.attributes,
   )
+  if (allowPlaceholders && utils.HED.getTagName(formattedTag) === '#') {
+    if (
+      utils.HED.tagExistsInSchema(
+        utils.HED.getParentTag(formattedTag),
+        hedSchema.attributes,
+      )
+    ) {
+      return []
+    }
+  }
   if (
     !isExtensionAllowedTag &&
     utils.HED.tagTakesValue(previousFormattedTag, hedSchema.attributes)
@@ -413,9 +451,10 @@ const checkIfTagIsValid = function(
  * Validate the full HED string.
  */
 const validateFullHedString = function(hedString) {
-  const issues = [].concat(
-    countTagGroupParentheses(hedString),
-    findDelimiterIssuesInHedString(hedString),
+  const [fixedHedString, substitutionIssues] = substituteCharacters(hedString)
+  const issues = substitutionIssues.concat(
+    countTagGroupParentheses(fixedHedString),
+    findDelimiterIssuesInHedString(fixedHedString),
   )
   return issues
 }
@@ -431,6 +470,7 @@ const validateIndividualHedTag = function(
   hedSchema,
   doSemanticValidation,
   checkForWarnings,
+  allowPlaceholders,
 ) {
   let issues = []
   if (doSemanticValidation) {
@@ -441,6 +481,7 @@ const validateIndividualHedTag = function(
         previousOriginalTag,
         previousFormattedTag,
         hedSchema,
+        allowPlaceholders,
       ),
       checkIfTagUnitClassUnitsAreValid(originalTag, formattedTag, hedSchema),
       checkIfTagRequiresChild(originalTag, formattedTag, hedSchema),
@@ -472,6 +513,7 @@ const validateIndividualHedTags = function(
   hedSchema,
   doSemanticValidation,
   checkForWarnings,
+  allowPlaceholders = false,
 ) {
   let issues = []
   let previousOriginalTag = ''
@@ -488,6 +530,7 @@ const validateIndividualHedTags = function(
         hedSchema,
         doSemanticValidation,
         checkForWarnings,
+        allowPlaceholders,
       ),
     )
     previousOriginalTag = originalTag
@@ -581,19 +624,18 @@ const validateTopLevelTags = function(
 }
 
 /**
- * Validate a HED string.
+ * Perform initial validation on a HED string and parse it so further validation can be performed.
  *
  * @param {string} hedString The HED string to validate.
  * @param {Schema} hedSchema The HED schema to validate against.
- * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
- * @returns {Array} Whether the HED string is valid and any issues found.
+ * @param {boolean} doSemanticValidation Whether to perform semantic validation.
+ * @return {Array} Whether validation passed, any issues, and any parsed string data.
  */
-const validateHedString = function(
+const initiallyValidateHedString = function(
   hedString,
   hedSchema,
-  checkForWarnings = false,
+  doSemanticValidation,
 ) {
-  const doSemanticValidation = hedSchema instanceof Schema
   if (doSemanticValidation) {
     if (!hedSchema.attributes) {
       hedSchema.attributes = buildSchemaAttributesObject(hedSchema.xmlData)
@@ -605,18 +647,86 @@ const validateHedString = function(
         hedString,
       )
       if (hedStringConversionIssues.length !== 0) {
-        return [false, hedStringConversionIssues]
+        return [false, hedStringConversionIssues, null]
       }
     }
   }
   const fullHedStringIssues = validateFullHedString(hedString)
   if (fullHedStringIssues.length !== 0) {
-    return [false, fullHedStringIssues]
+    return [false, fullHedStringIssues, null]
   }
 
   const [parsedString, parsedStringIssues] = parseHedString(hedString)
   if (parsedStringIssues.length !== 0) {
-    return [false, parsedStringIssues]
+    return [false, parsedStringIssues, null]
+  }
+
+  return [true, [], parsedString]
+}
+
+/**
+ * Validate a HED non-event string.
+ *
+ * @param {string} hedString The HED non-event string to validate.
+ * @param {Schema} hedSchema The HED schema to validate against.
+ * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
+ * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
+ * @returns {Array} Whether the HED string is valid and any issues found.
+ */
+const validateHedString = function(
+  hedString,
+  hedSchema,
+  checkForWarnings = false,
+  allowPlaceholders = false,
+) {
+  const doSemanticValidation = hedSchema instanceof Schema
+  const [
+    initiallyValid,
+    initialIssues,
+    parsedString,
+  ] = initiallyValidateHedString(hedString, hedSchema, doSemanticValidation)
+  if (!initiallyValid) {
+    return [false, initialIssues]
+  }
+
+  const issues = [].concat(
+    validateIndividualHedTags(
+      parsedString,
+      hedSchema,
+      doSemanticValidation,
+      checkForWarnings,
+      allowPlaceholders,
+    ),
+    validateHedTagGroups(parsedString),
+  )
+  if (issues.length === 0) {
+    return [true, []]
+  } else {
+    return [false, issues]
+  }
+}
+
+/**
+ * Validate a HED event string.
+ *
+ * @param {string} hedString The HED event string to validate.
+ * @param {Schema} hedSchema The HED schema to validate against.
+ * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
+ * @returns {Array} Whether the HED string is valid and any issues found.
+ */
+const validateHedEvent = function(
+  hedString,
+  hedSchema,
+  checkForWarnings = false,
+) {
+  const doSemanticValidation = hedSchema instanceof Schema
+  const [
+    initiallyValid,
+    initialIssues,
+    parsedString,
+  ] = initiallyValidateHedString(hedString, hedSchema, doSemanticValidation)
+  if (!initiallyValid) {
+    return [false, initialIssues]
   }
 
   const issues = [].concat(
@@ -648,4 +758,5 @@ module.exports = {
   validateHedTagLevels: validateHedTagLevels,
   validateTopLevelTags: validateTopLevelTags,
   validateHedString: validateHedString,
+  validateHedEvent: validateHedEvent,
 }

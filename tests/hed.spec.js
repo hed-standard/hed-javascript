@@ -70,7 +70,7 @@ describe('Latest HED Schema', () => {
   describe('Full HED Strings', () => {
     const validator = function(testStrings, expectedResults, expectedIssues) {
       for (const testStringKey in testStrings) {
-        const [testResult, testIssues] = hed.validateHedString(
+        const [testResult, testIssues] = hed.validateHedEvent(
           testStrings[testStringKey],
         )
         assert.strictEqual(
@@ -960,7 +960,7 @@ describe('Post-v8.0.0 HED Schemas', function() {
     const validator = function(testStrings, expectedResults, expectedIssues) {
       return hedSchemaPromise.then(hedSchema => {
         for (const testStringKey in testStrings) {
-          const [testResult, testIssues] = hed.validateHedString(
+          const [testResult, testIssues] = hed.validateHedEvent(
             testStrings[testStringKey],
             hedSchema,
             false,
