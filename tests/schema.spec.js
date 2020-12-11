@@ -166,7 +166,7 @@ describe('HED schemas', function() {
         predicateType: 20,
         recommended: 0,
         requireChild: 64,
-        tags: 1116,
+        tags: 1116 - 119 + 2,
         takesValue: 119,
         unitClass: 63,
       }
@@ -201,7 +201,7 @@ describe('HED schemas', function() {
           recommended: false,
           required: false,
           requireChild: false,
-          tags: true,
+          tags: false,
           takesValue: true,
           unique: false,
           unitClass: true,
