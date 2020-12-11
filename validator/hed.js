@@ -398,6 +398,7 @@ const checkIfTagIsValid = function(
   previousFormattedTag,
   hedSchema,
   allowPlaceholders,
+  checkForWarnings,
 ) {
   const issues = []
   if (
@@ -413,13 +414,21 @@ const checkIfTagIsValid = function(
     hedSchema.attributes,
   )
   if (allowPlaceholders && utils.HED.getTagName(formattedTag) === '#') {
-    if (
-      utils.HED.tagExistsInSchema(
-        utils.HED.getParentTag(formattedTag),
-        hedSchema.attributes,
-      )
-    ) {
+    const parentTag = utils.HED.getParentTag(formattedTag)
+    if (utils.HED.tagExistsInSchema(parentTag, hedSchema.attributes)) {
       return []
+    } else if (
+      utils.HED.isExtensionAllowedTag(parentTag, hedSchema.attributes)
+    ) {
+      if (checkForWarnings) {
+        issues.push(utils.generateIssue('extension', { tag: originalTag }))
+        return issues
+      } else {
+        return []
+      }
+    } else {
+      issues.push(utils.generateIssue('invalidTag', { tag: originalTag }))
+      return issues
     }
   }
   if (
@@ -441,7 +450,12 @@ const checkIfTagIsValid = function(
     return issues
   } else {
     // This is an allowed extension.
-    return []
+    if (checkForWarnings) {
+      issues.push(utils.generateIssue('extension', { tag: originalTag }))
+      return issues
+    } else {
+      return []
+    }
   }
 }
 
@@ -482,6 +496,7 @@ const validateIndividualHedTag = function(
         previousFormattedTag,
         hedSchema,
         allowPlaceholders,
+        checkForWarnings,
       ),
       checkIfTagUnitClassUnitsAreValid(originalTag, formattedTag, hedSchema),
       checkIfTagRequiresChild(originalTag, formattedTag, hedSchema),
