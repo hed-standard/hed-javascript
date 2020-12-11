@@ -28,7 +28,7 @@ const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
 const substituteCharacters = function(hedString) {
   const issues = []
   const illegalCharacterMap = { '\0': ['ASCII NUL', ' '] }
-  const flaggedCharacters = /[^\w\d./ -]/g
+  const flaggedCharacters = /[^\w\d./$ :-]/g
   const replaceFunction = function(match, offset) {
     if (match in illegalCharacterMap) {
       const [name, replacement] = illegalCharacterMap[match]
