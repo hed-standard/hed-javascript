@@ -299,6 +299,25 @@ describe('Latest HED Schema', () => {
       }
       validator(testStrings, expectedResults, expectedIssues)
     })
+
+    it('should substitute and warn for certain illegal characters', () => {
+      const testStrings = {
+        nul: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm\0',
+      }
+      const expectedResults = {
+        nul: false,
+      }
+      const expectedIssues = {
+        nul: [
+          generateIssue('invalidCharacter', {
+            character: 'ASCII NUL',
+            index: 61,
+            string: testStrings.nul,
+          }),
+        ],
+      }
+      validator(testStrings, expectedResults, expectedIssues)
+    })
   })
 
   describe('Individual HED Tags', () => {
@@ -757,18 +776,94 @@ describe('Latest HED Schema', () => {
     })
   })
 
-  describe('HED Tags', () => {
-    it('should comprise valid comma-separated paths', () => {
-      const hedStr =
-        'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
-      const [result, issues] = hed.validateHedString(hedStr, {})
-      assert.strictEqual(result, true)
-      assert.deepStrictEqual(issues, [])
+  describe('HED Strings', () => {
+    const validator = function(
+      testStrings,
+      expectedResults,
+      expectedIssues,
+      allowPlaceholders = false,
+    ) {
+      return hedSchemaPromise.then(schema => {
+        for (const testStringKey in testStrings) {
+          const [testResult, testIssues] = hed.validateHedString(
+            testStrings[testStringKey],
+            schema,
+            true,
+            allowPlaceholders,
+          )
+          assert.strictEqual(
+            testResult,
+            expectedResults[testStringKey],
+            testStrings[testStringKey],
+          )
+          assert.sameDeepMembers(
+            testIssues,
+            expectedIssues[testStringKey],
+            testStrings[testStringKey],
+          )
+        }
+      })
+    }
+
+    it('should skip tag group-level checks', () => {
+      const testStrings = {
+        duplicate: 'Item/Object/Vehicle/Train,Item/Object/Vehicle/Train',
+        multipleUnique:
+          'Event/Description/Rail vehicles,Event/Description/Locomotive-pulled or multiple units',
+      }
+      const expectedResults = {
+        duplicate: true,
+        multipleUnique: true,
+      }
+      const expectedIssues = {
+        duplicate: [],
+        multipleUnique: [],
+      }
+      return validator(testStrings, expectedResults, expectedIssues)
+    })
+
+    it('should properly handle strings with placeholders', () => {
+      const testStrings = {
+        takesValue: 'Event/Duration/# ms',
+        full: 'Attribute/Object side/#',
+        extensionAllowed: 'Item/Object/Person/Driver/#',
+        invalidParent: 'Event/Nonsense/#',
+        missingRequiredUnit: 'Event/Duration/#',
+        wrongLocation: 'Item/#/Person',
+      }
+      const expectedResults = {
+        takesValue: true,
+        full: true,
+        extensionAllowed: false,
+        invalidParent: false,
+        missingRequiredUnit: false,
+        wrongLocation: false,
+      }
+      const expectedIssues = {
+        takesValue: [],
+        full: [],
+        extensionAllowed: [
+          generateIssue('extension', { tag: testStrings.extensionAllowed }),
+        ],
+        invalidParent: [
+          generateIssue('invalidTag', { tag: testStrings.invalidParent }),
+        ],
+        missingRequiredUnit: [
+          generateIssue('unitClassDefaultUsed', {
+            defaultUnit: 's',
+            tag: testStrings.missingRequiredUnit,
+          }),
+        ],
+        wrongLocation: [
+          generateIssue('invalidTag', { tag: testStrings.wrongLocation }),
+        ],
+      }
+      return validator(testStrings, expectedResults, expectedIssues, true)
     })
   })
 })
 
-describe('Pre-v7.1.0 HED Schemas', function() {
+describe('Pre-v7.1.0 HED Schemas', () => {
   const hedSchemaFile = 'tests/data/HED7.0.4.xml'
   let hedSchemaPromise
 
@@ -806,7 +901,7 @@ describe('Pre-v7.1.0 HED Schemas', function() {
     })
   }
 
-  describe('Individual HED Tags', function() {
+  describe('Individual HED Tags', () => {
     const validatorSemantic = function(
       testStrings,
       expectedResults,
@@ -948,7 +1043,7 @@ describe('Pre-v7.1.0 HED Schemas', function() {
   })
 })
 
-describe('Post-v8.0.0 HED Schemas', function() {
+describe('Post-v8.0.0 HED Schemas', () => {
   const hedSchemaFile = 'tests/data/HEDv1.6.10-reduced.xml'
   let hedSchemaPromise
 
@@ -958,7 +1053,7 @@ describe('Post-v8.0.0 HED Schemas', function() {
     })
   })
 
-  describe('Full HED Strings', function() {
+  describe('Full HED Strings', () => {
     const validator = function(testStrings, expectedResults, expectedIssues) {
       return hedSchemaPromise.then(hedSchema => {
         for (const testStringKey in testStrings) {
