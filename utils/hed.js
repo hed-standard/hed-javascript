@@ -149,6 +149,15 @@ const validateUnits = function(
   return formattedTagUnitValue
 }
 
+const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
+
+/**
+ * Determine if a stripped value is valid.
+ */
+const validateValue = function(value, allowPlaceholders) {
+  return digitExpression.test(value) || (allowPlaceholders && /^#$/.test(value))
+}
+
 /**
  * Determine if a HED tag is in the schema.
  */
@@ -264,6 +273,7 @@ module.exports = {
   getParentTag: getParentTag,
   stripOffUnitsIfValid: stripOffUnitsIfValid,
   validateUnits: validateUnits,
+  validateValue: validateValue,
   tagExistsInSchema: tagExistsInSchema,
   tagTakesValue: tagTakesValue,
   isUnitClassTag: isUnitClassTag,

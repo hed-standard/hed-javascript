@@ -18,8 +18,6 @@ const clockTimeUnitClass = 'clockTime'
 const dateTimeUnitClass = 'dateTime'
 const timeUnitClass = 'time'
 
-const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
-
 // Validation tests
 
 /**
@@ -295,11 +293,12 @@ const checkIfTagUnitClassUnitsExist = function(
   originalTag,
   formattedTag,
   hedSchema,
+  allowPlaceholders = false,
 ) {
   const issues = []
   if (utils.HED.isUnitClassTag(formattedTag, hedSchema.attributes)) {
     const tagUnitValues = utils.HED.getTagName(formattedTag)
-    const invalid = digitExpression.test(tagUnitValues)
+    const invalid = utils.HED.validateValue(tagUnitValues, allowPlaceholders)
     if (invalid) {
       const defaultUnit = utils.HED.getUnitClassDefaultUnit(
         formattedTag,
@@ -325,6 +324,7 @@ const checkIfTagUnitClassUnitsAreValid = function(
   originalTag,
   formattedTag,
   hedSchema,
+  allowPlaceholders = false,
 ) {
   const issues = []
   if (
@@ -366,14 +366,13 @@ const checkIfTagUnitClassUnitsAreValid = function(
         return []
       }
     }
-    const validUnit = digitExpression.test(
-      utils.HED.validateUnits(
-        originalTagUnitValue,
-        formattedTagUnitValue,
-        tagUnitClassUnits,
-        hedSchema.attributes,
-      ),
+    const value = utils.HED.validateUnits(
+      originalTagUnitValue,
+      formattedTagUnitValue,
+      tagUnitClassUnits,
+      hedSchema.attributes,
     )
+    const validUnit = utils.HED.validateValue(value, allowPlaceholders)
     if (!validUnit) {
       issues.push(
         utils.generateIssue('unitClassInvalidUnit', {
@@ -466,11 +465,11 @@ const checkIfTagIsValid = function(
  */
 const validateFullHedString = function(hedString) {
   const [fixedHedString, substitutionIssues] = substituteCharacters(hedString)
-  const issues = substitutionIssues.concat(
+  const issues = [].concat(
     countTagGroupParentheses(fixedHedString),
     findDelimiterIssuesInHedString(fixedHedString),
   )
-  return issues
+  return [substitutionIssues, issues]
 }
 
 /**
@@ -498,12 +497,22 @@ const validateIndividualHedTag = function(
         allowPlaceholders,
         checkForWarnings,
       ),
-      checkIfTagUnitClassUnitsAreValid(originalTag, formattedTag, hedSchema),
+      checkIfTagUnitClassUnitsAreValid(
+        originalTag,
+        formattedTag,
+        hedSchema,
+        allowPlaceholders,
+      ),
       checkIfTagRequiresChild(originalTag, formattedTag, hedSchema),
     )
     if (checkForWarnings) {
       issues = issues.concat(
-        checkIfTagUnitClassUnitsExist(originalTag, formattedTag, hedSchema),
+        checkIfTagUnitClassUnitsExist(
+          originalTag,
+          formattedTag,
+          hedSchema,
+          allowPlaceholders,
+        ),
       )
     }
   }
@@ -666,17 +675,19 @@ const initiallyValidateHedString = function(
       }
     }
   }
-  const fullHedStringIssues = validateFullHedString(hedString)
+  const [substitutionIssues, fullHedStringIssues] = validateFullHedString(
+    hedString,
+  )
   if (fullHedStringIssues.length !== 0) {
-    return [false, fullHedStringIssues, null]
+    return [false, fullHedStringIssues.concat(substitutionIssues), null]
   }
 
   const [parsedString, parsedStringIssues] = parseHedString(hedString)
   if (parsedStringIssues.length !== 0) {
-    return [false, parsedStringIssues, null]
+    return [false, parsedStringIssues.concat(substitutionIssues), null]
   }
 
-  return [true, [], parsedString]
+  return [true, substitutionIssues, parsedString]
 }
 
 /**
@@ -704,7 +715,7 @@ const validateHedString = function(
     return [false, initialIssues]
   }
 
-  const issues = [].concat(
+  const issues = initialIssues.concat(
     validateIndividualHedTags(
       parsedString,
       hedSchema,
@@ -744,7 +755,7 @@ const validateHedEvent = function(
     return [false, initialIssues]
   }
 
-  const issues = [].concat(
+  const issues = initialIssues.concat(
     validateTopLevelTags(
       parsedString,
       hedSchema,
