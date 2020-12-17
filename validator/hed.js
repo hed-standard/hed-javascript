@@ -18,9 +18,34 @@ const clockTimeUnitClass = 'clockTime'
 const dateTimeUnitClass = 'dateTime'
 const timeUnitClass = 'time'
 
-const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
-
 // Validation tests
+
+/**
+ * Substitute certain illegal characters and report warnings when found.
+ */
+const substituteCharacters = function(hedString) {
+  const issues = []
+  const illegalCharacterMap = { '\0': ['ASCII NUL', ' '] }
+  const flaggedCharacters = /[^\w\d./$ :-]/g
+  const replaceFunction = function(match, offset) {
+    if (match in illegalCharacterMap) {
+      const [name, replacement] = illegalCharacterMap[match]
+      issues.push(
+        utils.generateIssue('invalidCharacter', {
+          character: name,
+          index: offset,
+          string: hedString,
+        }),
+      )
+      return replacement
+    } else {
+      return match
+    }
+  }
+  const fixedString = hedString.replace(flaggedCharacters, replaceFunction)
+
+  return [fixedString, issues]
+}
 
 /**
  * Check if group parentheses match. Pushes an issue if they don't match.
@@ -268,11 +293,12 @@ const checkIfTagUnitClassUnitsExist = function(
   originalTag,
   formattedTag,
   hedSchema,
+  allowPlaceholders = false,
 ) {
   const issues = []
   if (utils.HED.isUnitClassTag(formattedTag, hedSchema.attributes)) {
     const tagUnitValues = utils.HED.getTagName(formattedTag)
-    const invalid = digitExpression.test(tagUnitValues)
+    const invalid = utils.HED.validateValue(tagUnitValues, allowPlaceholders)
     if (invalid) {
       const defaultUnit = utils.HED.getUnitClassDefaultUnit(
         formattedTag,
@@ -298,6 +324,7 @@ const checkIfTagUnitClassUnitsAreValid = function(
   originalTag,
   formattedTag,
   hedSchema,
+  allowPlaceholders = false,
 ) {
   const issues = []
   if (
@@ -339,14 +366,13 @@ const checkIfTagUnitClassUnitsAreValid = function(
         return []
       }
     }
-    const validUnit = digitExpression.test(
-      utils.HED.validateUnits(
-        originalTagUnitValue,
-        formattedTagUnitValue,
-        tagUnitClassUnits,
-        hedSchema.attributes,
-      ),
+    const value = utils.HED.validateUnits(
+      originalTagUnitValue,
+      formattedTagUnitValue,
+      tagUnitClassUnits,
+      hedSchema.attributes,
     )
+    const validUnit = utils.HED.validateValue(value, allowPlaceholders)
     if (!validUnit) {
       issues.push(
         utils.generateIssue('unitClassInvalidUnit', {
@@ -370,6 +396,8 @@ const checkIfTagIsValid = function(
   previousOriginalTag,
   previousFormattedTag,
   hedSchema,
+  allowPlaceholders,
+  checkForWarnings,
 ) {
   const issues = []
   if (
@@ -384,6 +412,24 @@ const checkIfTagIsValid = function(
     formattedTag,
     hedSchema.attributes,
   )
+  if (allowPlaceholders && utils.HED.getTagName(formattedTag) === '#') {
+    const parentTag = utils.HED.getParentTag(formattedTag)
+    if (utils.HED.tagExistsInSchema(parentTag, hedSchema.attributes)) {
+      return []
+    } else if (
+      utils.HED.isExtensionAllowedTag(parentTag, hedSchema.attributes)
+    ) {
+      if (checkForWarnings) {
+        issues.push(utils.generateIssue('extension', { tag: originalTag }))
+        return issues
+      } else {
+        return []
+      }
+    } else {
+      issues.push(utils.generateIssue('invalidTag', { tag: originalTag }))
+      return issues
+    }
+  }
   if (
     !isExtensionAllowedTag &&
     utils.HED.tagTakesValue(previousFormattedTag, hedSchema.attributes)
@@ -403,7 +449,12 @@ const checkIfTagIsValid = function(
     return issues
   } else {
     // This is an allowed extension.
-    return []
+    if (checkForWarnings) {
+      issues.push(utils.generateIssue('extension', { tag: originalTag }))
+      return issues
+    } else {
+      return []
+    }
   }
 }
 
@@ -413,11 +464,12 @@ const checkIfTagIsValid = function(
  * Validate the full HED string.
  */
 const validateFullHedString = function(hedString) {
+  const [fixedHedString, substitutionIssues] = substituteCharacters(hedString)
   const issues = [].concat(
-    countTagGroupParentheses(hedString),
-    findDelimiterIssuesInHedString(hedString),
+    countTagGroupParentheses(fixedHedString),
+    findDelimiterIssuesInHedString(fixedHedString),
   )
-  return issues
+  return [substitutionIssues, issues]
 }
 
 /**
@@ -431,6 +483,7 @@ const validateIndividualHedTag = function(
   hedSchema,
   doSemanticValidation,
   checkForWarnings,
+  allowPlaceholders,
 ) {
   let issues = []
   if (doSemanticValidation) {
@@ -441,13 +494,25 @@ const validateIndividualHedTag = function(
         previousOriginalTag,
         previousFormattedTag,
         hedSchema,
+        allowPlaceholders,
+        checkForWarnings,
       ),
-      checkIfTagUnitClassUnitsAreValid(originalTag, formattedTag, hedSchema),
+      checkIfTagUnitClassUnitsAreValid(
+        originalTag,
+        formattedTag,
+        hedSchema,
+        allowPlaceholders,
+      ),
       checkIfTagRequiresChild(originalTag, formattedTag, hedSchema),
     )
     if (checkForWarnings) {
       issues = issues.concat(
-        checkIfTagUnitClassUnitsExist(originalTag, formattedTag, hedSchema),
+        checkIfTagUnitClassUnitsExist(
+          originalTag,
+          formattedTag,
+          hedSchema,
+          allowPlaceholders,
+        ),
       )
     }
   }
@@ -472,6 +537,7 @@ const validateIndividualHedTags = function(
   hedSchema,
   doSemanticValidation,
   checkForWarnings,
+  allowPlaceholders = false,
 ) {
   let issues = []
   let previousOriginalTag = ''
@@ -488,6 +554,7 @@ const validateIndividualHedTags = function(
         hedSchema,
         doSemanticValidation,
         checkForWarnings,
+        allowPlaceholders,
       ),
     )
     previousOriginalTag = originalTag
@@ -581,19 +648,18 @@ const validateTopLevelTags = function(
 }
 
 /**
- * Validate a HED string.
+ * Perform initial validation on a HED string and parse it so further validation can be performed.
  *
  * @param {string} hedString The HED string to validate.
  * @param {Schema} hedSchema The HED schema to validate against.
- * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
- * @returns {Array} Whether the HED string is valid and any issues found.
+ * @param {boolean} doSemanticValidation Whether to perform semantic validation.
+ * @return {Array} Whether validation passed, any issues, and any parsed string data.
  */
-const validateHedString = function(
+const initiallyValidateHedString = function(
   hedString,
   hedSchema,
-  checkForWarnings = false,
+  doSemanticValidation,
 ) {
-  const doSemanticValidation = hedSchema instanceof Schema
   if (doSemanticValidation) {
     if (!hedSchema.attributes) {
       hedSchema.attributes = buildSchemaAttributesObject(hedSchema.xmlData)
@@ -605,21 +671,91 @@ const validateHedString = function(
         hedString,
       )
       if (hedStringConversionIssues.length !== 0) {
-        return [false, hedStringConversionIssues]
+        return [false, hedStringConversionIssues, null]
       }
     }
   }
-  const fullHedStringIssues = validateFullHedString(hedString)
+  const [substitutionIssues, fullHedStringIssues] = validateFullHedString(
+    hedString,
+  )
   if (fullHedStringIssues.length !== 0) {
-    return [false, fullHedStringIssues]
+    return [false, fullHedStringIssues.concat(substitutionIssues), null]
   }
 
   const [parsedString, parsedStringIssues] = parseHedString(hedString)
   if (parsedStringIssues.length !== 0) {
-    return [false, parsedStringIssues]
+    return [false, parsedStringIssues.concat(substitutionIssues), null]
   }
 
-  const issues = [].concat(
+  return [true, substitutionIssues, parsedString]
+}
+
+/**
+ * Validate a HED string.
+ *
+ * @param {string} hedString The HED string to validate.
+ * @param {Schema} hedSchema The HED schema to validate against.
+ * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
+ * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
+ * @returns {Array} Whether the HED string is valid and any issues found.
+ */
+const validateHedString = function(
+  hedString,
+  hedSchema,
+  checkForWarnings = false,
+  allowPlaceholders = false,
+) {
+  const doSemanticValidation = hedSchema instanceof Schema
+  const [
+    initiallyValid,
+    initialIssues,
+    parsedString,
+  ] = initiallyValidateHedString(hedString, hedSchema, doSemanticValidation)
+  if (!initiallyValid) {
+    return [false, initialIssues]
+  }
+
+  const issues = initialIssues.concat(
+    validateIndividualHedTags(
+      parsedString,
+      hedSchema,
+      doSemanticValidation,
+      checkForWarnings,
+      allowPlaceholders,
+    ),
+    validateHedTagGroups(parsedString),
+  )
+  if (issues.length === 0) {
+    return [true, []]
+  } else {
+    return [false, issues]
+  }
+}
+
+/**
+ * Validate a HED event string.
+ *
+ * @param {string} hedString The HED event string to validate.
+ * @param {Schema} hedSchema The HED schema to validate against.
+ * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
+ * @returns {Array} Whether the HED string is valid and any issues found.
+ */
+const validateHedEvent = function(
+  hedString,
+  hedSchema,
+  checkForWarnings = false,
+) {
+  const doSemanticValidation = hedSchema instanceof Schema
+  const [
+    initiallyValid,
+    initialIssues,
+    parsedString,
+  ] = initiallyValidateHedString(hedString, hedSchema, doSemanticValidation)
+  if (!initiallyValid) {
+    return [false, initialIssues]
+  }
+
+  const issues = initialIssues.concat(
     validateTopLevelTags(
       parsedString,
       hedSchema,
@@ -648,4 +784,5 @@ module.exports = {
   validateHedTagLevels: validateHedTagLevels,
   validateTopLevelTags: validateTopLevelTags,
   validateHedString: validateHedString,
+  validateHedEvent: validateHedEvent,
 }

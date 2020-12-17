@@ -43,6 +43,9 @@ const generateIssue = function(code, parameters) {
     case 'invalidCharacter':
       issueObject.message = `ERROR: Invalid character "${parameters.character}" at index ${parameters.index} of string "${parameters.string}"`
       break
+    case 'extension':
+      issueObject.message = `WARNING: Tag extension found - "${parameters.tag}"`
+      break
     default:
       issueObject.message = `ERROR: Unknown HED error.`
       break

@@ -115,7 +115,7 @@ describe('HED tag string utility functions', () => {
       const expectedResults = {
         direction: true,
         person: true,
-        validPound: true,
+        validPound: false,
         missingTopLevel: false,
         missingSub: false,
         missingValue: false,

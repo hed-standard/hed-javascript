@@ -49,6 +49,18 @@ const getTagName = function(tag) {
 }
 
 /**
+ * Get the HED tag prefix (up to the last slash).
+ */
+const getParentTag = function(tag) {
+  const lastSlashIndex = tag.lastIndexOf('/')
+  if (lastSlashIndex === -1) {
+    return tag
+  } else {
+    return tag.substring(0, lastSlashIndex)
+  }
+}
+
+/**
  * Get the list of valid derivatives of a unit.
  */
 const getValidUnitPlural = function(unit, hedSchemaAttributes) {
@@ -135,6 +147,15 @@ const validateUnits = function(
     }
   }
   return formattedTagUnitValue
+}
+
+const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
+
+/**
+ * Determine if a stripped value is valid.
+ */
+const validateValue = function(value, allowPlaceholders) {
+  return digitExpression.test(value) || (allowPlaceholders && value === '#')
 }
 
 /**
@@ -249,8 +270,10 @@ module.exports = {
   replaceTagNameWithPound: replaceTagNameWithPound,
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
+  getParentTag: getParentTag,
   stripOffUnitsIfValid: stripOffUnitsIfValid,
   validateUnits: validateUnits,
+  validateValue: validateValue,
   tagExistsInSchema: tagExistsInSchema,
   tagTakesValue: tagTakesValue,
   isUnitClassTag: isUnitClassTag,
