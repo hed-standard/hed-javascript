@@ -49,7 +49,7 @@ const getTagName = function(tag) {
 }
 
 /**
- * Get the last part of a HED tag.
+ * Get the HED tag prefix (up to the last slash).
  */
 const getParentTag = function(tag) {
   const lastSlashIndex = tag.lastIndexOf('/')
