@@ -1,4 +1,4 @@
-const { validateHedString } = require('./hedString')
+const { validateHedEvent } = require('./hedString')
 
 /**
  * Parse the dataset's definitions and evaluate labels in the dataset.
@@ -31,13 +31,13 @@ const validateDataset = function(definitions, hedStrings, hedSchema) {
  * @param {string[]} hedStrings A group of HED strings.
  * @param {Schema} hedSchema The HED schema.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
- * @return {Array} Whether the HED strings is valid and any issues found.
+ * @return {Array} Whether the HED strings are valid and any issues found.
  */
-const validateHedStrings = function(hedStrings, hedSchema, checkForWarnings) {
+const validateHedEvents = function(hedStrings, hedSchema, checkForWarnings) {
   let stringsValid = true
   let stringIssues = []
   for (const hedString of hedStrings) {
-    const [valid, issues] = validateHedString(
+    const [valid, issues] = validateHedEvent(
       hedString,
       hedSchema,
       checkForWarnings,
@@ -61,7 +61,7 @@ const validateHedDataset = function(
   hedSchema,
   checkForWarnings = false,
 ) {
-  const [stringsValid, stringIssues] = validateHedStrings(
+  const [stringsValid, stringIssues] = validateHedEvents(
     hedStrings,
     hedSchema,
     checkForWarnings,
