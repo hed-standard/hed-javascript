@@ -691,9 +691,9 @@ const initiallyValidateHedString = function(
 }
 
 /**
- * Validate a HED non-event string.
+ * Validate a HED string.
  *
- * @param {string} hedString The HED non-event string to validate.
+ * @param {string} hedString The HED string to validate.
  * @param {Schema} hedSchema The HED schema to validate against.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
