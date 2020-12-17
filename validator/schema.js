@@ -235,10 +235,13 @@ const SchemaDictionaries = {
     return [tags, tagElements]
   },
 
-  getAllTags: function(tagElementName = 'node') {
+  getAllTags: function(tagElementName = 'node', excludeTakeValueTags = true) {
     const tags = []
     const tagElements = xpath.find(this.rootElement, '//' + tagElementName)
     for (const tagElement of tagElements) {
+      if (excludeTakeValueTags && this.getElementTagValue(tagElement) === '#') {
+        continue
+      }
       const tag = this.getTagPathFromTagElement(tagElement)
       tags.push(tag)
     }
