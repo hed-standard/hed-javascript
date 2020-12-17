@@ -155,7 +155,7 @@ const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
  * Determine if a stripped value is valid.
  */
 const validateValue = function(value, allowPlaceholders) {
-  return digitExpression.test(value) || (allowPlaceholders && /^#$/.test(value))
+  return digitExpression.test(value) || (allowPlaceholders && value === '#')
 }
 
 /**
