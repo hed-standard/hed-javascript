@@ -1,4 +1,4 @@
-const { validateHedEvent } = require('./hedString')
+const { validateHedEvent } = require('./event')
 
 /**
  * Parse the dataset's definitions and evaluate labels in the dataset.

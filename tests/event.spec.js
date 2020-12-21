@@ -1,5 +1,5 @@
 const assert = require('chai').assert
-const hed = require('../validator/hedString')
+const hed = require('../validator/event')
 const schema = require('../validator/schema')
 const converterSchema = require('../converter/schema')
 const stringParser = require('../validator/stringParser')
