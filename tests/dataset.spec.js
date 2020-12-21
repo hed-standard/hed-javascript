@@ -1,0 +1,95 @@
+const assert = require('chai').assert
+const hed = require('../validator/dataset')
+const schema = require('../validator/schema')
+const generateValidationIssue = require('../utils/issues')
+const generateConverterIssue = require('../converter/issues')
+
+describe('HED dataset validation', () => {
+  const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
+  let hedSchemaPromise
+
+  beforeAll(() => {
+    hedSchemaPromise = schema.buildSchema({ path: hedSchemaFile })
+  })
+
+  describe('Basic HED string lists', () => {
+    /**
+     * Test-validate a dataset.
+     *
+     * @param {object<string, string[]>} testDatasets The datasets to test.
+     * @param {object<string, boolean>} expectedResults The expected validation results.
+     * @param {object<string, object[]>} expectedIssues The expected issues.
+     */
+    const validator = function(testDatasets, expectedResults, expectedIssues) {
+      return hedSchemaPromise.then(hedSchema => {
+        for (const testDatasetKey in testDatasets) {
+          const [testResult, testIssues] = hed.validateHedEvents(
+            testDatasets[testDatasetKey],
+            hedSchema,
+            true,
+          )
+          assert.strictEqual(
+            testResult,
+            expectedResults[testDatasetKey],
+            testDatasets[testDatasetKey].join(','),
+          )
+          assert.sameDeepMembers(
+            testIssues,
+            expectedIssues[testDatasetKey],
+            testDatasets[testDatasetKey].join(','),
+          )
+        }
+      })
+    }
+
+    it('should properly validate simple HED datasets', () => {
+      const testDatasets = {
+        empty: [],
+        singleValidLong: ['Event/Sensory-event'],
+        singleValidShort: ['Sensory-event'],
+        multipleValidLong: [
+          'Event/Sensory-event',
+          'Item/Object/Man-made-object/Vehicle/Train',
+          'Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
+        ],
+        multipleValidShort: ['Sensory-event', 'Train', 'RGB-red/0.5'],
+        multipleValidMixed: ['Event/Sensory-event', 'Train', 'RGB-red/0.5'],
+        multipleInvalid: ['Train/Maglev', 'Duration/0.5 cm', 'InvalidEvent'],
+      }
+      const expectedResults = {
+        empty: true,
+        singleValidLong: true,
+        singleValidShort: true,
+        multipleValidLong: true,
+        multipleValidShort: true,
+        multipleValidMixed: true,
+        multipleInvalid: false,
+      }
+      const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
+      const expectedIssues = {
+        empty: [],
+        singleValidLong: [],
+        singleValidShort: [],
+        multipleValidLong: [],
+        multipleValidShort: [],
+        multipleValidMixed: [],
+        multipleInvalid: [
+          generateValidationIssue('extension', {
+            tag: 'Item/Object/Man-made-object/Vehicle/Train/Maglev',
+          }),
+          generateValidationIssue('unitClassInvalidUnit', {
+            tag: 'Attribute/Spatiotemporal/Temporal/Duration/0.5 cm',
+            unitClassUnits: legalTimeUnits.sort().join(','),
+          }),
+          generateConverterIssue(
+            'noValidTagFound',
+            testDatasets.multipleInvalid[2],
+            {},
+            [0, 12],
+          ),
+        ],
+      }
+      return validator(testDatasets, expectedResults, expectedIssues)
+    })
+  })
+})
