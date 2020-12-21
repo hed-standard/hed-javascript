@@ -75,5 +75,8 @@ const validateHedDataset = function(
 }
 
 module.exports = {
+  parseDefinitions: parseDefinitions,
+  validateDataset: validateDataset,
+  validateHedEvents: validateHedEvents,
   validateHedDataset: validateHedDataset,
 }
