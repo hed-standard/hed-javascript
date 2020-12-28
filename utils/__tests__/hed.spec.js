@@ -60,6 +60,58 @@ describe('HED tag string utility functions', () => {
         return hed.getTagName(string)
       })
     })
+
+    it('should extract the parent part of a tag', () => {
+      const testStrings = {
+        description: 'Event/Description/Something',
+        direction: 'Attribute/Direction/Left',
+        noSlash: 'Participant',
+      }
+      const expectedResults = {
+        description: 'Event/Description',
+        direction: 'Attribute/Direction',
+        noSlash: 'Participant',
+      }
+      validator(testStrings, expectedResults, string => {
+        return hed.getParentTag(string)
+      })
+    })
+
+    it('should properly determine valid values', () => {
+      const testStrings = {
+        integer: '4',
+        decimal: '21.2',
+        scientific: '3.4e2',
+        negative: '-9.5e-1',
+        placeholder: '#',
+        name: 'abc',
+        word: 'one',
+      }
+      const expectedResultsNoPlaceholders = {
+        integer: true,
+        decimal: true,
+        scientific: true,
+        negative: true,
+        placeholder: false,
+        name: false,
+        word: false,
+      }
+      const expectedResultsWithPlaceholders = {
+        integer: true,
+        decimal: true,
+        scientific: true,
+        negative: true,
+        placeholder: true,
+        name: false,
+        word: false,
+      }
+      validator(testStrings, expectedResultsNoPlaceholders, string => {
+        return hed.validateValue(string, false)
+      })
+      validator(testStrings, expectedResultsWithPlaceholders, string => {
+        return hed.validateValue(string, true)
+      })
+    })
   })
 
   const localHedSchemaFile = 'tests/data/HED7.1.1.xml'

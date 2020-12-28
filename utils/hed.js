@@ -60,6 +60,15 @@ const getParentTag = function(tag) {
   }
 }
 
+const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
+
+/**
+ * Determine if a stripped value is valid.
+ */
+const validateValue = function(value, allowPlaceholders) {
+  return digitExpression.test(value) || (allowPlaceholders && value === '#')
+}
+
 /**
  * Get the list of valid derivatives of a unit.
  */
@@ -147,15 +156,6 @@ const validateUnits = function(
     }
   }
   return formattedTagUnitValue
-}
-
-const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
-
-/**
- * Determine if a stripped value is valid.
- */
-const validateValue = function(value, allowPlaceholders) {
-  return digitExpression.test(value) || (allowPlaceholders && value === '#')
 }
 
 /**
@@ -271,9 +271,9 @@ module.exports = {
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
   getParentTag: getParentTag,
+  validateValue: validateValue,
   stripOffUnitsIfValid: stripOffUnitsIfValid,
   validateUnits: validateUnits,
-  validateValue: validateValue,
   tagExistsInSchema: tagExistsInSchema,
   tagTakesValue: tagTakesValue,
   isUnitClassTag: isUnitClassTag,
