@@ -187,14 +187,14 @@ const convertTagToShort = function(mapping, hedTag, offset) {
 /**
  * Convert a HED string.
  *
- * @param {Schema} schema The schema object containing a short-to-long mapping.
+ * @param {Schemas} schemas The schema container object containing short-to-long mappings.
  * @param {string} hedString The HED tag to convert.
  * @param {function (Mapping, string, number): [string, []]} conversionFn The conversion function for a tag.
  * @return {[string, []]} The converted string and any issues.
  */
-const convertHedString = function(schema, hedString, conversionFn) {
+const convertHedString = function(schemas, hedString, conversionFn) {
   let issues = []
-  const mapping = schema.mapping
+  const mapping = schemas.baseSchema.mapping
 
   if (!mapping.hasNoDuplicates) {
     issues.push(generateIssue('duplicateTagsInSchema', ''))
@@ -232,23 +232,23 @@ const convertHedString = function(schema, hedString, conversionFn) {
 /**
  * Convert a HED string to long form.
  *
- * @param {Schema} schema The schema object containing a short-to-long mapping.
+ * @param {Schemas} schemas The schema container object containing short-to-long mappings.
  * @param {string} hedString The HED tag to convert.
  * @return {[string, []]} The long-form string and any issues.
  */
-const convertHedStringToLong = function(schema, hedString) {
-  return convertHedString(schema, hedString, convertTagToLong)
+const convertHedStringToLong = function(schemas, hedString) {
+  return convertHedString(schemas, hedString, convertTagToLong)
 }
 
 /**
  * Convert a HED string to short form.
  *
- * @param {Schema} schema The schema object containing a short-to-long mapping.
+ * @param {Schemas} schemas The schema container object containing short-to-long mappings.
  * @param {string} hedString The HED tag to convert.
  * @return {[string, []]} The short-form string and any issues.
  */
-const convertHedStringToShort = function(schema, hedString) {
-  return convertHedString(schema, hedString, convertTagToShort)
+const convertHedStringToShort = function(schemas, hedString) {
+  return convertHedString(schemas, hedString, convertTagToShort)
 }
 
 module.exports = {
