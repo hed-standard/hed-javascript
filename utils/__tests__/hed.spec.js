@@ -175,8 +175,8 @@ describe('HED tag string utility functions', () => {
       return validatorString(
         testStrings,
         expectedResults,
-        (string, hedSchema) => {
-          return hed.tagExistsInSchema(string, hedSchema.attributes)
+        (string, hedSchemas) => {
+          return hed.tagExistsInSchema(string, hedSchemas.baseSchema.attributes)
         },
       )
     })
@@ -201,8 +201,8 @@ describe('HED tag string utility functions', () => {
       return validatorString(
         testStrings,
         expectedResults,
-        (string, hedSchema) => {
-          return hed.tagTakesValue(string, hedSchema.attributes)
+        (string, hedSchemas) => {
+          return hed.tagTakesValue(string, hedSchemas.baseSchema.attributes)
         },
       )
     })
@@ -227,8 +227,8 @@ describe('HED tag string utility functions', () => {
       return validatorString(
         testStrings,
         expectedResults,
-        (string, hedSchema) => {
-          return hed.isUnitClassTag(string, hedSchema.attributes)
+        (string, hedSchemas) => {
+          return hed.isUnitClassTag(string, hedSchemas.baseSchema.attributes)
         },
       )
     })
@@ -256,8 +256,11 @@ describe('HED tag string utility functions', () => {
       return validatorString(
         testStrings,
         expectedResults,
-        (string, hedSchema) => {
-          return hed.getUnitClassDefaultUnit(string, hedSchema.attributes)
+        (string, hedSchemas) => {
+          return hed.getUnitClassDefaultUnit(
+            string,
+            hedSchemas.baseSchema.attributes,
+          )
         },
       )
     })
@@ -285,8 +288,8 @@ describe('HED tag string utility functions', () => {
       return validatorList(
         testStrings,
         expectedResults,
-        (string, hedSchema) => {
-          return hed.getTagUnitClasses(string, hedSchema.attributes)
+        (string, hedSchemas) => {
+          return hed.getTagUnitClasses(string, hedSchemas.baseSchema.attributes)
         },
       )
     })
@@ -327,8 +330,11 @@ describe('HED tag string utility functions', () => {
       return validatorList(
         testStrings,
         expectedResults,
-        (string, hedSchema) => {
-          return hed.getTagUnitClassUnits(string, hedSchema.attributes)
+        (string, hedSchemas) => {
+          return hed.getTagUnitClassUnits(
+            string,
+            hedSchemas.baseSchema.attributes,
+          )
         },
       )
     })
@@ -340,30 +346,30 @@ describe('HED tag string utility functions', () => {
       const invalidVolumeString = '200 cm'
       const currencyUnits = ['dollars', '$', 'points', 'fraction']
       const volumeUnits = ['m^3']
-      return hedSchemaPromise.then(hedSchema => {
+      return hedSchemaPromise.then(hedSchemas => {
         const strippedDollarsString = hed.validateUnits(
           dollarsString,
           dollarsString,
           currencyUnits,
-          hedSchema.attributes,
+          hedSchemas.baseSchema.attributes,
         )
         const strippedVolumeString = hed.validateUnits(
           volumeString,
           volumeString,
           volumeUnits,
-          hedSchema.attributes,
+          hedSchemas.baseSchema.attributes,
         )
         const strippedPrefixedVolumeString = hed.validateUnits(
           prefixedVolumeString,
           prefixedVolumeString,
           volumeUnits,
-          hedSchema.attributes,
+          hedSchemas.baseSchema.attributes,
         )
         const strippedInvalidVolumeString = hed.validateUnits(
           invalidVolumeString,
           invalidVolumeString,
           volumeUnits,
-          hedSchema.attributes,
+          hedSchemas.baseSchema.attributes,
         )
         assert.strictEqual(strippedDollarsString, '25.99')
         assert.strictEqual(strippedVolumeString, '100')
@@ -386,8 +392,11 @@ describe('HED tag string utility functions', () => {
       return validatorString(
         testStrings,
         expectedResults,
-        (string, hedSchema) => {
-          return hed.isExtensionAllowedTag(string, hedSchema.attributes)
+        (string, hedSchemas) => {
+          return hed.isExtensionAllowedTag(
+            string,
+            hedSchemas.baseSchema.attributes,
+          )
         },
       )
     })

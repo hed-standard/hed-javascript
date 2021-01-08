@@ -9,8 +9,8 @@ describe('Remote HED schemas', function() {
     const remoteHedSchemaVersion = '7.1.1'
     return schema
       .buildSchema({ version: remoteHedSchemaVersion })
-      .then(hedSchema => {
-        const hedSchemaVersion = hedSchema.version
+      .then(hedSchemas => {
+        const hedSchemaVersion = hedSchemas.baseSchema.version
         assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
       })
   })
@@ -18,8 +18,8 @@ describe('Remote HED schemas', function() {
 
 describe('Local HED schemas', function() {
   it('can be loaded from a file', () => {
-    return schema.buildSchema({ path: localHedSchemaFile }).then(hedSchema => {
-      const hedSchemaVersion = hedSchema.version
+    return schema.buildSchema({ path: localHedSchemaFile }).then(hedSchemas => {
+      const hedSchemaVersion = hedSchemas.baseSchema.version
       assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
     })
   })
@@ -49,8 +49,8 @@ describe('HED schemas', function() {
       'unique',
       'unitClass',
     ]
-    return hedSchemaPromise.then(hedSchema => {
-      const dictionaries = hedSchema.attributes.dictionaries
+    return hedSchemaPromise.then(hedSchemas => {
+      const dictionaries = hedSchemas.baseSchema.attributes.dictionaries
       for (const dictionaryKey of tagDictionaryKeys) {
         assert(
           dictionaries[dictionaryKey] instanceof Object,
@@ -61,20 +61,20 @@ describe('HED schemas', function() {
   })
 
   it('should contain all of the required tags', () => {
-    return hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchemas => {
       const requiredTags = [
         'event/category',
         'event/description',
         'event/label',
       ]
       const dictionariesRequiredTags =
-        hedSchema.attributes.dictionaries['required']
+        hedSchemas.baseSchema.attributes.dictionaries['required']
       assert.sameMembers(Object.keys(dictionariesRequiredTags), requiredTags)
     })
   })
 
   it('should contain all of the positioned tags', () => {
-    return hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchemas => {
       const positionedTags = [
         'event/category',
         'event/description',
@@ -82,7 +82,7 @@ describe('HED schemas', function() {
         'event/long name',
       ]
       const dictionariesPositionedTags =
-        hedSchema.attributes.dictionaries['position']
+        hedSchemas.baseSchema.attributes.dictionaries['position']
       assert.sameMembers(
         Object.keys(dictionariesPositionedTags),
         positionedTags,
@@ -91,15 +91,16 @@ describe('HED schemas', function() {
   })
 
   it('should contain all of the unique tags', () => {
-    return hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchemas => {
       const uniqueTags = ['event/description', 'event/label', 'event/long name']
-      const dictionariesUniqueTags = hedSchema.attributes.dictionaries['unique']
+      const dictionariesUniqueTags =
+        hedSchemas.baseSchema.attributes.dictionaries['unique']
       assert.sameMembers(Object.keys(dictionariesUniqueTags), uniqueTags)
     })
   })
 
   it('should contain all of the tags with default units', () => {
-    return hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchemas => {
       const defaultUnitTags = {
         'attribute/blink/time shut/#': 's',
         'attribute/blink/duration/#': 's',
@@ -107,13 +108,13 @@ describe('HED schemas', function() {
         'attribute/blink/navr/#': 'centiseconds',
       }
       const dictionariesDefaultUnitTags =
-        hedSchema.attributes.dictionaries['default']
+        hedSchemas.baseSchema.attributes.dictionaries['default']
       assert.deepStrictEqual(dictionariesDefaultUnitTags, defaultUnitTags)
     })
   })
 
   it('should contain all of the unit classes with their units and default units', () => {
-    return hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchemas => {
       const defaultUnits = {
         acceleration: 'm-per-s^2',
         currency: '$',
@@ -152,15 +153,16 @@ describe('HED schemas', function() {
       }
 
       const dictionariesDefaultUnits =
-        hedSchema.attributes.dictionaries['defaultUnits']
-      const dictionariesAllUnits = hedSchema.attributes.dictionaries['units']
+        hedSchemas.baseSchema.attributes.dictionaries['defaultUnits']
+      const dictionariesAllUnits =
+        hedSchemas.baseSchema.attributes.dictionaries['units']
       assert.deepStrictEqual(dictionariesDefaultUnits, defaultUnits)
       assert.deepStrictEqual(dictionariesAllUnits, allUnits)
     })
   })
 
   it('should contain the correct (large) numbers of tags with certain attributes', () => {
-    return hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchemas => {
       const expectedTagCount = {
         isNumeric: 80,
         predicateType: 20,
@@ -171,7 +173,7 @@ describe('HED schemas', function() {
         unitClass: 63,
       }
 
-      const dictionaries = hedSchema.attributes.dictionaries
+      const dictionaries = hedSchemas.baseSchema.attributes.dictionaries
       for (const attribute in expectedTagCount) {
         assert.strictEqual(
           Object.keys(dictionaries[attribute]).length,
@@ -183,7 +185,7 @@ describe('HED schemas', function() {
   })
 
   it('should identify if a tag has a certain attribute', () => {
-    return hedSchemaPromise.then(hedSchema => {
+    return hedSchemaPromise.then(hedSchemas => {
       const testStrings = {
         value:
           'Attribute/Location/Reference frame/Relative to participant/Azimuth/#',
@@ -241,7 +243,10 @@ describe('HED schemas', function() {
         const expected = expectedResults[testStringKey]
         for (const expectedKey in expected) {
           assert.strictEqual(
-            hedSchema.attributes.tagHasAttribute(testString, expectedKey),
+            hedSchemas.baseSchema.attributes.tagHasAttribute(
+              testString,
+              expectedKey,
+            ),
             expected[expectedKey],
             `Test string: ${testString}. Attribute: ${expectedKey}.`,
           )
