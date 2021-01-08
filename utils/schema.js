@@ -88,12 +88,16 @@ const setParent = function(node, parent) {
 /**
  * An imported HED schema object.
  *
- * @param {object} xmlData The schema XML data.
+ * @param {Object} xmlData The schema XML data.
  * @param {SchemaAttributes} attributes A description of tag attributes.
  * @param {Mapping} mapping A mapping between short and long tags.
  * @constructor
  */
 const Schema = function(xmlData, attributes, mapping) {
+  /**
+   * The schema XML data.
+   * @type {Object}
+   */
   this.xmlData = xmlData
   const rootElement = xmlData.HED
   /**
@@ -101,12 +105,40 @@ const Schema = function(xmlData, attributes, mapping) {
    * @type {string}
    */
   this.version = rootElement.$.version
+  /**
+   * The description of tag attributes.
+   * @type {SchemaAttributes}
+   */
   this.attributes = attributes
+  /**
+   * The mapping between short and long tags.
+   * @type {Mapping}
+   */
   this.mapping = mapping
+}
+
+/**
+ * The collection of active HED schemas.
+ *
+ * @param {Schema} baseSchema The base HED schema.
+ * @constructor
+ */
+const Schemas = function(baseSchema) {
+  /**
+   * The base HED schema.
+   * @type {Schema}
+   */
+  this.baseSchema = baseSchema
+  /**
+   * The imported library HED schemas.
+   * @type {Object<string, Schema>}
+   */
+  this.librarySchemas = {}
 }
 
 module.exports = {
   loadSchema: loadSchema,
   setParent: setParent,
   Schema: Schema,
+  Schemas: Schemas,
 }

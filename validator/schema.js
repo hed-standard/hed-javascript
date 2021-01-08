@@ -331,10 +331,10 @@ const buildSchemaAttributesObject = function(xmlData) {
 }
 
 /**
- * Build a schema object from a schema version or path description.
+ * Build a schema container object from a base schema version or path description.
  *
- * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
- * @return {Promise<never>|Promise<Schema>} The schema object or an error.
+ * @param {{path: string?, version: string?}} schemaDef The description of which base schema to use.
+ * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
  */
 const buildSchema = function(schemaDef = {}) {
   return schemaUtils.loadSchema(schemaDef).then(xmlData => {
@@ -343,7 +343,12 @@ const buildSchema = function(schemaDef = {}) {
     if (semver.gte(xmlData.HED.$.version, '8.0.0-alpha')) {
       mapping = buildMappingObject(xmlData)
     }
-    return new schemaUtils.Schema(xmlData, schemaAttributes, mapping)
+    const baseSchema = new schemaUtils.Schema(
+      xmlData,
+      schemaAttributes,
+      mapping,
+    )
+    return new schemaUtils.Schemas(baseSchema)
   })
 }
 

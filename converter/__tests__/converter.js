@@ -27,10 +27,10 @@ describe('HED string conversion', () => {
       expectedIssues,
       testFunction,
     ) {
-      return schemaPromise.then(schema => {
+      return schemaPromise.then(schemas => {
         for (const testStringKey in testStrings) {
           const [testResult, issues] = testFunction(
-            schema.mapping,
+            schemas.baseSchema.mapping,
             testStrings[testStringKey],
             0,
           )
@@ -642,7 +642,7 @@ describe('HED string conversion', () => {
      * @param {Object<string, string>} testStrings The test strings.
      * @param {Object<string, string>} expectedResults The expected results.
      * @param {Object<string, Array>} expectedIssues The expected issues.
-     * @param {function (Schema, string): [string, []]} testFunction The test function.
+     * @param {function (Schemas, string): [string, []]} testFunction The test function.
      * @return {Promise<void> | PromiseLike<any> | Promise<any>}
      */
     const validatorBase = function(
@@ -651,10 +651,10 @@ describe('HED string conversion', () => {
       expectedIssues,
       testFunction,
     ) {
-      return schemaPromise.then(schema => {
+      return schemaPromise.then(schemas => {
         for (const testStringKey in testStrings) {
           const [testResult, issues] = testFunction(
-            schema,
+            schemas,
             testStrings[testStringKey],
           )
           assert.strictEqual(

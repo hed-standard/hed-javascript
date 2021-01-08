@@ -4,10 +4,10 @@ const { validateHedEvent } = require('./event')
  * Parse the dataset's definitions and evaluate labels in the dataset.
  *
  * @param {string[]} hedStrings The dataset's HED strings.
- * @param {Schema} hedSchema The HED schema.
+ * @param {Schemas} hedSchemas The HED schema container object.
  * @return {[Definitions, string[]]} The definitions and the evaluated HED strings.
  */
-const parseDefinitions = function(hedStrings, hedSchema) {
+const parseDefinitions = function(hedStrings, hedSchemas) {
   // TODO: Implement
   return [{}, hedStrings]
 }
@@ -17,10 +17,10 @@ const parseDefinitions = function(hedStrings, hedSchema) {
  *
  * @param {Definitions} definitions The parsed dataset definitions.
  * @param {string[]} hedStrings The dataset's HED strings.
- * @param {Schema} hedSchema The HED schema.
+ * @param {Schemas} hedSchemas The HED schema container object.
  * @return {[boolean, object[]]} Whether the HED dataset is valid and any issues found.
  */
-const validateDataset = function(definitions, hedStrings, hedSchema) {
+const validateDataset = function(definitions, hedStrings, hedSchemas) {
   // TODO: Implement
   return [true, []]
 }
@@ -29,17 +29,17 @@ const validateDataset = function(definitions, hedStrings, hedSchema) {
  * Validate a group of HED strings.
  *
  * @param {string[]} hedStrings A group of HED strings.
- * @param {Schema} hedSchema The HED schema.
+ * @param {Schemas} hedSchemas The HED schema container object.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {Array} Whether the HED strings are valid and any issues found.
  */
-const validateHedEvents = function(hedStrings, hedSchema, checkForWarnings) {
+const validateHedEvents = function(hedStrings, hedSchemas, checkForWarnings) {
   let stringsValid = true
   let stringIssues = []
   for (const hedString of hedStrings) {
     const [valid, issues] = validateHedEvent(
       hedString,
-      hedSchema,
+      hedSchemas,
       checkForWarnings,
     )
     stringsValid = stringsValid && valid
@@ -52,26 +52,26 @@ const validateHedEvents = function(hedStrings, hedSchema, checkForWarnings) {
  * Validate a HED dataset.
  *
  * @param {string[]} hedStrings The dataset's HED strings.
- * @param {Schema} hedSchema The HED schema.
+ * @param {Schemas} hedSchemas The HED schema container object.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {Array} Whether the HED dataset is valid and any issues found.
  */
 const validateHedDataset = function(
   hedStrings,
-  hedSchema,
+  hedSchemas,
   checkForWarnings = false,
 ) {
   const [stringsValid, stringIssues] = validateHedEvents(
     hedStrings,
-    hedSchema,
+    hedSchemas,
     checkForWarnings,
   )
   if (!stringsValid) {
     return [false, stringIssues]
   }
 
-  const [definitions, newHedStrings] = parseDefinitions(hedStrings, hedSchema)
-  return validateDataset(definitions, newHedStrings, hedSchema)
+  const [definitions, newHedStrings] = parseDefinitions(hedStrings, hedSchemas)
+  return validateDataset(definitions, newHedStrings, hedSchemas)
 }
 
 module.exports = {
