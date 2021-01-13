@@ -136,8 +136,10 @@ describe('HED string and event validation', () => {
             '/Action/Reach/To touch,,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,~,/Attribute/Location/Screen/Left/23 px',
           valid:
             '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-          validNestedParentheses:
+          validDoubleOpeningParentheses:
             '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Event/Duration/3 ms',
+          validDoubleClosingParentheses:
+            '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm,(/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px)),Event/Duration/3 ms',
         }
         const expectedResults = {
           missingOpeningComma: false,
@@ -150,7 +152,8 @@ describe('HED string and event validation', () => {
           multipleExtraClosingDelimiter: false,
           multipleExtraMiddleDelimiter: false,
           valid: true,
-          validNestedParentheses: true,
+          validDoubleOpeningParentheses: true,
+          validDoubleClosingParentheses: true,
         }
         const expectedIssues = {
           missingOpeningComma: [
@@ -246,7 +249,8 @@ describe('HED string and event validation', () => {
             }),
           ],
           valid: [],
-          validNestedParentheses: [],
+          validDoubleOpeningParentheses: [],
+          validDoubleClosingParentheses: [],
         }
         validator(testStrings, expectedResults, expectedIssues)
       })
