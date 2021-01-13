@@ -55,7 +55,10 @@ const isCommaMissingAfterClosingParenthesis = function(
 ) {
   return (
     lastNonEmptyCharacter === closingGroupCharacter &&
-    !delimiters.includes(currentCharacter)
+    !(
+      delimiters.includes(currentCharacter) ||
+      currentCharacter === closingGroupCharacter
+    )
   )
 }
 
