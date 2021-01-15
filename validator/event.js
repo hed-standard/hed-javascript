@@ -416,18 +416,9 @@ const checkIfTagIsValid = function(
     hedSchema.attributes,
   )
   if (allowPlaceholders && utils.HED.getTagName(formattedTag) === '#') {
-    const parentTag = utils.HED.getParentTag(formattedTag)
-    if (utils.HED.tagExistsInSchema(parentTag, hedSchema.attributes)) {
+    const valueTag = utils.HED.replaceTagNameWithPound(formattedTag)
+    if (utils.HED.tagTakesValue(valueTag, hedSchema.attributes)) {
       return []
-    } else if (
-      utils.HED.isExtensionAllowedTag(parentTag, hedSchema.attributes)
-    ) {
-      if (checkForWarnings) {
-        issues.push(utils.generateIssue('extension', { tag: originalTag }))
-        return issues
-      } else {
-        return []
-      }
     } else {
       issues.push(utils.generateIssue('invalidTag', { tag: originalTag }))
       return issues
