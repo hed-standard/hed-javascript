@@ -860,12 +860,18 @@ describe('HED string and event validation', () => {
         const expectedIssues = {
           takesValue: [],
           withUnit: [],
-          child: [generateIssue('invalidTag', { tag: testStrings.child })],
+          child: [
+            generateIssue('invalidPlaceholder', { tag: testStrings.child }),
+          ],
           extensionAllowed: [
-            generateIssue('invalidTag', { tag: testStrings.extensionAllowed }),
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.extensionAllowed,
+            }),
           ],
           invalidParent: [
-            generateIssue('invalidTag', { tag: testStrings.invalidParent }),
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.invalidParent,
+            }),
           ],
           missingRequiredUnit: [
             generateIssue('unitClassDefaultUsed', {
@@ -874,7 +880,9 @@ describe('HED string and event validation', () => {
             }),
           ],
           wrongLocation: [
-            generateIssue('invalidTag', { tag: testStrings.wrongLocation }),
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.wrongLocation,
+            }),
           ],
         }
         return validator(testStrings, expectedResults, expectedIssues, true)

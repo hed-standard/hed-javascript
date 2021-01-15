@@ -46,6 +46,9 @@ const generateIssue = function(code, parameters) {
     case 'extension':
       issueObject.message = `WARNING: Tag extension found - "${parameters.tag}"`
       break
+    case 'invalidPlaceholder':
+      issueObject.message = `ERROR: Invalid placeholder - "${parameters.tag}"`
+      break
     default:
       issueObject.message = `ERROR: Unknown HED error.`
       break
