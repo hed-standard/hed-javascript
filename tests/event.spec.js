@@ -840,8 +840,9 @@ describe('HED string and event validation', () => {
 
       it('should properly handle strings with placeholders', () => {
         const testStrings = {
-          takesValue: 'Event/Duration/# ms',
-          full: 'Attribute/Object side/#',
+          takesValue: 'Attribute/Visual/Color/Red/#',
+          withUnit: 'Event/Duration/# ms',
+          child: 'Attribute/Object side/#',
           extensionAllowed: 'Item/Object/Person/Driver/#',
           invalidParent: 'Event/Nonsense/#',
           missingRequiredUnit: 'Event/Duration/#',
@@ -849,7 +850,8 @@ describe('HED string and event validation', () => {
         }
         const expectedResults = {
           takesValue: true,
-          full: true,
+          withUnit: true,
+          child: false,
           extensionAllowed: false,
           invalidParent: false,
           missingRequiredUnit: false,
@@ -857,9 +859,10 @@ describe('HED string and event validation', () => {
         }
         const expectedIssues = {
           takesValue: [],
-          full: [],
+          withUnit: [],
+          child: [generateIssue('invalidTag', { tag: testStrings.child })],
           extensionAllowed: [
-            generateIssue('extension', { tag: testStrings.extensionAllowed }),
+            generateIssue('invalidTag', { tag: testStrings.extensionAllowed }),
           ],
           invalidParent: [
             generateIssue('invalidTag', { tag: testStrings.invalidParent }),
