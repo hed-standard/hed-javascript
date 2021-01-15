@@ -415,12 +415,14 @@ const checkIfTagIsValid = function(
     formattedTag,
     hedSchema.attributes,
   )
-  if (allowPlaceholders && utils.HED.getTagName(formattedTag) === '#') {
+  if (allowPlaceholders && formattedTag.split('#').length > 1) {
     const valueTag = utils.HED.replaceTagNameWithPound(formattedTag)
     if (utils.HED.tagTakesValue(valueTag, hedSchema.attributes)) {
       return []
     } else {
-      issues.push(utils.generateIssue('invalidTag', { tag: originalTag }))
+      issues.push(
+        utils.generateIssue('invalidPlaceholder', { tag: originalTag }),
+      )
       return issues
     }
   }
