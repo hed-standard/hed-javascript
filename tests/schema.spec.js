@@ -1,5 +1,6 @@
 const assert = require('chai').assert
 const schema = require('../validator/schema')
+const schemaUtils = require('../utils/schema')
 
 const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
 const localHedSchemaVersion = '7.1.1'
@@ -22,6 +23,23 @@ describe('Local HED schemas', function() {
       const hedSchemaVersion = hedSchemas.baseSchema.version
       assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
     })
+  })
+})
+
+describe('Remote HED library schemas', function() {
+  it('can be loaded from a central GitHub repository', function() {
+    const remoteHedSchemaLibrary = 'test'
+    const remoteHedSchemaVersion = '0.0.1'
+    return schemaUtils
+      .loadSchema({
+        library: remoteHedSchemaLibrary,
+        version: remoteHedSchemaVersion,
+      })
+      .then(hedSchema => {
+        const schema = new schemaUtils.Schema(hedSchema)
+        assert.strictEqual(schema.library, remoteHedSchemaLibrary)
+        assert.strictEqual(schema.version, remoteHedSchemaVersion)
+      })
   })
 })
 
