@@ -5,7 +5,7 @@ const files = require('../utils/files')
 /**
  * Load schema XML data from a schema version or path description.
  *
- * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
+ * @param {{path: string?, library: string?, version: string?}} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<object>} The schema XML data or an error.
  */
 const loadSchema = function(schemaDef = {}) {
@@ -13,6 +13,8 @@ const loadSchema = function(schemaDef = {}) {
     return loadRemoteSchema()
   } else if (schemaDef.path) {
     return loadLocalSchema(schemaDef.path)
+  } else if (schemaDef.library) {
+    return loadRemoteSchema(schemaDef.version, schemaDef.library)
   } else if (schemaDef.version) {
     return loadRemoteSchema(schemaDef.version)
   } else {
@@ -24,12 +26,21 @@ const loadSchema = function(schemaDef = {}) {
  * Load schema XML data from the HED specification GitHub repository.
  *
  * @param {string} version The schema version to load.
+ * @param {string?} library The library schema to load.
  * @return {Promise<object>} The schema XML data.
  */
-const loadRemoteSchema = function(version = 'Latest') {
-  const fileName = 'HED' + version + '.xml'
-  const basePath =
-    'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
+const loadRemoteSchema = function(version = 'Latest', library) {
+  let fileName
+  let basePath
+  if (library) {
+    fileName = 'HED_' + library + '_' + version + '.xml'
+    basePath =
+      'https://raw.githubusercontent.com/hed-standard/hed-schema-library/master/hedxml/'
+  } else {
+    fileName = 'HED' + version + '.xml'
+    basePath =
+      'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
+  }
   const url = basePath + fileName
   return files
     .readHTTPSFile(url)
@@ -105,6 +116,11 @@ const Schema = function(xmlData, attributes, mapping) {
    * @type {string}
    */
   this.version = rootElement.$.version
+  /**
+   * The HED library schema name.
+   * @type {string|undefined}
+   */
+  this.library = rootElement.$.library
   /**
    * The description of tag attributes.
    * @type {SchemaAttributes}
