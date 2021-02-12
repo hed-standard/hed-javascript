@@ -25,6 +25,9 @@ const ParsedHedTag = function (originalTag, originalBounds, hedSchemas) {
   this.originalBounds = originalBounds
   /**
    * The formatted canonical version of the HED tag.
+   *
+   * The empty string default value should be replaced during formatting. Failure to do so
+   * signals an error, as an empty tag should never happen.
    * @type {string}
    */
   this.formattedTag = ''

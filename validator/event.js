@@ -444,7 +444,7 @@ const checkIfTagIsValid = function (
     tag.formattedTag,
     hedSchemas.baseSchema.attributes,
   )
-  if (allowPlaceholders && tag.formattedTag.split('#').length > 1) {
+  if (allowPlaceholders && tag.formattedTag.split('#').length === 2) {
     const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
     if (utils.HED.tagTakesValue(valueTag, hedSchemas.baseSchema.attributes)) {
       return []
