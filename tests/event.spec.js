@@ -4,6 +4,7 @@ const schema = require('../validator/schema')
 const converterSchema = require('../converter/schema')
 const stringParser = require('../validator/stringParser')
 const generateIssue = require('../utils/issues')
+const { Schemas } = require('../utils/schema')
 
 describe('HED string and event validation', () => {
   describe('Latest HED schema', () => {
@@ -23,6 +24,7 @@ describe('HED string and event validation', () => {
         for (const testStringKey in testStrings) {
           const [parsedTestString, parseIssues] = stringParser.parseHedString(
             testStrings[testStringKey],
+            schema,
           )
           const testIssues = testFunction(parsedTestString, schema)
           const issues = [].concat(parseIssues, testIssues)
@@ -43,6 +45,7 @@ describe('HED string and event validation', () => {
       for (const testStringKey in testStrings) {
         const [parsedTestString, parseIssues] = stringParser.parseHedString(
           testStrings[testStringKey],
+          new Schemas(null),
         )
         const testIssues = testFunction(parsedTestString)
         const issues = [].concat(parseIssues, testIssues)
@@ -760,6 +763,7 @@ describe('HED string and event validation', () => {
         for (const testStringKey in testStrings) {
           const [parsedTestString, parseIssues] = stringParser.parseHedString(
             testStrings[testStringKey],
+            schema,
           )
           const testIssues = testFunction(parsedTestString, schema)
           const issues = [].concat(parseIssues, testIssues)
@@ -884,7 +888,7 @@ describe('HED string and event validation', () => {
   })
 
   describe('Post-v8.0.0 HED schemas', () => {
-    const hedSchemaFile = 'tests/data/HEDv1.6.10-reduced.xml'
+    const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
     let hedSchemaPromise
 
     beforeAll(() => {
@@ -916,7 +920,8 @@ describe('HED string and event validation', () => {
           simple: 'Car',
           groupAndValues: '(Train/Maglev,Age/15,RGB-red/0.5),Operate',
           invalidUnit: 'Duration/20 cm',
-          duplicate: 'Train,Vehicle/Train',
+          duplicateSame: 'Train,Train',
+          duplicateSimilar: 'Train,Vehicle/Train',
           missingChild: 'Label',
         }
         const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
@@ -925,18 +930,23 @@ describe('HED string and event validation', () => {
           groupAndValues: [],
           invalidUnit: [
             generateIssue('unitClassInvalidUnit', {
-              tag: 'Attribute/Spatiotemporal/Temporal/Duration/20 cm',
+              tag: 'Duration/20 cm',
               unitClassUnits: legalTimeUnits.sort().join(','),
             }),
           ],
-          duplicate: [
+          duplicateSame: [
             generateIssue('duplicateTag', {
-              tag: 'Item/Object/Man-made/Vehicle/Train',
+              tag: 'Train',
+            }),
+          ],
+          duplicateSimilar: [
+            generateIssue('duplicateTag', {
+              tag: 'Item/Object/Man-made-object/Vehicle/Train',
             }),
           ],
           missingChild: [
             generateIssue('childRequired', {
-              tag: 'Attribute/Informational/Label',
+              tag: 'Label',
             }),
           ],
         }

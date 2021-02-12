@@ -1,3 +1,4 @@
+const semver = require('semver')
 const xml2js = require('xml2js')
 
 const files = require('../utils/files')
@@ -104,7 +105,7 @@ const setParent = function(node, parent) {
  * @param {Mapping} mapping A mapping between short and long tags.
  * @constructor
  */
-const Schema = function(xmlData, attributes, mapping) {
+const Schema = function (xmlData, attributes, mapping) {
   /**
    * The schema XML data.
    * @type {Object}
@@ -139,7 +140,7 @@ const Schema = function(xmlData, attributes, mapping) {
  * @param {Schema} baseSchema The base HED schema.
  * @constructor
  */
-const Schemas = function(baseSchema) {
+const Schemas = function (baseSchema) {
   /**
    * The base HED schema.
    * @type {Schema}
@@ -150,6 +151,11 @@ const Schemas = function(baseSchema) {
    * @type {Object<string, Schema>}
    */
   this.librarySchemas = {}
+  /**
+   * Whether this is a HED 3 schema collection.
+   * @type {boolean}
+   */
+  this.isHed3 = baseSchema && semver.gte(baseSchema.version, '8.0.0-alpha')
 }
 
 module.exports = {
