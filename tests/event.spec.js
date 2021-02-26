@@ -517,8 +517,8 @@ describe('HED string and event validation', () => {
           incorrectSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 hz',
           incorrectSymbolCapitalizedUnitModifier:
             'Attribute/Temporal rate/3 KHz',
-          incorrectNonSIUnit: 'Event/Duration/1 millihour',
-          incorrectNonSIUnitSymbol: 'Attribute/Path/Velocity/100 Mkph',
+          incorrectNonSIUnitModifier: 'Event/Duration/1 millihour',
+          incorrectNonSIUnitSymbolModifier: 'Attribute/Path/Velocity/100 Mkph',
           notRequiredNumber: 'Attribute/Visual/Color/Red/0.5',
           notRequiredScientific: 'Attribute/Visual/Color/Red/5e-1',
           properTime: 'Item/2D shape/Clock face/08:30',
@@ -536,8 +536,8 @@ describe('HED string and event validation', () => {
           incorrectPluralUnit: false,
           incorrectSymbolCapitalizedUnit: false,
           incorrectSymbolCapitalizedUnitModifier: false,
-          incorrectNonSIUnit: false,
-          incorrectNonSIUnitSymbol: false,
+          incorrectNonSIUnitModifier: false,
+          incorrectNonSIUnitSymbolModifier: false,
           notRequiredNumber: true,
           notRequiredScientific: true,
           properTime: true,
@@ -579,15 +579,15 @@ describe('HED string and event validation', () => {
               unitClassUnits: legalFrequencyUnits.sort().join(','),
             }),
           ],
-          incorrectNonSIUnit: [
+          incorrectNonSIUnitModifier: [
             generateIssue('unitClassInvalidUnit', {
-              tag: testStrings.incorrectNonSIUnit,
+              tag: testStrings.incorrectNonSIUnitModifier,
               unitClassUnits: legalTimeUnits.sort().join(','),
             }),
           ],
-          incorrectNonSIUnitSymbol: [
+          incorrectNonSIUnitSymbolModifier: [
             generateIssue('unitClassInvalidUnit', {
-              tag: testStrings.incorrectNonSIUnitSymbol,
+              tag: testStrings.incorrectNonSIUnitSymbolModifier,
               unitClassUnits: legalSpeedUnits.sort().join(','),
             }),
           ],
