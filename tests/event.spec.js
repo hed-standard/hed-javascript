@@ -517,6 +517,8 @@ describe('HED string and event validation', () => {
           incorrectSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 hz',
           incorrectSymbolCapitalizedUnitModifier:
             'Attribute/Temporal rate/3 KHz',
+          incorrectNonSIUnit: 'Event/Duration/1 millihour',
+          incorrectNonSIUnitSymbol: 'Attribute/Path/Velocity/100 Mkph',
           notRequiredNumber: 'Attribute/Visual/Color/Red/0.5',
           notRequiredScientific: 'Attribute/Visual/Color/Red/5e-1',
           properTime: 'Item/2D shape/Clock face/08:30',
@@ -534,6 +536,8 @@ describe('HED string and event validation', () => {
           incorrectPluralUnit: false,
           incorrectSymbolCapitalizedUnit: false,
           incorrectSymbolCapitalizedUnitModifier: false,
+          incorrectNonSIUnit: false,
+          incorrectNonSIUnitSymbol: false,
           notRequiredNumber: true,
           notRequiredScientific: true,
           properTime: true,
@@ -542,6 +546,7 @@ describe('HED string and event validation', () => {
         const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
         const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
         const legalFrequencyUnits = ['Hz', 'hertz']
+        const legalSpeedUnits = ['m-per-s', 'kph', 'mph']
         const expectedIssues = {
           correctUnit: [],
           correctUnitScientific: [],
@@ -572,6 +577,18 @@ describe('HED string and event validation', () => {
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectSymbolCapitalizedUnitModifier,
               unitClassUnits: legalFrequencyUnits.sort().join(','),
+            }),
+          ],
+          incorrectNonSIUnit: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.incorrectNonSIUnit,
+              unitClassUnits: legalTimeUnits.sort().join(','),
+            }),
+          ],
+          incorrectNonSIUnitSymbol: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.incorrectNonSIUnitSymbol,
+              unitClassUnits: legalSpeedUnits.sort().join(','),
             }),
           ],
           notRequiredNumber: [],

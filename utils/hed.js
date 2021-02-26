@@ -9,6 +9,7 @@ const takesValueType = 'takesValue'
 const unitClassType = 'unitClass'
 const unitClassUnitsType = 'units'
 const unitSymbolType = 'unitSymbol'
+const SIUnitKey = 'SIUnit'
 const SIUnitModifierKey = 'SIUnitModifier'
 const SIUnitSymbolModifierKey = 'SIUnitSymbolModifier'
 
@@ -89,19 +90,21 @@ const getValidUnitPlural = function(unit, hedSchemaAttributes) {
 const stripOffUnitsIfValid = function(
   tagUnitValue,
   hedSchemaAttributes,
-  unit,
+  originalUnit,
+  normalizedUnit,
   isUnitSymbol,
 ) {
   let foundUnit = false
   let strippedValue = ''
-  if (tagUnitValue.startsWith(unit)) {
+  if (tagUnitValue.startsWith(originalUnit)) {
     foundUnit = true
-    strippedValue = tagUnitValue.substring(unit.length).trim()
-  } else if (tagUnitValue.endsWith(unit)) {
+    strippedValue = tagUnitValue.substring(originalUnit.length).trim()
+  } else if (tagUnitValue.endsWith(originalUnit)) {
     foundUnit = true
-    strippedValue = tagUnitValue.slice(0, -unit.length).trim()
+    strippedValue = tagUnitValue.slice(0, -originalUnit.length).trim()
   }
-  if (foundUnit && hedSchemaAttributes.hasUnitModifiers) {
+  const isSIUnit = hedSchemaAttributes.dictionaries[SIUnitKey][normalizedUnit] !== undefined
+  if (foundUnit && isSIUnit && hedSchemaAttributes.hasUnitModifiers) {
     const modifierKey = isUnitSymbol
       ? SIUnitSymbolModifierKey
       : SIUnitModifierKey
@@ -140,6 +143,7 @@ const validateUnits = function(
           originalTagUnitValue,
           hedSchemaAttributes,
           derivativeUnit,
+          unit,
           true,
         )
       } else {
@@ -147,6 +151,7 @@ const validateUnits = function(
           formattedTagUnitValue,
           hedSchemaAttributes,
           derivativeUnit,
+          unit,
           false,
         )
       }
