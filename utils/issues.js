@@ -85,6 +85,15 @@ const generateIssue = function (code, parameters) {
     case 'duplicateTagsInSchema':
       message = `ERROR: Source HED schema is invalid as it contains duplicate tags.`
       break
+    case 'illegalDefinitionGroupTag':
+      message = `ERROR: Illegal tag "${parameters.tag}" in tag group for definition "${parameters.definition}"`
+      break
+    case 'nestedDefinition':
+      message = `ERROR: Illegal nested definition in tag group for definition "${parameters.definition}"`
+      break
+    case 'multipleTagGroupsInDefinition':
+      message = `ERROR: Multiple inner tag groups found in definition "${parameters.definition}"`
+      break
     default:
       message = `ERROR: Unknown HED error.`
       break

@@ -3,6 +3,7 @@ const {
   parseHedString,
   ParsedHedString,
   ParsedHedTag,
+  hedStringIsAGroup,
 } = require('./stringParser')
 const { buildSchemaAttributesObject } = require('./schema')
 const { Schemas } = require('../utils/schema')
@@ -508,6 +509,63 @@ const checkPlaceholderSyntax = function (tag) {
   }
 }
 
+// HED 3 checks
+
+/**
+ * Check the syntax of HED 3 definitions.
+ *
+ * @param {ParsedHedTag[]} tagGroup The tag group.
+ * @param {Schemas} hedSchemas The HED schema container.
+ * @return {[]} Any issues found.
+ */
+const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
+  const definitionParentTag = 'attribute/informational/definition/'
+  const issues = []
+  let definitionTagFound = false
+  let definitionName
+  for (const tag of tagGroup) {
+    if (tag.formattedTag.startsWith(definitionParentTag)) {
+      definitionTagFound = true
+      definitionName = utils.HED.getTagName(tag.originalTag)
+      break
+    }
+  }
+  if (!definitionTagFound) {
+    return []
+  }
+  let tagGroupValidated = false
+  let tagGroupIssueGenerated = false
+  for (const tag of tagGroup) {
+    if (hedStringIsAGroup(tag.formattedTag)) {
+      if (tagGroupValidated && !tagGroupIssueGenerated) {
+        issues.push(
+          utils.issues.generateIssue('multipleTagGroupsInDefinition', {
+            definition: definitionName,
+          }),
+        )
+        tagGroupIssueGenerated = true
+        continue
+      }
+      tagGroupValidated = true
+      if (tag.formattedTag.indexOf(definitionParentTag) >= 0) {
+        issues.push(
+          utils.issues.generateIssue('nestedDefinition', {
+            definition: definitionName,
+          }),
+        )
+      }
+    } else if (!tag.formattedTag.startsWith(definitionParentTag)) {
+      issues.push(
+        utils.issues.generateIssue('illegalDefinitionGroupTag', {
+          tag: tag.originalTag,
+          definition: definitionName,
+        }),
+      )
+    }
+  }
+  return issues
+}
+
 // Validation groups
 
 /**
@@ -603,6 +661,9 @@ const validateHedTagLevel = function (
   let issues = []
   if (doSemanticValidation) {
     issues = issues.concat(checkForMultipleUniqueTags(tagList, hedSchemas))
+    if (hedSchemas.isHed3) {
+      issues = issues.concat(checkDefinitionSyntax(tagList, hedSchemas))
+    }
   }
   issues = issues.concat(checkForDuplicateTags(tagList))
   return issues
@@ -619,7 +680,7 @@ const validateHedTagLevels = function (
   let issues = []
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
     const tagList = parsedString.tagGroups[i]
-    issues = issues.concat(validateHedTagLevel(tagList, hedSchemas))
+    issues = issues.concat(validateHedTagLevel(tagList, hedSchemas, doSemanticValidation))
   }
   issues = issues.concat(
     validateHedTagLevel(

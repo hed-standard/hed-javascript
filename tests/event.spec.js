@@ -1081,5 +1081,65 @@ describe('HED string and event validation', () => {
         return validatorSemantic(testStrings, expectedIssues, true)
       })
     })
+
+    describe('HED Tag Levels', () => {
+      const validatorSyntactic = function (testStrings, expectedIssues) {
+        validatorSyntacticBase(
+          testStrings,
+          expectedIssues,
+          function (parsedTestString) {
+            return hed.validateHedTagLevels(parsedTestString, {}, false)
+          },
+        )
+      }
+
+      const validatorSemantic = function (testStrings, expectedIssues) {
+        return validatorSemanticBase(
+          testStrings,
+          expectedIssues,
+          function (parsedTestString, schema) {
+            return hed.validateHedTagLevels(parsedTestString, schema, true)
+          },
+        )
+      }
+
+      it('should have syntactically valid definitions', () => {
+        const testStrings = {
+          nonDefinition: 'Car',
+          nonDefinitionGroup: '(Train/Maglev,Age/15,RGB-red/0.5)',
+          definitionOnly: '(Definition/SimpleDefinition)',
+          tagGroup: '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          illegalSibling:
+            '(Definition/IllegalSiblingDefinition, Train, (Visual))',
+          nestedDefinition:
+            '(Definition/NestedDefinition, (Screen, (Definition/InnerDefinition, (Square))))',
+          multipleTagGroups:
+            '(Definition/MultipleTagGroupDefinition, (Screen), (Square))',
+        }
+        const expectedIssues = {
+          nonDefinition: [],
+          nonDefinitionGroup: [],
+          definitionOnly: [],
+          tagGroup: [],
+          illegalSibling: [
+            generateIssue('illegalDefinitionGroupTag', {
+              tag: 'Train',
+              definition: 'IllegalSiblingDefinition',
+            }),
+          ],
+          nestedDefinition: [
+            generateIssue('nestedDefinition', {
+              definition: 'NestedDefinition',
+            }),
+          ],
+          multipleTagGroups: [
+            generateIssue('multipleTagGroupsInDefinition', {
+              definition: 'MultipleTagGroupDefinition',
+            }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues)
+      })
+    })
   })
 })
