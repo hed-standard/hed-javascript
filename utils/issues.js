@@ -49,6 +49,15 @@ const generateIssue = function(code, parameters) {
     case 'invalidPlaceholder':
       issueObject.message = `ERROR: Invalid placeholder - "${parameters.tag}"`
       break
+    case 'illegalDefinitionGroupTag':
+      issueObject.message = `ERROR: Illegal tag "${parameters.tag}" in tag group for definition "${parameters.definition}"`
+      break
+    case 'nestedDefinition':
+      issueObject.message = `ERROR: Illegal nested definition in tag group for definition "${parameters.definition}"`
+      break
+    case 'multipleTagGroupsInDefinition':
+      issueObject.message = `ERROR: Multiple inner tag groups found in definition "${parameters.definition}"`
+      break
     default:
       issueObject.message = `ERROR: Unknown HED error.`
       break

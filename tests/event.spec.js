@@ -892,10 +892,66 @@ describe('HED string and event validation', () => {
     let hedSchemaPromise
 
     beforeAll(() => {
-      hedSchemaPromise = converterSchema.buildSchema({
+      hedSchemaPromise = schema.buildSchema({
         path: hedSchemaFile,
       })
     })
+
+    const validatorSemanticBase = function (
+      testStrings,
+      expectedResults,
+      expectedIssues,
+      testFunction,
+    ) {
+      return hedSchemaPromise.then((schemas) => {
+        for (const testStringKey in testStrings) {
+          const [parsedTestString, parseIssues] = stringParser.parseHedString(
+            testStrings[testStringKey],
+            schemas,
+          )
+          const testIssues = testFunction(parsedTestString, schemas)
+          const issues = [].concat(parseIssues, testIssues)
+          const testResult = issues.length === 0
+          assert.strictEqual(
+            testResult,
+            expectedResults[testStringKey],
+            testStrings[testStringKey],
+          )
+          assert.sameDeepMembers(
+            issues,
+            expectedIssues[testStringKey],
+            testStrings[testStringKey],
+          )
+        }
+      })
+    }
+
+    const validatorSyntacticBase = function (
+      testStrings,
+      expectedResults,
+      expectedIssues,
+      testFunction,
+    ) {
+      for (const testStringKey in testStrings) {
+        const [parsedTestString, parseIssues] = stringParser.parseHedString(
+          testStrings[testStringKey],
+          new Schemas(null),
+        )
+        const testIssues = testFunction(parsedTestString)
+        const issues = [].concat(parseIssues, testIssues)
+        const testResult = issues.length === 0
+        assert.strictEqual(
+          testResult,
+          expectedResults[testStringKey],
+          testStrings[testStringKey],
+        )
+        assert.sameDeepMembers(
+          issues,
+          expectedIssues[testStringKey],
+          testStrings[testStringKey],
+        )
+      }
+    }
 
     describe('Full HED Strings', () => {
       const validator = function (testStrings, expectedIssues) {
@@ -951,6 +1007,85 @@ describe('HED string and event validation', () => {
           ],
         }
         return validator(testStrings, expectedIssues)
+      })
+    })
+
+    describe('HED Tag Levels', () => {
+      const validatorSyntactic = function (
+        testStrings,
+        expectedResults,
+        expectedIssues,
+      ) {
+        validatorSyntacticBase(
+          testStrings,
+          expectedResults,
+          expectedIssues,
+          function (parsedTestString) {
+            return hed.validateHedTagLevels(parsedTestString, {}, false)
+          },
+        )
+      }
+
+      const validatorSemantic = function (
+        testStrings,
+        expectedResults,
+        expectedIssues,
+      ) {
+        return validatorSemanticBase(
+          testStrings,
+          expectedResults,
+          expectedIssues,
+          function (parsedTestString, schema) {
+            return hed.validateHedTagLevels(parsedTestString, schema, true)
+          },
+        )
+      }
+
+      it('should have syntactically valid definitions', () => {
+        const testStrings = {
+          nonDefinition: 'Car',
+          nonDefinitionGroup: '(Train/Maglev,Age/15,RGB-red/0.5)',
+          definitionOnly: '(Definition/SimpleDefinition)',
+          tagGroup: '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          illegalSibling:
+            '(Definition/IllegalSiblingDefinition, Train, (Visual))',
+          nestedDefinition:
+            '(Definition/NestedDefinition, (Screen, (Definition/InnerDefinition, (Square))))',
+          multipleTagGroups:
+            '(Definition/MultipleTagGroupDefinition, (Screen), (Square))',
+        }
+        const expectedResults = {
+          nonDefinition: true,
+          nonDefinitionGroup: true,
+          definitionOnly: true,
+          tagGroup: true,
+          illegalSibling: false,
+          nestedDefinition: false,
+          multipleTagGroups: false,
+        }
+        const expectedIssues = {
+          nonDefinition: [],
+          nonDefinitionGroup: [],
+          definitionOnly: [],
+          tagGroup: [],
+          illegalSibling: [
+            generateIssue('illegalDefinitionGroupTag', {
+              tag: 'Train',
+              definition: 'IllegalSiblingDefinition',
+            }),
+          ],
+          nestedDefinition: [
+            generateIssue('nestedDefinition', {
+              definition: 'NestedDefinition',
+            }),
+          ],
+          multipleTagGroups: [
+            generateIssue('multipleTagGroupsInDefinition', {
+              definition: 'MultipleTagGroupDefinition',
+            }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedResults, expectedIssues)
       })
     })
   })
