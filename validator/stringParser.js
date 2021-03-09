@@ -92,8 +92,13 @@ const splitHedString = function (hedString, hedSchemas, issues) {
   let groupDepth = 0
   let currentTag = ''
   let startingIndex = 0
+  let resetStartingIndex = false
   // Loop a character at a time.
   for (let i = 0; i < hedString.length; i++) {
+    if (resetStartingIndex) {
+      startingIndex = i
+      resetStartingIndex = false
+    }
     const character = hedString.charAt(i)
     if (character === doubleQuoteCharacter) {
       // Skip double quotes
@@ -112,6 +117,7 @@ const splitHedString = function (hedString, hedSchemas, issues) {
         )
       }
       hedTags.push(new ParsedHedTag(tilde, [i, i + 1], hedSchemas))
+      resetStartingIndex = true
       currentTag = ''
     } else if (groupDepth === 0 && character === delimiter) {
       // Found the end of a tag, so push the current tag.
@@ -119,6 +125,7 @@ const splitHedString = function (hedString, hedSchemas, issues) {
         hedTags.push(
           new ParsedHedTag(currentTag.trim(), [startingIndex, i], hedSchemas),
         )
+        resetStartingIndex = true
       }
       currentTag = ''
     } else if (invalidCharacters.includes(character)) {
@@ -134,6 +141,7 @@ const splitHedString = function (hedString, hedSchemas, issues) {
         hedTags.push(
           new ParsedHedTag(currentTag.trim(), [startingIndex, i], hedSchemas),
         )
+        resetStartingIndex = true
       }
       currentTag = ''
     } else {
