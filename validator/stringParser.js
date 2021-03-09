@@ -35,8 +35,7 @@ const splitHedString = function(hedString, issues) {
   const invalidCharacters = ['{', '}', '[', ']']
 
   const hedTags = []
-  let numberOfOpeningParentheses = 0
-  let numberOfClosingParentheses = 0
+  let groupDepth = 0
   let currentTag = ''
   // Loop a character at a time.
   for (let i = 0; i < hedString.length; i++) {
@@ -46,24 +45,18 @@ const splitHedString = function(hedString, issues) {
       continue
     } else if (character === openingGroupCharacter) {
       // Count group characters
-      numberOfOpeningParentheses++
+      groupDepth++
     } else if (character === closingGroupCharacter) {
-      numberOfClosingParentheses++
+      groupDepth--
     }
-    if (
-      numberOfOpeningParentheses === numberOfClosingParentheses &&
-      character === tilde
-    ) {
+    if (groupDepth === 0 && character === tilde) {
       // Found a tilde, so push the current tag and a tilde.
       if (!utils.string.stringIsEmpty(currentTag)) {
         hedTags.push(currentTag.trim())
       }
       hedTags.push(tilde)
       currentTag = ''
-    } else if (
-      numberOfOpeningParentheses === numberOfClosingParentheses &&
-      character === delimiter
-    ) {
+    } else if (groupDepth === 0 && character === delimiter) {
       // Found the end of a tag, so push the current tag.
       if (!utils.string.stringIsEmpty(currentTag)) {
         hedTags.push(currentTag.trim())
