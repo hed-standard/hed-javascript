@@ -60,10 +60,10 @@ describe('HED dataset validation', () => {
         multipleValidMixed: [],
         multipleInvalid: [
           generateValidationIssue('extension', {
-            tag: 'Item/Object/Man-made-object/Vehicle/Train/Maglev',
+            tag: testDatasets.multipleInvalid[0],
           }),
           generateValidationIssue('unitClassInvalidUnit', {
-            tag: 'Attribute/Spatiotemporal/Temporal/Duration/0.5 cm',
+            tag: testDatasets.multipleInvalid[1],
             unitClassUnits: legalTimeUnits.sort().join(','),
           }),
           generateConverterIssue(
