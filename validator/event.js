@@ -6,8 +6,7 @@ const { Schemas } = require('../utils/schema')
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
 const comma = ','
-const tilde = '~'
-const delimiters = [comma, tilde]
+const delimiters = [comma]
 
 const uniqueType = 'unique'
 const requiredType = 'required'
@@ -188,7 +187,6 @@ const checkForDuplicateTags = function (tagList) {
         continue
       }
       if (
-        tagList[i].formattedTag !== tilde &&
         tagList[i].formattedTag === tagList[j].formattedTag &&
         !duplicateIndices.includes(i) &&
         !duplicateIndices.includes(j)
@@ -241,28 +239,6 @@ const checkForMultipleUniqueTags = function (tagList, hedSchemas) {
     }
   }
   return issues
-}
-
-/**
- * Verify that the tilde count in a single group does not exceed 2.
- */
-const checkNumberOfGroupTildes = function (originalTagGroup, parsedTagGroup) {
-  const issues = []
-  const tildeCount = utils.array.getElementCount(
-    parsedTagGroup.map((group) => {
-      return group.originalTag
-    }),
-    tilde,
-  )
-  if (tildeCount > 2) {
-    issues.push(
-      utils.issues.generateIssue('tooManyTildes', {
-        tagGroup: originalTagGroup.originalTag,
-      }),
-    )
-    return issues
-  }
-  return []
 }
 
 /**
@@ -438,8 +414,7 @@ const checkIfTagIsValid = function (
     utils.HED.tagTakesValue(
       tag.formattedTag,
       hedSchemas.baseSchema.attributes,
-    ) || // This tag is a valid value-taking tag in the HED schema.
-    tag.formattedTag === tilde // This "tag" is a tilde.
+    ) // This tag is a valid value-taking tag in the HED schema.
   ) {
     return []
   }
@@ -680,7 +655,7 @@ const validateHedTagLevels = function (
  * Validate a HED tag group.
  */
 const validateHedTagGroup = function (originalTagGroup, parsedTagGroup) {
-  return checkNumberOfGroupTildes(originalTagGroup, parsedTagGroup)
+  return []
 }
 
 /**

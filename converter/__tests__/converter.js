@@ -691,12 +691,6 @@ describe('HED string conversion', () => {
             '(Item/Object/Man-made-object/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5)',
           groupAndTag:
             '(Item/Object/Man-made-object/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5), Item/Object/Man-made-object/Vehicle/Car',
-          oneTildeGroup:
-            'Event/Sensory-event, (Item/Sound/Named-object-sound/Siren ~ Attribute/Environmental/Indoors)',
-          twoTildeGroup:
-            'Event/Sensory-event, (Agent-property/Cognitive-state/Awake ~ Agent-property/Agent-trait/Age/15 ~' +
-            ' Item/Sound/Named-object-sound/Siren, Item/Object/Man-made-object/Vehicle/Car, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5),' +
-            ' Item/Object/Geometric',
         }
         const expectedResults = {
           singleLevel: 'Event',
@@ -706,9 +700,6 @@ describe('HED string conversion', () => {
           threeMulti: 'Sensory-event, Train, RGB-red/0.5',
           simpleGroup: '(Train, RGB-red/0.5)',
           groupAndTag: '(Train, RGB-red/0.5), Car',
-          oneTildeGroup: 'Sensory-event, (Siren ~ Indoors)',
-          twoTildeGroup:
-            'Sensory-event, (Awake ~ Age/15 ~ Siren, Car, RGB-red/0.5), Geometric',
         }
         const expectedIssues = {
           singleLevel: [],
@@ -718,8 +709,6 @@ describe('HED string conversion', () => {
           threeMulti: [],
           simpleGroup: [],
           groupAndTag: [],
-          oneTildeGroup: [],
-          twoTildeGroup: [],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
@@ -920,9 +909,6 @@ describe('HED string conversion', () => {
           threeMulti: 'Sensory-event, Train, RGB-red/0.5',
           simpleGroup: '(Train, RGB-red/0.5)',
           groupAndTag: '(Train, RGB-red/0.5), Car',
-          oneTildeGroup: 'Sensory-event, (Siren ~ Indoors)',
-          twoTildeGroup:
-            'Sensory-event, (Awake ~ Age/15 ~ Siren, Car, RGB-red/0.5), Geometric',
         }
         const expectedResults = {
           singleLevel: 'Event',
@@ -935,12 +921,6 @@ describe('HED string conversion', () => {
             '(Item/Object/Man-made-object/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5)',
           groupAndTag:
             '(Item/Object/Man-made-object/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5), Item/Object/Man-made-object/Vehicle/Car',
-          oneTildeGroup:
-            'Event/Sensory-event, (Item/Sound/Named-object-sound/Siren ~ Attribute/Environmental/Indoors)',
-          twoTildeGroup:
-            'Event/Sensory-event, (Agent-property/Cognitive-state/Awake ~ Agent-property/Agent-trait/Age/15 ~' +
-            ' Item/Sound/Named-object-sound/Siren, Item/Object/Man-made-object/Vehicle/Car, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5),' +
-            ' Item/Object/Geometric',
         }
         const expectedIssues = {
           singleLevel: [],
@@ -950,8 +930,6 @@ describe('HED string conversion', () => {
           threeMulti: [],
           simpleGroup: [],
           groupAndTag: [],
-          oneTildeGroup: [],
-          twoTildeGroup: [],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
