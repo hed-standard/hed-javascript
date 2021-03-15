@@ -1,7 +1,6 @@
 const assert = require('chai').assert
 const hed = require('../validator/event')
 const schema = require('../validator/schema')
-const converterSchema = require('../converter/schema')
 const stringParser = require('../validator/stringParser')
 const generateIssue = require('../utils/issues')
 const { Schemas } = require('../utils/schema')
@@ -103,16 +102,12 @@ describe('HED string and event validation', () => {
             ',/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
           extraClosingComma:
             '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px,',
-          extraOpeningTilde:
-            '~/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
-          extraClosingTilde:
-            '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px~',
           multipleExtraOpeningDelimiter:
-            ',~,/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+            ',,/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
           multipleExtraClosingDelimiter:
-            '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px,~~,',
+            '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px,,',
           multipleExtraMiddleDelimiter:
-            '/Action/Reach/To touch,,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,~,/Attribute/Location/Screen/Left/23 px',
+            '/Action/Reach/To touch,,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,,/Attribute/Location/Screen/Left/23 px',
           valid:
             '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
           validDoubleOpeningParentheses:
@@ -143,20 +138,6 @@ describe('HED string and event validation', () => {
               string: testStrings.extraClosingComma,
             }),
           ],
-          extraOpeningTilde: [
-            generateIssue('extraDelimiter', {
-              character: '~',
-              index: 0,
-              string: testStrings.extraOpeningTilde,
-            }),
-          ],
-          extraClosingTilde: [
-            generateIssue('extraDelimiter', {
-              character: '~',
-              index: testStrings.extraClosingTilde.length - 1,
-              string: testStrings.extraClosingTilde,
-            }),
-          ],
           multipleExtraOpeningDelimiter: [
             generateIssue('extraDelimiter', {
               character: ',',
@@ -164,13 +145,8 @@ describe('HED string and event validation', () => {
               string: testStrings.multipleExtraOpeningDelimiter,
             }),
             generateIssue('extraDelimiter', {
-              character: '~',
-              index: 1,
-              string: testStrings.multipleExtraOpeningDelimiter,
-            }),
-            generateIssue('extraDelimiter', {
               character: ',',
-              index: 2,
+              index: 1,
               string: testStrings.multipleExtraOpeningDelimiter,
             }),
           ],
@@ -181,18 +157,8 @@ describe('HED string and event validation', () => {
               string: testStrings.multipleExtraClosingDelimiter,
             }),
             generateIssue('extraDelimiter', {
-              character: '~',
-              index: testStrings.multipleExtraClosingDelimiter.length - 2,
-              string: testStrings.multipleExtraClosingDelimiter,
-            }),
-            generateIssue('extraDelimiter', {
-              character: '~',
-              index: testStrings.multipleExtraClosingDelimiter.length - 3,
-              string: testStrings.multipleExtraClosingDelimiter,
-            }),
-            generateIssue('extraDelimiter', {
               character: ',',
-              index: testStrings.multipleExtraClosingDelimiter.length - 4,
+              index: testStrings.multipleExtraClosingDelimiter.length - 2,
               string: testStrings.multipleExtraClosingDelimiter,
             }),
           ],
@@ -203,13 +169,8 @@ describe('HED string and event validation', () => {
               string: testStrings.multipleExtraMiddleDelimiter,
             }),
             generateIssue('extraDelimiter', {
-              character: '~',
-              index: 125,
-              string: testStrings.multipleExtraMiddleDelimiter,
-            }),
-            generateIssue('extraDelimiter', {
               character: ',',
-              index: 126,
+              index: 125,
               string: testStrings.multipleExtraMiddleDelimiter,
             }),
           ],
@@ -230,6 +191,8 @@ describe('HED string and event validation', () => {
             '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm',
           closingBracket:
             '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm',
+          tilde:
+            '/Attribute/Object side/Left,/Participant/Effect~/Body part/Arm',
         }
         const expectedIssues = {
           openingBrace: [
@@ -258,6 +221,13 @@ describe('HED string and event validation', () => {
               character: ']',
               index: 47,
               string: testStrings.closingBracket,
+            }),
+          ],
+          tilde: [
+            generateIssue('invalidCharacter', {
+              character: '~',
+              index: 47,
+              string: testStrings.tilde,
             }),
           ],
         }
@@ -625,43 +595,6 @@ describe('HED string and event validation', () => {
           ],
         }
         return validator(testStrings, expectedIssues)
-      })
-    })
-
-    describe('HED Tag Groups', () => {
-      const validator = function (testStrings, expectedIssues) {
-        validatorSyntacticBase(
-          testStrings,
-          expectedIssues,
-          function (parsedTestString) {
-            return hed.validateHedTagGroups(parsedTestString)
-          },
-        )
-      }
-
-      it('should have no more than two tildes', () => {
-        const testStrings = {
-          noTildeGroup:
-            'Event/Category/Experimental stimulus,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
-          oneTildeGroup:
-            'Event/Category/Experimental stimulus,(Item/Object/Vehicle/Car ~ Attribute/Object control/Perturb)',
-          twoTildeGroup:
-            'Event/Category/Experimental stimulus,(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red)',
-          invalidTildeGroup:
-            'Event/Category/Experimental stimulus,(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb)',
-        }
-        const expectedIssues = {
-          noTildeGroup: [],
-          oneTildeGroup: [],
-          twoTildeGroup: [],
-          invalidTildeGroup: [
-            generateIssue('tooManyTildes', {
-              tagGroup:
-                '(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb)',
-            }),
-          ],
-        }
-        validator(testStrings, expectedIssues)
       })
     })
 
