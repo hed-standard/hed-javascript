@@ -899,7 +899,6 @@ describe('HED string and event validation', () => {
 
     const validatorSemanticBase = function (
       testStrings,
-      expectedResults,
       expectedIssues,
       testFunction,
     ) {
@@ -911,12 +910,6 @@ describe('HED string and event validation', () => {
           )
           const testIssues = testFunction(parsedTestString, schemas)
           const issues = [].concat(parseIssues, testIssues)
-          const testResult = issues.length === 0
-          assert.strictEqual(
-            testResult,
-            expectedResults[testStringKey],
-            testStrings[testStringKey],
-          )
           assert.sameDeepMembers(
             issues,
             expectedIssues[testStringKey],
@@ -928,7 +921,6 @@ describe('HED string and event validation', () => {
 
     const validatorSyntacticBase = function (
       testStrings,
-      expectedResults,
       expectedIssues,
       testFunction,
     ) {
@@ -939,12 +931,6 @@ describe('HED string and event validation', () => {
         )
         const testIssues = testFunction(parsedTestString)
         const issues = [].concat(parseIssues, testIssues)
-        const testResult = issues.length === 0
-        assert.strictEqual(
-          testResult,
-          expectedResults[testStringKey],
-          testStrings[testStringKey],
-        )
         assert.sameDeepMembers(
           issues,
           expectedIssues[testStringKey],
@@ -1011,14 +997,9 @@ describe('HED string and event validation', () => {
     })
 
     describe('HED Tag Levels', () => {
-      const validatorSyntactic = function (
-        testStrings,
-        expectedResults,
-        expectedIssues,
-      ) {
+      const validatorSyntactic = function (testStrings, expectedIssues) {
         validatorSyntacticBase(
           testStrings,
-          expectedResults,
           expectedIssues,
           function (parsedTestString) {
             return hed.validateHedTagLevels(parsedTestString, {}, false)
@@ -1026,14 +1007,9 @@ describe('HED string and event validation', () => {
         )
       }
 
-      const validatorSemantic = function (
-        testStrings,
-        expectedResults,
-        expectedIssues,
-      ) {
+      const validatorSemantic = function (testStrings, expectedIssues) {
         return validatorSemanticBase(
           testStrings,
-          expectedResults,
           expectedIssues,
           function (parsedTestString, schema) {
             return hed.validateHedTagLevels(parsedTestString, schema, true)
@@ -1053,15 +1029,6 @@ describe('HED string and event validation', () => {
             '(Definition/NestedDefinition, (Screen, (Definition/InnerDefinition, (Square))))',
           multipleTagGroups:
             '(Definition/MultipleTagGroupDefinition, (Screen), (Square))',
-        }
-        const expectedResults = {
-          nonDefinition: true,
-          nonDefinitionGroup: true,
-          definitionOnly: true,
-          tagGroup: true,
-          illegalSibling: false,
-          nestedDefinition: false,
-          multipleTagGroups: false,
         }
         const expectedIssues = {
           nonDefinition: [],
@@ -1085,7 +1052,7 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        return validatorSemantic(testStrings, expectedResults, expectedIssues)
+        return validatorSemantic(testStrings, expectedIssues)
       })
     })
   })
