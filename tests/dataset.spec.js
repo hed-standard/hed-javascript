@@ -17,21 +17,15 @@ describe('HED dataset validation', () => {
      * Test-validate a dataset.
      *
      * @param {object<string, string[]>} testDatasets The datasets to test.
-     * @param {object<string, boolean>} expectedResults The expected validation results.
      * @param {object<string, object[]>} expectedIssues The expected issues.
      */
-    const validator = function(testDatasets, expectedResults, expectedIssues) {
-      return hedSchemaPromise.then(hedSchema => {
+    const validator = function (testDatasets, expectedIssues) {
+      return hedSchemaPromise.then((hedSchema) => {
         for (const testDatasetKey in testDatasets) {
-          const [testResult, testIssues] = hed.validateHedEvents(
+          const [, testIssues] = hed.validateHedEvents(
             testDatasets[testDatasetKey],
             hedSchema,
             true,
-          )
-          assert.strictEqual(
-            testResult,
-            expectedResults[testDatasetKey],
-            testDatasets[testDatasetKey].join(','),
           )
           assert.sameDeepMembers(
             testIssues,
@@ -55,15 +49,6 @@ describe('HED dataset validation', () => {
         multipleValidShort: ['Sensory-event', 'Train', 'RGB-red/0.5'],
         multipleValidMixed: ['Event/Sensory-event', 'Train', 'RGB-red/0.5'],
         multipleInvalid: ['Train/Maglev', 'Duration/0.5 cm', 'InvalidEvent'],
-      }
-      const expectedResults = {
-        empty: true,
-        singleValidLong: true,
-        singleValidShort: true,
-        multipleValidLong: true,
-        multipleValidShort: true,
-        multipleValidMixed: true,
-        multipleInvalid: false,
       }
       const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
       const expectedIssues = {
@@ -89,7 +74,7 @@ describe('HED dataset validation', () => {
           ),
         ],
       }
-      return validator(testDatasets, expectedResults, expectedIssues)
+      return validator(testDatasets, expectedIssues)
     })
   })
 })

@@ -14,25 +14,18 @@ describe('HED string and event validation', () => {
       hedSchemaPromise = schema.buildSchema({ path: hedSchemaFile })
     })
 
-    const validatorSemanticBase = function(
+    const validatorSemanticBase = function (
       testStrings,
-      expectedResults,
       expectedIssues,
       testFunction,
     ) {
-      return hedSchemaPromise.then(schema => {
+      return hedSchemaPromise.then((schema) => {
         for (const testStringKey in testStrings) {
           const [parsedTestString, parseIssues] = stringParser.parseHedString(
             testStrings[testStringKey],
           )
           const testIssues = testFunction(parsedTestString, schema)
           const issues = [].concat(parseIssues, testIssues)
-          const testResult = issues.length === 0
-          assert.strictEqual(
-            testResult,
-            expectedResults[testStringKey],
-            testStrings[testStringKey],
-          )
           assert.sameDeepMembers(
             issues,
             expectedIssues[testStringKey],
@@ -42,9 +35,8 @@ describe('HED string and event validation', () => {
       })
     }
 
-    const validatorSyntacticBase = function(
+    const validatorSyntacticBase = function (
       testStrings,
-      expectedResults,
       expectedIssues,
       testFunction,
     ) {
@@ -54,12 +46,6 @@ describe('HED string and event validation', () => {
         )
         const testIssues = testFunction(parsedTestString)
         const issues = [].concat(parseIssues, testIssues)
-        const testResult = issues.length === 0
-        assert.strictEqual(
-          testResult,
-          expectedResults[testStringKey],
-          testStrings[testStringKey],
-        )
         assert.sameDeepMembers(
           issues,
           expectedIssues[testStringKey],
@@ -69,14 +55,9 @@ describe('HED string and event validation', () => {
     }
 
     describe('Full HED Strings', () => {
-      const validator = function(testStrings, expectedResults, expectedIssues) {
+      const validator = function (testStrings, expectedIssues) {
         for (const testStringKey in testStrings) {
-          const [testResult, testIssues] = hed.validateHedEvent(
-            testStrings[testStringKey],
-          )
-          assert.strictEqual(
-            testResult,
-            expectedResults[testStringKey],
+          const [, testIssues] = hed.validateHedEvent(
             testStrings[testStringKey],
           )
           assert.sameDeepMembers(
@@ -97,11 +78,6 @@ describe('HED string and event validation', () => {
           valid:
             '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
         }
-        const expectedResults = {
-          extraOpening: false,
-          extraClosing: false,
-          valid: true,
-        }
         const expectedIssues = {
           extraOpening: [
             generateIssue('parentheses', { opening: 2, closing: 1 }),
@@ -111,7 +87,7 @@ describe('HED string and event validation', () => {
           ],
           valid: [],
         }
-        validator(testStrings, expectedResults, expectedIssues)
+        validator(testStrings, expectedIssues)
       })
 
       it('should not have malformed delimiters', () => {
@@ -140,20 +116,6 @@ describe('HED string and event validation', () => {
             '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px),Event/Duration/3 ms',
           validDoubleClosingParentheses:
             '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm,(/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px)),Event/Duration/3 ms',
-        }
-        const expectedResults = {
-          missingOpeningComma: false,
-          missingClosingComma: false,
-          extraOpeningComma: false,
-          extraClosingComma: false,
-          extraOpeningTilde: false,
-          extraClosingTilde: false,
-          multipleExtraOpeningDelimiter: false,
-          multipleExtraClosingDelimiter: false,
-          multipleExtraMiddleDelimiter: false,
-          valid: true,
-          validDoubleOpeningParentheses: true,
-          validDoubleClosingParentheses: true,
         }
         const expectedIssues = {
           missingOpeningComma: [
@@ -252,7 +214,7 @@ describe('HED string and event validation', () => {
           validDoubleOpeningParentheses: [],
           validDoubleClosingParentheses: [],
         }
-        validator(testStrings, expectedResults, expectedIssues)
+        validator(testStrings, expectedIssues)
       })
 
       it('should not have invalid characters', () => {
@@ -265,12 +227,6 @@ describe('HED string and event validation', () => {
             '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm',
           closingBracket:
             '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm',
-        }
-        const expectedResults = {
-          openingBrace: false,
-          closingBrace: false,
-          openingBracket: false,
-          closingBracket: false,
         }
         const expectedIssues = {
           openingBrace: [
@@ -302,16 +258,13 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        validator(testStrings, expectedResults, expectedIssues)
+        validator(testStrings, expectedIssues)
       })
 
       it('should substitute and warn for certain illegal characters', () => {
         const testStrings = {
           nul:
             '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm\0',
-        }
-        const expectedResults = {
-          nul: false,
         }
         const expectedIssues = {
           nul: [
@@ -322,22 +275,20 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        validator(testStrings, expectedResults, expectedIssues)
+        validator(testStrings, expectedIssues)
       })
     })
 
     describe('Individual HED Tags', () => {
-      const validatorSyntactic = function(
+      const validatorSyntactic = function (
         testStrings,
-        expectedResults,
         expectedIssues,
         checkForWarnings,
       ) {
         validatorSyntacticBase(
           testStrings,
-          expectedResults,
           expectedIssues,
-          function(parsedTestString) {
+          function (parsedTestString) {
             return hed.validateIndividualHedTags(
               parsedTestString,
               {},
@@ -348,17 +299,15 @@ describe('HED string and event validation', () => {
         )
       }
 
-      const validatorSemantic = function(
+      const validatorSemantic = function (
         testStrings,
-        expectedResults,
         expectedIssues,
         checkForWarnings,
       ) {
         return validatorSemanticBase(
           testStrings,
-          expectedResults,
           expectedIssues,
-          function(parsedTestString, schema) {
+          function (parsedTestString, schema) {
             return hed.validateIndividualHedTags(
               parsedTestString,
               schema,
@@ -377,14 +326,6 @@ describe('HED string and event validation', () => {
           leafExtension: 'Event/Category/Initial context/Something',
           nonExtensionAllowed: 'Event/Nonsense',
           illegalComma: 'Event/Label/This is a label,This/Is/A/Tag',
-        }
-        const expectedResults = {
-          takesValue: true,
-          full: true,
-          extensionAllowed: false,
-          leafExtension: false,
-          nonExtensionAllowed: false,
-          illegalComma: false,
         }
         const expectedIssues = {
           takesValue: [],
@@ -409,7 +350,7 @@ describe('HED string and event validation', () => {
         }
         return validatorSemantic(
           testStrings,
-          expectedResults,
+
           expectedIssues,
           true,
         )
@@ -423,13 +364,6 @@ describe('HED string and event validation', () => {
           numeric: 'Attribute/Repetition/20',
           lowercase: 'Event/something',
         }
-        const expectedResults = {
-          proper: true,
-          camelCase: true,
-          takesValue: true,
-          numeric: true,
-          lowercase: false,
-        }
         const expectedIssues = {
           proper: [],
           camelCase: [],
@@ -439,7 +373,7 @@ describe('HED string and event validation', () => {
             generateIssue('capitalization', { tag: testStrings.lowercase }),
           ],
         }
-        validatorSyntactic(testStrings, expectedResults, expectedIssues, true)
+        validatorSyntactic(testStrings, expectedIssues, true)
       })
 
       it('should have a child when required', () => {
@@ -447,22 +381,13 @@ describe('HED string and event validation', () => {
           hasChild: 'Event/Category/Experimental stimulus',
           missingChild: 'Event/Category',
         }
-        const expectedResults = {
-          hasChild: true,
-          missingChild: false,
-        }
         const expectedIssues = {
           hasChild: [],
           missingChild: [
             generateIssue('childRequired', { tag: testStrings.missingChild }),
           ],
         }
-        return validatorSemantic(
-          testStrings,
-          expectedResults,
-          expectedIssues,
-          true,
-        )
+        return validatorSemantic(testStrings, expectedIssues, true)
       })
 
       it('should have a unit when required', () => {
@@ -473,14 +398,6 @@ describe('HED string and event validation', () => {
           notRequiredNumber: 'Attribute/Visual/Color/Red/0.5',
           notRequiredScientific: 'Attribute/Visual/Color/Red/5.2e-1',
           timeValue: 'Item/2D shape/Clock face/08:30',
-        }
-        const expectedResults = {
-          hasRequiredUnit: true,
-          missingRequiredUnit: false,
-          notRequiredNoNumber: true,
-          notRequiredNumber: true,
-          notRequiredScientific: true,
-          timeValue: true,
         }
         const expectedIssues = {
           hasRequiredUnit: [],
@@ -495,12 +412,7 @@ describe('HED string and event validation', () => {
           notRequiredScientific: [],
           timeValue: [],
         }
-        return validatorSemantic(
-          testStrings,
-          expectedResults,
-          expectedIssues,
-          true,
-        )
+        return validatorSemantic(testStrings, expectedIssues, true)
       })
 
       it('should have a proper unit when required', () => {
@@ -523,25 +435,6 @@ describe('HED string and event validation', () => {
           notRequiredScientific: 'Attribute/Visual/Color/Red/5e-1',
           properTime: 'Item/2D shape/Clock face/08:30',
           invalidTime: 'Item/2D shape/Clock face/54:54',
-        }
-        const expectedResults = {
-          correctUnit: true,
-          correctUnitScientific: true,
-          correctSingularUnit: true,
-          correctPluralUnit: true,
-          correctNoPluralUnit: true,
-          correctNonSymbolCapitalizedUnit: true,
-          correctSymbolCapitalizedUnit: true,
-          incorrectUnit: false,
-          incorrectPluralUnit: false,
-          incorrectSymbolCapitalizedUnit: false,
-          incorrectSymbolCapitalizedUnitModifier: false,
-          incorrectNonSIUnitModifier: false,
-          incorrectNonSIUnitSymbolModifier: false,
-          notRequiredNumber: true,
-          notRequiredScientific: true,
-          properTime: true,
-          invalidTime: false,
         }
         const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
         const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
@@ -601,41 +494,26 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        return validatorSemantic(
-          testStrings,
-          expectedResults,
-          expectedIssues,
-          false,
-        )
+        return validatorSemantic(testStrings, expectedIssues, false)
       })
     })
 
     describe('HED Tag Levels', () => {
-      const validatorSyntactic = function(
-        testStrings,
-        expectedResults,
-        expectedIssues,
-      ) {
+      const validatorSyntactic = function (testStrings, expectedIssues) {
         validatorSyntacticBase(
           testStrings,
-          expectedResults,
           expectedIssues,
-          function(parsedTestString) {
+          function (parsedTestString) {
             return hed.validateHedTagLevels(parsedTestString, {}, false)
           },
         )
       }
 
-      const validatorSemantic = function(
-        testStrings,
-        expectedResults,
-        expectedIssues,
-      ) {
+      const validatorSemantic = function (testStrings, expectedIssues) {
         return validatorSemanticBase(
           testStrings,
-          expectedResults,
           expectedIssues,
-          function(parsedTestString, schema) {
+          function (parsedTestString, schema) {
             return hed.validateHedTagLevels(parsedTestString, schema, true)
           },
         )
@@ -652,12 +530,6 @@ describe('HED string and event validation', () => {
           legalDuplicate:
             'Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
         }
-        const expectedResults = {
-          topLevelDuplicate: false,
-          groupDuplicate: false,
-          legalDuplicate: true,
-          noDuplicate: true,
-        }
         const expectedIssues = {
           topLevelDuplicate: [
             generateIssue('duplicateTag', {
@@ -672,7 +544,7 @@ describe('HED string and event validation', () => {
           legalDuplicate: [],
           noDuplicate: [],
         }
-        validatorSyntactic(testStrings, expectedResults, expectedIssues)
+        validatorSyntactic(testStrings, expectedIssues)
       })
 
       it('should not have multiple copies of a unique tag', () => {
@@ -682,27 +554,22 @@ describe('HED string and event validation', () => {
           multipleDesc:
             'Event/Description/Rail vehicles,Event/Description/Locomotive-pulled or multiple units,Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
         }
-        const expectedResults = {
-          legal: true,
-          multipleDesc: false,
-        }
         const expectedIssues = {
           legal: [],
           multipleDesc: [
             generateIssue('multipleUniqueTags', { tag: 'event/description' }),
           ],
         }
-        return validatorSemantic(testStrings, expectedResults, expectedIssues)
+        return validatorSemantic(testStrings, expectedIssues)
       })
     })
 
     describe('Top-level Tags', () => {
-      const validator = function(testStrings, expectedResults, expectedIssues) {
+      const validator = function (testStrings, expectedIssues) {
         return validatorSemanticBase(
           testStrings,
-          expectedResults,
           expectedIssues,
-          function(parsedTestString, schema) {
+          function (parsedTestString, schema) {
             return hed.validateTopLevelTags(
               parsedTestString,
               schema,
@@ -724,13 +591,6 @@ describe('HED string and event validation', () => {
           missingDescription:
             'Event/Label/Bus,Event/Category/Experimental stimulus,Item/Object/Vehicle/Bus',
           missingAllRequired: 'Item/Object/Vehicle/Bus',
-        }
-        const expectedResults = {
-          complete: true,
-          missingLabel: false,
-          missingCategory: false,
-          missingDescription: false,
-          missingAllRequired: false,
         }
         const expectedIssues = {
           complete: [],
@@ -761,17 +621,16 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        return validator(testStrings, expectedResults, expectedIssues)
+        return validator(testStrings, expectedIssues)
       })
     })
 
     describe('HED Tag Groups', () => {
-      const validator = function(testStrings, expectedResults, expectedIssues) {
+      const validator = function (testStrings, expectedIssues) {
         validatorSyntacticBase(
           testStrings,
-          expectedResults,
           expectedIssues,
-          function(parsedTestString) {
+          function (parsedTestString) {
             return hed.validateHedTagGroups(parsedTestString)
           },
         )
@@ -788,12 +647,6 @@ describe('HED string and event validation', () => {
           invalidTildeGroup:
             'Event/Category/Experimental stimulus,(Participant/ID 1 ~ Participant/Effect/Visual ~ Item/Object/Vehicle/Car, Item/ID/RedCar, Attribute/Visual/Color/Red ~ Attribute/Object control/Perturb)',
         }
-        const expectedResults = {
-          noTildeGroup: true,
-          oneTildeGroup: true,
-          twoTildeGroup: true,
-          invalidTildeGroup: false,
-        }
         const expectedIssues = {
           noTildeGroup: [],
           oneTildeGroup: [],
@@ -805,29 +658,23 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        validator(testStrings, expectedResults, expectedIssues)
+        validator(testStrings, expectedIssues)
       })
     })
 
     describe('HED Strings', () => {
-      const validator = function(
+      const validator = function (
         testStrings,
-        expectedResults,
         expectedIssues,
         allowPlaceholders = false,
       ) {
-        return hedSchemaPromise.then(schema => {
+        return hedSchemaPromise.then((schema) => {
           for (const testStringKey in testStrings) {
-            const [testResult, testIssues] = hed.validateHedString(
+            const [, testIssues] = hed.validateHedString(
               testStrings[testStringKey],
               schema,
               true,
               allowPlaceholders,
-            )
-            assert.strictEqual(
-              testResult,
-              expectedResults[testStringKey],
-              testStrings[testStringKey],
             )
             assert.sameDeepMembers(
               testIssues,
@@ -844,15 +691,11 @@ describe('HED string and event validation', () => {
           multipleUnique:
             'Event/Description/Rail vehicles,Event/Description/Locomotive-pulled or multiple units',
         }
-        const expectedResults = {
-          duplicate: true,
-          multipleUnique: true,
-        }
         const expectedIssues = {
           duplicate: [],
           multipleUnique: [],
         }
-        return validator(testStrings, expectedResults, expectedIssues)
+        return validator(testStrings, expectedIssues)
       })
 
       it('should properly handle strings with placeholders', () => {
@@ -864,15 +707,6 @@ describe('HED string and event validation', () => {
           invalidParent: 'Event/Nonsense/#',
           missingRequiredUnit: 'Event/Duration/#',
           wrongLocation: 'Item/#/Person',
-        }
-        const expectedResults = {
-          takesValue: true,
-          withUnit: true,
-          child: false,
-          extensionAllowed: false,
-          invalidParent: false,
-          missingRequiredUnit: false,
-          wrongLocation: false,
         }
         const expectedIssues = {
           takesValue: [],
@@ -902,7 +736,7 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        return validator(testStrings, expectedResults, expectedIssues, true)
+        return validator(testStrings, expectedIssues, true)
       })
     })
   })
@@ -917,25 +751,18 @@ describe('HED string and event validation', () => {
       })
     })
 
-    const validatorSemanticBase = function(
+    const validatorSemanticBase = function (
       testStrings,
-      expectedResults,
       expectedIssues,
       testFunction,
     ) {
-      return hedSchemaPromise.then(schema => {
+      return hedSchemaPromise.then((schema) => {
         for (const testStringKey in testStrings) {
           const [parsedTestString, parseIssues] = stringParser.parseHedString(
             testStrings[testStringKey],
           )
           const testIssues = testFunction(parsedTestString, schema)
           const issues = [].concat(parseIssues, testIssues)
-          const testResult = issues.length === 0
-          assert.strictEqual(
-            testResult,
-            expectedResults[testStringKey],
-            testStrings[testStringKey],
-          )
           assert.sameDeepMembers(
             issues,
             expectedIssues[testStringKey],
@@ -946,17 +773,15 @@ describe('HED string and event validation', () => {
     }
 
     describe('Individual HED Tags', () => {
-      const validatorSemantic = function(
+      const validatorSemantic = function (
         testStrings,
-        expectedResults,
         expectedIssues,
         checkForWarnings,
       ) {
         return validatorSemanticBase(
           testStrings,
-          expectedResults,
           expectedIssues,
-          function(parsedTestString, schema) {
+          function (parsedTestString, schema) {
             return hed.validateIndividualHedTags(
               parsedTestString,
               schema,
@@ -975,13 +800,6 @@ describe('HED string and event validation', () => {
           notRequiredScientific: 'Attribute/Visual/Color/Red/5.2e-1',
           timeValue: 'Item/2D shape/Clock face/08:30',
         }
-        const expectedResults = {
-          hasRequiredUnit: true,
-          missingRequiredUnit: false,
-          notRequiredNumber: true,
-          notRequiredScientific: true,
-          timeValue: true,
-        }
         const expectedIssues = {
           hasRequiredUnit: [],
           missingRequiredUnit: [
@@ -994,12 +812,7 @@ describe('HED string and event validation', () => {
           notRequiredScientific: [],
           timeValue: [],
         }
-        return validatorSemantic(
-          testStrings,
-          expectedResults,
-          expectedIssues,
-          true,
-        )
+        return validatorSemantic(testStrings, expectedIssues, true)
       })
 
       it('should have a proper unit when required', () => {
@@ -1014,18 +827,6 @@ describe('HED string and event validation', () => {
           notRequiredScientific: 'Attribute/Visual/Color/Red/5e-1',
           properTime: 'Item/2D shape/Clock face/08:30',
           invalidTime: 'Item/2D shape/Clock face/54:54',
-        }
-        const expectedResults = {
-          correctUnit: true,
-          correctUnitWord: true,
-          correctUnitScientific: true,
-          incorrectUnit: false,
-          incorrectUnitWord: false,
-          incorrectPrefix: false,
-          notRequiredNumber: true,
-          notRequiredScientific: true,
-          properTime: true,
-          invalidTime: false,
         }
         const legalTimeUnits = [
           's',
@@ -1077,12 +878,7 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        return validatorSemantic(
-          testStrings,
-          expectedResults,
-          expectedIssues,
-          false,
-        )
+        return validatorSemantic(testStrings, expectedIssues, false)
       })
     })
   })
@@ -1098,18 +894,13 @@ describe('HED string and event validation', () => {
     })
 
     describe('Full HED Strings', () => {
-      const validator = function(testStrings, expectedResults, expectedIssues) {
-        return hedSchemaPromise.then(hedSchema => {
+      const validator = function (testStrings, expectedIssues) {
+        return hedSchemaPromise.then((hedSchema) => {
           for (const testStringKey in testStrings) {
-            const [testResult, testIssues] = hed.validateHedEvent(
+            const [, testIssues] = hed.validateHedEvent(
               testStrings[testStringKey],
               hedSchema,
               false,
-            )
-            assert.strictEqual(
-              testResult,
-              expectedResults[testStringKey],
-              testStrings[testStringKey],
             )
             assert.sameDeepMembers(
               testIssues,
@@ -1127,13 +918,6 @@ describe('HED string and event validation', () => {
           invalidUnit: 'Duration/20 cm',
           duplicate: 'Train,Vehicle/Train',
           missingChild: 'Label',
-        }
-        const expectedResults = {
-          simple: true,
-          groupAndValues: true,
-          invalidUnit: false,
-          duplicate: false,
-          missingChild: false,
         }
         const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
         const expectedIssues = {
@@ -1156,7 +940,7 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        return validator(testStrings, expectedResults, expectedIssues)
+        return validator(testStrings, expectedIssues)
       })
     })
   })
