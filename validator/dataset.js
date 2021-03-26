@@ -18,7 +18,7 @@ const parseDefinitions = function(hedStrings, hedSchema) {
  * @param {Definitions} definitions The parsed dataset definitions.
  * @param {string[]} hedStrings The dataset's HED strings.
  * @param {Schema} hedSchema The HED schema.
- * @return {[boolean, object[]]} Whether the HED dataset is valid and any issues found.
+ * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
 const validateDataset = function(definitions, hedStrings, hedSchema) {
   // TODO: Implement
@@ -31,7 +31,7 @@ const validateDataset = function(definitions, hedStrings, hedSchema) {
  * @param {string[]} hedStrings A group of HED strings.
  * @param {Schema} hedSchema The HED schema.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
- * @return {Array} Whether the HED strings are valid and any issues found.
+ * @return {[boolean, Issue[]]} Whether the HED strings are valid and any issues found.
  */
 const validateHedEvents = function(hedStrings, hedSchema, checkForWarnings) {
   let stringsValid = true
@@ -54,7 +54,7 @@ const validateHedEvents = function(hedStrings, hedSchema, checkForWarnings) {
  * @param {string[]} hedStrings The dataset's HED strings.
  * @param {Schema} hedSchema The HED schema.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
- * @return {Array} Whether the HED dataset is valid and any issues found.
+ * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
 const validateHedDataset = function(
   hedStrings,

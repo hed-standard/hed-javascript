@@ -31,7 +31,7 @@ const substituteCharacters = function(hedString) {
     if (match in illegalCharacterMap) {
       const [name, replacement] = illegalCharacterMap[match]
       issues.push(
-        utils.generateIssue('invalidCharacter', {
+        utils.issues.generateIssue('invalidCharacter', {
           character: name,
           index: offset,
           string: hedString,
@@ -62,7 +62,7 @@ const countTagGroupParentheses = function(hedString) {
   )
   if (numberOfOpeningParentheses !== numberOfClosingParentheses) {
     issues.push(
-      utils.generateIssue('parentheses', {
+      utils.issues.generateIssue('parentheses', {
         opening: numberOfOpeningParentheses,
         closing: numberOfClosingParentheses,
       }),
@@ -104,7 +104,7 @@ const findDelimiterIssuesInHedString = function(hedString) {
     if (delimiters.includes(currentCharacter)) {
       if (currentTag.trim() === currentCharacter) {
         issues.push(
-          utils.generateIssue('extraDelimiter', {
+          utils.issues.generateIssue('extraDelimiter', {
             character: currentCharacter,
             index: i,
             string: hedString,
@@ -118,7 +118,7 @@ const findDelimiterIssuesInHedString = function(hedString) {
       if (currentTag.trim() === openingGroupCharacter) {
         currentTag = ''
       } else {
-        issues.push(utils.generateIssue('invalidTag', { tag: currentTag }))
+        issues.push(utils.issues.generateIssue('invalidTag', { tag: currentTag }))
       }
     } else if (
       isCommaMissingAfterClosingParenthesis(
@@ -127,7 +127,7 @@ const findDelimiterIssuesInHedString = function(hedString) {
       )
     ) {
       issues.push(
-        utils.generateIssue('commaMissing', {
+        utils.issues.generateIssue('commaMissing', {
           tag: currentTag.slice(0, -1),
         }),
       )
@@ -138,7 +138,7 @@ const findDelimiterIssuesInHedString = function(hedString) {
   }
   if (delimiters.includes(lastNonEmptyValidCharacter)) {
     issues.push(
-      utils.generateIssue('extraDelimiter', {
+      utils.issues.generateIssue('extraDelimiter', {
         character: lastNonEmptyValidCharacter,
         index: lastNonEmptyValidIndex,
         string: hedString,
@@ -170,7 +170,7 @@ const checkCapitalization = function(
   for (const tagName of tagNames) {
     const correctTagName = utils.string.capitalizeString(tagName)
     if (tagName !== correctTagName && !camelCase.test(tagName)) {
-      issues.push(utils.generateIssue('capitalization', { tag: originalTag }))
+      issues.push(utils.issues.generateIssue('capitalization', { tag: originalTag }))
     }
   }
   return issues
@@ -197,7 +197,7 @@ const checkForDuplicateTags = function(originalTagList, formattedTagList) {
       ) {
         duplicateIndices.push(i, j)
         issues.push(
-          utils.generateIssue('duplicateTag', { tag: originalTagList[i] }),
+          utils.issues.generateIssue('duplicateTag', { tag: originalTagList[i] }),
         )
       }
     }
@@ -223,7 +223,7 @@ const checkForMultipleUniqueTags = function(
           foundOne = true
         } else {
           issues.push(
-            utils.generateIssue('multipleUniqueTags', {
+            utils.issues.generateIssue('multipleUniqueTags', {
               tag: uniqueTagPrefix,
             }),
           )
@@ -243,7 +243,7 @@ const checkNumberOfGroupTildes = function(originalTagGroup, parsedTagGroup) {
   const tildeCount = utils.array.getElementCount(parsedTagGroup, tilde)
   if (tildeCount > 2) {
     issues.push(
-      utils.generateIssue('tooManyTildes', { tagGroup: originalTagGroup }),
+      utils.issues.generateIssue('tooManyTildes', { tagGroup: originalTagGroup }),
     )
     return issues
   }
@@ -258,7 +258,7 @@ const checkIfTagRequiresChild = function(originalTag, formattedTag, hedSchema) {
   const invalid =
     formattedTag in hedSchema.attributes.dictionaries[requireChildType]
   if (invalid) {
-    issues.push(utils.generateIssue('childRequired', { tag: originalTag }))
+    issues.push(utils.issues.generateIssue('childRequired', { tag: originalTag }))
   }
   return issues
 }
@@ -280,7 +280,7 @@ const checkForRequiredTags = function(parsedString, hedSchema) {
     }
     if (!foundOne) {
       issues.push(
-        utils.generateIssue('requiredPrefixMissing', {
+        utils.issues.generateIssue('requiredPrefixMissing', {
           tagPrefix: requiredTagPrefix,
         }),
       )
@@ -308,7 +308,7 @@ const checkIfTagUnitClassUnitsExist = function(
         hedSchema.attributes,
       )
       issues.push(
-        utils.generateIssue('unitClassDefaultUsed', {
+        utils.issues.generateIssue('unitClassDefaultUsed', {
           tag: originalTag,
           defaultUnit: defaultUnit,
         }),
@@ -378,7 +378,7 @@ const checkIfTagUnitClassUnitsAreValid = function(
     const validUnit = utils.HED.validateValue(value, allowPlaceholders)
     if (!validUnit) {
       issues.push(
-        utils.generateIssue('unitClassInvalidUnit', {
+        utils.issues.generateIssue('unitClassInvalidUnit', {
           tag: originalTag,
           unitClassUnits: tagUnitClassUnits.sort().join(','),
         }),
@@ -421,7 +421,7 @@ const checkIfTagIsValid = function(
       return []
     } else {
       issues.push(
-        utils.generateIssue('invalidPlaceholder', { tag: originalTag }),
+        utils.issues.generateIssue('invalidPlaceholder', { tag: originalTag }),
       )
       return issues
     }
@@ -433,7 +433,7 @@ const checkIfTagIsValid = function(
     // This tag isn't an allowed extension, but the previous tag takes a value.
     // This is likely caused by an extraneous comma.
     issues.push(
-      utils.generateIssue('extraCommaOrInvalid', {
+      utils.issues.generateIssue('extraCommaOrInvalid', {
         tag: originalTag,
         previousTag: previousOriginalTag,
       }),
@@ -441,12 +441,12 @@ const checkIfTagIsValid = function(
     return issues
   } else if (!isExtensionAllowedTag) {
     // This is not a valid tag.
-    issues.push(utils.generateIssue('invalidTag', { tag: originalTag }))
+    issues.push(utils.issues.generateIssue('invalidTag', { tag: originalTag }))
     return issues
   } else {
     // This is an allowed extension.
     if (checkForWarnings) {
-      issues.push(utils.generateIssue('extension', { tag: originalTag }))
+      issues.push(utils.issues.generateIssue('extension', { tag: originalTag }))
       return issues
     } else {
       return []
@@ -693,7 +693,7 @@ const initiallyValidateHedString = function(
  * @param {Schema} hedSchema The HED schema to validate against.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
- * @returns {Array} Whether the HED string is valid and any issues found.
+ * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  */
 const validateHedString = function(
   hedString,
@@ -734,7 +734,7 @@ const validateHedString = function(
  * @param {string} hedString The HED event string to validate.
  * @param {Schema} hedSchema The HED schema to validate against.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
- * @returns {Array} Whether the HED string is valid and any issues found.
+ * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  */
 const validateHedEvent = function(
   hedString,

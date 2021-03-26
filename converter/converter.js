@@ -58,7 +58,7 @@ const convertTagToLong = function(mapping, hedTag, offset) {
           return [
             hedTag,
             [
-              generateIssue('noValidTagFound', hedTag, {}, [
+              generateIssue('invalidTag', hedTag, {}, [
                 startingIndex + offset,
                 endingIndex + offset,
               ]),
@@ -155,7 +155,7 @@ const convertTagToShort = function(mapping, hedTag, offset) {
     return [
       hedTag,
       [
-        generateIssue('noValidTagFound', hedTag, {}, [
+        generateIssue('invalidTag', hedTag, {}, [
           index + offset,
           lastFoundIndex + offset,
         ]),

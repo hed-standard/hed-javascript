@@ -4,7 +4,7 @@ const HED = require('./hed')
 const array = require('./array')
 const files = require('./files')
 const string = require('./string')
-const generateIssue = require('./issues')
+const issues = require('./issues')
 
 // public api --------------------------------------------------------
 
@@ -12,8 +12,8 @@ const utils = {
   HED: HED,
   array: array,
   files: files,
+  issues: issues,
   string: string,
-  generateIssue: generateIssue,
 }
 
 // exports -----------------------------------------------------------
