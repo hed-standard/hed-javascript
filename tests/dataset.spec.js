@@ -1,7 +1,7 @@
 const assert = require('chai').assert
 const hed = require('../validator/dataset')
 const schema = require('../validator/schema')
-const generateValidationIssue = require('../utils/issues')
+const generateValidationIssue = require('../utils/issues').generateIssue
 const generateConverterIssue = require('../converter/issues')
 
 describe('HED dataset validation', () => {
@@ -67,7 +67,7 @@ describe('HED dataset validation', () => {
             unitClassUnits: legalTimeUnits.sort().join(','),
           }),
           generateConverterIssue(
-            'noValidTagFound',
+            'invalidTag',
             testDatasets.multipleInvalid[2],
             {},
             [0, 12],

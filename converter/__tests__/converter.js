@@ -267,14 +267,14 @@ describe('HED string conversion', () => {
             ),
           ],
           invalidSingle: [
-            generateIssue('noValidTagFound', testStrings.invalidSingle, {}, [
+            generateIssue('invalidTag', testStrings.invalidSingle, {}, [
               0,
               12,
             ]),
           ],
           invalidWithExtension: [
             generateIssue(
-              'noValidTagFound',
+              'invalidTag',
               testStrings.invalidWithExtension,
               {},
               [0, 12],
@@ -526,16 +526,16 @@ describe('HED string conversion', () => {
         }
         const expectedIssues = {
           single: [
-            generateIssue('noValidTagFound', testStrings.single, {}, [0, 12]),
+            generateIssue('invalidTag', testStrings.single, {}, [0, 12]),
           ],
           invalidChild: [
-            generateIssue('noValidTagFound', testStrings.invalidChild, {}, [
+            generateIssue('invalidTag', testStrings.invalidChild, {}, [
               0,
               12,
             ]),
           ],
           validChild: [
-            generateIssue('noValidTagFound', testStrings.validChild, {}, [
+            generateIssue('invalidTag', testStrings.validChild, {}, [
               0,
               12,
             ]),
@@ -575,7 +575,7 @@ describe('HED string conversion', () => {
         }
         const expectedIssues = {
           leadingSpace: [
-            generateIssue('noValidTagFound', testStrings.leadingSpace, {}, [
+            generateIssue('invalidTag', testStrings.leadingSpace, {}, [
               0,
               20,
             ]),
@@ -745,17 +745,17 @@ describe('HED string conversion', () => {
           doubleWithValid: double + ', Car/Minivan',
         }
         const expectedIssues = {
-          single: [generateIssue('noValidTagFound', single, {}, [0, 12])],
-          double: [generateIssue('noValidTagFound', double, {}, [0, 12])],
+          single: [generateIssue('invalidTag', single, {}, [0, 12])],
+          double: [generateIssue('invalidTag', double, {}, [0, 12])],
           both: [
-            generateIssue('noValidTagFound', single, {}, [0, 12]),
-            generateIssue('noValidTagFound', double, {}, [14, 26]),
+            generateIssue('invalidTag', single, {}, [0, 12]),
+            generateIssue('invalidTag', double, {}, [14, 26]),
           ],
           singleWithTwoValid: [
-            generateIssue('noValidTagFound', single, {}, [11, 23]),
+            generateIssue('invalidTag', single, {}, [11, 23]),
           ],
           doubleWithValid: [
-            generateIssue('noValidTagFound', double, {}, [0, 12]),
+            generateIssue('invalidTag', double, {}, [0, 12]),
           ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
@@ -975,17 +975,17 @@ describe('HED string conversion', () => {
             double + ', Item/Object/Man-made/Vehicle/Car/Minivan',
         }
         const expectedIssues = {
-          single: [generateIssue('noValidTagFound', single, {}, [0, 12])],
-          double: [generateIssue('noValidTagFound', double, {}, [0, 12])],
+          single: [generateIssue('invalidTag', single, {}, [0, 12])],
+          double: [generateIssue('invalidTag', double, {}, [0, 12])],
           both: [
-            generateIssue('noValidTagFound', single, {}, [0, 12]),
-            generateIssue('noValidTagFound', double, {}, [14, 26]),
+            generateIssue('invalidTag', single, {}, [0, 12]),
+            generateIssue('invalidTag', double, {}, [14, 26]),
           ],
           singleWithTwoValid: [
-            generateIssue('noValidTagFound', single, {}, [11, 23]),
+            generateIssue('invalidTag', single, {}, [11, 23]),
           ],
           doubleWithValid: [
-            generateIssue('noValidTagFound', double, {}, [0, 12]),
+            generateIssue('invalidTag', double, {}, [0, 12]),
           ],
         }
         return validator(testStrings, expectedResults, expectedIssues)

@@ -65,7 +65,7 @@ const splitHedString = function(hedString, issues) {
     } else if (invalidCharacters.includes(character)) {
       // Found an invalid character, so push an issue.
       issues.push(
-        utils.generateIssue('invalidCharacter', {
+        utils.issues.generateIssue('invalidCharacter', {
           character: character,
           index: i,
           string: hedString,

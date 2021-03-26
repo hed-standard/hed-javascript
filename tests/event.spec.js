@@ -3,7 +3,7 @@ const hed = require('../validator/event')
 const schema = require('../validator/schema')
 const converterSchema = require('../converter/schema')
 const stringParser = require('../validator/stringParser')
-const generateIssue = require('../utils/issues')
+const generateIssue = require('../utils/issues').generateIssue
 
 describe('HED string and event validation', () => {
   describe('Latest HED schema', () => {

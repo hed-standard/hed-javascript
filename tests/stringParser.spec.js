@@ -1,6 +1,6 @@
 const assert = require('chai').assert
 const stringParser = require('../validator/stringParser')
-const generateIssue = require('../utils/issues')
+const generateIssue = require('../utils/issues').generateIssue
 
 describe('HED string parsing', () => {
   const validatorWithoutIssues = function(
