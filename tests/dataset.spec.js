@@ -17,7 +17,7 @@ describe('HED dataset validation', () => {
      * Test-validate a dataset.
      *
      * @param {object<string, string[]>} testDatasets The datasets to test.
-     * @param {object<string, object[]>} expectedIssues The expected issues.
+     * @param {object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = function (testDatasets, expectedIssues) {
       return hedSchemaPromise.then((hedSchema) => {
@@ -63,7 +63,7 @@ describe('HED dataset validation', () => {
             tag: 'Item/Object/Man-made-object/Vehicle/Train/Maglev',
           }),
           generateValidationIssue('unitClassInvalidUnit', {
-            tag: 'Attribute/Spatiotemporal/Temporal/Duration/0.5 cm',
+            tag: 'Data-property/Spatiotemporal/Temporal/Duration/0.5 cm',
             unitClassUnits: legalTimeUnits.sort().join(','),
           }),
           generateConverterIssue(

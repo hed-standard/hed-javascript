@@ -4,7 +4,7 @@ const schema = require('../schema')
 const generateIssue = require('../issues')
 
 describe('HED string conversion', () => {
-  const hedSchemaFile = 'tests/data/HEDv1.6.10-reduced.xml'
+  const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
   let schemaPromise
 
   beforeAll(() => {
@@ -17,17 +17,17 @@ describe('HED string conversion', () => {
      *
      * @param {Object<string, string>} testStrings The test strings.
      * @param {Object<string, string>} expectedResults The expected results.
-     * @param {Object<string, Array>} expectedIssues The expected issues.
-     * @param {function (Mapping, string, number): [string, []]} testFunction The test function.
+     * @param {Object<string, Issue[]>} expectedIssues The expected issues.
+     * @param {function (Mapping, string, number): [string, Issue[]]} testFunction The test function.
      * @return {Promise<void> | PromiseLike<any> | Promise<any>}
      */
-    const validatorBase = function(
+    const validatorBase = function (
       testStrings,
       expectedResults,
       expectedIssues,
       testFunction,
     ) {
-      return schemaPromise.then(schema => {
+      return schemaPromise.then((schema) => {
         for (const testStringKey in testStrings) {
           const [testResult, issues] = testFunction(
             schema.mapping,
@@ -49,7 +49,11 @@ describe('HED string conversion', () => {
     }
 
     describe('Long-to-short', () => {
-      const validator = function(testStrings, expectedResults, expectedIssues) {
+      const validator = function (
+        testStrings,
+        expectedResults,
+        expectedIssues,
+      ) {
         return validatorBase(
           testStrings,
           expectedResults,
@@ -147,7 +151,7 @@ describe('HED string conversion', () => {
         const testStrings = {
           singleLevel: 'Event/Experiment-control/extended lvl1',
           multiLevel: 'Event/Experiment-control/extended lvl1/Extension2',
-          partialPath: 'Object/Man-made/Vehicle/Boat/Yacht',
+          partialPath: 'Object/Man-made-object/Vehicle/Boat/Yacht',
         }
         const expectedResults = {
           singleLevel: 'Experiment-control/extended lvl1',
@@ -267,18 +271,13 @@ describe('HED string conversion', () => {
             ),
           ],
           invalidSingle: [
-            generateIssue('invalidTag', testStrings.invalidSingle, {}, [
+            generateIssue('invalidTag', testStrings.invalidSingle, {}, [0, 12]),
+          ],
+          invalidWithExtension: [
+            generateIssue('invalidTag', testStrings.invalidWithExtension, {}, [
               0,
               12,
             ]),
-          ],
-          invalidWithExtension: [
-            generateIssue(
-              'invalidTag',
-              testStrings.invalidWithExtension,
-              {},
-              [0, 12],
-            ),
           ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
@@ -286,9 +285,9 @@ describe('HED string conversion', () => {
 
       it('should not validate whether a node actually allows extensions', () => {
         const testStrings = {
-          validTakesValue: 'Attribute/Agent-related/Trait/Age/15',
+          validTakesValue: 'Agent-property/Agent-trait/Age/15',
           cascadeExtension:
-            'Attribute/Agent-related/Emotional-state/Awed/Cascade Extension',
+            'Agent-property/Emotional-state/Awed/Cascade Extension',
           invalidExtension: 'Event/Agent-action/Good/Time',
         }
         const expectedResults = {
@@ -331,19 +330,19 @@ describe('HED string conversion', () => {
         const testStrings = {
           leadingSingle: '/Event',
           leadingExtension: '/Event/Extension',
-          leadingMultiLevel: '/Item/Object/Man-made/Vehicle/Train',
+          leadingMultiLevel: '/Item/Object/Man-made-object/Vehicle/Train',
           leadingMultiLevelExtension:
-            '/Item/Object/Man-made/Vehicle/Train/Maglev',
+            '/Item/Object/Man-made-object/Vehicle/Train/Maglev',
           trailingSingle: 'Event/',
           trailingExtension: 'Event/Extension/',
-          trailingMultiLevel: 'Item/Object/Man-made/Vehicle/Train/',
+          trailingMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train/',
           trailingMultiLevelExtension:
-            'Item/Object/Man-made/Vehicle/Train/Maglev/',
+            'Item/Object/Man-made-object/Vehicle/Train/Maglev/',
           bothSingle: '/Event/',
           bothExtension: '/Event/Extension/',
-          bothMultiLevel: '/Item/Object/Man-made/Vehicle/Train/',
+          bothMultiLevel: '/Item/Object/Man-made-object/Vehicle/Train/',
           bothMultiLevelExtension:
-            '/Item/Object/Man-made/Vehicle/Train/Maglev/',
+            '/Item/Object/Man-made-object/Vehicle/Train/Maglev/',
         }
         const expectedResults = {
           leadingSingle: 'Event',
@@ -378,7 +377,11 @@ describe('HED string conversion', () => {
     })
 
     describe('Short-to-long', () => {
-      const validator = function(testStrings, expectedResults, expectedIssues) {
+      const validator = function (
+        testStrings,
+        expectedResults,
+        expectedIssues,
+      ) {
         return validatorBase(
           testStrings,
           expectedResults,
@@ -441,7 +444,7 @@ describe('HED string conversion', () => {
         const expectedResults = {
           singleLevel: 'Event/Experiment-control/extended lvl1',
           multiLevel: 'Event/Experiment-control/extended lvl1/Extension2',
-          partialPath: 'Item/Object/Man-made/Vehicle/Boat/Yacht',
+          partialPath: 'Item/Object/Man-made-object/Vehicle/Boat/Yacht',
         }
         const expectedIssues = {
           singleLevel: [],
@@ -529,16 +532,10 @@ describe('HED string conversion', () => {
             generateIssue('invalidTag', testStrings.single, {}, [0, 12]),
           ],
           invalidChild: [
-            generateIssue('invalidTag', testStrings.invalidChild, {}, [
-              0,
-              12,
-            ]),
+            generateIssue('invalidTag', testStrings.invalidChild, {}, [0, 12]),
           ],
           validChild: [
-            generateIssue('invalidTag', testStrings.validChild, {}, [
-              0,
-              12,
-            ]),
+            generateIssue('invalidTag', testStrings.validChild, {}, [0, 12]),
           ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
@@ -551,9 +548,9 @@ describe('HED string conversion', () => {
           invalidExtension: 'Agent-action/Good/Time',
         }
         const expectedResults = {
-          validTakesValue: 'Attribute/Agent-related/Trait/Age/15',
+          validTakesValue: 'Agent-property/Agent-trait/Age/15',
           cascadeExtension:
-            'Attribute/Agent-related/Emotional-state/Awed/Cascade Extension',
+            'Agent-property/Emotional-state/Awed/Cascade Extension',
           invalidExtension: 'Event/Agent-action/Good/Time',
         }
         const expectedIssues = {
@@ -575,10 +572,7 @@ describe('HED string conversion', () => {
         }
         const expectedIssues = {
           leadingSpace: [
-            generateIssue('invalidTag', testStrings.leadingSpace, {}, [
-              0,
-              20,
-            ]),
+            generateIssue('invalidTag', testStrings.leadingSpace, {}, [0, 20]),
           ],
           trailingSpace: [],
         }
@@ -603,18 +597,18 @@ describe('HED string conversion', () => {
         const expectedResults = {
           leadingSingle: 'Event',
           leadingExtension: 'Event/Extension',
-          leadingMultiLevel: 'Item/Object/Man-made/Vehicle/Train',
+          leadingMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
           leadingMultiLevelExtension:
-            'Item/Object/Man-made/Vehicle/Train/Maglev',
+            'Item/Object/Man-made-object/Vehicle/Train/Maglev',
           trailingSingle: 'Event',
           trailingExtension: 'Event/Extension',
-          trailingMultiLevel: 'Item/Object/Man-made/Vehicle/Train',
+          trailingMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
           trailingMultiLevelExtension:
-            'Item/Object/Man-made/Vehicle/Train/Maglev',
+            'Item/Object/Man-made-object/Vehicle/Train/Maglev',
           bothSingle: 'Event',
           bothExtension: 'Event/Extension',
-          bothMultiLevel: 'Item/Object/Man-made/Vehicle/Train',
-          bothMultiLevelExtension: 'Item/Object/Man-made/Vehicle/Train/Maglev',
+          bothMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
+          bothMultiLevelExtension: 'Item/Object/Man-made-object/Vehicle/Train/Maglev',
         }
         const expectedIssues = {
           leadingSingle: [],
@@ -641,17 +635,17 @@ describe('HED string conversion', () => {
      *
      * @param {Object<string, string>} testStrings The test strings.
      * @param {Object<string, string>} expectedResults The expected results.
-     * @param {Object<string, Array>} expectedIssues The expected issues.
-     * @param {function (Schema, string): [string, []]} testFunction The test function.
+     * @param {Object<string, Issue[]>} expectedIssues The expected issues.
+     * @param {function (Schema, string): [string, Issue[]]} testFunction The test function.
      * @return {Promise<void> | PromiseLike<any> | Promise<any>}
      */
-    const validatorBase = function(
+    const validatorBase = function (
       testStrings,
       expectedResults,
       expectedIssues,
       testFunction,
     ) {
-      return schemaPromise.then(schema => {
+      return schemaPromise.then((schema) => {
         for (const testStringKey in testStrings) {
           const [testResult, issues] = testFunction(
             schema,
@@ -672,7 +666,11 @@ describe('HED string conversion', () => {
     }
 
     describe('Long-to-short', () => {
-      const validator = function(testStrings, expectedResults, expectedIssues) {
+      const validator = function (
+        testStrings,
+        expectedResults,
+        expectedIssues,
+      ) {
         return validatorBase(
           testStrings,
           expectedResults,
@@ -688,16 +686,16 @@ describe('HED string conversion', () => {
           twoSingle: 'Event, Attribute',
           oneExtension: 'Event/Extension',
           threeMulti:
-            'Event/Sensory-event, Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
+            'Event/Sensory-event, Item/Object/Man-made-object/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
           simpleGroup:
-            '(Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5)',
+            '(Item/Object/Man-made-object/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5)',
           groupAndTag:
-            '(Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5), Item/Object/Man-made/Vehicle/Car',
+            '(Item/Object/Man-made-object/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5), Item/Object/Man-made-object/Vehicle/Car',
           oneTildeGroup:
             'Event/Sensory-event, (Item/Sound/Named-object-sound/Siren ~ Attribute/Environmental/Indoors)',
           twoTildeGroup:
-            'Event/Sensory-event, (Attribute/Agent-related/Cognitive-state/Awake ~ Attribute/Agent-related/Trait/Age/15 ~' +
-            ' Item/Sound/Named-object-sound/Siren, Item/Object/Man-made/Vehicle/Car, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5),' +
+            'Event/Sensory-event, (Agent-property/Cognitive-state/Awake ~ Agent-property/Agent-trait/Age/15 ~' +
+            ' Item/Sound/Named-object-sound/Siren, Item/Object/Man-made-object/Vehicle/Car, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5),' +
             ' Item/Object/Geometric',
         }
         const expectedResults = {
@@ -735,7 +733,7 @@ describe('HED string conversion', () => {
           both: single + ', ' + double,
           singleWithTwoValid: 'Attribute, ' + single + ', Event',
           doubleWithValid:
-            double + ', Item/Object/Man-made/Vehicle/Car/Minivan',
+            double + ', Item/Object/Man-made-object/Vehicle/Car/Minivan',
         }
         const expectedResults = {
           single: single,
@@ -754,9 +752,7 @@ describe('HED string conversion', () => {
           singleWithTwoValid: [
             generateIssue('invalidTag', single, {}, [11, 23]),
           ],
-          doubleWithValid: [
-            generateIssue('invalidTag', double, {}, [0, 12]),
-          ],
+          doubleWithValid: [generateIssue('invalidTag', double, {}, [0, 12])],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
@@ -794,15 +790,15 @@ describe('HED string conversion', () => {
       it('should strip leading and trailing slashes', () => {
         const testStrings = {
           leadingSingle: '/Event',
-          leadingMultiLevel: '/Object/Man-made/Vehicle/Train',
+          leadingMultiLevel: '/Object/Man-made-object/Vehicle/Train',
           trailingSingle: 'Event/',
-          trailingMultiLevel: 'Object/Man-made/Vehicle/Train/',
+          trailingMultiLevel: 'Object/Man-made-object/Vehicle/Train/',
           bothSingle: '/Event/',
-          bothMultiLevel: '/Object/Man-made/Vehicle/Train/',
-          twoMixedOuter: '/Event,Object/Man-made/Vehicle/Train/',
-          twoMixedInner: 'Event/,/Object/Man-made/Vehicle/Train',
-          twoMixedBoth: '/Event/,/Object/Man-made/Vehicle/Train/',
-          twoMixedBothGroup: '(/Event/,/Object/Man-made/Vehicle/Train/)',
+          bothMultiLevel: '/Object/Man-made-object/Vehicle/Train/',
+          twoMixedOuter: '/Event,Object/Man-made-object/Vehicle/Train/',
+          twoMixedInner: 'Event/,/Object/Man-made-object/Vehicle/Train',
+          twoMixedBoth: '/Event/,/Object/Man-made-object/Vehicle/Train/',
+          twoMixedBothGroup: '(/Event/,/Object/Man-made-object/Vehicle/Train/)',
         }
         const expectedEvent = 'Event'
         const expectedTrain = 'Train'
@@ -902,7 +898,11 @@ describe('HED string conversion', () => {
     })
 
     describe('Short-to-long', () => {
-      const validator = function(testStrings, expectedResults, expectedIssues) {
+      const validator = function (
+        testStrings,
+        expectedResults,
+        expectedIssues,
+      ) {
         return validatorBase(
           testStrings,
           expectedResults,
@@ -930,16 +930,16 @@ describe('HED string conversion', () => {
           twoSingle: 'Event, Attribute',
           oneExtension: 'Event/Extension',
           threeMulti:
-            'Event/Sensory-event, Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
+            'Event/Sensory-event, Item/Object/Man-made-object/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
           simpleGroup:
-            '(Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5)',
+            '(Item/Object/Man-made-object/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5)',
           groupAndTag:
-            '(Item/Object/Man-made/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5), Item/Object/Man-made/Vehicle/Car',
+            '(Item/Object/Man-made-object/Vehicle/Train, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5), Item/Object/Man-made-object/Vehicle/Car',
           oneTildeGroup:
             'Event/Sensory-event, (Item/Sound/Named-object-sound/Siren ~ Attribute/Environmental/Indoors)',
           twoTildeGroup:
-            'Event/Sensory-event, (Attribute/Agent-related/Cognitive-state/Awake ~ Attribute/Agent-related/Trait/Age/15 ~' +
-            ' Item/Sound/Named-object-sound/Siren, Item/Object/Man-made/Vehicle/Car, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5),' +
+            'Event/Sensory-event, (Agent-property/Cognitive-state/Awake ~ Agent-property/Agent-trait/Age/15 ~' +
+            ' Item/Sound/Named-object-sound/Siren, Item/Object/Man-made-object/Vehicle/Car, Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5),' +
             ' Item/Object/Geometric',
         }
         const expectedIssues = {
@@ -972,7 +972,7 @@ describe('HED string conversion', () => {
           both: single + ', ' + double,
           singleWithTwoValid: 'Attribute, ' + single + ', Event',
           doubleWithValid:
-            double + ', Item/Object/Man-made/Vehicle/Car/Minivan',
+            double + ', Item/Object/Man-made-object/Vehicle/Car/Minivan',
         }
         const expectedIssues = {
           single: [generateIssue('invalidTag', single, {}, [0, 12])],
@@ -984,9 +984,7 @@ describe('HED string conversion', () => {
           singleWithTwoValid: [
             generateIssue('invalidTag', single, {}, [11, 23]),
           ],
-          doubleWithValid: [
-            generateIssue('invalidTag', double, {}, [0, 12]),
-          ],
+          doubleWithValid: [generateIssue('invalidTag', double, {}, [0, 12])],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
@@ -1035,7 +1033,7 @@ describe('HED string conversion', () => {
           twoMixedBothGroup: '(/Event/,/Vehicle/Train/)',
         }
         const expectedEvent = 'Event'
-        const expectedTrain = 'Item/Object/Man-made/Vehicle/Train'
+        const expectedTrain = 'Item/Object/Man-made-object/Vehicle/Train'
         const expectedMixed = expectedEvent + ',' + expectedTrain
         const expectedResults = {
           leadingSingle: expectedEvent,
@@ -1081,7 +1079,7 @@ describe('HED string conversion', () => {
           trailingDoubleSlashWithSpace: 'Event/Extension/ /',
         }
         const expectedEventExtension = 'Event/Extension'
-        const expectedTanker = 'Item/Object/Man-made/Vehicle/Boat/Tanker'
+        const expectedTanker = 'Item/Object/Man-made-object/Vehicle/Boat/Tanker'
         const expectedResults = {
           twoLevelDoubleSlash: expectedEventExtension,
           threeLevelDoubleSlash: expectedTanker,

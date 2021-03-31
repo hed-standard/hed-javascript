@@ -1,7 +1,6 @@
 const assert = require('chai').assert
 const hed = require('../validator/event')
 const schema = require('../validator/schema')
-const converterSchema = require('../converter/schema')
 const stringParser = require('../validator/stringParser')
 const generateIssue = require('../utils/issues').generateIssue
 
@@ -884,11 +883,11 @@ describe('HED string and event validation', () => {
   })
 
   describe('Post-v8.0.0 HED schemas', () => {
-    const hedSchemaFile = 'tests/data/HEDv1.6.10-reduced.xml'
+    const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
     let hedSchemaPromise
 
     beforeAll(() => {
-      hedSchemaPromise = converterSchema.buildSchema({
+      hedSchemaPromise = schema.buildSchema({
         path: hedSchemaFile,
       })
     })
@@ -925,13 +924,13 @@ describe('HED string and event validation', () => {
           groupAndValues: [],
           invalidUnit: [
             generateIssue('unitClassInvalidUnit', {
-              tag: 'Attribute/Spatiotemporal/Temporal/Duration/20 cm',
+              tag: 'Data-property/Spatiotemporal/Temporal/Duration/20 cm',
               unitClassUnits: legalTimeUnits.sort().join(','),
             }),
           ],
           duplicate: [
             generateIssue('duplicateTag', {
-              tag: 'Item/Object/Man-made/Vehicle/Train',
+              tag: 'Item/Object/Man-made-object/Vehicle/Train',
             }),
           ],
           missingChild: [
