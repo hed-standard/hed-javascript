@@ -501,7 +501,7 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
     if (hedStringIsAGroup(tag.formattedTag)) {
       if (tagGroupValidated && !tagGroupIssueGenerated) {
         issues.push(
-          utils.generateIssue('multipleTagGroupsInDefinition', {
+          utils.issues.generateIssue('multipleTagGroupsInDefinition', {
             definition: definitionName,
           }),
         )
@@ -511,14 +511,14 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
       tagGroupValidated = true
       if (tag.formattedTag.indexOf(definitionParentTag) >= 0) {
         issues.push(
-          utils.generateIssue('nestedDefinition', {
+          utils.issues.generateIssue('nestedDefinition', {
             definition: definitionName,
           }),
         )
       }
     } else if (!tag.formattedTag.startsWith(definitionParentTag)) {
       issues.push(
-        utils.generateIssue('illegalDefinitionGroupTag', {
+        utils.issues.generateIssue('illegalDefinitionGroupTag', {
           tag: tag.originalTag,
           definition: definitionName,
         }),
