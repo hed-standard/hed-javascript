@@ -1,7 +1,12 @@
 const utils = require('../utils')
-const { parseHedString, ParsedHedTag, hedStringIsAGroup } = require('./stringParser')
+const {
+  parseHedString,
+  ParsedHedTag,
+  hedStringIsAGroup,
+} = require('./stringParser')
 const { buildSchemaAttributesObject } = require('./schema')
 const { Schemas } = require('../utils/schema')
+const { convertHedStringToLong } = require('../converter/converter')
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -260,14 +265,13 @@ const checkIfTagRequiresChild = function (tag, hedSchemas) {
 /**
  * Check that all required tags are present.
  */
-const checkForRequiredTags = function (parsedString, hedSchemas) {
+const checkForRequiredTags = function (topLevelTags, hedSchemas) {
   const issues = []
-  const topLevelTagList = parsedString.topLevelTags
   const requiredTagPrefixes =
     hedSchemas.baseSchema.attributes.dictionaries[requiredType]
   for (const requiredTagPrefix in requiredTagPrefixes) {
     let foundOne = false
-    for (const tag of topLevelTagList) {
+    for (const tag of topLevelTags) {
       if (tag.formattedTag.startsWith(requiredTagPrefix)) {
         foundOne = true
         break
@@ -411,10 +415,7 @@ const checkIfTagIsValid = function (
       tag.formattedTag,
       hedSchemas.baseSchema.attributes,
     ) || // This tag itself exists in the HED schema.
-    utils.HED.tagTakesValue(
-      tag.formattedTag,
-      hedSchemas.baseSchema.attributes,
-    ) // This tag is a valid value-taking tag in the HED schema.
+    utils.HED.tagTakesValue(tag.formattedTag, hedSchemas.baseSchema.attributes) // This tag is a valid value-taking tag in the HED schema.
   ) {
     return []
   }
@@ -477,22 +478,37 @@ const checkIfTagIsValid = function (
  * Check the syntax of HED 3 definitions.
  *
  * @param {ParsedHedTag[]} tagGroup The tag group.
- * @param {Schemas} hedSchemas The HED schema container.
- * @return {[]} Any issues found.
+ * @param {Schemas} hedSchemas The HED schema collection.
+ * @return {Issue[]} Any issues found.
  */
 const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
-  const definitionParentTag = 'attribute/informational/definition/'
-  const issues = []
+  const definitionShortTag = 'definition'
+  const defExpandShortTag = 'def-expand'
+  const defShortTag = 'def'
+  const [
+    definitionParentTag,
+    definitionParentTagIssues,
+  ] = convertHedStringToLong(hedSchemas, definitionShortTag)
+  const [defExpandParentTag, defExpandParentTagIssues] = convertHedStringToLong(
+    hedSchemas,
+    defExpandShortTag,
+  )
+  const issues = [].concat(definitionParentTagIssues, defExpandParentTagIssues)
   let definitionTagFound = false
+  let defExpandTagFound = false
   let definitionName
   for (const tag of tagGroup) {
-    if (tag.formattedTag.startsWith(definitionParentTag)) {
+    if (tag.canonicalTag.startsWith(definitionParentTag)) {
       definitionTagFound = true
+      definitionName = utils.HED.getTagName(tag.originalTag)
+      break
+    } else if (tag.canonicalTag.startsWith(defExpandParentTag)) {
+      defExpandTagFound = true
       definitionName = utils.HED.getTagName(tag.originalTag)
       break
     }
   }
-  if (!definitionTagFound) {
+  if (!(definitionTagFound || defExpandTagFound)) {
     return []
   }
   let tagGroupValidated = false
@@ -509,20 +525,65 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
         continue
       }
       tagGroupValidated = true
-      if (tag.formattedTag.indexOf(definitionParentTag) >= 0) {
+      if (
+        tag.formattedTag.indexOf(definitionShortTag) >= 0 ||
+        tag.formattedTag.indexOf(defExpandShortTag) >= 0
+      ) {
+        issues.push(
+          utils.issues.generateIssue('nestedDefinition', {
+            definition: definitionName,
+          }),
+        )
+      } else if (tag.formattedTag.indexOf(defShortTag) >= 0) {
         issues.push(
           utils.issues.generateIssue('nestedDefinition', {
             definition: definitionName,
           }),
         )
       }
-    } else if (!tag.formattedTag.startsWith(definitionParentTag)) {
+    } else if (
+      (definitionTagFound &&
+        !tag.canonicalTag.startsWith(definitionParentTag)) ||
+      (defExpandTagFound && !tag.canonicalTag.startsWith(defExpandParentTag))
+    ) {
       issues.push(
         utils.issues.generateIssue('illegalDefinitionGroupTag', {
           tag: tag.originalTag,
           definition: definitionName,
         }),
       )
+    }
+  }
+  return issues
+}
+
+/**
+ * Check for invalid top-level definition tags.
+ *
+ * @param {ParsedHedTag[]} topLevelTags The list of top-level tags.
+ * @param {Schemas} hedSchemas The HED schema collection.
+ * @return {Issue[]} Any issues found.
+ */
+const checkForInvalidTopLevelDefinitionTags = function (
+  topLevelTags,
+  hedSchemas,
+) {
+  let issues = []
+  const invalidShortTags = ['Definition', 'Def-expand']
+  for (const invalidShortTag of invalidShortTags) {
+    const [invalidTag, invalidTagIssues] = convertHedStringToLong(
+      hedSchemas,
+      invalidShortTag,
+    )
+    issues = issues.concat(invalidTagIssues)
+    for (const topLevelTag of topLevelTags) {
+      if (topLevelTag.canonicalTag.startsWith(invalidTag)) {
+        issues.push(
+          utils.issues.generateIssue('topLevelDefinitionTag', {
+            tag: topLevelTag.originalTag,
+          }),
+        )
+      }
     }
   }
   return issues
@@ -639,7 +700,9 @@ const validateHedTagLevels = function (
   let issues = []
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
     const tagList = parsedString.tagGroups[i]
-    issues = issues.concat(validateHedTagLevel(tagList, hedSchemas, doSemanticValidation))
+    issues = issues.concat(
+      validateHedTagLevel(tagList, hedSchemas, doSemanticValidation),
+    )
   }
   issues = issues.concat(
     validateHedTagLevel(
@@ -680,11 +743,18 @@ const validateTopLevelTags = function (
   doSemanticValidation,
   checkForWarnings,
 ) {
-  if (doSemanticValidation && checkForWarnings) {
-    return checkForRequiredTags(parsedString, hedSchemas)
-  } else {
-    return []
+  let issues = []
+  const topLevelTags = parsedString.topLevelTags
+  if (hedSchemas.isHed3) {
+    // This is false when doSemanticValidation is false (i.e. there is no loaded schema).
+    issues = issues.concat(
+      checkForInvalidTopLevelDefinitionTags(topLevelTags, hedSchemas),
+    )
   }
+  if (doSemanticValidation && checkForWarnings) {
+    issues = issues.concat(checkForRequiredTags(topLevelTags, hedSchemas))
+  }
+  return issues
 }
 
 /**

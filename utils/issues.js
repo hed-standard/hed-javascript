@@ -94,6 +94,9 @@ const generateIssue = function (code, parameters) {
     case 'multipleTagGroupsInDefinition':
       message = `ERROR: Multiple inner tag groups found in definition "${parameters.definition}"`
       break
+    case 'topLevelDefinitionTag':
+      message = `ERROR: Illegal top-level definition tag - "${parameters.tag}"`
+      break
     default:
       message = `ERROR: Unknown HED error.`
       break
