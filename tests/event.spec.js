@@ -1106,22 +1106,40 @@ describe('HED string and event validation', () => {
       it('should have syntactically valid definitions', () => {
         const testStrings = {
           nonDefinition: 'Car',
-          nonDefinitionGroup: '(Train/Maglev,Age/15,RGB-red/0.5)',
+          nonDefinitionGroup: '(Train/Maglev, Age/15, RGB-red/0.5)',
           definitionOnly: '(Definition/SimpleDefinition)',
-          tagGroup: '(Definition/TagGroupDefinition, (Square, RGB-blue))',
-          illegalSibling:
+          tagGroupDefinition:
+            '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          illegalSiblingDefinition:
             '(Definition/IllegalSiblingDefinition, Train, (Visual))',
           nestedDefinition:
             '(Definition/NestedDefinition, (Screen, (Definition/InnerDefinition, (Square))))',
-          multipleTagGroups:
+          multipleTagGroupDefinition:
             '(Definition/MultipleTagGroupDefinition, (Screen), (Square))',
+          defExpandOnly: '(Def-expand/SimpleDefExpand)',
+          tagGroupDefExpand:
+            '(Def-expand/TagGroupDefExpand, (Square, RGB-blue))',
+          illegalSiblingDefExpand:
+            '(Def-expand/IllegalSiblingDefExpand, Train, (Visual))',
+          nestedDefExpand:
+            '(Def-expand/NestedDefExpand, (Screen, (Def-expand/InnerDefExpand, (Square))))',
+          multipleTagGroupDefExpand:
+            '(Def-expand/MultipleTagGroupDefExpand, (Screen), (Square))',
+          mixedDefinitionFirst:
+            '(Definition/DefinitionFirst, Def-expand/DefExpandSecond, (Square))',
+          mixedDefExpandFirst:
+            '(Def-expand/DefExpandFirst, Definition/DefinitionSecond, (Square))',
+          defNestedInDefinition:
+            '(Definition/DefNestedInDefinition, (Def/Nested, Triangle))',
+          defNestedInDefExpand:
+            '(Def-expand/DefNestedInDefExpand, (Def/Nested, Triangle))',
         }
         const expectedIssues = {
           nonDefinition: [],
           nonDefinitionGroup: [],
           definitionOnly: [],
-          tagGroup: [],
-          illegalSibling: [
+          tagGroupDefinition: [],
+          illegalSiblingDefinition: [
             generateIssue('illegalDefinitionGroupTag', {
               tag: 'Train',
               definition: 'IllegalSiblingDefinition',
@@ -1132,11 +1150,95 @@ describe('HED string and event validation', () => {
               definition: 'NestedDefinition',
             }),
           ],
-          multipleTagGroups: [
+          multipleTagGroupDefinition: [
             generateIssue('multipleTagGroupsInDefinition', {
               definition: 'MultipleTagGroupDefinition',
             }),
           ],
+          defExpandOnly: [],
+          tagGroupDefExpand: [],
+          illegalSiblingDefExpand: [
+            generateIssue('illegalDefinitionGroupTag', {
+              tag: 'Train',
+              definition: 'IllegalSiblingDefExpand',
+            }),
+          ],
+          nestedDefExpand: [
+            generateIssue('nestedDefinition', {
+              definition: 'NestedDefExpand',
+            }),
+          ],
+          multipleTagGroupDefExpand: [
+            generateIssue('multipleTagGroupsInDefinition', {
+              definition: 'MultipleTagGroupDefExpand',
+            }),
+          ],
+          mixedDefinitionFirst: [
+            generateIssue('illegalDefinitionGroupTag', {
+              tag: 'Def-expand/DefExpandSecond',
+              definition: 'DefinitionFirst',
+            }),
+          ],
+          mixedDefExpandFirst: [
+            generateIssue('illegalDefinitionGroupTag', {
+              tag: 'Definition/DefinitionSecond',
+              definition: 'DefExpandFirst',
+            }),
+          ],
+          defNestedInDefinition: [
+            generateIssue('nestedDefinition', {
+              definition: 'DefNestedInDefinition',
+            }),
+          ],
+          defNestedInDefExpand: [
+            generateIssue('nestedDefinition', {
+              definition: 'DefNestedInDefExpand',
+            }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues)
+      })
+    })
+
+    describe('Top-level Tags', () => {
+      const validatorSyntactic = function (testStrings, expectedIssues) {
+        validatorSyntacticBase(
+          testStrings,
+          expectedIssues,
+          function (parsedTestString) {
+            return hed.validateTopLevelTags(parsedTestString, {}, false)
+          },
+        )
+      }
+
+      const validatorSemantic = function (testStrings, expectedIssues) {
+        return validatorSemanticBase(
+          testStrings,
+          expectedIssues,
+          function (parsedTestString, schema) {
+            return hed.validateTopLevelTags(parsedTestString, schema, true)
+          },
+        )
+      }
+
+      it('should not have definitions at the top level', () => {
+        const testStrings = {
+          definition: 'Definition/TopLevelDefinition',
+          defExpand: 'Def-expand/TopLevelDefExpand',
+          def: 'Def/TopLevelDefReference',
+        }
+        const expectedIssues = {
+          definition: [
+            generateIssue('topLevelDefinitionTag', {
+              tag: testStrings.definition,
+            }),
+          ],
+          defExpand: [
+            generateIssue('topLevelDefinitionTag', {
+              tag: testStrings.defExpand,
+            }),
+          ],
+          def: [],
         }
         return validatorSemantic(testStrings, expectedIssues)
       })
