@@ -118,8 +118,8 @@ const splitHedString = function (hedString, hedSchemas) {
         )
         hedTags.push(parsedHedTag)
         issues = issues.concat(parsedHedTag.conversionIssues)
-        resetStartingIndex = true
       }
+      resetStartingIndex = true
       currentTag = ''
     } else if (invalidCharacters.includes(character)) {
       // Found an invalid character, so push an issue.
@@ -138,11 +138,15 @@ const splitHedString = function (hedString, hedSchemas) {
         )
         hedTags.push(parsedHedTag)
         issues = issues.concat(parsedHedTag.conversionIssues)
-        resetStartingIndex = true
       }
+      resetStartingIndex = true
       currentTag = ''
     } else {
       currentTag += character
+      if (utils.string.stringIsEmpty(currentTag)) {
+        resetStartingIndex = true
+        currentTag = ''
+      }
     }
   }
   if (!utils.string.stringIsEmpty(currentTag)) {
@@ -257,7 +261,7 @@ const formatHedTag = function (hedTag) {
  *
  * @param {string} hedString The full HED string to parse.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @returns {[{tagGroups: ParsedHedTag[], tagGroupStrings: ParsedHedTag[], topLevelTags: ParsedHedTag[], tags: ParsedHedTag[]}, Array]} The parsed HED tag data and list of issues.
+ * @returns {[{tagGroups: ParsedHedTag[][], tagGroupStrings: ParsedHedTag[], topLevelTags: ParsedHedTag[], tags: ParsedHedTag[]}, Array]} The parsed HED tag data and list of issues.
  */
 const parseHedString = function (hedString, hedSchemas) {
   const parsedString = {
