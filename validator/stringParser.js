@@ -53,6 +53,40 @@ const ParsedHedTag = function (originalTag, originalBounds, hedSchemas) {
 }
 
 /**
+ * A parsed HED string.
+ *
+ * @param {string} hedString The original HED string.
+ * @constructor
+ */
+const ParsedHedString = function (hedString) {
+  /**
+   * The original HED string.
+   * @type {string}
+   */
+  this.hedString = hedString
+  /**
+   * All of the tags in the string.
+   * @type ParsedHedTag[]
+   */
+  this.tags = []
+  /**
+   * The tag groups in the string, split into arrays.
+   * @type ParsedHedTag[][]
+   */
+  this.tagGroups = []
+  /**
+   * The tag groups, kept in their original parenthesized form.
+   * @type ParsedHedTag[]
+   */
+  this.tagGroupStrings = []
+  /**
+   * All of the top-level tags in the string.
+   * @type ParsedHedTag[]
+   */
+  this.topLevelTags = []
+}
+
+/**
  * Determine whether a HED string is a group (surrounded by parentheses).
  *
  * @param {string} hedString A HED string.
@@ -167,8 +201,8 @@ const splitHedString = function (hedString, hedSchemas) {
  *
  * @param {ParsedHedTag[]} groupTagsList The list of possible group tags.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @param {object} parsedString The object to store parsed output in.
- * @return {Array} The array of issues.
+ * @param {ParsedHedString} parsedString The object to store parsed output in.
+ * @return {Issue[]} The array of issues.
  */
 const findTagGroups = function (groupTagsList, hedSchemas, parsedString) {
   let issues = []
@@ -200,8 +234,8 @@ const findTagGroups = function (groupTagsList, hedSchemas, parsedString) {
  *
  * @param {ParsedHedTag[]} hedTags A list of split HED tags.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @param {object} parsedString The object to store sorted output in.
- * @returns {Array} The top-level tags from a HED string.
+ * @param {ParsedHedString} parsedString The object to store sorted output in.
+ * @returns {ParsedHedTag[]} The top-level tags from a HED string.
  */
 const findTopLevelTags = function (hedTags, hedSchemas, parsedString) {
   const topLevelTags = []
@@ -219,7 +253,7 @@ const findTopLevelTags = function (hedTags, hedSchemas, parsedString) {
 /**
  * Format the HED tags in a list.
  *
- * @param {ParsedHedTag[]} hedTagList An array of unformatted HED tags.
+ * @param {ParsedHedTag[]|ParsedHedTag[][]} hedTagList An array of unformatted HED tags.
  * @returns {Array} An array of formatted HED tags corresponding to hedTagList.
  */
 const formatHedTagsInList = function (hedTagList) {
@@ -261,15 +295,10 @@ const formatHedTag = function (hedTag) {
  *
  * @param {string} hedString The full HED string to parse.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @returns {[{tagGroups: ParsedHedTag[][], tagGroupStrings: ParsedHedTag[], topLevelTags: ParsedHedTag[], tags: ParsedHedTag[]}, Array]} The parsed HED tag data and list of issues.
+ * @returns {[ParsedHedString, Issue[]]} The parsed HED tag data and list of issues.
  */
 const parseHedString = function (hedString, hedSchemas) {
-  const parsedString = {
-    tags: [],
-    tagGroups: [],
-    tagGroupStrings: [],
-    topLevelTags: [],
-  }
+  const parsedString = new ParsedHedString(hedString)
   const [hedTagList, splitIssues] = splitHedString(hedString, hedSchemas)
   parsedString.topLevelTags = findTopLevelTags(
     hedTagList,
@@ -286,6 +315,7 @@ const parseHedString = function (hedString, hedSchemas) {
 
 module.exports = {
   ParsedHedTag: ParsedHedTag,
+  ParsedHedString: ParsedHedString,
   hedStringIsAGroup: hedStringIsAGroup,
   removeGroupParentheses: removeGroupParentheses,
   splitHedString: splitHedString,

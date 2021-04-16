@@ -1,5 +1,9 @@
 const utils = require('../utils')
-const { parseHedString, ParsedHedTag } = require('./stringParser')
+const {
+  parseHedString,
+  ParsedHedString,
+  ParsedHedTag,
+} = require('./stringParser')
 const { buildSchemaAttributesObject } = require('./schema')
 const { Schemas } = require('../utils/schema')
 
@@ -630,10 +634,10 @@ const validateTopLevelTags = function (
 /**
  * Perform initial validation on a HED string and parse it so further validation can be performed.
  *
- * @param {string} hedString The HED string to validate.
+ * @param {string|ParsedHedString} hedString The HED string to validate.
  * @param {Schemas} hedSchemas The HED schemas to validate against.
  * @param {boolean} doSemanticValidation Whether to perform semantic validation.
- * @return {Array} Whether validation passed, any issues, and any parsed string data.
+ * @return {[boolean, Issue[], ParsedHedString[]]} Whether validation passed, any issues, and any parsed string data.
  */
 const initiallyValidateHedString = function (
   hedString,
@@ -647,28 +651,39 @@ const initiallyValidateHedString = function (
       )
     }
   }
-  const [substitutionIssues, fullHedStringIssues] = validateFullHedString(
-    hedString,
-  )
-  if (fullHedStringIssues.length !== 0) {
-    return [false, fullHedStringIssues.concat(substitutionIssues), null]
-  }
+  // Skip parsing if we're passed an already-parsed string.
+  if (hedString instanceof ParsedHedString) {
+    const [substitutionIssues, fullHedStringIssues] = validateFullHedString(
+      hedString.hedString,
+    )
+    if (fullHedStringIssues.length !== 0) {
+      return [false, fullHedStringIssues.concat(substitutionIssues), null]
+    }
+    return [true, substitutionIssues, hedString]
+  } else {
+    const [substitutionIssues, fullHedStringIssues] = validateFullHedString(
+      hedString,
+    )
+    if (fullHedStringIssues.length !== 0) {
+      return [false, fullHedStringIssues.concat(substitutionIssues), null]
+    }
 
-  const [parsedString, parsedStringIssues] = parseHedString(
-    hedString,
-    hedSchemas,
-  )
-  if (parsedStringIssues.length !== 0) {
-    return [false, parsedStringIssues.concat(substitutionIssues), null]
-  }
+    const [parsedString, parsedStringIssues] = parseHedString(
+      hedString,
+      hedSchemas,
+    )
+    if (parsedStringIssues.length !== 0) {
+      return [false, parsedStringIssues.concat(substitutionIssues), null]
+    }
 
-  return [true, substitutionIssues, parsedString]
+    return [true, substitutionIssues, parsedString]
+  }
 }
 
 /**
  * Validate a HED string.
  *
- * @param {string} hedString The HED string to validate.
+ * @param {string|ParsedHedString} hedString The HED string to validate.
  * @param {Schemas} hedSchemas The HED schemas to validate against.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
@@ -710,7 +725,7 @@ const validateHedString = function (
 /**
  * Validate a HED event string.
  *
- * @param {string} hedString The HED event string to validate.
+ * @param {string|ParsedHedString} hedString The HED event string to validate.
  * @param {Schemas} hedSchemas The HED schemas to validate against.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
