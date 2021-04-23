@@ -820,6 +820,8 @@ describe('HED string and event validation', () => {
     })
   })
 
+  const converterGenerateIssue = require('../converter/issues')
+
   describe('Post-v8.0.0 HED schemas', () => {
     const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
     let hedSchemaPromise
@@ -881,6 +883,26 @@ describe('HED string and event validation', () => {
             generateIssue('childRequired', {
               tag: 'Label',
             }),
+          ],
+        }
+        return validator(testStrings, expectedIssues)
+      })
+
+      it('should not validate strings with short-to-long conversion errors', () => {
+        const testStrings = {
+          // Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
+          red: 'Attribute/RGB-red, Duration/20 cm',
+        }
+        const expectedIssues = {
+          red: [
+            converterGenerateIssue(
+              'invalidParentNode',
+              'Attribute/RGB-red',
+              {
+                parentTag: 'Attribute/Sensory/Visual/Color/RGB-color/RGB-red',
+              },
+              [10, 17],
+            ),
           ],
         }
         return validator(testStrings, expectedIssues)
