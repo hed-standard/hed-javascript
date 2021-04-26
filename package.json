@@ -13,8 +13,7 @@
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js ./**/*.js",
     "test": "./node_modules/.bin/jest",
-    "coverage": "./node_modules/.bin/jest --coverage",
-    "npmPublish": "publish"
+    "coverage": "./node_modules/.bin/jest --coverage"
   },
   "contributors": [
     "Alexander Jones",
