@@ -6,7 +6,7 @@ const generateIssue = require('../utils/issues').generateIssue
 const { Schemas } = require('../utils/schema')
 
 describe('HED string and event validation', () => {
-  describe('Latest HED schema', () => {
+  describe('Later HED-2G schemas', () => {
     const hedSchemaFile = 'tests/data/HED7.1.1.xml'
     let hedSchemaPromise
 
@@ -321,12 +321,7 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        return validatorSemantic(
-          testStrings,
-
-          expectedIssues,
-          true,
-        )
+        return validatorSemantic(testStrings, expectedIssues, true)
       })
 
       it('should have properly capitalized names', () => {
@@ -822,7 +817,7 @@ describe('HED string and event validation', () => {
 
   const converterGenerateIssue = require('../converter/issues')
 
-  describe('Post-v8.0.0 HED schemas', () => {
+  describe('HED-3G schemas', () => {
     const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
     let hedSchemaPromise
 
@@ -831,6 +826,46 @@ describe('HED string and event validation', () => {
         path: hedSchemaFile,
       })
     })
+
+    const validatorSemanticBase = function (
+      testStrings,
+      expectedIssues,
+      testFunction,
+    ) {
+      return hedSchemaPromise.then((schemas) => {
+        for (const testStringKey in testStrings) {
+          const [parsedTestString] = stringParser.parseHedString(
+            testStrings[testStringKey],
+            schemas,
+          )
+          const testIssues = testFunction(parsedTestString, schemas)
+          assert.sameDeepMembers(
+            testIssues,
+            expectedIssues[testStringKey],
+            testStrings[testStringKey],
+          )
+        }
+      })
+    }
+
+    const validatorSyntacticBase = function (
+      testStrings,
+      expectedIssues,
+      testFunction,
+    ) {
+      for (const testStringKey in testStrings) {
+        const [parsedTestString] = stringParser.parseHedString(
+          testStrings[testStringKey],
+          new Schemas(null),
+        )
+        const testIssues = testFunction(parsedTestString)
+        assert.sameDeepMembers(
+          testIssues,
+          expectedIssues[testStringKey],
+          testStrings[testStringKey],
+        )
+      }
+    }
 
     describe('Full HED Strings', () => {
       const validator = function (testStrings, expectedIssues) {
@@ -906,6 +941,60 @@ describe('HED string and event validation', () => {
           ],
         }
         return validator(testStrings, expectedIssues)
+      })
+    })
+
+    describe('Individual HED Tags', () => {
+      const validatorSemantic = function (
+        testStrings,
+        expectedIssues,
+        checkForWarnings,
+      ) {
+        return validatorSemanticBase(
+          testStrings,
+          expectedIssues,
+          function (parsedTestString, schema) {
+            return hed.validateIndividualHedTags(
+              parsedTestString,
+              schema,
+              true,
+              checkForWarnings,
+            )
+          },
+        )
+      }
+
+      it('should exist in the schema or be an allowed extension', () => {
+        const testStrings = {
+          takesValue: 'Duration/3 ms',
+          full: 'Left-side',
+          extensionAllowed: 'Human/Driver',
+          leafExtension: 'Sensory-event/Something',
+          nonExtensionAllowed: 'Event/Nonsense',
+          illegalComma: 'Label/This is a label,This/Is/A/Tag',
+        }
+        const expectedIssues = {
+          takesValue: [],
+          full: [],
+          extensionAllowed: [
+            generateIssue('extension', { tag: testStrings.extensionAllowed }),
+          ],
+          leafExtension: [
+            generateIssue('invalidTag', { tag: testStrings.leafExtension }),
+          ],
+          nonExtensionAllowed: [
+            generateIssue('invalidTag', {
+              tag: testStrings.nonExtensionAllowed,
+            }),
+          ],
+          illegalComma: [
+            generateIssue('extraCommaOrInvalid', {
+              previousTag: 'Label/This is a label',
+              tag: 'This/Is/A/Tag',
+            }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues, true)
       })
     })
   })
