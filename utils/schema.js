@@ -9,7 +9,7 @@ const files = require('../utils/files')
  * @param {{path: string?, library: string?, version: string?}} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<object>} The schema XML data or an error.
  */
-const loadSchema = function(schemaDef = {}) {
+const loadSchema = function (schemaDef = {}) {
   if (Object.entries(schemaDef).length === 0) {
     return loadRemoteSchema()
   } else if (schemaDef.path) {
@@ -30,7 +30,7 @@ const loadSchema = function(schemaDef = {}) {
  * @param {string?} library The library schema to load.
  * @return {Promise<object>} The schema XML data.
  */
-const loadRemoteSchema = function(version = 'Latest', library) {
+const loadRemoteSchema = function (version = 'Latest', library) {
   let fileName
   let basePath
   if (library) {
@@ -45,10 +45,10 @@ const loadRemoteSchema = function(version = 'Latest', library) {
   const url = basePath + fileName
   return files
     .readHTTPSFile(url)
-    .then(data => {
+    .then((data) => {
       return xml2js.parseStringPromise(data, { explicitCharkey: true })
     })
-    .catch(error => {
+    .catch((error) => {
       throw new Error(
         'Could not load HED schema version "' +
           version +
@@ -65,13 +65,13 @@ const loadRemoteSchema = function(version = 'Latest', library) {
  * @param {string} path The path to the schema XML data.
  * @return {Promise<object>} The schema XML data.
  */
-const loadLocalSchema = function(path) {
+const loadLocalSchema = function (path) {
   return files
     .readFile(path)
-    .then(data => {
+    .then((data) => {
       return xml2js.parseStringPromise(data, { explicitCharkey: true })
     })
-    .catch(error => {
+    .catch((error) => {
       throw new Error(
         'Could not load HED schema from path "' + path + '" - "' + error + '".',
       )
@@ -84,7 +84,7 @@ const loadLocalSchema = function(path) {
  * @param {object} node The child node.
  * @param {object} parent The parent node.
  */
-const setParent = function(node, parent) {
+const setParent = function (node, parent) {
   // Assume that we've already run this function if so.
   if ('$parent' in node) {
     return

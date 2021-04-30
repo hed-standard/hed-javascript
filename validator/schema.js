@@ -1,5 +1,3 @@
-const semver = require('semver')
-
 // TODO: Switch require once upstream bugs are fixed.
 // const xpath = require('xml2js-xpath')
 // Temporary
@@ -39,7 +37,7 @@ const unitsElement = 'units'
 const unitModifierElement = 'unitModifier'
 
 const SchemaDictionaries = {
-  populateDictionaries: function() {
+  populateDictionaries: function () {
     this.dictionaries = {}
     this.populateUnitClassDictionaries()
     this.populateUnitModifierDictionaries()
@@ -47,17 +45,17 @@ const SchemaDictionaries = {
     return this.dictionaries
   },
 
-  populateTagDictionaries: function() {
+  populateTagDictionaries: function () {
     for (const dictionaryKey of tagDictionaryKeys) {
       const [tags, tagElements] = this.getTagsByAttribute(dictionaryKey)
       if (dictionaryKey === extensionAllowedAttribute) {
         const tagDictionary = this.stringListToLowercaseDictionary(tags)
         const childTagElements = arrayUtils.flattenDeep(
-          tagElements.map(tagElement => {
+          tagElements.map((tagElement) => {
             return this.getAllChildTags(tagElement)
           }),
         )
-        const childTags = childTagElements.map(tagElement => {
+        const childTags = childTagElements.map((tagElement) => {
           return this.getTagPathFromTagElement(tagElement)
         })
         const childDictionary = this.stringListToLowercaseDictionary(childTags)
@@ -84,7 +82,7 @@ const SchemaDictionaries = {
     }
   },
 
-  populateUnitClassDictionaries: function() {
+  populateUnitClassDictionaries: function () {
     const unitClassElements = this.getElementsByName(unitClassElement)
     if (unitClassElements.length === 0) {
       this.hasUnitClasses = false
@@ -95,7 +93,7 @@ const SchemaDictionaries = {
     this.populateUnitClassDefaultUnitDictionary(unitClassElements)
   },
 
-  populateUnitClassUnitsDictionary: function(unitClassElements) {
+  populateUnitClassUnitsDictionary: function (unitClassElements) {
     this.dictionaries[unitsElement] = {}
     for (const unitClassKey of unitClassDictionaryKeys) {
       this.dictionaries[unitClassKey] = {}
@@ -110,12 +108,12 @@ const SchemaDictionaries = {
           unitClassUnitsElement,
         )
         const units = elementUnits.split(',')
-        this.dictionaries[unitsElement][unitClassName] = units.map(unit => {
+        this.dictionaries[unitsElement][unitClassName] = units.map((unit) => {
           return unit.toLowerCase()
         })
         continue
       }
-      const unitNames = units.map(element => {
+      const unitNames = units.map((element) => {
         return element._
       })
       this.dictionaries[unitsElement][unitClassName] = unitNames
@@ -130,7 +128,7 @@ const SchemaDictionaries = {
     }
   },
 
-  populateUnitClassDefaultUnitDictionary: function(unitClassElements) {
+  populateUnitClassDefaultUnitDictionary: function (unitClassElements) {
     this.dictionaries[defaultUnitForUnitClassAttribute] = {}
     for (const unitClassElement of unitClassElements) {
       const elementName = this.getElementTagValue(unitClassElement)
@@ -146,7 +144,7 @@ const SchemaDictionaries = {
     }
   },
 
-  populateUnitModifierDictionaries: function() {
+  populateUnitModifierDictionaries: function () {
     const unitModifierElements = this.getElementsByName(unitModifierElement)
     if (unitModifierElements.length === 0) {
       this.hasUnitModifiers = false
@@ -169,7 +167,7 @@ const SchemaDictionaries = {
     }
   },
 
-  populateTagToAttributeDictionary: function(
+  populateTagToAttributeDictionary: function (
     tagList,
     tagElementList,
     attributeName,
@@ -182,7 +180,7 @@ const SchemaDictionaries = {
     }
   },
 
-  stringListToLowercaseDictionary: function(stringList) {
+  stringListToLowercaseDictionary: function (stringList) {
     const lowercaseDictionary = {}
     for (const stringElement of stringList) {
       lowercaseDictionary[stringElement.toLowerCase()] = stringElement
@@ -190,7 +188,7 @@ const SchemaDictionaries = {
     return lowercaseDictionary
   },
 
-  getAncestorTagNames: function(tagElement) {
+  getAncestorTagNames: function (tagElement) {
     const ancestorTags = []
     let parentTagName = this.getParentTagName(tagElement)
     let parentElement = tagElement.$parent
@@ -202,11 +200,11 @@ const SchemaDictionaries = {
     return ancestorTags
   },
 
-  getElementTagValue: function(element, tagName = 'name') {
+  getElementTagValue: function (element, tagName = 'name') {
     return element[tagName][0]._
   },
 
-  getParentTagName: function(tagElement) {
+  getParentTagName: function (tagElement) {
     const parentTagElement = tagElement.$parent
     if (parentTagElement && parentTagElement !== this.rootElement) {
       return parentTagElement.name[0]._
@@ -215,14 +213,14 @@ const SchemaDictionaries = {
     }
   },
 
-  getTagPathFromTagElement: function(tagElement) {
+  getTagPathFromTagElement: function (tagElement) {
     const ancestorTagNames = this.getAncestorTagNames(tagElement)
     ancestorTagNames.unshift(this.getElementTagValue(tagElement))
     ancestorTagNames.reverse()
     return ancestorTagNames.join('/')
   },
 
-  getTagsByAttribute: function(attributeName) {
+  getTagsByAttribute: function (attributeName) {
     const tags = []
     const tagElements = xpath.find(
       this.rootElement,
@@ -235,7 +233,7 @@ const SchemaDictionaries = {
     return [tags, tagElements]
   },
 
-  getAllTags: function(tagElementName = 'node', excludeTakeValueTags = true) {
+  getAllTags: function (tagElementName = 'node', excludeTakeValueTags = true) {
     const tags = []
     const tagElements = xpath.find(this.rootElement, '//' + tagElementName)
     for (const tagElement of tagElements) {
@@ -248,7 +246,10 @@ const SchemaDictionaries = {
     return [tags, tagElements]
   },
 
-  getElementsByName: function(elementName = 'node', parentElement = undefined) {
+  getElementsByName: function (
+    elementName = 'node',
+    parentElement = undefined,
+  ) {
     if (!parentElement) {
       return xpath.find(this.rootElement, '//' + elementName)
     } else {
@@ -256,7 +257,7 @@ const SchemaDictionaries = {
     }
   },
 
-  getAllChildTags: function(
+  getAllChildTags: function (
     parentElement,
     elementName = 'node',
     excludeTakeValueTags = true,
@@ -272,7 +273,7 @@ const SchemaDictionaries = {
       parentElement,
     )
     const childTags = arrayUtils.flattenDeep(
-      tagElementChildren.map(child => {
+      tagElementChildren.map((child) => {
         return this.getAllChildTags(child, elementName, excludeTakeValueTags)
       }),
     )
@@ -288,7 +289,7 @@ const SchemaDictionaries = {
  * @param {string} tagAttribute The attribute to check for.
  * @return {boolean} Whether this tag has this attribute.
  */
-const tagHasAttribute = function(tag, tagAttribute) {
+const tagHasAttribute = function (tag, tagAttribute) {
   return tag.toLowerCase() in this.dictionaries[tagAttribute]
 }
 
@@ -300,7 +301,7 @@ const tagHasAttribute = function(tag, tagAttribute) {
  * @param {boolean} hasUnitModifiers Whether the schema has unit modifiers.
  * @constructor
  */
-const SchemaAttributes = function(
+const SchemaAttributes = function (
   dictionaries,
   hasUnitClasses,
   hasUnitModifiers,
@@ -317,7 +318,7 @@ const SchemaAttributes = function(
  * @param {object} xmlData The schema XML data.
  * @return {SchemaAttributes} The schema attributes object.
  */
-const buildSchemaAttributesObject = function(xmlData) {
+const buildSchemaAttributesObject = function (xmlData) {
   const schemaDictionaries = Object.create(SchemaDictionaries)
   const rootElement = xmlData.HED
   schemaUtils.setParent(rootElement, xmlData)
@@ -336,13 +337,10 @@ const buildSchemaAttributesObject = function(xmlData) {
  * @param {{path: string?, version: string?}} schemaDef The description of which base schema to use.
  * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
  */
-const buildSchema = function(schemaDef = {}) {
-  return schemaUtils.loadSchema(schemaDef).then(xmlData => {
+const buildSchema = function (schemaDef = {}) {
+  return schemaUtils.loadSchema(schemaDef).then((xmlData) => {
     const schemaAttributes = buildSchemaAttributesObject(xmlData)
-    let mapping
-    if (semver.gte(xmlData.HED.$.version, '8.0.0-alpha')) {
-      mapping = buildMappingObject(xmlData)
-    }
+    const mapping = buildMappingObject(xmlData)
     const baseSchema = new schemaUtils.Schema(
       xmlData,
       schemaAttributes,

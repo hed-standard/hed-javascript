@@ -15,7 +15,7 @@ const Mapping = types.Mapping
  * @param {object} xmlData The schema XML data.
  * @return {Mapping} The mapping object.
  */
-const buildMappingObject = function(xmlData) {
+const buildMappingObject = function (xmlData) {
   const nodeData = {}
   let hasNoDuplicates = true
   const rootElement = xmlData.HED
@@ -44,7 +44,7 @@ const buildMappingObject = function(xmlData) {
   return new Mapping(nodeData, hasNoDuplicates)
 }
 
-const getTagPathFromTagElement = function(tagElement) {
+const getTagPathFromTagElement = function (tagElement) {
   const ancestorTags = [getElementTagValue(tagElement)]
   let parentTagName = getParentTagName(tagElement)
   let parentElement = tagElement.$parent
@@ -56,11 +56,11 @@ const getTagPathFromTagElement = function(tagElement) {
   return ancestorTags
 }
 
-const getElementTagValue = function(element, tagName = 'name') {
+const getElementTagValue = function (element, tagName = 'name') {
   return element[tagName][0]._
 }
 
-const getParentTagName = function(tagElement) {
+const getParentTagName = function (tagElement) {
   const parentTagElement = tagElement.$parent
   if (parentTagElement && 'name' in parentTagElement) {
     return parentTagElement.name[0]._
@@ -75,8 +75,8 @@ const getParentTagName = function(tagElement) {
  * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
  */
-const buildSchema = function(schemaDef = {}) {
-  return schemaUtils.loadSchema(schemaDef).then(xmlData => {
+const buildSchema = function (schemaDef = {}) {
+  return schemaUtils.loadSchema(schemaDef).then((xmlData) => {
     const mapping = buildMappingObject(xmlData)
     const baseSchema = new schemaUtils.Schema(xmlData, undefined, mapping)
     return new schemaUtils.Schemas(baseSchema)
