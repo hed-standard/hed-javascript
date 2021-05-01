@@ -76,9 +76,24 @@ describe('HED string parsing', () => {
         tilde: '/Attribute/Object side/Left,/Participant/Effect~/Body part/Arm',
       }
       const expectedResultList = [
-        new ParsedHedTag('/Attribute/Object side/Left', [0, 27], nullSchema),
-        new ParsedHedTag('/Participant/Effect', [28, 47], nullSchema),
-        new ParsedHedTag('/Body part/Arm', [48, 62], nullSchema),
+        new ParsedHedTag(
+          '/Attribute/Object side/Left',
+          '/Attribute/Object side/Left',
+          [0, 27],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          '/Participant/Effect',
+          '/Participant/Effect',
+          [28, 47],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          '/Body part/Arm',
+          '/Body part/Arm',
+          [48, 62],
+          nullSchema,
+        ),
       ]
       const expectedResults = {
         openingCurly: expectedResultList,
@@ -182,11 +197,22 @@ describe('HED string parsing', () => {
       assert.deepStrictEqual(result, [
         new ParsedHedTag(
           'Event/Category/Experimental stimulus',
+          'Event/Category/Experimental stimulus',
           [0, 36],
           nullSchema,
         ),
-        new ParsedHedTag('Item/Object/Vehicle/Train', [37, 62], nullSchema),
-        new ParsedHedTag('Attribute/Visual/Color/Purple', [63, 92], nullSchema),
+        new ParsedHedTag(
+          'Item/Object/Vehicle/Train',
+          'Item/Object/Vehicle/Train',
+          [37, 62],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          'Attribute/Visual/Color/Purple',
+          'Attribute/Visual/Color/Purple',
+          [63, 92],
+          nullSchema,
+        ),
       ])
     })
 
@@ -196,18 +222,26 @@ describe('HED string parsing', () => {
       const [result, issues] = splitHedString(hedString, nullSchema)
       assert.deepStrictEqual(issues, [])
       assert.deepStrictEqual(result, [
-        new ParsedHedTag('/Action/Reach/To touch', [0, 22], nullSchema),
         new ParsedHedTag(
+          '/Action/Reach/To touch',
+          '/Action/Reach/To touch',
+          [0, 22],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
           '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
           [23, 86],
           nullSchema,
         ),
         new ParsedHedTag(
           '/Attribute/Location/Screen/Top/70 px',
+          '/Attribute/Location/Screen/Top/70 px',
           [87, 123],
           nullSchema,
         ),
         new ParsedHedTag(
+          '/Attribute/Location/Screen/Left/23 px',
           '/Attribute/Location/Screen/Left/23 px',
           [124, 161],
           nullSchema,
@@ -252,8 +286,14 @@ describe('HED string parsing', () => {
           '/Item/Object/Vehicle/Car, /Attribute/Object control/Perturb,',
       }
       const expectedList = [
-        new ParsedHedTag('/Item/Object/Vehicle/Car', [0, 24], nullSchema),
         new ParsedHedTag(
+          '/Item/Object/Vehicle/Car',
+          '/Item/Object/Vehicle/Car',
+          [0, 24],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          '/Attribute/Object control/Perturb',
           '/Attribute/Object control/Perturb',
           [26, 59],
           nullSchema,
@@ -327,7 +367,7 @@ describe('HED string parsing', () => {
         openingAndClosingDoubleQuotedSlash: formattedHedTag,
       }
       validatorWithoutIssues(testStrings, expectedResults, (string) => {
-        const parsedTag = new ParsedHedTag(string, [], nullSchema)
+        const parsedTag = new ParsedHedTag(string, string, [], nullSchema)
         formatHedTag(parsedTag)
         return parsedTag.formattedTag
       })
