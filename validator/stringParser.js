@@ -1,5 +1,5 @@
 const utils = require('../utils')
-const { convertHedStringToLong } = require('../converter/converter')
+const { convertPartialHedStringToLong } = require('../converter/converter')
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -8,11 +8,17 @@ const closingGroupCharacter = ')'
  * A parsed HED tag.
  *
  * @param {string} originalTag The original HED tag.
+ * @param {string} hedString The original HED string.
  * @param {int[]} originalBounds The bounds of the HED tag in the original HED string.
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @constructor
  */
-const ParsedHedTag = function (originalTag, originalBounds, hedSchemas) {
+const ParsedHedTag = function (
+  originalTag,
+  hedString,
+  originalBounds,
+  hedSchemas,
+) {
   /**
    * The original form of the HED tag.
    * @type {string}
@@ -31,25 +37,28 @@ const ParsedHedTag = function (originalTag, originalBounds, hedSchemas) {
    * @type {string}
    */
   this.formattedTag = ''
-  if (hedSchemas.isHed3) {
-    const [canonicalTag, conversionIssues] = convertHedStringToLong(
+  let canonicalTag, conversionIssues
+  if (hedSchemas.baseSchema) {
+    ;[canonicalTag, conversionIssues] = convertPartialHedStringToLong(
       hedSchemas,
       originalTag,
+      hedString,
+      originalBounds[0],
     )
-    /**
-     * The canonical form of the HED tag.
-     * @type {string}
-     */
-    this.canonicalTag = canonicalTag
-    /**
-     * Any issues encountered during tag conversion.
-     * @type {Array}
-     */
-    this.conversionIssues = conversionIssues
   } else {
-    this.canonicalTag = originalTag
-    this.conversionIssues = []
+    canonicalTag = originalTag
+    conversionIssues = []
   }
+  /**
+   * The canonical form of the HED tag.
+   * @type {string}
+   */
+  this.canonicalTag = canonicalTag
+  /**
+   * Any issues encountered during tag conversion.
+   * @type {Array}
+   */
+  this.conversionIssues = conversionIssues
 }
 
 /**
@@ -147,6 +156,7 @@ const splitHedString = function (hedString, hedSchemas) {
       if (!utils.string.stringIsEmpty(currentTag)) {
         const parsedHedTag = new ParsedHedTag(
           currentTag.trim(),
+          hedString,
           [startingIndex, i],
           hedSchemas,
         )
@@ -167,6 +177,7 @@ const splitHedString = function (hedString, hedSchemas) {
       if (!utils.string.stringIsEmpty(currentTag)) {
         const parsedHedTag = new ParsedHedTag(
           currentTag.trim(),
+          hedString,
           [startingIndex, i],
           hedSchemas,
         )
@@ -187,6 +198,7 @@ const splitHedString = function (hedString, hedSchemas) {
     // Push last HED tag.
     const parsedHedTag = new ParsedHedTag(
       currentTag.trim(),
+      hedString,
       [startingIndex, hedString.length],
       hedSchemas,
     )
