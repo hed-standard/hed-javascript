@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, dataset-validation, hed-3 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, dataset-validation, hed-3 ]
 
 jobs:
   Build:
