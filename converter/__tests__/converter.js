@@ -18,7 +18,7 @@ describe('HED string conversion', () => {
      * @param {Object<string, string>} testStrings The test strings.
      * @param {Object<string, string>} expectedResults The expected results.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
-     * @param {function (Mapping, string, number): [string, Issue[]]} testFunction The test function.
+     * @param {function (Schemas, string, string, number): [string, Issue[]]} testFunction The test function.
      * @return {Promise<void> | PromiseLike<any> | Promise<any>}
      */
     const validatorBase = function (
@@ -30,7 +30,8 @@ describe('HED string conversion', () => {
       return schemaPromise.then((schemas) => {
         for (const testStringKey in testStrings) {
           const [testResult, issues] = testFunction(
-            schemas.baseSchema.mapping,
+            schemas,
+            testStrings[testStringKey],
             testStrings[testStringKey],
             0,
           )
@@ -608,7 +609,8 @@ describe('HED string conversion', () => {
           bothSingle: 'Event',
           bothExtension: 'Event/Extension',
           bothMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
-          bothMultiLevelExtension: 'Item/Object/Man-made-object/Vehicle/Train/Maglev',
+          bothMultiLevelExtension:
+            'Item/Object/Man-made-object/Vehicle/Train/Maglev',
         }
         const expectedIssues = {
           leadingSingle: [],
@@ -735,13 +737,21 @@ describe('HED string conversion', () => {
           single: [generateIssue('invalidTag', single, {}, [0, 12])],
           double: [generateIssue('invalidTag', double, {}, [0, 12])],
           both: [
-            generateIssue('invalidTag', single, {}, [0, 12]),
-            generateIssue('invalidTag', double, {}, [14, 26]),
+            generateIssue('invalidTag', testStrings.both, {}, [0, 12]),
+            generateIssue('invalidTag', testStrings.both, {}, [14, 26]),
           ],
           singleWithTwoValid: [
-            generateIssue('invalidTag', single, {}, [11, 23]),
+            generateIssue('invalidTag', testStrings.singleWithTwoValid, {}, [
+              11,
+              23,
+            ]),
           ],
-          doubleWithValid: [generateIssue('invalidTag', double, {}, [0, 12])],
+          doubleWithValid: [
+            generateIssue('invalidTag', testStrings.doubleWithValid, {}, [
+              0,
+              12,
+            ]),
+          ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
@@ -956,13 +966,21 @@ describe('HED string conversion', () => {
           single: [generateIssue('invalidTag', single, {}, [0, 12])],
           double: [generateIssue('invalidTag', double, {}, [0, 12])],
           both: [
-            generateIssue('invalidTag', single, {}, [0, 12]),
-            generateIssue('invalidTag', double, {}, [14, 26]),
+            generateIssue('invalidTag', testStrings.both, {}, [0, 12]),
+            generateIssue('invalidTag', testStrings.both, {}, [14, 26]),
           ],
           singleWithTwoValid: [
-            generateIssue('invalidTag', single, {}, [11, 23]),
+            generateIssue('invalidTag', testStrings.singleWithTwoValid, {}, [
+              11,
+              23,
+            ]),
           ],
-          doubleWithValid: [generateIssue('invalidTag', double, {}, [0, 12])],
+          doubleWithValid: [
+            generateIssue('invalidTag', testStrings.doubleWithValid, {}, [
+              0,
+              12,
+            ]),
+          ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
