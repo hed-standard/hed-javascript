@@ -429,7 +429,10 @@ const checkIfTagIsValid = function (
   )
   if (allowPlaceholders && tag.formattedTag.split('#').length === 2) {
     const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
-    if (utils.HED.tagTakesValue(valueTag, hedSchemas.baseSchema.attributes)) {
+    if (
+      valueTag.split('#').length !== 2 || // To avoid a redundant issue.
+      utils.HED.tagTakesValue(valueTag, hedSchemas.baseSchema.attributes)
+    ) {
       return []
     } else {
       issues.push(
@@ -472,6 +475,36 @@ const checkIfTagIsValid = function (
     } else {
       return []
     }
+  }
+}
+
+/**
+ * Check basic placeholder syntax.
+ *
+ * @param {ParsedHedTag} tag A HED tag.
+ * @return {Issue[]} Any issues found.
+ */
+const checkPlaceholderSyntax = function (tag) {
+  if (tag.formattedTag.split('#').length < 2) {
+    return []
+  } else if (tag.formattedTag.split('#').length === 2) {
+    const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
+    if (valueTag.split('#').length !== 2) {
+      return [
+        utils.issues.generateIssue('invalidPlaceholder', {
+          tag: tag.originalTag,
+        }),
+      ]
+    } else {
+      return []
+    }
+  } else {
+    // More than two placeholders.
+    return [
+      utils.issues.generateIssue('invalidPlaceholder', {
+        tag: tag.originalTag,
+      }),
+    ]
   }
 }
 
@@ -524,6 +557,9 @@ const validateIndividualHedTag = function (
       checkCapitalization(tag, hedSchemas, doSemanticValidation),
     )
   }
+  if (allowPlaceholders) {
+    issues = issues.concat(checkPlaceholderSyntax(tag))
+  }
   return issues
 }
 
@@ -538,7 +574,7 @@ const validateIndividualHedTags = function (
   allowPlaceholders = false,
 ) {
   let issues = []
-  let previousTag = new ParsedHedTag('', [0, 0], hedSchemas)
+  let previousTag = new ParsedHedTag('', '', [0, 0], hedSchemas)
   for (let i = 0; i < parsedString.tags.length; i++) {
     const tag = parsedString.tags[i]
     issues = issues.concat(
@@ -657,15 +693,25 @@ const initiallyValidateHedString = function (
       hedString.hedString,
     )
     if (fullHedStringIssues.length !== 0) {
-      return [false, fullHedStringIssues.concat(substitutionIssues), null]
+      return [
+        false,
+        false,
+        fullHedStringIssues.concat(substitutionIssues),
+        null,
+      ]
     }
-    return [true, substitutionIssues, hedString]
+    return [true, true, substitutionIssues, hedString]
   } else {
     const [substitutionIssues, fullHedStringIssues] = validateFullHedString(
       hedString,
     )
     if (fullHedStringIssues.length !== 0) {
-      return [false, fullHedStringIssues.concat(substitutionIssues), null]
+      return [
+        false,
+        false,
+        fullHedStringIssues.concat(substitutionIssues),
+        null,
+      ]
     }
 
     const [parsedString, parsedStringIssues] = parseHedString(
@@ -673,10 +719,15 @@ const initiallyValidateHedString = function (
       hedSchemas,
     )
     if (parsedStringIssues.length !== 0) {
-      return [false, parsedStringIssues.concat(substitutionIssues), null]
+      return [
+        true,
+        false,
+        parsedStringIssues.concat(substitutionIssues),
+        parsedString,
+      ]
     }
 
-    return [true, substitutionIssues, parsedString]
+    return [true, true, substitutionIssues, parsedString]
   }
 }
 
@@ -695,14 +746,21 @@ const validateHedString = function (
   checkForWarnings = false,
   allowPlaceholders = false,
 ) {
-  const doSemanticValidation = hedSchemas instanceof Schemas
+  let doSemanticValidation = hedSchemas instanceof Schemas
+  if (!doSemanticValidation) {
+    hedSchemas = new Schemas(null)
+  }
   const [
-    initiallyValid,
+    fullStringValid,
+    parsedStringValid,
     initialIssues,
     parsedString,
   ] = initiallyValidateHedString(hedString, hedSchemas, doSemanticValidation)
-  if (!initiallyValid) {
+  if (!fullStringValid) {
     return [false, initialIssues]
+  } else if (!parsedStringValid) {
+    doSemanticValidation = false
+    hedSchemas = new Schemas(null)
   }
 
   const issues = initialIssues.concat(
@@ -740,11 +798,12 @@ const validateHedEvent = function (
     hedSchemas = new Schemas(null)
   }
   const [
-    initiallyValid,
+    fullStringValid,
+    parsedStringValid,
     initialIssues,
     parsedString,
   ] = initiallyValidateHedString(hedString, hedSchemas, doSemanticValidation)
-  if (!initiallyValid) {
+  if (!(fullStringValid && parsedStringValid)) {
     return [false, initialIssues]
   }
 
