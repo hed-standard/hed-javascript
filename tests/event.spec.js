@@ -3,6 +3,7 @@ const hed = require('../validator/event')
 const schema = require('../validator/schema')
 const stringParser = require('../validator/stringParser')
 const generateIssue = require('../utils/issues').generateIssue
+const converterGenerateIssue = require('../converter/issues')
 const { Schemas } = require('../utils/schema')
 
 describe('HED string and event validation', () => {
@@ -57,7 +58,7 @@ describe('HED string and event validation', () => {
     }
 
     describe('Full HED Strings', () => {
-      const validator = function (testStrings, expectedIssues) {
+      const validatorSyntactic = function (testStrings, expectedIssues) {
         for (const testStringKey in testStrings) {
           const [, testIssues] = hed.validateHedEvent(
             testStrings[testStringKey],
@@ -68,6 +69,23 @@ describe('HED string and event validation', () => {
             testStrings[testStringKey],
           )
         }
+      }
+
+      const validatorSemantic = function (testStrings, expectedIssues) {
+        return hedSchemaPromise.then((hedSchema) => {
+          for (const testStringKey in testStrings) {
+            const [, testIssues] = hed.validateHedEvent(
+              testStrings[testStringKey],
+              hedSchema,
+              false,
+            )
+            assert.sameDeepMembers(
+              testIssues,
+              expectedIssues[testStringKey],
+              testStrings[testStringKey],
+            )
+          }
+        })
       }
 
       it('should not have mismatched parentheses', () => {
@@ -89,7 +107,7 @@ describe('HED string and event validation', () => {
           ],
           valid: [],
         }
-        validator(testStrings, expectedIssues)
+        validatorSyntactic(testStrings, expectedIssues)
       })
 
       it('should not have malformed delimiters', () => {
@@ -178,7 +196,7 @@ describe('HED string and event validation', () => {
           validDoubleOpeningParentheses: [],
           validDoubleClosingParentheses: [],
         }
-        validator(testStrings, expectedIssues)
+        validatorSyntactic(testStrings, expectedIssues)
       })
 
       it('should not have invalid characters', () => {
@@ -231,7 +249,7 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        validator(testStrings, expectedIssues)
+        validatorSyntactic(testStrings, expectedIssues)
       })
 
       it('should substitute and warn for certain illegal characters', () => {
@@ -248,7 +266,46 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        validator(testStrings, expectedIssues)
+        validatorSyntactic(testStrings, expectedIssues)
+      })
+
+      it('should not validate strings with extensions that are valid node names', () => {
+        const testStrings = {
+          // Event/Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
+          red: 'Attribute/Red, Event/Duration/20 cm',
+          redAndBlue: 'Attribute/Red, Attribute/Blue, Event/Duration/20 cm',
+        }
+        const expectedIssues = {
+          red: [
+            converterGenerateIssue(
+              'invalidParentNode',
+              testStrings.red,
+              {
+                parentTag: 'Attribute/Visual/Color/Red',
+              },
+              [10, 13],
+            ),
+          ],
+          redAndBlue: [
+            converterGenerateIssue(
+              'invalidParentNode',
+              testStrings.redAndBlue,
+              {
+                parentTag: 'Attribute/Visual/Color/Red',
+              },
+              [10, 13],
+            ),
+            converterGenerateIssue(
+              'invalidParentNode',
+              testStrings.redAndBlue,
+              {
+                parentTag: 'Attribute/Visual/Color/Blue',
+              },
+              [25, 29],
+            ),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues)
       })
     })
 
@@ -315,6 +372,10 @@ describe('HED string and event validation', () => {
             }),
           ],
           illegalComma: [
+            converterGenerateIssue('invalidTag', testStrings.illegalComma, {}, [
+              28,
+              32,
+            ]),
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Event/Label/This is a label',
               tag: 'This/Is/A/Tag',
@@ -662,6 +723,12 @@ describe('HED string and event validation', () => {
             }),
           ],
           wrongLocation: [
+            converterGenerateIssue(
+              'invalidParentNode',
+              testStrings.wrongLocation,
+              { parentTag: 'Item/Object/Person' },
+              [7, 13],
+            ),
             generateIssue('invalidPlaceholder', {
               tag: testStrings.wrongLocation,
             }),
@@ -815,8 +882,6 @@ describe('HED string and event validation', () => {
     })
   })
 
-  const converterGenerateIssue = require('../converter/issues')
-
   describe('HED-3G schemas', () => {
     const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
     let hedSchemaPromise
@@ -927,16 +992,35 @@ describe('HED string and event validation', () => {
         const testStrings = {
           // Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
           red: 'Attribute/RGB-red, Duration/20 cm',
+          redAndBlue: 'Attribute/RGB-red, Attribute/RGB-blue, Duration/20 cm',
         }
         const expectedIssues = {
           red: [
             converterGenerateIssue(
               'invalidParentNode',
-              'Attribute/RGB-red',
+              testStrings.red,
               {
                 parentTag: 'Attribute/Sensory/Visual/Color/RGB-color/RGB-red',
               },
               [10, 17],
+            ),
+          ],
+          redAndBlue: [
+            converterGenerateIssue(
+              'invalidParentNode',
+              testStrings.redAndBlue,
+              {
+                parentTag: 'Attribute/Sensory/Visual/Color/RGB-color/RGB-red',
+              },
+              [10, 17],
+            ),
+            converterGenerateIssue(
+              'invalidParentNode',
+              testStrings.redAndBlue,
+              {
+                parentTag: 'Attribute/Sensory/Visual/Color/RGB-color/RGB-blue',
+              },
+              [29, 37],
             ),
           ],
         }
