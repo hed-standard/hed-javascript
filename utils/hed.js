@@ -1,6 +1,8 @@
 const pluralize = require('pluralize')
 pluralize.addUncountableRule('hertz')
 
+const { isNumber } = require('./string')
+
 const defaultUnitForTagAttribute = 'default'
 const defaultUnitsForUnitClassAttribute = 'defaultUnits'
 const extensionAllowedAttribute = 'extensionAllowed'
@@ -16,7 +18,7 @@ const SIUnitSymbolModifierKey = 'SIUnitSymbolModifier'
 /**
  * Replace the end of a HED tag with a pound sign.
  */
-const replaceTagNameWithPound = function(formattedTag) {
+const replaceTagNameWithPound = function (formattedTag) {
   const lastTagSlashIndex = formattedTag.lastIndexOf('/')
   if (lastTagSlashIndex !== -1) {
     return formattedTag.substring(0, lastTagSlashIndex) + '/#'
@@ -28,7 +30,7 @@ const replaceTagNameWithPound = function(formattedTag) {
 /**
  * Get the indices of all slashes in a HED tag.
  */
-const getTagSlashIndices = function(tag) {
+const getTagSlashIndices = function (tag) {
   const indices = []
   let i = -1
   while ((i = tag.indexOf('/', i + 1)) >= 0) {
@@ -40,7 +42,7 @@ const getTagSlashIndices = function(tag) {
 /**
  * Get the last part of a HED tag.
  */
-const getTagName = function(tag) {
+const getTagName = function (tag) {
   const lastSlashIndex = tag.lastIndexOf('/')
   if (lastSlashIndex === -1) {
     return tag
@@ -52,7 +54,7 @@ const getTagName = function(tag) {
 /**
  * Get the HED tag prefix (up to the last slash).
  */
-const getParentTag = function(tag) {
+const getParentTag = function (tag) {
   const lastSlashIndex = tag.lastIndexOf('/')
   if (lastSlashIndex === -1) {
     return tag
@@ -61,19 +63,17 @@ const getParentTag = function(tag) {
   }
 }
 
-const digitExpression = /^-?[\d.]+(?:[Ee]-?\d+)?$/
-
 /**
  * Determine if a stripped value is valid.
  */
-const validateValue = function(value, allowPlaceholders) {
-  return digitExpression.test(value) || (allowPlaceholders && value === '#')
+const validateValue = function (value, allowPlaceholders) {
+  return isNumber(value) || (allowPlaceholders && value === '#')
 }
 
 /**
  * Get the list of valid derivatives of a unit.
  */
-const getValidUnitPlural = function(unit, hedSchemaAttributes) {
+const getValidUnitPlural = function (unit, hedSchemaAttributes) {
   const derivativeUnits = [unit]
   if (
     hedSchemaAttributes.hasUnitModifiers &&
@@ -87,7 +87,7 @@ const getValidUnitPlural = function(unit, hedSchemaAttributes) {
 /**
  * Check for a valid unit and remove it.
  */
-const stripOffUnitsIfValid = function(
+const stripOffUnitsIfValid = function (
   tagUnitValue,
   hedSchemaAttributes,
   originalUnit,
@@ -103,7 +103,8 @@ const stripOffUnitsIfValid = function(
     foundUnit = true
     strippedValue = tagUnitValue.slice(0, -originalUnit.length).trim()
   }
-  const isSIUnit = hedSchemaAttributes.dictionaries[SIUnitKey][normalizedUnit] !== undefined
+  const isSIUnit =
+    hedSchemaAttributes.dictionaries[SIUnitKey][normalizedUnit] !== undefined
   if (foundUnit && isSIUnit && hedSchemaAttributes.hasUnitModifiers) {
     const modifierKey = isUnitSymbol
       ? SIUnitSymbolModifierKey
@@ -122,7 +123,7 @@ const stripOffUnitsIfValid = function(
 /**
  * Validate a unit and strip it from the value.
  */
-const validateUnits = function(
+const validateUnits = function (
   originalTagUnitValue,
   formattedTagUnitValue,
   tagUnitClassUnits,
@@ -166,14 +167,14 @@ const validateUnits = function(
 /**
  * Determine if a HED tag is in the schema.
  */
-const tagExistsInSchema = function(formattedTag, hedSchemaAttributes) {
+const tagExistsInSchema = function (formattedTag, hedSchemaAttributes) {
   return formattedTag in hedSchemaAttributes.dictionaries[tagsDictionaryKey]
 }
 
 /**
  * Checks if a HED tag has the 'takesValue' attribute.
  */
-const tagTakesValue = function(formattedTag, hedSchemaAttributes) {
+const tagTakesValue = function (formattedTag, hedSchemaAttributes) {
   const takesValueTag = replaceTagNameWithPound(formattedTag)
   return hedSchemaAttributes.tagHasAttribute(takesValueTag, takesValueType)
 }
@@ -181,7 +182,7 @@ const tagTakesValue = function(formattedTag, hedSchemaAttributes) {
 /**
  * Checks if a HED tag has the 'unitClass' attribute.
  */
-const isUnitClassTag = function(formattedTag, hedSchemaAttributes) {
+const isUnitClassTag = function (formattedTag, hedSchemaAttributes) {
   if (!hedSchemaAttributes.hasUnitClasses) {
     return false
   }
@@ -192,7 +193,7 @@ const isUnitClassTag = function(formattedTag, hedSchemaAttributes) {
 /**
  * Get the default unit for a particular HED tag.
  */
-const getUnitClassDefaultUnit = function(formattedTag, hedSchemaAttributes) {
+const getUnitClassDefaultUnit = function (formattedTag, hedSchemaAttributes) {
   if (isUnitClassTag(formattedTag, hedSchemaAttributes)) {
     const unitClassTag = replaceTagNameWithPound(formattedTag)
     const hasDefaultAttribute = hedSchemaAttributes.tagHasAttribute(
@@ -206,9 +207,8 @@ const getUnitClassDefaultUnit = function(formattedTag, hedSchemaAttributes) {
     } else if (
       unitClassTag in hedSchemaAttributes.dictionaries[unitClassType]
     ) {
-      const unitClasses = hedSchemaAttributes.dictionaries[unitClassType][
-        unitClassTag
-      ].split(',')
+      const unitClasses =
+        hedSchemaAttributes.dictionaries[unitClassType][unitClassTag].split(',')
       const firstUnitClass = unitClasses[0]
       return hedSchemaAttributes.dictionaries[
         defaultUnitsForUnitClassAttribute
@@ -222,7 +222,7 @@ const getUnitClassDefaultUnit = function(formattedTag, hedSchemaAttributes) {
 /**
  * Get the unit classes for a particular HED tag.
  */
-const getTagUnitClasses = function(formattedTag, hedSchemaAttributes) {
+const getTagUnitClasses = function (formattedTag, hedSchemaAttributes) {
   if (isUnitClassTag(formattedTag, hedSchemaAttributes)) {
     const unitClassTag = replaceTagNameWithPound(formattedTag)
     const unitClassesString =
@@ -236,7 +236,7 @@ const getTagUnitClasses = function(formattedTag, hedSchemaAttributes) {
 /**
  * Get the legal units for a particular HED tag.
  */
-const getTagUnitClassUnits = function(formattedTag, hedSchemaAttributes) {
+const getTagUnitClassUnits = function (formattedTag, hedSchemaAttributes) {
   const tagUnitClasses = getTagUnitClasses(formattedTag, hedSchemaAttributes)
   const units = []
   for (const unitClass of tagUnitClasses) {
@@ -250,7 +250,7 @@ const getTagUnitClassUnits = function(formattedTag, hedSchemaAttributes) {
 /**
  * Check if any level of a HED tag allows extensions.
  */
-const isExtensionAllowedTag = function(formattedTag, hedSchemaAttributes) {
+const isExtensionAllowedTag = function (formattedTag, hedSchemaAttributes) {
   if (
     hedSchemaAttributes.tagHasAttribute(formattedTag, extensionAllowedAttribute)
   ) {

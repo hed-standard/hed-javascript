@@ -2,6 +2,7 @@ const date = require('date-and-time')
 const parseISO = require('date-fns/parseISO')
 const dateIsValid = require('date-fns/isValid')
 const rfc3339ish = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?$/
+const digitExpression = /^-?\d+(?:\.\d+)?(?:[Ee]-?\d+)?$/
 
 /**
  * Check if a string is empty or only whitespace.
@@ -9,7 +10,7 @@ const rfc3339ish = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?$/
  * @param {string} string The string to check.
  * @returns {boolean} Whether the string is empty.
  */
-const stringIsEmpty = function(string) {
+const stringIsEmpty = function (string) {
   return !string.trim()
 }
 
@@ -20,7 +21,7 @@ const stringIsEmpty = function(string) {
  * @param {string} characterToCount The character to search for.
  * @returns {number} The number of instances of the character in the string.
  */
-const getCharacterCount = function(string, characterToCount) {
+const getCharacterCount = function (string, characterToCount) {
   return string.split(characterToCount).length - 1
 }
 
@@ -30,7 +31,7 @@ const getCharacterCount = function(string, characterToCount) {
  * @param {string} string The string to capitalize.
  * @returns {string} The capitalized string.
  */
-const capitalizeString = function(string) {
+const capitalizeString = function (string) {
   return string.charAt(0).toUpperCase() + string.substring(1)
 }
 
@@ -40,7 +41,7 @@ const capitalizeString = function(string) {
  * @param {string} timeString The string to check.
  * @return {boolean} Whether the string is a valid clock face time.
  */
-const isClockFaceTime = function(timeString) {
+const isClockFaceTime = function (timeString) {
   return (
     date.isValid(timeString, 'HH:mm') || date.isValid(timeString, 'HH:mm:ss')
   )
@@ -52,10 +53,20 @@ const isClockFaceTime = function(timeString) {
  * @param {string} dateTimeString The string to check.
  * @return {boolean} Whether the string is a valid date-time.
  */
-const isDateTime = function(dateTimeString) {
+const isDateTime = function (dateTimeString) {
   return (
     dateIsValid(parseISO(dateTimeString)) && rfc3339ish.test(dateTimeString)
   )
+}
+
+/**
+ * Determine if a string is a valid number.
+ *
+ * @param {string} numericString The string to check.
+ * @return {boolean} Whether the string is a valid number.
+ */
+const isNumber = function (numericString) {
+  return digitExpression.test(numericString)
 }
 
 module.exports = {
@@ -64,4 +75,5 @@ module.exports = {
   capitalizeString: capitalizeString,
   isClockFaceTime: isClockFaceTime,
   isDateTime: isDateTime,
+  isNumber: isNumber,
 }
