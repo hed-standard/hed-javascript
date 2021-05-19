@@ -4,7 +4,7 @@ const schema = require('../../validator/schema')
 
 describe('HED tag string utility functions', () => {
   describe('Syntactic utility functions', () => {
-    const validator = function(testStrings, expectedResults, testFunction) {
+    const validator = function (testStrings, expectedResults, testFunction) {
       for (const testStringKey in testStrings) {
         const testResult = testFunction(testStrings[testStringKey])
         assert.deepStrictEqual(
@@ -24,7 +24,7 @@ describe('HED tag string utility functions', () => {
         slash: 'Event/Duration/#',
         noSlash: '#',
       }
-      validator(testStrings, expectedResults, string => {
+      validator(testStrings, expectedResults, (string) => {
         return hed.replaceTagNameWithPound(string)
       })
     })
@@ -40,7 +40,7 @@ describe('HED tag string utility functions', () => {
         direction: [9, 19],
         noSlash: [],
       }
-      validator(testStrings, expectedResults, string => {
+      validator(testStrings, expectedResults, (string) => {
         return hed.getTagSlashIndices(string)
       })
     })
@@ -56,7 +56,7 @@ describe('HED tag string utility functions', () => {
         direction: 'Left',
         noSlash: 'Participant',
       }
-      validator(testStrings, expectedResults, string => {
+      validator(testStrings, expectedResults, (string) => {
         return hed.getTagName(string)
       })
     })
@@ -72,7 +72,7 @@ describe('HED tag string utility functions', () => {
         direction: 'Attribute/Direction',
         noSlash: 'Participant',
       }
-      validator(testStrings, expectedResults, string => {
+      validator(testStrings, expectedResults, (string) => {
         return hed.getParentTag(string)
       })
     })
@@ -84,33 +84,130 @@ describe('HED tag string utility functions', () => {
         scientific: '3.4e2',
         negative: '-9.5e-1',
         placeholder: '#',
+        time: '22:45',
         name: 'abc',
         word: 'one',
       }
-      const expectedResultsNoPlaceholders = {
+      const expectedResultsHed2NoPlaceholders = {
         integer: true,
         decimal: true,
         scientific: true,
         negative: true,
         placeholder: false,
-        name: false,
-        word: false,
+        time: true,
+        name: true,
+        word: true,
       }
-      const expectedResultsWithPlaceholders = {
+      const expectedResultsHed2WithPlaceholders = {
         integer: true,
         decimal: true,
         scientific: true,
         negative: true,
         placeholder: true,
+        time: true,
+        name: true,
+        word: true,
+      }
+      const expectedResultsHed2NumericNoPlaceholders = {
+        integer: true,
+        decimal: true,
+        scientific: true,
+        negative: true,
+        placeholder: false,
+        time: false,
         name: false,
         word: false,
       }
-      validator(testStrings, expectedResultsNoPlaceholders, string => {
-        return hed.validateValue(string, false)
+      const expectedResultsHed2NumericWithPlaceholders = {
+        integer: true,
+        decimal: true,
+        scientific: true,
+        negative: true,
+        placeholder: true,
+        time: false,
+        name: false,
+        word: false,
+      }
+      const expectedResultsHed3NoPlaceholders = {
+        integer: true,
+        decimal: true,
+        scientific: true,
+        negative: true,
+        placeholder: false,
+        time: false,
+        name: true,
+        word: true,
+      }
+      const expectedResultsHed3WithPlaceholders = {
+        integer: true,
+        decimal: true,
+        scientific: true,
+        negative: true,
+        placeholder: true,
+        time: false,
+        name: true,
+        word: true,
+      }
+      const expectedResultsHed3NumericNoPlaceholders = {
+        integer: true,
+        decimal: true,
+        scientific: true,
+        negative: true,
+        placeholder: false,
+        time: false,
+        name: false,
+        word: false,
+      }
+      const expectedResultsHed3NumericWithPlaceholders = {
+        integer: true,
+        decimal: true,
+        scientific: true,
+        negative: true,
+        placeholder: true,
+        time: false,
+        name: false,
+        word: false,
+      }
+      validator(testStrings, expectedResultsHed2NoPlaceholders, (string) => {
+        return hed.validateValue(string, false, false, false)
       })
-      validator(testStrings, expectedResultsWithPlaceholders, string => {
-        return hed.validateValue(string, true)
+      validator(testStrings, expectedResultsHed2WithPlaceholders, (string) => {
+        return hed.validateValue(string, true, false, false)
       })
+      validator(
+        testStrings,
+        expectedResultsHed2NumericNoPlaceholders,
+        (string) => {
+          return hed.validateValue(string, false, true, false)
+        },
+      )
+      validator(
+        testStrings,
+        expectedResultsHed2NumericWithPlaceholders,
+        (string) => {
+          return hed.validateValue(string, true, true, false)
+        },
+      )
+      validator(testStrings, expectedResultsHed3NoPlaceholders, (string) => {
+        return hed.validateValue(string, false, false, true)
+      })
+      validator(testStrings, expectedResultsHed3WithPlaceholders, (string) => {
+        return hed.validateValue(string, true, false, true)
+      })
+      validator(
+        testStrings,
+        expectedResultsHed3NumericNoPlaceholders,
+        (string) => {
+          return hed.validateValue(string, false, true, true)
+        },
+      )
+      validator(
+        testStrings,
+        expectedResultsHed3NumericWithPlaceholders,
+        (string) => {
+          return hed.validateValue(string, true, true, true)
+        },
+      )
     })
   })
 
@@ -125,12 +222,12 @@ describe('HED tag string utility functions', () => {
       })
     })
 
-    const validatorString = function(
+    const validatorString = function (
       testStrings,
       expectedResults,
       testFunction,
     ) {
-      return hedSchemaPromise.then(schema => {
+      return hedSchemaPromise.then((schema) => {
         for (const testStringKey in testStrings) {
           const testResult = testFunction(testStrings[testStringKey], schema)
           assert.strictEqual(
@@ -142,8 +239,12 @@ describe('HED tag string utility functions', () => {
       })
     }
 
-    const validatorList = function(testStrings, expectedResults, testFunction) {
-      return hedSchemaPromise.then(schema => {
+    const validatorList = function (
+      testStrings,
+      expectedResults,
+      testFunction,
+    ) {
+      return hedSchemaPromise.then((schema) => {
         for (const testStringKey in testStrings) {
           const testResult = testFunction(testStrings[testStringKey], schema)
           assert.sameDeepMembers(
@@ -346,7 +447,7 @@ describe('HED tag string utility functions', () => {
       const invalidVolumeString = '200 cm'
       const currencyUnits = ['dollars', '$', 'points', 'fraction']
       const volumeUnits = ['m^3']
-      return hedSchemaPromise.then(hedSchemas => {
+      return hedSchemaPromise.then((hedSchemas) => {
         const strippedDollarsString = hed.validateUnits(
           dollarsString,
           dollarsString,

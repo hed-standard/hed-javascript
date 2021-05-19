@@ -63,11 +63,23 @@ const getParentTag = function (tag) {
   }
 }
 
+const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_;: ]+$/
+const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_;]+$/
 /**
  * Determine if a stripped value is valid.
  */
-const validateValue = function (value, allowPlaceholders) {
-  return isNumber(value) || (allowPlaceholders && value === '#')
+const validateValue = function (value, allowPlaceholders, isNumeric, isHed3) {
+  if (value === '#') {
+    return allowPlaceholders
+  }
+  if (isNumeric) {
+    return isNumber(value)
+  }
+  if (isHed3) {
+    return hed3ValidValueCharacters.test(value)
+  } else {
+    return hed2ValidValueCharacters.test(value)
+  }
 }
 
 /**

@@ -1055,7 +1055,7 @@ describe('HED string and event validation', () => {
           extensionAllowed: 'Human/Driver',
           leafExtension: 'Sensory-event/Something',
           nonExtensionAllowed: 'Event/Nonsense',
-          illegalComma: 'Label/This is a label,This/Is/A/Tag',
+          illegalComma: 'Label/This_is_a_label,This/Is/A/Tag',
         }
         const expectedIssues = {
           takesValue: [],
@@ -1073,7 +1073,7 @@ describe('HED string and event validation', () => {
           ],
           illegalComma: [
             generateIssue('extraCommaOrInvalid', {
-              previousTag: 'Label/This is a label',
+              previousTag: 'Label/This_is_a_label',
               tag: 'This/Is/A/Tag',
             }),
           ],

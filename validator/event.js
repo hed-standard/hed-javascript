@@ -5,6 +5,7 @@ const {
   ParsedHedTag,
   hedStringIsAGroup,
 } = require('./stringParser')
+const { generateIssue } = require('../utils/issues')
 const { buildSchemaAttributesObject } = require('./schema')
 const { Schemas } = require('../utils/schema')
 const { convertHedStringToLong } = require('../converter/converter')
@@ -35,7 +36,7 @@ const substituteCharacters = function (hedString) {
     if (match in illegalCharacterMap) {
       const [name, replacement] = illegalCharacterMap[match]
       issues.push(
-        utils.issues.generateIssue('invalidCharacter', {
+        generateIssue('invalidCharacter', {
           character: name,
           index: offset,
           string: hedString,
@@ -66,7 +67,7 @@ const countTagGroupParentheses = function (hedString) {
   )
   if (numberOfOpeningParentheses !== numberOfClosingParentheses) {
     issues.push(
-      utils.issues.generateIssue('parentheses', {
+      generateIssue('parentheses', {
         opening: numberOfOpeningParentheses,
         closing: numberOfClosingParentheses,
       }),
@@ -108,7 +109,7 @@ const findDelimiterIssuesInHedString = function (hedString) {
     if (delimiters.includes(currentCharacter)) {
       if (currentTag.trim() === currentCharacter) {
         issues.push(
-          utils.issues.generateIssue('extraDelimiter', {
+          generateIssue('extraDelimiter', {
             character: currentCharacter,
             index: i,
             string: hedString,
@@ -122,9 +123,7 @@ const findDelimiterIssuesInHedString = function (hedString) {
       if (currentTag.trim() === openingGroupCharacter) {
         currentTag = ''
       } else {
-        issues.push(
-          utils.issues.generateIssue('invalidTag', { tag: currentTag }),
-        )
+        issues.push(generateIssue('invalidTag', { tag: currentTag }))
       }
     } else if (
       isCommaMissingAfterClosingParenthesis(
@@ -133,7 +132,7 @@ const findDelimiterIssuesInHedString = function (hedString) {
       )
     ) {
       issues.push(
-        utils.issues.generateIssue('commaMissing', {
+        generateIssue('commaMissing', {
           tag: currentTag.slice(0, -1),
         }),
       )
@@ -144,7 +143,7 @@ const findDelimiterIssuesInHedString = function (hedString) {
   }
   if (delimiters.includes(lastNonEmptyValidCharacter)) {
     issues.push(
-      utils.issues.generateIssue('extraDelimiter', {
+      generateIssue('extraDelimiter', {
         character: lastNonEmptyValidCharacter,
         index: lastNonEmptyValidIndex,
         string: hedString,
@@ -171,9 +170,7 @@ const checkCapitalization = function (tag, hedSchemas, doSemanticValidation) {
   for (const tagName of tagNames) {
     const correctTagName = utils.string.capitalizeString(tagName)
     if (tagName !== correctTagName && !camelCase.test(tagName)) {
-      issues.push(
-        utils.issues.generateIssue('capitalization', { tag: tag.originalTag }),
-      )
+      issues.push(generateIssue('capitalization', { tag: tag.originalTag }))
     }
   }
   return issues
@@ -203,13 +200,13 @@ const checkForDuplicateTags = function (tagList) {
           tagList[j].originalTag.toLowerCase()
         ) {
           issues.push(
-            utils.issues.generateIssue('duplicateTag', {
+            generateIssue('duplicateTag', {
               tag: tagList[i].originalTag,
             }),
           )
         } else {
           issues.push(
-            utils.issues.generateIssue('duplicateTag', {
+            generateIssue('duplicateTag', {
               tag: tagList[i].canonicalTag,
             }),
           )
@@ -235,7 +232,7 @@ const checkForMultipleUniqueTags = function (tagList, hedSchemas) {
           foundOne = true
         } else {
           issues.push(
-            utils.issues.generateIssue('multipleUniqueTags', {
+            generateIssue('multipleUniqueTags', {
               tag: uniqueTagPrefix,
             }),
           )
@@ -256,9 +253,7 @@ const checkIfTagRequiresChild = function (tag, hedSchemas) {
     tag.formattedTag in
     hedSchemas.baseSchema.attributes.dictionaries[requireChildType]
   if (invalid) {
-    issues.push(
-      utils.issues.generateIssue('childRequired', { tag: tag.originalTag }),
-    )
+    issues.push(generateIssue('childRequired', { tag: tag.originalTag }))
   }
   return issues
 }
@@ -280,7 +275,7 @@ const checkForRequiredTags = function (topLevelTags, hedSchemas) {
     }
     if (!foundOne) {
       issues.push(
-        utils.issues.generateIssue('requiredPrefixMissing', {
+        generateIssue('requiredPrefixMissing', {
           tagPrefix: requiredTagPrefix,
         }),
       )
@@ -302,14 +297,22 @@ const checkIfTagUnitClassUnitsExist = function (
     utils.HED.isUnitClassTag(tag.formattedTag, hedSchemas.baseSchema.attributes)
   ) {
     const tagUnitValues = utils.HED.getTagName(tag.formattedTag)
-    const invalid = utils.HED.validateValue(tagUnitValues, allowPlaceholders)
+    const invalid = utils.HED.validateValue(
+      tagUnitValues,
+      allowPlaceholders,
+      hedSchemas.baseSchema.attributes.tagHasAttribute(
+        utils.HED.replaceTagNameWithPound(tag.formattedTag),
+        'isNumeric',
+      ),
+      hedSchemas.isHed3,
+    )
     if (invalid) {
       const defaultUnit = utils.HED.getUnitClassDefaultUnit(
         tag.formattedTag,
         hedSchemas.baseSchema.attributes,
       )
       issues.push(
-        utils.issues.generateIssue('unitClassDefaultUsed', {
+        generateIssue('unitClassDefaultUsed', {
           tag: tag.originalTag,
           defaultUnit: defaultUnit,
         }),
@@ -385,10 +388,18 @@ const checkIfTagUnitClassUnitsAreValid = function (
       tagUnitClassUnits,
       hedSchemas.baseSchema.attributes,
     )
-    const validUnit = utils.HED.validateValue(value, allowPlaceholders)
+    const validUnit = utils.HED.validateValue(
+      value,
+      allowPlaceholders,
+      hedSchemas.baseSchema.attributes.tagHasAttribute(
+        utils.HED.replaceTagNameWithPound(tag.formattedTag),
+        'isNumeric',
+      ),
+      hedSchemas.isHed3,
+    )
     if (!validUnit) {
       issues.push(
-        utils.issues.generateIssue('unitClassInvalidUnit', {
+        generateIssue('unitClassInvalidUnit', {
           tag: tag.originalTag,
           unitClassUnits: tagUnitClassUnits.sort().join(','),
         }),
@@ -396,6 +407,45 @@ const checkIfTagUnitClassUnitsAreValid = function (
     }
     return issues
   } else {
+    return []
+  }
+}
+
+/**
+ * Check the syntax of tag values.
+ *
+ * @param {ParsedHedTag} tag A HED tag.
+ * @param {Schemas} hedSchemas The HED schema collection.
+ * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
+ * @return {Issue[]} Any issues found.
+ */
+const checkValueTagSyntax = function (tag, hedSchemas, allowPlaceholders) {
+  if (
+    utils.HED.tagTakesValue(
+      tag.formattedTag,
+      hedSchemas.baseSchema.attributes,
+    ) &&
+    !utils.HED.isUnitClassTag(
+      tag.formattedTag,
+      hedSchemas.baseSchema.attributes,
+    )
+  ) {
+    const isValidValue = utils.HED.validateValue(
+      utils.HED.getTagName(tag.formattedTag),
+      allowPlaceholders,
+      hedSchemas.baseSchema.attributes.tagHasAttribute(
+        utils.HED.replaceTagNameWithPound(tag.formattedTag),
+        'isNumeric',
+      ),
+      hedSchemas.isHed3,
+    )
+    if (!isValidValue) {
+      return [generateIssue('invalidValue', { tag: tag })]
+    } else {
+      return []
+    }
+  } else {
+    // Unit class tags are handled by the two functions above.
     return []
   }
 }
@@ -434,7 +484,7 @@ const checkIfTagIsValid = function (
       return []
     } else {
       issues.push(
-        utils.issues.generateIssue('invalidPlaceholder', {
+        generateIssue('invalidPlaceholder', {
           tag: tag.originalTag,
         }),
       )
@@ -451,7 +501,7 @@ const checkIfTagIsValid = function (
     // This tag isn't an allowed extension, but the previous tag takes a value.
     // This is likely caused by an extraneous comma.
     issues.push(
-      utils.issues.generateIssue('extraCommaOrInvalid', {
+      generateIssue('extraCommaOrInvalid', {
         tag: tag.originalTag,
         previousTag: previousTag.originalTag,
       }),
@@ -459,16 +509,12 @@ const checkIfTagIsValid = function (
     return issues
   } else if (!isExtensionAllowedTag) {
     // This is not a valid tag.
-    issues.push(
-      utils.issues.generateIssue('invalidTag', { tag: tag.originalTag }),
-    )
+    issues.push(generateIssue('invalidTag', { tag: tag.originalTag }))
     return issues
   } else {
     // This is an allowed extension.
     if (checkForWarnings) {
-      issues.push(
-        utils.issues.generateIssue('extension', { tag: tag.originalTag }),
-      )
+      issues.push(generateIssue('extension', { tag: tag.originalTag }))
       return issues
     } else {
       return []
@@ -489,7 +535,7 @@ const checkPlaceholderSyntax = function (tag) {
     const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
     if (valueTag.split('#').length !== 2) {
       return [
-        utils.issues.generateIssue('invalidPlaceholder', {
+        generateIssue('invalidPlaceholder', {
           tag: tag.originalTag,
         }),
       ]
@@ -499,7 +545,7 @@ const checkPlaceholderSyntax = function (tag) {
   } else {
     // More than two placeholders.
     return [
-      utils.issues.generateIssue('invalidPlaceholder', {
+      generateIssue('invalidPlaceholder', {
         tag: tag.originalTag,
       }),
     ]
@@ -519,10 +565,8 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
   const definitionShortTag = 'definition'
   const defExpandShortTag = 'def-expand'
   const defShortTag = 'def'
-  const [
-    definitionParentTag,
-    definitionParentTagIssues,
-  ] = convertHedStringToLong(hedSchemas, definitionShortTag)
+  const [definitionParentTag, definitionParentTagIssues] =
+    convertHedStringToLong(hedSchemas, definitionShortTag)
   const [defExpandParentTag, defExpandParentTagIssues] = convertHedStringToLong(
     hedSchemas,
     defExpandShortTag,
@@ -551,7 +595,7 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
     if (hedStringIsAGroup(tag.formattedTag)) {
       if (tagGroupValidated && !tagGroupIssueGenerated) {
         issues.push(
-          utils.issues.generateIssue('multipleTagGroupsInDefinition', {
+          generateIssue('multipleTagGroupsInDefinition', {
             definition: definitionName,
           }),
         )
@@ -564,13 +608,13 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
         tag.formattedTag.indexOf(defExpandShortTag) >= 0
       ) {
         issues.push(
-          utils.issues.generateIssue('nestedDefinition', {
+          generateIssue('nestedDefinition', {
             definition: definitionName,
           }),
         )
       } else if (tag.formattedTag.indexOf(defShortTag) >= 0) {
         issues.push(
-          utils.issues.generateIssue('nestedDefinition', {
+          generateIssue('nestedDefinition', {
             definition: definitionName,
           }),
         )
@@ -581,7 +625,7 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
       (defExpandTagFound && !tag.canonicalTag.startsWith(defExpandParentTag))
     ) {
       issues.push(
-        utils.issues.generateIssue('illegalDefinitionGroupTag', {
+        generateIssue('illegalDefinitionGroupTag', {
           tag: tag.originalTag,
           definition: definitionName,
         }),
@@ -613,7 +657,7 @@ const checkForInvalidTopLevelDefinitionTags = function (
     for (const topLevelTag of topLevelTags) {
       if (topLevelTag.canonicalTag.startsWith(invalidTag)) {
         issues.push(
-          utils.issues.generateIssue('topLevelDefinitionTag', {
+          generateIssue('topLevelDefinitionTag', {
             tag: topLevelTag.originalTag,
           }),
         )
@@ -660,6 +704,7 @@ const validateIndividualHedTag = function (
       ),
       checkIfTagUnitClassUnitsAreValid(tag, hedSchemas, allowPlaceholders),
       checkIfTagRequiresChild(tag, hedSchemas),
+      checkValueTagSyntax(tag, hedSchemas, allowPlaceholders),
     )
     if (checkForWarnings) {
       issues = issues.concat(
@@ -829,9 +874,8 @@ const initiallyValidateHedString = function (
     }
     return [true, true, substitutionIssues, hedString]
   } else {
-    const [substitutionIssues, fullHedStringIssues] = validateFullHedString(
-      hedString,
-    )
+    const [substitutionIssues, fullHedStringIssues] =
+      validateFullHedString(hedString)
     if (fullHedStringIssues.length !== 0) {
       return [
         false,
@@ -877,12 +921,8 @@ const validateHedString = function (
   if (!doSemanticValidation) {
     hedSchemas = new Schemas(null)
   }
-  const [
-    fullStringValid,
-    parsedStringValid,
-    initialIssues,
-    parsedString,
-  ] = initiallyValidateHedString(hedString, hedSchemas, doSemanticValidation)
+  const [fullStringValid, parsedStringValid, initialIssues, parsedString] =
+    initiallyValidateHedString(hedString, hedSchemas, doSemanticValidation)
   if (!fullStringValid) {
     return [false, initialIssues]
   } else if (!parsedStringValid) {
@@ -924,12 +964,8 @@ const validateHedEvent = function (
   if (!doSemanticValidation) {
     hedSchemas = new Schemas(null)
   }
-  const [
-    fullStringValid,
-    parsedStringValid,
-    initialIssues,
-    parsedString,
-  ] = initiallyValidateHedString(hedString, hedSchemas, doSemanticValidation)
+  const [fullStringValid, parsedStringValid, initialIssues, parsedString] =
+    initiallyValidateHedString(hedString, hedSchemas, doSemanticValidation)
   if (!(fullStringValid && parsedStringValid)) {
     return [false, initialIssues]
   }
