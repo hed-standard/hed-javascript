@@ -472,10 +472,18 @@ describe('HED tag string utility functions', () => {
           volumeUnits,
           hedSchemas.baseSchema.attributes,
         )
-        assert.strictEqual(strippedDollarsString, '25.99')
-        assert.strictEqual(strippedVolumeString, '100')
-        assert.strictEqual(strippedPrefixedVolumeString, '100')
-        assert.strictEqual(strippedInvalidVolumeString, '200 cm')
+        assert.sameOrderedMembers(strippedDollarsString, [true, true, '25.99'])
+        assert.sameOrderedMembers(strippedVolumeString, [true, true, '100'])
+        assert.sameOrderedMembers(strippedPrefixedVolumeString, [
+          true,
+          true,
+          '100',
+        ])
+        assert.sameOrderedMembers(strippedInvalidVolumeString, [
+          true,
+          false,
+          '200',
+        ])
       })
     })
 

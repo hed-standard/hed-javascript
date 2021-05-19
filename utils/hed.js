@@ -98,6 +98,12 @@ const getValidUnitPlural = function (unit, hedSchemaAttributes) {
 
 /**
  * Check for a valid unit and remove it.
+ * @param {string} tagUnitValue The value being parsed.
+ * @param {SchemaAttributes} hedSchemaAttributes The collection of schema attributes.
+ * @param {string} originalUnit The unit form used for comparison.
+ * @param {string} normalizedUnit The unit form used for indexing the attribute dictionary.
+ * @param {boolean} isUnitSymbol Whether the unit is an SI unit symbol.
+ * @return {[boolean, string]} Whether a unit was found and the stripped value.
  */
 const stripOffUnitsIfValid = function (
   tagUnitValue,
@@ -134,6 +140,11 @@ const stripOffUnitsIfValid = function (
 
 /**
  * Validate a unit and strip it from the value.
+ * @param {string} originalTagUnitValue The unformatted version of the value.
+ * @param {string} formattedTagUnitValue The unformatted version of the value.
+ * @param {string[]} tagUnitClassUnits The list of valid units for this tag.
+ * @param {SchemaAttributes} hedSchemaAttributes The collection of schema attributes.
+ * @return {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
  */
 const validateUnits = function (
   originalTagUnitValue,
@@ -141,10 +152,11 @@ const validateUnits = function (
   tagUnitClassUnits,
   hedSchemaAttributes,
 ) {
-  tagUnitClassUnits.sort((first, second) => {
+  const validUnits = getAllUnits(hedSchemaAttributes)
+  validUnits.sort((first, second) => {
     return second.length - first.length
   })
-  for (const unit of tagUnitClassUnits) {
+  for (const unit of validUnits) {
     const derivativeUnits = getValidUnitPlural(unit, hedSchemaAttributes)
     for (const derivativeUnit of derivativeUnits) {
       let foundUnit, strippedValue
@@ -169,11 +181,12 @@ const validateUnits = function (
         )
       }
       if (foundUnit) {
-        return strippedValue
+        const unitIsValid = tagUnitClassUnits.includes(unit)
+        return [true, unitIsValid, strippedValue]
       }
     }
   }
-  return formattedTagUnitValue
+  return [false, false, formattedTagUnitValue]
 }
 
 /**
@@ -252,6 +265,21 @@ const getTagUnitClassUnits = function (formattedTag, hedSchemaAttributes) {
   const tagUnitClasses = getTagUnitClasses(formattedTag, hedSchemaAttributes)
   const units = []
   for (const unitClass of tagUnitClasses) {
+    const unitClassUnits =
+      hedSchemaAttributes.dictionaries[unitClassUnitsType][unitClass]
+    Array.prototype.push.apply(units, unitClassUnits)
+  }
+  return units
+}
+
+/**
+ * Get the legal units for a particular HED tag.
+ */
+const getAllUnits = function (hedSchemaAttributes) {
+  const units = []
+  for (const unitClass in hedSchemaAttributes.dictionaries[
+    unitClassUnitsType
+  ]) {
     const unitClassUnits =
       hedSchemaAttributes.dictionaries[unitClassUnitsType][unitClass]
     Array.prototype.push.apply(units, unitClassUnits)

@@ -285,51 +285,18 @@ const checkForRequiredTags = function (topLevelTags, hedSchemas) {
 }
 
 /**
- * Check that the unit exists if the tag has a declared unit class.
- */
-const checkIfTagUnitClassUnitsExist = function (
-  tag,
-  hedSchemas,
-  allowPlaceholders = false,
-) {
-  const issues = []
-  if (
-    utils.HED.isUnitClassTag(tag.formattedTag, hedSchemas.baseSchema.attributes)
-  ) {
-    const tagUnitValues = utils.HED.getTagName(tag.formattedTag)
-    const invalid = utils.HED.validateValue(
-      tagUnitValues,
-      allowPlaceholders,
-      hedSchemas.baseSchema.attributes.tagHasAttribute(
-        utils.HED.replaceTagNameWithPound(tag.formattedTag),
-        'isNumeric',
-      ),
-      hedSchemas.isHed3,
-    )
-    if (invalid) {
-      const defaultUnit = utils.HED.getUnitClassDefaultUnit(
-        tag.formattedTag,
-        hedSchemas.baseSchema.attributes,
-      )
-      issues.push(
-        generateIssue('unitClassDefaultUsed', {
-          tag: tag.originalTag,
-          defaultUnit: defaultUnit,
-        }),
-      )
-    }
-    return issues
-  } else {
-    return []
-  }
-}
-
-/**
  * Check that the unit is valid for the tag's unit class.
+ *
+ * @param {ParsedHedTag} tag A HED tag.
+ * @param {Schemas} hedSchemas The HED schema collection.
+ * @param {boolean} checkForWarnings Whether to check for warnings.
+ * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
+ * @return {Issue[]} Any issues found.
  */
 const checkIfTagUnitClassUnitsAreValid = function (
   tag,
   hedSchemas,
+  checkForWarnings,
   allowPlaceholders = false,
 ) {
   const issues = []
@@ -382,13 +349,13 @@ const checkIfTagUnitClassUnitsAreValid = function (
         return []
       }
     }
-    const value = utils.HED.validateUnits(
+    const [foundUnit, validUnit, value] = utils.HED.validateUnits(
       originalTagUnitValue,
       formattedTagUnitValue,
       tagUnitClassUnits,
       hedSchemas.baseSchema.attributes,
     )
-    const validUnit = utils.HED.validateValue(
+    const validValue = utils.HED.validateValue(
       value,
       allowPlaceholders,
       hedSchemas.baseSchema.attributes.tagHasAttribute(
@@ -397,13 +364,26 @@ const checkIfTagUnitClassUnitsAreValid = function (
       ),
       hedSchemas.isHed3,
     )
-    if (!validUnit) {
+    if (!foundUnit && checkForWarnings) {
+      const defaultUnit = utils.HED.getUnitClassDefaultUnit(
+        tag.formattedTag,
+        hedSchemas.baseSchema.attributes,
+      )
+      issues.push(
+        generateIssue('unitClassDefaultUsed', {
+          tag: tag.originalTag,
+          defaultUnit: defaultUnit,
+        }),
+      )
+    } else if (!validUnit) {
       issues.push(
         generateIssue('unitClassInvalidUnit', {
           tag: tag.originalTag,
           unitClassUnits: tagUnitClassUnits.sort().join(','),
         }),
       )
+    } else if (!validValue) {
+      issues.push(generateIssue('invalidValue', { tag: tag.originalTag }))
     }
     return issues
   } else {
@@ -453,12 +433,12 @@ const checkValueTagSyntax = function (tag, hedSchemas, allowPlaceholders) {
 /**
  * Check if an individual HED tag is in the schema or is an allowed extension.
  */
-const checkIfTagIsValid = function (
+const checkIfTagIsValid = function(
   tag,
   previousTag,
   hedSchemas,
-  allowPlaceholders,
   checkForWarnings,
+  allowPlaceholders,
 ) {
   const issues = []
   if (
@@ -699,18 +679,18 @@ const validateIndividualHedTag = function (
         tag,
         previousTag,
         hedSchemas,
-        allowPlaceholders,
         checkForWarnings,
+        allowPlaceholders,
       ),
-      checkIfTagUnitClassUnitsAreValid(tag, hedSchemas, allowPlaceholders),
+      checkIfTagUnitClassUnitsAreValid(
+        tag,
+        hedSchemas,
+        checkForWarnings,
+        allowPlaceholders,
+      ),
       checkIfTagRequiresChild(tag, hedSchemas),
       checkValueTagSyntax(tag, hedSchemas, allowPlaceholders),
     )
-    if (checkForWarnings) {
-      issues = issues.concat(
-        checkIfTagUnitClassUnitsExist(tag, hedSchemas, allowPlaceholders),
-      )
-    }
   }
   if (checkForWarnings) {
     issues = issues.concat(
