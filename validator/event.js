@@ -420,7 +420,7 @@ const checkValueTagSyntax = function (tag, hedSchemas, allowPlaceholders) {
       hedSchemas.isHed3,
     )
     if (!isValidValue) {
-      return [generateIssue('invalidValue', { tag: tag })]
+      return [generateIssue('invalidValue', { tag: tag.originalTag })]
     } else {
       return []
     }
