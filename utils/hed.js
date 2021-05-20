@@ -160,6 +160,7 @@ const validateUnits = function (
     const derivativeUnits = getValidUnitPlural(unit, hedSchemaAttributes)
     for (const derivativeUnit of derivativeUnits) {
       let foundUnit, strippedValue
+      let foundWrongCaseUnit, wrongCaseStrippedValue
       if (
         hedSchemaAttributes.hasUnitModifiers &&
         hedSchemaAttributes.dictionaries[unitSymbolType][unit]
@@ -171,6 +172,16 @@ const validateUnits = function (
           unit,
           true,
         )
+        if (!foundUnit && derivativeUnit !== derivativeUnit.toLowerCase()) {
+          const lowercaseDerivativeUnit = derivativeUnit.toLowerCase()
+          ;[foundWrongCaseUnit, wrongCaseStrippedValue] = stripOffUnitsIfValid(
+            formattedTagUnitValue,
+            hedSchemaAttributes,
+            lowercaseDerivativeUnit,
+            unit,
+            true,
+          )
+        }
       } else {
         ;[foundUnit, strippedValue] = stripOffUnitsIfValid(
           formattedTagUnitValue,
@@ -183,6 +194,8 @@ const validateUnits = function (
       if (foundUnit) {
         const unitIsValid = tagUnitClassUnits.includes(unit)
         return [true, unitIsValid, strippedValue]
+      } else if (foundWrongCaseUnit) {
+        return [true, false, wrongCaseStrippedValue]
       }
     }
   }
