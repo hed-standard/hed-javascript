@@ -513,7 +513,7 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        return validatorSemantic(testStrings, expectedIssues, false)
+        return validatorSemantic(testStrings, expectedIssues, true)
       })
     })
 
@@ -857,7 +857,7 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        return validatorSemantic(testStrings, expectedIssues, false)
+        return validatorSemantic(testStrings, expectedIssues, true)
       })
     })
   })
