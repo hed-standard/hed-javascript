@@ -372,10 +372,12 @@ describe('HED string and event validation', () => {
             }),
           ],
           illegalComma: [
-            converterGenerateIssue('invalidTag', testStrings.illegalComma, {}, [
-              28,
-              32,
-            ]),
+            converterGenerateIssue(
+              'invalidTag',
+              testStrings.illegalComma,
+              {},
+              [28, 32],
+            ),
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Event/Label/This is a label',
               tag: 'This/Is/A/Tag',
@@ -419,31 +421,6 @@ describe('HED string and event validation', () => {
         return validatorSemantic(testStrings, expectedIssues, true)
       })
 
-      it('should have a unit when required', () => {
-        const testStrings = {
-          hasRequiredUnit: 'Event/Duration/3 ms',
-          missingRequiredUnit: 'Event/Duration/3',
-          notRequiredNoNumber: 'Attribute/Visual/Color/Red',
-          notRequiredNumber: 'Attribute/Visual/Color/Red/0.5',
-          notRequiredScientific: 'Attribute/Visual/Color/Red/5.2e-1',
-          timeValue: 'Item/2D shape/Clock face/08:30',
-        }
-        const expectedIssues = {
-          hasRequiredUnit: [],
-          missingRequiredUnit: [
-            generateIssue('unitClassDefaultUsed', {
-              defaultUnit: 's',
-              tag: testStrings.missingRequiredUnit,
-            }),
-          ],
-          notRequiredNoNumber: [],
-          notRequiredNumber: [],
-          notRequiredScientific: [],
-          timeValue: [],
-        }
-        return validatorSemantic(testStrings, expectedIssues, true)
-      })
-
       it('should have a proper unit when required', () => {
         const testStrings = {
           correctUnit: 'Event/Duration/3 ms',
@@ -453,7 +430,9 @@ describe('HED string and event validation', () => {
           correctNoPluralUnit: 'Attribute/Temporal rate/3 hertz',
           correctNonSymbolCapitalizedUnit: 'Event/Duration/3 MilliSeconds',
           correctSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 kHz',
+          missingRequiredUnit: 'Event/Duration/3',
           incorrectUnit: 'Event/Duration/3 cm',
+          incorrectNonNumericValue: 'Event/Duration/A ms',
           incorrectPluralUnit: 'Attribute/Temporal rate/3 hertzs',
           incorrectSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 hz',
           incorrectSymbolCapitalizedUnitModifier:
@@ -477,10 +456,21 @@ describe('HED string and event validation', () => {
           correctNoPluralUnit: [],
           correctNonSymbolCapitalizedUnit: [],
           correctSymbolCapitalizedUnit: [],
+          missingRequiredUnit: [
+            generateIssue('unitClassDefaultUsed', {
+              defaultUnit: 's',
+              tag: testStrings.missingRequiredUnit,
+            }),
+          ],
           incorrectUnit: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectUnit,
               unitClassUnits: legalTimeUnits.sort().join(','),
+            }),
+          ],
+          incorrectNonNumericValue: [
+            generateIssue('invalidValue', {
+              tag: testStrings.incorrectNonNumericValue,
             }),
           ],
           incorrectPluralUnit: [
@@ -791,35 +781,14 @@ describe('HED string and event validation', () => {
         )
       }
 
-      it('should have a unit when required', () => {
-        const testStrings = {
-          hasRequiredUnit: 'Event/Duration/3 ms',
-          missingRequiredUnit: 'Event/Duration/3',
-          notRequiredNumber: 'Attribute/Visual/Color/Red/0.5',
-          notRequiredScientific: 'Attribute/Visual/Color/Red/5.2e-1',
-          timeValue: 'Item/2D shape/Clock face/08:30',
-        }
-        const expectedIssues = {
-          hasRequiredUnit: [],
-          missingRequiredUnit: [
-            generateIssue('unitClassDefaultUsed', {
-              defaultUnit: 's',
-              tag: testStrings.missingRequiredUnit,
-            }),
-          ],
-          notRequiredNumber: [],
-          notRequiredScientific: [],
-          timeValue: [],
-        }
-        return validatorSemantic(testStrings, expectedIssues, true)
-      })
-
       it('should have a proper unit when required', () => {
         const testStrings = {
           correctUnit: 'Event/Duration/3 ms',
           correctUnitWord: 'Event/Duration/3 milliseconds',
           correctUnitScientific: 'Event/Duration/3.5e1 ms',
+          missingRequiredUnit: 'Event/Duration/3',
           incorrectUnit: 'Event/Duration/3 cm',
+          incorrectNonNumericValue: 'Event/Duration/A ms',
           incorrectUnitWord: 'Event/Duration/3 nanoseconds',
           incorrectPrefix: 'Event/Duration/3 ns',
           notRequiredNumber: 'Attribute/Visual/Color/Red/0.5',
@@ -849,10 +818,21 @@ describe('HED string and event validation', () => {
           correctUnit: [],
           correctUnitWord: [],
           correctUnitScientific: [],
+          missingRequiredUnit: [
+            generateIssue('unitClassDefaultUsed', {
+              defaultUnit: 's',
+              tag: testStrings.missingRequiredUnit,
+            }),
+          ],
           incorrectUnit: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectUnit,
               unitClassUnits: legalTimeUnits.sort().join(','),
+            }),
+          ],
+          incorrectNonNumericValue: [
+            generateIssue('invalidValue', {
+              tag: testStrings.incorrectNonNumericValue,
             }),
           ],
           incorrectUnitWord: [
@@ -1075,6 +1055,100 @@ describe('HED string and event validation', () => {
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',
               tag: 'This/Is/A/Tag',
+            }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues, true)
+      })
+
+      it('should have a proper unit when required', () => {
+        const testStrings = {
+          correctUnit: 'Duration/3 ms',
+          correctUnitScientific: 'Duration/3.5e1 ms',
+          correctSingularUnit: 'Duration/1 millisecond',
+          correctPluralUnit: 'Duration/3 milliseconds',
+          correctNoPluralUnit: 'Frequency/3 hertz',
+          correctNonSymbolCapitalizedUnit: 'Duration/3 MilliSeconds',
+          correctSymbolCapitalizedUnit: 'Frequency/3 kHz',
+          missingRequiredUnit: 'Duration/3',
+          incorrectUnit: 'Duration/3 cm',
+          incorrectNonNumericValue: 'Duration/A ms',
+          incorrectPluralUnit: 'Frequency/3 hertzs',
+          incorrectSymbolCapitalizedUnit: 'Frequency/3 hz',
+          incorrectSymbolCapitalizedUnitModifier: 'Frequency/3 KHz',
+          incorrectNonSIUnitModifier: 'Duration/1 millihour',
+          incorrectNonSIUnitSymbolModifier: 'Velocity/100 Mkph',
+          notRequiredNumber: 'RGB-red/0.5',
+          notRequiredScientific: 'RGB-red/5e-1',
+          properTime: 'Clockface/08:30',
+          invalidTime: 'Clockface/54:54',
+        }
+        const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
+        const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
+        const legalFrequencyUnits = ['Hz', 'hertz']
+        const legalSpeedUnits = ['m-per-s', 'kph', 'mph']
+        const expectedIssues = {
+          correctUnit: [],
+          correctUnitScientific: [],
+          correctSingularUnit: [],
+          correctPluralUnit: [],
+          correctNoPluralUnit: [],
+          correctNonSymbolCapitalizedUnit: [],
+          correctSymbolCapitalizedUnit: [],
+          missingRequiredUnit: [
+            generateIssue('unitClassDefaultUsed', {
+              defaultUnit: 's',
+              tag: testStrings.missingRequiredUnit,
+            }),
+          ],
+          incorrectUnit: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.incorrectUnit,
+              unitClassUnits: legalTimeUnits.sort().join(','),
+            }),
+          ],
+          incorrectNonNumericValue: [
+            generateIssue('invalidValue', {
+              tag: testStrings.incorrectNonNumericValue,
+            }),
+          ],
+          incorrectPluralUnit: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.incorrectPluralUnit,
+              unitClassUnits: legalFrequencyUnits.sort().join(','),
+            }),
+          ],
+          incorrectSymbolCapitalizedUnit: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.incorrectSymbolCapitalizedUnit,
+              unitClassUnits: legalFrequencyUnits.sort().join(','),
+            }),
+          ],
+          incorrectSymbolCapitalizedUnitModifier: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.incorrectSymbolCapitalizedUnitModifier,
+              unitClassUnits: legalFrequencyUnits.sort().join(','),
+            }),
+          ],
+          incorrectNonSIUnitModifier: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.incorrectNonSIUnitModifier,
+              unitClassUnits: legalTimeUnits.sort().join(','),
+            }),
+          ],
+          incorrectNonSIUnitSymbolModifier: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.incorrectNonSIUnitSymbolModifier,
+              unitClassUnits: legalSpeedUnits.sort().join(','),
+            }),
+          ],
+          notRequiredNumber: [],
+          notRequiredScientific: [],
+          properTime: [],
+          invalidTime: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.invalidTime,
+              unitClassUnits: legalClockTimeUnits.sort().join(','),
             }),
           ],
         }
