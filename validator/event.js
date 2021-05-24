@@ -321,22 +321,26 @@ const checkIfTagUnitClassUnitsAreValid = function (
       dateTimeUnitClass in
       hedSchemas.baseSchema.attributes.dictionaries[unitsElement]
     ) {
-      if (
-        tagUnitClasses.includes(dateTimeUnitClass) &&
-        utils.string.isDateTime(formattedTagUnitValue)
-      ) {
-        return []
+      if (tagUnitClasses.includes(dateTimeUnitClass)) {
+        if (utils.string.isDateTime(formattedTagUnitValue)) {
+          return []
+        } else {
+          issues.push(generateIssue('invalidValue', { tag: tag.originalTag }))
+          return issues
+        }
       }
     }
     if (
       clockTimeUnitClass in
       hedSchemas.baseSchema.attributes.dictionaries[unitsElement]
     ) {
-      if (
-        tagUnitClasses.includes(clockTimeUnitClass) &&
-        utils.string.isClockFaceTime(formattedTagUnitValue)
-      ) {
-        return []
+      if (tagUnitClasses.includes(clockTimeUnitClass)) {
+        if (utils.string.isClockFaceTime(formattedTagUnitValue)) {
+          return []
+        } else {
+          issues.push(generateIssue('invalidValue', { tag: tag.originalTag }))
+          return issues
+        }
       }
     } else if (
       timeUnitClass in
@@ -344,14 +348,18 @@ const checkIfTagUnitClassUnitsAreValid = function (
     ) {
       if (
         tagUnitClasses.includes(timeUnitClass) &&
-        utils.string.isClockFaceTime(formattedTagUnitValue)
+        tag.originalTag.includes(':')
       ) {
-        return []
+        if (utils.string.isClockFaceTime(formattedTagUnitValue)) {
+          return []
+        } else {
+          issues.push(generateIssue('invalidValue', { tag: tag.originalTag }))
+          return issues
+        }
       }
     }
     const [foundUnit, validUnit, value] = utils.HED.validateUnits(
       originalTagUnitValue,
-      formattedTagUnitValue,
       tagUnitClassUnits,
       hedSchemas.baseSchema.attributes,
     )

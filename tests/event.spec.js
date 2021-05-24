@@ -507,9 +507,8 @@ describe('HED string and event validation', () => {
           notRequiredScientific: [],
           properTime: [],
           invalidTime: [
-            generateIssue('unitClassInvalidUnit', {
+            generateIssue('invalidValue', {
               tag: testStrings.invalidTime,
-              unitClassUnits: legalClockTimeUnits.sort().join(','),
             }),
           ],
         }
@@ -851,9 +850,8 @@ describe('HED string and event validation', () => {
           notRequiredScientific: [],
           properTime: [],
           invalidTime: [
-            generateIssue('unitClassInvalidUnit', {
+            generateIssue('invalidValue', {
               tag: testStrings.invalidTime,
-              unitClassUnits: legalTimeUnits.sort().join(','),
             }),
           ],
         }
@@ -1080,8 +1078,8 @@ describe('HED string and event validation', () => {
           incorrectNonSIUnitSymbolModifier: 'Velocity/100 Mkph',
           notRequiredNumber: 'RGB-red/0.5',
           notRequiredScientific: 'RGB-red/5e-1',
-          properTime: 'Clockface/08:30',
-          invalidTime: 'Clockface/54:54',
+          /*properTime: 'Clockface/08:30',
+          invalidTime: 'Clockface/54:54',*/
         }
         const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
         const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
@@ -1144,13 +1142,13 @@ describe('HED string and event validation', () => {
           ],
           notRequiredNumber: [],
           notRequiredScientific: [],
-          properTime: [],
+          /*properTime: [],
           invalidTime: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.invalidTime,
               unitClassUnits: legalClockTimeUnits.sort().join(','),
             }),
-          ],
+          ],*/
         }
         return validatorSemantic(testStrings, expectedIssues, true)
       })

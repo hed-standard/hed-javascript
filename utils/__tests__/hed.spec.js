@@ -450,24 +450,20 @@ describe('HED tag string utility functions', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const strippedDollarsString = hed.validateUnits(
           dollarsString,
-          dollarsString,
           currencyUnits,
           hedSchemas.baseSchema.attributes,
         )
         const strippedVolumeString = hed.validateUnits(
-          volumeString,
           volumeString,
           volumeUnits,
           hedSchemas.baseSchema.attributes,
         )
         const strippedPrefixedVolumeString = hed.validateUnits(
           prefixedVolumeString,
-          prefixedVolumeString,
           volumeUnits,
           hedSchemas.baseSchema.attributes,
         )
         const strippedInvalidVolumeString = hed.validateUnits(
-          invalidVolumeString,
           invalidVolumeString,
           volumeUnits,
           hedSchemas.baseSchema.attributes,
