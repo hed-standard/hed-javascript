@@ -22,7 +22,7 @@ const Issue = function (code, message) {
  * Generate a new issue object.
  *
  * @param {string} code The HED error code.
- * @param {object} parameters The error string parameters.
+ * @param {object<string, (string|number[])>} parameters The error string parameters.
  * @return {Issue} An object representing the issue.
  */
 const generateIssue = function (code, parameters) {
@@ -75,6 +75,9 @@ const generateIssue = function (code, parameters) {
       break
     case 'invalidPlaceholder':
       message = `ERROR: Invalid placeholder - "${parameters.tag}"`
+      break
+    case 'invalidValue':
+      message = `ERROR: Invalid placeholder value for tag "${parameters.tag}"`
       break
     case 'invalidParentNode':
       message = `ERROR: "${parameters.tag}" appears as "${parameters.parentTag}" and cannot be used as an extension. Indices (${parameters.bounds[0]}, ${parameters.bounds[1]}).`

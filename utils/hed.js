@@ -42,8 +42,8 @@ const getTagSlashIndices = function (tag) {
 /**
  * Get the last part of a HED tag.
  */
-const getTagName = function (tag) {
-  const lastSlashIndex = tag.lastIndexOf('/')
+const getTagName = function (tag, character = '/') {
+  const lastSlashIndex = tag.lastIndexOf(character)
   if (lastSlashIndex === -1) {
     return tag
   } else {
@@ -54,8 +54,8 @@ const getTagName = function (tag) {
 /**
  * Get the HED tag prefix (up to the last slash).
  */
-const getParentTag = function (tag) {
-  const lastSlashIndex = tag.lastIndexOf('/')
+const getParentTag = function (tag, character = '/') {
+  const lastSlashIndex = tag.lastIndexOf(character)
   if (lastSlashIndex === -1) {
     return tag
   } else {
@@ -63,105 +63,113 @@ const getParentTag = function (tag) {
   }
 }
 
+const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_;: ]+$/
+const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_;]+$/
 /**
  * Determine if a stripped value is valid.
  */
-const validateValue = function (value, allowPlaceholders) {
-  return isNumber(value) || (allowPlaceholders && value === '#')
+const validateValue = function (value, allowPlaceholders, isNumeric, isHed3) {
+  if (value === '#') {
+    return allowPlaceholders
+  }
+  if (isNumeric) {
+    return isNumber(value)
+  }
+  if (isHed3) {
+    return hed3ValidValueCharacters.test(value)
+  } else {
+    return hed2ValidValueCharacters.test(value)
+  }
 }
 
 /**
  * Get the list of valid derivatives of a unit.
+ *
+ * @param {string} unit A unit string.
+ * @param {SchemaAttributes} hedSchemaAttributes The collection of schema attributes.
+ * @return {string[]} The list of valid derivative units.
  */
-const getValidUnitPlural = function (unit, hedSchemaAttributes) {
-  const derivativeUnits = [unit]
-  if (
-    hedSchemaAttributes.hasUnitModifiers &&
-    hedSchemaAttributes.dictionaries[unitSymbolType][unit] === undefined
-  ) {
-    derivativeUnits.push(pluralize.plural(unit))
-  }
-  return derivativeUnits
-}
-
-/**
- * Check for a valid unit and remove it.
- */
-const stripOffUnitsIfValid = function (
-  tagUnitValue,
-  hedSchemaAttributes,
-  originalUnit,
-  normalizedUnit,
-  isUnitSymbol,
-) {
-  let foundUnit = false
-  let strippedValue = ''
-  if (tagUnitValue.startsWith(originalUnit)) {
-    foundUnit = true
-    strippedValue = tagUnitValue.substring(originalUnit.length).trim()
-  } else if (tagUnitValue.endsWith(originalUnit)) {
-    foundUnit = true
-    strippedValue = tagUnitValue.slice(0, -originalUnit.length).trim()
+const getValidDerivativeUnits = function (unit, hedSchemaAttributes) {
+  const pluralUnits = [unit]
+  const isUnitSymbol =
+    hedSchemaAttributes.dictionaries[unitSymbolType][unit] !== undefined
+  if (hedSchemaAttributes.hasUnitModifiers && !isUnitSymbol) {
+    pluralUnits.push(pluralize.plural(unit))
   }
   const isSIUnit =
-    hedSchemaAttributes.dictionaries[SIUnitKey][normalizedUnit] !== undefined
-  if (foundUnit && isSIUnit && hedSchemaAttributes.hasUnitModifiers) {
+    hedSchemaAttributes.dictionaries[SIUnitKey][unit] !== undefined
+  if (isSIUnit && hedSchemaAttributes.hasUnitModifiers) {
+    const derivativeUnits = [].concat(pluralUnits)
     const modifierKey = isUnitSymbol
       ? SIUnitSymbolModifierKey
       : SIUnitModifierKey
     for (const unitModifier in hedSchemaAttributes.dictionaries[modifierKey]) {
-      if (strippedValue.startsWith(unitModifier)) {
-        strippedValue = strippedValue.substring(unitModifier.length).trim()
-      } else if (strippedValue.endsWith(unitModifier)) {
-        strippedValue = strippedValue.slice(0, -unitModifier.length).trim()
+      for (const plural of pluralUnits) {
+        derivativeUnits.push(unitModifier + plural)
       }
     }
+    return derivativeUnits
+  } else {
+    return pluralUnits
   }
-  return [foundUnit, strippedValue]
 }
 
 /**
  * Validate a unit and strip it from the value.
+ * @param {string} originalTagUnitValue The unformatted version of the value.
+ * @param {string[]} tagUnitClassUnits The list of valid units for this tag.
+ * @param {SchemaAttributes} hedSchemaAttributes The collection of schema attributes.
+ * @return {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
  */
 const validateUnits = function (
   originalTagUnitValue,
-  formattedTagUnitValue,
   tagUnitClassUnits,
   hedSchemaAttributes,
 ) {
-  tagUnitClassUnits.sort((first, second) => {
+  const validUnits = getAllUnits(hedSchemaAttributes)
+  validUnits.sort((first, second) => {
     return second.length - first.length
   })
-  for (const unit of tagUnitClassUnits) {
-    const derivativeUnits = getValidUnitPlural(unit, hedSchemaAttributes)
+  let actualUnit = getTagName(originalTagUnitValue, ' ')
+  let noUnitFound = false
+  if (actualUnit === originalTagUnitValue) {
+    actualUnit = ''
+    noUnitFound = true
+  }
+  let foundUnit, foundWrongCaseUnit, strippedValue
+  for (const unit of validUnits) {
+    const isUnitSymbol =
+      hedSchemaAttributes.dictionaries[unitSymbolType][unit] !== undefined
+    const derivativeUnits = getValidDerivativeUnits(unit, hedSchemaAttributes)
     for (const derivativeUnit of derivativeUnits) {
-      let foundUnit, strippedValue
-      if (
-        hedSchemaAttributes.hasUnitModifiers &&
-        hedSchemaAttributes.dictionaries[unitSymbolType][unit]
-      ) {
-        ;[foundUnit, strippedValue] = stripOffUnitsIfValid(
-          originalTagUnitValue,
-          hedSchemaAttributes,
-          derivativeUnit,
-          unit,
-          true,
-        )
-      } else {
-        ;[foundUnit, strippedValue] = stripOffUnitsIfValid(
-          formattedTagUnitValue,
-          hedSchemaAttributes,
-          derivativeUnit,
-          unit,
-          false,
-        )
+      if (originalTagUnitValue.startsWith(derivativeUnit)) {
+        foundUnit = true
+        noUnitFound = false
+        strippedValue = originalTagUnitValue
+          .substring(derivativeUnit.length)
+          .trim()
+      }
+      if (actualUnit === derivativeUnit) {
+        foundUnit = true
+        strippedValue = getParentTag(originalTagUnitValue, ' ')
+      } else if (actualUnit.toLowerCase() === derivativeUnit.toLowerCase()) {
+        if (isUnitSymbol) {
+          foundWrongCaseUnit = true
+        } else {
+          foundUnit = true
+        }
+        strippedValue = getParentTag(originalTagUnitValue, ' ')
       }
       if (foundUnit) {
-        return strippedValue
+        const unitIsValid = tagUnitClassUnits.includes(unit)
+        return [true, unitIsValid, strippedValue]
       }
     }
+    if (foundWrongCaseUnit) {
+      return [true, false, strippedValue]
+    }
   }
-  return formattedTagUnitValue
+  return [!noUnitFound, false, originalTagUnitValue]
 }
 
 /**
@@ -248,6 +256,21 @@ const getTagUnitClassUnits = function (formattedTag, hedSchemaAttributes) {
 }
 
 /**
+ * Get the legal units for a particular HED tag.
+ */
+const getAllUnits = function (hedSchemaAttributes) {
+  const units = []
+  for (const unitClass in hedSchemaAttributes.dictionaries[
+    unitClassUnitsType
+  ]) {
+    const unitClassUnits =
+      hedSchemaAttributes.dictionaries[unitClassUnitsType][unitClass]
+    Array.prototype.push.apply(units, unitClassUnits)
+  }
+  return units
+}
+
+/**
  * Check if any level of a HED tag allows extensions.
  */
 const isExtensionAllowedTag = function (formattedTag, hedSchemaAttributes) {
@@ -277,7 +300,6 @@ module.exports = {
   getTagName: getTagName,
   getParentTag: getParentTag,
   validateValue: validateValue,
-  stripOffUnitsIfValid: stripOffUnitsIfValid,
   validateUnits: validateUnits,
   tagExistsInSchema: tagExistsInSchema,
   tagTakesValue: tagTakesValue,
