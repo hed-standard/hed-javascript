@@ -1,9 +1,32 @@
 const assert = require('chai').assert
-const stringParser = require('../validator/stringParser')
+const { Schemas } = require('../utils/schema')
+const { buildSchema } = require('../converter/schema')
+const {
+  ParsedHedTag,
+  formatHedTag,
+  hedStringIsAGroup,
+  parseHedString,
+  removeGroupParentheses,
+  splitHedString,
+} = require('../validator/stringParser')
 const generateIssue = require('../utils/issues').generateIssue
 
 describe('HED string parsing', () => {
-  const validatorWithoutIssues = function(
+  const nullSchema = new Schemas(null)
+  const originalMap = (parsedTag) => {
+    return parsedTag.originalTag
+  }
+
+  const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
+  let hedSchemaPromise
+
+  beforeAll(() => {
+    hedSchemaPromise = buildSchema({
+      path: hedSchemaFile,
+    })
+  })
+
+  const validatorWithoutIssues = function (
     testStrings,
     expectedResults,
     testFunction,
@@ -18,15 +41,14 @@ describe('HED string parsing', () => {
     }
   }
 
-  const validatorWithIssues = function(
+  const validatorWithIssues = function (
     testStrings,
     expectedResults,
     expectedIssues,
     testFunction,
   ) {
     for (const testStringKey in testStrings) {
-      const testIssues = []
-      const testResult = testFunction(testStrings[testStringKey], testIssues)
+      const [testResult, testIssues] = testFunction(testStrings[testStringKey])
       assert.sameDeepMembers(
         testResult,
         expectedResults[testStringKey],
@@ -51,17 +73,34 @@ describe('HED string parsing', () => {
           '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm',
         closingSquare:
           '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm',
+        tilde: '/Attribute/Object side/Left,/Participant/Effect~/Body part/Arm',
       }
       const expectedResultList = [
-        '/Attribute/Object side/Left',
-        '/Participant/Effect',
-        '/Body part/Arm',
+        new ParsedHedTag(
+          '/Attribute/Object side/Left',
+          '/Attribute/Object side/Left',
+          [0, 27],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          '/Participant/Effect',
+          '/Participant/Effect',
+          [28, 47],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          '/Body part/Arm',
+          '/Body part/Arm',
+          [48, 62],
+          nullSchema,
+        ),
       ]
       const expectedResults = {
         openingCurly: expectedResultList,
         closingCurly: expectedResultList,
         openingSquare: expectedResultList,
         closingSquare: expectedResultList,
+        tilde: expectedResultList,
       }
       const expectedIssues = {
         openingCurly: [
@@ -92,13 +131,20 @@ describe('HED string parsing', () => {
             string: testStrings.closingSquare,
           }),
         ],
+        tilde: [
+          generateIssue('invalidCharacter', {
+            character: '~',
+            index: 47,
+            string: testStrings.tilde,
+          }),
+        ],
       }
       validatorWithIssues(
         testStrings,
         expectedResults,
         expectedIssues,
-        (string, issues) => {
-          return stringParser.splitHedString(string, issues)
+        (string) => {
+          return splitHedString(string, nullSchema)
         },
       )
     })
@@ -106,23 +152,32 @@ describe('HED string parsing', () => {
 
   describe('HED tag groups', () => {
     it('must be surrounded by parentheses', () => {
-      const groupString =
-        '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)'
-      const nonGroupString =
-        '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm'
-      const groupResult = stringParser.hedStringIsAGroup(groupString)
-      const nonGroupResult = stringParser.hedStringIsAGroup(nonGroupString)
-      assert.strictEqual(groupResult, true)
-      assert.strictEqual(nonGroupResult, false)
+      const testStrings = {
+        group:
+          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
+        nonGroup:
+          '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm',
+      }
+      const expectedResults = {
+        group: true,
+        nonGroup: false,
+      }
+      validatorWithoutIssues(testStrings, expectedResults, (string) => {
+        return hedStringIsAGroup(string)
+      })
     })
 
     it('can have its parentheses removed', () => {
-      const groupString =
-        '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)'
-      const formattedString =
-        '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm'
-      const result = stringParser.removeGroupParentheses(groupString)
-      assert.strictEqual(result, formattedString)
+      const testStrings = {
+        group:
+          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
+      }
+      const expectedResults = {
+        group: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm',
+      }
+      validatorWithoutIssues(testStrings, expectedResults, (string) => {
+        return removeGroupParentheses(string)
+      })
     })
   })
 
@@ -130,46 +185,67 @@ describe('HED string parsing', () => {
     it('should be an array', () => {
       const hedString =
         'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
-      const issues = []
-      const result = stringParser.splitHedString(hedString, issues)
+      const [result] = splitHedString(hedString, nullSchema)
       assert(result instanceof Array)
     })
 
     it('should include each top-level tag as its own single element', () => {
       const hedString =
         'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
-      const issues = []
-      const result = stringParser.splitHedString(hedString, issues)
+      const [result, issues] = splitHedString(hedString, nullSchema)
+      assert.deepStrictEqual(issues, [])
       assert.deepStrictEqual(result, [
-        'Event/Category/Experimental stimulus',
-        'Item/Object/Vehicle/Train',
-        'Attribute/Visual/Color/Purple',
+        new ParsedHedTag(
+          'Event/Category/Experimental stimulus',
+          'Event/Category/Experimental stimulus',
+          [0, 36],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          'Item/Object/Vehicle/Train',
+          'Item/Object/Vehicle/Train',
+          [37, 62],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          'Attribute/Visual/Color/Purple',
+          'Attribute/Visual/Color/Purple',
+          [63, 92],
+          nullSchema,
+        ),
       ])
     })
 
     it('should include each group as its own single element', () => {
       const hedString =
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-      const issues = []
-      const result = stringParser.splitHedString(hedString, issues)
-      assert.deepStrictEqual(result, [
-        '/Action/Reach/To touch',
-        '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
-        '/Attribute/Location/Screen/Top/70 px',
-        '/Attribute/Location/Screen/Left/23 px',
-      ])
-    })
-
-    it('should handle tildes', () => {
-      const hedString =
-        '/Item/Object/Vehicle/Car ~ /Attribute/Object control/Perturb'
-      const issues = []
-      const result = stringParser.splitHedString(hedString, issues)
+      const [result, issues] = splitHedString(hedString, nullSchema)
       assert.deepStrictEqual(issues, [])
       assert.deepStrictEqual(result, [
-        '/Item/Object/Vehicle/Car',
-        '~',
-        '/Attribute/Object control/Perturb',
+        new ParsedHedTag(
+          '/Action/Reach/To touch',
+          '/Action/Reach/To touch',
+          [0, 22],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
+          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
+          [23, 86],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          '/Attribute/Location/Screen/Top/70 px',
+          '/Attribute/Location/Screen/Top/70 px',
+          [87, 123],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          '/Attribute/Location/Screen/Left/23 px',
+          '/Attribute/Location/Screen/Left/23 px',
+          [124, 161],
+          nullSchema,
+        ),
       ])
     })
 
@@ -178,49 +254,57 @@ describe('HED string parsing', () => {
         'Event/Category/Experimental stimulus,"Item/Object/Vehicle/Train",Attribute/Visual/Color/Purple'
       const normalString =
         'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
-      const doubleQuoteIssues = []
-      const normalIssues = []
-      const doubleQuoteResult = stringParser.splitHedString(
+      const [doubleQuoteResult, doubleQuoteIssues] = splitHedString(
         doubleQuoteString,
-        doubleQuoteIssues,
+        nullSchema,
       )
-      const normalResult = stringParser.splitHedString(
+      const [normalResult, normalIssues] = splitHedString(
         normalString,
-        normalIssues,
+        nullSchema,
       )
       assert.deepStrictEqual(doubleQuoteIssues, [])
       assert.deepStrictEqual(normalIssues, [])
-      assert.deepStrictEqual(doubleQuoteResult, normalResult)
+      const noBoundsMap = (parsedTag) => {
+        return {
+          canonicalTag: parsedTag.canonicalTag,
+          formattedTag: parsedTag.formattedTag,
+          originalTag: parsedTag.originalTag,
+        }
+      }
+      const doubleQuoteResultNoBounds = doubleQuoteResult.map(noBoundsMap)
+      const normalResultNoBounds = normalResult.map(noBoundsMap)
+      assert.deepStrictEqual(doubleQuoteResultNoBounds, normalResultNoBounds)
     })
 
     it('should not include blanks', () => {
       const testStrings = {
-        doubleTilde:
-          '/Item/Object/Vehicle/Car~~/Attribute/Object control/Perturb',
         doubleComma:
           '/Item/Object/Vehicle/Car,,/Attribute/Object control/Perturb',
         doubleInvalidCharacter:
           '/Item/Object/Vehicle/Car[]/Attribute/Object control/Perturb',
         trailingBlank:
-          '/Item/Object/Vehicle/Car,/Attribute/Object control/Perturb,',
+          '/Item/Object/Vehicle/Car, /Attribute/Object control/Perturb,',
       }
       const expectedList = [
-        '/Item/Object/Vehicle/Car',
-        '/Attribute/Object control/Perturb',
+        new ParsedHedTag(
+          '/Item/Object/Vehicle/Car',
+          '/Item/Object/Vehicle/Car',
+          [0, 24],
+          nullSchema,
+        ),
+        new ParsedHedTag(
+          '/Attribute/Object control/Perturb',
+          '/Attribute/Object control/Perturb',
+          [26, 59],
+          nullSchema,
+        ),
       ]
       const expectedResults = {
-        doubleTilde: [
-          '/Item/Object/Vehicle/Car',
-          '~',
-          '~',
-          '/Attribute/Object control/Perturb',
-        ],
         doubleComma: expectedList,
         doubleInvalidCharacter: expectedList,
         trailingBlank: expectedList,
       }
       const expectedIssues = {
-        doubleTilde: [],
         doubleComma: [],
         doubleInvalidCharacter: [
           generateIssue('invalidCharacter', {
@@ -240,8 +324,8 @@ describe('HED string parsing', () => {
         testStrings,
         expectedResults,
         expectedIssues,
-        (string, issues) => {
-          return stringParser.splitHedString(string, issues)
+        (string) => {
+          return splitHedString(string, nullSchema)
         },
       )
     })
@@ -252,7 +336,7 @@ describe('HED string parsing', () => {
       // Correct formatting
       const formattedHedTag = 'event/category/experimental stimulus'
       const testStrings = {
-        formatted: 'event/category/experimental stimulus',
+        formatted: formattedHedTag,
         openingDoubleQuote: '"Event/Category/Experimental stimulus',
         closingDoubleQuote: 'Event/Category/Experimental stimulus"',
         openingAndClosingDoubleQuote: '"Event/Category/Experimental stimulus"',
@@ -282,8 +366,10 @@ describe('HED string parsing', () => {
         closingSlashOpeningDoubleQuote: formattedHedTag,
         openingAndClosingDoubleQuotedSlash: formattedHedTag,
       }
-      validatorWithoutIssues(testStrings, expectedResults, string => {
-        return stringParser.formatHedTag(string)
+      validatorWithoutIssues(testStrings, expectedResults, (string) => {
+        const parsedTag = new ParsedHedTag(string, string, [], nullSchema)
+        formatHedTag(parsedTag)
+        return parsedTag.formattedTag
       })
     })
   })
@@ -292,23 +378,24 @@ describe('HED string parsing', () => {
     it('must have the correct number of tags, top-level tags, and groups', () => {
       const hedString =
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
-      const [parsedString, issues] = stringParser.parseHedString(hedString)
+      const [parsedString, issues] = parseHedString(hedString, nullSchema)
       assert.deepStrictEqual(issues, [])
-      assert.sameDeepMembers(parsedString.tags, [
+      assert.sameDeepMembers(parsedString.tags.map(originalMap), [
         '/Action/Reach/To touch',
         '/Attribute/Object side/Left',
         '/Participant/Effect/Body part/Arm',
         '/Attribute/Location/Screen/Top/70 px',
         '/Attribute/Location/Screen/Left/23 px',
       ])
-      assert.sameDeepMembers(parsedString.topLevelTags, [
+      assert.sameDeepMembers(parsedString.topLevelTags.map(originalMap), [
         '/Action/Reach/To touch',
         '/Attribute/Location/Screen/Top/70 px',
         '/Attribute/Location/Screen/Left/23 px',
       ])
-      assert.sameDeepMembers(parsedString.tagGroups, [
-        ['/Attribute/Object side/Left', '/Participant/Effect/Body part/Arm'],
-      ])
+      assert.sameDeepMembers(
+        parsedString.tagGroups.map((group) => group.map(originalMap)),
+        [['/Attribute/Object side/Left', '/Participant/Effect/Body part/Arm']],
+      )
     })
 
     it('must include properly formatted tags', () => {
@@ -316,25 +403,63 @@ describe('HED string parsing', () => {
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
       const formattedHedString =
         'action/reach/to touch,(attribute/object side/left,participant/effect/body part/arm),attribute/location/screen/top/70 px,attribute/location/screen/left/23 px'
-      const [parsedString, issues] = stringParser.parseHedString(hedString)
-      const [
-        parsedFormattedString,
-        formattedIssues,
-      ] = stringParser.parseHedString(formattedHedString)
+      const [parsedString, issues] = parseHedString(hedString, nullSchema)
+      const [parsedFormattedString, formattedIssues] = parseHedString(
+        formattedHedString,
+        nullSchema,
+      )
+      const formattedMap = (parsedTag) => {
+        return parsedTag.formattedTag
+      }
       assert.deepStrictEqual(issues, [])
       assert.deepStrictEqual(formattedIssues, [])
       assert.deepStrictEqual(
-        parsedString.formattedTags,
-        parsedFormattedString.tags,
+        parsedString.tags.map(formattedMap),
+        parsedFormattedString.tags.map(originalMap),
       )
       assert.deepStrictEqual(
-        parsedString.formattedTagGroups,
-        parsedFormattedString.tagGroups,
+        parsedString.tagGroups.map(formattedMap),
+        parsedFormattedString.tagGroups.map(originalMap),
       )
       assert.deepStrictEqual(
-        parsedString.formattedTopLevelTags,
-        parsedFormattedString.topLevelTags,
+        parsedString.topLevelTags.map(formattedMap),
+        parsedFormattedString.topLevelTags.map(originalMap),
       )
+    })
+  })
+
+  describe('Canonical HED tags', () => {
+    it('should convert HED 3 tags into canonical form', () => {
+      const testStrings = {
+        simple: 'Car',
+        groupAndTag: '(Train, RGB-red/0.5), Car',
+      }
+      const expectedResults = {
+        simple: ['Item/Object/Man-made-object/Vehicle/Car'],
+        groupAndTag: [
+          'Item/Object/Man-made-object/Vehicle/Train',
+          'Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
+          'Item/Object/Man-made-object/Vehicle/Car',
+        ],
+      }
+      const expectedIssues = {
+        simple: [],
+        groupAndTag: [],
+      }
+      return hedSchemaPromise.then((hedSchema) => {
+        return validatorWithIssues(
+          testStrings,
+          expectedResults,
+          expectedIssues,
+          (string) => {
+            const [parsedString, issues] = parseHedString(string, hedSchema)
+            const canonicalTags = parsedString.tags.map((parsedTag) => {
+              return parsedTag.canonicalTag
+            })
+            return [canonicalTags, issues]
+          },
+        )
+      })
     })
   })
 })

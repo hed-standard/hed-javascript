@@ -1,3 +1,4 @@
+const semver = require('semver')
 const xml2js = require('xml2js')
 
 const files = require('../utils/files')
@@ -5,14 +6,16 @@ const files = require('../utils/files')
 /**
  * Load schema XML data from a schema version or path description.
  *
- * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
+ * @param {{path: string?, library: string?, version: string?}} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<object>} The schema XML data or an error.
  */
-const loadSchema = function(schemaDef = {}) {
+const loadSchema = function (schemaDef = {}) {
   if (Object.entries(schemaDef).length === 0) {
     return loadRemoteSchema()
   } else if (schemaDef.path) {
     return loadLocalSchema(schemaDef.path)
+  } else if (schemaDef.library) {
+    return loadRemoteSchema(schemaDef.version, schemaDef.library)
   } else if (schemaDef.version) {
     return loadRemoteSchema(schemaDef.version)
   } else {
@@ -24,19 +27,28 @@ const loadSchema = function(schemaDef = {}) {
  * Load schema XML data from the HED specification GitHub repository.
  *
  * @param {string} version The schema version to load.
+ * @param {string?} library The library schema to load.
  * @return {Promise<object>} The schema XML data.
  */
-const loadRemoteSchema = function(version = 'Latest') {
-  const fileName = 'HED' + version + '.xml'
-  const basePath =
-    'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
+const loadRemoteSchema = function (version = 'Latest', library) {
+  let fileName
+  let basePath
+  if (library) {
+    fileName = 'HED_' + library + '_' + version + '.xml'
+    basePath =
+      'https://raw.githubusercontent.com/hed-standard/hed-schema-library/master/hedxml/'
+  } else {
+    fileName = 'HED' + version + '.xml'
+    basePath =
+      'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
+  }
   const url = basePath + fileName
   return files
     .readHTTPSFile(url)
-    .then(data => {
+    .then((data) => {
       return xml2js.parseStringPromise(data, { explicitCharkey: true })
     })
-    .catch(error => {
+    .catch((error) => {
       throw new Error(
         'Could not load HED schema version "' +
           version +
@@ -53,13 +65,13 @@ const loadRemoteSchema = function(version = 'Latest') {
  * @param {string} path The path to the schema XML data.
  * @return {Promise<object>} The schema XML data.
  */
-const loadLocalSchema = function(path) {
+const loadLocalSchema = function (path) {
   return files
     .readFile(path)
-    .then(data => {
+    .then((data) => {
       return xml2js.parseStringPromise(data, { explicitCharkey: true })
     })
-    .catch(error => {
+    .catch((error) => {
       throw new Error(
         'Could not load HED schema from path "' + path + '" - "' + error + '".',
       )
@@ -72,7 +84,7 @@ const loadLocalSchema = function(path) {
  * @param {object} node The child node.
  * @param {object} parent The parent node.
  */
-const setParent = function(node, parent) {
+const setParent = function (node, parent) {
   // Assume that we've already run this function if so.
   if ('$parent' in node) {
     return
@@ -88,12 +100,16 @@ const setParent = function(node, parent) {
 /**
  * An imported HED schema object.
  *
- * @param {object} xmlData The schema XML data.
+ * @param {Object} xmlData The schema XML data.
  * @param {SchemaAttributes} attributes A description of tag attributes.
  * @param {Mapping} mapping A mapping between short and long tags.
  * @constructor
  */
-const Schema = function(xmlData, attributes, mapping) {
+const Schema = function (xmlData, attributes, mapping) {
+  /**
+   * The schema XML data.
+   * @type {Object}
+   */
   this.xmlData = xmlData
   const rootElement = xmlData.HED
   /**
@@ -101,12 +117,50 @@ const Schema = function(xmlData, attributes, mapping) {
    * @type {string}
    */
   this.version = rootElement.$.version
+  /**
+   * The HED library schema name.
+   * @type {string|undefined}
+   */
+  this.library = rootElement.$.library
+  /**
+   * The description of tag attributes.
+   * @type {SchemaAttributes}
+   */
   this.attributes = attributes
+  /**
+   * The mapping between short and long tags.
+   * @type {Mapping}
+   */
   this.mapping = mapping
+}
+
+/**
+ * The collection of active HED schemas.
+ *
+ * @param {Schema} baseSchema The base HED schema.
+ * @constructor
+ */
+const Schemas = function (baseSchema) {
+  /**
+   * The base HED schema.
+   * @type {Schema}
+   */
+  this.baseSchema = baseSchema
+  /**
+   * The imported library HED schemas.
+   * @type {Object<string, Schema>}
+   */
+  this.librarySchemas = {}
+  /**
+   * Whether this is a HED 3 schema collection.
+   * @type {boolean}
+   */
+  this.isHed3 = baseSchema && semver.gte(baseSchema.version, '8.0.0-alpha')
 }
 
 module.exports = {
   loadSchema: loadSchema,
   setParent: setParent,
   Schema: Schema,
+  Schemas: Schemas,
 }
