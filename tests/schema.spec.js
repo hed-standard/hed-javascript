@@ -26,6 +26,7 @@ describe('Local HED schemas', function() {
   })
 })
 
+/*
 describe('Remote HED library schemas', function() {
   it('can be loaded from a central GitHub repository', function() {
     const remoteHedSchemaLibrary = 'test'
@@ -42,6 +43,7 @@ describe('Remote HED library schemas', function() {
       })
   })
 })
+*/
 
 describe('HED schemas', function() {
   let hedSchemaPromise

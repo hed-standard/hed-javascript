@@ -14,9 +14,9 @@ const loadSchema = function (schemaDef = {}) {
     return loadRemoteSchema()
   } else if (schemaDef.path) {
     return loadLocalSchema(schemaDef.path)
-  } else if (schemaDef.library) {
+  } /* else if (schemaDef.library) {
     return loadRemoteSchema(schemaDef.version, schemaDef.library)
-  } else if (schemaDef.version) {
+  } */ else if (schemaDef.version) {
     return loadRemoteSchema(schemaDef.version)
   } else {
     return Promise.reject('Invalid input.')
