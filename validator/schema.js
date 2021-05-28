@@ -36,20 +36,24 @@ const unitClassUnitsElement = 'units'
 const unitsElement = 'units'
 const unitModifierElement = 'unitModifier'
 
-const SchemaDictionaries = {
+const lc = (str) => {
+  return str.toLowerCase()
+}
+
+const V2SchemaDictionaries = {
   populateDictionaries: function () {
-    this.dictionaries = {}
+    this.tagAttributes = {}
+    this.unitModifiers = {}
     this.populateUnitClassDictionaries()
     this.populateUnitModifierDictionaries()
     this.populateTagDictionaries()
-    return this.dictionaries
   },
 
   populateTagDictionaries: function () {
     for (const dictionaryKey of tagDictionaryKeys) {
       const [tags, tagElements] = this.getTagsByAttribute(dictionaryKey)
       if (dictionaryKey === extensionAllowedAttribute) {
-        const tagDictionary = this.stringListToLowercaseDictionary(tags)
+        const tagDictionary = this.stringListToLowercaseTrueDictionary(tags)
         const childTagElements = arrayUtils.flattenDeep(
           tagElements.map((tagElement) => {
             return this.getAllChildTags(tagElement)
@@ -58,26 +62,21 @@ const SchemaDictionaries = {
         const childTags = childTagElements.map((tagElement) => {
           return this.getTagPathFromTagElement(tagElement)
         })
-        const childDictionary = this.stringListToLowercaseDictionary(childTags)
-        this.dictionaries[extensionAllowedAttribute] = Object.assign(
+        const childDictionary = this.stringListToLowercaseTrueDictionary(childTags)
+        this.tagAttributes[extensionAllowedAttribute] = Object.assign(
           {},
           tagDictionary,
           childDictionary,
         )
-      } else if (
-        dictionaryKey === defaultUnitForTagAttribute ||
-        dictionaryKey === tagUnitClassAttribute
-      ) {
+      } else if (dictionaryKey === defaultUnitForTagAttribute) {
         this.populateTagToAttributeDictionary(tags, tagElements, dictionaryKey)
+      } else if (dictionaryKey === tagUnitClassAttribute) {
+        this.populateTagUnitClassDictionary(tags, tagElements)
       } else if (dictionaryKey === tagsDictionaryKey) {
         const tags = this.getAllTags()[0]
-        this.dictionaries[
-          tagsDictionaryKey
-        ] = this.stringListToLowercaseDictionary(tags)
+        this.tags = tags.map(lc)
       } else {
-        this.dictionaries[dictionaryKey] = this.stringListToLowercaseDictionary(
-          tags,
-        )
+        this.tagAttributes[dictionaryKey] = this.stringListToLowercaseTrueDictionary(tags)
       }
     }
   },
@@ -94,12 +93,15 @@ const SchemaDictionaries = {
   },
 
   populateUnitClassUnitsDictionary: function (unitClassElements) {
-    this.dictionaries[unitsElement] = {}
+    this.unitClasses = {}
+    this.unitClassAttributes = {}
+    this.unitAttributes = {}
     for (const unitClassKey of unitClassDictionaryKeys) {
-      this.dictionaries[unitClassKey] = {}
+      this.unitAttributes[unitClassKey] = {}
     }
     for (const unitClassElement of unitClassElements) {
       const unitClassName = this.getElementTagValue(unitClassElement)
+      this.unitClassAttributes[unitClassName] = {}
       const units =
         unitClassElement[unitClassUnitsElement][0][unitClassUnitElement]
       if (units === undefined) {
@@ -108,7 +110,7 @@ const SchemaDictionaries = {
           unitClassUnitsElement,
         )
         const units = elementUnits.split(',')
-        this.dictionaries[unitsElement][unitClassName] = units.map((unit) => {
+        this.unitClasses[unitClassName] = units.map((unit) => {
           return unit.toLowerCase()
         })
         continue
@@ -116,12 +118,12 @@ const SchemaDictionaries = {
       const unitNames = units.map((element) => {
         return element._
       })
-      this.dictionaries[unitsElement][unitClassName] = unitNames
+      this.unitClasses[unitClassName] = unitNames
       for (const unit of units) {
         if (unit.$) {
           const unitName = unit._
           for (const unitClassKey of unitClassDictionaryKeys) {
-            this.dictionaries[unitClassKey][unitName] = unit.$[unitClassKey]
+            this.unitAttributes[unitClassKey][unitName] = unit.$[unitClassKey]
           }
         }
       }
@@ -129,17 +131,14 @@ const SchemaDictionaries = {
   },
 
   populateUnitClassDefaultUnitDictionary: function (unitClassElements) {
-    this.dictionaries[defaultUnitForUnitClassAttribute] = {}
     for (const unitClassElement of unitClassElements) {
       const elementName = this.getElementTagValue(unitClassElement)
       const defaultUnit = unitClassElement.$[defaultUnitForUnitClassAttribute]
       if (defaultUnit === undefined) {
-        this.dictionaries[defaultUnitForUnitClassAttribute][elementName] =
+        this.unitClassAttributes[elementName][defaultUnitForUnitClassAttribute] =
           unitClassElement.$[defaultUnitForOldUnitClassAttribute]
       } else {
-        this.dictionaries[defaultUnitForUnitClassAttribute][
-          elementName
-        ] = defaultUnit
+        this.unitClassAttributes[elementName][defaultUnitForUnitClassAttribute] = defaultUnit
       }
     }
   },
@@ -152,14 +151,14 @@ const SchemaDictionaries = {
     }
     this.hasUnitModifiers = true
     for (const unitModifierKey of unitModifierDictionaryKeys) {
-      this.dictionaries[unitModifierKey] = {}
+      this.unitModifiers[unitModifierKey] = {}
     }
     for (const unitModifierElement of unitModifierElements) {
       const unitModifierName = this.getElementTagValue(unitModifierElement)
       if (unitModifierElement.$) {
         for (const unitModifierKey of unitModifierDictionaryKeys) {
           if (unitModifierElement.$[unitModifierKey] !== undefined) {
-            this.dictionaries[unitModifierKey][unitModifierName] =
+            this.unitModifiers[unitModifierKey][unitModifierName] =
               unitModifierElement.$[unitModifierKey]
           }
         }
@@ -172,18 +171,32 @@ const SchemaDictionaries = {
     tagElementList,
     attributeName,
   ) {
-    this.dictionaries[attributeName] = {}
+    this.tagAttributes[attributeName] = {}
     for (let i = 0; i < tagList.length; i++) {
       const tag = tagList[i]
-      this.dictionaries[attributeName][tag.toLowerCase()] =
+      this.tagAttributes[attributeName][tag.toLowerCase()] =
         tagElementList[i].$[attributeName]
     }
   },
 
-  stringListToLowercaseDictionary: function (stringList) {
+  populateTagUnitClassDictionary: function (
+    tagList,
+    tagElementList,
+  ) {
+    this.tagUnitClasses = {}
+    for (let i = 0; i < tagList.length; i++) {
+      const tag = tagList[i]
+      const unitClassString = tagElementList[i].$[tagUnitClassAttribute]
+      if (unitClassString) {
+        this.tagUnitClasses[tag.toLowerCase()] = unitClassString.split(',')
+      }
+    }
+  },
+
+  stringListToLowercaseTrueDictionary: function (stringList) {
     const lowercaseDictionary = {}
     for (const stringElement of stringList) {
-      lowercaseDictionary[stringElement.toLowerCase()] = stringElement
+      lowercaseDictionary[stringElement.toLowerCase()] = true
     }
     return lowercaseDictionary
   },
@@ -290,25 +303,67 @@ const SchemaDictionaries = {
  * @return {boolean} Whether this tag has this attribute.
  */
 const tagHasAttribute = function (tag, tagAttribute) {
-  return tag.toLowerCase() in this.dictionaries[tagAttribute]
+  return tag.toLowerCase() in this.tagAttributes[tagAttribute]
 }
 
 /**
  * A description of a HED schema's attributes.
  *
- * @param {object<string, string[]>} dictionaries A mapping from a HED schema's attributes to a list of tags with that attribute.
- * @param {boolean} hasUnitClasses Whether the schema has unit classes.
- * @param {boolean} hasUnitModifiers Whether the schema has unit modifiers.
+ * @param {V2SchemaDictionaries} schemaDictionaries A constructed schema dictionary collection.
  * @constructor
  */
-const SchemaAttributes = function (
-  dictionaries,
-  hasUnitClasses,
-  hasUnitModifiers,
-) {
-  this.dictionaries = dictionaries
-  this.hasUnitClasses = hasUnitClasses
-  this.hasUnitModifiers = hasUnitModifiers
+const SchemaAttributes = function (schemaDictionaries) {
+  /**
+   * The list of all (formatted) tags.
+   * @type {string[]}
+   */
+  this.tags = schemaDictionaries.tags
+  /**
+   * The mapping from attributes to tags to values.
+   * @type {object<string, object<string, boolean|string|string[]>>}
+   */
+  this.tagAttributes = schemaDictionaries.tagAttributes
+  /**
+   * The mapping from tags to their unit classes.
+   * @type {object<string, string[]>}
+   */
+  this.tagUnitClasses = schemaDictionaries.tagUnitClasses
+  /**
+   * The mapping from unit classes to their units.
+   * @type {object<string, string[]>}
+   */
+  this.unitClasses = schemaDictionaries.unitClasses
+  /**
+   * The mapping from unit classes to their attributes.
+   * @type {object<string, object<string, boolean|string|string[]>>}
+   */
+  this.unitClassAttributes = schemaDictionaries.unitClassAttributes
+  /**
+   * The mapping from units to their attributes.
+   * @type {object<string, object<string, boolean|string|string[]>>}
+   */
+  this.unitAttributes = schemaDictionaries.unitAttributes
+  /**
+   * The mapping from unit modifier types to unit modifiers.
+   * @type {object<string, string[]>}
+   */
+  this.unitModifiers = schemaDictionaries.unitModifiers
+  /**
+   * Whether the schema has unit classes.
+   * @type {boolean}
+   */
+  this.hasUnitClasses = schemaDictionaries.hasUnitClasses
+  /**
+   * Whether the schema has unit modifiers.
+   * @type {boolean}
+   */
+  this.hasUnitModifiers = schemaDictionaries.hasUnitModifiers
+  /**
+   * Determine if a HED tag has a particular attribute in this schema.
+   * @param {string} tag The HED tag to check.
+   * @param {string} tagAttribute The attribute to check for.
+   * @return {boolean} Whether this tag has this attribute.
+   */
   this.tagHasAttribute = tagHasAttribute
 }
 
@@ -319,16 +374,13 @@ const SchemaAttributes = function (
  * @return {SchemaAttributes} The schema attributes object.
  */
 const buildSchemaAttributesObject = function (xmlData) {
-  const schemaDictionaries = Object.create(SchemaDictionaries)
+  const schemaDictionaries = Object.create(V2SchemaDictionaries)
   const rootElement = xmlData.HED
   schemaUtils.setParent(rootElement, xmlData)
   schemaDictionaries.rootElement = rootElement
-  const dictionaries = schemaDictionaries.populateDictionaries()
-  return new SchemaAttributes(
-    dictionaries,
-    schemaDictionaries.hasUnitClasses,
-    schemaDictionaries.hasUnitModifiers,
-  )
+  schemaDictionaries.populateDictionaries()
+
+  return new SchemaAttributes(schemaDictionaries)
 }
 
 /**
