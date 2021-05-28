@@ -223,7 +223,7 @@ const checkForDuplicateTags = function (tagList) {
 const checkForMultipleUniqueTags = function (tagList, hedSchemas) {
   const issues = []
   const uniqueTagPrefixes =
-    hedSchemas.baseSchema.attributes.dictionaries[uniqueType]
+    hedSchemas.baseSchema.attributes.tagAttributes[uniqueType]
   for (const uniqueTagPrefix in uniqueTagPrefixes) {
     let foundOne = false
     for (const tag of tagList) {
@@ -249,9 +249,10 @@ const checkForMultipleUniqueTags = function (tagList, hedSchemas) {
  */
 const checkIfTagRequiresChild = function (tag, hedSchemas) {
   const issues = []
-  const invalid =
-    tag.formattedTag in
-    hedSchemas.baseSchema.attributes.dictionaries[requireChildType]
+  const invalid = hedSchemas.baseSchema.attributes.tagHasAttribute(
+    tag.formattedTag,
+    requireChildType,
+  )
   if (invalid) {
     issues.push(generateIssue('childRequired', { tag: tag.originalTag }))
   }
@@ -264,7 +265,7 @@ const checkIfTagRequiresChild = function (tag, hedSchemas) {
 const checkForRequiredTags = function (topLevelTags, hedSchemas) {
   const issues = []
   const requiredTagPrefixes =
-    hedSchemas.baseSchema.attributes.dictionaries[requiredType]
+    hedSchemas.baseSchema.attributes.tagAttributes[requiredType]
   for (const requiredTagPrefix in requiredTagPrefixes) {
     let foundOne = false
     for (const tag of topLevelTags) {
@@ -317,10 +318,7 @@ const checkIfTagUnitClassUnitsAreValid = function (
       tag.formattedTag,
       hedSchemas.baseSchema.attributes,
     )
-    if (
-      dateTimeUnitClass in
-      hedSchemas.baseSchema.attributes.dictionaries[unitsElement]
-    ) {
+    if (dateTimeUnitClass in hedSchemas.baseSchema.attributes.unitClasses) {
       if (tagUnitClasses.includes(dateTimeUnitClass)) {
         if (utils.string.isDateTime(formattedTagUnitValue)) {
           return []
@@ -330,10 +328,7 @@ const checkIfTagUnitClassUnitsAreValid = function (
         }
       }
     }
-    if (
-      clockTimeUnitClass in
-      hedSchemas.baseSchema.attributes.dictionaries[unitsElement]
-    ) {
+    if (clockTimeUnitClass in hedSchemas.baseSchema.attributes.unitClasses) {
       if (tagUnitClasses.includes(clockTimeUnitClass)) {
         if (utils.string.isClockFaceTime(formattedTagUnitValue)) {
           return []
@@ -342,10 +337,7 @@ const checkIfTagUnitClassUnitsAreValid = function (
           return issues
         }
       }
-    } else if (
-      timeUnitClass in
-      hedSchemas.baseSchema.attributes.dictionaries[unitsElement]
-    ) {
+    } else if (timeUnitClass in hedSchemas.baseSchema.attributes.unitClasses) {
       if (
         tagUnitClasses.includes(timeUnitClass) &&
         tag.originalTag.includes(':')
@@ -441,7 +433,7 @@ const checkValueTagSyntax = function (tag, hedSchemas, allowPlaceholders) {
 /**
  * Check if an individual HED tag is in the schema or is an allowed extension.
  */
-const checkIfTagIsValid = function(
+const checkIfTagIsValid = function (
   tag,
   previousTag,
   hedSchemas,

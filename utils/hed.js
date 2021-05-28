@@ -92,18 +92,18 @@ const validateValue = function (value, allowPlaceholders, isNumeric, isHed3) {
 const getValidDerivativeUnits = function (unit, hedSchemaAttributes) {
   const pluralUnits = [unit]
   const isUnitSymbol =
-    hedSchemaAttributes.dictionaries[unitSymbolType][unit] !== undefined
+    hedSchemaAttributes.unitAttributes[unitSymbolType][unit] !== undefined
   if (hedSchemaAttributes.hasUnitModifiers && !isUnitSymbol) {
     pluralUnits.push(pluralize.plural(unit))
   }
   const isSIUnit =
-    hedSchemaAttributes.dictionaries[SIUnitKey][unit] !== undefined
+    hedSchemaAttributes.unitAttributes[SIUnitKey][unit] !== undefined
   if (isSIUnit && hedSchemaAttributes.hasUnitModifiers) {
     const derivativeUnits = [].concat(pluralUnits)
     const modifierKey = isUnitSymbol
       ? SIUnitSymbolModifierKey
       : SIUnitModifierKey
-    for (const unitModifier in hedSchemaAttributes.dictionaries[modifierKey]) {
+    for (const unitModifier in hedSchemaAttributes.unitModifiers[modifierKey]) {
       for (const plural of pluralUnits) {
         derivativeUnits.push(unitModifier + plural)
       }
@@ -139,7 +139,7 @@ const validateUnits = function (
   let foundUnit, foundWrongCaseUnit, strippedValue
   for (const unit of validUnits) {
     const isUnitSymbol =
-      hedSchemaAttributes.dictionaries[unitSymbolType][unit] !== undefined
+      hedSchemaAttributes.unitAttributes[unitSymbolType][unit] !== undefined
     const derivativeUnits = getValidDerivativeUnits(unit, hedSchemaAttributes)
     for (const derivativeUnit of derivativeUnits) {
       if (originalTagUnitValue.startsWith(derivativeUnit)) {
@@ -176,7 +176,7 @@ const validateUnits = function (
  * Determine if a HED tag is in the schema.
  */
 const tagExistsInSchema = function (formattedTag, hedSchemaAttributes) {
-  return formattedTag in hedSchemaAttributes.dictionaries[tagsDictionaryKey]
+  return hedSchemaAttributes.tags.includes(formattedTag)
 }
 
 /**
@@ -195,7 +195,7 @@ const isUnitClassTag = function (formattedTag, hedSchemaAttributes) {
     return false
   }
   const takesValueTag = replaceTagNameWithPound(formattedTag)
-  return hedSchemaAttributes.tagHasAttribute(takesValueTag, unitClassType)
+  return takesValueTag in hedSchemaAttributes.tagUnitClasses
 }
 
 /**
@@ -209,18 +209,11 @@ const getUnitClassDefaultUnit = function (formattedTag, hedSchemaAttributes) {
       defaultUnitForTagAttribute,
     )
     if (hasDefaultAttribute) {
-      return hedSchemaAttributes.dictionaries[defaultUnitForTagAttribute][
-        unitClassTag
-      ]
-    } else if (
-      unitClassTag in hedSchemaAttributes.dictionaries[unitClassType]
-    ) {
-      const unitClasses =
-        hedSchemaAttributes.dictionaries[unitClassType][unitClassTag].split(',')
+      return hedSchemaAttributes.tagAttributes[defaultUnitForTagAttribute][unitClassTag]
+    } else if (unitClassTag in hedSchemaAttributes.tagUnitClasses) {
+      const unitClasses = hedSchemaAttributes.tagUnitClasses[unitClassTag]
       const firstUnitClass = unitClasses[0]
-      return hedSchemaAttributes.dictionaries[
-        defaultUnitsForUnitClassAttribute
-      ][firstUnitClass]
+      return hedSchemaAttributes.unitClassAttributes[firstUnitClass][defaultUnitsForUnitClassAttribute]
     }
   } else {
     return ''
@@ -233,9 +226,7 @@ const getUnitClassDefaultUnit = function (formattedTag, hedSchemaAttributes) {
 const getTagUnitClasses = function (formattedTag, hedSchemaAttributes) {
   if (isUnitClassTag(formattedTag, hedSchemaAttributes)) {
     const unitClassTag = replaceTagNameWithPound(formattedTag)
-    const unitClassesString =
-      hedSchemaAttributes.dictionaries[unitClassType][unitClassTag]
-    return unitClassesString.split(',')
+    return hedSchemaAttributes.tagUnitClasses[unitClassTag]
   } else {
     return []
   }
@@ -248,8 +239,7 @@ const getTagUnitClassUnits = function (formattedTag, hedSchemaAttributes) {
   const tagUnitClasses = getTagUnitClasses(formattedTag, hedSchemaAttributes)
   const units = []
   for (const unitClass of tagUnitClasses) {
-    const unitClassUnits =
-      hedSchemaAttributes.dictionaries[unitClassUnitsType][unitClass]
+    const unitClassUnits = hedSchemaAttributes.unitClasses[unitClass]
     Array.prototype.push.apply(units, unitClassUnits)
   }
   return units
@@ -260,11 +250,8 @@ const getTagUnitClassUnits = function (formattedTag, hedSchemaAttributes) {
  */
 const getAllUnits = function (hedSchemaAttributes) {
   const units = []
-  for (const unitClass in hedSchemaAttributes.dictionaries[
-    unitClassUnitsType
-  ]) {
-    const unitClassUnits =
-      hedSchemaAttributes.dictionaries[unitClassUnitsType][unitClass]
+  for (const unitClass in hedSchemaAttributes.unitClasses) {
+    const unitClassUnits = hedSchemaAttributes.unitClasses[unitClass]
     Array.prototype.push.apply(units, unitClassUnits)
   }
   return units
