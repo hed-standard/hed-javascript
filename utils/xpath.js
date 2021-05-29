@@ -1,5 +1,13 @@
 // Temporary XPath implementation until the xml2js-xpath package adds needed functionality.
 
+const childToParent = {
+  unitClass: 'unitClasses',
+  unitModifier: 'unitModifiers',
+  unitClassDefinition: 'unitClassDefinitions',
+  unitModifierDefinition: 'unitModifierDefinitions',
+  schemaAttributeDefinition: 'schemaAttributeDefinitions',
+}
+
 /**
  * Execute an XPath query on an xml2js object.
  *
@@ -40,21 +48,13 @@ const find = function(element, query) {
     }
   }
 
-  if (elementName === 'unitClass') {
-    const unitClassesList = element.unitClasses
-    if (unitClassesList === undefined) {
+  if (elementName in childToParent) {
+    const parentList = element[childToParent[elementName]]
+    if (parentList === undefined) {
       return []
     }
-    for (const unitClass of unitClassesList[0].unitClass) {
-      result.push(unitClass)
-    }
-  } else if (elementName === 'unitModifier') {
-    const unitModifiersList = element.unitModifiers
-    if (unitModifiersList === undefined) {
-      return []
-    }
-    for (const unitModifier of unitModifiersList[0].unitModifier) {
-      result.push(unitModifier)
+    for (const child of parentList[0][elementName]) {
+      result.push(child)
     }
   } else if (elementName === 'node') {
     if (elementName in element) {

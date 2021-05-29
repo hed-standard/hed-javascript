@@ -204,10 +204,17 @@ const isUnitClassTag = function (formattedTag, hedSchemaAttributes) {
 const getUnitClassDefaultUnit = function (formattedTag, hedSchemaAttributes) {
   if (isUnitClassTag(formattedTag, hedSchemaAttributes)) {
     const unitClassTag = replaceTagNameWithPound(formattedTag)
-    const hasDefaultAttribute = hedSchemaAttributes.tagHasAttribute(
+    let hasDefaultAttribute = hedSchemaAttributes.tagHasAttribute(
       unitClassTag,
       defaultUnitForTagAttribute,
     )
+    // TODO: New versions of the spec have defaultUnits instead of default.
+    if (hasDefaultAttribute === null) {
+      hasDefaultAttribute = hedSchemaAttributes.tagHasAttribute(
+        unitClassTag,
+        defaultUnitsForUnitClassAttribute,
+      )
+    }
     if (hasDefaultAttribute) {
       return hedSchemaAttributes.tagAttributes[defaultUnitForTagAttribute][unitClassTag]
     } else if (unitClassTag in hedSchemaAttributes.tagUnitClasses) {

@@ -1,3 +1,5 @@
+const semver = require('semver')
+
 // TODO: Switch require once upstream bugs are fixed.
 // const xpath = require('xml2js-xpath')
 // Temporary
@@ -35,6 +37,9 @@ const unitClassUnitElement = 'unit'
 const unitClassUnitsElement = 'units'
 const unitsElement = 'units'
 const unitModifierElement = 'unitModifier'
+const schemaAttributeDefinitionElement = 'schemaAttributeDefinition'
+const unitClassDefinitionElement = 'unitClassDefinition'
+const unitModifierDefinitionElement = 'unitModifierDefinition'
 
 const lc = (str) => {
   return str.toLowerCase()
@@ -42,14 +47,13 @@ const lc = (str) => {
 
 const V2SchemaDictionaries = {
   populateDictionaries: function () {
-    this.tagAttributes = {}
-    this.unitModifiers = {}
     this.populateUnitClassDictionaries()
     this.populateUnitModifierDictionaries()
     this.populateTagDictionaries()
   },
 
   populateTagDictionaries: function () {
+    this.tagAttributes = {}
     for (const dictionaryKey of tagDictionaryKeys) {
       const [tags, tagElements] = this.getTagsByAttribute(dictionaryKey)
       if (dictionaryKey === extensionAllowedAttribute) {
@@ -62,7 +66,8 @@ const V2SchemaDictionaries = {
         const childTags = childTagElements.map((tagElement) => {
           return this.getTagPathFromTagElement(tagElement)
         })
-        const childDictionary = this.stringListToLowercaseTrueDictionary(childTags)
+        const childDictionary =
+          this.stringListToLowercaseTrueDictionary(childTags)
         this.tagAttributes[extensionAllowedAttribute] = Object.assign(
           {},
           tagDictionary,
@@ -76,7 +81,8 @@ const V2SchemaDictionaries = {
         const tags = this.getAllTags()[0]
         this.tags = tags.map(lc)
       } else {
-        this.tagAttributes[dictionaryKey] = this.stringListToLowercaseTrueDictionary(tags)
+        this.tagAttributes[dictionaryKey] =
+          this.stringListToLowercaseTrueDictionary(tags)
       }
     }
   },
@@ -135,15 +141,19 @@ const V2SchemaDictionaries = {
       const elementName = this.getElementTagValue(unitClassElement)
       const defaultUnit = unitClassElement.$[defaultUnitForUnitClassAttribute]
       if (defaultUnit === undefined) {
-        this.unitClassAttributes[elementName][defaultUnitForUnitClassAttribute] =
-          unitClassElement.$[defaultUnitForOldUnitClassAttribute]
+        this.unitClassAttributes[elementName][
+          defaultUnitForUnitClassAttribute
+        ] = unitClassElement.$[defaultUnitForOldUnitClassAttribute]
       } else {
-        this.unitClassAttributes[elementName][defaultUnitForUnitClassAttribute] = defaultUnit
+        this.unitClassAttributes[elementName][
+          defaultUnitForUnitClassAttribute
+        ] = defaultUnit
       }
     }
   },
 
   populateUnitModifierDictionaries: function () {
+    this.unitModifiers = {}
     const unitModifierElements = this.getElementsByName(unitModifierElement)
     if (unitModifierElements.length === 0) {
       this.hasUnitModifiers = false
@@ -179,10 +189,7 @@ const V2SchemaDictionaries = {
     }
   },
 
-  populateTagUnitClassDictionary: function (
-    tagList,
-    tagElementList,
-  ) {
+  populateTagUnitClassDictionary: function (tagList, tagElementList) {
     this.tagUnitClasses = {}
     for (let i = 0; i < tagList.length; i++) {
       const tag = tagList[i]
@@ -295,14 +302,301 @@ const V2SchemaDictionaries = {
   },
 }
 
+const attributeFilter = function (propertyName) {
+  return (element) => {
+    const validProperty = propertyName
+    if (!element.property) {
+      return false
+    }
+    for (const property of element.property) {
+      if (property.name[0]._ === validProperty) {
+        return true
+      }
+    }
+    return false
+  }
+}
+
+const V3SchemaDictionaries = {
+  populateDictionaries: function () {
+    this.populateUnitClassDictionaries()
+    this.populateUnitModifierDictionaries()
+    this.populateTagDictionaries()
+  },
+
+  populateTagDictionaries: function () {
+    this.tagAttributes = {}
+    this.tagUnitClasses = {}
+    const tagSchemaAttributes = this.getElementsByName(
+      schemaAttributeDefinitionElement,
+    ).filter((element) => {
+      const invalidProperties = [
+        'unitClassProperty',
+        'unitModifierProperty',
+        'unitProperty',
+      ]
+      if (!element.property) {
+        return true
+      }
+      for (const property of element.property) {
+        if (invalidProperties.includes(property.name[0]._)) {
+          return false
+        }
+      }
+      return true
+    })
+    const tagAttributes = tagSchemaAttributes.map(this.getElementTagValue)
+    for (const attribute of tagAttributes) {
+      this.tagAttributes[attribute] = {}
+    }
+    const [tags, tagElements] = this.getAllTags()
+    const lowercaseTags = tags.map(lc)
+    this.tags = lowercaseTags
+    lowercaseTags.forEach((tag, index) => {
+      const tagElement = tagElements[index]
+      for (const attribute of tagAttributes) {
+        const elementAttributeValue = this.elementAttributeValue(
+          tagElement,
+          attribute,
+        )
+        if (elementAttributeValue !== null) {
+          if (attribute === extensionAllowedAttribute) {
+            const tagDictionary = this.stringListToLowercaseTrueDictionary([
+              tag,
+            ])
+            const childTagElements = this.getAllChildTags(tagElement)
+            const childTags = childTagElements.map((element) => {
+              return this.getTagPathFromTagElement(element)
+            })
+            const childDictionary =
+              this.stringListToLowercaseTrueDictionary(childTags)
+            Object.assign(
+              this.tagAttributes[extensionAllowedAttribute],
+              tagDictionary,
+              childDictionary,
+            )
+          } else if (attribute === tagUnitClassAttribute) {
+            this.tagUnitClasses[tag] = elementAttributeValue
+          } else {
+            this.tagAttributes[attribute][tag] = elementAttributeValue
+          }
+        }
+      }
+    })
+  },
+
+  populateUnitClassDictionaries: function () {
+    const unitClassElements = this.getElementsByName(unitClassDefinitionElement)
+    if (unitClassElements.length === 0) {
+      this.hasUnitClasses = false
+      return
+    }
+    this.hasUnitClasses = true
+    this.unitClasses = {}
+    this.unitClassAttributes = {}
+    this.unitAttributes = {}
+
+    const unitClassSchemaAttributes = this.getElementsByName(
+      schemaAttributeDefinitionElement,
+    ).filter(attributeFilter('unitClassProperty'))
+    const unitSchemaAttributes = this.getElementsByName(
+      schemaAttributeDefinitionElement,
+    ).filter(attributeFilter('unitProperty'))
+    const unitClassAttributes = unitClassSchemaAttributes.map(
+      this.getElementTagValue,
+    )
+    const unitAttributes = unitSchemaAttributes.map(this.getElementTagValue)
+    for (const attribute of unitAttributes) {
+      this.unitAttributes[attribute] = {}
+    }
+
+    for (const unitClassElement of unitClassElements) {
+      const unitClassName = this.getElementTagValue(unitClassElement)
+      this.unitClassAttributes[unitClassName] = {}
+      let units = unitClassElement[unitClassUnitElement]
+      if (units === undefined) {
+        units = []
+      }
+      for (const attribute of unitClassAttributes) {
+        const elementAttributeValue = this.elementAttributeValue(
+          unitClassElement,
+          attribute,
+          true,
+        )
+        if (elementAttributeValue !== null) {
+          this.unitClassAttributes[unitClassName][attribute] =
+            elementAttributeValue
+        }
+      }
+      const unitNames = units.map(this.getElementTagValue)
+      this.unitClasses[unitClassName] = unitNames
+      units.forEach((unit, index) => {
+        const unitName = unitNames[index]
+        for (const attribute of unitAttributes) {
+          const elementAttributeValue = this.elementAttributeValue(
+            unit,
+            attribute,
+          )
+          if (elementAttributeValue !== null) {
+            this.unitAttributes[attribute][unitName] = elementAttributeValue
+          }
+        }
+      })
+    }
+  },
+
+  populateUnitModifierDictionaries: function () {
+    this.unitModifiers = {}
+    const unitModifierElements = this.getElementsByName(
+      unitModifierDefinitionElement,
+    )
+    if (unitModifierElements.length === 0) {
+      this.hasUnitModifiers = false
+      return
+    }
+    this.hasUnitModifiers = true
+
+    const unitModifierSchemaAttributes = this.getElementsByName(
+      schemaAttributeDefinitionElement,
+    ).filter(attributeFilter('unitModifierProperty'))
+    const unitModifierAttributes = unitModifierSchemaAttributes.map(
+      this.getElementTagValue,
+    )
+    for (const attribute of unitModifierAttributes) {
+      this.unitModifiers[attribute] = {}
+    }
+
+    for (const unitModifierElement of unitModifierElements) {
+      const unitModifierName = this.getElementTagValue(unitModifierElement)
+      for (const attribute of unitModifierAttributes) {
+        const elementAttributeValue = this.elementAttributeValue(
+          unitModifierElement,
+          attribute,
+        )
+        if (elementAttributeValue !== null) {
+          this.unitModifiers[attribute][unitModifierName] =
+            elementAttributeValue
+        }
+      }
+    }
+  },
+
+  stringListToLowercaseTrueDictionary: function (stringList) {
+    const lowercaseDictionary = {}
+    for (const stringElement of stringList) {
+      lowercaseDictionary[stringElement.toLowerCase()] = true
+    }
+    return lowercaseDictionary
+  },
+
+  getAncestorTagNames: function (tagElement) {
+    const ancestorTags = []
+    let parentTagName = this.getParentTagName(tagElement)
+    let parentElement = tagElement.$parent
+    while (parentTagName) {
+      ancestorTags.push(parentTagName)
+      parentTagName = this.getParentTagName(parentElement)
+      parentElement = parentElement.$parent
+    }
+    return ancestorTags
+  },
+
+  getElementTagValue: function (element) {
+    return element.name[0]._
+  },
+
+  getParentTagName: function (tagElement) {
+    const parentTagElement = tagElement.$parent
+    if (parentTagElement && parentTagElement !== this.rootElement) {
+      return parentTagElement.name[0]._
+    } else {
+      return ''
+    }
+  },
+
+  getTagPathFromTagElement: function (tagElement) {
+    const ancestorTagNames = this.getAncestorTagNames(tagElement)
+    ancestorTagNames.unshift(this.getElementTagValue(tagElement))
+    ancestorTagNames.reverse()
+    return ancestorTagNames.join('/')
+  },
+
+  elementAttributeValue: function (tagElement, attributeName) {
+    if (!tagElement.attribute) {
+      return null
+    }
+    for (const tagAttribute of tagElement.attribute) {
+      if (tagAttribute.name[0]._ === attributeName) {
+        if (tagAttribute.value === undefined) {
+          return true
+        }
+        const values = []
+        for (const value of tagAttribute.value) {
+          values.push(value._)
+        }
+        return values
+      }
+    }
+    return null
+  },
+
+  getAllTags: function (tagElementName = 'node') {
+    const tags = []
+    const tagElements = xpath.find(this.rootElement, '//' + tagElementName)
+    for (const tagElement of tagElements) {
+      const tag = this.getTagPathFromTagElement(tagElement)
+      tags.push(tag)
+    }
+    return [tags, tagElements]
+  },
+
+  getElementsByName: function (
+    elementName = 'node',
+    parentElement = undefined,
+  ) {
+    if (!parentElement) {
+      return xpath.find(this.rootElement, '//' + elementName)
+    } else {
+      return xpath.find(parentElement, '//' + elementName)
+    }
+  },
+
+  getAllChildTags: function (
+    parentElement,
+    elementName = 'node',
+    excludeTakeValueTags = true,
+  ) {
+    if (
+      excludeTakeValueTags &&
+      this.getElementTagValue(parentElement) === '#'
+    ) {
+      return []
+    }
+    const tagElementChildren = this.getElementsByName(
+      elementName,
+      parentElement,
+    )
+    const childTags = arrayUtils.flattenDeep(
+      tagElementChildren.map((child) => {
+        return this.getAllChildTags(child, elementName, excludeTakeValueTags)
+      }),
+    )
+    childTags.push(parentElement)
+    return childTags
+  },
+}
+
 /**
  * Determine if a HED tag has a particular attribute in this schema.
  *
  * @param {string} tag The HED tag to check.
  * @param {string} tagAttribute The attribute to check for.
- * @return {boolean} Whether this tag has this attribute.
+ * @return {boolean|null} Whether this tag has this attribute, or null if the attribute doesn't exist.
  */
 const tagHasAttribute = function (tag, tagAttribute) {
+  if (!(tagAttribute in this.tagAttributes)) {
+    return null
+  }
   return tag.toLowerCase() in this.tagAttributes[tagAttribute]
 }
 
@@ -374,9 +668,14 @@ const SchemaAttributes = function (schemaDictionaries) {
  * @return {SchemaAttributes} The schema attributes object.
  */
 const buildSchemaAttributesObject = function (xmlData) {
-  const schemaDictionaries = Object.create(V2SchemaDictionaries)
   const rootElement = xmlData.HED
   schemaUtils.setParent(rootElement, xmlData)
+  let schemaDictionaries
+  if (semver.gte(rootElement.$.version, '8.0.0-alpha.3')) {
+    schemaDictionaries = Object.create(V3SchemaDictionaries)
+  } else {
+    schemaDictionaries = Object.create(V2SchemaDictionaries)
+  }
   schemaDictionaries.rootElement = rootElement
   schemaDictionaries.populateDictionaries()
 
