@@ -143,11 +143,11 @@ const V2SchemaDictionaries = {
       if (defaultUnit === undefined) {
         this.unitClassAttributes[elementName][
           defaultUnitForUnitClassAttribute
-        ] = unitClassElement.$[defaultUnitForOldUnitClassAttribute]
+        ] = [unitClassElement.$[defaultUnitForOldUnitClassAttribute]]
       } else {
         this.unitClassAttributes[elementName][
           defaultUnitForUnitClassAttribute
-        ] = defaultUnit
+        ] = [defaultUnit]
       }
     }
   },

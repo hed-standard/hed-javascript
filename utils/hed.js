@@ -220,7 +220,7 @@ const getUnitClassDefaultUnit = function (formattedTag, hedSchemaAttributes) {
     } else if (unitClassTag in hedSchemaAttributes.tagUnitClasses) {
       const unitClasses = hedSchemaAttributes.tagUnitClasses[unitClassTag]
       const firstUnitClass = unitClasses[0]
-      return hedSchemaAttributes.unitClassAttributes[firstUnitClass][defaultUnitsForUnitClassAttribute]
+      return hedSchemaAttributes.unitClassAttributes[firstUnitClass][defaultUnitsForUnitClassAttribute][0]
     }
   } else {
     return ''
