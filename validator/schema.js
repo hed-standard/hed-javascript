@@ -347,6 +347,9 @@ const V3SchemaDictionaries = {
     })
     const tagAttributes = tagSchemaAttributes.map(this.getElementTagValue)
     for (const attribute of tagAttributes) {
+      if (attribute === 'unitClass') {
+        continue
+      }
       this.tagAttributes[attribute] = {}
     }
     const [tags, tagElements] = this.getAllTags()
