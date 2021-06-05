@@ -18,6 +18,7 @@ const delimiters = [comma]
 const uniqueType = 'unique'
 const requiredType = 'required'
 const requireChildType = 'requireChild'
+const topLevelTagGroupType = 'topLevelTagGroup'
 const unitsElement = 'units'
 const clockTimeUnitClass = 'clockTime'
 const dateTimeUnitClass = 'dateTime'
@@ -616,18 +617,15 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
 }
 
 /**
- * Check for invalid top-level definition tags.
+ * Check for invalid top-level tags.
  *
  * @param {ParsedHedTag[]} topLevelTags The list of top-level tags.
  * @param {Schemas} hedSchemas The HED schema collection.
  * @return {Issue[]} Any issues found.
  */
-const checkForInvalidTopLevelDefinitionTags = function (
-  topLevelTags,
-  hedSchemas,
-) {
+const checkForInvalidTopLevelTags = function (topLevelTags, hedSchemas) {
   let issues = []
-  const invalidShortTags = ['Definition', 'Def-expand']
+  const invalidShortTags = ['Def-expand']
   for (const invalidShortTag of invalidShortTags) {
     const [invalidTag, invalidTagIssues] = convertHedStringToLong(
       hedSchemas,
@@ -637,8 +635,60 @@ const checkForInvalidTopLevelDefinitionTags = function (
     for (const topLevelTag of topLevelTags) {
       if (topLevelTag.canonicalTag.startsWith(invalidTag)) {
         issues.push(
-          generateIssue('topLevelDefinitionTag', {
+          generateIssue('invalidTopLevelTag', {
             tag: topLevelTag.originalTag,
+          }),
+        )
+      }
+    }
+  }
+  return issues
+}
+
+/**
+ * Check for invalid top-level tag group tags.
+ *
+ * @param {ParsedHedString} parsedString The parsed HED string to validate.
+ * @param {Schemas} hedSchemas The HED schema collection.
+ * @return {Issue[]} Any issues found.
+ */
+const checkForInvalidTopLevelTagGroupTags = function (
+  parsedString,
+  hedSchemas,
+) {
+  let issues = []
+  const topLevelTagGroupTagsFound = {}
+  for (const tag of parsedString.tags) {
+    if (
+      hedSchemas.baseSchema.attributes.tagHasAttribute(
+        tag.formattedTag,
+        topLevelTagGroupType,
+      ) ||
+      hedSchemas.baseSchema.attributes.tagHasAttribute(
+        utils.HED.getParentTag(tag.formattedTag),
+        topLevelTagGroupType,
+      )
+    ) {
+      let tagFound = false
+      parsedString.topLevelTagGroups.forEach((tagGroup, index) => {
+        if (tagGroup.includes(tag)) {
+          tagFound = true
+          if (topLevelTagGroupTagsFound[index]) {
+            issues.push(
+              generateIssue('multipleTopLevelTagGroupTags', {
+                tag: tag.originalTag,
+                otherTag: topLevelTagGroupTagsFound[index],
+              }),
+            )
+          } else {
+            topLevelTagGroupTagsFound[index] = tag.originalTag
+          }
+        }
+      })
+      if (!tagFound) {
+        issues.push(
+          generateIssue('invalidTopLevelTagGroupTag', {
+            tag: tag.originalTag,
           }),
         )
       }
@@ -810,7 +860,7 @@ const validateTopLevelTags = function (
   if (hedSchemas.isHed3) {
     // This is false when doSemanticValidation is false (i.e. there is no loaded schema).
     issues = issues.concat(
-      checkForInvalidTopLevelDefinitionTags(topLevelTags, hedSchemas),
+      checkForInvalidTopLevelTags(topLevelTags, hedSchemas),
     )
   }
   if (doSemanticValidation && checkForWarnings) {
@@ -820,12 +870,28 @@ const validateTopLevelTags = function (
 }
 
 /**
+ * Validate the top-level HED tag groups in a parsed HED string.
+ *
+ * @param {ParsedHedString} parsedString The parsed HED string to validate.
+ * @param {Schemas} hedSchemas The HED schema collection.
+ * @param {boolean} doSemanticValidation Whether to perform semantic validation.
+ * @return {Issue[]} Any issues found.
+ */
+const validateTopLevelTagGroups = function (parsedString, hedSchemas, doSemanticValidation) {
+  if (doSemanticValidation) {
+    return checkForInvalidTopLevelTagGroupTags(parsedString, hedSchemas)
+  } else {
+    return []
+  }
+}
+
+/**
  * Perform initial validation on a HED string and parse it so further validation can be performed.
  *
  * @param {string|ParsedHedString} hedString The HED string to validate.
  * @param {Schemas} hedSchemas The HED schemas to validate against.
  * @param {boolean} doSemanticValidation Whether to perform semantic validation.
- * @return {[boolean, Issue[], ParsedHedString[]]} Whether validation passed, any issues, and any parsed string data.
+ * @return {[boolean, Issue[], ParsedHedString]} Whether validation passed, any issues, and any parsed string data.
  */
 const initiallyValidateHedString = function (
   hedString,
@@ -957,6 +1023,7 @@ const validateHedEvent = function (
       doSemanticValidation,
       checkForWarnings,
     ),
+    validateTopLevelTagGroups(parsedString, hedSchemas, doSemanticValidation),
     validateIndividualHedTags(
       parsedString,
       hedSchemas,
@@ -978,6 +1045,7 @@ module.exports = {
   validateHedTagGroups: validateHedTagGroups,
   validateHedTagLevels: validateHedTagLevels,
   validateTopLevelTags: validateTopLevelTags,
+  validateTopLevelTagGroups: validateTopLevelTagGroups,
   validateHedString: validateHedString,
   validateHedEvent: validateHedEvent,
 }

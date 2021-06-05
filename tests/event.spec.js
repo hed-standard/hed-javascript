@@ -1293,24 +1293,67 @@ describe('HED string and event validation', () => {
         )
       }
 
-      it('should not have definitions at the top level', () => {
+      it('should not have invalid top-level tags', () => {
         const testStrings = {
-          definition: 'Definition/TopLevelDefinition',
-          defExpand: 'Def-expand/TopLevelDefExpand',
-          def: 'Def/TopLevelDefReference',
+          validDef: 'Def/TopLevelDefReference',
+          validDefExpand: '(Def-expand/ValidDefExpand)',
+          invalidDefExpand: 'Def-expand/InvalidDefExpand',
         }
         const expectedIssues = {
-          definition: [
-            generateIssue('topLevelDefinitionTag', {
-              tag: testStrings.definition,
+          validDef: [],
+          validDefExpand: [],
+          invalidDefExpand: [
+            generateIssue('invalidTopLevelTag', {
+              tag: testStrings.invalidDefExpand,
             }),
           ],
-          defExpand: [
-            generateIssue('topLevelDefinitionTag', {
-              tag: testStrings.defExpand,
+        }
+        return validatorSemantic(testStrings, expectedIssues)
+      })
+    })
+
+    describe('Top-level Group Tags', () => {
+      const validatorSyntactic = function (testStrings, expectedIssues) {
+        validatorSyntacticBase(
+          testStrings,
+          expectedIssues,
+          function (parsedTestString) {
+            return hed.validateTopLevelTagGroups(parsedTestString, {}, false)
+          },
+        )
+      }
+
+      const validatorSemantic = function (testStrings, expectedIssues) {
+        return validatorSemanticBase(
+          testStrings,
+          expectedIssues,
+          function (parsedTestString, schema) {
+            return hed.validateTopLevelTagGroups(parsedTestString, schema, true)
+          },
+        )
+      }
+
+      it('should not have definitions at the top level', () => {
+        const testStrings = {
+          validDefinition: '(Definition/SimpleDefinition)',
+          validDef: 'Def/TopLevelDefReference',
+          invalidDefinition: 'Definition/TopLevelDefinition',
+          invalidDouble: '(Definition/DoubleDefinition, Onset)',
+        }
+        const expectedIssues = {
+          validDefinition: [],
+          validDef: [],
+          invalidDefinition: [
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: testStrings.invalidDefinition,
             }),
           ],
-          def: [],
+          invalidDouble: [
+            generateIssue('multipleTopLevelTagGroupTags', {
+              tag: 'Onset',
+              otherTag: 'Definition/DoubleDefinition',
+            }),
+          ],
         }
         return validatorSemantic(testStrings, expectedIssues)
       })
