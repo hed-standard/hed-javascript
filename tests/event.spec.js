@@ -861,7 +861,7 @@ describe('HED string and event validation', () => {
   })
 
   describe('HED-3G schemas', () => {
-    const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
+    const hedSchemaFile = 'tests/data/HED8.0.0-alpha.3.xml'
     let hedSchemaPromise
 
     beforeAll(() => {
