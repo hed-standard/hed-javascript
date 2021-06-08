@@ -428,6 +428,7 @@ describe('HED string and event validation', () => {
           correctSingularUnit: 'Event/Duration/1 millisecond',
           correctPluralUnit: 'Event/Duration/3 milliseconds',
           correctNoPluralUnit: 'Attribute/Temporal rate/3 hertz',
+          correctPrefixUnit: 'Participant/Effect/Cognitive/Reward/$19.69',
           correctNonSymbolCapitalizedUnit: 'Event/Duration/3 MilliSeconds',
           correctSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 kHz',
           missingRequiredUnit: 'Event/Duration/3',
@@ -454,6 +455,7 @@ describe('HED string and event validation', () => {
           correctSingularUnit: [],
           correctPluralUnit: [],
           correctNoPluralUnit: [],
+          correctPrefixUnit: [],
           correctNonSymbolCapitalizedUnit: [],
           correctSymbolCapitalizedUnit: [],
           missingRequiredUnit: [
@@ -789,7 +791,7 @@ describe('HED string and event validation', () => {
           incorrectUnit: 'Event/Duration/3 cm',
           incorrectNonNumericValue: 'Event/Duration/A ms',
           incorrectUnitWord: 'Event/Duration/3 nanoseconds',
-          incorrectPrefix: 'Event/Duration/3 ns',
+          incorrectModifier: 'Event/Duration/3 ns',
           notRequiredNumber: 'Attribute/Visual/Color/Red/0.5',
           notRequiredScientific: 'Attribute/Visual/Color/Red/5e-1',
           properTime: 'Item/2D shape/Clock face/08:30',
@@ -840,9 +842,9 @@ describe('HED string and event validation', () => {
               unitClassUnits: legalTimeUnits.sort().join(','),
             }),
           ],
-          incorrectPrefix: [
+          incorrectModifier: [
             generateIssue('unitClassInvalidUnit', {
-              tag: testStrings.incorrectPrefix,
+              tag: testStrings.incorrectModifier,
               unitClassUnits: legalTimeUnits.sort().join(','),
             }),
           ],
