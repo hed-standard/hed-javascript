@@ -10,6 +10,7 @@ const tagsDictionaryKey = 'tags'
 const takesValueType = 'takesValue'
 const unitClassType = 'unitClass'
 const unitClassUnitsType = 'units'
+const unitPrefixType = 'unitPrefix'
 const unitSymbolType = 'unitSymbol'
 const SIUnitKey = 'SIUnit'
 const SIUnitModifierKey = 'SIUnitModifier'
@@ -83,6 +84,21 @@ const validateValue = function (value, allowPlaceholders, isNumeric, isHed3) {
 }
 
 /**
+ * Determine whether a unit is a valid prefix unit.
+ *
+ * @param {string} unit A unit string.
+ * @param {SchemaAttributes} hedSchemaAttributes The collection of schema attributes.
+ * @return {boolean} Whether the unit is a valid prefix unit.
+ */
+const isPrefixUnit = function (unit, hedSchemaAttributes) {
+  if (unitPrefixType in hedSchemaAttributes.unitAttributes) {
+    return hedSchemaAttributes.unitAttributes[unitPrefixType][unit] || false
+  } else {
+    return unit === '$'
+  }
+}
+
+/**
  * Get the list of valid derivatives of a unit.
  *
  * @param {string} unit A unit string.
@@ -142,7 +158,10 @@ const validateUnits = function (
       hedSchemaAttributes.unitAttributes[unitSymbolType][unit] !== undefined
     const derivativeUnits = getValidDerivativeUnits(unit, hedSchemaAttributes)
     for (const derivativeUnit of derivativeUnits) {
-      if (originalTagUnitValue.startsWith(derivativeUnit)) {
+      if (
+        isPrefixUnit(unit, hedSchemaAttributes) &&
+        originalTagUnitValue.startsWith(derivativeUnit)
+      ) {
         foundUnit = true
         noUnitFound = false
         strippedValue = originalTagUnitValue
@@ -216,11 +235,15 @@ const getUnitClassDefaultUnit = function (formattedTag, hedSchemaAttributes) {
       )
     }
     if (hasDefaultAttribute) {
-      return hedSchemaAttributes.tagAttributes[defaultUnitForTagAttribute][unitClassTag]
+      return hedSchemaAttributes.tagAttributes[defaultUnitForTagAttribute][
+        unitClassTag
+      ]
     } else if (unitClassTag in hedSchemaAttributes.tagUnitClasses) {
       const unitClasses = hedSchemaAttributes.tagUnitClasses[unitClassTag]
       const firstUnitClass = unitClasses[0]
-      return hedSchemaAttributes.unitClassAttributes[firstUnitClass][defaultUnitsForUnitClassAttribute][0]
+      return hedSchemaAttributes.unitClassAttributes[firstUnitClass][
+        defaultUnitsForUnitClassAttribute
+      ][0]
     }
   } else {
     return ''
