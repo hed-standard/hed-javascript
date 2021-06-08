@@ -18,6 +18,7 @@ const delimiters = [comma]
 const uniqueType = 'unique'
 const requiredType = 'required'
 const requireChildType = 'requireChild'
+const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
 const unitsElement = 'units'
 const clockTimeUnitClass = 'clockTime'
@@ -624,22 +625,24 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
  * @return {Issue[]} Any issues found.
  */
 const checkForInvalidTopLevelTags = function (topLevelTags, hedSchemas) {
-  let issues = []
-  const invalidShortTags = ['Def-expand']
-  for (const invalidShortTag of invalidShortTags) {
-    const [invalidTag, invalidTagIssues] = convertHedStringToLong(
-      hedSchemas,
-      invalidShortTag,
-    )
-    issues = issues.concat(invalidTagIssues)
-    for (const topLevelTag of topLevelTags) {
-      if (topLevelTag.canonicalTag.startsWith(invalidTag)) {
-        issues.push(
-          generateIssue('invalidTopLevelTag', {
-            tag: topLevelTag.originalTag,
-          }),
-        )
-      }
+  const issues = []
+  for (const topLevelTag of topLevelTags) {
+    if (
+      !hedStringIsAGroup(topLevelTag.formattedTag) &&
+      (hedSchemas.baseSchema.attributes.tagHasAttribute(
+        topLevelTag.formattedTag,
+        tagGroupType,
+      ) ||
+        hedSchemas.baseSchema.attributes.tagHasAttribute(
+          utils.HED.getParentTag(topLevelTag.formattedTag),
+          tagGroupType,
+        ))
+    ) {
+      issues.push(
+        generateIssue('invalidTopLevelTag', {
+          tag: topLevelTag.originalTag,
+        }),
+      )
     }
   }
   return issues
@@ -877,7 +880,11 @@ const validateTopLevelTags = function (
  * @param {boolean} doSemanticValidation Whether to perform semantic validation.
  * @return {Issue[]} Any issues found.
  */
-const validateTopLevelTagGroups = function (parsedString, hedSchemas, doSemanticValidation) {
+const validateTopLevelTagGroups = function (
+  parsedString,
+  hedSchemas,
+  doSemanticValidation,
+) {
   if (doSemanticValidation) {
     return checkForInvalidTopLevelTagGroupTags(parsedString, hedSchemas)
   } else {
