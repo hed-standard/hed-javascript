@@ -57,7 +57,7 @@ describe('HED schemas', () => {
       })
     })
 
-    it('should have tag dictionaries for all required attributes', () => {
+    it('should have tag dictionaries for all required tag attributes', () => {
       const tagDictionaryKeys = [
         'default',
         'extensionAllowed',
@@ -76,6 +76,14 @@ describe('HED schemas', () => {
       })
     })
 
+    it('should have unit dictionaries for all required unit attributes', () => {
+      const unitDictionaryKeys = ['SIUnit', 'unitSymbol']
+      return hedSchemaPromise.then((hedSchemas) => {
+        const dictionaries = hedSchemas.baseSchema.attributes.unitAttributes
+        assert.hasAllKeys(dictionaries, unitDictionaryKeys)
+      })
+    })
+
     it('should contain all of the required tags', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const requiredTags = [
@@ -85,7 +93,7 @@ describe('HED schemas', () => {
         ]
         const dictionariesRequiredTags =
           hedSchemas.baseSchema.attributes.tagAttributes['required']
-        assert.sameMembers(Object.keys(dictionariesRequiredTags), requiredTags)
+        assert.hasAllKeys(dictionariesRequiredTags, requiredTags)
       })
     })
 
@@ -99,10 +107,7 @@ describe('HED schemas', () => {
         ]
         const dictionariesPositionedTags =
           hedSchemas.baseSchema.attributes.tagAttributes['position']
-        assert.sameMembers(
-          Object.keys(dictionariesPositionedTags),
-          positionedTags,
-        )
+        assert.hasAllKeys(dictionariesPositionedTags, positionedTags)
       })
     })
 
@@ -115,7 +120,7 @@ describe('HED schemas', () => {
         ]
         const dictionariesUniqueTags =
           hedSchemas.baseSchema.attributes.tagAttributes['unique']
-        assert.sameMembers(Object.keys(dictionariesUniqueTags), uniqueTags)
+        assert.hasAllKeys(dictionariesUniqueTags, uniqueTags)
       })
     })
 
@@ -200,8 +205,8 @@ describe('HED schemas', () => {
 
         const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
         for (const attribute in expectedAttributeTagCount) {
-          assert.strictEqual(
-            Object.keys(dictionaries[attribute]).length,
+          assert.lengthOf(
+            Object.keys(dictionaries[attribute]),
             expectedAttributeTagCount[attribute],
             'Mismatch on attribute ' + attribute,
           )
@@ -209,13 +214,13 @@ describe('HED schemas', () => {
 
         const expectedTagCount = 1116 - 119 + 2
         const expectedUnitClassCount = 63
-        assert.strictEqual(
-          Object.keys(hedSchemas.baseSchema.attributes.tags).length,
+        assert.lengthOf(
+          Object.keys(hedSchemas.baseSchema.attributes.tags),
           expectedTagCount,
           'Mismatch on overall tag count',
         )
-        assert.strictEqual(
-          Object.keys(hedSchemas.baseSchema.attributes.tagUnitClasses).length,
+        assert.lengthOf(
+          Object.keys(hedSchemas.baseSchema.attributes.tagUnitClasses),
           expectedUnitClassCount,
           'Mismatch on unit class tag count',
         )
@@ -327,6 +332,7 @@ describe('HED schemas', () => {
         'requireChild',
         'required',
         'suggestedTag',
+        'tagGroup',
         'takesValue',
         'topLevelTagGroup',
         'unique',
@@ -334,6 +340,37 @@ describe('HED schemas', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
         assert.hasAllKeys(dictionaries, tagDictionaryKeys)
+      })
+    })
+
+    it('should have unit dictionaries for all defined unit attributes', () => {
+      const unitDictionaryKeys = ['SIUnit', 'unitPrefix', 'unitSymbol']
+      return hedSchemaPromise.then((hedSchemas) => {
+        const dictionaries = hedSchemas.baseSchema.attributes.unitAttributes
+        assert.hasAllKeys(dictionaries, unitDictionaryKeys)
+      })
+    })
+
+    it('should contain all of the tag group tags', () => {
+      return hedSchemaPromise.then((hedSchemas) => {
+        const tagGroupTags = ['attribute/informational/def-expand']
+        const dictionariesTagGroupTags =
+          hedSchemas.baseSchema.attributes.tagAttributes['tagGroup']
+        assert.hasAllKeys(dictionariesTagGroupTags, tagGroupTags)
+      })
+    })
+
+    it('should contain all of the top-level tag group tags', () => {
+      return hedSchemaPromise.then((hedSchemas) => {
+        const tagGroupTags = [
+          'attribute/informational/definition',
+          'attribute/organizational/event-context',
+          'data-property/spatiotemporal-property/temporal-property/onset',
+          'data-property/spatiotemporal-property/temporal-property/offset',
+        ]
+        const dictionariesTopLevelTagGroupTags =
+          hedSchemas.baseSchema.attributes.tagAttributes['topLevelTagGroup']
+        assert.hasAllKeys(dictionariesTopLevelTagGroupTags, tagGroupTags)
       })
     })
 
@@ -403,28 +440,28 @@ describe('HED schemas', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const expectedAttributeTagCount = {
           isNumeric: 41,
-          requireChild: 10,
-          takesValue: 73,
+          requireChild: 7,
+          takesValue: 74,
         }
 
         const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
         for (const attribute in expectedAttributeTagCount) {
-          assert.strictEqual(
-            Object.keys(dictionaries[attribute]).length,
+          assert.lengthOf(
+            Object.keys(dictionaries[attribute]),
             expectedAttributeTagCount[attribute],
             'Mismatch on attribute ' + attribute,
           )
         }
 
-        const expectedTagCount = 1040
-        const expectedUnitClassCount = 18
-        assert.strictEqual(
-          Object.keys(hedSchemas.baseSchema.attributes.tags).length,
+        const expectedTagCount = 1042
+        const expectedUnitClassCount = 19
+        assert.lengthOf(
+          Object.keys(hedSchemas.baseSchema.attributes.tags),
           expectedTagCount,
           'Mismatch on overall tag count',
         )
-        assert.strictEqual(
-          Object.keys(hedSchemas.baseSchema.attributes.tagUnitClasses).length,
+        assert.lengthOf(
+          Object.keys(hedSchemas.baseSchema.attributes.tagUnitClasses),
           expectedUnitClassCount,
           'Mismatch on unit class tag count',
         )
