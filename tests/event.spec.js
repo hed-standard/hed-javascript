@@ -1075,7 +1075,7 @@ describe('HED string and event validation', () => {
           incorrectSymbolCapitalizedUnit: 'Frequency/3 hz',
           incorrectSymbolCapitalizedUnitModifier: 'Frequency/3 KHz',
           incorrectNonSIUnitModifier: 'Duration/1 millihour',
-          incorrectNonSIUnitSymbolModifier: 'Velocity/100 Mkph',
+          incorrectNonSIUnitSymbolModifier: 'Speed/100 Mkph',
           notRequiredNumber: 'RGB-red/0.5',
           notRequiredScientific: 'RGB-red/5e-1',
           /*properTime: 'Clockface/08:30',
