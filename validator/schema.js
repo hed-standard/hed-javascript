@@ -226,7 +226,7 @@ const V2SchemaDictionaries = {
 
   getParentTagName: function (tagElement) {
     const parentTagElement = tagElement.$parent
-    if (parentTagElement && parentTagElement !== this.rootElement) {
+    if (parentTagElement && parentTagElement.$parent) {
       return parentTagElement.name[0]._
     } else {
       return ''
@@ -510,7 +510,7 @@ const V3SchemaDictionaries = {
 
   getParentTagName: function (tagElement) {
     const parentTagElement = tagElement.$parent
-    if (parentTagElement && parentTagElement !== this.rootElement) {
+    if (parentTagElement && parentTagElement.$parent) {
       return parentTagElement.name[0]._
     } else {
       return ''
@@ -672,7 +672,7 @@ const SchemaAttributes = function (schemaDictionaries) {
  */
 const buildSchemaAttributesObject = function (xmlData) {
   const rootElement = xmlData.HED
-  schemaUtils.setParent(rootElement, xmlData)
+  schemaUtils.setParent(rootElement, null)
   let schemaDictionaries
   if (semver.gte(rootElement.$.version, '8.0.0-alpha.3')) {
     schemaDictionaries = Object.create(V3SchemaDictionaries)

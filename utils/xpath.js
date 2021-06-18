@@ -62,7 +62,14 @@ const find = function(element, query) {
         search(child)
       }
     } else {
-      return []
+      const schemaList = element.schema
+      if (schemaList && elementName in schemaList[0]) {
+        for (const child of schemaList[0][elementName]) {
+          search(child)
+        }
+      } else {
+        return []
+      }
     }
   }
 

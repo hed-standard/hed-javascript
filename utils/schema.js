@@ -94,6 +94,8 @@ const setParent = function (node, parent) {
     for (const child of node.node) {
       setParent(child, node)
     }
+  } else if (node.schema) {
+    setParent(node.schema[0], null)
   }
 }
 
