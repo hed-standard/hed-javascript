@@ -134,6 +134,12 @@ const Schema = function (xmlData, attributes, mapping) {
    * @type {Mapping}
    */
   this.mapping = mapping
+  /**
+   * Whether this is a HED 3 schema.
+   * @type {boolean}
+   */
+  this.isHed3 =
+    this.library !== undefined || semver.gte(this.version, '8.0.0-alpha')
 }
 
 /**
@@ -157,7 +163,7 @@ const Schemas = function (baseSchema) {
    * Whether this is a HED 3 schema collection.
    * @type {boolean}
    */
-  this.isHed3 = baseSchema && semver.gte(baseSchema.version, '8.0.0-alpha')
+  this.isHed3 = baseSchema && baseSchema.isHed3
 }
 
 module.exports = {
