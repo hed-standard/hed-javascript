@@ -505,17 +505,18 @@ const checkIfTagIsValid = function (
 }
 
 /**
- * Check basic placeholder syntax.
+ * Check basic placeholder tag syntax.
  *
  * @param {ParsedHedTag} tag A HED tag.
  * @return {Issue[]} Any issues found.
  */
-const checkPlaceholderSyntax = function (tag) {
-  if (tag.formattedTag.split('#').length < 2) {
+const checkPlaceholderTagSyntax = function (tag) {
+  const placeholderCount = utils.string.getCharacterCount(tag.formattedTag, '#')
+  if (placeholderCount === 0) {
     return []
-  } else if (tag.formattedTag.split('#').length === 2) {
+  } else if (placeholderCount === 1) {
     const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
-    if (valueTag.split('#').length !== 2) {
+    if (utils.string.getCharacterCount(valueTag, '#') !== 1) {
       return [
         generateIssue('invalidPlaceholder', {
           tag: tag.originalTag,
@@ -525,7 +526,7 @@ const checkPlaceholderSyntax = function (tag) {
       return []
     }
   } else {
-    // More than two placeholders.
+    // More than one placeholder.
     return [
       generateIssue('invalidPlaceholder', {
         tag: tag.originalTag,
@@ -751,7 +752,7 @@ const validateIndividualHedTag = function (
     )
   }
   if (allowPlaceholders) {
-    issues = issues.concat(checkPlaceholderSyntax(tag))
+    issues = issues.concat(checkPlaceholderTagSyntax(tag))
   }
   return issues
 }
