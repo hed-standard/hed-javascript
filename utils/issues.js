@@ -1,117 +1,188 @@
 /**
  * A HED validation error or warning.
  *
- * @param {string} code The HED error code.
+ * @param {string} internalCode The internal error code.
+ * @param {string} hedCode The HED 3 error code.
+ * @param {string} level The issue level (error or warning).
  * @param {string} message The detailed error message.
  * @constructor
  */
-const Issue = function (code, message) {
+const Issue = function (internalCode, hedCode, level, message) {
   /**
-   * The HED error code.
+   * The internal error code.
    * @type {string}
    */
-  this.code = code
+  this.internalCode = internalCode
+  /**
+   * Also the internal error code.
+   *
+   * TODO: This is kept for backward compatibility until the next major version bump.
+   * @type {string}
+   */
+  this.code = internalCode
+  /**
+   * The HED 3 error code.
+   * @type {string}
+   */
+  this.hedCode = hedCode
+  /**
+   * The issue level (error or warning).
+   * @type {string}
+   */
+  this.level = level
   /**
    * The detailed error message.
    * @type {string}
    */
-  this.message = message
+  this.message = `${level.toUpperCase()}: [${hedCode}] ${message}`
 }
 
 /**
  * Generate a new issue object.
  *
- * @param {string} code The HED error code.
+ * @param {string} internalCode The internal error code.
  * @param {object<string, (string|number[])>} parameters The error string parameters.
  * @return {Issue} An object representing the issue.
  */
-const generateIssue = function (code, parameters) {
+const generateIssue = function (internalCode, parameters) {
   let message
-  switch (code) {
+  let level = 'error'
+  let hedCode = 'HED_GENERIC_ERROR'
+  switch (internalCode) {
     case 'parentheses':
-      message = `ERROR: Number of opening and closing parentheses are unequal. ${parameters.opening} opening parentheses. ${parameters.closing} closing parentheses.`
+      hedCode = 'HED_PARENTHESES_MISMATCH'
+      level = 'error'
+      message = `Number of opening and closing parentheses are unequal. ${parameters.opening} opening parentheses. ${parameters.closing} closing parentheses.`
       break
     case 'invalidTag':
-      message = `ERROR: Invalid tag - "${parameters.tag}"`
+      hedCode = 'HED_TAG_INVALID'
+      level = 'error'
+      message = `Invalid tag - "${parameters.tag}"`
       break
     case 'extraDelimiter':
-      message = `ERROR: Extra delimiter "${parameters.character}" at index ${parameters.index} of string "${parameters.string}"`
+      hedCode = 'HED_TAG_EMPTY'
+      level = 'error'
+      message = `Extra delimiter "${parameters.character}" at index ${parameters.index} of string "${parameters.string}"`
       break
     case 'commaMissing':
-      message = `ERROR: Comma missing after - "${parameters.tag}"`
+      hedCode = 'HED_COMMA MISSING'
+      level = 'error'
+      message = `Comma missing after - "${parameters.tag}"`
       break
     case 'capitalization':
-      message = `WARNING: First word not capitalized or camel case - "${parameters.tag}"`
+      hedCode = 'HED_STYLE_WARNING'
+      level = 'warning'
+      message = `First word not capitalized or camel case - "${parameters.tag}"`
       break
     case 'duplicateTag':
-      message = `ERROR: Duplicate tag - "${parameters.tag}"`
+      hedCode = 'HED_TAG_REPEATED'
+      level = 'error'
+      message = `Duplicate tag - "${parameters.tag}"`
       break
     case 'multipleUniqueTags':
-      message = `ERROR: Multiple unique tags with prefix - "${parameters.tag}"`
+      hedCode = 'HED_TAG_NOT_UNIQUE'
+      level = 'error'
+      message = `Multiple unique tags with prefix - "${parameters.tag}"`
       break
     case 'tooManyTildes':
-      message = `ERROR: Too many tildes - group "${parameters.tagGroup}"`
+      hedCode = 'HED_TILDES_UNSUPPORTED'
+      level = 'error'
+      message = `Too many tildes - group "${parameters.tagGroup}"`
       break
     case 'childRequired':
-      message = `ERROR: Descendant tag required - "${parameters.tag}"`
+      hedCode = 'HED_TAG_REQUIRES_CHILD'
+      level = 'error'
+      message = `Descendant tag required - "${parameters.tag}"`
       break
     case 'requiredPrefixMissing':
-      message = `WARNING: Tag with prefix "${parameters.tagPrefix}" is required`
+      hedCode = 'HED_REQUIRED_TAG_MISSING'
+      level = 'warning'
+      message = `Tag with prefix "${parameters.tagPrefix}" is required`
       break
     case 'unitClassDefaultUsed':
-      message = `WARNING: No unit specified. Using "${parameters.defaultUnit}" as the default - "${parameters.tag}"`
+      hedCode = 'HED_UNITS_MISSING'
+      level = 'warning'
+      message = `No unit specified. Using "${parameters.defaultUnit}" as the default - "${parameters.tag}"`
       break
     case 'unitClassInvalidUnit':
-      message = `ERROR: Invalid unit - "${parameters.tag}" - valid units are "${parameters.unitClassUnits}"`
+      hedCode = 'HED_UNITS_INVALID'
+      level = 'error'
+      message = `Invalid unit - "${parameters.tag}" - valid units are "${parameters.unitClassUnits}"`
       break
     case 'extraCommaOrInvalid':
-      message = `ERROR: Either "${parameters.previousTag}" contains a comma when it should not or "${parameters.tag}" is not a valid tag`
+      hedCode = 'HED_TAG_INVALID'
+      level = 'error'
+      message = `Either "${parameters.previousTag}" contains a comma when it should not or "${parameters.tag}" is not a valid tag`
       break
     case 'invalidCharacter':
-      message = `ERROR: Invalid character "${parameters.character}" at index ${parameters.index} of string "${parameters.string}"`
+      hedCode = 'HED_CHARACTER_INVALID'
+      level = 'error'
+      message = `Invalid character "${parameters.character}" at index ${parameters.index} of string "${parameters.string}"`
       break
     case 'extension':
-      message = `WARNING: Tag extension found - "${parameters.tag}"`
+      hedCode = 'HED_TAG_EXTENDED'
+      level = 'warning'
+      message = `Tag extension found - "${parameters.tag}"`
       break
     case 'invalidPlaceholder':
-      message = `ERROR: Invalid placeholder - "${parameters.tag}"`
+      hedCode = 'HED_PLACEHOLDER_INVALID'
+      level = 'error'
+      message = `Invalid placeholder - "${parameters.tag}"`
       break
     case 'invalidValue':
-      message = `ERROR: Invalid placeholder value for tag "${parameters.tag}"`
+      hedCode = 'HED_VALUE_INVALID'
+      level = 'error'
+      message = `Invalid placeholder value for tag "${parameters.tag}"`
       break
     case 'invalidParentNode':
-      message = `ERROR: "${parameters.tag}" appears as "${parameters.parentTag}" and cannot be used as an extension. Indices (${parameters.bounds[0]}, ${parameters.bounds[1]}).`
+      hedCode = 'HED_VALUE_IS_NODE'
+      level = 'error'
+      message = `"${parameters.tag}" appears as "${parameters.parentTag}" and cannot be used as an extension. Indices (${parameters.bounds[0]}, ${parameters.bounds[1]}).`
       break
     case 'emptyTagFound':
-      message = `ERROR: Empty tag cannot be converted.`
+      hedCode = 'HED_NODE_NAME_EMPTY'
+      level = 'error'
+      message = `Empty tag cannot be converted.`
       break
     case 'duplicateTagsInSchema':
-      message = `ERROR: Source HED schema is invalid as it contains duplicate tags.`
+      level = 'error'
+      message = `Source HED schema is invalid as it contains duplicate tags.`
       break
     case 'illegalDefinitionGroupTag':
-      message = `ERROR: Illegal tag "${parameters.tag}" in tag group for definition "${parameters.definition}"`
+      hedCode = 'HED_DEFINITION_INVALID'
+      level = 'error'
+      message = `Illegal tag "${parameters.tag}" in tag group for definition "${parameters.definition}"`
       break
     case 'nestedDefinition':
-      message = `ERROR: Illegal nested definition in tag group for definition "${parameters.definition}"`
+      hedCode = 'HED_DEFINITION_INVALID'
+      level = 'error'
+      message = `Illegal nested definition in tag group for definition "${parameters.definition}"`
       break
     case 'multipleTagGroupsInDefinition':
-      message = `ERROR: Multiple inner tag groups found in definition "${parameters.definition}"`
+      hedCode = 'HED_DEFINITION_INVALID'
+      level = 'error'
+      message = `Multiple inner tag groups found in definition "${parameters.definition}"`
       break
     case 'invalidTopLevelTagGroupTag':
-      message = `ERROR: Tag "${parameters.tag}" is only allowed inside of a top-level tag group.`
+      level = 'error'
+      message = `Tag "${parameters.tag}" is only allowed inside of a top-level tag group.`
       break
     case 'multipleTopLevelTagGroupTags':
-      message = `ERROR: Tag "${parameters.tag}" found in top-level tag group where "${parameters.otherTag}" was already defined.`
+      level = 'error'
+      message = `Tag "${parameters.tag}" found in top-level tag group where "${parameters.otherTag}" was already defined.`
       break
     case 'invalidTopLevelTag':
-      message = `ERROR: Illegal top-level tag - "${parameters.tag}"`
+      level = 'error'
+      message = `Illegal top-level tag - "${parameters.tag}"`
       break
     default:
-      message = `ERROR: Unknown HED error.`
+      hedCode = 'HED_GENERIC_ERROR'
+      level = 'error'
+      message = `Unknown HED error.`
       break
   }
 
-  return new Issue(code, message)
+  return new Issue(internalCode, hedCode, level, message)
 }
 
 module.exports = {
