@@ -549,6 +549,8 @@ describe('HED string and event validation', () => {
             'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple',
           legalDuplicate:
             'Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
+          legalDuplicateDifferentValue:
+            '(Attribute/Language/Unit/Word/Brain,Attribute/Language/Unit/Word/Study)',
         }
         const expectedIssues = {
           topLevelDuplicate: [
@@ -561,8 +563,9 @@ describe('HED string and event validation', () => {
               tag: 'Event/Category/Experimental stimulus',
             }),
           ],
-          legalDuplicate: [],
           noDuplicate: [],
+          legalDuplicate: [],
+          legalDuplicateDifferentValue: [],
         }
         validatorSyntactic(testStrings, expectedIssues)
       })
