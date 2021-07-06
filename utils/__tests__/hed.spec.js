@@ -87,6 +87,7 @@ describe('HED tag string utility functions', () => {
         time: '22:45',
         name: 'abc',
         word: 'one',
+        space: 'spaced out',
       }
       const expectedResultsHed2NoPlaceholders = {
         integer: true,
@@ -97,6 +98,7 @@ describe('HED tag string utility functions', () => {
         time: true,
         name: true,
         word: true,
+        space: true,
       }
       const expectedResultsHed2WithPlaceholders = {
         integer: true,
@@ -107,6 +109,7 @@ describe('HED tag string utility functions', () => {
         time: true,
         name: true,
         word: true,
+        space: true,
       }
       const expectedResultsHed2NumericNoPlaceholders = {
         integer: true,
@@ -117,6 +120,7 @@ describe('HED tag string utility functions', () => {
         time: false,
         name: false,
         word: false,
+        space: false,
       }
       const expectedResultsHed2NumericWithPlaceholders = {
         integer: true,
@@ -127,6 +131,7 @@ describe('HED tag string utility functions', () => {
         time: false,
         name: false,
         word: false,
+        space: false,
       }
       const expectedResultsHed3NoPlaceholders = {
         integer: true,
@@ -137,6 +142,7 @@ describe('HED tag string utility functions', () => {
         time: false,
         name: true,
         word: true,
+        space: true,
       }
       const expectedResultsHed3WithPlaceholders = {
         integer: true,
@@ -147,6 +153,7 @@ describe('HED tag string utility functions', () => {
         time: false,
         name: true,
         word: true,
+        space: true,
       }
       const expectedResultsHed3NumericNoPlaceholders = {
         integer: true,
@@ -157,6 +164,7 @@ describe('HED tag string utility functions', () => {
         time: false,
         name: false,
         word: false,
+        space: false,
       }
       const expectedResultsHed3NumericWithPlaceholders = {
         integer: true,
@@ -167,6 +175,7 @@ describe('HED tag string utility functions', () => {
         time: false,
         name: false,
         word: false,
+        space: false,
       }
       validator(testStrings, expectedResultsHed2NoPlaceholders, (string) => {
         return hed.validateValue(string, false, false, false)

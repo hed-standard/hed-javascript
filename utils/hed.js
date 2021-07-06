@@ -64,8 +64,8 @@ const getParentTag = function (tag, character = '/') {
   }
 }
 
-const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_;: ]+$/
-const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_;]+$/
+const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; :]+$/
+const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; ]+$/
 /**
  * Determine if a stripped value is valid.
  */
