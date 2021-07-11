@@ -254,8 +254,7 @@ describe('HED string and event validation', () => {
 
       it('should substitute and warn for certain illegal characters', () => {
         const testStrings = {
-          nul:
-            '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm\0',
+          nul: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm\0',
         }
         const expectedIssues = {
           nul: [
@@ -545,10 +544,14 @@ describe('HED string and event validation', () => {
             'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
           groupDuplicate:
             'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Attribute/Visual/Color/Purple,Event/Category/Experimental stimulus)',
+          nestedGroupDuplicate:
+            'Item/Object/Vehicle/Train,(Attribute/Visual/Color/Purple,(Event/Category/Experimental stimulus,Event/Category/Experimental stimulus))',
           noDuplicate:
             'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple',
           legalDuplicate:
             'Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
+          nestedLegalDuplicate:
+            '(Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus))',
           legalDuplicateDifferentValue:
             '(Attribute/Language/Unit/Word/Brain,Attribute/Language/Unit/Word/Study)',
         }
@@ -556,15 +559,36 @@ describe('HED string and event validation', () => {
           topLevelDuplicate: [
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
+              bounds: [0, 36],
+            }),
+            generateIssue('duplicateTag', {
+              tag: 'Event/Category/Experimental stimulus',
+              bounds: [37, 73],
             }),
           ],
           groupDuplicate: [
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
+              bounds: [27, 63],
+            }),
+            generateIssue('duplicateTag', {
+              tag: 'Event/Category/Experimental stimulus',
+              bounds: [94, 130],
+            }),
+          ],
+          nestedGroupDuplicate: [
+            generateIssue('duplicateTag', {
+              tag: 'Event/Category/Experimental stimulus',
+              bounds: [58, 94],
+            }),
+            generateIssue('duplicateTag', {
+              tag: 'Event/Category/Experimental stimulus',
+              bounds: [95, 131],
             }),
           ],
           noDuplicate: [],
           legalDuplicate: [],
+          nestedLegalDuplicate: [],
           legalDuplicateDifferentValue: [],
         }
         validatorSyntactic(testStrings, expectedIssues)
@@ -955,11 +979,21 @@ describe('HED string and event validation', () => {
           duplicateSame: [
             generateIssue('duplicateTag', {
               tag: 'Train',
+              bounds: [0, 5],
+            }),
+            generateIssue('duplicateTag', {
+              tag: 'Train',
+              bounds: [6, 11],
             }),
           ],
           duplicateSimilar: [
             generateIssue('duplicateTag', {
-              tag: 'Item/Object/Man-made-object/Vehicle/Train',
+              tag: 'Train',
+              bounds: [0, 5],
+            }),
+            generateIssue('duplicateTag', {
+              tag: 'Vehicle/Train',
+              bounds: [6, 19],
             }),
           ],
           missingChild: [
@@ -1159,13 +1193,13 @@ describe('HED string and event validation', () => {
       })
     })
 
-    describe('HED Tag Levels', () => {
+    describe('HED Tag Groups', () => {
       const validatorSyntactic = function (testStrings, expectedIssues) {
         validatorSyntacticBase(
           testStrings,
           expectedIssues,
           function (parsedTestString) {
-            return hed.validateHedTagLevels(parsedTestString, {}, false)
+            return hed.validateHedTagGroups(parsedTestString, {}, false)
           },
         )
       }
@@ -1175,7 +1209,7 @@ describe('HED string and event validation', () => {
           testStrings,
           expectedIssues,
           function (parsedTestString, schema) {
-            return hed.validateHedTagLevels(parsedTestString, schema, true)
+            return hed.validateHedTagGroups(parsedTestString, schema, true)
           },
         )
       }
