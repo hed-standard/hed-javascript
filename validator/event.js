@@ -2,6 +2,7 @@ const utils = require('../utils')
 const {
   parseHedString,
   ParsedHedString,
+  ParsedHedGroup,
   ParsedHedTag,
   hedStringIsAGroup,
 } = require('./stringParser')
@@ -180,38 +181,33 @@ const checkCapitalization = function (tag, hedSchemas, doSemanticValidation) {
 
 /**
  * Check for duplicate tags at the top level or within a single group.
- * NOTE: Nested groups are treated as single tags for this validation.
  */
 const checkForDuplicateTags = function (tagList) {
   const issues = []
-  const tagListLength = tagList.length
-  const duplicateIndices = []
-  for (let i = 0; i < tagListLength; i++) {
-    for (let j = 0; j < tagListLength; j++) {
-      if (i === j) {
+  const duplicateTags = []
+  for (const firstTag of tagList) {
+    for (const secondTag of tagList) {
+      if (firstTag === secondTag) {
         continue
       }
-      if (
-        tagList[i].formattedTag === tagList[j].formattedTag &&
-        !duplicateIndices.includes(i) &&
-        !duplicateIndices.includes(j)
-      ) {
-        duplicateIndices.push(i, j)
-        if (
-          tagList[i].originalTag.toLowerCase() ===
-          tagList[j].originalTag.toLowerCase()
-        ) {
+      if (firstTag.formattedTag === secondTag.formattedTag) {
+        if (!duplicateTags.includes(firstTag)) {
           issues.push(
             generateIssue('duplicateTag', {
-              tag: tagList[i].originalTag,
+              tag: firstTag.originalTag,
+              bounds: firstTag.originalBounds,
             }),
           )
-        } else {
+          duplicateTags.push(firstTag)
+        }
+        if (!duplicateTags.includes(secondTag)) {
           issues.push(
             generateIssue('duplicateTag', {
-              tag: tagList[i].canonicalTag,
+              tag: secondTag.originalTag,
+              bounds: secondTag.originalBounds,
             }),
           )
+          duplicateTags.push(secondTag)
         }
       }
     }
@@ -540,7 +536,7 @@ const checkPlaceholderTagSyntax = function (tag) {
 /**
  * Check the syntax of HED 3 definitions.
  *
- * @param {ParsedHedTag[]} tagGroup The tag group.
+ * @param {ParsedHedGroup} tagGroup The tag group.
  * @param {Schemas} hedSchemas The HED schema collection.
  * @return {Issue[]} Any issues found.
  */
@@ -554,11 +550,22 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
     hedSchemas,
     defExpandShortTag,
   )
-  const issues = [].concat(definitionParentTagIssues, defExpandParentTagIssues)
+  const [defParentTag, defParentTagIssues] = convertHedStringToLong(
+    hedSchemas,
+    defShortTag,
+  )
+  const issues = [].concat(
+    definitionParentTagIssues,
+    defExpandParentTagIssues,
+    defParentTagIssues,
+  )
   let definitionTagFound = false
   let defExpandTagFound = false
   let definitionName
-  for (const tag of tagGroup) {
+  for (const tag of tagGroup.tags) {
+    if (tag instanceof ParsedHedGroup) {
+      continue
+    }
     if (tag.canonicalTag.startsWith(definitionParentTag)) {
       definitionTagFound = true
       definitionName = utils.HED.getTagName(tag.originalTag)
@@ -574,8 +581,13 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
   }
   let tagGroupValidated = false
   let tagGroupIssueGenerated = false
-  for (const tag of tagGroup) {
-    if (hedStringIsAGroup(tag.formattedTag)) {
+  const nestedDefintionParentTags = [
+    definitionParentTag,
+    defExpandParentTag,
+    defParentTag,
+  ]
+  for (const tag of tagGroup.tags) {
+    if (tag instanceof ParsedHedGroup) {
       if (tagGroupValidated && !tagGroupIssueGenerated) {
         issues.push(
           generateIssue('multipleTagGroupsInDefinition', {
@@ -586,21 +598,19 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
         continue
       }
       tagGroupValidated = true
-      if (
-        tag.formattedTag.indexOf(definitionShortTag) >= 0 ||
-        tag.formattedTag.indexOf(defExpandShortTag) >= 0
-      ) {
-        issues.push(
-          generateIssue('nestedDefinition', {
-            definition: definitionName,
-          }),
-        )
-      } else if (tag.formattedTag.indexOf(defShortTag) >= 0) {
-        issues.push(
-          generateIssue('nestedDefinition', {
-            definition: definitionName,
-          }),
-        )
+      for (const innerTag of tag.tagIterator()) {
+        if (
+          nestedDefintionParentTags.includes(innerTag.canonicalTag) ||
+          nestedDefintionParentTags.includes(
+            utils.HED.getParentTag(innerTag.canonicalTag),
+          )
+        ) {
+          issues.push(
+            generateIssue('nestedDefinition', {
+              definition: definitionName,
+            }),
+          )
+        }
       }
     } else if (
       (definitionTagFound &&
@@ -797,9 +807,6 @@ const validateHedTagLevel = function (
   let issues = []
   if (doSemanticValidation) {
     issues = issues.concat(checkForMultipleUniqueTags(tagList, hedSchemas))
-    if (hedSchemas.isHed3) {
-      issues = issues.concat(checkDefinitionSyntax(tagList, hedSchemas))
-    }
   }
   issues = issues.concat(checkForDuplicateTags(tagList))
   return issues
@@ -814,11 +821,12 @@ const validateHedTagLevels = function (
   doSemanticValidation,
 ) {
   let issues = []
-  for (let i = 0; i < parsedString.tagGroups.length; i++) {
-    const tagList = parsedString.tagGroups[i]
-    issues = issues.concat(
-      validateHedTagLevel(tagList, hedSchemas, doSemanticValidation),
-    )
+  for (const tagGroup of parsedString.tagGroups) {
+    for (const subGroup of tagGroup.subGroupIterator()) {
+      issues = issues.concat(
+        validateHedTagLevel(subGroup, hedSchemas, doSemanticValidation),
+      )
+    }
   }
   issues = issues.concat(
     validateHedTagLevel(
@@ -833,19 +841,39 @@ const validateHedTagLevels = function (
 /**
  * Validate a HED tag group.
  */
-const validateHedTagGroup = function (originalTagGroup, parsedTagGroup) {
-  return []
+const validateHedTagGroup = function (
+  originalTagGroup,
+  parsedTagGroup,
+  hedSchemas,
+  doSemanticValidation,
+) {
+  if (doSemanticValidation && hedSchemas.isHed3) {
+    return checkDefinitionSyntax(parsedTagGroup, hedSchemas)
+  } else {
+    return []
+  }
 }
 
 /**
  * Validate the HED tag groups in a parsed HED string.
  */
-const validateHedTagGroups = function (parsedString) {
+const validateHedTagGroups = function (
+  parsedString,
+  hedSchemas,
+  doSemanticValidation,
+) {
   let issues = []
   for (let i = 0; i < parsedString.tagGroups.length; i++) {
     const parsedTag = parsedString.tagGroups[i]
     const originalTag = parsedString.tagGroupStrings[i]
-    issues = issues.concat(validateHedTagGroup(originalTag, parsedTag))
+    issues = issues.concat(
+      validateHedTagGroup(
+        originalTag,
+        parsedTag,
+        hedSchemas,
+        doSemanticValidation,
+      ),
+    )
   }
   return issues
 }
@@ -992,7 +1020,7 @@ const validateHedString = function (
       checkForWarnings,
       allowPlaceholders,
     ),
-    validateHedTagGroups(parsedString),
+    validateHedTagGroups(parsedString, hedSchemas, doSemanticValidation),
   )
   if (issues.length === 0) {
     return [true, []]

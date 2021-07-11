@@ -62,6 +62,64 @@ const ParsedHedTag = function (
 }
 
 /**
+ * A parsed HED tag group.
+ *
+ * @param {(ParsedHedTag|ParsedHedGroup)[]} parsedHedTags The parsed HED tags in the HED tag group.
+ * @param {string} originalTagGroup The original pre-parsed version of the HED tag group.
+ * @param {int[]} originalBounds The bounds of the HED tag group in the original HED string.
+ * @constructor
+ */
+const ParsedHedGroup = function (
+  originalTagGroup,
+  parsedHedTags,
+  originalBounds,
+) {
+  /**
+   * The parsed HED tags in the HED tag group.
+   * @type {(ParsedHedTag|ParsedHedGroup)[]}
+   */
+  this.tags = parsedHedTags
+  /**
+   * The original pre-parsed version of the HED tag group.
+   * @type {string}
+   */
+  this.originalTagGroup = originalTagGroup
+  /**
+   * The bounds of the HED tag group in the original HED string.
+   * @type {int[]}
+   */
+  this.originalBounds = originalBounds
+  /**
+   * Iterator over the parsed HED tags in this HED tag group.
+   * @return {Generator<*, ParsedHedTag, *>}
+   */
+  this.tagIterator = function* () {
+    for (const innerTag of this.tags) {
+      if (innerTag instanceof ParsedHedTag) {
+        yield innerTag
+      } else if (innerTag instanceof ParsedHedGroup) {
+        yield* innerTag.tagIterator()
+      }
+    }
+  }
+  /**
+   * Iterator over the full HED groups and subgroups in this HED tag group.
+   * @return {Generator<*, ParsedHedTag[], *>}
+   */
+  this.subGroupIterator = function* () {
+    const currentGroup = []
+    for (const innerTag of this.tags) {
+      if (innerTag instanceof ParsedHedTag) {
+        currentGroup.push(innerTag)
+      } else if (innerTag instanceof ParsedHedGroup) {
+        yield* innerTag.subGroupIterator()
+      }
+    }
+    yield currentGroup
+  }
+}
+
+/**
  * A parsed HED string.
  *
  * @param {string} hedString The original HED string.
@@ -80,7 +138,7 @@ const ParsedHedString = function (hedString) {
   this.tags = []
   /**
    * The tag groups in the string, split into arrays.
-   * @type ParsedHedTag[][]
+   * @type ParsedHedGroup[]
    */
   this.tagGroups = []
   /**
@@ -127,9 +185,14 @@ const removeGroupParentheses = function (tagGroup) {
  *
  * @param {string} hedString The full HED string.
  * @param {Schemas} hedSchemas The collection of HED schemas.
+ * @param {int} groupStartingIndex The start index of the group in the full HED string.
  * @returns {[ParsedHedTag[], Array]} An array of HED tags (top-level relative to the passed string) and any issues found.
  */
-const splitHedString = function (hedString, hedSchemas) {
+const splitHedString = function (
+  hedString,
+  hedSchemas,
+  groupStartingIndex = 0,
+) {
   const delimiter = ','
   const doubleQuoteCharacter = '"'
   const invalidCharacters = ['{', '}', '[', ']', '~']
@@ -162,7 +225,7 @@ const splitHedString = function (hedString, hedSchemas) {
         const parsedHedTag = new ParsedHedTag(
           currentTag.trim(),
           hedString,
-          [startingIndex, i],
+          [groupStartingIndex + startingIndex, groupStartingIndex + i],
           hedSchemas,
         )
         hedTags.push(parsedHedTag)
@@ -175,7 +238,7 @@ const splitHedString = function (hedString, hedSchemas) {
       issues.push(
         utils.issues.generateIssue('invalidCharacter', {
           character: character,
-          index: i,
+          index: groupStartingIndex + i,
           string: hedString,
         }),
       )
@@ -183,7 +246,7 @@ const splitHedString = function (hedString, hedSchemas) {
         const parsedHedTag = new ParsedHedTag(
           currentTag.trim(),
           hedString,
-          [startingIndex, i],
+          [groupStartingIndex + startingIndex, groupStartingIndex + i],
           hedSchemas,
         )
         hedTags.push(parsedHedTag)
@@ -204,7 +267,10 @@ const splitHedString = function (hedString, hedSchemas) {
     const parsedHedTag = new ParsedHedTag(
       currentTag.trim(),
       hedString,
-      [startingIndex, hedString.length],
+      [
+        groupStartingIndex + startingIndex,
+        groupStartingIndex + hedString.length,
+      ],
       hedSchemas,
     )
     hedTags.push(parsedHedTag)
@@ -216,7 +282,7 @@ const splitHedString = function (hedString, hedSchemas) {
 /**
  * Find and parse the group tags in a provided list.
  *
- * @param {ParsedHedTag[]} groupTagsList The list of possible group tags.
+ * @param {(ParsedHedTag|ParsedHedGroup)[]} groupTagsList The list of possible group tags.
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @param {ParsedHedString} parsedString The object to store parsed output in.
  * @param {boolean} isTopLevel Whether these tag groups are at the top level.
@@ -229,13 +295,15 @@ const findTagGroups = function (
   isTopLevel,
 ) {
   let issues = []
-  for (const tagOrGroup of groupTagsList) {
+  const copiedGroupTagsList = groupTagsList.slice()
+  copiedGroupTagsList.forEach((tagOrGroup, index) => {
     if (hedStringIsAGroup(tagOrGroup.originalTag)) {
       const tagGroupString = removeGroupParentheses(tagOrGroup.originalTag)
       // Split the group tag and recurse.
       const [nestedGroupTagList, nestedGroupIssues] = splitHedString(
         tagGroupString,
         hedSchemas,
+        tagOrGroup.originalBounds[0] + 1,
       )
       const nestedIssues = findTagGroups(
         nestedGroupTagList,
@@ -243,16 +311,25 @@ const findTagGroups = function (
         parsedString,
         false,
       )
-      parsedString.tagGroupStrings.push(tagOrGroup)
-      parsedString.tagGroups.push(nestedGroupTagList)
+      groupTagsList[index] = new ParsedHedGroup(
+        tagOrGroup.originalTag,
+        nestedGroupTagList,
+        tagOrGroup.originalBounds,
+      )
       if (isTopLevel) {
-        parsedString.topLevelTagGroups.push(nestedGroupTagList)
+        parsedString.tagGroupStrings.push(tagOrGroup)
+        parsedString.tagGroups.push(groupTagsList[index])
+        parsedString.topLevelTagGroups.push(
+          nestedGroupTagList.filter((tagOrGroup) => {
+            return tagOrGroup && !Array.isArray(tagOrGroup)
+          }),
+        )
       }
       issues = issues.concat(nestedGroupIssues, nestedIssues)
     } else if (!parsedString.tags.includes(tagOrGroup)) {
       parsedString.tags.push(tagOrGroup)
     }
-  }
+  })
   return issues
 }
 
@@ -339,7 +416,6 @@ const parseHedString = function (hedString, hedSchemas) {
     true,
   )
   formatHedTagsInList(parsedString.tags)
-  formatHedTagsInList(parsedString.tagGroups)
   formatHedTagsInList(parsedString.topLevelTags)
   const issues = [].concat(splitIssues, tagGroupIssues)
   return [parsedString, issues]
@@ -347,6 +423,7 @@ const parseHedString = function (hedString, hedSchemas) {
 
 module.exports = {
   ParsedHedTag: ParsedHedTag,
+  ParsedHedGroup: ParsedHedGroup,
   ParsedHedString: ParsedHedString,
   hedStringIsAGroup: hedStringIsAGroup,
   removeGroupParentheses: removeGroupParentheses,

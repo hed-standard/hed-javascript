@@ -77,7 +77,7 @@ const generateIssue = function (internalCode, parameters) {
     case 'duplicateTag':
       hedCode = 'HED_TAG_REPEATED'
       level = 'error'
-      message = `Duplicate tag - "${parameters.tag}"`
+      message = `Duplicate tag at indices (${parameters.bounds[0]}, ${parameters.bounds[1]}) - "${parameters.tag}"`
       break
     case 'multipleUniqueTags':
       hedCode = 'HED_TAG_NOT_UNIQUE'
