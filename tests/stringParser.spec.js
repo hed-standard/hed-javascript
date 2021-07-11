@@ -393,7 +393,7 @@ describe('HED string parsing', () => {
         '/Attribute/Location/Screen/Left/23 px',
       ])
       assert.sameDeepMembers(
-        parsedString.tagGroups.map((group) => group.map(originalMap)),
+        parsedString.tagGroups.map((group) => group.tags.map(originalMap)),
         [['/Attribute/Object side/Left', '/Participant/Effect/Body part/Arm']],
       )
     })
