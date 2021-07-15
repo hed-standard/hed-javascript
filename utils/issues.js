@@ -164,16 +164,19 @@ const generateIssue = function (internalCode, parameters) {
       message = `Multiple inner tag groups found in definition "${parameters.definition}"`
       break
     case 'invalidTopLevelTagGroupTag':
+      hedCode = 'HED_TAG_GROUP_ERROR'
       level = 'error'
       message = `Tag "${parameters.tag}" is only allowed inside of a top-level tag group.`
       break
     case 'multipleTopLevelTagGroupTags':
+      hedCode = 'HED_TAG_GROUP_ERROR'
       level = 'error'
       message = `Tag "${parameters.tag}" found in top-level tag group where "${parameters.otherTag}" was already defined.`
       break
     case 'invalidTopLevelTag':
+      hedCode = 'HED_TAG_GROUP_ERROR'
       level = 'error'
-      message = `Illegal top-level tag - "${parameters.tag}"`
+      message = `Tag "${parameters.tag}" is only allowed inside of a tag group.`
       break
     default:
       hedCode = 'HED_GENERIC_ERROR'
