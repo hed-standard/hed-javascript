@@ -64,6 +64,16 @@ const getParentTag = function (tag, character = '/') {
   }
 }
 
+const isDescendantOf = function (tag, parent) {
+  while (tag.lastIndexOf('/') >= 0) {
+    if (tag === parent) {
+      return true
+    }
+    tag = getParentTag(tag)
+  }
+  return tag === parent
+}
+
 const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; :]+$/
 const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; ]+$/
 /**
@@ -316,6 +326,7 @@ module.exports = {
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
   getParentTag: getParentTag,
+  isDescendantOf: isDescendantOf,
   validateValue: validateValue,
   validateUnits: validateUnits,
   tagExistsInSchema: tagExistsInSchema,
