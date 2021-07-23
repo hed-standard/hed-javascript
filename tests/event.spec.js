@@ -1397,5 +1397,142 @@ describe('HED string and event validation', () => {
         return validatorSemantic(testStrings, expectedIssues)
       })
     })
+
+    describe('HED Strings', () => {
+      const validatorSemantic = function (
+        testStrings,
+        expectedIssues,
+        allowPlaceholders = false,
+      ) {
+        return validatorSemanticBase(
+          testStrings,
+          expectedIssues,
+          function (parsedTestString, schema) {
+            return hed.validateHedString(
+              parsedTestString,
+              schema,
+              true,
+              allowPlaceholders,
+            )[1]
+          },
+        )
+      }
+
+      it('should have valid placeholders', () => {
+        const testStrings = {
+          noPlaceholders: 'Car',
+          noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',
+          noPlaceholderDefinitionGroup: '(Definition/SimpleDefinition)',
+          noPlaceholderTagGroupDefinition:
+            '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          singlePlaceholder: 'RGB-green/#',
+          definitionPlaceholder:
+            '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
+          definitionPlaceholderWithTag:
+            'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
+          singlePlaceholderWithValidDefinitionPlaceholder:
+            'Duration/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
+          nestedDefinitionPlaceholder:
+            '(Definition/NestedPlaceholderDefinition/#, (Screen, (Square, RGB-blue/#)))',
+          threePlaceholderDefinition:
+            '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
+          fourPlaceholderDefinition:
+            '(Definition/FourPlaceholderDefinition/#, (RGB-green/#, (Cube, Volume/#, RGB-blue/#)))',
+          multiPlaceholder: 'RGB-red/#, Circle, RGB-blue/#',
+          multiPlaceholderWithValidDefinition:
+            'RGB-red/#, Circle, (Definition/MultiPlaceholderWithValidDefinition/#, (RGB-green/#)), RGB-blue/#',
+          multiPlaceholderWithThreePlaceholderDefinition:
+            'RGB-red/#, Circle, (Definition/MultiPlaceholderWithThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#)), Duration/#',
+        }
+        const expectedPlaceholdersAllowedIssues = {
+          noPlaceholders: [],
+          noPlaceholderGroup: [],
+          noPlaceholderDefinitionGroup: [],
+          noPlaceholderTagGroupDefinition: [],
+          singlePlaceholder: [],
+          definitionPlaceholder: [],
+          definitionPlaceholderWithTag: [],
+          singlePlaceholderWithValidDefinitionPlaceholder: [],
+          nestedDefinitionPlaceholder: [],
+          threePlaceholderDefinition: [
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'ThreePlaceholderDefinition',
+            }),
+          ],
+          fourPlaceholderDefinition: [
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'FourPlaceholderDefinition',
+            }),
+          ],
+          multiPlaceholder: [
+            generateIssue('invalidPlaceholder', { tag: 'RGB-red/#' }),
+            generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#' }),
+          ],
+          multiPlaceholderWithValidDefinition: [
+            generateIssue('invalidPlaceholder', { tag: 'RGB-red/#' }),
+            generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#' }),
+          ],
+          multiPlaceholderWithThreePlaceholderDefinition: [
+            generateIssue('invalidPlaceholder', { tag: 'RGB-red/#' }),
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'MultiPlaceholderWithThreePlaceholderDefinition',
+            }),
+            generateIssue('invalidPlaceholder', { tag: 'Duration/#' }),
+          ],
+        }
+        const expectedPlaceholdersNotAllowedIssues = {
+          noPlaceholders: [],
+          noPlaceholderGroup: [],
+          noPlaceholderDefinitionGroup: [],
+          noPlaceholderTagGroupDefinition: [],
+          singlePlaceholder: [
+            generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' }),
+          ],
+          definitionPlaceholder: [],
+          definitionPlaceholderWithTag: [],
+          singlePlaceholderWithValidDefinitionPlaceholder: [
+            generateIssue('invalidPlaceholder', { tag: 'Duration/#' }),
+          ],
+          nestedDefinitionPlaceholder: [],
+          threePlaceholderDefinition: [
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'ThreePlaceholderDefinition',
+            }),
+          ],
+          fourPlaceholderDefinition: [
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'FourPlaceholderDefinition',
+            }),
+          ],
+          multiPlaceholder: [
+            generateIssue('invalidPlaceholder', { tag: 'RGB-red/#' }),
+            generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#' }),
+          ],
+          multiPlaceholderWithValidDefinition: [
+            generateIssue('invalidPlaceholder', { tag: 'RGB-red/#' }),
+            generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#' }),
+          ],
+          multiPlaceholderWithThreePlaceholderDefinition: [
+            generateIssue('invalidPlaceholder', { tag: 'RGB-red/#' }),
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'MultiPlaceholderWithThreePlaceholderDefinition',
+            }),
+            generateIssue('invalidPlaceholder', { tag: 'Duration/#' }),
+          ],
+        }
+        return Promise.all([
+          validatorSemantic(
+            testStrings,
+            expectedPlaceholdersAllowedIssues,
+            true,
+          ),
+          validatorSemantic(
+            testStrings,
+            expectedPlaceholdersNotAllowedIssues,
+            false,
+          ),
+        ])
+      })
+    })
   })
 })
