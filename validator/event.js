@@ -552,7 +552,10 @@ const checkPlaceholderTagSyntax = function (tag) {
  * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
  * @return {Issue[]} Any issues found.
  */
-const checkPlaceholderStringSyntax = function (parsedString, allowPlaceholders) {
+const checkPlaceholderStringSyntax = function (
+  parsedString,
+  allowPlaceholders,
+) {
   const issues = []
   let standalonePlaceholders = 0
   let definitionPlaceholders
@@ -560,11 +563,16 @@ const checkPlaceholderStringSyntax = function (parsedString, allowPlaceholders) 
   let firstStandaloneTag = ''
   for (const tag of parsedString.topLevelTags) {
     const tagString = tag.formattedTag
-    standalonePlaceholders += utils.string.getCharacterCount(tagString, '#')
-    if (standalonePlaceholders === 1) {
+    const tagPlaceholders = utils.string.getCharacterCount(tagString, '#')
+    standalonePlaceholders += tagPlaceholders
+    if (!firstStandaloneTag && standalonePlaceholders >= 1) {
       firstStandaloneTag = tag.originalTag
     }
-    if ((!allowPlaceholders && standalonePlaceholders) || standalonePlaceholders > 1) {
+    if (
+      tagPlaceholders &&
+      ((!allowPlaceholders && standalonePlaceholders) ||
+        standalonePlaceholders > 1)
+    ) {
       if (allowPlaceholders && !standaloneIssueGenerated) {
         issues.push(
           generateIssue('invalidPlaceholder', {
@@ -578,7 +586,6 @@ const checkPlaceholderStringSyntax = function (parsedString, allowPlaceholders) 
         }),
       )
       standaloneIssueGenerated = true
-      break
     }
   }
   for (const tagGroup of parsedString.tagGroups) {
@@ -613,11 +620,16 @@ const checkPlaceholderStringSyntax = function (parsedString, allowPlaceholders) 
     } else if (!standaloneIssueGenerated) {
       for (const tag of tagGroup.tagIterator()) {
         const tagString = tag.formattedTag
-        standalonePlaceholders += utils.string.getCharacterCount(tagString, '#')
-        if (standalonePlaceholders === 1) {
+        const tagPlaceholders = utils.string.getCharacterCount(tagString, '#')
+        standalonePlaceholders += tagPlaceholders
+        if (!firstStandaloneTag && standalonePlaceholders >= 1) {
           firstStandaloneTag = tag.originalTag
         }
-        if ((!allowPlaceholders && standalonePlaceholders) || standalonePlaceholders > 1) {
+        if (
+          tagPlaceholders &&
+          ((!allowPlaceholders && standalonePlaceholders) ||
+            standalonePlaceholders > 1)
+        ) {
           if (allowPlaceholders && !standaloneIssueGenerated) {
             issues.push(
               generateIssue('invalidPlaceholder', {
