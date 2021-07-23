@@ -4,7 +4,7 @@ This package contains a JavaScript validator for HED (hierarchical event descrip
 
 [HED](http://www.hedtags.org/) is a system for annotating events using comma-separated path strings. Any type of event can be annotated using HED-type syntax. The current version of `hed-validator` performs both syntactic and semantic validation. Syntactic validation only checks for syntactic issues like mismatched parentheses, and it does not require a schema.
 
-The HED annotation strategy is very general and a standardized vocabulary for a particular domain can be represented using a HED schema. HED provides one [standardized schema](https://github.com/BigEEGConsortium/HED-schema/wiki/HED-Schema) for annotating events in neuroimaging experiments. Validation of HED strings against a particular HED schema is called semantic validation. Semantic validation is currently supported for the [web version of the HED validator](http://visual.cs.utsa.edu/hed).
+The HED annotation strategy is very general and a standardized vocabulary for a particular domain can be represented using a HED schema. HED provides one [standardized schema](https://github.com/hed-standard/hed-specification) for annotating events in neuroimaging experiments. Validation of HED strings against a particular HED schema is called semantic validation. Semantic validation is currently supported for the [web version of the HED validator](http://visual.cs.utsa.edu/hed).
 
 ## Usage
 
