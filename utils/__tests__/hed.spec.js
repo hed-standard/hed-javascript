@@ -89,18 +89,7 @@ describe('HED tag string utility functions', () => {
         word: 'one',
         space: 'spaced out',
       }
-      const expectedResultsHed2NoPlaceholders = {
-        integer: true,
-        decimal: true,
-        scientific: true,
-        negative: true,
-        placeholder: false,
-        time: true,
-        name: true,
-        word: true,
-        space: true,
-      }
-      const expectedResultsHed2WithPlaceholders = {
+      const expectedResultsHed2 = {
         integer: true,
         decimal: true,
         scientific: true,
@@ -111,18 +100,7 @@ describe('HED tag string utility functions', () => {
         word: true,
         space: true,
       }
-      const expectedResultsHed2NumericNoPlaceholders = {
-        integer: true,
-        decimal: true,
-        scientific: true,
-        negative: true,
-        placeholder: false,
-        time: false,
-        name: false,
-        word: false,
-        space: false,
-      }
-      const expectedResultsHed2NumericWithPlaceholders = {
+      const expectedResultsHed2Numeric = {
         integer: true,
         decimal: true,
         scientific: true,
@@ -133,18 +111,7 @@ describe('HED tag string utility functions', () => {
         word: false,
         space: false,
       }
-      const expectedResultsHed3NoPlaceholders = {
-        integer: true,
-        decimal: true,
-        scientific: true,
-        negative: true,
-        placeholder: false,
-        time: false,
-        name: true,
-        word: true,
-        space: true,
-      }
-      const expectedResultsHed3WithPlaceholders = {
+      const expectedResultsHed3 = {
         integer: true,
         decimal: true,
         scientific: true,
@@ -155,18 +122,7 @@ describe('HED tag string utility functions', () => {
         word: true,
         space: true,
       }
-      const expectedResultsHed3NumericNoPlaceholders = {
-        integer: true,
-        decimal: true,
-        scientific: true,
-        negative: true,
-        placeholder: false,
-        time: false,
-        name: false,
-        word: false,
-        space: false,
-      }
-      const expectedResultsHed3NumericWithPlaceholders = {
+      const expectedResultsHed3Numeric = {
         integer: true,
         decimal: true,
         scientific: true,
@@ -177,42 +133,22 @@ describe('HED tag string utility functions', () => {
         word: false,
         space: false,
       }
-      validator(testStrings, expectedResultsHed2NoPlaceholders, (string) => {
-        return hed.validateValue(string, false, false, false)
-      })
-      validator(testStrings, expectedResultsHed2WithPlaceholders, (string) => {
+      validator(testStrings, expectedResultsHed2, (string) => {
         return hed.validateValue(string, true, false, false)
       })
       validator(
         testStrings,
-        expectedResultsHed2NumericNoPlaceholders,
-        (string) => {
-          return hed.validateValue(string, false, true, false)
-        },
-      )
-      validator(
-        testStrings,
-        expectedResultsHed2NumericWithPlaceholders,
+        expectedResultsHed2Numeric,
         (string) => {
           return hed.validateValue(string, true, true, false)
         },
       )
-      validator(testStrings, expectedResultsHed3NoPlaceholders, (string) => {
-        return hed.validateValue(string, false, false, true)
-      })
-      validator(testStrings, expectedResultsHed3WithPlaceholders, (string) => {
+      validator(testStrings, expectedResultsHed3, (string) => {
         return hed.validateValue(string, true, false, true)
       })
       validator(
         testStrings,
-        expectedResultsHed3NumericNoPlaceholders,
-        (string) => {
-          return hed.validateValue(string, false, true, true)
-        },
-      )
-      validator(
-        testStrings,
-        expectedResultsHed3NumericWithPlaceholders,
+        expectedResultsHed3Numeric,
         (string) => {
           return hed.validateValue(string, true, true, true)
         },
