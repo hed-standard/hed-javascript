@@ -88,7 +88,7 @@ const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; ]+$/
  */
 const validateValue = function (value, allowPlaceholders, isNumeric, isHed3) {
   if (value === '#') {
-    return allowPlaceholders
+    return true
   }
   if (isNumeric) {
     return isNumber(value)

@@ -549,10 +549,10 @@ const checkPlaceholderTagSyntax = function (tag) {
  * Check full-string placeholder syntax.
  *
  * @param {ParsedHedString} parsedString The parsed HED string.
- * @param {Schemas} hedSchemas The HED schema collection.
+ * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
  * @return {Issue[]} Any issues found.
  */
-const checkPlaceholderStringSyntax = function (parsedString) {
+const checkPlaceholderStringSyntax = function (parsedString, allowPlaceholders) {
   const issues = []
   let standalonePlaceholders = 0
   let definitionPlaceholders
@@ -563,8 +563,9 @@ const checkPlaceholderStringSyntax = function (parsedString) {
     standalonePlaceholders += utils.string.getCharacterCount(tagString, '#')
     if (standalonePlaceholders === 1) {
       firstStandaloneTag = tag.originalTag
-    } else if (standalonePlaceholders > 1) {
-      if (!standaloneIssueGenerated) {
+    }
+    if ((!allowPlaceholders && standalonePlaceholders) || standalonePlaceholders > 1) {
+      if (allowPlaceholders && !standaloneIssueGenerated) {
         issues.push(
           generateIssue('invalidPlaceholder', {
             tag: firstStandaloneTag,
@@ -615,8 +616,9 @@ const checkPlaceholderStringSyntax = function (parsedString) {
         standalonePlaceholders += utils.string.getCharacterCount(tagString, '#')
         if (standalonePlaceholders === 1) {
           firstStandaloneTag = tag.originalTag
-        } else if (standalonePlaceholders > 1) {
-          if (!standaloneIssueGenerated) {
+        }
+        if ((!allowPlaceholders && standalonePlaceholders) || standalonePlaceholders > 1) {
+          if (allowPlaceholders && !standaloneIssueGenerated) {
             issues.push(
               generateIssue('invalidPlaceholder', {
                 tag: firstStandaloneTag,
@@ -841,11 +843,7 @@ const validateFullUnparsedHedString = function (hedString) {
  * @return {Issue[]} Any issues found.
  */
 const validateFullParsedHedString = function (parsedString, allowPlaceholders) {
-  if (allowPlaceholders) {
-    return checkPlaceholderStringSyntax(parsedString)
-  } else {
-    return []
-  }
+  return checkPlaceholderStringSyntax(parsedString, allowPlaceholders)
 }
 
 /**

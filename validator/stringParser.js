@@ -72,6 +72,7 @@ const groupDefinitionTag = function (group, hedSchemas) {
   const definitionTags = group.tags.filter((tag) => {
     return (
       hedSchemas.baseSchema &&
+      hedSchemas.isHed3 &&
       tag instanceof ParsedHedTag &&
       utils.HED.isDescendantOf(
         tag.canonicalTag,
