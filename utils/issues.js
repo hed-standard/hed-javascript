@@ -134,6 +134,11 @@ const generateIssue = function (internalCode, parameters) {
       level = 'error'
       message = `Invalid placeholder in definition - "${parameters.definition}"`
       break
+    case 'missingPlaceholder':
+      hedCode = 'HED_PLACEHOLDER_INVALID'
+      level = 'error'
+      message = `HED value string "${parameters.string}" is missing a required placeholder.`
+      break
     case 'invalidValue':
       hedCode = 'HED_VALUE_INVALID'
       level = 'error'
