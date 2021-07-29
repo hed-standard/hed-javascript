@@ -359,7 +359,6 @@ const checkIfTagUnitClassUnitsAreValid = function (
     )
     const validValue = utils.HED.validateValue(
       value,
-      expectValuePlaceholderString,
       hedSchemas.baseSchema.attributes.tagHasAttribute(
         utils.HED.replaceTagNameWithPound(tag.formattedTag),
         'isNumeric',
@@ -419,7 +418,6 @@ const checkValueTagSyntax = function (
   ) {
     const isValidValue = utils.HED.validateValue(
       utils.HED.getTagName(tag.formattedTag),
-      expectValuePlaceholderString,
       hedSchemas.baseSchema.attributes.tagHasAttribute(
         utils.HED.replaceTagNameWithPound(tag.formattedTag),
         'isNumeric',
