@@ -86,7 +86,7 @@ const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; ]+$/
 /**
  * Determine if a stripped value is valid.
  */
-const validateValue = function (value, allowPlaceholders, isNumeric, isHed3) {
+const validateValue = function (value, isNumeric, isHed3) {
   if (value === '#') {
     return true
   }

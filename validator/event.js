@@ -293,14 +293,14 @@ const checkForRequiredTags = function (topLevelTags, hedSchemas) {
  * @param {ParsedHedTag} tag A HED tag.
  * @param {Schemas} hedSchemas The HED schema collection.
  * @param {boolean} checkForWarnings Whether to check for warnings.
- * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
+ * @param {boolean} expectValuePlaceholderString Whether this string is expected to have a '#' placeholder representing a value.
  * @return {Issue[]} Any issues found.
  */
 const checkIfTagUnitClassUnitsAreValid = function (
   tag,
   hedSchemas,
   checkForWarnings,
-  allowPlaceholders = false,
+  expectValuePlaceholderString = false,
 ) {
   const issues = []
   if (
@@ -359,7 +359,6 @@ const checkIfTagUnitClassUnitsAreValid = function (
     )
     const validValue = utils.HED.validateValue(
       value,
-      allowPlaceholders,
       hedSchemas.baseSchema.attributes.tagHasAttribute(
         utils.HED.replaceTagNameWithPound(tag.formattedTag),
         'isNumeric',
@@ -398,10 +397,14 @@ const checkIfTagUnitClassUnitsAreValid = function (
  *
  * @param {ParsedHedTag} tag A HED tag.
  * @param {Schemas} hedSchemas The HED schema collection.
- * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
+ * @param {boolean} expectValuePlaceholderString Whether this string is expected to have a '#' placeholder representing a value.
  * @return {Issue[]} Any issues found.
  */
-const checkValueTagSyntax = function (tag, hedSchemas, allowPlaceholders) {
+const checkValueTagSyntax = function (
+  tag,
+  hedSchemas,
+  expectValuePlaceholderString,
+) {
   if (
     utils.HED.tagTakesValue(
       tag.formattedTag,
@@ -415,7 +418,6 @@ const checkValueTagSyntax = function (tag, hedSchemas, allowPlaceholders) {
   ) {
     const isValidValue = utils.HED.validateValue(
       utils.HED.getTagName(tag.formattedTag),
-      allowPlaceholders,
       hedSchemas.baseSchema.attributes.tagHasAttribute(
         utils.HED.replaceTagNameWithPound(tag.formattedTag),
         'isNumeric',
@@ -441,7 +443,7 @@ const checkIfTagIsValid = function (
   previousTag,
   hedSchemas,
   checkForWarnings,
-  allowPlaceholders,
+  expectValuePlaceholderString,
 ) {
   const issues = []
   if (
@@ -462,7 +464,10 @@ const checkIfTagIsValid = function (
     tag.formattedTag,
     hedSchemas.baseSchema.attributes,
   )
-  if (allowPlaceholders && tag.formattedTag.split('#').length === 2) {
+  if (
+    expectValuePlaceholderString &&
+    tag.formattedTag.split('#').length === 2
+  ) {
     const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
     if (
       valueTag.split('#').length !== 2 || // To avoid a redundant issue.
@@ -549,12 +554,12 @@ const checkPlaceholderTagSyntax = function (tag) {
  * Check full-string placeholder syntax.
  *
  * @param {ParsedHedString} parsedString The parsed HED string.
- * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
+ * @param {boolean} expectValuePlaceholderString Whether this string is expected to have a '#' placeholder representing a value.
  * @return {Issue[]} Any issues found.
  */
 const checkPlaceholderStringSyntax = function (
   parsedString,
-  allowPlaceholders,
+  expectValuePlaceholderString,
 ) {
   const issues = []
   let standalonePlaceholders = 0
@@ -570,10 +575,10 @@ const checkPlaceholderStringSyntax = function (
     }
     if (
       tagPlaceholders &&
-      ((!allowPlaceholders && standalonePlaceholders) ||
+      ((!expectValuePlaceholderString && standalonePlaceholders) ||
         standalonePlaceholders > 1)
     ) {
-      if (allowPlaceholders && !standaloneIssueGenerated) {
+      if (expectValuePlaceholderString && !standaloneIssueGenerated) {
         issues.push(
           generateIssue('invalidPlaceholder', {
             tag: firstStandaloneTag,
@@ -627,10 +632,10 @@ const checkPlaceholderStringSyntax = function (
         }
         if (
           tagPlaceholders &&
-          ((!allowPlaceholders && standalonePlaceholders) ||
+          ((!expectValuePlaceholderString && standalonePlaceholders) ||
             standalonePlaceholders > 1)
         ) {
-          if (allowPlaceholders && !standaloneIssueGenerated) {
+          if (expectValuePlaceholderString && !standaloneIssueGenerated) {
             issues.push(
               generateIssue('invalidPlaceholder', {
                 tag: firstStandaloneTag,
@@ -646,6 +651,13 @@ const checkPlaceholderStringSyntax = function (
         }
       }
     }
+  }
+  if (expectValuePlaceholderString && standalonePlaceholders === 0) {
+    issues.push(
+      generateIssue('missingPlaceholder', {
+        string: parsedString.hedString,
+      }),
+    )
   }
   return issues
 }
@@ -851,11 +863,17 @@ const validateFullUnparsedHedString = function (hedString) {
  * Validate the full parsed HED string.
  *
  * @param {ParsedHedString} parsedString The parsed HED string to validate.
- * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
+ * @param {boolean} expectValuePlaceholderString Whether this string is expected to have a '#' placeholder representing a value.
  * @return {Issue[]} Any issues found.
  */
-const validateFullParsedHedString = function (parsedString, allowPlaceholders) {
-  return checkPlaceholderStringSyntax(parsedString, allowPlaceholders)
+const validateFullParsedHedString = function (
+  parsedString,
+  expectValuePlaceholderString,
+) {
+  return checkPlaceholderStringSyntax(
+    parsedString,
+    expectValuePlaceholderString,
+  )
 }
 
 /**
@@ -868,7 +886,7 @@ const validateIndividualHedTag = function (
   doSemanticValidation,
   checkForWarnings,
   isEventLevel,
-  allowPlaceholders,
+  expectValuePlaceholderString,
 ) {
   let issues = []
   if (doSemanticValidation) {
@@ -878,19 +896,19 @@ const validateIndividualHedTag = function (
         previousTag,
         hedSchemas,
         checkForWarnings,
-        allowPlaceholders,
+        expectValuePlaceholderString,
       ),
       checkIfTagUnitClassUnitsAreValid(
         tag,
         hedSchemas,
         checkForWarnings,
-        allowPlaceholders,
+        expectValuePlaceholderString,
       ),
       checkIfTagRequiresChild(tag, hedSchemas),
     )
     if (!isEventLevel) {
       issues = issues.concat(
-        checkValueTagSyntax(tag, hedSchemas, allowPlaceholders),
+        checkValueTagSyntax(tag, hedSchemas, expectValuePlaceholderString),
       )
     }
   }
@@ -899,7 +917,7 @@ const validateIndividualHedTag = function (
       checkCapitalization(tag, hedSchemas, doSemanticValidation),
     )
   }
-  if (allowPlaceholders) {
+  if (expectValuePlaceholderString) {
     issues = issues.concat(checkPlaceholderTagSyntax(tag))
   }
   return issues
@@ -914,7 +932,7 @@ const validateIndividualHedTags = function (
   doSemanticValidation,
   checkForWarnings,
   isEventLevel,
-  allowPlaceholders = false,
+  expectValuePlaceholderString = false,
 ) {
   let issues = []
   let previousTag = new ParsedHedTag('', '', [0, 0], hedSchemas)
@@ -928,7 +946,7 @@ const validateIndividualHedTags = function (
         doSemanticValidation,
         checkForWarnings,
         isEventLevel,
-        allowPlaceholders,
+        expectValuePlaceholderString,
       ),
     )
     previousTag = tag
@@ -1129,14 +1147,14 @@ const initiallyValidateHedString = function (
  * @param {string|ParsedHedString} hedString The HED string to validate.
  * @param {Schemas} hedSchemas The HED schemas to validate against.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
- * @param {boolean} allowPlaceholders Whether to treat value-taking tags with '#' placeholders as valid.
+ * @param {boolean} expectValuePlaceholderString Whether this string is expected to have a '#' placeholder representing a value.
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  */
 const validateHedString = function (
   hedString,
   hedSchemas,
   checkForWarnings = false,
-  allowPlaceholders = false,
+  expectValuePlaceholderString = false,
 ) {
   let doSemanticValidation = hedSchemas instanceof Schemas
   if (!doSemanticValidation) {
@@ -1152,14 +1170,14 @@ const validateHedString = function (
   }
 
   const issues = initialIssues.concat(
-    validateFullParsedHedString(parsedString, allowPlaceholders),
+    validateFullParsedHedString(parsedString, expectValuePlaceholderString),
     validateIndividualHedTags(
       parsedString,
       hedSchemas,
       doSemanticValidation,
       checkForWarnings,
       false,
-      allowPlaceholders,
+      expectValuePlaceholderString,
     ),
     validateHedTagGroups(parsedString, hedSchemas, doSemanticValidation),
   )

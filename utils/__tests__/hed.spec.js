@@ -134,25 +134,17 @@ describe('HED tag string utility functions', () => {
         space: false,
       }
       validator(testStrings, expectedResultsHed2, (string) => {
-        return hed.validateValue(string, true, false, false)
+        return hed.validateValue(string, false, false)
       })
-      validator(
-        testStrings,
-        expectedResultsHed2Numeric,
-        (string) => {
-          return hed.validateValue(string, true, true, false)
-        },
-      )
+      validator(testStrings, expectedResultsHed2Numeric, (string) => {
+        return hed.validateValue(string, true, false)
+      })
       validator(testStrings, expectedResultsHed3, (string) => {
-        return hed.validateValue(string, true, false, true)
+        return hed.validateValue(string, false, true)
       })
-      validator(
-        testStrings,
-        expectedResultsHed3Numeric,
-        (string) => {
-          return hed.validateValue(string, true, true, true)
-        },
-      )
+      validator(testStrings, expectedResultsHed3Numeric, (string) => {
+        return hed.validateValue(string, true, true)
+      })
     })
   })
 

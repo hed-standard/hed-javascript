@@ -676,7 +676,7 @@ describe('HED string and event validation', () => {
       const validator = function (
         testStrings,
         expectedIssues,
-        allowPlaceholders = false,
+        expectValuePlaceholderString = false,
       ) {
         return hedSchemaPromise.then((schema) => {
           for (const testStringKey in testStrings) {
@@ -684,7 +684,7 @@ describe('HED string and event validation', () => {
               testStrings[testStringKey],
               schema,
               true,
-              allowPlaceholders,
+              expectValuePlaceholderString,
             )
             assert.sameDeepMembers(
               testIssues,
@@ -1402,7 +1402,7 @@ describe('HED string and event validation', () => {
       const validatorSemantic = function (
         testStrings,
         expectedIssues,
-        allowPlaceholders = false,
+        expectValuePlaceholderString = false,
       ) {
         return validatorSemanticBase(
           testStrings,
@@ -1412,14 +1412,14 @@ describe('HED string and event validation', () => {
               parsedTestString,
               schema,
               true,
-              allowPlaceholders,
+              expectValuePlaceholderString,
             )[1]
           },
         )
       }
 
       it('should have valid placeholders', () => {
-        const testStrings = {
+        const expectedPlaceholdersTestStrings = {
           noPlaceholders: 'Car',
           noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',
           noPlaceholderDefinitionGroup: '(Definition/SimpleDefinition)',
@@ -1444,22 +1444,86 @@ describe('HED string and event validation', () => {
           multiPlaceholderWithThreePlaceholderDefinition:
             'RGB-red/#, Circle, (Definition/MultiPlaceholderWithThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#)), Duration/#',
         }
-        const expectedPlaceholdersAllowedIssues = {
-          noPlaceholders: [],
-          noPlaceholderGroup: [],
-          noPlaceholderDefinitionGroup: [],
-          noPlaceholderTagGroupDefinition: [],
+        const noExpectedPlaceholdersTestStrings = {
+          noPlaceholders: 'Car',
+          noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',
+          noPlaceholderDefinitionGroup: '(Definition/SimpleDefinition)',
+          noPlaceholderTagGroupDefinition:
+            '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          singlePlaceholder: 'RGB-green/#',
+          definitionPlaceholder:
+            '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
+          definitionPlaceholderWithTag:
+            'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
+          singlePlaceholderWithValidDefinitionPlaceholder:
+            'Duration/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
+          nestedDefinitionPlaceholder:
+            '(Definition/NestedPlaceholderDefinition/#, (Screen, (Square, RGB-blue/#)))',
+          threePlaceholderDefinition:
+            '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
+          fourPlaceholderDefinition:
+            '(Definition/FourPlaceholderDefinition/#, (RGB-green/#, (Cube, Volume/#, RGB-blue/#)))',
+          multiPlaceholder: 'RGB-red/#, Circle, RGB-blue/#',
+          multiPlaceholderWithValidDefinition:
+            'RGB-red/#, Circle, (Definition/MultiPlaceholderWithValidDefinition/#, (RGB-green/#)), RGB-blue/#',
+          multiPlaceholderWithThreePlaceholderDefinition:
+            'RGB-red/#, Circle, (Definition/MultiPlaceholderWithThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#)), Duration/#',
+        }
+        const expectedPlaceholdersIssues = {
+          noPlaceholders: [
+            generateIssue('missingPlaceholder', {
+              string: expectedPlaceholdersTestStrings.noPlaceholders,
+            }),
+          ],
+          noPlaceholderGroup: [
+            generateIssue('missingPlaceholder', {
+              string: expectedPlaceholdersTestStrings.noPlaceholderGroup,
+            }),
+          ],
+          noPlaceholderDefinitionGroup: [
+            generateIssue('missingPlaceholder', {
+              string:
+                expectedPlaceholdersTestStrings.noPlaceholderDefinitionGroup,
+            }),
+          ],
+          noPlaceholderTagGroupDefinition: [
+            generateIssue('missingPlaceholder', {
+              string:
+                expectedPlaceholdersTestStrings.noPlaceholderTagGroupDefinition,
+            }),
+          ],
           singlePlaceholder: [],
-          definitionPlaceholder: [],
-          definitionPlaceholderWithTag: [],
+          definitionPlaceholder: [
+            generateIssue('missingPlaceholder', {
+              string: expectedPlaceholdersTestStrings.definitionPlaceholder,
+            }),
+          ],
+          definitionPlaceholderWithTag: [
+            generateIssue('missingPlaceholder', {
+              string:
+                expectedPlaceholdersTestStrings.definitionPlaceholderWithTag,
+            }),
+          ],
           singlePlaceholderWithValidDefinitionPlaceholder: [],
-          nestedDefinitionPlaceholder: [],
+          nestedDefinitionPlaceholder: [
+            generateIssue('missingPlaceholder', {
+              string:
+                expectedPlaceholdersTestStrings.nestedDefinitionPlaceholder,
+            }),
+          ],
           threePlaceholderDefinition: [
+            generateIssue('missingPlaceholder', {
+              string:
+                expectedPlaceholdersTestStrings.threePlaceholderDefinition,
+            }),
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'ThreePlaceholderDefinition',
             }),
           ],
           fourPlaceholderDefinition: [
+            generateIssue('missingPlaceholder', {
+              string: expectedPlaceholdersTestStrings.fourPlaceholderDefinition,
+            }),
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'FourPlaceholderDefinition',
             }),
@@ -1480,7 +1544,7 @@ describe('HED string and event validation', () => {
             generateIssue('invalidPlaceholder', { tag: 'Duration/#' }),
           ],
         }
-        const expectedPlaceholdersNotAllowedIssues = {
+        const noExpectedPlaceholdersIssues = {
           noPlaceholders: [],
           noPlaceholderGroup: [],
           noPlaceholderDefinitionGroup: [],
@@ -1522,13 +1586,13 @@ describe('HED string and event validation', () => {
         }
         return Promise.all([
           validatorSemantic(
-            testStrings,
-            expectedPlaceholdersAllowedIssues,
+            expectedPlaceholdersTestStrings,
+            expectedPlaceholdersIssues,
             true,
           ),
           validatorSemantic(
-            testStrings,
-            expectedPlaceholdersNotAllowedIssues,
+            noExpectedPlaceholdersTestStrings,
+            noExpectedPlaceholdersIssues,
             false,
           ),
         ])
