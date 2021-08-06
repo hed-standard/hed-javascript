@@ -69,6 +69,27 @@ const isNumber = function (numericString) {
   return digitExpression.test(numericString)
 }
 
+/**
+ * Parse a template literal string.
+ *
+ * Copied from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals.
+ *
+ * @param {string[]} strings The literal parts of the template string.
+ * @param {(number|string)} keys The keys of the closure arguments.
+ * @return {function(...[*]): string} A closure to fill the string template.
+ */
+const stringTemplate = function (strings, ...keys) {
+  return function (...values) {
+    let dict = values[values.length - 1] || {}
+    let result = [strings[0]]
+    keys.forEach(function (key, i) {
+      let value = Number.isInteger(key) ? values[key] : dict[key]
+      result.push(value, strings[i + 1])
+    })
+    return result.join('')
+  }
+}
+
 module.exports = {
   stringIsEmpty: stringIsEmpty,
   getCharacterCount: getCharacterCount,
@@ -76,4 +97,5 @@ module.exports = {
   isClockFaceTime: isClockFaceTime,
   isDateTime: isDateTime,
   isNumber: isNumber,
+  stringTemplate: stringTemplate,
 }

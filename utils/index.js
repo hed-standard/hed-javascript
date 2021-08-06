@@ -4,7 +4,7 @@ const HED = require('./hed')
 const array = require('./array')
 const files = require('./files')
 const string = require('./string')
-const issues = require('./issues')
+const issues = require('./issues/issues')
 
 // public api --------------------------------------------------------
 

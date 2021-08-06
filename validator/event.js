@@ -6,7 +6,7 @@ const {
   ParsedHedTag,
   hedStringIsAGroup,
 } = require('./stringParser')
-const { generateIssue } = require('../utils/issues')
+const { generateIssue } = require('../utils/issues/issues')
 const { buildSchemaAttributesObject } = require('./schema')
 const { Schemas } = require('../utils/schema')
 const { convertHedStringToLong } = require('../converter/converter')

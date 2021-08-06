@@ -9,7 +9,7 @@ const {
   removeGroupParentheses,
   splitHedString,
 } = require('../validator/stringParser')
-const generateIssue = require('../utils/issues').generateIssue
+const generateIssue = require('../utils/issues/issues').generateIssue
 
 describe('HED string parsing', () => {
   const nullSchema = new Schemas(null)
