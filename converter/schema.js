@@ -4,6 +4,7 @@
 const xpath = require('../utils/xpath')
 
 const schemaUtils = require('../utils/schema')
+const { asArray } = require('../utils/array')
 
 const types = require('./types')
 const TagEntry = types.TagEntry
@@ -35,9 +36,7 @@ const buildMappingObject = function (xmlData) {
       nodeData[cleanedShortPath] = tagObject
     } else {
       hasNoDuplicates = false
-      if (!Array.isArray(nodeData[cleanedShortPath])) {
-        nodeData[cleanedShortPath] = [nodeData[cleanedShortPath]]
-      }
+      nodeData[cleanedShortPath] = asArray(nodeData[cleanedShortPath])
       nodeData[cleanedShortPath].push(tagObject)
     }
   }
