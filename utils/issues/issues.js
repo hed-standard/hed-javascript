@@ -1,4 +1,4 @@
-const issueData = require('./issueData')
+const issueData = require('./data')
 
 /**
  * A HED validation error or warning.

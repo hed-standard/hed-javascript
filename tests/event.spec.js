@@ -2,7 +2,7 @@ const assert = require('chai').assert
 const hed = require('../validator/event')
 const schema = require('../validator/schema')
 const stringParser = require('../validator/stringParser')
-const generateIssue = require('../utils/issues').generateIssue
+const generateIssue = require('../utils/issues/issues').generateIssue
 const converterGenerateIssue = require('../converter/issues')
 const { Schemas } = require('../utils/schema')
 
