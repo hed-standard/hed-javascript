@@ -5,7 +5,7 @@
  * @param {*} elementToCount The element to search for.
  * @returns {number} The number of instances of the element in the array.
  */
-const getElementCount = function(array, elementToCount) {
+const getElementCount = function (array, elementToCount) {
   let count = 0
   for (let i = 0; i < array.length; i++) {
     if (array[i] === elementToCount) {
@@ -21,7 +21,7 @@ const getElementCount = function(array, elementToCount) {
  * @param {Array[]} array The array to flatten.
  * @return {Array} The flattened array.
  */
-function flattenDeep(array) {
+const flattenDeep = function (array) {
   return array.reduce(
     (accumulator, value) =>
       Array.isArray(value)
@@ -31,7 +31,18 @@ function flattenDeep(array) {
   )
 }
 
+/**
+ * Return a scalar as a singleton array and an array as-is.
+ *
+ * @param {T|Array<T>} array An array or scalar.
+ * @return {Array<T>} The original array or a singleton array of the scalar.
+ */
+const asArray = function (array) {
+  return Array.isArray(array) ? array : [array]
+}
+
 module.exports = {
   getElementCount: getElementCount,
   flattenDeep: flattenDeep,
+  asArray: asArray,
 }
