@@ -24,16 +24,15 @@ const find = function (element, query) {
       return element[parentElementName][0][elementName]
     }
   } else if (elementName === 'node') {
+    const searchMap = (child) => {
+      return search(child, elementName, attributeName)
+    }
     if (elementName in element) {
-      return element[elementName].flatMap((child) => {
-        return search(child, elementName, attributeName)
-      })
+      return element[elementName].flatMap(searchMap)
     } else {
       const schemaList = element.schema
       if (schemaList && elementName in schemaList[0]) {
-        return schemaList[0][elementName].flatMap((child) => {
-          return search(child, elementName, attributeName)
-        })
+        return schemaList[0][elementName].flatMap(searchMap)
       }
     }
   }
