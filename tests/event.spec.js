@@ -890,7 +890,7 @@ describe('HED string and event validation', () => {
   })
 
   describe('HED-3G schemas', () => {
-    const hedSchemaFile = 'tests/data/HED8.0.0-alpha.3.xml'
+    const hedSchemaFile = 'tests/data/HED8.0.0-beta.5.xml'
     let hedSchemaPromise
 
     beforeAll(() => {
@@ -1008,8 +1008,8 @@ describe('HED string and event validation', () => {
       it('should not validate strings with short-to-long conversion errors', () => {
         const testStrings = {
           // Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
-          red: 'Attribute/RGB-red, Duration/20 cm',
-          redAndBlue: 'Attribute/RGB-red, Attribute/RGB-blue, Duration/20 cm',
+          red: 'Property/RGB-red, Duration/20 cm',
+          redAndBlue: 'Property/RGB-red, Property/RGB-blue, Duration/20 cm',
         }
         const expectedIssues = {
           red: [
@@ -1017,9 +1017,10 @@ describe('HED string and event validation', () => {
               'invalidParentNode',
               testStrings.red,
               {
-                parentTag: 'Attribute/Sensory/Visual/Color/RGB-color/RGB-red',
+                parentTag:
+                  'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
               },
-              [10, 17],
+              [9, 16],
             ),
           ],
           redAndBlue: [
@@ -1027,17 +1028,19 @@ describe('HED string and event validation', () => {
               'invalidParentNode',
               testStrings.redAndBlue,
               {
-                parentTag: 'Attribute/Sensory/Visual/Color/RGB-color/RGB-red',
+                parentTag:
+                  'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
               },
-              [10, 17],
+              [9, 16],
             ),
             converterGenerateIssue(
               'invalidParentNode',
               testStrings.redAndBlue,
               {
-                parentTag: 'Attribute/Sensory/Visual/Color/RGB-color/RGB-blue',
+                parentTag:
+                  'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-blue',
               },
-              [29, 37],
+              [27, 35],
             ),
           ],
         }
@@ -1068,7 +1071,7 @@ describe('HED string and event validation', () => {
       it('should exist in the schema or be an allowed extension', () => {
         const testStrings = {
           takesValue: 'Duration/3 ms',
-          full: 'Left-side',
+          full: 'Left-side-of',
           extensionAllowed: 'Human/Driver',
           leafExtension: 'Sensory-event/Something',
           nonExtensionAllowed: 'Event/Nonsense',
@@ -1433,7 +1436,7 @@ describe('HED string and event validation', () => {
           singlePlaceholderWithValidDefinitionPlaceholder:
             'Duration/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
           nestedDefinitionPlaceholder:
-            '(Definition/NestedPlaceholderDefinition/#, (Screen, (Square, RGB-blue/#)))',
+            '(Definition/NestedPlaceholderDefinition/#, (Computer-screen, (Square, RGB-blue/#)))',
           threePlaceholderDefinition:
             '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
           fourPlaceholderDefinition:
@@ -1458,7 +1461,7 @@ describe('HED string and event validation', () => {
           singlePlaceholderWithValidDefinitionPlaceholder:
             'Duration/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
           nestedDefinitionPlaceholder:
-            '(Definition/NestedPlaceholderDefinition/#, (Screen, (Square, RGB-blue/#)))',
+            '(Definition/NestedPlaceholderDefinition/#, (Computer-screen, (Square, RGB-blue/#)))',
           threePlaceholderDefinition:
             '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
           fourPlaceholderDefinition:

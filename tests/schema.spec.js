@@ -314,7 +314,7 @@ describe('HED schemas', () => {
   })
 
   describe('HED-3G schemas', () => {
-    const localHedSchemaFile = 'tests/data/HED8.0.0-alpha.3.xml'
+    const localHedSchemaFile = 'tests/data/HED8.0.0-beta.5.xml'
     let hedSchemaPromise
 
     beforeAll(() => {
@@ -326,7 +326,6 @@ describe('HED schemas', () => {
     it('should have tag dictionaries for all defined tag attributes', () => {
       const tagDictionaryKeys = [
         'extensionAllowed',
-        'isNumeric',
         'recommended',
         'relatedTag',
         'requireChild',
@@ -336,6 +335,7 @@ describe('HED schemas', () => {
         'takesValue',
         'topLevelTagGroup',
         'unique',
+        'valueClass',
       ]
       return hedSchemaPromise.then((hedSchemas) => {
         const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
@@ -353,7 +353,7 @@ describe('HED schemas', () => {
 
     it('should contain all of the tag group tags', () => {
       return hedSchemaPromise.then((hedSchemas) => {
-        const tagGroupTags = ['attribute/informational/def-expand']
+        const tagGroupTags = ['property/organizational-property/def-expand']
         const dictionariesTagGroupTags =
           hedSchemas.baseSchema.attributes.tagAttributes['tagGroup']
         assert.hasAllKeys(dictionariesTagGroupTags, tagGroupTags)
@@ -363,10 +363,10 @@ describe('HED schemas', () => {
     it('should contain all of the top-level tag group tags', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const tagGroupTags = [
-          'attribute/informational/definition',
-          'attribute/organizational/event-context',
-          'data-property/spatiotemporal-property/temporal-property/onset',
-          'data-property/spatiotemporal-property/temporal-property/offset',
+          'property/organizational-property/definition',
+          'property/organizational-property/event-context',
+          'property/data-property/data-marker/temporal-marker/onset',
+          'property/data-property/data-marker/temporal-marker/offset',
         ]
         const dictionariesTopLevelTagGroupTags =
           hedSchemas.baseSchema.attributes.tagAttributes['topLevelTagGroup']
@@ -377,40 +377,34 @@ describe('HED schemas', () => {
     it('should contain all of the unit classes with their units and default units', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const defaultUnits = {
-          acceleration: 'm-per-s^2',
-          angle: 'radian',
-          area: 'm^2',
-          currency: '$',
-          dateTime: 'YYYY-MM-DDThh:mm:ss',
-          frequency: 'Hz',
-          intensity: 'dB',
-          jerk: 'm-per-s^3',
-          luminousIntensity: 'cd',
-          memorySize: 'B',
-          posixPath: undefined,
-          physicalLength: 'm',
-          pixels: 'px',
-          speed: 'm-per-s',
-          time: 's',
-          volume: 'm^3',
+          accelerationUnits: 'm-per-s^2',
+          angleUnits: 'radian',
+          areaUnits: 'm^2',
+          currencyUnits: '$',
+          frequencyUnits: 'Hz',
+          intensityUnits: 'dB',
+          jerkUnits: 'm-per-s^3',
+          memorySizeUnits: 'B',
+          physicalLengthUnits: 'm',
+          speedUnits: 'm-per-s',
+          timeUnits: 's',
+          volumeUnits: 'm^3',
+          weightUnits: 'g',
         }
         const allUnits = {
-          acceleration: ['m-per-s^2'],
-          angle: ['radian', 'rad', 'degree'],
-          area: ['m^2', 'px^2', 'pixel^2'],
-          currency: ['dollar', '$', 'point'],
-          dateTime: ['YYYY-MM-DDThh:mm:ss'],
-          frequency: ['hertz', 'Hz'],
-          intensity: ['dB'],
-          jerk: ['m-per-s^3'],
-          luminousIntensity: ['candela', 'cd'],
-          memorySize: ['byte', 'B'],
-          posixPath: [],
-          physicalLength: ['metre', 'm', 'foot', 'mile'],
-          pixels: ['pixel', 'px'],
-          speed: ['m-per-s', 'mph', 'kph'],
-          time: ['second', 's', 'day', 'minute', 'hour'],
-          volume: ['m^3'],
+          accelerationUnits: ['m-per-s^2'],
+          angleUnits: ['radian', 'rad', 'degree'],
+          areaUnits: ['m^2'],
+          currencyUnits: ['dollar', '$', 'point'],
+          frequencyUnits: ['hertz', 'Hz'],
+          intensityUnits: ['dB', 'candela', 'cd'],
+          jerkUnits: ['m-per-s^3'],
+          memorySizeUnits: ['byte', 'B'],
+          physicalLengthUnits: ['foot', 'inch', 'metre', 'm', 'mile'],
+          speedUnits: ['m-per-s', 'mph', 'kph'],
+          timeUnits: ['second', 's', 'day', 'minute', 'hour'],
+          volumeUnits: ['m^3'],
+          weightUnits: ['g', 'gram', 'pound', 'lb'],
         }
 
         const dictionariesUnitAttributes =
@@ -439,9 +433,8 @@ describe('HED schemas', () => {
     it('should contain the correct (large) numbers of tags with certain attributes', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const expectedAttributeTagCount = {
-          isNumeric: 41,
-          requireChild: 7,
-          takesValue: 74,
+          requireChild: 8 - 1,
+          takesValue: 88 - 1,
         }
 
         const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
@@ -453,8 +446,8 @@ describe('HED schemas', () => {
           )
         }
 
-        const expectedTagCount = 1042
-        const expectedUnitClassCount = 19
+        const expectedTagCount = 1108
+        const expectedUnitClassCount = 28 - 1
         assert.lengthOf(
           Object.keys(hedSchemas.baseSchema.attributes.tags),
           expectedTagCount,
