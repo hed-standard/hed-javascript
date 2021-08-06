@@ -18,17 +18,16 @@ const childToParent = {
 const find = function (element, query) {
   const { elementName, attributeName } = parseXPath(query)
 
+  const searchMap = (child) => {
+    return search(child, elementName, attributeName)
+  }
+
   if (elementName in childToParent && childToParent[elementName] in element) {
     return element[childToParent[elementName]][0][elementName]
   } else if (elementName === 'node') {
-    const searchMap = (child) => {
-      return search(child, elementName, attributeName)
-    }
-    if (elementName in element) {
-      return element[elementName].flatMap(searchMap)
-    } else if (element.schema && elementName in element.schema[0]) {
-      return element.schema[0][elementName].flatMap(searchMap)
-    }
+    const parentElement = element.schema ? element.schema[0] : element
+    const nodeList = parentElement.node || []
+    return nodeList.flatMap(searchMap)
   }
 
   return []
