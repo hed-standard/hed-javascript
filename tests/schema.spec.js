@@ -5,7 +5,7 @@ const schemaUtils = require('../utils/schema')
 describe('HED schemas', () => {
   describe('Remote HED schemas', () => {
     it('can be loaded from a central GitHub repository', () => {
-      const remoteHedSchemaVersion = '7.1.1'
+      const remoteHedSchemaVersion = '8.0.0'
       return schema
         .buildSchema({ version: remoteHedSchemaVersion })
         .then((hedSchemas) => {
@@ -314,7 +314,7 @@ describe('HED schemas', () => {
   })
 
   describe('HED-3G schemas', () => {
-    const localHedSchemaFile = 'tests/data/HED8.0.0-beta.5.xml'
+    const localHedSchemaFile = 'tests/data/HED8.0.0.xml'
     let hedSchemaPromise
 
     beforeAll(() => {
@@ -446,7 +446,7 @@ describe('HED schemas', () => {
           )
         }
 
-        const expectedTagCount = 1108
+        const expectedTagCount = 1109
         const expectedUnitClassCount = 28 - 1
         assert.lengthOf(
           Object.keys(hedSchemas.baseSchema.attributes.tags),

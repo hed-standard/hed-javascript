@@ -5,7 +5,7 @@ const generateValidationIssue = require('../utils/issues/issues').generateIssue
 const generateConverterIssue = require('../converter/issues')
 
 describe('HED dataset validation', () => {
-  const hedSchemaFile = 'tests/data/HED8.0.0-beta.5.xml'
+  const hedSchemaFile = 'tests/data/HED8.0.0.xml'
   let hedSchemaPromise
 
   beforeAll(() => {

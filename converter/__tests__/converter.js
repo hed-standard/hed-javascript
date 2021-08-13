@@ -4,7 +4,7 @@ const schema = require('../schema')
 const generateIssue = require('../issues')
 
 describe('HED string conversion', () => {
-  const hedSchemaFile = 'tests/data/HED8.0.0-beta.5.xml'
+  const hedSchemaFile = 'tests/data/HED8.0.0.xml'
   let schemaPromise
 
   beforeAll(() => {
