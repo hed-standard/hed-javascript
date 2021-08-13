@@ -605,63 +605,66 @@ const tagHasAttribute = function (tag, tagAttribute) {
 
 /**
  * A description of a HED schema's attributes.
- *
- * @param {V2SchemaDictionaries} schemaDictionaries A constructed schema dictionary collection.
- * @constructor
  */
-const SchemaAttributes = function (schemaDictionaries) {
+class SchemaAttributes {
   /**
-   * The list of all (formatted) tags.
-   * @type {string[]}
+   * Constructor.
+   * @param {V2SchemaDictionaries|V3SchemaDictionaries} schemaDictionaries A constructed schema dictionary collection.
    */
-  this.tags = schemaDictionaries.tags
-  /**
-   * The mapping from attributes to tags to values.
-   * @type {object<string, object<string, boolean|string|string[]>>}
-   */
-  this.tagAttributes = schemaDictionaries.tagAttributes
-  /**
-   * The mapping from tags to their unit classes.
-   * @type {object<string, string[]>}
-   */
-  this.tagUnitClasses = schemaDictionaries.tagUnitClasses
-  /**
-   * The mapping from unit classes to their units.
-   * @type {object<string, string[]>}
-   */
-  this.unitClasses = schemaDictionaries.unitClasses
-  /**
-   * The mapping from unit classes to their attributes.
-   * @type {object<string, object<string, boolean|string|string[]>>}
-   */
-  this.unitClassAttributes = schemaDictionaries.unitClassAttributes
-  /**
-   * The mapping from units to their attributes.
-   * @type {object<string, object<string, boolean|string|string[]>>}
-   */
-  this.unitAttributes = schemaDictionaries.unitAttributes
-  /**
-   * The mapping from unit modifier types to unit modifiers.
-   * @type {object<string, string[]>}
-   */
-  this.unitModifiers = schemaDictionaries.unitModifiers
-  /**
-   * Whether the schema has unit classes.
-   * @type {boolean}
-   */
-  this.hasUnitClasses = schemaDictionaries.hasUnitClasses
-  /**
-   * Whether the schema has unit modifiers.
-   * @type {boolean}
-   */
-  this.hasUnitModifiers = schemaDictionaries.hasUnitModifiers
-  /**
-   * Determine if a HED tag has a particular attribute in this schema.
-   * @param {string} tag The HED tag to check.
-   * @param {string} tagAttribute The attribute to check for.
-   * @return {boolean} Whether this tag has this attribute.
-   */
-  this.tagHasAttribute = tagHasAttribute
+  constructor(schemaDictionaries) {
+    /**
+     * The list of all (formatted) tags.
+     * @type {string[]}
+     */
+    this.tags = schemaDictionaries.tags
+    /**
+     * The mapping from attributes to tags to values.
+     * @type {object<string, object<string, boolean|string|string[]>>}
+     */
+    this.tagAttributes = schemaDictionaries.tagAttributes
+    /**
+     * The mapping from tags to their unit classes.
+     * @type {object<string, string[]>}
+     */
+    this.tagUnitClasses = schemaDictionaries.tagUnitClasses
+    /**
+     * The mapping from unit classes to their units.
+     * @type {object<string, string[]>}
+     */
+    this.unitClasses = schemaDictionaries.unitClasses
+    /**
+     * The mapping from unit classes to their attributes.
+     * @type {object<string, object<string, boolean|string|string[]>>}
+     */
+    this.unitClassAttributes = schemaDictionaries.unitClassAttributes
+    /**
+     * The mapping from units to their attributes.
+     * @type {object<string, object<string, boolean|string|string[]>>}
+     */
+    this.unitAttributes = schemaDictionaries.unitAttributes
+    /**
+     * The mapping from unit modifier types to unit modifiers.
+     * @type {object<string, string[]>}
+     */
+    this.unitModifiers = schemaDictionaries.unitModifiers
+    /**
+     * Whether the schema has unit classes.
+     * @type {boolean}
+     */
+    this.hasUnitClasses = schemaDictionaries.hasUnitClasses
+    /**
+     * Whether the schema has unit modifiers.
+     * @type {boolean}
+     */
+    this.hasUnitModifiers = schemaDictionaries.hasUnitModifiers
+    /**
+     * Determine if a HED tag has a particular attribute in this schema.
+     * @param {string} tag The HED tag to check.
+     * @param {string} tagAttribute The attribute to check for.
+     * @return {boolean} Whether this tag has this attribute.
+     */
+    this.tagHasAttribute = tagHasAttribute
+  }
 }
 
 /**

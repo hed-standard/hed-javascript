@@ -1,26 +1,52 @@
 /**
  * A tag dictionary entry.
- *
- * @param {string} shortTag The short version of the tag.
- * @param {string} longTag The long version of the tag.
- * @constructor
  */
-const TagEntry = function(shortTag, longTag) {
-  this.shortTag = shortTag
-  this.longTag = longTag
-  this.longFormattedTag = longTag.toLowerCase()
+class TagEntry {
+  /**
+   * Constructor.
+   * @param {string} shortTag The short version of the tag.
+   * @param {string} longTag The long version of the tag.
+   */
+  constructor(shortTag, longTag) {
+    /**
+     * The short version of the tag.
+     * @type {string}
+     */
+    this.shortTag = shortTag
+    /**
+     * The long version of the tag.
+     * @type {string}
+     */
+    this.longTag = longTag
+    /**
+     * The formatted long version of the tag.
+     * @type {string}
+     */
+    this.longFormattedTag = longTag.toLowerCase()
+  }
 }
 
 /**
- * Short-to-long mapping.
- *
- * @param {object<string, (TagEntry|TagEntry[])>} mappingData A dictionary mapping forms to TagEntry instances.
- * @param {boolean} hasNoDuplicates Whether the mapping has no duplicates.
- * @constructor
+ * A short-to-long mapping.
  */
-const Mapping = function(mappingData, hasNoDuplicates) {
-  this.mappingData = mappingData
-  this.hasNoDuplicates = hasNoDuplicates
+class Mapping {
+  /**
+   * Constructor.
+   * @param {object<string, (TagEntry|TagEntry[])>} mappingData A dictionary mapping forms to TagEntry instances.
+   * @param {boolean} hasNoDuplicates Whether the mapping has no duplicates.
+   */
+  constructor(mappingData, hasNoDuplicates) {
+    /**
+     * A dictionary mapping forms to TagEntry instances.
+     * @type {Object<string, TagEntry|TagEntry[]>}
+     */
+    this.mappingData = mappingData
+    /**
+     * Whether the mapping has no duplicates.
+     * @type {boolean}
+     */
+    this.hasNoDuplicates = hasNoDuplicates
+  }
 }
 
 module.exports = {
