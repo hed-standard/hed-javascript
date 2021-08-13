@@ -418,10 +418,6 @@ describe('HED string parsing', () => {
         parsedFormattedString.tags.map(originalMap),
       )
       assert.deepStrictEqual(
-        parsedString.tagGroups.map(formattedMap),
-        parsedFormattedString.tagGroups.map(originalMap),
-      )
-      assert.deepStrictEqual(
         parsedString.topLevelTags.map(formattedMap),
         parsedFormattedString.topLevelTags.map(originalMap),
       )
