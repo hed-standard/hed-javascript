@@ -114,11 +114,7 @@ describe('HED string conversion', () => {
           multiLevel: 'Item/Sound/Environmental-sound/Event/Sensory-event',
           mixed: 'Item/Sound/Event/Sensory-event/Environmental-sound',
         }
-        const expectedResults = {
-          singleLevel: 'Item/Sound/Environmental-sound/Event',
-          multiLevel: 'Item/Sound/Environmental-sound/Event/Sensory-event',
-          mixed: 'Item/Sound/Event/Sensory-event/Environmental-sound',
-        }
+        const expectedResults = testStrings
         const expectedIssues = {
           singleLevel: [
             generateIssue(
@@ -176,14 +172,7 @@ describe('HED string conversion', () => {
           twoLevels: 'Event/Experiment-control/Geometric/Event',
           duplicate: 'Item/Object/Geometric/Item/Object/Geometric-object',
         }
-        const expectedResults = {
-          validThenInvalid:
-            'Event/Experiment-control/valid extension followed by invalid/Event',
-          singleLevel: 'Event/Experiment-control/Geometric-object',
-          singleLevelAlreadyShort: 'Experiment-control/Geometric-object',
-          twoLevels: 'Event/Experiment-control/Geometric/Event',
-          duplicate: 'Item/Object/Geometric/Item/Object/Geometric-object',
-        }
+        const expectedResults = testStrings
         const expectedIssues = {
           validThenInvalid: [
             generateIssue(
@@ -239,15 +228,7 @@ describe('HED string conversion', () => {
           invalidSingle: 'InvalidEvent',
           invalidWithExtension: 'InvalidEvent/InvalidExtension',
         }
-        const expectedResults = {
-          invalidParentWithExistingGrandchild:
-            'InvalidEvent/Experiment-control/Geometric-object',
-          invalidChildWithExistingGrandchild:
-            'Event/InvalidEvent/Geometric-object',
-          invalidParentWithExistingChild: 'InvalidEvent/Geometric-object',
-          invalidSingle: 'InvalidEvent',
-          invalidWithExtension: 'InvalidEvent/InvalidExtension',
-        }
+        const expectedResults = testStrings
         const expectedIssues = {
           invalidParentWithExistingGrandchild: [
             generateIssue(
@@ -468,14 +449,7 @@ describe('HED string conversion', () => {
           twoLevels: 'Experiment-control/Geometric-object/Event',
           partialDuplicate: 'Geometric-object/Item/Object/Geometric-object',
         }
-        const expectedResults = {
-          validThenInvalid:
-            'Experiment-control/valid extension followed by invalid/Event',
-          singleLevel: 'Experiment-control/Geometric-object',
-          singleLevelAlreadyLong: 'Event/Experiment-control/Geometric-object',
-          twoLevels: 'Experiment-control/Geometric-object/Event',
-          partialDuplicate: 'Geometric-object/Item/Object/Geometric-object',
-        }
+        const expectedResults = testStrings
         const expectedIssues = {
           validThenInvalid: [
             generateIssue(
@@ -527,11 +501,7 @@ describe('HED string conversion', () => {
           invalidChild: 'InvalidEvent/InvalidExtension',
           validChild: 'InvalidEvent/Event',
         }
-        const expectedResults = {
-          single: 'InvalidEvent',
-          invalidChild: 'InvalidEvent/InvalidExtension',
-          validChild: 'InvalidEvent/Event',
-        }
+        const expectedResults = testStrings
         const expectedIssues = {
           single: [
             generateIssue('invalidTag', testStrings.single, {}, [0, 12]),
