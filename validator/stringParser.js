@@ -5,60 +5,72 @@ const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
 
 /**
- * A parsed HED tag.
- *
- * @param {string} originalTag The original HED tag.
- * @param {string} hedString The original HED string.
- * @param {int[]} originalBounds The bounds of the HED tag in the original HED string.
- * @param {Schemas} hedSchemas The collection of HED schemas.
- * @constructor
+ * A parsed HED substring.
  */
-const ParsedHedTag = function (
-  originalTag,
-  hedString,
-  originalBounds,
-  hedSchemas,
-) {
+class ParsedHedSubstring {
   /**
-   * The original form of the HED tag.
-   * @type {string}
+   * Constructor.
+   * @param {string} originalTag The original pre-parsed version of the HED substring.
+   * @param {int[]} originalBounds The bounds of the HED substring in the original HED string.
    */
-  this.originalTag = originalTag
-  /**
-   * The bounds of the HED tag in the original HED string.
-   * @type {int[]}
-   */
-  this.originalBounds = originalBounds
-  /**
-   * The formatted canonical version of the HED tag.
-   *
-   * The empty string default value should be replaced during formatting. Failure to do so
-   * signals an error, as an empty tag should never happen.
-   * @type {string}
-   */
-  this.formattedTag = ''
-  let canonicalTag, conversionIssues
-  if (hedSchemas.baseSchema) {
-    ;[canonicalTag, conversionIssues] = convertPartialHedStringToLong(
-      hedSchemas,
-      originalTag,
-      hedString,
-      originalBounds[0],
-    )
-  } else {
-    canonicalTag = originalTag
-    conversionIssues = []
+  constructor(originalTag, originalBounds) {
+    /**
+     * The original pre-parsed version of the HED tag.
+     * @type {string}
+     */
+    this.originalTag = originalTag
+    /**
+     * The bounds of the HED tag in the original HED string.
+     * @type {int[]}
+     */
+    this.originalBounds = originalBounds
   }
+}
+
+/**
+ * A parsed HED tag.
+ */
+class ParsedHedTag extends ParsedHedSubstring {
   /**
-   * The canonical form of the HED tag.
-   * @type {string}
+   * Constructor.
+   * @param {string} originalTag The original HED tag.
+   * @param {string} hedString The original HED string.
+   * @param {int[]} originalBounds The bounds of the HED tag in the original HED string.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
    */
-  this.canonicalTag = canonicalTag
-  /**
-   * Any issues encountered during tag conversion.
-   * @type {Array}
-   */
-  this.conversionIssues = conversionIssues
+  constructor(originalTag, hedString, originalBounds, hedSchemas) {
+    super(originalTag, originalBounds)
+    /**
+     * The formatted canonical version of the HED tag.
+     *
+     * The empty string default value should be replaced during formatting. Failure to do so
+     * signals an error, as an empty tag should never happen.
+     * @type {string}
+     */
+    this.formattedTag = ''
+    let canonicalTag, conversionIssues
+    if (hedSchemas.baseSchema) {
+      ;[canonicalTag, conversionIssues] = convertPartialHedStringToLong(
+        hedSchemas,
+        originalTag,
+        hedString,
+        originalBounds[0],
+      )
+    } else {
+      canonicalTag = originalTag
+      conversionIssues = []
+    }
+    /**
+     * The canonical form of the HED tag.
+     * @type {string}
+     */
+    this.canonicalTag = canonicalTag
+    /**
+     * Any issues encountered during tag conversion.
+     * @type {Array}
+     */
+    this.conversionIssues = conversionIssues
+  }
 }
 
 /**
@@ -97,62 +109,39 @@ const groupDefinitionTag = function (group, hedSchemas) {
 
 /**
  * A parsed HED tag group.
- *
- * @param {(ParsedHedTag|ParsedHedGroup)[]} parsedHedTags The parsed HED tags in the HED tag group.
- * @param {string} originalTagGroup The original pre-parsed version of the HED tag group.
- * @param {int[]} originalBounds The bounds of the HED tag group in the original HED string.
- * @param {Schemas} hedSchemas The collection of HED schemas.
- * @constructor
  */
-const ParsedHedGroup = function (
-  originalTagGroup,
-  parsedHedTags,
-  originalBounds,
-  hedSchemas,
-) {
+class ParsedHedGroup extends ParsedHedSubstring {
   /**
-   * The parsed HED tags in the HED tag group.
-   * @type {(ParsedHedTag|ParsedHedGroup)[]}
+   * Constructor.
+   * @param {(ParsedHedSubstring)[]} parsedHedTags The parsed HED tags in the HED tag group.
+   * @param {string} originalTagGroup The original pre-parsed version of the HED tag group.
+   * @param {int[]} originalBounds The bounds of the HED tag group in the original HED string.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
    */
-  this.tags = parsedHedTags
-  /**
-   * The original pre-parsed version of the HED tag group.
-   * @type {string}
-   */
-  this.originalTagGroup = originalTagGroup
-  /**
-   * The bounds of the HED tag group in the original HED string.
-   * @type {int[]}
-   */
-  this.originalBounds = originalBounds
-  /**
-   * The Definition tag associated with this HED tag group.
-   * @type {ParsedHedTag|ParsedHedTag[]|null}
-   */
-  this.definitionTag = groupDefinitionTag(this, hedSchemas)
-  /**
-   * Whether this HED tag group is a definition group.
-   * @type {boolean}
-   */
-  this.isDefinitionGroup = this.definitionTag !== null
-  /**
-   * Iterator over the parsed HED tags in this HED tag group.
-   * @return {Generator<*, ParsedHedTag, *>}
-   */
-  this.tagIterator = function* () {
-    for (const innerTag of this.tags) {
-      if (innerTag instanceof ParsedHedTag) {
-        yield innerTag
-      } else if (innerTag instanceof ParsedHedGroup) {
-        yield* innerTag.tagIterator()
-      }
-    }
+  constructor(originalTagGroup, parsedHedTags, originalBounds, hedSchemas) {
+    super(originalTagGroup, originalBounds)
+    /**
+     * The parsed HED tags in the HED tag group.
+     * @type {(ParsedHedSubstring)[]}
+     */
+    this.tags = parsedHedTags
+    /**
+     * The Definition tag associated with this HED tag group.
+     * @type {ParsedHedTag|ParsedHedTag[]|null}
+     */
+    this.definitionTag = groupDefinitionTag(this, hedSchemas)
+    /**
+     * Whether this HED tag group is a definition group.
+     * @type {boolean}
+     */
+    this.isDefinitionGroup = this.definitionTag !== null
   }
+
   /**
    * Iterator over the full HED groups and subgroups in this HED tag group.
    * @return {Generator<*, ParsedHedTag[], *>}
    */
-  this.subGroupIterator = function* () {
+  *subGroupIterator() {
     const currentGroup = []
     for (const innerTag of this.tags) {
       if (innerTag instanceof ParsedHedTag) {
@@ -163,50 +152,67 @@ const ParsedHedGroup = function (
     }
     yield currentGroup
   }
+
+  /**
+   * Iterator over the parsed HED tags in this HED tag group.
+   * @return {Generator<*, ParsedHedTag, *>}
+   */
+  *tagIterator() {
+    for (const innerTag of this.tags) {
+      if (innerTag instanceof ParsedHedTag) {
+        yield innerTag
+      } else if (innerTag instanceof ParsedHedGroup) {
+        yield* innerTag.tagIterator()
+      }
+    }
+  }
 }
 
 /**
  * A parsed HED string.
- *
- * @param {string} hedString The original HED string.
- * @constructor
  */
-const ParsedHedString = function (hedString) {
+class ParsedHedString {
   /**
-   * The original HED string.
-   * @type {string}
+   * Constructor.
+   * @param {string} hedString The original HED string.
    */
-  this.hedString = hedString
-  /**
-   * All of the tags in the string.
-   * @type ParsedHedTag[]
-   */
-  this.tags = []
-  /**
-   * The tag groups in the string.
-   * @type ParsedHedGroup[]
-   */
-  this.tagGroups = []
-  /**
-   * The tag groups, kept in their original parenthesized form.
-   * @type ParsedHedTag[]
-   */
-  this.tagGroupStrings = []
-  /**
-   * All of the top-level tags in the string.
-   * @type ParsedHedTag[]
-   */
-  this.topLevelTags = []
-  /**
-   * The top-level tag groups in the string, split into arrays.
-   * @type ParsedHedTag[][]
-   */
-  this.topLevelTagGroups = []
-  /**
-   * The definition tag groups in the string.
-   * @type ParsedHedGroup[]
-   */
-  this.definitionGroups = []
+  constructor(hedString) {
+    /**
+     * The original HED string.
+     * @type {string}
+     */
+    this.hedString = hedString
+    /**
+     * All of the tags in the string.
+     * @type ParsedHedTag[]
+     */
+    this.tags = []
+    /**
+     * The tag groups in the string.
+     * @type ParsedHedGroup[]
+     */
+    this.tagGroups = []
+    /**
+     * The tag groups, kept in their original parenthesized form.
+     * @type ParsedHedTag[]
+     */
+    this.tagGroupStrings = []
+    /**
+     * All of the top-level tags in the string.
+     * @type ParsedHedTag[]
+     */
+    this.topLevelTags = []
+    /**
+     * The top-level tag groups in the string, split into arrays.
+     * @type ParsedHedTag[][]
+     */
+    this.topLevelTagGroups = []
+    /**
+     * The definition tag groups in the string.
+     * @type ParsedHedGroup[]
+     */
+    this.definitionGroups = []
+  }
 }
 
 /**
