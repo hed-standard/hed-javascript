@@ -49,6 +49,32 @@ describe('HED string conversion', () => {
       })
     }
 
+    const validateLongToShort = function (
+      testStrings,
+      expectedResults,
+      expectedIssues,
+    ) {
+      return validatorBase(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        converter.convertTagToShort,
+      )
+    }
+
+    const validateShortToLong = function (
+      testStrings,
+      expectedResults,
+      expectedIssues,
+    ) {
+      return validatorBase(
+        testStrings,
+        expectedResults,
+        expectedIssues,
+        converter.convertTagToLong,
+      )
+    }
+
     describe('Long-to-short', () => {
       const validator = function (
         testStrings,
@@ -170,7 +196,7 @@ describe('HED string conversion', () => {
           singleLevel: 'Event/Experiment-control/Geometric-object',
           singleLevelAlreadyShort: 'Experiment-control/Geometric-object',
           twoLevels: 'Event/Experiment-control/Geometric/Event',
-          duplicate: 'Item/Object/Geometric/Item/Object/Geometric-object',
+          duplicate: 'Object/Geometric-object/Item/Object/Geometric-object',
         }
         const expectedResults = testStrings
         const expectedIssues = {
@@ -211,7 +237,7 @@ describe('HED string conversion', () => {
               'invalidParentNode',
               testStrings.duplicate,
               { parentTag: 'Item/Object/Geometric-object' },
-              [34, 50],
+              [36, 52],
             ),
           ],
         }
@@ -311,55 +337,6 @@ describe('HED string conversion', () => {
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
-
-      it('should strip leading and trailing slashes', () => {
-        const testStrings = {
-          leadingSingle: '/Event',
-          leadingExtension: '/Event/Extension',
-          leadingMultiLevel: '/Item/Object/Man-made-object/Vehicle/Train',
-          leadingMultiLevelExtension:
-            '/Item/Object/Man-made-object/Vehicle/Train/Maglev',
-          trailingSingle: 'Event/',
-          trailingExtension: 'Event/Extension/',
-          trailingMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train/',
-          trailingMultiLevelExtension:
-            'Item/Object/Man-made-object/Vehicle/Train/Maglev/',
-          bothSingle: '/Event/',
-          bothExtension: '/Event/Extension/',
-          bothMultiLevel: '/Item/Object/Man-made-object/Vehicle/Train/',
-          bothMultiLevelExtension:
-            '/Item/Object/Man-made-object/Vehicle/Train/Maglev/',
-        }
-        const expectedResults = {
-          leadingSingle: 'Event',
-          leadingExtension: 'Event/Extension',
-          leadingMultiLevel: 'Train',
-          leadingMultiLevelExtension: 'Train/Maglev',
-          trailingSingle: 'Event',
-          trailingExtension: 'Event/Extension',
-          trailingMultiLevel: 'Train',
-          trailingMultiLevelExtension: 'Train/Maglev',
-          bothSingle: 'Event',
-          bothExtension: 'Event/Extension',
-          bothMultiLevel: 'Train',
-          bothMultiLevelExtension: 'Train/Maglev',
-        }
-        const expectedIssues = {
-          leadingSingle: [],
-          leadingExtension: [],
-          leadingMultiLevel: [],
-          leadingMultiLevelExtension: [],
-          trailingSingle: [],
-          trailingExtension: [],
-          trailingMultiLevel: [],
-          trailingMultiLevelExtension: [],
-          bothSingle: [],
-          bothExtension: [],
-          bothMultiLevel: [],
-          bothMultiLevelExtension: [],
-        }
-        return validator(testStrings, expectedResults, expectedIssues)
-      })
     })
 
     describe('Short-to-long', () => {
@@ -447,7 +424,7 @@ describe('HED string conversion', () => {
           singleLevel: 'Experiment-control/Geometric-object',
           singleLevelAlreadyLong: 'Event/Experiment-control/Geometric-object',
           twoLevels: 'Experiment-control/Geometric-object/Event',
-          partialDuplicate: 'Geometric-object/Item/Object/Geometric-object',
+          duplicate: 'Geometric-object/Item/Object/Geometric-object',
         }
         const expectedResults = testStrings
         const expectedIssues = {
@@ -483,10 +460,10 @@ describe('HED string conversion', () => {
               [19, 35],
             ),
           ],
-          partialDuplicate: [
+          duplicate: [
             generateIssue(
               'invalidParentNode',
-              testStrings.partialDuplicate,
+              testStrings.duplicate,
               { parentTag: 'Item' },
               [17, 21],
             ),
@@ -553,55 +530,75 @@ describe('HED string conversion', () => {
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
+    })
 
-      it('should strip leading and trailing slashes', () => {
-        const testStrings = {
-          leadingSingle: '/Event',
-          leadingExtension: '/Event/Extension',
-          leadingMultiLevel: '/Vehicle/Train',
-          leadingMultiLevelExtension: '/Vehicle/Train/Maglev',
-          trailingSingle: 'Event/',
-          trailingExtension: 'Event/Extension/',
-          trailingMultiLevel: 'Vehicle/Train/',
-          trailingMultiLevelExtension: 'Vehicle/Train/Maglev/',
-          bothSingle: '/Event/',
-          bothExtension: '/Event/Extension/',
-          bothMultiLevel: '/Vehicle/Train/',
-          bothMultiLevelExtension: '/Vehicle/Train/Maglev/',
-        }
-        const expectedResults = {
-          leadingSingle: 'Event',
-          leadingExtension: 'Event/Extension',
-          leadingMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
-          leadingMultiLevelExtension:
-            'Item/Object/Man-made-object/Vehicle/Train/Maglev',
-          trailingSingle: 'Event',
-          trailingExtension: 'Event/Extension',
-          trailingMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
-          trailingMultiLevelExtension:
-            'Item/Object/Man-made-object/Vehicle/Train/Maglev',
-          bothSingle: 'Event',
-          bothExtension: 'Event/Extension',
-          bothMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
-          bothMultiLevelExtension:
-            'Item/Object/Man-made-object/Vehicle/Train/Maglev',
-        }
-        const expectedIssues = {
-          leadingSingle: [],
-          leadingExtension: [],
-          leadingMultiLevel: [],
-          leadingMultiLevelExtension: [],
-          trailingSingle: [],
-          trailingExtension: [],
-          trailingMultiLevel: [],
-          trailingMultiLevelExtension: [],
-          bothSingle: [],
-          bothExtension: [],
-          bothMultiLevel: [],
-          bothMultiLevelExtension: [],
-        }
-        return validator(testStrings, expectedResults, expectedIssues)
-      })
+    it('should strip leading and trailing slashes', () => {
+      const shortTemplateStrings = {
+        Single: 'Event',
+        Extension: 'Event/Extension',
+        MultiLevel: 'Train',
+        MultiLevelExtension: 'Train/Maglev',
+      }
+      const partialTemplateStrings = {
+        Single: 'Event',
+        Extension: 'Event/Extension',
+        MultiLevel: 'Vehicle/Train',
+        MultiLevelExtension: 'Vehicle/Train/Maglev',
+      }
+      const longTemplateStrings = {
+        Single: 'Event',
+        Extension: 'Event/Extension',
+        MultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
+        MultiLevelExtension: 'Item/Object/Man-made-object/Vehicle/Train/Maglev',
+      }
+      const shortStrings = {}
+      const longStrings = {}
+      const shortResults = {}
+      const longResults = {}
+      const populateStringDictionaries = function ([key, value]) {
+        this['leading' + key] = '/' + value
+        this['trailing' + key] = value + '/'
+        this['both' + key] = '/' + value + '/'
+      }
+      const populateResultDictionaries = function ([key, value]) {
+        this['leading' + key] = value
+        this['trailing' + key] = value
+        this['both' + key] = value
+      }
+      Object.entries(partialTemplateStrings).forEach(
+        populateStringDictionaries,
+        shortStrings,
+      )
+      Object.entries(longTemplateStrings).forEach(
+        populateStringDictionaries,
+        longStrings,
+      )
+      Object.entries(longTemplateStrings).forEach(
+        populateResultDictionaries,
+        shortResults,
+      )
+      Object.entries(shortTemplateStrings).forEach(
+        populateResultDictionaries,
+        longResults,
+      )
+      const expectedIssues = {
+        leadingSingle: [],
+        leadingExtension: [],
+        leadingMultiLevel: [],
+        leadingMultiLevelExtension: [],
+        trailingSingle: [],
+        trailingExtension: [],
+        trailingMultiLevel: [],
+        trailingMultiLevelExtension: [],
+        bothSingle: [],
+        bothExtension: [],
+        bothMultiLevel: [],
+        bothMultiLevelExtension: [],
+      }
+      return Promise.all([
+        validateLongToShort(longStrings, longResults, expectedIssues),
+        validateShortToLong(shortStrings, shortResults, expectedIssues),
+      ])
     })
   })
 
@@ -862,9 +859,7 @@ describe('HED string conversion', () => {
         const testStrings = {
           emptyString: '',
         }
-        const expectedResults = {
-          emptyString: '',
-        }
+        const expectedResults = testStrings
         const expectedIssues = {
           emptyString: [
             generateIssue('emptyTagFound', testStrings.emptyString),
@@ -1095,9 +1090,7 @@ describe('HED string conversion', () => {
         const testStrings = {
           emptyString: '',
         }
-        const expectedResults = {
-          emptyString: '',
-        }
+        const expectedResults = testStrings
         const expectedIssues = {
           emptyString: [
             generateIssue('emptyTagFound', testStrings.emptyString),
