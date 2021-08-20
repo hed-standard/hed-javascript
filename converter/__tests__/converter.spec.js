@@ -551,10 +551,17 @@ describe('HED string conversion', () => {
         MultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
         MultiLevelExtension: 'Item/Object/Man-made-object/Vehicle/Train/Maglev',
       }
+      const issueLists = {
+        Single: [],
+        Extension: [],
+        MultiLevel: [],
+        MultiLevelExtension: [],
+      }
       const shortStrings = {}
       const longStrings = {}
       const shortResults = {}
       const longResults = {}
+      const expectedIssues = {}
       const populateStringDictionaries = function ([key, value]) {
         this['leading' + key] = '/' + value
         this['trailing' + key] = value + '/'
@@ -581,20 +588,10 @@ describe('HED string conversion', () => {
         populateResultDictionaries,
         longResults,
       )
-      const expectedIssues = {
-        leadingSingle: [],
-        leadingExtension: [],
-        leadingMultiLevel: [],
-        leadingMultiLevelExtension: [],
-        trailingSingle: [],
-        trailingExtension: [],
-        trailingMultiLevel: [],
-        trailingMultiLevelExtension: [],
-        bothSingle: [],
-        bothExtension: [],
-        bothMultiLevel: [],
-        bothMultiLevelExtension: [],
-      }
+      Object.entries(issueLists).forEach(
+        populateResultDictionaries,
+        expectedIssues,
+      )
       return Promise.all([
         validateLongToShort(longStrings, longResults, expectedIssues),
         validateShortToLong(shortStrings, shortResults, expectedIssues),
