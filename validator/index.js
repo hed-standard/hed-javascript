@@ -4,6 +4,7 @@ const event = require('./event')
 const schema = require('./schema')
 
 module.exports = {
+  BidsDataset: BIDS.BidsDataset,
   BidsEventFile: BIDS.BidsEventFile,
   BidsSidecar: BIDS.BidsSidecar,
   buildSchema: schema.buildSchema,
