@@ -1,8 +1,8 @@
-import { validateHedDataset } from './dataset'
-import { validateHedString } from './event'
-import { buildSchema } from './schema'
-import { ParsedHedString, ParsedHedGroup } from './stringParser'
-import { Issue } from '../utils/issues/issues'
+const { validateHedDataset } = require('./dataset')
+const { validateHedString } = require('./event')
+const { buildSchema } = require('./schema')
+const { ParsedHedString, ParsedHedGroup } = require('./stringParser')
+const { Issue } = require('../utils/issues/issues')
 
 class BidsData {
   constructor() {
@@ -29,15 +29,15 @@ class BidsFileData extends BidsData {
   constructor(name, file) {
     super()
     /**
-     * The real file object representing this file data.
+     * The file object representing this file data.
      * This is used to generate BidsIssue objects.
-     * @type {File}
+     * @type {object}
      */
     this.file = file
   }
 }
 
-export class BidsEventFile extends BidsFileData {
+class BidsEventFile extends BidsFileData {
   constructor(name, potentialSidecars, mergedDictionary, parsedTsv, file) {
     super(name, file)
     /**
@@ -73,7 +73,7 @@ export class BidsEventFile extends BidsFileData {
   }
 }
 
-export class BidsSidecar extends BidsFileData {
+class BidsSidecar extends BidsFileData {
   constructor(name, sidecarData = {}, file) {
     super(name, file)
     /**
@@ -84,7 +84,7 @@ export class BidsSidecar extends BidsFileData {
   }
 }
 
-export class BidsDataset extends BidsData {
+class BidsDataset extends BidsData {
   constructor(eventData, sidecarData) {
     super()
     this.eventData = eventData
@@ -118,7 +118,7 @@ class BidsHedIssue extends BidsIssue {
  * @param {object} schemaDefinition The version spec for the schema to be loaded.
  * @return {Promise<Array<BidsIssue>>} Any issues found.
  */
-export function validateBidsDataset(dataset, schemaDefinition) {
+function validateBidsDataset(dataset, schemaDefinition) {
   let issues = []
   // loop through event data files
   return buildSchema(schemaDefinition).then((hedSchema) => {
@@ -129,6 +129,7 @@ export function validateBidsDataset(dataset, schemaDefinition) {
     if (sidecarErrorsFound) {
       return sidecarIssues
     }
+    issues = issues.concat(sidecarIssues)
     for (const eventFileData of dataset.eventData) {
       const eventFileIssues = validateBidsEventFile(eventFileData, hedSchema)
       issues = issues.concat(eventFileIssues)
@@ -183,7 +184,7 @@ function validateSidecars(sidecarData, hedSchema) {
     const fileIssues = [].concat(valueStringIssues, categoricalStringIssues)
     if (
       fileIssues.some((fileIssue) => {
-        return fileIssue.severity === 'error'
+        return fileIssue.hedIssue.severity === 'error'
       })
     ) {
       sidecarErrorsFound = true
@@ -295,4 +296,12 @@ function convertHedIssuesToBidsIssues(hedIssues, file) {
   return hedIssues.map((hedIssue) => {
     return new BidsHedIssue(hedIssue, file)
   })
+}
+
+module.exports = {
+  BidsDataset: BidsDataset,
+  BidsEventFile: BidsEventFile,
+  BidsHedIssue: BidsHedIssue,
+  BidsSidecar: BidsSidecar,
+  validateBidsDataset: validateBidsDataset,
 }
