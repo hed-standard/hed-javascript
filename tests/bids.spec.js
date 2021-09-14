@@ -3,6 +3,7 @@ const converterGenerateIssue = require('../converter/issues')
 const { generateIssue } = require('../utils/issues/issues')
 const {
   BidsDataset,
+  BidsEventFile,
   BidsHedIssue,
   BidsSidecar,
   validateBidsDataset,
@@ -125,6 +126,133 @@ describe('BIDS datasets', () => {
       },
     ],
   ]
+  const hedColumnOnlyHeader = ['onset', 'duration', 'HED']
+  const bidsTsvFiles = [
+    [
+      new BidsEventFile(
+        '/sub01/sub01_task-test_run-1_events.tsv',
+        [],
+        {},
+        {
+          headers: hedColumnOnlyHeader,
+          rows: [hedColumnOnlyHeader, ['7', 'something', 'Cellphone']],
+        },
+        {
+          relativePath: '/sub01/sub01_task-test_run-1_events.tsv',
+          path: '/sub01/sub01_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub01/sub01_task-test_run-2_events.tsv',
+        [],
+        {},
+        {
+          headers: hedColumnOnlyHeader,
+          rows: [
+            hedColumnOnlyHeader,
+            ['7', 'something', 'Cellphone'],
+            ['11', 'else', 'Desktop-computer'],
+          ],
+        },
+        {
+          relativePath: '/sub01/sub01_task-test_run-2_events.tsv',
+          path: '/sub01/sub01_task-test_run-2_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub01/sub01_task-test_run-3_events.tsv',
+        [],
+        {},
+        {
+          headers: hedColumnOnlyHeader,
+          rows: [hedColumnOnlyHeader, ['7', 'something', 'Ceramic, Pink']],
+        },
+        {
+          relativePath: '/sub01/sub01_task-test_run-3_events.tsv',
+          path: '/sub01/sub01_task-test_run-3_events.tsv',
+        },
+      ),
+    ],
+    [
+      new BidsEventFile(
+        '/sub02/sub02_task-test_run-1_events.tsv',
+        [],
+        {},
+        {
+          headers: hedColumnOnlyHeader,
+          rows: [hedColumnOnlyHeader, ['11', 'else', 'Speed/300 miles']],
+        },
+        {
+          relativePath: '/sub02/sub02_task-test_run-1_events.tsv',
+          path: '/sub02/sub02_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub02/sub02_task-test_run-2_events.tsv',
+        [],
+        {},
+        {
+          headers: hedColumnOnlyHeader,
+          rows: [hedColumnOnlyHeader, ['7', 'something', 'Train/Maglev']],
+        },
+        {
+          relativePath: '/sub01/sub01_task-test_run-2_events.tsv',
+          path: '/sub01/sub01_task-test_run-2_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub02/sub02_task-test_run-3_events.tsv',
+        [],
+        {},
+        {
+          headers: hedColumnOnlyHeader,
+          rows: [
+            hedColumnOnlyHeader,
+            ['7', 'something', 'Train'],
+            ['11', 'else', 'Speed/300 miles'],
+          ],
+        },
+        {
+          relativePath: '/sub02/sub02_task-test_run-3_events.tsv',
+          path: '/sub02/sub02_task-test_run-3_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub02/sub02_task-test_run-4_events.tsv',
+        [],
+        {},
+        {
+          headers: hedColumnOnlyHeader,
+          rows: [
+            hedColumnOnlyHeader,
+            ['7', 'something', 'Maglev'],
+            ['11', 'else', 'Speed/300 miles'],
+          ],
+        },
+        {
+          relativePath: '/sub02/sub02_task-test_run-4_events.tsv',
+          path: '/sub02/sub02_task-test_run-4_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub02/sub02_task-test_run-5_events.tsv',
+        [],
+        {},
+        {
+          headers: hedColumnOnlyHeader,
+          rows: [
+            hedColumnOnlyHeader,
+            ['7', 'something', 'Train/Maglev'],
+            ['11', 'else', 'Speed/300 miles'],
+          ],
+        },
+        {
+          relativePath: '/sub02/sub02_task-test_run-5_events.tsv',
+          path: '/sub02/sub02_task-test_run-5_events.tsv',
+        },
+      ),
+    ],
+  ]
   /**
    * @type {object[][]}
    */
@@ -240,6 +368,42 @@ describe('BIDS datasets', () => {
             generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' }),
             bidsSidecars[2][8].file,
           ),
+        ],
+      }
+      return validator(testDatasets, expectedIssues, { version: '8.0.0' })
+    })
+  })
+
+  describe('TSV-only datasets', () => {
+    it('should validate HED strings in BIDS event files', () => {
+      const goodDatasets = bidsTsvFiles[0]
+      const badDatasets = bidsTsvFiles[1]
+      const testDatasets = {
+        all_good: new BidsDataset(goodDatasets, []),
+        all_bad: new BidsDataset(badDatasets, []),
+      }
+      const legalSpeedUnits = ['m-per-s', 'kph', 'mph']
+      const speedIssue = generateIssue('unitClassInvalidUnit', {
+        tag: 'Speed/300 miles',
+        unitClassUnits: legalSpeedUnits.sort().join(','),
+      })
+      const maglevError = converterGenerateIssue(
+        'invalidTag',
+        'Maglev',
+        {},
+        [0, 6],
+      )
+      const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
+      const expectedIssues = {
+        all_good: [],
+        all_bad: [
+          new BidsHedIssue(speedIssue, badDatasets[0].file),
+          new BidsHedIssue(maglevWarning, badDatasets[1].file),
+          new BidsHedIssue(speedIssue, badDatasets[2].file),
+          new BidsHedIssue(speedIssue, badDatasets[3].file),
+          new BidsHedIssue(maglevError, badDatasets[3].file),
+          new BidsHedIssue(speedIssue, badDatasets[4].file),
+          new BidsHedIssue(maglevWarning, badDatasets[4].file),
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
