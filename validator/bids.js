@@ -42,7 +42,7 @@ class BidsEventFile extends BidsFileData {
     super(name, file)
     /**
      * The potential JSON sidecar data.
-     * @type {object}
+     * @type {string[]}
      */
     this.potentialSidecars = potentialSidecars
     /**
@@ -97,6 +97,10 @@ class BidsIssue {
     this.code = issueCode
     this.file = file
     this.evidence = evidence
+  }
+
+  isError() {
+    return this.code === 104 || this.code === 106
   }
 }
 
@@ -182,13 +186,11 @@ function validateSidecars(sidecarData, hedSchema) {
       false,
     )
     const fileIssues = [].concat(valueStringIssues, categoricalStringIssues)
-    if (
+    sidecarErrorsFound =
+      sidecarErrorsFound ||
       fileIssues.some((fileIssue) => {
-        return fileIssue.hedIssue.severity === 'error'
+        return fileIssue.isError()
       })
-    ) {
-      sidecarErrorsFound = true
-    }
     issues = issues.concat(fileIssues)
   }
   return [sidecarErrorsFound, issues]
