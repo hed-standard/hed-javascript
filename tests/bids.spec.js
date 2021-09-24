@@ -46,7 +46,7 @@ describe('BIDS datasets', () => {
     // sub02 - Invalid sidecars
     [
       {
-        vehicle: {
+        transport: {
           HED: {
             car: 'Car',
             train: 'Train',
@@ -125,9 +125,21 @@ describe('BIDS datasets', () => {
         },
       },
     ],
+    // sub04 - HED 2 sidecars
+    [
+      {
+        test: {
+          HED: {
+            first:
+              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
+          },
+        },
+      },
+    ],
   ]
   const hedColumnOnlyHeader = ['onset', 'duration', 'HED']
   const bidsTsvFiles = [
+    // sub01 - Valid TSV-only data
     [
       new BidsEventFile(
         '/sub01/sub01_task-test_run-1_events.tsv',
@@ -173,6 +185,7 @@ describe('BIDS datasets', () => {
         },
       ),
     ],
+    // sub02 - Invalid TSV-only data
     [
       new BidsEventFile(
         '/sub02/sub02_task-test_run-1_events.tsv',
@@ -249,6 +262,224 @@ describe('BIDS datasets', () => {
         {
           relativePath: '/sub02/sub02_task-test_run-5_events.tsv',
           path: '/sub02/sub02_task-test_run-5_events.tsv',
+        },
+      ),
+    ],
+    // sub03 - Valid combined sidecar/TSV data
+    [
+      new BidsEventFile(
+        '/sub03/sub03_task-test_run-1_events.tsv',
+        ['/sub03/sub03_task-test_run-1_events.json'],
+        sidecars[2][0],
+        {
+          headers: ['onset', 'duration'],
+          rows: [
+            ['onset', 'duration'],
+            ['7', 'something'],
+          ],
+        },
+        {
+          relativePath: '/sub03/sub03_task-test_run-1_events.tsv',
+          path: '/sub03/sub03_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub03_task-test_run-2_events.tsv',
+        ['/sub01/sub01_task-test_run-1_events.json'],
+        sidecars[0][0],
+        {
+          headers: ['onset', 'duration', 'color'],
+          rows: [
+            ['onset', 'duration', 'color'],
+            ['7', 'something', 'red'],
+          ],
+        },
+        {
+          relativePath: '/sub03/sub03_task-test_run-2_events.tsv',
+          path: '/sub03/sub03_task-test_run-2_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub03_task-test_run-3_events.tsv',
+        ['/sub01/sub01_task-test_run-2_events.json'],
+        sidecars[0][1],
+        {
+          headers: ['onset', 'duration', 'speed'],
+          rows: [
+            ['onset', 'duration', 'speed'],
+            ['7', 'something', '60'],
+          ],
+        },
+        {
+          relativePath: '/sub03/sub03_task-test_run-3_events.tsv',
+          path: '/sub03/sub03_task-test_run-3_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub03_task-test_run-4_events.tsv',
+        ['/sub03/sub03_task-test_run-1_events.json'],
+        sidecars[2][0],
+        {
+          headers: hedColumnOnlyHeader,
+          rows: [hedColumnOnlyHeader, ['7', 'something', 'Laptop-computer']],
+        },
+        {
+          relativePath: '/sub03/sub03_task-test_run-4_events.tsv',
+          path: '/sub03/sub03_task-test_run-4_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub03_task-test_run-5_events.tsv',
+        ['/sub01/sub01_task-test_run-1_events.json'],
+        sidecars[0][0],
+        {
+          headers: ['onset', 'duration', 'color', 'HED'],
+          rows: [
+            ['onset', 'duration', 'color', 'HED'],
+            ['7', 'something', 'green', 'Laptop-computer'],
+          ],
+        },
+        {
+          relativePath: '/sub03/sub03_task-test_run-5_events.tsv',
+          path: '/sub03/sub03_task-test_run-5_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub03_task-test_run-6_events.tsv',
+        [
+          '/sub01/sub01_task-test_run-1_events.json',
+          '/sub01/sub01_task-test_run-2_events.json',
+        ],
+        Object.assign({}, sidecars[0][0], sidecars[0][1]),
+        {
+          headers: ['onset', 'duration', 'color', 'vehicle', 'speed'],
+          rows: [
+            ['onset', 'duration', 'color', 'vehicle', 'speed'],
+            ['7', 'something', 'blue', 'train', '150'],
+          ],
+        },
+        {
+          relativePath: '/sub03/sub03_task-test_run-6_events.tsv',
+          path: '/sub03/sub03_task-test_run-6_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub03_task-test_run-7_events.tsv',
+        [
+          '/sub01/sub01_task-test_run-1_events.json',
+          '/sub01/sub01_task-test_run-2_events.json',
+        ],
+        Object.assign({}, sidecars[0][0], sidecars[0][1]),
+        {
+          headers: ['onset', 'duration', 'color', 'vehicle', 'speed'],
+          rows: [
+            ['onset', 'duration', 'color', 'vehicle', 'speed'],
+            ['7', 'something', 'red', 'train', '150'],
+            ['11', 'else', 'blue', 'boat', '15'],
+            ['15', 'another', 'green', 'car', '70'],
+          ],
+        },
+        {
+          relativePath: '/sub03/sub03_task-test_run-7_events.tsv',
+          path: '/sub03/sub03_task-test_run-7_events.tsv',
+        },
+      ),
+    ],
+    // sub04 - Invalid combined sidecar/TSV data
+    [
+      new BidsEventFile(
+        '/sub04/sub04_task-test_run-1_events.tsv',
+        ['/sub02/sub02_task-test_run-2_events.json'],
+        sidecars[1][1],
+        {
+          headers: ['onset', 'duration', 'emotion', 'HED'],
+          rows: [
+            ['onset', 'duration', 'emotion', 'HED'],
+            ['7', 'high', 'happy', 'Yellow'],
+            ['11', 'low', 'sad', 'Blue'],
+            ['15', 'mad', 'angry', 'Red'],
+            ['19', 'huh', 'confused', 'Gray'],
+          ],
+        },
+        {
+          relativePath: '/sub04/sub04_task-test_run-1_events.tsv',
+          path: '/sub04/sub04_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub04/sub04_task-test_run-2_events.tsv',
+        ['/sub02/sub02_task-test_run-1_events.json'],
+        sidecars[1][0],
+        {
+          headers: ['onset', 'duration', 'transport'],
+          rows: [
+            ['onset', 'duration', 'transport'],
+            ['7', 'wet', 'boat'],
+            ['11', 'steam', 'train'],
+            ['15', 'tires', 'car'],
+            ['19', 'speedy', 'maglev'],
+          ],
+        },
+        {
+          relativePath: '/sub04/sub04_task-test_run-2_events.tsv',
+          path: '/sub04/sub04_task-test_run-2_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub04/sub04_task-test_run-3_events.tsv',
+        [
+          '/sub01/sub01_task-test_run-2_events.json',
+          '/sub02/sub02_task-test_run-1_events.json',
+        ],
+        Object.assign({}, sidecars[0][1], sidecars[1][0]),
+        {
+          headers: ['onset', 'duration', 'vehicle', 'transport', 'speed'],
+          rows: [
+            ['onset', 'duration', 'vehicle', 'transport', 'speed'],
+            ['7', 'ferry', 'train', 'boat', '20'],
+            ['11', 'autotrain', 'car', 'train', '79'],
+            ['15', 'towing', 'boat', 'car', '30'],
+            ['19', 'tugboat', 'boat', 'boat', '5'],
+          ],
+        },
+        {
+          relativePath: '/sub04/sub04_task-test_run-3_events.tsv',
+          path: '/sub04/sub04_task-test_run-3_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub04/sub04_task-test_run-4_events.tsv',
+        ['/sub01/sub01_task-test_run-3_events.json'],
+        sidecars[0][2],
+        {
+          headers: ['onset', 'duration', 'age', 'HED'],
+          rows: [
+            ['onset', 'duration', 'age', 'HED'],
+            ['7', 'ferry', '30', 'Age/30'],
+          ],
+        },
+        {
+          relativePath: '/sub04/sub04_task-test_run-4_events.tsv',
+          path: '/sub04/sub04_task-test_run-4_events.tsv',
+        },
+      ),
+    ],
+    // sub05 - Valid combined sidecar/TSV data from HED 2
+    [
+      new BidsEventFile(
+        '/sub05/sub05_task-test_run-1_events.tsv',
+        ['/sub04/sub04_task-test_run-1_events.json'],
+        sidecars[3][0],
+        {
+          headers: ['onset', 'duration', 'test', 'HED'],
+          rows: [
+            ['onset', 'duration', 'test', 'HED'],
+            ['7', 'something', 'first', 'Event/Duration/55 ms'],
+          ],
+        },
+        {
+          relativePath: '/sub05/sub05_task-test_run-1_events.tsv',
+          path: '/sub05/sub05_task-test_run-1_events.tsv',
         },
       ),
     ],
@@ -410,889 +641,69 @@ describe('BIDS datasets', () => {
     })
   })
 
-  /*  it('should throw an issue if the HED column in a single row contains invalid HED data in the form of duplicate tags', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\tHED\n' +
-          '7\tsomething\tEvent/Label/Test,Event/Category/Miscellaneous/Test,Event/Category/Miscellaneous/Test,Event/Description/Test\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {},
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 2)
-      assert.strictEqual(issues[0].code, 104)
-      assert.strictEqual(issues[1].code, 104)
+  describe('Combined datasets', () => {
+    it('should validate BIDS event files combined with JSON sidecar data', () => {
+      const goodDatasets = bidsTsvFiles[2]
+      const badDatasets = bidsTsvFiles[3]
+      const testDatasets = {
+        all_good: new BidsDataset(goodDatasets, []),
+        all_bad: new BidsDataset(badDatasets, []),
+      }
+      const expectedIssues = {
+        all_good: [],
+        all_bad: [
+          new BidsHedIssue(
+            converterGenerateIssue('invalidTag', 'Gray,Confused', {}, [5, 13]),
+            badDatasets[0].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('extension', { tag: 'Train/Maglev' }),
+            badDatasets[1].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('duplicateTag', {
+              tag: 'Boat',
+              bounds: [0, 4],
+            }),
+            badDatasets[2].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('duplicateTag', {
+              tag: 'Boat',
+              bounds: [17, 21],
+            }),
+            badDatasets[2].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('duplicateTag', {
+              tag: 'Age/30',
+              bounds: [0, 6],
+            }),
+            badDatasets[3].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('duplicateTag', {
+              tag: 'Age/30',
+              bounds: [24, 30],
+            }),
+            badDatasets[3].file,
+          ),
+        ],
+      }
+      return validator(testDatasets, expectedIssues, { version: '8.0.0' })
     })
   })
 
-  it('should not throw any issues if the HED column in a single row contains valid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\tHED\n' +
-          '7\tsomething\tEvent/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {},
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
+  describe('HED 2 combined datasets', () => {
+    it('should validate HED 2 data in BIDS event files combined with JSON sidecar data', () => {
+      const goodDatasets = bidsTsvFiles[4]
+      const testDatasets = {
+        all_good: new BidsDataset(goodDatasets, []),
+      }
+      const expectedIssues = {
+        all_good: [],
+      }
+      return validator(testDatasets, expectedIssues, { version: '7.1.1' })
     })
   })
-
-  it('should not throw any issues if the HED column in a single row contains valid HED data in multiple levels', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\tHED\n' +
-          '7\tsomething\tEvent/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test,Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {},
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should not throw any issues if the HED column in multiple rows contains valid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\tHED\n' +
-          '7\tsomething\tEvent/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test\n' +
-          '8\tsomething\tEvent/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {},
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should throw an issue if the HED columns in a single row, including sidecars, contain invalid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\tHED\tmycodes\n' +
-          '7\tsomething\tEvent/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test\tfirst\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        mycodes: {
-          HED: {
-            first: 'Event/Category/Miscellaneous/Test',
-            second: '/Action/Reach/To touch',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 2)
-      assert.strictEqual(issues[0].code, 104)
-      assert.strictEqual(issues[1].code, 104)
-    })
-  })
-
-  it('should not throw any issues if the HED columns in a single row, including sidecars, contain valid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\tHED\tmycodes\n' +
-          '7\tsomething\tEvent/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test\tsecond\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        mycodes: {
-          HED: {
-            first: 'Event/Category/Miscellaneous/Test',
-            second: '/Action/Reach/To touch',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should not throw any issues if the HED columns in multiple rows, including sidecars, contain valid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\tHED\tmycodes\n' +
-          '7\tsomething\tEvent/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test\tsecond\n' +
-          '7\tsomething\t/Action/Reach/To touch\tfirst\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        mycodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second: '/Action/Reach/To touch',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should throw an issue if a single sidecar HED column in a single row contains invalid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents: 'onset\tduration\tmycodes\n' + '7\tsomething\tfirst\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        mycodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 2)
-      assert.strictEqual(issues[0].code, 104)
-      assert.strictEqual(issues[1].code, 104)
-    })
-  })
-
-  it('should not throw any issues if a single sidecar HED column in a single row contains valid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents: 'onset\tduration\tmycodes\n' + '7\tsomething\tsecond\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        mycodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should not throw any issues if a single sidecar HED column in multiple rows contains valid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\tmycodes\n' +
-          '7\tsomething\tsecond\n' +
-          '8\tsomething\tsecond',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        mycodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should throw an issue if any sidecar HED columns in a single row contain invalid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\ttestingCodes\tmyCodes\n' +
-          '7\tsomething\tfirst\tone\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        testingCodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-          },
-        },
-        myCodes: {
-          HED: {
-            one: 'Event/Category/Miscellaneous/Test',
-            two: '/Action/Reach/To touch',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 2)
-      assert.strictEqual(issues[0].code, 104)
-      assert.strictEqual(issues[1].code, 104)
-    })
-  })
-
-  it('should not throw an issue if all sidecar HED columns in a single row contain valid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\ttestingCodes\tmyCodes\n' +
-          '7\tsomething\tfirst\ttwo\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        testingCodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-          },
-        },
-        myCodes: {
-          HED: {
-            one: 'Event/Category/Miscellaneous/Test',
-            two: '/Action/Reach/To touch',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should not throw an issue if all sidecar HED columns in multiple rows contain valid HED data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\ttestingCodes\tmyCodes\n' +
-          '7\tsomething\tfirst\ttwo\n' +
-          '8\tsomething\tsecond\tone\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        testingCodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-          },
-        },
-        myCodes: {
-          HED: {
-            one: '/Action/Reach/To touch',
-            two: '/Action/Reach/To touch',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should throw an issue if a sidecar HED column in a single row contains a non-existent key', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents: 'onset\tduration\tmycodes\n' + '7\tsomething\tthird\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        mycodes: {
-          HED: {
-            first: 'Event/Category/Experimental stimulus',
-            second: '/Action/Reach/To touch',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 1)
-      assert.strictEqual(issues[0].code, 108)
-    })
-  })
-
-  it('should not throw an issue if all sidecar HED columns in a single row contain valid HED value data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\ttestingCodes\tmyValue\n' +
-          '7\tsomething\tfirst\t0.5\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        testingCodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-          },
-        },
-        myValue: {
-          HED: 'Attribute/Visual/Color/Red/#,Item/Object/Vehicle/Bicycle',
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should not throw an issue if all sidecar HED columns in multiple rows contain valid HED value data', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\ttestingCodes\tmyValue\n' +
-          '7\tsomething\tfirst\t0.5\n' +
-          '8\tsomething\tsecond\t0.6\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        testingCodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-          },
-        },
-        myCodes: {
-          HED: 'Attribute/Visual/Color/Red/#,Item/Object/Vehicle/Bicycle',
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should throw an issue if a sidecar HED value column has no number signs', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\ttestingCodes\tmyValue\n' +
-          '7\tsomething\tfirst\tRed\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        testingCodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-          },
-        },
-        myValue: {
-          HED: 'Attribute/Visual/Color/Red,Item/Object/Vehicle/Bicycle',
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 1)
-      assert.strictEqual(issues[0].code, 104)
-    })
-  })
-
-  it('should throw an issue if a sidecar HED value column has too many number signs', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\ttestingCodes\tmyValue\n' +
-          '7\tsomething\tfirst\t0.5\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        testingCodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
-          },
-        },
-        myValue: {
-          HED: 'Attribute/Visual/Color/Red/#,Attribute/Visual/Color/Blue/#',
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 2)
-      assert.strictEqual(issues[0].code, 104)
-      assert.strictEqual(issues[1].code, 104)
-    })
-  })
-
-  it('should throw an issue if a sidecar HED categorical column has any number signs', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\ttestingCodes\tmyValue\n' +
-          '7\tsomething\tfirst\t0.5\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        testingCodes: {
-          HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test,Attribute/Visual/Color/Red/#',
-            second:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test,Attribute/Visual/Color/Blue/#',
-          },
-        },
-        myValue: {
-          HED: 'Attribute/Visual/Color/Green/#',
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '7.1.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 2)
-      assert.strictEqual(issues[0].code, 104)
-      assert.strictEqual(issues[1].code, 104)
-    })
-  })
-
-  it('should not throw an issue if the HED string is valid in a previous remote schema version', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents:
-          'onset\tduration\tHED\n' +
-          '7\tsomething\tEvent/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test,Event/Duration/3 ms\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {},
-      '/dataset_description.json': { HEDVersion: '7.0.5' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should not throw an issue if the HED string is a valid short-form tag', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents: 'onset\tduration\tHED\n' + '7\tsomething\tDuration/3 ms\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {},
-      '/dataset_description.json': { HEDVersion: '8.0.0-alpha.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should not throw an issue if a sidecar HED string is a valid short-form tag', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents: 'onset\tduration\tmyCodes\n' + '7\tsomething\tone\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        myCodes: {
-          HED: {
-            one: 'Duration/3 ms',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '8.0.0-alpha.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.deepStrictEqual(issues, [])
-    })
-  })
-
-  it('should throw an issue if the HED string contains an invalid short-form tag', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents: 'onset\tduration\tHED\n' + '7\tsomething\tDuration/5 cm\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {},
-      '/dataset_description.json': { HEDVersion: '8.0.0-alpha.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 1)
-      assert.strictEqual(issues[0].code, 104)
-    })
-  })
-
-  it('should throw an issue if a sidecar HED string contains an invalid short-form tag', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents: 'onset\tduration\tmyCodes\n' + '7\tsomething\tone\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        myCodes: {
-          HED: {
-            one: 'Duration/5 cm',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '8.0.0-alpha.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 1)
-      assert.strictEqual(issues[0].code, 104)
-    })
-  })
-
-  it('properly distinguish errors from warnings in HED strings', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents: 'onset\tduration\tHED\n' + '7\tsomething\tHuman/Driver\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {},
-      '/dataset_description.json': { HEDVersion: '8.0.0-alpha.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 1)
-      assert.strictEqual(issues[0].code, 105)
-    })
-  })
-
-  it('properly distinguish errors from warnings in sidecar HED strings', () => {
-    const events = [
-      {
-        file: { path: '/sub01/sub01_task-test_events.tsv' },
-        path: '/sub01/sub01_task-test_events.tsv',
-        contents: 'onset\tduration\tmyCodes\n' + '7\tsomething\tone\n',
-      },
-    ]
-    const jsonDictionary = {
-      '/sub01/sub01_task-test_events.json': {
-        myCodes: {
-          HED: {
-            one: 'Human/Driver',
-          },
-        },
-      },
-      '/dataset_description.json': { HEDVersion: '8.0.0-alpha.1' },
-    }
-
-    return validate.Events.validateEvents(
-      events,
-      [],
-      headers,
-      jsonDictionary,
-      jsonFiles,
-      '',
-    ).then((issues) => {
-      assert.strictEqual(issues.length, 1)
-      assert.strictEqual(issues[0].code, 105)
-    })
-  })*/
 })
