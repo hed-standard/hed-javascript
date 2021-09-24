@@ -304,6 +304,7 @@ module.exports = {
   BidsDataset: BidsDataset,
   BidsEventFile: BidsEventFile,
   BidsHedIssue: BidsHedIssue,
+  BidsIssue: BidsIssue,
   BidsSidecar: BidsSidecar,
   validateBidsDataset: validateBidsDataset,
 }

@@ -5,6 +5,7 @@ const {
   BidsDataset,
   BidsEventFile,
   BidsHedIssue,
+  BidsIssue,
   BidsSidecar,
   validateBidsDataset,
 } = require('../validator/bids')
@@ -463,6 +464,22 @@ describe('BIDS datasets', () => {
           path: '/sub04/sub04_task-test_run-4_events.tsv',
         },
       ),
+      new BidsEventFile(
+        '/sub04/sub04_task-test_run-5_events.tsv',
+        ['/sub01/sub01_task-test_run-1_events.json'],
+        sidecars[0][0],
+        {
+          headers: ['onset', 'duration', 'color'],
+          rows: [
+            ['onset', 'duration', 'color'],
+            ['7', 'royal', 'purple'],
+          ],
+        },
+        {
+          relativePath: '/sub04/sub04_task-test_run-5_events.tsv',
+          path: '/sub04/sub04_task-test_run-5_events.tsv',
+        },
+      ),
     ],
     // sub05 - Valid combined sidecar/TSV data from HED 2
     [
@@ -688,6 +705,7 @@ describe('BIDS datasets', () => {
             }),
             badDatasets[3].file,
           ),
+          new BidsIssue(108, badDatasets[4].file, 'purple'),
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
