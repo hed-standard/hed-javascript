@@ -45,9 +45,7 @@ const loadRemoteSchema = function (version = 'Latest', library) {
   const url = basePath + fileName
   return files
     .readHTTPSFile(url)
-    .then((data) => {
-      return xml2js.parseStringPromise(data, { explicitCharkey: true })
-    })
+    .then(parseSchemaXML)
     .catch((error) => {
       throw new Error(
         'Could not load HED schema version "' +
@@ -68,14 +66,22 @@ const loadRemoteSchema = function (version = 'Latest', library) {
 const loadLocalSchema = function (path) {
   return files
     .readFile(path)
-    .then((data) => {
-      return xml2js.parseStringPromise(data, { explicitCharkey: true })
-    })
+    .then(parseSchemaXML)
     .catch((error) => {
       throw new Error(
         'Could not load HED schema from path "' + path + '" - "' + error + '".',
       )
     })
+}
+
+/**
+ * Parse the schema XML data.
+ *
+ * @param {string} The XML data.
+ * @return {Promise<object>} The schema XML data.
+ */
+const parseSchemaXML = function (data) {
+  return xml2js.parseStringPromise(data, { explicitCharkey: true })
 }
 
 /**
