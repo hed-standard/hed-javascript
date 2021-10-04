@@ -74,8 +74,8 @@ const loadLocalSchema = function (path) {
  *
  * @param {Promise<string>} xmlDataPromise The Promise containing the unparsed XML data.
  * @param {function(...[*]): string} errorMessage A tagged template literal containing the error message.
- * @param {Array} The error arguments passed from the calling function.
- * @param {Promise<object>} The parsed schema XML data.
+ * @param {Array} errorArgs The error arguments passed from the calling function.
+ * @return {Promise<object>} The parsed schema XML data.
  */
 const loadSchemaFile = function (xmlDataPromise, errorMessage, ...errorArgs) {
   return xmlDataPromise.then(parseSchemaXML).catch((error) => {
@@ -86,7 +86,7 @@ const loadSchemaFile = function (xmlDataPromise, errorMessage, ...errorArgs) {
 /**
  * Parse the schema XML data.
  *
- * @param {string} The XML data.
+ * @param {string} data The XML data.
  * @return {Promise<object>} The schema XML data.
  */
 const parseSchemaXML = function (data) {
