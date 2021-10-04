@@ -1,7 +1,8 @@
 const semver = require('semver')
 const xml2js = require('xml2js')
 
-const files = require('../utils/files')
+const files = require('./files')
+const { stringTemplate } = require('./string')
 
 /**
  * Load schema XML data from a schema version or path description.
@@ -11,52 +12,47 @@ const files = require('../utils/files')
  */
 const loadSchema = function (schemaDef = {}) {
   if (Object.entries(schemaDef).length === 0) {
-    return loadRemoteSchema()
+    return loadRemoteBaseSchema()
   } else if (schemaDef.path) {
     return loadLocalSchema(schemaDef.path)
   } /* else if (schemaDef.library) {
-    return loadRemoteSchema(schemaDef.version, schemaDef.library)
+    return loadRemoteLibrarySchema(schemaDef.library, schemaDef.version)
   } */ else if (schemaDef.version) {
-    return loadRemoteSchema(schemaDef.version)
+    return loadRemoteBaseSchema(schemaDef.version)
   } else {
     return Promise.reject('Invalid input.')
   }
 }
 
 /**
- * Load schema XML data from the HED specification GitHub repository.
+ * Load base schema XML data from the HED specification GitHub repository.
  *
- * @param {string} version The schema version to load.
- * @param {string?} library The library schema to load.
+ * @param {string} version The base schema version to load.
  * @return {Promise<object>} The schema XML data.
  */
-const loadRemoteSchema = function (version = 'Latest', library) {
-  let fileName
-  let basePath
-  if (library) {
-    fileName = 'HED_' + library + '_' + version + '.xml'
-    basePath =
-      'https://raw.githubusercontent.com/hed-standard/hed-schema-library/master/hedxml/'
-  } else {
-    fileName = 'HED' + version + '.xml'
-    basePath =
-      'https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/'
-  }
-  const url = basePath + fileName
-  return files
-    .readHTTPSFile(url)
-    .then((data) => {
-      return xml2js.parseStringPromise(data, { explicitCharkey: true })
-    })
-    .catch((error) => {
-      throw new Error(
-        'Could not load HED schema version "' +
-          version +
-          '" from remote repository - "' +
-          error +
-          '".',
-      )
-    })
+const loadRemoteBaseSchema = function (version = 'Latest') {
+  const url = `https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/HED${version}.xml`
+  return loadSchemaFile(
+    files.readHTTPSFile(url),
+    stringTemplate`Could not load HED base schema, version "${1}", from remote repository - "${0}".`,
+    ...arguments,
+  )
+}
+
+/**
+ * Load library schema XML data from the HED specification GitHub repository.
+ *
+ * @param {string} library The library schema to load.
+ * @param {string} version The schema version to load.
+ * @return {Promise<object>} The library schema XML data.
+ */
+const loadRemoteLibrarySchema = function (library, version = 'Latest') {
+  const url = `https://raw.githubusercontent.com/hed-standard/hed-schema-library/master/hedxml/HED_${library}_${version}.xml`
+  return loadSchemaFile(
+    files.readHTTPSFile(url),
+    stringTemplate`Could not load HED library schema ${1}, version "${2}", from remote repository - "${0}".`,
+    ...arguments,
+  )
 }
 
 /**
@@ -66,16 +62,35 @@ const loadRemoteSchema = function (version = 'Latest', library) {
  * @return {Promise<object>} The schema XML data.
  */
 const loadLocalSchema = function (path) {
-  return files
-    .readFile(path)
-    .then((data) => {
-      return xml2js.parseStringPromise(data, { explicitCharkey: true })
-    })
-    .catch((error) => {
-      throw new Error(
-        'Could not load HED schema from path "' + path + '" - "' + error + '".',
-      )
-    })
+  return loadSchemaFile(
+    files.readFile(path),
+    stringTemplate`Could not load HED schema from path "${1}" - "${0}".`,
+    ...arguments,
+  )
+}
+
+/**
+ * Actually load the schema XML file.
+ *
+ * @param {Promise<string>} xmlDataPromise The Promise containing the unparsed XML data.
+ * @param {function(...[*]): string} errorMessage A tagged template literal containing the error message.
+ * @param {Array} The error arguments passed from the calling function.
+ * @param {Promise<object>} The parsed schema XML data.
+ */
+const loadSchemaFile = function (xmlDataPromise, errorMessage, ...errorArgs) {
+  return xmlDataPromise.then(parseSchemaXML).catch((error) => {
+    throw new Error(errorMessage(error, ...errorArgs))
+  })
+}
+
+/**
+ * Parse the schema XML data.
+ *
+ * @param {string} The XML data.
+ * @return {Promise<object>} The schema XML data.
+ */
+const parseSchemaXML = function (data) {
+  return xml2js.parseStringPromise(data, { explicitCharkey: true })
 }
 
 /**
@@ -84,18 +99,30 @@ const loadLocalSchema = function (path) {
  * @param {object} node The child node.
  * @param {object} parent The parent node.
  */
-const setParent = function (node, parent) {
+const setNodeParent = function (node, parent) {
   // Assume that we've already run this function if so.
   if ('$parent' in node) {
     return
   }
   node.$parent = parent
-  if (node.node) {
-    for (const child of node.node) {
-      setParent(child, node)
-    }
-  } else if (node.schema) {
-    setParent(node.schema[0], null)
+  const childNodes = node.node || []
+  for (const child of childNodes) {
+    setNodeParent(child, node)
+  }
+}
+
+/**
+ * Handle top level of parent-setting recursion before passing to setNodeParent.
+ *
+ * @param {object} node The child node.
+ * @param {object} parent The parent node.
+ */
+const setParent = function (node, parent) {
+  if (node.schema) {
+    node.$parent = null
+    setNodeParent(node.schema[0], null)
+  } else {
+    setNodeParent(node, parent)
   }
 }
 
