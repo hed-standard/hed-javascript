@@ -9,13 +9,20 @@ const isEqual = require('lodash/isEqual')
  */
 const filterNonEqualDuplicates = function (list, equalityFunction = isEqual) {
   const map = new Map()
+  const duplicateKeySet = new Set()
   const duplicates = []
   for (const [key, value] of list) {
     if (!map.has(key)) {
       map.set(key, value)
     } else if (!equalityFunction(map.get(key), value)) {
       duplicates.push([key, value])
+      duplicateKeySet.add(key)
     }
+  }
+  for (const key of duplicateKeySet) {
+    const value = map.get(key)
+    map.delete(key)
+    duplicates.push([key, value])
   }
   return [map, duplicates]
 }
