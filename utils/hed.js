@@ -42,6 +42,10 @@ const getTagSlashIndices = function (tag) {
 
 /**
  * Get the last part of a HED tag.
+ *
+ * @param {string} tag A HED tag
+ * @param {string} character The character to use as a separator.
+ * @return {string} The last part of the tag using the given separator.
  */
 const getTagName = function (tag, character = '/') {
   const lastSlashIndex = tag.lastIndexOf(character)
@@ -343,6 +347,7 @@ module.exports = {
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
   getParentTag: getParentTag,
+  ancestorIterator: ancestorIterator,
   isDescendantOf: isDescendantOf,
   validateValue: validateValue,
   validateUnits: validateUnits,
