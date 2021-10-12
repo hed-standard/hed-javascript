@@ -1,3 +1,5 @@
+const differenceWith = require('lodash/differenceWith')
+
 const utils = require('../utils')
 const { convertPartialHedStringToLong } = require('../converter/converter')
 
@@ -71,6 +73,12 @@ class ParsedHedTag extends ParsedHedSubstring {
      */
     this.conversionIssues = conversionIssues
   }
+
+  equivalent(other) {
+    return (
+      other instanceof ParsedHedTag && this.formattedTag === other.formattedTag
+    )
+  }
 }
 
 /**
@@ -135,6 +143,40 @@ class ParsedHedGroup extends ParsedHedSubstring {
      * @type {boolean}
      */
     this.isDefinitionGroup = this.definitionTag !== null
+  }
+
+  /**
+   * Determine the name of this group's definition.
+   * @return {string|null}
+   */
+  get definitionName() {
+    if (!this.isDefinitionGroup) {
+      return null
+    }
+    let tag = this.definitionTag.formattedTag
+    let value = utils.HED.getTagName(tag)
+    let previousValue
+    for (const level of utils.HED.ancestorIterator(tag)) {
+      if (value === 'definition') {
+        return previousValue
+      }
+      previousValue = value
+      value = utils.HED.getTagName(level)
+    }
+    throw Error(
+      'Completed iteration through definition tag without finding Definition level.',
+    )
+  }
+
+  equivalent(other) {
+    if (!(other instanceof ParsedHedGroup)) {
+      return false
+    }
+    return (
+      differenceWith(this.tags, other.tags, (ours, theirs) => {
+        return ours.equivalent(theirs)
+      }).length === 0
+    )
   }
 
   /**
@@ -212,6 +254,12 @@ class ParsedHedString {
      * @type ParsedHedGroup[]
      */
     this.definitionGroups = []
+  }
+
+  get definitions() {
+    return this.definitionGroups.map((group) => {
+      return [group.definitionName, group]
+    })
   }
 }
 
