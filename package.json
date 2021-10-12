@@ -27,6 +27,7 @@
   "dependencies": {
     "date-and-time": "^0.14.2",
     "date-fns": "^2.17.0",
+    "lodash": "^4.17.21",
     "pluralize": "^8.0.0",
     "semver": "^7.3.4",
     "then-request": "^6.0.2",
