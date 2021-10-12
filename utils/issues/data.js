@@ -126,6 +126,11 @@ const issueData = {
     level: 'error',
     message: stringTemplate`Multiple inner tag groups found in definition "${'definition'}"`,
   },
+  duplicateDefinition: {
+    hedCode: 'HED_DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Definition "${'definition'}" is declared multiple times. This instance's tag group is "${'tagGroup'}"`,
+  },
   invalidTopLevelTagGroupTag: {
     hedCode: 'HED_TAG_GROUP_ERROR',
     level: 'error',

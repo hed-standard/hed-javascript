@@ -1,15 +1,39 @@
+const zip = require('lodash/zip')
+
 const { validateHedEvent } = require('./event')
+const { parseHedString } = require('./stringParser')
+
+const { generateIssue } = require('../utils/issues/issues')
+const { filterNonEqualDuplicates } = require('../utils/map')
 
 /**
  * Parse the dataset's definitions and evaluate labels in the dataset.
  *
- * @param {string[]} hedStrings The dataset's HED strings.
- * @param {Schemas} hedSchemas The HED schema container object.
- * @return {[Definitions, string[]]} The definitions and the evaluated HED strings.
+ * @param {ParsedHedString[]} parsedHedStrings The dataset's parsed HED strings.
+ * @return {[Map, Issue[]]} The definition map and any issues found.
  */
-const parseDefinitions = function(hedStrings, hedSchemas) {
-  // TODO: Implement
-  return [{}, hedStrings]
+const parseDefinitions = function (parsedHedStrings) {
+  const issues = []
+  const parsedHedStringDefinitions = parsedHedStrings.flatMap(
+    (parsedHedString) => {
+      return parsedHedString.definitions
+    },
+  )
+  const [definitionMap, definitionDuplicates] = filterNonEqualDuplicates(
+    parsedHedStringDefinitions,
+    (definition, other) => {
+      return definition.equivalent(other)
+    },
+  )
+  for (const [duplicateKey, duplicateValue] of definitionDuplicates) {
+    issues.push(
+      generateIssue('duplicateDefinition', {
+        definition: duplicateKey,
+        tagGroup: duplicateValue.originalTag,
+      }),
+    )
+  }
+  return [definitionMap, issues]
 }
 
 /**
@@ -26,17 +50,35 @@ const validateDataset = function(definitions, hedStrings, hedSchemas) {
 }
 
 /**
+ * Parse the HED strings.
+ *
+ * @param {string[]} hedStrings The dataset's HED strings.
+ * @param {Schemas} hedSchemas The HED schema container object.
+ * @return {[ParsedHedString[], Issue[]]} The parsed HED strings and any issues found.
+ */
+const parseHedStrings = function (hedStrings, hedSchemas) {
+  const parsedHedStringsAndIssues = hedStrings.map((hedString) => {
+    return parseHedString(hedString, hedSchemas)
+  })
+  return zip(...parsedHedStringsAndIssues)
+}
+
+/**
  * Validate a group of HED strings.
  *
- * @param {string[]} hedStrings A group of HED strings.
+ * @param {ParsedHedString[]} parsedHedStrings The dataset's parsed HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED strings are valid and any issues found.
  */
-const validateHedEvents = function(hedStrings, hedSchemas, checkForWarnings) {
+const validateHedEvents = function (
+  parsedHedStrings,
+  hedSchemas,
+  checkForWarnings,
+) {
   let stringsValid = true
   let stringIssues = []
-  for (const hedString of hedStrings) {
+  for (const hedString of parsedHedStrings) {
     const [valid, issues] = validateHedEvent(
       hedString,
       hedSchemas,
@@ -61,17 +103,26 @@ const validateHedDataset = function(
   hedSchemas,
   checkForWarnings = false,
 ) {
-  const [stringsValid, stringIssues] = validateHedEvents(
+  if (hedStrings.length === 0) {
+    return [true, []]
+  }
+  const [parsedHedStrings, parsedHedStringIssues] = parseHedStrings(
     hedStrings,
+    hedSchemas,
+  )
+  const [stringsValid, stringIssues] = validateHedEvents(
+    parsedHedStrings,
     hedSchemas,
     checkForWarnings,
   )
+  stringIssues.concat(parsedHedStringIssues)
   if (!stringsValid) {
     return [false, stringIssues]
   }
 
-  const [definitions, newHedStrings] = parseDefinitions(hedStrings, hedSchemas)
-  return validateDataset(definitions, newHedStrings, hedSchemas)
+  const [definitions, definitionIssues] = parseDefinitions(parsedHedStrings)
+  return [definitionIssues.length === 0, definitionIssues.concat(stringIssues)]
+  //return validateDataset(definitions, newHedStrings, hedSchemas)
 }
 
 module.exports = {
