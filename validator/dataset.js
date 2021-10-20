@@ -1,4 +1,4 @@
-const { validateHedEvent } = require('./event')
+const { validateHedEventWithDefinitions } = require('./event')
 const { parseHedStrings } = require('./stringParser')
 
 const { generateIssue } = require('../utils/issues/issues')
@@ -52,20 +52,23 @@ const validateDataset = function(definitions, hedStrings, hedSchemas) {
  *
  * @param {ParsedHedString[]} parsedHedStrings The dataset's parsed HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
+ * @param {Map<string, ParsedHedGroup>} definitions The dataset's parsed definitions.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED strings are valid and any issues found.
  */
 const validateHedEvents = function (
   parsedHedStrings,
   hedSchemas,
+  definitions,
   checkForWarnings,
 ) {
   let stringsValid = true
   let stringIssues = []
   for (const hedString of parsedHedStrings) {
-    const [valid, issues] = validateHedEvent(
+    const [valid, issues] = validateHedEventWithDefinitions(
       hedString,
       hedSchemas,
+      definitions,
       checkForWarnings,
     )
     stringsValid = stringsValid && valid
@@ -98,6 +101,7 @@ const validateHedDataset = function(
   const [stringsValid, stringIssues] = validateHedEvents(
     parsedHedStrings,
     hedSchemas,
+    definitions,
     checkForWarnings,
   )
   stringIssues.concat(parsedHedStringIssues)

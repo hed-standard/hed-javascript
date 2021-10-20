@@ -627,6 +627,31 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
 }
 
 /**
+ * Check for missing HED 3 definitions.
+ *
+ * @param {ParsedHedTag} tag The HED tag.
+ * @param {Schemas} hedSchemas The HED schema collection.
+ * @param {Map<string, ParsedHedGroup>} definitions The parsed definitions.
+ * @return {Issue[]} Any issues found.
+ */
+const checkForMissingDefinitions = function (tag, hedSchemas, definitions) {
+  const defShortTag = 'def'
+  const [defParentTag, defParentTagIssues] = convertHedStringToLong(
+    hedSchemas,
+    defShortTag,
+  )
+  const issues = defParentTagIssues
+  if (!utils.HED.isDescendantOf(tag.formattedTag, defParentTag)) {
+    return []
+  }
+  const defName = utils.HED.getDefinitionName(tag.formattedTag, 'Def')
+  if (!definitions.has(defName)) {
+    issues.push(generateIssue('missingDefinition', { def: defName }))
+  }
+  return issues
+}
+
+/**
  * Check for invalid top-level tags.
  *
  * @param {ParsedHedTag[]} topLevelTags The list of top-level tags.
@@ -739,6 +764,7 @@ const validateIndividualHedTag = function (
   checkForWarnings,
   isEventLevel,
   expectValuePlaceholderString,
+  definitions,
 ) {
   let issues = []
   if (doSemanticValidation) {
@@ -763,6 +789,11 @@ const validateIndividualHedTag = function (
         checkValueTagSyntax(tag, hedSchemas, expectValuePlaceholderString),
       )
     }
+    if (hedSchemas.isHed3 && definitions !== null) {
+      issues = issues.concat(
+        checkForMissingDefinitions(tag, hedSchemas, definitions),
+      )
+    }
   }
   if (checkForWarnings) {
     issues = issues.concat(
@@ -785,6 +816,7 @@ const validateIndividualHedTags = function (
   checkForWarnings,
   isEventLevel,
   expectValuePlaceholderString = false,
+  definitions = null,
 ) {
   let issues = []
   let previousTag = new ParsedHedTag('', '', [0, 0], hedSchemas)
@@ -798,6 +830,7 @@ const validateIndividualHedTags = function (
         checkForWarnings,
         isEventLevel,
         expectValuePlaceholderString,
+        definitions,
       ),
     )
     previousTag = tag
@@ -972,6 +1005,7 @@ const initiallyValidateHedString = function (hedString, hedSchemas) {
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @param {boolean} expectValuePlaceholderString Whether this string is expected to have a '#' placeholder representing a value.
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
+ * @deprecated
  */
 const validateHedString = function (
   hedString,
@@ -1012,6 +1046,7 @@ const validateHedString = function (
  * @param {Schemas} hedSchemas The HED schemas to validate against.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
+ * @deprecated
  */
 const validateHedEvent = function (
   hedString,
@@ -1054,6 +1089,58 @@ const validateHedEvent = function (
   return [issues.length === 0, issues]
 }
 
+/**
+ * Validate a HED event string.
+ *
+ * @param {string|ParsedHedString} hedString The HED event string to validate.
+ * @param {Schemas} hedSchemas The HED schemas to validate against.
+ * @param {Map<string, ParsedHedGroup>} definitions The dataset's parsed definitions.
+ * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
+ * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
+ */
+const validateHedEventWithDefinitions = function (
+  hedString,
+  hedSchemas,
+  definitions,
+  checkForWarnings = false,
+) {
+  const [
+    parsedString,
+    actualHedSchemas,
+    parsedStringIssues,
+    doSemanticValidation,
+  ] = initiallyValidateHedString(hedString, hedSchemas)
+  if (parsedString === null) {
+    return [false, parsedStringIssues]
+  }
+
+  const issues = parsedStringIssues.concat(
+    validateTopLevelTags(
+      parsedString,
+      actualHedSchemas,
+      doSemanticValidation,
+      checkForWarnings,
+    ),
+    validateTopLevelTagGroups(
+      parsedString,
+      actualHedSchemas,
+      doSemanticValidation,
+    ),
+    validateIndividualHedTags(
+      parsedString,
+      actualHedSchemas,
+      doSemanticValidation,
+      checkForWarnings,
+      true,
+      definitions,
+    ),
+    validateHedTagLevels(parsedString, actualHedSchemas, doSemanticValidation),
+    validateHedTagGroups(parsedString),
+  )
+
+  return [issues.length === 0, issues]
+}
+
 module.exports = {
   validateIndividualHedTags: validateIndividualHedTags,
   validateHedTagGroups: validateHedTagGroups,
@@ -1062,4 +1149,5 @@ module.exports = {
   validateTopLevelTagGroups: validateTopLevelTagGroups,
   validateHedString: validateHedString,
   validateHedEvent: validateHedEvent,
+  validateHedEventWithDefinitions: validateHedEventWithDefinitions,
 }

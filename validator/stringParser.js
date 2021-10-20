@@ -156,18 +156,9 @@ class ParsedHedGroup extends ParsedHedSubstring {
     if (!this.isDefinitionGroup) {
       return null
     }
-    let tag = this.definitionTag.formattedTag
-    let value = utils.HED.getTagName(tag)
-    let previousValue
-    for (const level of utils.HED.ancestorIterator(tag)) {
-      if (value === 'definition') {
-        return previousValue
-      }
-      previousValue = value
-      value = utils.HED.getTagName(level)
-    }
-    throw Error(
-      'Completed iteration through definition tag without finding Definition level.',
+    return utils.HED.getDefinitionName(
+      this.definitionTag.formattedTag,
+      'Definition',
     )
   }
 
