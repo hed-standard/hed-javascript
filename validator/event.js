@@ -1,3 +1,5 @@
+const difference = require('lodash/difference')
+
 const utils = require('../utils')
 const {
   parseHedString,
@@ -23,14 +25,13 @@ const timeUnitClass = 'time'
 
 // Validation tests
 
-const camelCase = /([A-Z-]+\s*[a-z-]*)+/
-
 /**
  * Check if tag level capitalization is valid (CamelCase).
  */
 const checkCapitalization = function (tag, hedSchemas, doSemanticValidation) {
   const issues = []
-  const tagNames = tag.originalTag.split('/')
+  const originalTagNames = tag.originalTag.split('/')
+  const formattedTagNames = tag.formattedTag.split('/')
   if (
     doSemanticValidation &&
     utils.HED.tagTakesValue(
@@ -39,13 +40,15 @@ const checkCapitalization = function (tag, hedSchemas, doSemanticValidation) {
       hedSchemas.isHed3,
     )
   ) {
-    tagNames.pop()
+    originalTagNames.pop()
+    formattedTagNames.pop()
   }
-  for (const tagName of tagNames) {
-    const correctTagName = utils.string.capitalizeString(tagName)
-    if (tagName !== correctTagName && !camelCase.test(tagName)) {
-      issues.push(generateIssue('capitalization', { tag: tag.originalTag }))
-    }
+  const capitalizedTagNames = formattedTagNames.map((tagName) => {
+    return utils.string.capitalizeString(tagName)
+  })
+  const invalidTagNames = difference(originalTagNames, capitalizedTagNames)
+  if (invalidTagNames.length > 0) {
+    issues.push(generateIssue('capitalization', { tag: tag.originalTag }))
   }
   return issues
 }

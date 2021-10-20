@@ -49,7 +49,7 @@ describe('HED dataset validation', () => {
         ],
         multipleValidShort: ['Sensory-event', 'Train', 'RGB-red/0.5'],
         multipleValidMixed: ['Event/Sensory-event', 'Train', 'RGB-red/0.5'],
-        multipleInvalid: ['Train/Maglev', 'Duration/0.5 cm', 'InvalidEvent'],
+        multipleInvalid: ['Train/Maglev', 'Duration/0.5 cm', 'Invalid-event'],
       }
       const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
       const expectedIssues = {

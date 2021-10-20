@@ -232,19 +232,19 @@ describe('HED string conversion', () => {
       it('should raise an issue if an invalid node is found', () => {
         const testStrings = {
           invalidParentWithExistingGrandchild:
-            'InvalidEvent/Experiment-control/Geometric',
-          invalidChildWithExistingGrandchild: 'Event/InvalidEvent/Geometric',
-          invalidParentWithExistingChild: 'InvalidEvent/Geometric',
-          invalidSingle: 'InvalidEvent',
-          invalidWithExtension: 'InvalidEvent/InvalidExtension',
+            'Invalid-event/Experiment-control/Geometric',
+          invalidChildWithExistingGrandchild: 'Event/Invalid-event/Geometric',
+          invalidParentWithExistingChild: 'Invalid-event/Geometric',
+          invalidSingle: 'Invalid-event',
+          invalidWithExtension: 'Invalid-event/InvalidExtension',
         }
         const expectedResults = {
           invalidParentWithExistingGrandchild:
-            'InvalidEvent/Experiment-control/Geometric',
-          invalidChildWithExistingGrandchild: 'Event/InvalidEvent/Geometric',
-          invalidParentWithExistingChild: 'InvalidEvent/Geometric',
-          invalidSingle: 'InvalidEvent',
-          invalidWithExtension: 'InvalidEvent/InvalidExtension',
+            'Invalid-event/Experiment-control/Geometric',
+          invalidChildWithExistingGrandchild: 'Event/Invalid-event/Geometric',
+          invalidParentWithExistingChild: 'Invalid-event/Geometric',
+          invalidSingle: 'Invalid-event',
+          invalidWithExtension: 'Invalid-event/InvalidExtension',
         }
         const expectedIssues = {
           invalidParentWithExistingGrandchild: [
@@ -519,14 +519,14 @@ describe('HED string conversion', () => {
 
       it('should raise an issue if an invalid node is found', () => {
         const testStrings = {
-          single: 'InvalidEvent',
-          invalidChild: 'InvalidEvent/InvalidExtension',
-          validChild: 'InvalidEvent/Event',
+          single: 'Invalid-event',
+          invalidChild: 'Invalid-event/InvalidExtension',
+          validChild: 'Invalid-event/Event',
         }
         const expectedResults = {
-          single: 'InvalidEvent',
-          invalidChild: 'InvalidEvent/InvalidExtension',
-          validChild: 'InvalidEvent/Event',
+          single: 'Invalid-event',
+          invalidChild: 'Invalid-event/InvalidExtension',
+          validChild: 'Invalid-event/Event',
         }
         const expectedIssues = {
           single: [
@@ -716,8 +716,8 @@ describe('HED string conversion', () => {
       })
 
       it('should raise an issue if an invalid node is found', () => {
-        const single = 'InvalidEvent'
-        const double = 'InvalidEvent/InvalidExtension'
+        const single = 'Invalid-event'
+        const double = 'Invalid-event/InvalidExtension'
         const testStrings = {
           single: single,
           double: double,
@@ -945,8 +945,8 @@ describe('HED string conversion', () => {
       })
 
       it('should raise an issue if an invalid node is found', () => {
-        const single = 'InvalidEvent'
-        const double = 'InvalidEvent/InvalidExtension'
+        const single = 'Invalid-event'
+        const double = 'Invalid-event/InvalidExtension'
         const testStrings = {
           single: single,
           double: double,
