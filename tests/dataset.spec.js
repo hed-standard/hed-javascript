@@ -25,6 +25,7 @@ describe('HED dataset validation', () => {
           const [, testIssues] = hed.validateHedEvents(
             testDatasets[testDatasetKey],
             hedSchema,
+            null,
             true,
           )
           assert.sameDeepMembers(

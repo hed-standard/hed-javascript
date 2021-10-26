@@ -21,11 +21,6 @@ const issueData = {
     level: 'error',
     message: stringTemplate`Comma missing after - "${'tag'}"`,
   },
-  capitalization: {
-    hedCode: 'HED_STYLE_WARNING',
-    level: 'warning',
-    message: stringTemplate`First word not capitalized or camel  - "${'tag'}"`,
-  },
   duplicateTag: {
     hedCode: 'HED_TAG_REPEATED',
     level: 'error',
@@ -125,6 +120,11 @@ const issueData = {
     hedCode: 'HED_DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Multiple inner tag groups found in definition "${'definition'}"`,
+  },
+  duplicateDefinition: {
+    hedCode: 'HED_DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Definition "${'definition'}" is declared multiple times. This instance's tag group is "${'tagGroup'}"`,
   },
   invalidTopLevelTagGroupTag: {
     hedCode: 'HED_TAG_GROUP_ERROR',

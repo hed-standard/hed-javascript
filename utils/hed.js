@@ -42,6 +42,10 @@ const getTagSlashIndices = function (tag) {
 
 /**
  * Get the last part of a HED tag.
+ *
+ * @param {string} tag A HED tag
+ * @param {string} character The character to use as a separator.
+ * @return {string} The last part of the tag using the given separator.
  */
 const getTagName = function (tag, character = '/') {
   const lastSlashIndex = tag.lastIndexOf(character)
@@ -79,6 +83,25 @@ const isDescendantOf = function (tag, parent) {
     }
   }
   return false
+}
+
+/**
+ * Determine the name of this group's definition.
+ */
+const getDefinitionName = function (formattedTag, definitionForm) {
+  let tag = formattedTag
+  let value = getTagName(tag)
+  let previousValue
+  for (const level of ancestorIterator(tag)) {
+    if (value === definitionForm.toLowerCase()) {
+      return previousValue
+    }
+    previousValue = value
+    value = getTagName(level)
+  }
+  throw Error(
+    `Completed iteration through ${definitionForm.toLowerCase()} tag without finding ${definitionForm} level.`,
+  )
 }
 
 const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; :]+$/
@@ -343,7 +366,9 @@ module.exports = {
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
   getParentTag: getParentTag,
+  ancestorIterator: ancestorIterator,
   isDescendantOf: isDescendantOf,
+  getDefinitionName: getDefinitionName,
   validateValue: validateValue,
   validateUnits: validateUnits,
   tagExistsInSchema: tagExistsInSchema,

@@ -1,8 +1,13 @@
+const differenceWith = require('lodash/differenceWith')
+const zip = require('lodash/zip')
+
 const utils = require('../utils')
+const { generateIssue } = require('../utils/issues/issues')
 const { convertPartialHedStringToLong } = require('../converter/converter')
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
+const delimiters = new Set([','])
 
 /**
  * A parsed HED substring.
@@ -71,6 +76,12 @@ class ParsedHedTag extends ParsedHedSubstring {
      */
     this.conversionIssues = conversionIssues
   }
+
+  equivalent(other) {
+    return (
+      other instanceof ParsedHedTag && this.formattedTag === other.formattedTag
+    )
+  }
 }
 
 /**
@@ -135,6 +146,47 @@ class ParsedHedGroup extends ParsedHedSubstring {
      * @type {boolean}
      */
     this.isDefinitionGroup = this.definitionTag !== null
+  }
+
+  /**
+   * Determine the name of this group's definition.
+   * @return {string|null}
+   */
+  get definitionName() {
+    if (!this.isDefinitionGroup) {
+      return null
+    }
+    return utils.HED.getDefinitionName(
+      this.definitionTag.formattedTag,
+      'Definition',
+    )
+  }
+
+  /**
+   * Determine the value of this group's definition.
+   * @return {ParsedHedGroup|null}
+   */
+  get definitionGroup() {
+    if (!this.isDefinitionGroup) {
+      return null
+    }
+    for (const subgroup of this.tags) {
+      if (subgroup instanceof ParsedHedGroup) {
+        return subgroup
+      }
+    }
+    throw new Error('Definition group is missing a first-level subgroup.')
+  }
+
+  equivalent(other) {
+    if (!(other instanceof ParsedHedGroup)) {
+      return false
+    }
+    return (
+      differenceWith(this.tags, other.tags, (ours, theirs) => {
+        return ours.equivalent(theirs)
+      }).length === 0
+    )
   }
 
   /**
@@ -213,6 +265,12 @@ class ParsedHedString {
      */
     this.definitionGroups = []
   }
+
+  get definitions() {
+    return this.definitionGroups.map((group) => {
+      return [group.definitionName, group]
+    })
+  }
 }
 
 /**
@@ -250,7 +308,6 @@ const splitHedString = function (
   hedSchemas,
   groupStartingIndex = 0,
 ) {
-  const delimiter = ','
   const doubleQuoteCharacter = '"'
   const invalidCharacters = ['{', '}', '[', ']', '~']
 
@@ -276,7 +333,7 @@ const splitHedString = function (
     } else if (character === closingGroupCharacter) {
       groupDepth--
     }
-    if (groupDepth === 0 && character === delimiter) {
+    if (groupDepth === 0 && delimiters.has(character)) {
       // Found the end of a tag, so push the current tag.
       if (!utils.string.stringIsEmpty(currentTag)) {
         const parsedHedTag = new ParsedHedTag(
@@ -456,13 +513,162 @@ const formatHedTag = function (hedTag) {
 }
 
 /**
+ * Substitute certain illegal characters and report warnings when found.
+ */
+const substituteCharacters = function (hedString) {
+  const issues = []
+  const illegalCharacterMap = { '\0': ['ASCII NUL', ' '] }
+  const flaggedCharacters = /[^\w\d./$ :-]/g
+  const replaceFunction = function (match, offset) {
+    if (match in illegalCharacterMap) {
+      const [name, replacement] = illegalCharacterMap[match]
+      issues.push(
+        generateIssue('invalidCharacter', {
+          character: name,
+          index: offset,
+          string: hedString,
+        }),
+      )
+      return replacement
+    } else {
+      return match
+    }
+  }
+  const fixedString = hedString.replace(flaggedCharacters, replaceFunction)
+
+  return [fixedString, issues]
+}
+
+/**
+ * Check if group parentheses match. Pushes an issue if they don't match.
+ */
+const countTagGroupParentheses = function (hedString) {
+  const issues = []
+  const numberOfOpeningParentheses = utils.string.getCharacterCount(
+    hedString,
+    openingGroupCharacter,
+  )
+  const numberOfClosingParentheses = utils.string.getCharacterCount(
+    hedString,
+    closingGroupCharacter,
+  )
+  if (numberOfOpeningParentheses !== numberOfClosingParentheses) {
+    issues.push(
+      generateIssue('parentheses', {
+        opening: numberOfOpeningParentheses,
+        closing: numberOfClosingParentheses,
+      }),
+    )
+  }
+  return issues
+}
+
+/**
+ * Check if a comma is missing after an opening parenthesis.
+ */
+const isCommaMissingAfterClosingParenthesis = function (
+  lastNonEmptyCharacter,
+  currentCharacter,
+) {
+  return (
+    lastNonEmptyCharacter === closingGroupCharacter &&
+    !(
+      delimiters.has(currentCharacter) ||
+      currentCharacter === closingGroupCharacter
+    )
+  )
+}
+
+/**
+ * Check for delimiter issues in a HED string (e.g. missing commas adjacent to groups, extra commas or tildes).
+ */
+const findDelimiterIssuesInHedString = function (hedString) {
+  const issues = []
+  let lastNonEmptyValidCharacter = ''
+  let lastNonEmptyValidIndex = 0
+  let currentTag = ''
+  for (let i = 0; i < hedString.length; i++) {
+    const currentCharacter = hedString.charAt(i)
+    currentTag += currentCharacter
+    if (utils.string.stringIsEmpty(currentCharacter)) {
+      continue
+    }
+    if (delimiters.has(currentCharacter)) {
+      if (currentTag.trim() === currentCharacter) {
+        issues.push(
+          generateIssue('extraDelimiter', {
+            character: currentCharacter,
+            index: i,
+            string: hedString,
+          }),
+        )
+        currentTag = ''
+        continue
+      }
+      currentTag = ''
+    } else if (currentCharacter === openingGroupCharacter) {
+      if (currentTag.trim() === openingGroupCharacter) {
+        currentTag = ''
+      } else {
+        issues.push(generateIssue('invalidTag', { tag: currentTag }))
+      }
+    } else if (
+      isCommaMissingAfterClosingParenthesis(
+        lastNonEmptyValidCharacter,
+        currentCharacter,
+      )
+    ) {
+      issues.push(
+        generateIssue('commaMissing', {
+          tag: currentTag.slice(0, -1),
+        }),
+      )
+      break
+    }
+    lastNonEmptyValidCharacter = currentCharacter
+    lastNonEmptyValidIndex = i
+  }
+  if (delimiters.has(lastNonEmptyValidCharacter)) {
+    issues.push(
+      generateIssue('extraDelimiter', {
+        character: lastNonEmptyValidCharacter,
+        index: lastNonEmptyValidIndex,
+        string: hedString,
+      }),
+    )
+  }
+  return issues
+}
+
+/**
+ * Validate the full unparsed HED string.
+ *
+ * @param {string} hedString The unparsed HED string.
+ * @return {Issue[][]} String substitution issues and other issues.
+ */
+const validateFullUnparsedHedString = function (hedString) {
+  const [fixedHedString, substitutionIssues] = substituteCharacters(hedString)
+  const issues = [].concat(
+    countTagGroupParentheses(fixedHedString),
+    findDelimiterIssuesInHedString(fixedHedString),
+  )
+  return [substitutionIssues, issues]
+}
+
+/**
  * Parse a full HED string into a object of tag types.
  *
  * @param {string} hedString The full HED string to parse.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @returns {[ParsedHedString, Issue[]]} The parsed HED tag data and list of issues.
+ * @returns {[ParsedHedString|null, Issue[], Issue[]]} The parsed HED tag data and lists of unparsed full string and other parsing issues.
  */
 const parseHedString = function (hedString, hedSchemas) {
+  const [substitutionIssues, fullHedStringIssues] =
+    validateFullUnparsedHedString(hedString)
+  const fullStringIssues = fullHedStringIssues.concat(substitutionIssues)
+  if (fullHedStringIssues.length > 0) {
+    return [null, fullStringIssues, []]
+  }
   const parsedString = new ParsedHedString(hedString)
   const [hedTagList, splitIssues] = splitHedString(hedString, hedSchemas)
   parsedString.topLevelTags = findTopLevelTags(
@@ -478,8 +684,36 @@ const parseHedString = function (hedString, hedSchemas) {
   )
   formatHedTagsInList(parsedString.tags)
   formatHedTagsInList(parsedString.topLevelTags)
-  const issues = [].concat(splitIssues, tagGroupIssues)
-  return [parsedString, issues]
+  const parsingIssues = [].concat(splitIssues, tagGroupIssues)
+  return [parsedString, substitutionIssues, parsingIssues]
+}
+
+/**
+ * Parse a set of HED strings.
+ *
+ * @param {string[]} hedStrings A set of HED strings.
+ * @param {Schemas} hedSchemas The collection of HED schemas.
+ * @return {[ParsedHedString[], Issue[], Issue[]]} The parsed HED strings and any issues found.
+ */
+const parseHedStrings = function (hedStrings, hedSchemas) {
+  const parsedHedStringsAndIssues = hedStrings.map((hedString) => {
+    return parseHedString(hedString, hedSchemas)
+  })
+  const invalidHedStringIssues = parsedHedStringsAndIssues
+    .filter((list) => {
+      return list[0] === null
+    })
+    .map((list) => {
+      return list[1]
+    })
+  const actuallyParsedHedStringsAndIssues = parsedHedStringsAndIssues
+    .filter((list) => {
+      return list[0] !== null
+    })
+    .map((list) => {
+      return [list[0], [].concat(list[1], list[2])]
+    })
+  return [...zip(...actuallyParsedHedStringsAndIssues), invalidHedStringIssues]
 }
 
 module.exports = {
@@ -491,4 +725,5 @@ module.exports = {
   splitHedString: splitHedString,
   formatHedTag: formatHedTag,
   parseHedString: parseHedString,
+  parseHedStrings: parseHedStrings,
 }

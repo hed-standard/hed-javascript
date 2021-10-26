@@ -635,12 +635,7 @@ describe('BIDS datasets', () => {
         tag: 'Speed/300 miles',
         unitClassUnits: legalSpeedUnits.sort().join(','),
       })
-      const maglevError = converterGenerateIssue(
-        'invalidTag',
-        'Maglev',
-        {},
-        [0, 6],
-      )
+      const maglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
       const expectedIssues = {
         all_good: [],
@@ -670,7 +665,7 @@ describe('BIDS datasets', () => {
         all_good: [],
         all_bad: [
           new BidsHedIssue(
-            converterGenerateIssue('invalidTag', 'Gray,Confused', {}, [5, 13]),
+            generateIssue('invalidTag', { tag: 'Confused' }),
             badDatasets[0].file,
           ),
           new BidsHedIssue(
