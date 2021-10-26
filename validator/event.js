@@ -641,13 +641,13 @@ const checkForMissingDefinitions = function (
   definitions,
   defShortTag = 'Def',
 ) {
-  const formattedDefShortTag = defShortTag.toLowerCase()
   const [defParentTag, defParentTagIssues] = convertHedStringToLong(
     hedSchemas,
-    formattedDefShortTag,
+    defShortTag,
   )
+  const formattedDefParentTag = defParentTag.toLowerCase()
   const issues = defParentTagIssues
-  if (!utils.HED.isDescendantOf(tag.formattedTag, defParentTag)) {
+  if (!utils.HED.isDescendantOf(tag.formattedTag, formattedDefParentTag)) {
     return []
   }
   const defName = utils.HED.getDefinitionName(tag.formattedTag, defShortTag)

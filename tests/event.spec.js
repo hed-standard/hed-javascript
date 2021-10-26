@@ -1,7 +1,7 @@
 const assert = require('chai').assert
 const hed = require('../validator/event')
 const schema = require('../validator/schema')
-const stringParser = require('../validator/stringParser')
+const { parseHedString } = require('../validator/stringParser')
 const generateIssue = require('../utils/issues/issues').generateIssue
 const converterGenerateIssue = require('../converter/issues')
 const { Schemas } = require('../utils/schema')
@@ -23,7 +23,7 @@ describe('HED string and event validation', () => {
       return hedSchemaPromise.then((schema) => {
         for (const testStringKey in testStrings) {
           const [parsedTestString, fullStringIssues, parseIssues] =
-            stringParser.parseHedString(testStrings[testStringKey], schema)
+            parseHedString(testStrings[testStringKey], schema)
           const testIssues = testFunction(parsedTestString, schema)
           const issues = [].concat(fullStringIssues, parseIssues, testIssues)
           assert.sameDeepMembers(
@@ -42,10 +42,7 @@ describe('HED string and event validation', () => {
     ) {
       for (const testStringKey in testStrings) {
         const [parsedTestString, fullStringIssues, parseIssues] =
-          stringParser.parseHedString(
-            testStrings[testStringKey],
-            new Schemas(null),
-          )
+          parseHedString(testStrings[testStringKey], new Schemas(null))
         const testIssues = testFunction(parsedTestString)
         const issues = [].concat(fullStringIssues, parseIssues, testIssues)
         assert.sameDeepMembers(
@@ -773,7 +770,7 @@ describe('HED string and event validation', () => {
     ) {
       return hedSchemaPromise.then((schema) => {
         for (const testStringKey in testStrings) {
-          const [parsedTestString, parseIssues] = stringParser.parseHedString(
+          const [parsedTestString, parseIssues] = parseHedString(
             testStrings[testStringKey],
             schema,
           )
@@ -905,7 +902,7 @@ describe('HED string and event validation', () => {
     ) {
       return hedSchemaPromise.then((schemas) => {
         for (const testStringKey in testStrings) {
-          const [parsedTestString] = stringParser.parseHedString(
+          const [parsedTestString] = parseHedString(
             testStrings[testStringKey],
             schemas,
           )
@@ -925,7 +922,7 @@ describe('HED string and event validation', () => {
       testFunction,
     ) {
       for (const testStringKey in testStrings) {
-        const [parsedTestString] = stringParser.parseHedString(
+        const [parsedTestString] = parseHedString(
           testStrings[testStringKey],
           new Schemas(null),
         )
@@ -1064,6 +1061,37 @@ describe('HED string and event validation', () => {
         )
       }
 
+      const validatorSemanticWithDefinitions = function (
+        testStrings,
+        testDefinitions,
+        expectedIssues,
+      ) {
+        const definitionMap = new Map()
+        return validatorSemanticBase(
+          testStrings,
+          expectedIssues,
+          function (parsedTestString, schema) {
+            if (definitionMap.size === 0) {
+              for (const value of Object.values(testDefinitions)) {
+                const parsedString = parseHedString(value, schema)[0]
+                for (const def of parsedString.definitionGroups) {
+                  definitionMap.set(def.definitionName, def.definitionGroup)
+                }
+              }
+            }
+            return hed.validateIndividualHedTags(
+              parsedTestString,
+              schema,
+              true,
+              true,
+              true,
+              false,
+              definitionMap,
+            )
+          },
+        )
+      }
+
       it('should exist in the schema or be an allowed extension', () => {
         const testStrings = {
           takesValue: 'Duration/3 ms',
@@ -1189,6 +1217,38 @@ describe('HED string and event validation', () => {
           ],*/
         }
         return validatorSemantic(testStrings, expectedIssues, true)
+      })
+
+      it('should not contain undefined definitions', () => {
+        const testDefinitions = {
+          greenTriangle:
+            '(Definition/GreenTriangleDefinition/#, (RGB-green/#, Triangle))',
+          train: '(Definition/TrainDefinition, (Train))',
+          yellowCube: '(Definition/CubeDefinition, (Yellow, Cube))',
+        }
+        const testStrings = {
+          greenTriangleDef: '(Def/GreenTriangleDefinition/0.5, Width/15 cm)',
+          trainDefExpand: '(Def-expand/TrainDefinition, Age/20)',
+          yellowCubeDef: '(Def/CubeDefinition, Volume/50 m^3)',
+          invalidDef: '(Def/InvalidDefinition, Square)',
+          invalidDefExpand: '(Def-expand/InvalidDefExpand, Circle)',
+        }
+        const expectedIssues = {
+          greenTriangleDef: [],
+          trainDefExpand: [],
+          yellowCubeDef: [],
+          invalidDef: [
+            generateIssue('missingDefinition', { def: 'InvalidDefinition' }),
+          ],
+          invalidDefExpand: [
+            generateIssue('missingDefinition', { def: 'InvalidDefExpand' }),
+          ],
+        }
+        return validatorSemanticWithDefinitions(
+          testStrings,
+          testDefinitions,
+          expectedIssues,
+        )
       })
     })
 

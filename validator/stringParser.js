@@ -162,6 +162,22 @@ class ParsedHedGroup extends ParsedHedSubstring {
     )
   }
 
+  /**
+   * Determine the value of this group's definition.
+   * @return {ParsedHedGroup|null}
+   */
+  get definitionGroup() {
+    if (!this.isDefinitionGroup) {
+      return null
+    }
+    for (const subgroup of this.tags) {
+      if (subgroup instanceof ParsedHedGroup) {
+        return subgroup
+      }
+    }
+    throw new Error('Definition group is missing a first-level subgroup.')
+  }
+
   equivalent(other) {
     if (!(other instanceof ParsedHedGroup)) {
       return false
