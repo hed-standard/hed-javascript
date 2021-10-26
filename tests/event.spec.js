@@ -382,26 +382,6 @@ describe('HED string and event validation', () => {
         return validatorSemantic(testStrings, expectedIssues, true)
       })
 
-      it('should have properly capitalized names', () => {
-        const testStrings = {
-          proper: 'Event/Category/Experimental stimulus',
-          camelCase: 'DoubleEvent/Something',
-          takesValue: 'Attribute/Temporal rate/20 Hz',
-          numeric: 'Attribute/Repetition/20',
-          lowercase: 'Event/something',
-        }
-        const expectedIssues = {
-          proper: [],
-          camelCase: [],
-          takesValue: [],
-          numeric: [],
-          lowercase: [
-            generateIssue('capitalization', { tag: testStrings.lowercase }),
-          ],
-        }
-        validatorSyntactic(testStrings, expectedIssues, true)
-      })
-
       it('should have a child when required', () => {
         const testStrings = {
           hasChild: 'Event/Category/Experimental stimulus',

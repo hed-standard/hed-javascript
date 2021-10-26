@@ -21,11 +21,6 @@ const issueData = {
     level: 'error',
     message: stringTemplate`Comma missing after - "${'tag'}"`,
   },
-  capitalization: {
-    hedCode: 'HED_STYLE_WARNING',
-    level: 'warning',
-    message: stringTemplate`First word not capitalized or camel  - "${'tag'}"`,
-  },
   duplicateTag: {
     hedCode: 'HED_TAG_REPEATED',
     level: 'error',

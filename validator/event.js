@@ -23,33 +23,6 @@ const timeUnitClass = 'time'
 
 // Validation tests
 
-const camelCase = /([A-Z-]+\s*[a-z-]*)+/
-
-/**
- * Check if tag level capitalization is valid (CamelCase).
- */
-const checkCapitalization = function (tag, hedSchemas, doSemanticValidation) {
-  const issues = []
-  const tagNames = tag.originalTag.split('/')
-  if (
-    doSemanticValidation &&
-    utils.HED.tagTakesValue(
-      tag.formattedTag,
-      hedSchemas.baseSchema.attributes,
-      hedSchemas.isHed3,
-    )
-  ) {
-    tagNames.pop()
-  }
-  for (const tagName of tagNames) {
-    const correctTagName = utils.string.capitalizeString(tagName)
-    if (tagName !== correctTagName && !camelCase.test(tagName)) {
-      issues.push(generateIssue('capitalization', { tag: tag.originalTag }))
-    }
-  }
-  return issues
-}
-
 /**
  * Check for duplicate tags at the top level or within a single group.
  */
@@ -801,11 +774,6 @@ const validateIndividualHedTag = function (
         checkForMissingDefinitions(tag, hedSchemas, definitions, 'Def-expand'),
       )
     }
-  }
-  if (checkForWarnings) {
-    issues = issues.concat(
-      checkCapitalization(tag, hedSchemas, doSemanticValidation),
-    )
   }
   if (expectValuePlaceholderString) {
     issues = issues.concat(checkPlaceholderTagSyntax(tag))
