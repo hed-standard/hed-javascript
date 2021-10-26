@@ -975,16 +975,20 @@ const initiallyValidateHedString = function (hedString, hedSchemas) {
   if (!doSemanticValidation) {
     hedSchemas = new Schemas(null)
   }
-  let parsedString, parsedStringIssues
+  let parsedString, fullStringIssues, parsedStringIssues
   // Skip parsing if we're passed an already-parsed string.
   if (hedString instanceof ParsedHedString) {
     parsedString = hedString
+    fullStringIssues = []
     parsedStringIssues = []
   } else {
-    ;[parsedString, parsedStringIssues] = parseHedString(hedString, hedSchemas)
+    ;[parsedString, fullStringIssues, parsedStringIssues] = parseHedString(
+      hedString,
+      hedSchemas,
+    )
   }
   if (parsedString === null) {
-    return [null, hedSchemas, parsedStringIssues, null]
+    return [null, hedSchemas, fullStringIssues, null]
   } else if (parsedStringIssues.length > 0) {
     doSemanticValidation = false
     hedSchemas = new Schemas(null)
@@ -994,7 +998,12 @@ const initiallyValidateHedString = function (hedString, hedSchemas) {
       hedSchemas.baseSchema.xmlData,
     )
   }
-  return [parsedString, hedSchemas, parsedStringIssues, doSemanticValidation]
+  return [
+    parsedString,
+    hedSchemas,
+    fullStringIssues.concat(parsedStringIssues),
+    doSemanticValidation,
+  ]
 }
 
 /**

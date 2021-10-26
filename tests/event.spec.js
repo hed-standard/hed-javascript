@@ -22,12 +22,10 @@ describe('HED string and event validation', () => {
     ) {
       return hedSchemaPromise.then((schema) => {
         for (const testStringKey in testStrings) {
-          const [parsedTestString, parseIssues] = stringParser.parseHedString(
-            testStrings[testStringKey],
-            schema,
-          )
+          const [parsedTestString, fullStringIssues, parseIssues] =
+            stringParser.parseHedString(testStrings[testStringKey], schema)
           const testIssues = testFunction(parsedTestString, schema)
-          const issues = [].concat(parseIssues, testIssues)
+          const issues = [].concat(fullStringIssues, parseIssues, testIssues)
           assert.sameDeepMembers(
             issues,
             expectedIssues[testStringKey],
@@ -43,12 +41,13 @@ describe('HED string and event validation', () => {
       testFunction,
     ) {
       for (const testStringKey in testStrings) {
-        const [parsedTestString, parseIssues] = stringParser.parseHedString(
-          testStrings[testStringKey],
-          new Schemas(null),
-        )
+        const [parsedTestString, fullStringIssues, parseIssues] =
+          stringParser.parseHedString(
+            testStrings[testStringKey],
+            new Schemas(null),
+          )
         const testIssues = testFunction(parsedTestString)
-        const issues = [].concat(parseIssues, testIssues)
+        const issues = [].concat(fullStringIssues, parseIssues, testIssues)
         assert.sameDeepMembers(
           issues,
           expectedIssues[testStringKey],

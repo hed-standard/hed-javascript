@@ -644,14 +644,14 @@ const validateFullUnparsedHedString = function (hedString) {
  *
  * @param {string} hedString The full HED string to parse.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @returns {[ParsedHedString|null, Issue[]]} The parsed HED tag data and list of issues.
+ * @returns {[ParsedHedString|null, Issue[], Issue[]]} The parsed HED tag data and lists of unparsed full string and other parsing issues.
  */
 const parseHedString = function (hedString, hedSchemas) {
   const [substitutionIssues, fullHedStringIssues] =
     validateFullUnparsedHedString(hedString)
   const fullStringIssues = fullHedStringIssues.concat(substitutionIssues)
   if (fullHedStringIssues.length > 0) {
-    return [null, fullStringIssues]
+    return [null, fullStringIssues, []]
   }
   const parsedString = new ParsedHedString(hedString)
   const [hedTagList, splitIssues] = splitHedString(hedString, hedSchemas)
@@ -668,8 +668,8 @@ const parseHedString = function (hedString, hedSchemas) {
   )
   formatHedTagsInList(parsedString.tags)
   formatHedTagsInList(parsedString.topLevelTags)
-  const parsingIssues = fullStringIssues.concat(splitIssues, tagGroupIssues)
-  return [parsedString, parsingIssues]
+  const parsingIssues = [].concat(splitIssues, tagGroupIssues)
+  return [parsedString, substitutionIssues, parsingIssues]
 }
 
 /**
@@ -677,13 +677,27 @@ const parseHedString = function (hedString, hedSchemas) {
  *
  * @param {string[]} hedStrings A set of HED strings.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @return {[ParsedHedString[], Issue[]]} The parsed HED strings and any issues found.
+ * @return {[ParsedHedString[], Issue[], Issue[]]} The parsed HED strings and any issues found.
  */
 const parseHedStrings = function (hedStrings, hedSchemas) {
   const parsedHedStringsAndIssues = hedStrings.map((hedString) => {
     return parseHedString(hedString, hedSchemas)
   })
-  return zip(...parsedHedStringsAndIssues)
+  const invalidHedStringIssues = parsedHedStringsAndIssues
+    .filter((list) => {
+      return list[0] === null
+    })
+    .map((list) => {
+      return list[1]
+    })
+  const actuallyParsedHedStringsAndIssues = parsedHedStringsAndIssues
+    .filter((list) => {
+      return list[0] !== null
+    })
+    .map((list) => {
+      return [list[0], [].concat(list[1], list[2])]
+    })
+  return [...zip(...actuallyParsedHedStringsAndIssues), invalidHedStringIssues]
 }
 
 module.exports = {

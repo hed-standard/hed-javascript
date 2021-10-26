@@ -93,10 +93,8 @@ const validateHedDataset = function(
   if (hedStrings.length === 0) {
     return [true, []]
   }
-  const [parsedHedStrings, parsedHedStringIssues] = parseHedStrings(
-    hedStrings,
-    hedSchemas,
-  )
+  const [parsedHedStrings, parsedHedStringIssues, fullStringIssues] =
+    parseHedStrings(hedStrings, hedSchemas)
   const [definitions, definitionIssues] = parseDefinitions(parsedHedStrings)
   const [stringsValid, stringIssues] = validateHedEvents(
     parsedHedStrings,
@@ -104,7 +102,7 @@ const validateHedDataset = function(
     definitions,
     checkForWarnings,
   )
-  stringIssues.concat(parsedHedStringIssues)
+  stringIssues.concat(fullStringIssues, parsedHedStringIssues)
   if (!stringsValid) {
     return [false, stringIssues]
   }
