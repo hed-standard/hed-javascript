@@ -632,19 +632,25 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
  * @param {ParsedHedTag} tag The HED tag.
  * @param {Schemas} hedSchemas The HED schema collection.
  * @param {Map<string, ParsedHedGroup>} definitions The parsed definitions.
+ * @param {string} defShortTag The short tag to check for.
  * @return {Issue[]} Any issues found.
  */
-const checkForMissingDefinitions = function (tag, hedSchemas, definitions) {
-  const defShortTag = 'def'
+const checkForMissingDefinitions = function (
+  tag,
+  hedSchemas,
+  definitions,
+  defShortTag = 'Def',
+) {
+  const formattedDefShortTag = defShortTag.toLowerCase()
   const [defParentTag, defParentTagIssues] = convertHedStringToLong(
     hedSchemas,
-    defShortTag,
+    formattedDefShortTag,
   )
   const issues = defParentTagIssues
   if (!utils.HED.isDescendantOf(tag.formattedTag, defParentTag)) {
     return []
   }
-  const defName = utils.HED.getDefinitionName(tag.formattedTag, 'Def')
+  const defName = utils.HED.getDefinitionName(tag.formattedTag, defShortTag)
   if (!definitions.has(defName)) {
     issues.push(generateIssue('missingDefinition', { def: defName }))
   }
@@ -791,7 +797,8 @@ const validateIndividualHedTag = function (
     }
     if (hedSchemas.isHed3 && definitions !== null) {
       issues = issues.concat(
-        checkForMissingDefinitions(tag, hedSchemas, definitions),
+        checkForMissingDefinitions(tag, hedSchemas, definitions, 'Def'),
+        checkForMissingDefinitions(tag, hedSchemas, definitions, 'Def-expand'),
       )
     }
   }
