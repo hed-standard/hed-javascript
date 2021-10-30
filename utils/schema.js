@@ -1,8 +1,11 @@
+const isEmpty = require('lodash/isEmpty')
 const semver = require('semver')
 const xml2js = require('xml2js')
 
 const files = require('./files')
 const { stringTemplate } = require('./string')
+
+const fallbackFilePath = 'data/HED8.0.0.xml'
 
 /**
  * Load schema XML data from a schema version or path description.
@@ -11,16 +14,33 @@ const { stringTemplate } = require('./string')
  * @return {Promise<never>|Promise<object>} The schema XML data or an error.
  */
 const loadSchema = function (schemaDef = {}) {
-  if (Object.entries(schemaDef).length === 0) {
-    return loadRemoteBaseSchema()
-  } else if (schemaDef.path) {
-    return loadLocalSchema(schemaDef.path)
-  } /* else if (schemaDef.library) {
-    return loadRemoteLibrarySchema(schemaDef.library, schemaDef.version)
-  } */ else if (schemaDef.version) {
-    return loadRemoteBaseSchema(schemaDef.version)
-  } else {
-    return Promise.reject('Invalid input.')
+  try {
+    if (isEmpty(schemaDef)) {
+      schemaDef.version = 'Latest'
+    }
+    let schemaPromise
+    if (schemaDef.path) {
+      schemaPromise = loadLocalSchema(schemaDef.path)
+    } /* else if (schemaDef.library) {
+      return loadRemoteLibrarySchema(schemaDef.library, schemaDef.version)
+    } */ else if (schemaDef.version) {
+      schemaPromise = loadRemoteBaseSchema(schemaDef.version)
+    } else {
+      return Promise.reject('Invalid input.')
+    }
+    return schemaPromise.catch((error) => {
+      if (schemaDef.path === fallbackFilePath) {
+        throw error
+      } else {
+        return loadSchema({ path: fallbackFilePath })
+      }
+    })
+  } catch (error) {
+    if (schemaDef.path === fallbackFilePath) {
+      throw error
+    } else {
+      return loadSchema({ path: fallbackFilePath })
+    }
   }
 }
 
