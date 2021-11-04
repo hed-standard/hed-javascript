@@ -25,14 +25,10 @@ const loadSchema = function (schemaDef = {}) {
   } */ else if (schemaDef.version) {
     schemaPromise = loadRemoteBaseSchema(schemaDef.version)
   } else {
-    return Promise.reject('Invalid input.')
+    return Promise.reject(new Error('Invalid input.'))
   }
   return schemaPromise.catch((error) => {
-    if (schemaDef.path === fallbackFilePath) {
-      throw error
-    } else {
-      return loadSchema({ path: fallbackFilePath })
-    }
+    return loadLocalSchema(fallbackFilePath)
   })
 }
 
