@@ -2,10 +2,12 @@ const assert = require('chai').assert
 const schema = require('../validator/schema')
 const schemaUtils = require('../utils/schema')
 
+const fallbackHedSchemaVersion = '8.0.0'
+
 describe('HED schemas', () => {
   describe('Remote HED schemas', () => {
     it('can be loaded from a central GitHub repository', () => {
-      const remoteHedSchemaVersion = '7.1.1'
+      const remoteHedSchemaVersion = fallbackHedSchemaVersion
       return schema
         .buildSchema({ version: remoteHedSchemaVersion })
         .then((hedSchemas) => {
@@ -46,6 +48,30 @@ describe('HED schemas', () => {
     })
   })
   */
+
+  describe('Fallback HED schemas', () => {
+    it('loads the fallback schema if a remote schema cannot be found', () => {
+      // Invalid base schema version
+      const remoteHedSchemaVersion = '0.0.1'
+      return schema
+        .buildSchema({ version: remoteHedSchemaVersion })
+        .then((hedSchemas) => {
+          const hedSchemaVersion = hedSchemas.baseSchema.version
+          assert.strictEqual(hedSchemaVersion, fallbackHedSchemaVersion)
+        })
+    })
+
+    it('loads the fallback schema if a local schema cannot be found', () => {
+      // Invalid base schema path
+      const localHedSchemaFile = 'tests/data/HEDNotFound.xml'
+      return schema
+        .buildSchema({ path: localHedSchemaFile })
+        .then((hedSchemas) => {
+          const hedSchemaVersion = hedSchemas.baseSchema.version
+          assert.strictEqual(hedSchemaVersion, fallbackHedSchemaVersion)
+        })
+    })
+  })
 
   describe('HED-2G schemas', () => {
     const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
