@@ -716,7 +716,7 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         all_good: [],
       }
-      return validator(testDatasets, expectedIssues, { version: '7.1.1' })
+      return validator(testDatasets, expectedIssues, { version: '7.2.0' })
     })
   })
 })
