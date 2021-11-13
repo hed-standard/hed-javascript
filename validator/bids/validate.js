@@ -2,7 +2,13 @@ const { validateHedDataset } = require('../dataset')
 const { validateHedString } = require('../event')
 const { buildSchema } = require('../schema')
 const { sidecarValueHasHed } = require('../../utils/bids')
+const { generateIssue } = require('../../utils/issues/issues')
+const { fallbackFilePath } = require('../../utils/schema')
 const { BidsDataset, BidsHedIssue, BidsIssue } = require('./types')
+
+function generateInternalErrorBidsIssue(error) {
+  return Promise.resolve([new BidsIssue(107, null, error.message)])
+}
 
 /**
  * Validate a BIDS dataset.
@@ -12,23 +18,58 @@ const { BidsDataset, BidsHedIssue, BidsIssue } = require('./types')
  * @return {Promise<Array<BidsIssue>>} Any issues found.
  */
 function validateBidsDataset(dataset, schemaDefinition) {
-  let issues = []
   // loop through event data files
-  return buildSchema(schemaDefinition).then((hedSchema) => {
-    const [sidecarErrorsFound, sidecarIssues] = validateSidecars(
-      dataset.sidecarData,
-      hedSchema,
+  const schemaLoadIssues = []
+  return buildBidsSchema(dataset, schemaDefinition)
+    .catch((error) => {
+      schemaLoadIssues.push(
+        new BidsHedIssue(
+          generateIssue('requestedSchemaLoadFailed', {
+            schemaDefinition: JSON.stringify(schemaDefinition),
+            error: error.message,
+          }),
+          dataset.datasetDescription.file,
+        ),
+      )
+      return buildBidsSchema(dataset, { path: fallbackFilePath }).catch(
+        (error) => {
+          schemaLoadIssues.push(
+            new BidsHedIssue(
+              generateIssue('fallbackSchemaLoadFailed', {
+                error: error.message,
+              }),
+              dataset.datasetDescription.file,
+            ),
+          )
+          return []
+        },
+      )
+    })
+    .then((datasetIssues) => {
+      return Promise.resolve(datasetIssues.concat(schemaLoadIssues))
+    })
+}
+
+function buildBidsSchema(dataset, schemaDefinition) {
+  return buildSchema(schemaDefinition, false).then((hedSchemas) => {
+    return validateDataset(dataset, hedSchemas).catch(
+      generateInternalErrorBidsIssue,
     )
-    if (sidecarErrorsFound) {
-      return sidecarIssues
-    }
-    issues = issues.concat(sidecarIssues)
-    for (const eventFileData of dataset.eventData) {
-      const eventFileIssues = validateBidsEventFile(eventFileData, hedSchema)
-      issues = issues.concat(eventFileIssues)
-    }
-    return issues
   })
+}
+
+function validateDataset(dataset, hedSchemas) {
+  const [sidecarErrorsFound, sidecarIssues] = validateSidecars(
+    dataset.sidecarData,
+    hedSchemas,
+  )
+  if (sidecarErrorsFound) {
+    return Promise.resolve(sidecarIssues)
+  }
+  const eventFileIssues = dataset.eventData.map((eventFileData) => {
+    return validateBidsEventFile(eventFileData, hedSchemas)
+  })
+  return Promise.resolve([].concat(sidecarIssues, ...eventFileIssues))
 }
 
 function validateBidsEventFile(eventFileData, hedSchema) {
@@ -38,7 +79,11 @@ function validateBidsEventFile(eventFileData, hedSchema) {
   if (!hedStrings) {
     return []
   } else {
-    const datasetIssues = validateDataset(hedStrings, hedSchema, eventFileData)
+    const datasetIssues = validateCombinedDataset(
+      hedStrings,
+      hedSchema,
+      eventFileData,
+    )
     return [].concat(tsvIssues, datasetIssues)
   }
 }
@@ -162,7 +207,7 @@ function parseTsvHed(eventFileData) {
   return [hedStrings, issues]
 }
 
-function validateDataset(hedStrings, hedSchema, eventFileData) {
+function validateCombinedDataset(hedStrings, hedSchema, eventFileData) {
   const [isHedDatasetValid, hedIssues] = validateHedDataset(
     hedStrings,
     hedSchema,

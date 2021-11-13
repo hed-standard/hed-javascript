@@ -692,10 +692,11 @@ const buildSchemaAttributesObject = function (xmlData) {
  * Build a schema container object from a base schema version or path description.
  *
  * @param {{path: string?, version: string?}} schemaDef The description of which base schema to use.
+ * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
  * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
  */
-const buildSchema = function (schemaDef = {}) {
-  return schemaUtils.loadSchema(schemaDef).then((xmlData) => {
+const buildSchema = function (schemaDef = {}, useFallback = true) {
+  return schemaUtils.loadSchema(schemaDef, useFallback).then((xmlData) => {
     const schemaAttributes = buildSchemaAttributesObject(xmlData)
     const mapping = buildMappingObject(xmlData)
     const baseSchema = new schemaUtils.Schema(

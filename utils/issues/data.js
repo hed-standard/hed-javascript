@@ -141,6 +141,16 @@ const issueData = {
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is only allowed inside of a tag group.`,
   },
+  requestedSchemaLoadFailed: {
+    hedCode: 'HED_SCHEMA_LOAD_FAILED',
+    level: 'warning',
+    message: stringTemplate`The requested schema "${'schemaDefinition'}" failed to load. The error given was "${'error'}". The fallback schema bundled with this validator will be used instead.`,
+  },
+  fallbackSchemaLoadFailed: {
+    hedCode: 'HED_SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`The fallback schema bundled with this validator failed to load. The error given was "${'error'}". No HED validation was performed.`,
+  },
   genericError: {
     hedCode: 'HED_GENERIC_ERROR',
     level: 'error',

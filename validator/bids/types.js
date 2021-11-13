@@ -23,7 +23,7 @@ class BidsData {
   }
 }
 
-class BidsFileData extends BidsData {
+class BidsFile extends BidsData {
   constructor(name, file) {
     super()
     /**
@@ -35,9 +35,22 @@ class BidsFileData extends BidsData {
   }
 }
 
-class BidsEventFile extends BidsFileData {
-  constructor(name, potentialSidecars, mergedDictionary, parsedTsv, file) {
+class BidsJsonFile extends BidsFile {}
+
+class BidsTsvFile extends BidsFile {
+  constructor(name, parsedTsv, file) {
     super(name, file)
+    /**
+     * This file's parsed TSV data.
+     * @type {object<string, *[]>}
+     */
+    this.parsedTsv = parsedTsv
+  }
+}
+
+class BidsEventFile extends BidsTsvFile {
+  constructor(name, potentialSidecars, mergedDictionary, parsedTsv, file) {
+    super(name, parsedTsv, file)
     /**
      * The potential JSON sidecar data.
      * @type {string[]}
@@ -48,11 +61,6 @@ class BidsEventFile extends BidsFileData {
      * @type {object}
      */
     this.mergedDictionary = mergedDictionary
-    /**
-     * This file's parsed TSV data.
-     * @type {object<string, *[]>}
-     */
-    this.parsedTsv = parsedTsv
 
     this.sidecarHedData = this.mergeSidecarHed()
   }
@@ -71,7 +79,7 @@ class BidsEventFile extends BidsFileData {
   }
 }
 
-class BidsSidecar extends BidsFileData {
+class BidsSidecar extends BidsJsonFile {
   constructor(name, sidecarData = {}, file) {
     super(name, file)
     /**
@@ -83,10 +91,11 @@ class BidsSidecar extends BidsFileData {
 }
 
 class BidsDataset extends BidsData {
-  constructor(eventData, sidecarData) {
+  constructor(eventData, sidecarData, datasetDescription = {}) {
     super()
     this.eventData = eventData
     this.sidecarData = sidecarData
+    this.datasetDescription = datasetDescription
   }
 }
 
@@ -118,5 +127,6 @@ module.exports = {
   BidsEventFile: BidsEventFile,
   BidsHedIssue: BidsHedIssue,
   BidsIssue: BidsIssue,
+  BidsJsonFile: BidsJsonFile,
   BidsSidecar: BidsSidecar,
 }
