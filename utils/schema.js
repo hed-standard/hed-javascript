@@ -11,9 +11,10 @@ const fallbackFilePath = 'data/HED8.0.0.xml'
  * Load schema XML data from a schema version or path description.
  *
  * @param {{path: string?, library: string?, version: string?}} schemaDef The description of which schema to use.
+ * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
  * @return {Promise<never>|Promise<object>} The schema XML data or an error.
  */
-const loadSchema = function (schemaDef = {}) {
+const loadSchema = function (schemaDef = {}, useFallback = true) {
   if (isEmpty(schemaDef)) {
     schemaDef.version = 'Latest'
   }
@@ -25,10 +26,14 @@ const loadSchema = function (schemaDef = {}) {
   } */ else if (schemaDef.version) {
     schemaPromise = loadRemoteBaseSchema(schemaDef.version)
   } else {
-    return Promise.reject(new Error('Invalid input.'))
+    return Promise.reject(new Error('Invalid schema definition format.'))
   }
   return schemaPromise.catch((error) => {
-    return loadLocalSchema(fallbackFilePath)
+    if (useFallback) {
+      return loadLocalSchema(fallbackFilePath)
+    } else {
+      throw error
+    }
   })
 }
 
@@ -212,4 +217,5 @@ module.exports = {
   setParent: setParent,
   Schema: Schema,
   Schemas: Schemas,
+  fallbackFilePath: fallbackFilePath,
 }
