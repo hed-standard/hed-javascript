@@ -1,11 +1,6 @@
 const utils = require('../utils')
-const {
-  parseHedString,
-  ParsedHedString,
-  ParsedHedGroup,
-  ParsedHedTag,
-  hedStringIsAGroup,
-} = require('./stringParser')
+const { parseHedString, hedStringIsAGroup } = require('./stringParser')
+const { ParsedHedString, ParsedHedGroup, ParsedHedTag } = require('./types')
 const { generateIssue } = require('../utils/issues/issues')
 const { buildSchemaAttributesObject } = require('./schema')
 const { Schemas } = require('../utils/schema')
