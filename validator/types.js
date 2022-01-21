@@ -1,6 +1,10 @@
 const differenceWith = require('lodash/differenceWith')
 
-const utils = require('../utils')
+const {
+  getTagSlashIndices,
+  replaceTagNameWithPound,
+  getTagName,
+} = require('../utils/hed')
 const { convertPartialHedStringToLong } = require('../converter/converter')
 
 /**
@@ -39,14 +43,6 @@ class ParsedHedTag extends ParsedHedSubstring {
    */
   constructor(originalTag, hedString, originalBounds, hedSchemas) {
     super(originalTag, originalBounds)
-    /**
-     * The formatted canonical version of the HED tag.
-     *
-     * The empty string default value should be replaced during formatting. Failure to do so
-     * signals an error, as an empty tag should never happen.
-     * @type {string}
-     */
-    this.formattedTag = ''
     let canonicalTag, conversionIssues
     if (hedSchemas.baseSchema) {
       ;[canonicalTag, conversionIssues] = convertPartialHedStringToLong(
@@ -69,6 +65,230 @@ class ParsedHedTag extends ParsedHedSubstring {
      * @type {Array}
      */
     this.conversionIssues = conversionIssues
+    // TODO: Implement
+    this.schema = hedSchemas.baseSchema
+    /**
+     * The formatted canonical version of the HED tag.
+     * @type {string}
+     */
+    this.formattedTag = this.format()
+  }
+
+  /**
+   * Format this HED tag by removing newlines, double quotes, and slashes.
+   */
+  format() {
+    this.originalTag = this.originalTag.replace('\n', ' ')
+    let hedTagString = this.canonicalTag.trim()
+    if (hedTagString.startsWith('"')) {
+      hedTagString = hedTagString.slice(1)
+    }
+    if (hedTagString.endsWith('"')) {
+      hedTagString = hedTagString.slice(0, -1)
+    }
+    if (hedTagString.startsWith('/')) {
+      hedTagString = hedTagString.slice(1)
+    }
+    if (hedTagString.endsWith('/')) {
+      hedTagString = hedTagString.slice(0, -1)
+    }
+    return hedTagString.toLowerCase()
+  }
+
+  hasAttribute(attribute) {
+    return this.schema.attributes.tagHasAttribute(this.formattedTag, attribute)
+  }
+
+  /**
+   * Get the last part of a HED tag.
+   *
+   * @param {string} tagString A HED tag.
+   * @return {string} The last part of the tag using the given separator.
+   */
+  static getTagName(tagString) {
+    const lastSlashIndex = tagString.lastIndexOf('/')
+    if (lastSlashIndex === -1) {
+      return tagString
+    } else {
+      return tagString.substring(lastSlashIndex + 1)
+    }
+  }
+
+  get formattedTagName() {
+    return ParsedHedTag.getTagName(this.formattedTag)
+  }
+
+  get originalTagName() {
+    return ParsedHedTag.getTagName(this.originalTag)
+  }
+
+  /**
+   * Get the HED tag prefix (up to the last slash).
+   */
+  static getParentTag(tagString) {
+    const lastSlashIndex = tagString.lastIndexOf('/')
+    if (lastSlashIndex === -1) {
+      return tagString
+    } else {
+      return tagString.substring(0, lastSlashIndex)
+    }
+  }
+
+  get parentCanonicalTag() {
+    return ParsedHedTag.getParentTag(this.canonicalTag)
+  }
+
+  get parentFormattedTag() {
+    return ParsedHedTag.getParentTag(this.formattedTag)
+  }
+
+  get parentOriginalTag() {
+    return ParsedHedTag.getParentTag(this.originalTag)
+  }
+
+  static *ancestorIterator(tagString) {
+    while (tagString.lastIndexOf('/') >= 0) {
+      yield tagString
+      tagString = ParsedHedTag.getParentTag(tagString)
+    }
+    yield tagString
+  }
+
+  isDescendantOf(parent) {
+    if (parent instanceof ParsedHedTag) {
+      parent = parent.formattedTag
+    }
+    for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
+      if (ancestor === parent) {
+        return true
+      }
+    }
+    return false
+  }
+
+  /**
+   * Determine if this HED tag is in the schema.
+   */
+  get existsInSchema() {
+    return this.schema.attributes.tags.includes(this.formattedTag)
+  }
+
+  /**
+   * Check if any level of this HED tag allows extensions.
+   */
+  get allowsExtensions() {
+    const extensionAllowedAttribute = 'extensionAllowed'
+    if (this.hasAttribute(extensionAllowedAttribute)) {
+      return true
+    }
+    const tagSlashIndices = getTagSlashIndices(this.formattedTag)
+    for (const tagSlashIndex of tagSlashIndices) {
+      const tagSubstring = this.formattedTag.slice(0, tagSlashIndex)
+      if (
+        this.schema.attributes.tagHasAttribute(
+          tagSubstring,
+          extensionAllowedAttribute,
+        )
+      ) {
+        return true
+      }
+    }
+    return false
+  }
+
+  /**
+   * Checks if this HED tag has the 'takesValue' attribute.
+   */
+  get takesValue() {
+    const takesValueType = 'takesValue'
+    if (this.schema.isHed3) {
+      for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
+        const takesValueTag = replaceTagNameWithPound(ancestor)
+        if (
+          this.schema.attributes.tagHasAttribute(takesValueTag, takesValueType)
+        ) {
+          return true
+        }
+      }
+      return false
+    } else {
+      const takesValueTag = replaceTagNameWithPound(this.formattedTag)
+      return this.schema.attributes.tagHasAttribute(
+        takesValueTag,
+        takesValueType,
+      )
+    }
+  }
+
+  /**
+   * Checks if this HED tag has the 'unitClass' attribute.
+   */
+  get hasUnitClass() {
+    if (!this.schema.attributes.hasUnitClasses) {
+      return false
+    }
+    const takesValueTag = replaceTagNameWithPound(this.formattedTag)
+    return takesValueTag in this.schema.attributes.tagUnitClasses
+  }
+
+  /**
+   * Get the unit classes for this HED tag.
+   */
+  get unitClasses() {
+    if (this.hasUnitClass) {
+      const unitClassTag = replaceTagNameWithPound(this.formattedTag)
+      return this.schema.attributes.tagUnitClasses[unitClassTag]
+    } else {
+      return []
+    }
+  }
+
+  /**
+   * Get the default unit for a particular HED tag.
+   * TODO: Replace return with new Unit type.
+   */
+  get defaultUnit() {
+    const defaultUnitForTagAttribute = 'default'
+    const defaultUnitsForUnitClassAttribute = 'defaultUnits'
+    if (this.hasUnitClass) {
+      const unitClassTag = replaceTagNameWithPound(this.formattedTag)
+      let hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
+        unitClassTag,
+        defaultUnitForTagAttribute,
+      )
+      // TODO: New versions of the spec have defaultUnits instead of default.
+      if (hasDefaultAttribute === null) {
+        hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
+          unitClassTag,
+          defaultUnitsForUnitClassAttribute,
+        )
+      }
+      if (hasDefaultAttribute) {
+        return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][
+          unitClassTag
+        ]
+      } else if (unitClassTag in this.schema.attributes.tagUnitClasses) {
+        const unitClasses = this.schema.attributes.tagUnitClasses[unitClassTag]
+        const firstUnitClass = unitClasses[0]
+        return this.schema.attributes.unitClassAttributes[firstUnitClass][
+          defaultUnitsForUnitClassAttribute
+        ][0]
+      }
+    }
+    return ''
+  }
+
+  /**
+   * Get the legal units for a particular HED tag.
+   */
+  get validUnits() {
+    const tagUnitClasses = this.unitClasses
+    const units = []
+    for (const unitClass of tagUnitClasses) {
+      const unitClassUnits = this.schema.attributes.unitClasses[unitClass]
+      Array.prototype.push.apply(units, unitClassUnits)
+    }
+    return units
   }
 
   equivalent(other) {
@@ -86,29 +306,33 @@ class ParsedHedTag extends ParsedHedSubstring {
  * @return {null|ParsedHedTag[]|ParsedHedTag} The Definition tag(s)
  */
 const groupDefinitionTag = function (group, hedSchemas) {
+  if (!hedSchemas.isHed3) {
+    return ['', null]
+  }
+  const definitionShortTag = 'Definition'
+  const definitionTag = new ParsedHedTag(
+    definitionShortTag,
+    definitionShortTag,
+    [0, definitionShortTag.length - 1],
+    hedSchemas,
+  )
   const definitionTags = group.tags.filter((tag) => {
     return (
       hedSchemas.baseSchema &&
       hedSchemas.isHed3 &&
       tag instanceof ParsedHedTag &&
-      utils.HED.isDescendantOf(
-        tag.canonicalTag,
-        convertPartialHedStringToLong(
-          hedSchemas,
-          'Definition',
-          'Definition',
-          0,
-        )[0],
+      tag.isDescendantOf(
+        definitionTag,
       )
     )
   })
   switch (definitionTags.length) {
     case 0:
-      return null
+      return ['', null]
     case 1:
-      return definitionTags[0]
+      return [definitionShortTag, definitionTags[0]]
     default:
-      return definitionTags
+      return [definitionShortTag, definitionTags]
   }
 }
 
@@ -130,16 +354,18 @@ class ParsedHedGroup extends ParsedHedSubstring {
      * @type {(ParsedHedSubstring)[]}
      */
     this.tags = parsedHedTags
+    const [definitionBase, definitionTag] = groupDefinitionTag(this, hedSchemas)
+    this.definitionBase = definitionBase
     /**
      * The Definition tag associated with this HED tag group.
      * @type {ParsedHedTag|ParsedHedTag[]|null}
      */
-    this.definitionTag = groupDefinitionTag(this, hedSchemas)
+    this.definitionTag = definitionTag
     /**
      * Whether this HED tag group is a definition group.
      * @type {boolean}
      */
-    this.isDefinitionGroup = this.definitionTag !== null
+    this.isDefinitionGroup = definitionTag !== null
   }
 
   /**
@@ -150,9 +376,28 @@ class ParsedHedGroup extends ParsedHedSubstring {
     if (!this.isDefinitionGroup) {
       return null
     }
-    return utils.HED.getDefinitionName(
-      this.definitionTag.formattedTag,
-      'Definition',
+    return ParsedHedGroup.findDefinitionName(
+      this.definitionTag.canonicalTag,
+      this.definitionBase,
+    )
+  }
+
+  /**
+   * Determine the name of this group's definition.
+   */
+  static findDefinitionName(canonicalTag, definitionBase) {
+    let tag = canonicalTag
+    let value = getTagName(tag)
+    let previousValue
+    for (const level of ParsedHedTag.ancestorIterator(tag)) {
+      if (value.toLowerCase() === definitionBase.toLowerCase()) {
+        return previousValue
+      }
+      previousValue = value
+      value = getTagName(level)
+    }
+    throw Error(
+      `Completed iteration through ${definitionBase.toLowerCase()} tag without finding ${definitionBase} level.`,
     )
   }
 

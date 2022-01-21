@@ -4,7 +4,6 @@ const { ParsedHedString, ParsedHedGroup, ParsedHedTag } = require('./types')
 const { generateIssue } = require('../utils/issues/issues')
 const { buildSchemaAttributesObject } = require('./schema')
 const { Schemas } = require('../utils/schema')
-const { convertHedStringToLong } = require('../converter/converter')
 
 const uniqueType = 'unique'
 const requiredType = 'required'
@@ -83,13 +82,13 @@ const checkForMultipleUniqueTags = function (tagList, hedSchemas) {
 
 /**
  * Check if a tag is missing a required child.
+ *
+ * @param {ParsedHedTag} tag The HED tag to be checked.
+ * @return {Issue[]} Any issues found.
  */
-const checkIfTagRequiresChild = function (tag, hedSchemas) {
+const checkIfTagRequiresChild = function (tag) {
   const issues = []
-  const invalid = hedSchemas.baseSchema.attributes.tagHasAttribute(
-    tag.formattedTag,
-    requireChildType,
-  )
+  const invalid = tag.hasAttribute(requireChildType)
   if (invalid) {
     issues.push(generateIssue('childRequired', { tag: tag.originalTag }))
   }
@@ -128,33 +127,19 @@ const checkForRequiredTags = function (topLevelTags, hedSchemas) {
  * @param {ParsedHedTag} tag A HED tag.
  * @param {Schemas} hedSchemas The HED schema collection.
  * @param {boolean} checkForWarnings Whether to check for warnings.
- * @param {boolean} expectValuePlaceholderString Whether this string is expected to have a '#' placeholder representing a value.
  * @return {Issue[]} Any issues found.
  */
 const checkIfTagUnitClassUnitsAreValid = function (
   tag,
   hedSchemas,
   checkForWarnings,
-  expectValuePlaceholderString = false,
 ) {
   const issues = []
-  if (
-    !utils.HED.tagExistsInSchema(
-      tag.formattedTag,
-      hedSchemas.baseSchema.attributes,
-    ) &&
-    utils.HED.isUnitClassTag(tag.formattedTag, hedSchemas.baseSchema.attributes)
-  ) {
-    const tagUnitClasses = utils.HED.getTagUnitClasses(
-      tag.formattedTag,
-      hedSchemas.baseSchema.attributes,
-    )
-    const originalTagUnitValue = utils.HED.getTagName(tag.originalTag)
-    const formattedTagUnitValue = utils.HED.getTagName(tag.formattedTag)
-    const tagUnitClassUnits = utils.HED.getTagUnitClassUnits(
-      tag.formattedTag,
-      hedSchemas.baseSchema.attributes,
-    )
+  if (!tag.existsInSchema && tag.hasUnitClass) {
+    const tagUnitClasses = tag.unitClasses
+    const originalTagUnitValue = tag.originalTagName
+    const formattedTagUnitValue = tag.formattedTagName
+    const tagUnitClassUnits = tag.validUnits
     if (dateTimeUnitClass in hedSchemas.baseSchema.attributes.unitClasses) {
       if (tagUnitClasses.includes(dateTimeUnitClass)) {
         if (utils.string.isDateTime(formattedTagUnitValue)) {
@@ -201,10 +186,7 @@ const checkIfTagUnitClassUnitsAreValid = function (
       hedSchemas.isHed3,
     )
     if (!foundUnit && checkForWarnings) {
-      const defaultUnit = utils.HED.getUnitClassDefaultUnit(
-        tag.formattedTag,
-        hedSchemas.baseSchema.attributes,
-      )
+      const defaultUnit = tag.defaultUnit
       issues.push(
         generateIssue('unitClassDefaultUsed', {
           tag: tag.originalTag,
@@ -232,27 +214,15 @@ const checkIfTagUnitClassUnitsAreValid = function (
  *
  * @param {ParsedHedTag} tag A HED tag.
  * @param {Schemas} hedSchemas The HED schema collection.
- * @param {boolean} expectValuePlaceholderString Whether this string is expected to have a '#' placeholder representing a value.
  * @return {Issue[]} Any issues found.
  */
 const checkValueTagSyntax = function (
   tag,
   hedSchemas,
-  expectValuePlaceholderString,
 ) {
-  if (
-    utils.HED.tagTakesValue(
-      tag.formattedTag,
-      hedSchemas.baseSchema.attributes,
-      hedSchemas.isHed3,
-    ) &&
-    !utils.HED.isUnitClassTag(
-      tag.formattedTag,
-      hedSchemas.baseSchema.attributes,
-    )
-  ) {
+  if (tag.takesValue && !tag.hasUnitClass) {
     const isValidValue = utils.HED.validateValue(
-      utils.HED.getTagName(tag.formattedTag),
+      tag.formattedTagName,
       hedSchemas.baseSchema.attributes.tagHasAttribute(
         utils.HED.replaceTagNameWithPound(tag.formattedTag),
         'isNumeric',
@@ -281,37 +251,18 @@ const checkIfTagIsValid = function (
   expectValuePlaceholderString,
 ) {
   const issues = []
-  if (
-    utils.HED.tagExistsInSchema(
-      tag.formattedTag,
-      hedSchemas.baseSchema.attributes,
-    ) || // This tag itself exists in the HED schema.
-    utils.HED.tagTakesValue(
-      tag.formattedTag,
-      hedSchemas.baseSchema.attributes,
-      hedSchemas.isHed3,
-    ) // This tag is a valid value-taking tag in the HED schema.
-  ) {
+  if (tag.existsInSchema || tag.takesValue) {
     return []
   }
   // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
-  const isExtensionAllowedTag = utils.HED.isExtensionAllowedTag(
-    tag.formattedTag,
-    hedSchemas.baseSchema.attributes,
-  )
+  const isExtensionAllowedTag = tag.allowsExtensions
   if (
     expectValuePlaceholderString &&
     tag.formattedTag.split('#').length === 2
   ) {
     const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
-    if (
-      valueTag.split('#').length !== 2 || // To avoid a redundant issue.
-      utils.HED.tagTakesValue(
-        valueTag,
-        hedSchemas.baseSchema.attributes,
-        hedSchemas.isHed3,
-      )
-    ) {
+    if (valueTag.split('#').length !== 2) {
+      // To avoid a redundant issue.
       return []
     } else {
       issues.push(
@@ -322,14 +273,7 @@ const checkIfTagIsValid = function (
       return issues
     }
   }
-  if (
-    !isExtensionAllowedTag &&
-    utils.HED.tagTakesValue(
-      previousTag.formattedTag,
-      hedSchemas.baseSchema.attributes,
-      hedSchemas.isHed3,
-    )
-  ) {
+  if (!isExtensionAllowedTag && previousTag.takesValue) {
     // This tag isn't an allowed extension, but the previous tag takes a value.
     // This is likely caused by an extraneous comma.
     issues.push(
@@ -432,12 +376,8 @@ const checkPlaceholderStringSyntax = function (
     if (tagGroup.isDefinitionGroup) {
       definitionPlaceholders = 0
       const isDefinitionPlaceholder =
-        utils.HED.getTagName(tagGroup.definitionTag.formattedTag) === '#'
-      const definitionName = isDefinitionPlaceholder
-        ? utils.HED.getTagName(
-            utils.HED.getParentTag(tagGroup.definitionTag.originalTag),
-          )
-        : utils.HED.getTagName(tagGroup.definitionTag.originalTag)
+        tagGroup.definitionTag.formattedTagName === '#'
+      const definitionName = tagGroup.definitionName
       for (const tag of tagGroup.tagIterator()) {
         if (isDefinitionPlaceholder && tag === tagGroup.definitionTag) {
           continue
@@ -510,20 +450,28 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
   const definitionShortTag = 'definition'
   const defExpandShortTag = 'def-expand'
   const defShortTag = 'def'
-  const [definitionParentTag, definitionParentTagIssues] =
-    convertHedStringToLong(hedSchemas, definitionShortTag)
-  const [defExpandParentTag, defExpandParentTagIssues] = convertHedStringToLong(
+  const definitionParentTag = new ParsedHedTag(
+    definitionShortTag,
+    definitionShortTag,
+    [0, definitionShortTag.length - 1],
     hedSchemas,
-    defExpandShortTag,
   )
-  const [defParentTag, defParentTagIssues] = convertHedStringToLong(
+  const defExpandParentTag = new ParsedHedTag(
+    defExpandShortTag,
+    defExpandShortTag,
+    [0, defExpandShortTag.length - 1],
     hedSchemas,
+  )
+  const defParentTag = new ParsedHedTag(
     defShortTag,
+    defShortTag,
+    [0, defShortTag.length - 1],
+    hedSchemas,
   )
   const issues = [].concat(
-    definitionParentTagIssues,
-    defExpandParentTagIssues,
-    defParentTagIssues,
+    definitionParentTag.conversionIssues,
+    defExpandParentTag.conversionIssues,
+    defParentTag.conversionIssues,
   )
   let definitionTagFound = false
   let defExpandTagFound = false
@@ -532,13 +480,13 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
     if (tag instanceof ParsedHedGroup) {
       continue
     }
-    if (tag.canonicalTag.startsWith(definitionParentTag)) {
+    if (tag.isDescendantOf(definitionParentTag)) {
       definitionTagFound = true
-      definitionName = utils.HED.getTagName(tag.originalTag)
+      definitionName = tag.originalTagName
       break
-    } else if (tag.canonicalTag.startsWith(defExpandParentTag)) {
+    } else if (tag.isDescendantOf(defExpandParentTag)) {
       defExpandTagFound = true
-      definitionName = utils.HED.getTagName(tag.originalTag)
+      definitionName = tag.originalTagName
       break
     }
   }
@@ -566,10 +514,9 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
       tagGroupValidated = true
       for (const innerTag of tag.tagIterator()) {
         if (
-          nestedDefinitionParentTags.includes(innerTag.canonicalTag) ||
-          nestedDefinitionParentTags.includes(
-            utils.HED.getParentTag(innerTag.canonicalTag),
-          )
+          nestedDefinitionParentTags.some((parentTag) => {
+            return innerTag.isDescendantOf(parentTag)
+          })
         ) {
           issues.push(
             generateIssue('nestedDefinition', {
@@ -579,9 +526,8 @@ const checkDefinitionSyntax = function (tagGroup, hedSchemas) {
         }
       }
     } else if (
-      (definitionTagFound &&
-        !tag.canonicalTag.startsWith(definitionParentTag)) ||
-      (defExpandTagFound && !tag.canonicalTag.startsWith(defExpandParentTag))
+      (definitionTagFound && !tag.isDescendantOf(definitionParentTag)) ||
+      (defExpandTagFound && !tag.isDescendantOf(defExpandParentTag))
     ) {
       issues.push(
         generateIssue('illegalDefinitionGroupTag', {
@@ -609,16 +555,20 @@ const checkForMissingDefinitions = function (
   definitions,
   defShortTag = 'Def',
 ) {
-  const [defParentTag, defParentTagIssues] = convertHedStringToLong(
-    hedSchemas,
+  const defParentTag = new ParsedHedTag(
     defShortTag,
+    defShortTag,
+    [0, defShortTag.length - 1],
+    hedSchemas,
   )
-  const formattedDefParentTag = defParentTag.toLowerCase()
-  const issues = defParentTagIssues
-  if (!utils.HED.isDescendantOf(tag.formattedTag, formattedDefParentTag)) {
+  const issues = defParentTag.conversionIssues
+  if (!tag.isDescendantOf(defParentTag)) {
     return []
   }
-  const defName = utils.HED.getDefinitionName(tag.formattedTag, defShortTag)
+  const defName = ParsedHedGroup.findDefinitionName(
+    tag.canonicalTag,
+    defShortTag,
+  )
   if (!definitions.has(defName)) {
     issues.push(generateIssue('missingDefinition', { def: defName }))
   }
@@ -637,10 +587,7 @@ const checkForInvalidTopLevelTags = function (topLevelTags, hedSchemas) {
   for (const topLevelTag of topLevelTags) {
     if (
       !hedStringIsAGroup(topLevelTag.formattedTag) &&
-      (hedSchemas.baseSchema.attributes.tagHasAttribute(
-        topLevelTag.formattedTag,
-        tagGroupType,
-      ) ||
+      (topLevelTag.hasAttribute(tagGroupType) ||
         hedSchemas.baseSchema.attributes.tagHasAttribute(
           utils.HED.getParentTag(topLevelTag.formattedTag),
           tagGroupType,
@@ -671,10 +618,7 @@ const checkForInvalidTopLevelTagGroupTags = function (
   const topLevelTagGroupTagsFound = {}
   for (const tag of parsedString.tags) {
     if (
-      hedSchemas.baseSchema.attributes.tagHasAttribute(
-        tag.formattedTag,
-        topLevelTagGroupType,
-      ) ||
+      tag.hasAttribute(topLevelTagGroupType) ||
       hedSchemas.baseSchema.attributes.tagHasAttribute(
         utils.HED.getParentTag(tag.formattedTag),
         topLevelTagGroupType,
@@ -756,7 +700,7 @@ const validateIndividualHedTag = function (
         checkForWarnings,
         expectValuePlaceholderString,
       ),
-      checkIfTagRequiresChild(tag, hedSchemas),
+      checkIfTagRequiresChild(tag),
     )
     if (!isEventLevel) {
       issues = issues.concat(

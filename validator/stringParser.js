@@ -209,46 +209,6 @@ const findTopLevelTags = function (hedTags, hedSchemas, parsedString) {
 }
 
 /**
- * Format the HED tags in a list.
- *
- * @param {ParsedHedTag[]|ParsedHedTag[][]} hedTagList An array of unformatted HED tags.
- * @returns {Array} An array of formatted HED tags corresponding to hedTagList.
- */
-const formatHedTagsInList = function (hedTagList) {
-  for (const hedTag of hedTagList) {
-    if (hedTag instanceof Array) {
-      // Recurse
-      formatHedTagsInList(hedTag)
-    } else {
-      formatHedTag(hedTag)
-    }
-  }
-}
-
-/**
- * Format an individual HED tag by removing newlines, double quotes, and slashes.
- *
- * @param {ParsedHedTag} hedTag The HED tag to format.
- */
-const formatHedTag = function (hedTag) {
-  hedTag.originalTag = hedTag.originalTag.replace('\n', ' ')
-  let hedTagString = hedTag.canonicalTag.trim()
-  if (hedTagString.startsWith('"')) {
-    hedTagString = hedTagString.slice(1)
-  }
-  if (hedTagString.endsWith('"')) {
-    hedTagString = hedTagString.slice(0, -1)
-  }
-  if (hedTagString.startsWith('/')) {
-    hedTagString = hedTagString.slice(1)
-  }
-  if (hedTagString.endsWith('/')) {
-    hedTagString = hedTagString.slice(0, -1)
-  }
-  hedTag.formattedTag = hedTagString.toLowerCase()
-}
-
-/**
  * Substitute certain illegal characters and report warnings when found.
  */
 const substituteCharacters = function (hedString) {
@@ -418,8 +378,6 @@ const parseHedString = function (hedString, hedSchemas) {
     parsedString,
     true,
   )
-  formatHedTagsInList(parsedString.tags)
-  formatHedTagsInList(parsedString.topLevelTags)
   const parsingIssues = [].concat(splitIssues, tagGroupIssues)
   return [parsedString, substitutionIssues, parsingIssues]
 }
@@ -459,7 +417,6 @@ module.exports = {
   hedStringIsAGroup: hedStringIsAGroup,
   removeGroupParentheses: removeGroupParentheses,
   splitHedString: splitHedString,
-  formatHedTag: formatHedTag,
   parseHedString: parseHedString,
   parseHedStrings: parseHedStrings,
 }
