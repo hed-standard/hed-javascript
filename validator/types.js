@@ -244,38 +244,40 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Get the default unit for a particular HED tag.
+   * Get the default unit for this HED tag.
    * TODO: Replace return with new Unit type.
    */
   get defaultUnit() {
     const defaultUnitForTagAttribute = 'default'
     const defaultUnitsForUnitClassAttribute = 'defaultUnits'
-    if (this.hasUnitClass) {
-      const unitClassTag = replaceTagNameWithPound(this.formattedTag)
-      let hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
-        unitClassTag,
-        defaultUnitForTagAttribute,
-      )
-      // TODO: New versions of the spec have defaultUnits instead of default.
-      if (hasDefaultAttribute === null) {
-        hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
-          unitClassTag,
-          defaultUnitsForUnitClassAttribute,
-        )
-      }
-      if (hasDefaultAttribute) {
-        return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][
-          unitClassTag
-        ]
-      } else if (unitClassTag in this.schema.attributes.tagUnitClasses) {
-        const unitClasses = this.schema.attributes.tagUnitClasses[unitClassTag]
-        const firstUnitClass = unitClasses[0]
-        return this.schema.attributes.unitClassAttributes[firstUnitClass][
-          defaultUnitsForUnitClassAttribute
-        ][0]
-      }
+    if (!this.hasUnitClass) {
+      return ''
     }
-    return ''
+    const unitClassTag = replaceTagNameWithPound(this.formattedTag)
+    let hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
+      unitClassTag,
+      defaultUnitForTagAttribute,
+    )
+    // TODO: New versions of the spec have defaultUnits instead of default.
+    if (hasDefaultAttribute) {
+      return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][
+        unitClassTag
+      ]
+    }
+    hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
+      unitClassTag,
+      defaultUnitsForUnitClassAttribute,
+    )
+    if (hasDefaultAttribute) {
+      return this.schema.attributes.tagAttributes[
+        defaultUnitsForUnitClassAttribute
+      ][unitClassTag]
+    }
+    const unitClasses = this.schema.attributes.tagUnitClasses[unitClassTag]
+    const firstUnitClass = unitClasses[0]
+    return this.schema.attributes.unitClassAttributes[firstUnitClass][
+      defaultUnitsForUnitClassAttribute
+    ][0]
   }
 
   /**
@@ -321,9 +323,7 @@ const groupDefinitionTag = function (group, hedSchemas) {
       hedSchemas.baseSchema &&
       hedSchemas.isHed3 &&
       tag instanceof ParsedHedTag &&
-      tag.isDescendantOf(
-        definitionTag,
-      )
+      tag.isDescendantOf(definitionTag)
     )
   })
   switch (definitionTags.length) {
