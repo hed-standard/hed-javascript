@@ -159,15 +159,18 @@ describe('HED tag string utility functions', () => {
       })
     })
 
-    const validatorString = function (
+
+
+    const validatorBase = function (
       testStrings,
       expectedResults,
       testFunction,
+      assertionFunction,
     ) {
       return hedSchemaPromise.then((schema) => {
         for (const testStringKey of Object.keys(testStrings)) {
           const testResult = testFunction(testStrings[testStringKey], schema)
-          assert.strictEqual(
+          assertionFunction(
             testResult,
             expectedResults[testStringKey],
             testStrings[testStringKey],
@@ -176,21 +179,30 @@ describe('HED tag string utility functions', () => {
       })
     }
 
+    const validatorString = function (
+      testStrings,
+      expectedResults,
+      testFunction,
+    ) {
+      return validatorBase(
+        testStrings,
+        expectedResults,
+        testFunction,
+        assert.strictEqual,
+      )
+    }
+
     const validatorList = function (
       testStrings,
       expectedResults,
       testFunction,
     ) {
-      return hedSchemaPromise.then((schema) => {
-        for (const testStringKey of Object.keys(testStrings)) {
-          const testResult = testFunction(testStrings[testStringKey], schema)
-          assert.sameDeepMembers(
-            testResult,
-            expectedResults[testStringKey],
-            testStrings[testStringKey],
-          )
-        }
-      })
+      return validatorBase(
+        testStrings,
+        expectedResults,
+        testFunction,
+        assert.sameDeepMembers,
+      )
     }
 
     /*
