@@ -3,11 +3,7 @@ pluralize.addUncountableRule('hertz')
 
 const { isNumber } = require('./string')
 
-const defaultUnitForTagAttribute = 'default'
-const defaultUnitsForUnitClassAttribute = 'defaultUnits'
-const extensionAllowedAttribute = 'extensionAllowed'
 const tagsDictionaryKey = 'tags'
-const takesValueType = 'takesValue'
 const unitClassType = 'unitClass'
 const unitClassUnitsType = 'units'
 const unitPrefixType = 'unitPrefix'
@@ -66,42 +62,6 @@ const getParentTag = function (tag, character = '/') {
   } else {
     return tag.substring(0, lastSlashIndex)
   }
-}
-
-const ancestorIterator = function* (tag) {
-  while (tag.lastIndexOf('/') >= 0) {
-    yield tag
-    tag = getParentTag(tag)
-  }
-  yield tag
-}
-
-const isDescendantOf = function (tag, parent) {
-  for (const ancestor of ancestorIterator(tag)) {
-    if (ancestor === parent) {
-      return true
-    }
-  }
-  return false
-}
-
-/**
- * Determine the name of this group's definition.
- */
-const getDefinitionName = function (formattedTag, definitionForm) {
-  let tag = formattedTag
-  let value = getTagName(tag)
-  let previousValue
-  for (const level of ancestorIterator(tag)) {
-    if (value === definitionForm.toLowerCase()) {
-      return previousValue
-    }
-    previousValue = value
-    value = getTagName(level)
-  }
-  throw Error(
-    `Completed iteration through ${definitionForm.toLowerCase()} tag without finding ${definitionForm} level.`,
-  )
 }
 
 const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; :]+$/
@@ -232,100 +192,6 @@ const validateUnits = function (
 }
 
 /**
- * Determine if a HED tag is in the schema.
- */
-const tagExistsInSchema = function (formattedTag, hedSchemaAttributes) {
-  return hedSchemaAttributes.tags.includes(formattedTag)
-}
-
-/**
- * Checks if a HED tag has the 'takesValue' attribute.
- */
-const tagTakesValue = function (formattedTag, hedSchemaAttributes, isHed3) {
-  if (isHed3) {
-    for (const ancestor of ancestorIterator(formattedTag)) {
-      const takesValueTag = replaceTagNameWithPound(ancestor)
-      if (hedSchemaAttributes.tagHasAttribute(takesValueTag, takesValueType)) {
-        return true
-      }
-    }
-    return false
-  } else {
-    const takesValueTag = replaceTagNameWithPound(formattedTag)
-    return hedSchemaAttributes.tagHasAttribute(takesValueTag, takesValueType)
-  }
-}
-
-/**
- * Checks if a HED tag has the 'unitClass' attribute.
- */
-const isUnitClassTag = function (formattedTag, hedSchemaAttributes) {
-  if (!hedSchemaAttributes.hasUnitClasses) {
-    return false
-  }
-  const takesValueTag = replaceTagNameWithPound(formattedTag)
-  return takesValueTag in hedSchemaAttributes.tagUnitClasses
-}
-
-/**
- * Get the default unit for a particular HED tag.
- */
-const getUnitClassDefaultUnit = function (formattedTag, hedSchemaAttributes) {
-  if (isUnitClassTag(formattedTag, hedSchemaAttributes)) {
-    const unitClassTag = replaceTagNameWithPound(formattedTag)
-    let hasDefaultAttribute = hedSchemaAttributes.tagHasAttribute(
-      unitClassTag,
-      defaultUnitForTagAttribute,
-    )
-    // TODO: New versions of the spec have defaultUnits instead of default.
-    if (hasDefaultAttribute === null) {
-      hasDefaultAttribute = hedSchemaAttributes.tagHasAttribute(
-        unitClassTag,
-        defaultUnitsForUnitClassAttribute,
-      )
-    }
-    if (hasDefaultAttribute) {
-      return hedSchemaAttributes.tagAttributes[defaultUnitForTagAttribute][
-        unitClassTag
-      ]
-    } else if (unitClassTag in hedSchemaAttributes.tagUnitClasses) {
-      const unitClasses = hedSchemaAttributes.tagUnitClasses[unitClassTag]
-      const firstUnitClass = unitClasses[0]
-      return hedSchemaAttributes.unitClassAttributes[firstUnitClass][
-        defaultUnitsForUnitClassAttribute
-      ][0]
-    }
-  } else {
-    return ''
-  }
-}
-
-/**
- * Get the unit classes for a particular HED tag.
- */
-const getTagUnitClasses = function (formattedTag, hedSchemaAttributes) {
-  if (isUnitClassTag(formattedTag, hedSchemaAttributes)) {
-    const unitClassTag = replaceTagNameWithPound(formattedTag)
-    return hedSchemaAttributes.tagUnitClasses[unitClassTag]
-  } else {
-    return []
-  }
-}
-
-/**
- * Get the legal units for a particular HED tag.
- */
-const getTagUnitClassUnits = function (formattedTag, hedSchemaAttributes) {
-  const tagUnitClasses = getTagUnitClasses(formattedTag, hedSchemaAttributes)
-  const units = []
-  for (const unitClass of tagUnitClasses) {
-    const unitClassUnits = hedSchemaAttributes.unitClasses[unitClass]
-    Array.prototype.push.apply(units, unitClassUnits)
-  }
-  return units
-}
-
-/**
  * Get the legal units for a particular HED tag.
  */
 const getAllUnits = function (hedSchemaAttributes) {
@@ -337,45 +203,11 @@ const getAllUnits = function (hedSchemaAttributes) {
   return units
 }
 
-/**
- * Check if any level of a HED tag allows extensions.
- */
-const isExtensionAllowedTag = function (formattedTag, hedSchemaAttributes) {
-  if (
-    hedSchemaAttributes.tagHasAttribute(formattedTag, extensionAllowedAttribute)
-  ) {
-    return true
-  }
-  const tagSlashIndices = getTagSlashIndices(formattedTag)
-  for (const tagSlashIndex of tagSlashIndices) {
-    const tagSubstring = formattedTag.slice(0, tagSlashIndex)
-    if (
-      hedSchemaAttributes.tagHasAttribute(
-        tagSubstring,
-        extensionAllowedAttribute,
-      )
-    ) {
-      return true
-    }
-  }
-  return false
-}
-
 module.exports = {
   replaceTagNameWithPound: replaceTagNameWithPound,
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
   getParentTag: getParentTag,
-  ancestorIterator: ancestorIterator,
-  isDescendantOf: isDescendantOf,
-  getDefinitionName: getDefinitionName,
   validateValue: validateValue,
   validateUnits: validateUnits,
-  tagExistsInSchema: tagExistsInSchema,
-  tagTakesValue: tagTakesValue,
-  isUnitClassTag: isUnitClassTag,
-  getUnitClassDefaultUnit: getUnitClassDefaultUnit,
-  getTagUnitClasses: getTagUnitClasses,
-  getTagUnitClassUnits: getTagUnitClassUnits,
-  isExtensionAllowedTag: isExtensionAllowedTag,
 }

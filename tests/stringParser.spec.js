@@ -2,13 +2,12 @@ const assert = require('chai').assert
 const { Schemas } = require('../utils/schema')
 const { buildSchema } = require('../converter/schema')
 const {
-  ParsedHedTag,
-  formatHedTag,
   hedStringIsAGroup,
   parseHedString,
   removeGroupParentheses,
   splitHedString,
 } = require('../validator/stringParser')
+const { ParsedHedTag } = require('../validator/types')
 const generateIssue = require('../utils/issues/issues').generateIssue
 
 describe('HED string parsing', () => {
@@ -31,7 +30,7 @@ describe('HED string parsing', () => {
     expectedResults,
     testFunction,
   ) {
-    for (const testStringKey in testStrings) {
+    for (const testStringKey of Object.keys(testStrings)) {
       const testResult = testFunction(testStrings[testStringKey])
       assert.deepStrictEqual(
         testResult,
@@ -47,7 +46,7 @@ describe('HED string parsing', () => {
     expectedIssues,
     testFunction,
   ) {
-    for (const testStringKey in testStrings) {
+    for (const testStringKey of Object.keys(testStrings)) {
       const [testResult, testIssues] = testFunction(testStrings[testStringKey])
       assert.sameDeepMembers(
         testResult,
@@ -368,7 +367,6 @@ describe('HED string parsing', () => {
       }
       validatorWithoutIssues(testStrings, expectedResults, (string) => {
         const parsedTag = new ParsedHedTag(string, string, [], nullSchema)
-        formatHedTag(parsedTag)
         return parsedTag.formattedTag
       })
     })

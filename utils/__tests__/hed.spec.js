@@ -5,7 +5,7 @@ const schema = require('../../validator/schema')
 describe('HED tag string utility functions', () => {
   describe('Syntactic utility functions', () => {
     const validator = function (testStrings, expectedResults, testFunction) {
-      for (const testStringKey in testStrings) {
+      for (const testStringKey of Object.keys(testStrings)) {
         const testResult = testFunction(testStrings[testStringKey])
         assert.deepStrictEqual(
           testResult,
@@ -159,21 +159,37 @@ describe('HED tag string utility functions', () => {
       })
     })
 
-    const validatorString = function (
+
+
+    const validatorBase = function (
       testStrings,
       expectedResults,
       testFunction,
+      assertionFunction,
     ) {
       return hedSchemaPromise.then((schema) => {
-        for (const testStringKey in testStrings) {
+        for (const testStringKey of Object.keys(testStrings)) {
           const testResult = testFunction(testStrings[testStringKey], schema)
-          assert.strictEqual(
+          assertionFunction(
             testResult,
             expectedResults[testStringKey],
             testStrings[testStringKey],
           )
         }
       })
+    }
+
+    const validatorString = function (
+      testStrings,
+      expectedResults,
+      testFunction,
+    ) {
+      return validatorBase(
+        testStrings,
+        expectedResults,
+        testFunction,
+        assert.strictEqual,
+      )
     }
 
     const validatorList = function (
@@ -181,18 +197,15 @@ describe('HED tag string utility functions', () => {
       expectedResults,
       testFunction,
     ) {
-      return hedSchemaPromise.then((schema) => {
-        for (const testStringKey in testStrings) {
-          const testResult = testFunction(testStrings[testStringKey], schema)
-          assert.sameDeepMembers(
-            testResult,
-            expectedResults[testStringKey],
-            testStrings[testStringKey],
-          )
-        }
-      })
+      return validatorBase(
+        testStrings,
+        expectedResults,
+        testFunction,
+        assert.sameDeepMembers,
+      )
     }
 
+    /*
     it('should correctly determine if a tag exists', () => {
       const testStrings = {
         direction: 'attribute/direction/left',
@@ -380,6 +393,7 @@ describe('HED tag string utility functions', () => {
         },
       )
     })
+     */
 
     it('should strip valid units from a value', () => {
       const dollarsString = '$25.99'
@@ -424,7 +438,7 @@ describe('HED tag string utility functions', () => {
       })
     })
 
-    it('should correctly determine if a tag allows extensions', () => {
+    /*it('should correctly determine if a tag allows extensions', () => {
       const testStrings = {
         vehicle: 'item/object/vehicle/boat',
         color: 'attribute/color/red/0.5',
@@ -445,6 +459,6 @@ describe('HED tag string utility functions', () => {
           )
         },
       )
-    })
+    })*/
   })
 })
