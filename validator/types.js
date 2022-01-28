@@ -8,15 +8,41 @@ const {
 const { convertPartialHedStringToLong } = require('../converter/converter')
 
 /**
+ * Mix-in/superclass for property memoization until we can get away with private fields.
+ */
+class Memoizer {
+  constructor() {
+    this._memoizedProperties = new Map()
+  }
+
+  /**
+   * Memoize the property.
+   * @param {String} propertyName The property name
+   * @param {function() : *} valueComputer A function to compute the value.
+   * @return {*} The computed value.
+   * @protected
+   */
+  _memoize(propertyName, valueComputer) {
+    if (this._memoizedProperties.has(propertyName)) {
+      return this._memoizedProperties.get(propertyName)
+    }
+    const value = valueComputer()
+    this._memoizedProperties.set(propertyName, value)
+    return value
+  }
+}
+
+/**
  * A parsed HED substring.
  */
-class ParsedHedSubstring {
+class ParsedHedSubstring extends Memoizer {
   /**
    * Constructor.
    * @param {string} originalTag The original pre-parsed version of the HED substring.
    * @param {int[]} originalBounds The bounds of the HED substring in the original HED string.
    */
   constructor(originalTag, originalBounds) {
+    super()
     /**
      * The original pre-parsed version of the HED tag.
      * @type {string}
@@ -115,11 +141,15 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 
   get formattedTagName() {
-    return ParsedHedTag.getTagName(this.formattedTag)
+    return this._memoize('formattedTagName', () => {
+      return ParsedHedTag.getTagName(this.formattedTag)
+    })
   }
 
   get originalTagName() {
-    return ParsedHedTag.getTagName(this.originalTag)
+    return this._memoize('originalTagName', () => {
+      return ParsedHedTag.getTagName(this.originalTag)
+    })
   }
 
   /**
@@ -135,15 +165,21 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 
   get parentCanonicalTag() {
-    return ParsedHedTag.getParentTag(this.canonicalTag)
+    return this._memoize('parentCanonicalTag', () => {
+      return ParsedHedTag.getParentTag(this.canonicalTag)
+    })
   }
 
   get parentFormattedTag() {
-    return ParsedHedTag.getParentTag(this.formattedTag)
+    return this._memoize('parentFormattedTag', () => {
+      return ParsedHedTag.getParentTag(this.formattedTag)
+    })
   }
 
   get parentOriginalTag() {
-    return ParsedHedTag.getParentTag(this.originalTag)
+    return this._memoize('parentOriginalTag', () => {
+      return ParsedHedTag.getParentTag(this.originalTag)
+    })
   }
 
   static *ancestorIterator(tagString) {
@@ -170,77 +206,92 @@ class ParsedHedTag extends ParsedHedSubstring {
    * Determine if this HED tag is in the schema.
    */
   get existsInSchema() {
-    return this.schema.attributes.tags.includes(this.formattedTag)
+    return this._memoize('existsInSchema', () => {
+      return this.schema.attributes.tags.includes(this.formattedTag)
+    })
   }
 
   /**
    * Check if any level of this HED tag allows extensions.
    */
   get allowsExtensions() {
-    const extensionAllowedAttribute = 'extensionAllowed'
-    if (this.hasAttribute(extensionAllowedAttribute)) {
-      return true
-    }
-    const tagSlashIndices = getTagSlashIndices(this.formattedTag)
-    for (const tagSlashIndex of tagSlashIndices) {
-      const tagSubstring = this.formattedTag.slice(0, tagSlashIndex)
-      if (
-        this.schema.attributes.tagHasAttribute(
-          tagSubstring,
-          extensionAllowedAttribute,
-        )
-      ) {
+    return this._memoize('allowsExtensions', () => {
+      const extensionAllowedAttribute = 'extensionAllowed'
+      if (this.hasAttribute(extensionAllowedAttribute)) {
         return true
       }
-    }
-    return false
+      const tagSlashIndices = getTagSlashIndices(this.formattedTag)
+      for (const tagSlashIndex of tagSlashIndices) {
+        const tagSubstring = this.formattedTag.slice(0, tagSlashIndex)
+        if (
+          this.schema.attributes.tagHasAttribute(
+            tagSubstring,
+            extensionAllowedAttribute,
+          )
+        ) {
+          return true
+        }
+      }
+      return false
+    })
   }
 
   /**
    * Checks if this HED tag has the 'takesValue' attribute.
    */
   get takesValue() {
-    const takesValueType = 'takesValue'
-    if (this.schema.isHed3) {
-      for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
-        const takesValueTag = replaceTagNameWithPound(ancestor)
-        if (
-          this.schema.attributes.tagHasAttribute(takesValueTag, takesValueType)
-        ) {
-          return true
+    return this._memoize('takesValue', () => {
+      const takesValueType = 'takesValue'
+      if (this.schema.isHed3) {
+        for (const ancestor of ParsedHedTag.ancestorIterator(
+          this.formattedTag,
+        )) {
+          const takesValueTag = replaceTagNameWithPound(ancestor)
+          if (
+            this.schema.attributes.tagHasAttribute(
+              takesValueTag,
+              takesValueType,
+            )
+          ) {
+            return true
+          }
         }
+        return false
+      } else {
+        const takesValueTag = replaceTagNameWithPound(this.formattedTag)
+        return this.schema.attributes.tagHasAttribute(
+          takesValueTag,
+          takesValueType,
+        )
       }
-      return false
-    } else {
-      const takesValueTag = replaceTagNameWithPound(this.formattedTag)
-      return this.schema.attributes.tagHasAttribute(
-        takesValueTag,
-        takesValueType,
-      )
-    }
+    })
   }
 
   /**
    * Checks if this HED tag has the 'unitClass' attribute.
    */
   get hasUnitClass() {
-    if (!this.schema.attributes.hasUnitClasses) {
-      return false
-    }
-    const takesValueTag = replaceTagNameWithPound(this.formattedTag)
-    return takesValueTag in this.schema.attributes.tagUnitClasses
+    return this._memoize('hasUnitClass', () => {
+      if (!this.schema.attributes.hasUnitClasses) {
+        return false
+      }
+      const takesValueTag = replaceTagNameWithPound(this.formattedTag)
+      return takesValueTag in this.schema.attributes.tagUnitClasses
+    })
   }
 
   /**
    * Get the unit classes for this HED tag.
    */
   get unitClasses() {
-    if (this.hasUnitClass) {
-      const unitClassTag = replaceTagNameWithPound(this.formattedTag)
-      return this.schema.attributes.tagUnitClasses[unitClassTag]
-    } else {
-      return []
-    }
+    return this._memoize('unitClasses', () => {
+      if (this.hasUnitClass) {
+        const unitClassTag = replaceTagNameWithPound(this.formattedTag)
+        return this.schema.attributes.tagUnitClasses[unitClassTag]
+      } else {
+        return []
+      }
+    })
   }
 
   /**
@@ -248,49 +299,53 @@ class ParsedHedTag extends ParsedHedSubstring {
    * TODO: Replace return with new Unit type.
    */
   get defaultUnit() {
-    const defaultUnitForTagAttribute = 'default'
-    const defaultUnitsForUnitClassAttribute = 'defaultUnits'
-    if (!this.hasUnitClass) {
-      return ''
-    }
-    const unitClassTag = replaceTagNameWithPound(this.formattedTag)
-    let hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
-      unitClassTag,
-      defaultUnitForTagAttribute,
-    )
-    // TODO: New versions of the spec have defaultUnits instead of default.
-    if (hasDefaultAttribute) {
-      return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][
-        unitClassTag
-      ]
-    }
-    hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
-      unitClassTag,
-      defaultUnitsForUnitClassAttribute,
-    )
-    if (hasDefaultAttribute) {
-      return this.schema.attributes.tagAttributes[
+    return this._memoize('defaultUnit', () => {
+      const defaultUnitForTagAttribute = 'default'
+      const defaultUnitsForUnitClassAttribute = 'defaultUnits'
+      if (!this.hasUnitClass) {
+        return ''
+      }
+      const unitClassTag = replaceTagNameWithPound(this.formattedTag)
+      let hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
+        unitClassTag,
+        defaultUnitForTagAttribute,
+      )
+      // TODO: New versions of the spec have defaultUnits instead of default.
+      if (hasDefaultAttribute) {
+        return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][
+          unitClassTag
+        ]
+      }
+      hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
+        unitClassTag,
+        defaultUnitsForUnitClassAttribute,
+      )
+      if (hasDefaultAttribute) {
+        return this.schema.attributes.tagAttributes[
+          defaultUnitsForUnitClassAttribute
+        ][unitClassTag]
+      }
+      const unitClasses = this.schema.attributes.tagUnitClasses[unitClassTag]
+      const firstUnitClass = unitClasses[0]
+      return this.schema.attributes.unitClassAttributes[firstUnitClass][
         defaultUnitsForUnitClassAttribute
-      ][unitClassTag]
-    }
-    const unitClasses = this.schema.attributes.tagUnitClasses[unitClassTag]
-    const firstUnitClass = unitClasses[0]
-    return this.schema.attributes.unitClassAttributes[firstUnitClass][
-      defaultUnitsForUnitClassAttribute
-    ][0]
+      ][0]
+    })
   }
 
   /**
    * Get the legal units for a particular HED tag.
    */
   get validUnits() {
-    const tagUnitClasses = this.unitClasses
-    const units = []
-    for (const unitClass of tagUnitClasses) {
-      const unitClassUnits = this.schema.attributes.unitClasses[unitClass]
-      Array.prototype.push.apply(units, unitClassUnits)
-    }
-    return units
+    return this._memoize('validUnits', () => {
+      const tagUnitClasses = this.unitClasses
+      const units = []
+      for (const unitClass of tagUnitClasses) {
+        const unitClassUnits = this.schema.attributes.unitClasses[unitClass]
+        Array.prototype.push.apply(units, unitClassUnits)
+      }
+      return units
+    })
   }
 
   equivalent(other) {
@@ -373,13 +428,15 @@ class ParsedHedGroup extends ParsedHedSubstring {
    * @return {string|null}
    */
   get definitionName() {
-    if (!this.isDefinitionGroup) {
-      return null
-    }
-    return ParsedHedGroup.findDefinitionName(
-      this.definitionTag.canonicalTag,
-      this.definitionBase,
-    )
+    return this._memoize('', () => {
+      if (!this.isDefinitionGroup) {
+        return null
+      }
+      return ParsedHedGroup.findDefinitionName(
+        this.definitionTag.canonicalTag,
+        this.definitionBase,
+      )
+    })
   }
 
   /**
@@ -406,15 +463,17 @@ class ParsedHedGroup extends ParsedHedSubstring {
    * @return {ParsedHedGroup|null}
    */
   get definitionGroup() {
-    if (!this.isDefinitionGroup) {
-      return null
-    }
-    for (const subgroup of this.tags) {
-      if (subgroup instanceof ParsedHedGroup) {
-        return subgroup
+    return this._memoize('', () => {
+      if (!this.isDefinitionGroup) {
+        return null
       }
-    }
-    throw new Error('Definition group is missing a first-level subgroup.')
+      for (const subgroup of this.tags) {
+        if (subgroup instanceof ParsedHedGroup) {
+          return subgroup
+        }
+      }
+      throw new Error('Definition group is missing a first-level subgroup.')
+    })
   }
 
   equivalent(other) {
