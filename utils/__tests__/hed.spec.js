@@ -5,7 +5,7 @@ const schema = require('../../validator/schema')
 describe('HED tag string utility functions', () => {
   describe('Syntactic utility functions', () => {
     const validator = function (testStrings, expectedResults, testFunction) {
-      for (const testStringKey in testStrings) {
+      for (const testStringKey of Object.keys(testStrings)) {
         const testResult = testFunction(testStrings[testStringKey])
         assert.deepStrictEqual(
           testResult,
@@ -165,7 +165,7 @@ describe('HED tag string utility functions', () => {
       testFunction,
     ) {
       return hedSchemaPromise.then((schema) => {
-        for (const testStringKey in testStrings) {
+        for (const testStringKey of Object.keys(testStrings)) {
           const testResult = testFunction(testStrings[testStringKey], schema)
           assert.strictEqual(
             testResult,
@@ -182,7 +182,7 @@ describe('HED tag string utility functions', () => {
       testFunction,
     ) {
       return hedSchemaPromise.then((schema) => {
-        for (const testStringKey in testStrings) {
+        for (const testStringKey of Object.keys(testStrings)) {
           const testResult = testFunction(testStrings[testStringKey], schema)
           assert.sameDeepMembers(
             testResult,
@@ -193,6 +193,7 @@ describe('HED tag string utility functions', () => {
       })
     }
 
+    /*
     it('should correctly determine if a tag exists', () => {
       const testStrings = {
         direction: 'attribute/direction/left',
@@ -380,6 +381,7 @@ describe('HED tag string utility functions', () => {
         },
       )
     })
+     */
 
     it('should strip valid units from a value', () => {
       const dollarsString = '$25.99'
@@ -424,7 +426,7 @@ describe('HED tag string utility functions', () => {
       })
     })
 
-    it('should correctly determine if a tag allows extensions', () => {
+    /*it('should correctly determine if a tag allows extensions', () => {
       const testStrings = {
         vehicle: 'item/object/vehicle/boat',
         color: 'attribute/color/red/0.5',
@@ -445,6 +447,6 @@ describe('HED tag string utility functions', () => {
           )
         },
       )
-    })
+    })*/
   })
 })

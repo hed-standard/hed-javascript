@@ -30,7 +30,7 @@ describe('HED string parsing', () => {
     expectedResults,
     testFunction,
   ) {
-    for (const testStringKey in testStrings) {
+    for (const testStringKey of Object.keys(testStrings)) {
       const testResult = testFunction(testStrings[testStringKey])
       assert.deepStrictEqual(
         testResult,
@@ -46,7 +46,7 @@ describe('HED string parsing', () => {
     expectedIssues,
     testFunction,
   ) {
-    for (const testStringKey in testStrings) {
+    for (const testStringKey of Object.keys(testStrings)) {
       const [testResult, testIssues] = testFunction(testStrings[testStringKey])
       assert.sameDeepMembers(
         testResult,
