@@ -197,6 +197,25 @@ class HedValidator {
   }
 
   /**
+   * Check that all required tags are present.
+   */
+  checkForRequiredTags() {
+    this._checkForTagAttribute(requiredType, (requiredTagPrefix) => {
+      if (
+        !this.parsedString.topLevelTags.some((tag) => {
+          return tag.formattedTag.startsWith(requiredTagPrefix)
+        })
+      ) {
+        this.issues.push(
+          generateIssue('requiredPrefixMissing', {
+            tagPrefix: requiredTagPrefix,
+          }),
+        )
+      }
+    })
+  }
+
+  /**
    * Check if a tag is missing a required child.
    *
    * @param {ParsedHedTag} tag The HED tag to be checked.
@@ -206,28 +225,6 @@ class HedValidator {
     if (invalid) {
       this.issues.push(generateIssue('childRequired', { tag: tag.originalTag }))
     }
-  }
-
-  /**
-   * Check that all required tags are present.
-   */
-  checkForRequiredTags() {
-    this._checkForTagAttribute(requiredType, (requiredTagPrefix) => {
-      let foundOne = false
-      for (const tag of this.parsedString.topLevelTags) {
-        if (tag.formattedTag.startsWith(requiredTagPrefix)) {
-          foundOne = true
-          break
-        }
-      }
-      if (!foundOne) {
-        this.issues.push(
-          generateIssue('requiredPrefixMissing', {
-            tagPrefix: requiredTagPrefix,
-          }),
-        )
-      }
-    })
   }
 
   /**
