@@ -125,7 +125,7 @@ class HedValidator {
    * Validate the top-level HED tags in a parsed HED string.
    */
   validateTopLevelTags() {
-    if (this.options.checkForWarnings) {
+    if (this.hedSchemas.generation > 0 && this.options.checkForWarnings) {
       this.checkForRequiredTags()
     }
   }
@@ -166,13 +166,18 @@ class HedValidator {
     }
   }
 
+  _checkForTagAttribute(attribute, fn) {
+    const tags = this.hedSchemas.baseSchema.attributes.tagAttributes[attribute]
+    for (const tag of Object.keys(tags)) {
+      fn(tag)
+    }
+  }
+
   /**
    * Check for multiple instances of a unique tag.
    */
   checkForMultipleUniqueTags(tagList) {
-    const uniqueTagPrefixes =
-      this.hedSchemas.baseSchema.attributes.tagAttributes[uniqueType]
-    for (const uniqueTagPrefix of Object.keys(uniqueTagPrefixes)) {
+    this._checkForTagAttribute(uniqueType, (uniqueTagPrefix) => {
       let foundOne = false
       for (const tag of tagList) {
         if (tag.formattedTag.startsWith(uniqueTagPrefix)) {
@@ -188,7 +193,7 @@ class HedValidator {
           }
         }
       }
-    }
+    })
   }
 
   /**
@@ -207,9 +212,7 @@ class HedValidator {
    * Check that all required tags are present.
    */
   checkForRequiredTags() {
-    const requiredTagPrefixes =
-      this.hedSchemas.baseSchema.attributes.tagAttributes[requiredType]
-    for (const requiredTagPrefix of Object.keys(requiredTagPrefixes)) {
+    this._checkForTagAttribute(requiredType, (requiredTagPrefix) => {
       let foundOne = false
       for (const tag of this.parsedString.topLevelTags) {
         if (tag.formattedTag.startsWith(requiredTagPrefix)) {
@@ -224,7 +227,7 @@ class HedValidator {
           }),
         )
       }
-    }
+    })
   }
 
   /**
