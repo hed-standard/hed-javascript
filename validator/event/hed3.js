@@ -61,29 +61,9 @@ class Hed3Validator extends HedValidator {
     const definitionShortTag = 'definition'
     const defExpandShortTag = 'def-expand'
     const defShortTag = 'def'
-    const definitionParentTag = new ParsedHedTag(
-      definitionShortTag,
-      definitionShortTag,
-      [0, definitionShortTag.length - 1],
-      this.hedSchemas,
-    )
-    const defExpandParentTag = new ParsedHedTag(
-      defExpandShortTag,
-      defExpandShortTag,
-      [0, defExpandShortTag.length - 1],
-      this.hedSchemas,
-    )
-    const defParentTag = new ParsedHedTag(
-      defShortTag,
-      defShortTag,
-      [0, defShortTag.length - 1],
-      this.hedSchemas,
-    )
-    this.issues = this.issues.concat(
-      definitionParentTag.conversionIssues,
-      defExpandParentTag.conversionIssues,
-      defParentTag.conversionIssues,
-    )
+    const definitionParentTag = this.getParsedParentTag(definitionShortTag)
+    const defExpandParentTag = this.getParsedParentTag(defExpandShortTag)
+    const defParentTag = this.getParsedParentTag(defShortTag)
     let definitionTagFound = false
     let defExpandTagFound = false
     let definitionName
@@ -151,13 +131,7 @@ class Hed3Validator extends HedValidator {
    * @param {string} defShortTag The short tag to check for.
    */
   checkForMissingDefinitions(tag, defShortTag = 'Def') {
-    const defParentTag = new ParsedHedTag(
-      defShortTag,
-      defShortTag,
-      [0, defShortTag.length - 1],
-      this.hedSchemas,
-    )
-    this.issues = this.issues.concat(defParentTag.conversionIssues)
+    const defParentTag = this.getParsedParentTag(defShortTag)
     if (!tag.isDescendantOf(defParentTag)) {
       return
     }
@@ -168,6 +142,23 @@ class Hed3Validator extends HedValidator {
     if (!this.definitions.has(defName)) {
       this.pushIssue('missingDefinition', { def: defName })
     }
+  }
+
+  /**
+   * Get the parent tag object for a given short tag.
+   *
+   * @param {string} shortTag A short-form HED 3 tag.
+   * @return {ParsedHedTag} A parsed HED tag object representing the full tag.
+   */
+  getParsedParentTag(shortTag) {
+    const parentTag = new ParsedHedTag(
+      shortTag,
+      shortTag,
+      [0, shortTag.length - 1],
+      this.hedSchemas,
+    )
+    this.issues = this.issues.concat(parentTag.conversionIssues)
+    return parentTag
   }
 
   /**
