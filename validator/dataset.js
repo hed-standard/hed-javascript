@@ -42,7 +42,7 @@ const parseDefinitions = function (parsedHedStrings) {
  * @param {Schemas} hedSchemas The HED schema container object.
  * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
-const validateDataset = function(definitions, hedStrings, hedSchemas) {
+const validateDataset = function (definitions, hedStrings, hedSchemas) {
   // TODO: Implement
   return [true, []]
 }
@@ -85,7 +85,7 @@ const validateHedEvents = function (
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
-const validateHedDataset = function(
+const validateHedDataset = function (
   hedStrings,
   hedSchemas,
   checkForWarnings = false,
@@ -93,8 +93,10 @@ const validateHedDataset = function(
   if (hedStrings.length === 0) {
     return [true, []]
   }
-  const [parsedHedStrings, parsedHedStringIssues, fullStringIssues] =
-    parseHedStrings(hedStrings, hedSchemas)
+  const [parsedHedStrings, parsingIssues] = parseHedStrings(
+    hedStrings,
+    hedSchemas,
+  )
   const [definitions, definitionIssues] = parseDefinitions(parsedHedStrings)
   const [stringsValid, stringIssues] = validateHedEvents(
     parsedHedStrings,
@@ -102,7 +104,7 @@ const validateHedDataset = function(
     definitions,
     checkForWarnings,
   )
-  stringIssues.concat(fullStringIssues, parsedHedStringIssues)
+  stringIssues.concat(Object.values(parsingIssues))
   if (!stringsValid) {
     return [false, stringIssues]
   }

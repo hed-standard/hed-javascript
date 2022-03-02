@@ -1,8 +1,8 @@
 const isEmpty = require('lodash/isEmpty')
-const semver = require('semver')
 const xml2js = require('xml2js')
 
 const files = require('./files')
+const { getGenerationForSchemaVersion } = require('./hed')
 const { stringTemplate } = require('./string')
 
 const fallbackFilePath = 'data/HED8.0.0.xml'
@@ -177,11 +177,30 @@ class Schema {
      */
     this.mapping = mapping
     /**
-     * Whether this is a HED 3 schema.
-     * @type {boolean}
+     * The HED generation of this schema.
+     * @type {Number}
      */
-    this.isHed3 =
-      this.library !== undefined || semver.gte(this.version, '8.0.0-alpha')
+    if (this.library !== undefined) {
+      this.generation = 3
+    } else {
+      this.generation = getGenerationForSchemaVersion(this.version)
+    }
+  }
+
+  /**
+   * Whether this schema is a HED 2 schema.
+   * @return {boolean}
+   */
+  get isHed2() {
+    return this.generation === 2
+  }
+
+  /**
+   * Whether this schema is a HED 3 schema.
+   * @return {boolean}
+   */
+  get isHed3() {
+    return this.generation === 3
   }
 }
 
@@ -201,14 +220,39 @@ class Schemas {
     this.baseSchema = baseSchema
     /**
      * The imported library HED schemas.
-     * @type {Object<string, Schema>}
+     * @type {Map<string, Schema>}
      */
-    this.librarySchemas = {}
-    /**
-     * Whether this is a HED 3 schema collection.
-     * @type {boolean}
-     */
-    this.isHed3 = baseSchema && baseSchema.isHed3
+    this.librarySchemas = new Map()
+  }
+
+  /**
+   * The HED generation of this schema.
+   *
+   * If baseSchema is null, generation is set to 0.
+   * @type {Number}
+   */
+  get generation() {
+    if (this.baseSchema === null) {
+      return 0
+    } else {
+      return this.baseSchema.generation
+    }
+  }
+
+  /**
+   * Whether this schema collection comprises HED 2 schemas.
+   * @return {boolean}
+   */
+  get isHed2() {
+    return this.generation === 2
+  }
+
+  /**
+   * Whether this schema collection comprises HED 3 schemas.
+   * @return {boolean}
+   */
+  get isHed3() {
+    return this.generation === 3
   }
 }
 

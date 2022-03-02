@@ -67,6 +67,10 @@ describe('HED dataset validation', () => {
             tag: testDatasets.multipleInvalid[1],
             unitClassUnits: legalTimeUnits.sort().join(','),
           }),
+          // TODO: Duplication temporary
+          generateValidationIssue('invalidTag', {
+            tag: testDatasets.multipleInvalid[2],
+          }),
           generateConverterIssue(
             'invalidTag',
             testDatasets.multipleInvalid[2],

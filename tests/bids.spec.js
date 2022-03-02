@@ -566,8 +566,13 @@ describe('BIDS datasets', () => {
           ),
         ],
         error_and_good: [
+          // TODO: Duplication temporary
           new BidsHedIssue(
             converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]),
+            bidsSidecars[1][1].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('invalidTag', { tag: 'Confused' }),
             bidsSidecars[1][1].file,
           ),
         ],
