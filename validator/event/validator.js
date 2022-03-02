@@ -136,31 +136,28 @@ class HedValidator {
    * Check for duplicate tags at the top level or within a single group.
    */
   checkForDuplicateTags(tagList) {
-    const duplicateTags = []
+    const duplicateTags = new Set()
+
+    const addIssue = (issues, tag) => {
+      if (!duplicateTags.has(tag)) {
+        issues.push(
+          generateIssue('duplicateTag', {
+            tag: tag.originalTag,
+            bounds: tag.originalBounds,
+          }),
+        )
+        duplicateTags.add(tag)
+      }
+    }
+
     for (const firstTag of tagList) {
       for (const secondTag of tagList) {
-        if (firstTag === secondTag) {
-          continue
-        }
-        if (firstTag.formattedTag === secondTag.formattedTag) {
-          if (!duplicateTags.includes(firstTag)) {
-            this.issues.push(
-              generateIssue('duplicateTag', {
-                tag: firstTag.originalTag,
-                bounds: firstTag.originalBounds,
-              }),
-            )
-            duplicateTags.push(firstTag)
-          }
-          if (!duplicateTags.includes(secondTag)) {
-            this.issues.push(
-              generateIssue('duplicateTag', {
-                tag: secondTag.originalTag,
-                bounds: secondTag.originalBounds,
-              }),
-            )
-            duplicateTags.push(secondTag)
-          }
+        if (
+          firstTag !== secondTag &&
+          firstTag.formattedTag === secondTag.formattedTag
+        ) {
+          addIssue(this.issues, firstTag)
+          addIssue(this.issues, secondTag)
         }
       }
     }
