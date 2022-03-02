@@ -1,7 +1,6 @@
 const utils = require('../../utils')
 const { hedStringIsAGroup } = require('../stringParser')
 const { ParsedHedGroup, ParsedHedTag } = require('../types')
-const { generateIssue } = require('../../utils/issues/issues')
 
 const { HedValidator } = require('./validator')
 
@@ -115,11 +114,9 @@ class Hed3Validator extends HedValidator {
     for (const tag of tagGroup.tags) {
       if (tag instanceof ParsedHedGroup) {
         if (tagGroupValidated && !tagGroupIssueGenerated) {
-          this.issues.push(
-            generateIssue('multipleTagGroupsInDefinition', {
-              definition: definitionName,
-            }),
-          )
+          this.pushIssue('multipleTagGroupsInDefinition', {
+            definition: definitionName,
+          })
           tagGroupIssueGenerated = true
           continue
         }
@@ -130,23 +127,19 @@ class Hed3Validator extends HedValidator {
               return innerTag.isDescendantOf(parentTag)
             })
           ) {
-            this.issues.push(
-              generateIssue('nestedDefinition', {
-                definition: definitionName,
-              }),
-            )
+            this.pushIssue('nestedDefinition', {
+              definition: definitionName,
+            })
           }
         }
       } else if (
         (definitionTagFound && !tag.isDescendantOf(definitionParentTag)) ||
         (defExpandTagFound && !tag.isDescendantOf(defExpandParentTag))
       ) {
-        this.issues.push(
-          generateIssue('illegalDefinitionGroupTag', {
-            tag: tag.originalTag,
-            definition: definitionName,
-          }),
-        )
+        this.pushIssue('illegalDefinitionGroupTag', {
+          tag: tag.originalTag,
+          definition: definitionName,
+        })
       }
     }
   }
@@ -173,7 +166,7 @@ class Hed3Validator extends HedValidator {
       defShortTag,
     )
     if (!this.definitions.has(defName)) {
-      this.issues.push(generateIssue('missingDefinition', { def: defName }))
+      this.pushIssue('missingDefinition', { def: defName })
     }
   }
 
@@ -190,11 +183,9 @@ class Hed3Validator extends HedValidator {
             tagGroupType,
           ))
       ) {
-        this.issues.push(
-          generateIssue('invalidTopLevelTag', {
-            tag: topLevelTag.originalTag,
-          }),
-        )
+        this.pushIssue('invalidTopLevelTag', {
+          tag: topLevelTag.originalTag,
+        })
       }
     }
   }
@@ -217,23 +208,19 @@ class Hed3Validator extends HedValidator {
           if (tagGroup.includes(tag)) {
             tagFound = true
             if (topLevelTagGroupTagsFound[index]) {
-              this.issues.push(
-                generateIssue('multipleTopLevelTagGroupTags', {
-                  tag: tag.originalTag,
-                  otherTag: topLevelTagGroupTagsFound[index],
-                }),
-              )
+              this.pushIssue('multipleTopLevelTagGroupTags', {
+                tag: tag.originalTag,
+                otherTag: topLevelTagGroupTagsFound[index],
+              })
             } else {
               topLevelTagGroupTagsFound[index] = tag.originalTag
             }
           }
         })
         if (!tagFound) {
-          this.issues.push(
-            generateIssue('invalidTopLevelTagGroupTag', {
-              tag: tag.originalTag,
-            }),
-          )
+          this.pushIssue('invalidTopLevelTagGroupTag', {
+            tag: tag.originalTag,
+          })
         }
       }
     }

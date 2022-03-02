@@ -1,5 +1,3 @@
-const zip = require('lodash/zip')
-
 const utils = require('../utils')
 const { generateIssue } = require('../utils/issues/issues')
 

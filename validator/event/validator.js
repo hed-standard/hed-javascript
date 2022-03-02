@@ -138,16 +138,15 @@ class HedValidator {
   checkForDuplicateTags(tagList) {
     const duplicateTags = new Set()
 
-    const addIssue = (issues, tag) => {
-      if (!duplicateTags.has(tag)) {
-        issues.push(
-          generateIssue('duplicateTag', {
-            tag: tag.originalTag,
-            bounds: tag.originalBounds,
-          }),
-        )
-        duplicateTags.add(tag)
+    const addIssue = (tag) => {
+      if (duplicateTags.has(tag)) {
+        return
       }
+      this.pushIssue('duplicateTag', {
+        tag: tag.originalTag,
+        bounds: tag.originalBounds,
+      })
+      duplicateTags.add(tag)
     }
 
     for (const firstTag of tagList) {
@@ -156,8 +155,8 @@ class HedValidator {
           firstTag !== secondTag &&
           firstTag.formattedTag === secondTag.formattedTag
         ) {
-          addIssue(this.issues, firstTag)
-          addIssue(this.issues, secondTag)
+          addIssue(firstTag)
+          addIssue(secondTag)
         }
       }
     }
@@ -181,11 +180,9 @@ class HedValidator {
           if (!foundOne) {
             foundOne = true
           } else {
-            this.issues.push(
-              generateIssue('multipleUniqueTags', {
-                tag: uniqueTagPrefix,
-              }),
-            )
+            this.pushIssue('multipleUniqueTags', {
+              tag: uniqueTagPrefix,
+            })
             break
           }
         }
@@ -203,11 +200,9 @@ class HedValidator {
           return tag.formattedTag.startsWith(requiredTagPrefix)
         })
       ) {
-        this.issues.push(
-          generateIssue('requiredPrefixMissing', {
-            tagPrefix: requiredTagPrefix,
-          }),
-        )
+        this.pushIssue('requiredPrefixMissing', {
+          tagPrefix: requiredTagPrefix,
+        })
       }
     })
   }
@@ -220,7 +215,7 @@ class HedValidator {
   checkIfTagRequiresChild(tag) {
     const invalid = tag.hasAttribute(requireChildType)
     if (invalid) {
-      this.issues.push(generateIssue('childRequired', { tag: tag.originalTag }))
+      this.pushIssue('childRequired', { tag: tag.originalTag })
     }
   }
 
@@ -242,9 +237,7 @@ class HedValidator {
       tagUnitClasses.includes(dateTimeUnitClass)
     ) {
       if (!utils.string.isDateTime(formattedTagUnitValue)) {
-        this.issues.push(
-          generateIssue('invalidValue', { tag: tag.originalTag }),
-        )
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
       }
       return
     } else if (
@@ -252,9 +245,7 @@ class HedValidator {
       tagUnitClasses.includes(clockTimeUnitClass)
     ) {
       if (!utils.string.isClockFaceTime(formattedTagUnitValue)) {
-        this.issues.push(
-          generateIssue('invalidValue', { tag: tag.originalTag }),
-        )
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
       }
       return
     } else if (
@@ -263,9 +254,7 @@ class HedValidator {
       tag.originalTag.includes(':')
     ) {
       if (!utils.string.isClockFaceTime(formattedTagUnitValue)) {
-        this.issues.push(
-          generateIssue('invalidValue', { tag: tag.originalTag }),
-        )
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
       }
       return
     }
@@ -284,21 +273,17 @@ class HedValidator {
     )
     if (!foundUnit && this.options.checkForWarnings) {
       const defaultUnit = tag.defaultUnit
-      this.issues.push(
-        generateIssue('unitClassDefaultUsed', {
-          tag: tag.originalTag,
-          defaultUnit: defaultUnit,
-        }),
-      )
+      this.pushIssue('unitClassDefaultUsed', {
+        tag: tag.originalTag,
+        defaultUnit: defaultUnit,
+      })
     } else if (!validUnit) {
-      this.issues.push(
-        generateIssue('unitClassInvalidUnit', {
-          tag: tag.originalTag,
-          unitClassUnits: tagUnitClassUnits.sort().join(','),
-        }),
-      )
+      this.pushIssue('unitClassInvalidUnit', {
+        tag: tag.originalTag,
+        unitClassUnits: tagUnitClassUnits.sort().join(','),
+      })
     } else if (!validValue) {
-      this.issues.push(generateIssue('invalidValue', { tag: tag.originalTag }))
+      this.pushIssue('invalidValue', { tag: tag.originalTag })
     }
   }
 
@@ -306,7 +291,6 @@ class HedValidator {
    * Check the syntax of tag values.
    *
    * @param {ParsedHedTag} tag A HED tag.
-   * @return {Issue[]} Any issues found.
    */
   checkValueTagSyntax(tag) {
     if (tag.takesValue && !tag.hasUnitClass) {
@@ -319,9 +303,7 @@ class HedValidator {
         this.hedSchemas.isHed3,
       )
       if (!isValidValue) {
-        this.issues.push(
-          generateIssue('invalidValue', { tag: tag.originalTag }),
-        )
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
       }
     }
   }
@@ -343,27 +325,23 @@ class HedValidator {
       if (valueTag.split('#').length !== 2) {
         // To avoid a redundant issue.
       } else {
-        this.issues.push(
-          generateIssue('invalidPlaceholder', {
-            tag: tag.originalTag,
-          }),
-        )
+        this.pushIssue('invalidPlaceholder', {
+          tag: tag.originalTag,
+        })
       }
     } else if (!isExtensionAllowedTag && previousTag.takesValue) {
       // This tag isn't an allowed extension, but the previous tag takes a value.
       // This is likely caused by an extraneous comma.
-      this.issues.push(
-        generateIssue('extraCommaOrInvalid', {
-          tag: tag.originalTag,
-          previousTag: previousTag.originalTag,
-        }),
-      )
+      this.pushIssue('extraCommaOrInvalid', {
+        tag: tag.originalTag,
+        previousTag: previousTag.originalTag,
+      })
     } else if (!isExtensionAllowedTag) {
       // This is not a valid tag.
-      this.issues.push(generateIssue('invalidTag', { tag: tag.originalTag }))
+      this.pushIssue('invalidTag', { tag: tag.originalTag })
     } else if (this.options.checkForWarnings) {
       // This is an allowed extension.
-      this.issues.push(generateIssue('extension', { tag: tag.originalTag }))
+      this.pushIssue('extension', { tag: tag.originalTag })
     }
   }
 
@@ -380,19 +358,15 @@ class HedValidator {
     if (placeholderCount === 1) {
       const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
       if (utils.string.getCharacterCount(valueTag, '#') !== 1) {
-        this.issues.push(
-          generateIssue('invalidPlaceholder', {
-            tag: tag.originalTag,
-          }),
-        )
+        this.pushIssue('invalidPlaceholder', {
+          tag: tag.originalTag,
+        })
       }
     } else if (placeholderCount > 1) {
       // More than one placeholder.
-      this.issues.push(
-        generateIssue('invalidPlaceholder', {
-          tag: tag.originalTag,
-        }),
-      )
+      this.pushIssue('invalidPlaceholder', {
+        tag: tag.originalTag,
+      })
     }
   }
 
@@ -421,17 +395,13 @@ class HedValidator {
           this.options.expectValuePlaceholderString &&
           !standaloneIssueGenerated
         ) {
-          this.issues.push(
-            generateIssue('invalidPlaceholder', {
-              tag: firstStandaloneTag,
-            }),
-          )
+          this.pushIssue('invalidPlaceholder', {
+            tag: firstStandaloneTag,
+          })
         }
-        this.issues.push(
-          generateIssue('invalidPlaceholder', {
-            tag: tag.originalTag,
-          }),
-        )
+        this.pushIssue('invalidPlaceholder', {
+          tag: tag.originalTag,
+        })
         standaloneIssueGenerated = true
       }
     }
@@ -457,11 +427,9 @@ class HedValidator {
             (isDefinitionPlaceholder && definitionPlaceholders === 1)
           )
         ) {
-          this.issues.push(
-            generateIssue('invalidPlaceholderInDefinition', {
-              definition: definitionName,
-            }),
-          )
+          this.pushIssue('invalidPlaceholderInDefinition', {
+            definition: definitionName,
+          })
         }
       } else if (!standaloneIssueGenerated) {
         for (const tag of tagGroup.tagIterator()) {
@@ -481,17 +449,13 @@ class HedValidator {
               this.options.expectValuePlaceholderString &&
               !standaloneIssueGenerated
             ) {
-              this.issues.push(
-                generateIssue('invalidPlaceholder', {
-                  tag: firstStandaloneTag,
-                }),
-              )
+              this.pushIssue('invalidPlaceholder', {
+                tag: firstStandaloneTag,
+              })
             }
-            this.issues.push(
-              generateIssue('invalidPlaceholder', {
-                tag: tag.originalTag,
-              }),
-            )
+            this.pushIssue('invalidPlaceholder', {
+              tag: tag.originalTag,
+            })
             standaloneIssueGenerated = true
           }
         }
@@ -501,12 +465,20 @@ class HedValidator {
       this.options.expectValuePlaceholderString &&
       standalonePlaceholders === 0
     ) {
-      this.issues.push(
-        generateIssue('missingPlaceholder', {
-          string: this.parsedString.hedString,
-        }),
-      )
+      this.pushIssue('missingPlaceholder', {
+        string: this.parsedString.hedString,
+      })
     }
+  }
+
+  /**
+   * Generate a new issue object and push it to the end of the issues array.
+   *
+   * @param {string} internalCode The internal error code.
+   * @param {object<string, (string|number[])>} parameters The error string parameters.
+   */
+  pushIssue(internalCode, parameters) {
+    this.issues.push(generateIssue(internalCode, parameters))
   }
 }
 
