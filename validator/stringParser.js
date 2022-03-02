@@ -48,11 +48,28 @@ const splitHedString = function (
   const invalidCharacters = ['{', '}', '[', ']', '~']
 
   const hedTags = []
-  let issues = []
+  const conversionIssues = []
+  const syntaxIssues = []
   let groupDepth = 0
   let currentTag = ''
   let startingIndex = 0
   let resetStartingIndex = false
+
+  const pushTag = function (i) {
+    if (!utils.string.stringIsEmpty(currentTag)) {
+      const parsedHedTag = new ParsedHedTag(
+        currentTag.trim(),
+        hedString,
+        [groupStartingIndex + startingIndex, groupStartingIndex + i],
+        hedSchemas,
+      )
+      hedTags.push(parsedHedTag)
+      conversionIssues.push(parsedHedTag.conversionIssues)
+    }
+    resetStartingIndex = true
+    currentTag = ''
+  }
+
   // Loop a character at a time.
   for (let i = 0; i < hedString.length; i++) {
     if (resetStartingIndex) {
@@ -71,39 +88,17 @@ const splitHedString = function (
     }
     if (groupDepth === 0 && delimiters.has(character)) {
       // Found the end of a tag, so push the current tag.
-      if (!utils.string.stringIsEmpty(currentTag)) {
-        const parsedHedTag = new ParsedHedTag(
-          currentTag.trim(),
-          hedString,
-          [groupStartingIndex + startingIndex, groupStartingIndex + i],
-          hedSchemas,
-        )
-        hedTags.push(parsedHedTag)
-        issues = issues.concat(parsedHedTag.conversionIssues)
-      }
-      resetStartingIndex = true
-      currentTag = ''
+      pushTag(i)
     } else if (invalidCharacters.includes(character)) {
       // Found an invalid character, so push an issue.
-      issues.push(
+      syntaxIssues.push(
         utils.issues.generateIssue('invalidCharacter', {
           character: character,
           index: groupStartingIndex + i,
           string: hedString,
         }),
       )
-      if (!utils.string.stringIsEmpty(currentTag)) {
-        const parsedHedTag = new ParsedHedTag(
-          currentTag.trim(),
-          hedString,
-          [groupStartingIndex + startingIndex, groupStartingIndex + i],
-          hedSchemas,
-        )
-        hedTags.push(parsedHedTag)
-        issues = issues.concat(parsedHedTag.conversionIssues)
-      }
-      resetStartingIndex = true
-      currentTag = ''
+      pushTag(i)
     } else {
       currentTag += character
       if (utils.string.stringIsEmpty(currentTag)) {
@@ -112,20 +107,13 @@ const splitHedString = function (
       }
     }
   }
-  if (!utils.string.stringIsEmpty(currentTag)) {
-    // Push last HED tag.
-    const parsedHedTag = new ParsedHedTag(
-      currentTag.trim(),
-      hedString,
-      [
-        groupStartingIndex + startingIndex,
-        groupStartingIndex + hedString.length,
-      ],
-      hedSchemas,
-    )
-    hedTags.push(parsedHedTag)
-    issues = issues.concat(parsedHedTag.conversionIssues)
+  pushTag(hedString.length)
+
+  const issues = {
+    syntax: syntaxIssues,
+    conversion: conversionIssues.flat(),
   }
+
   return [hedTags, issues]
 }
 
@@ -144,7 +132,7 @@ const findTagGroups = function (
   parsedString,
   isTopLevel,
 ) {
-  let issues = []
+  const issues = []
   const copiedGroupTagsList = groupTagsList.slice()
   copiedGroupTagsList.forEach((tagOrGroup, index) => {
     if (hedStringIsAGroup(tagOrGroup.originalTag)) {
@@ -176,7 +164,7 @@ const findTagGroups = function (
           }),
         )
       }
-      issues = issues.concat(nestedGroupIssues, nestedIssues)
+      issues.push(nestedGroupIssues, nestedIssues)
     } else if (!parsedString.tags.includes(tagOrGroup)) {
       parsedString.tags.push(tagOrGroup)
     }
@@ -184,7 +172,8 @@ const findTagGroups = function (
   parsedString.definitionGroups = parsedString.tagGroups.filter((group) => {
     return group.isDefinitionGroup
   })
-  return issues
+
+  return issues.flat()
 }
 
 /**
@@ -340,15 +329,19 @@ const findDelimiterIssuesInHedString = function (hedString) {
  * Validate the full unparsed HED string.
  *
  * @param {string} hedString The unparsed HED string.
- * @return {Issue[][]} String substitution issues and other issues.
+ * @return {object<string, Issue[]>} String substitution issues and other issues.
  */
 const validateFullUnparsedHedString = function (hedString) {
   const [fixedHedString, substitutionIssues] = substituteCharacters(hedString)
-  const issues = [].concat(
+  const delimiterIssues = [].concat(
     countTagGroupParentheses(fixedHedString),
     findDelimiterIssuesInHedString(fixedHedString),
   )
-  return [substitutionIssues, issues]
+
+  return {
+    substitution: substitutionIssues,
+    delimiter: delimiterIssues,
+  }
 }
 
 /**
@@ -356,14 +349,13 @@ const validateFullUnparsedHedString = function (hedString) {
  *
  * @param {string} hedString The full HED string to parse.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @returns {[ParsedHedString|null, Issue[], Issue[]]} The parsed HED tag data and lists of unparsed full string and other parsing issues.
+ * @returns {[ParsedHedString|null, object<string, Issue[]>]} The parsed HED tag data and an object containing lists of parsing issues.
  */
 const parseHedString = function (hedString, hedSchemas) {
-  const [substitutionIssues, fullHedStringIssues] =
-    validateFullUnparsedHedString(hedString)
-  const fullStringIssues = fullHedStringIssues.concat(substitutionIssues)
-  if (fullHedStringIssues.length > 0) {
-    return [null, fullStringIssues, []]
+  const fullStringIssues = validateFullUnparsedHedString(hedString)
+  if (fullStringIssues.delimiter.length > 0) {
+    fullStringIssues.syntax = []
+    return [null, fullStringIssues]
   }
   const parsedString = new ParsedHedString(hedString)
   const [hedTagList, splitIssues] = splitHedString(hedString, hedSchemas)
@@ -378,8 +370,16 @@ const parseHedString = function (hedString, hedSchemas) {
     parsedString,
     true,
   )
-  const parsingIssues = [].concat(splitIssues, tagGroupIssues)
-  return [parsedString, substitutionIssues, parsingIssues]
+  const parsingIssues = Object.assign(fullStringIssues, splitIssues)
+  for (const tagGroup of tagGroupIssues) {
+    for (const key of Object.keys(tagGroup)) {
+      parsingIssues[key] =
+        parsingIssues[key] !== undefined
+          ? parsingIssues[key].concat(tagGroup[key])
+          : tagGroup[key]
+    }
+  }
+  return [parsedString, parsingIssues]
 }
 
 /**
@@ -387,27 +387,26 @@ const parseHedString = function (hedString, hedSchemas) {
  *
  * @param {string[]} hedStrings A set of HED strings.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @return {[ParsedHedString[], Issue[], Issue[]]} The parsed HED strings and any issues found.
+ * @return {[ParsedHedString[], object<string, Issue[]>]} The parsed HED strings and any issues found.
  */
 const parseHedStrings = function (hedStrings, hedSchemas) {
-  const parsedHedStringsAndIssues = hedStrings.map((hedString) => {
-    return parseHedString(hedString, hedSchemas)
-  })
-  const invalidHedStringIssues = parsedHedStringsAndIssues
-    .filter((list) => {
-      return list[0] === null
+  return hedStrings
+    .map((hedString) => {
+      return parseHedString(hedString, hedSchemas)
     })
-    .map((list) => {
-      return list[1]
-    })
-  const actuallyParsedHedStringsAndIssues = parsedHedStringsAndIssues
-    .filter((list) => {
-      return list[0] !== null
-    })
-    .map((list) => {
-      return [list[0], [].concat(list[1], list[2])]
-    })
-  return [...zip(...actuallyParsedHedStringsAndIssues), invalidHedStringIssues]
+    .reduce(
+      ([previousStrings, previousIssues], [currentString, currentIssues]) => {
+        previousStrings.push(currentString)
+        for (const key of Object.keys(currentIssues)) {
+          previousIssues[key] =
+            previousIssues[key] !== undefined
+              ? previousIssues[key].concat(currentIssues[key])
+              : currentIssues[key]
+        }
+        return [previousStrings, previousIssues]
+      },
+      [[], {}],
+    )
 }
 
 module.exports = {

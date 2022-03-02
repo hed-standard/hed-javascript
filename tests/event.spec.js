@@ -31,7 +31,7 @@ describe('HED string and event validation', () => {
     testOptions = {},
   ) {
     for (const [testStringKey, testString] of Object.entries(testStrings)) {
-      const [parsedTestString, fullStringIssues, parseIssues] = parseHedString(
+      const [parsedTestString, parsingIssues] = parseHedString(
         testString,
         hedSchemas,
       )
@@ -41,7 +41,10 @@ describe('HED string and event validation', () => {
         testOptions,
       )
       testFunction(validator)
-      const issues = [].concat(fullStringIssues, parseIssues, validator.issues)
+      const issues = [].concat(
+        ...Object.values(parsingIssues),
+        validator.issues,
+      )
       assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
     }
   }
@@ -1037,8 +1040,10 @@ describe('HED string and event validation', () => {
       testOptions = {},
     ) {
       for (const [testStringKey, testString] of Object.entries(testStrings)) {
-        const [parsedTestString, fullStringIssues, parseIssues] =
-          parseHedString(testString, hedSchemas)
+        const [parsedTestString, parsingIssues] = parseHedString(
+          testString,
+          hedSchemas,
+        )
         const validator = new Hed3Validator(
           parsedTestString,
           hedSchemas,
@@ -1047,8 +1052,7 @@ describe('HED string and event validation', () => {
         )
         testFunction(validator)
         const issues = [].concat(
-          fullStringIssues,
-          parseIssues,
+          ...Object.values(parsingIssues),
           validator.issues,
         )
         assert.sameDeepMembers(
