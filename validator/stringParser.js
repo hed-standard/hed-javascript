@@ -37,7 +37,7 @@ const removeGroupParentheses = function (tagGroup) {
  * @param {string} hedString The full HED string.
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @param {int} groupStartingIndex The start index of the group in the full HED string.
- * @returns {[ParsedHedTag[], Array]} An array of HED tags (top-level relative to the passed string) and any issues found.
+ * @returns {[ParsedHedTag[], object<string, Issue[]>]} An array of HED tags (top-level relative to the passed string) and any issues found.
  */
 const splitHedString = function (
   hedString,
@@ -124,7 +124,7 @@ const splitHedString = function (
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @param {ParsedHedString} parsedString The object to store parsed output in.
  * @param {boolean} isTopLevel Whether these tag groups are at the top level.
- * @return {Issue[]} The array of issues.
+ * @return {object<string, Issue[]>[]} The array of issues.
  */
 const findTagGroups = function (
   groupTagsList,

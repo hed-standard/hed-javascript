@@ -54,7 +54,7 @@ describe('HED string parsing', () => {
         testStrings[testStringKey],
       )
       assert.sameDeepMembers(
-        testIssues,
+        Object.values(testIssues).flat(),
         expectedIssues[testStringKey],
         testStrings[testStringKey],
       )
@@ -192,7 +192,7 @@ describe('HED string parsing', () => {
       const hedString =
         'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
       const [result, issues] = splitHedString(hedString, nullSchema)
-      assert.deepStrictEqual(issues, [])
+      assert.deepStrictEqual(Object.values(issues).flat(), [])
       assert.deepStrictEqual(result, [
         new ParsedHedTag(
           'Event/Category/Experimental stimulus',
@@ -219,7 +219,7 @@ describe('HED string parsing', () => {
       const hedString =
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
       const [result, issues] = splitHedString(hedString, nullSchema)
-      assert.deepStrictEqual(issues, [])
+      assert.deepStrictEqual(Object.values(issues).flat(), [])
       assert.deepStrictEqual(result, [
         new ParsedHedTag(
           '/Action/Reach/To touch',
@@ -261,8 +261,8 @@ describe('HED string parsing', () => {
         normalString,
         nullSchema,
       )
-      assert.deepStrictEqual(doubleQuoteIssues, [])
-      assert.deepStrictEqual(normalIssues, [])
+      assert.deepStrictEqual(Object.values(doubleQuoteIssues).flat(), [])
+      assert.deepStrictEqual(Object.values(normalIssues).flat(), [])
       const noBoundsMap = (parsedTag) => {
         return {
           canonicalTag: parsedTag.canonicalTag,
@@ -377,7 +377,7 @@ describe('HED string parsing', () => {
       const hedString =
         '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
       const [parsedString, issues] = parseHedString(hedString, nullSchema)
-      assert.deepStrictEqual(issues, [])
+      assert.deepStrictEqual(Object.values(issues).flat(), [])
       assert.sameDeepMembers(parsedString.tags.map(originalMap), [
         '/Action/Reach/To touch',
         '/Attribute/Object side/Left',
@@ -409,8 +409,8 @@ describe('HED string parsing', () => {
       const formattedMap = (parsedTag) => {
         return parsedTag.formattedTag
       }
-      assert.deepStrictEqual(issues, [])
-      assert.deepStrictEqual(formattedIssues, [])
+      assert.deepStrictEqual(Object.values(issues).flat(), [])
+      assert.deepStrictEqual(Object.values(formattedIssues).flat(), [])
       assert.deepStrictEqual(
         parsedString.tags.map(formattedMap),
         parsedFormattedString.tags.map(originalMap),
