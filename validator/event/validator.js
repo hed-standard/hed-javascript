@@ -174,18 +174,13 @@ class HedValidator {
    */
   checkForMultipleUniqueTags(tagList) {
     this._checkForTagAttribute(uniqueType, (uniqueTagPrefix) => {
-      let foundOne = false
-      for (const tag of tagList) {
-        if (tag.formattedTag.startsWith(uniqueTagPrefix)) {
-          if (!foundOne) {
-            foundOne = true
-          } else {
-            this.pushIssue('multipleUniqueTags', {
-              tag: uniqueTagPrefix,
-            })
-            break
-          }
-        }
+      if (
+        tagList.filter((tag) => tag.formattedTag.startsWith(uniqueTagPrefix))
+          .length > 1
+      ) {
+        this.pushIssue('multipleUniqueTags', {
+          tag: uniqueTagPrefix,
+        })
       }
     })
   }
@@ -196,9 +191,9 @@ class HedValidator {
   checkForRequiredTags() {
     this._checkForTagAttribute(requiredType, (requiredTagPrefix) => {
       if (
-        !this.parsedString.topLevelTags.some((tag) => {
-          return tag.formattedTag.startsWith(requiredTagPrefix)
-        })
+        !this.parsedString.topLevelTags.some((tag) =>
+          tag.formattedTag.startsWith(requiredTagPrefix),
+        )
       ) {
         this.pushIssue('requiredPrefixMissing', {
           tagPrefix: requiredTagPrefix,
