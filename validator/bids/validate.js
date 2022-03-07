@@ -2,8 +2,8 @@ const { validateHedDataset } = require('../dataset')
 const { validateHedString } = require('../event')
 const { buildSchema } = require('../schema')
 const { sidecarValueHasHed } = require('../../utils/bids')
-const { generateIssue } = require('../../utils/issues/issues')
-const { fallbackFilePath } = require('../../utils/schema')
+const { generateIssue } = require('../../common/issues/issues')
+const { fallbackFilePath } = require('../../common/schema')
 const { BidsDataset, BidsHedIssue, BidsIssue } = require('./types')
 
 function generateInternalErrorBidsIssue(error) {

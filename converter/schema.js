@@ -3,7 +3,7 @@
 // Temporary
 const xpath = require('../utils/xpath')
 
-const schemaUtils = require('../utils/schema')
+const schemaUtils = require('../common/schema')
 const { asArray } = require('../utils/array')
 
 const types = require('./types')

@@ -1,36 +1,13 @@
 const differenceWith = require('lodash/differenceWith')
 
+const { Memoizer } = require('../../utils/types')
+
 const {
   getTagSlashIndices,
   replaceTagNameWithPound,
   getTagName,
-} = require('../utils/hed')
-const { convertPartialHedStringToLong } = require('../converter/converter')
-
-/**
- * Mix-in/superclass for property memoization until we can get away with private fields.
- */
-class Memoizer {
-  constructor() {
-    this._memoizedProperties = new Map()
-  }
-
-  /**
-   * Memoize the property.
-   * @param {String} propertyName The property name
-   * @param {function() : *} valueComputer A function to compute the value.
-   * @return {*} The computed value.
-   * @protected
-   */
-  _memoize(propertyName, valueComputer) {
-    if (this._memoizedProperties.has(propertyName)) {
-      return this._memoizedProperties.get(propertyName)
-    }
-    const value = valueComputer()
-    this._memoizedProperties.set(propertyName, value)
-    return value
-  }
-}
+} = require('../../utils/hed')
+const { convertPartialHedStringToLong } = require('../../converter/converter')
 
 /**
  * A parsed HED substring.

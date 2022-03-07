@@ -3,12 +3,12 @@ const semver = require('semver')
 // TODO: Switch require once upstream bugs are fixed.
 // const xpath = require('xml2js-xpath')
 // Temporary
-const xpath = require('../utils/xpath')
+const xpath = require('../../utils/xpath')
 
-const arrayUtils = require('../utils/array')
-const schemaUtils = require('../utils/schema')
+const arrayUtils = require('../../utils/array')
+const schemaUtils = require('../../common/schema')
 
-const buildMappingObject = require('../converter/schema').buildMappingObject
+const buildMappingObject = require('../../converter/schema').buildMappingObject
 
 const defaultUnitForTagAttribute = 'default'
 const defaultUnitForUnitClassAttribute = 'defaultUnits'
@@ -41,9 +41,7 @@ const schemaAttributeDefinitionElement = 'schemaAttributeDefinition'
 const unitClassDefinitionElement = 'unitClassDefinition'
 const unitModifierDefinitionElement = 'unitModifierDefinition'
 
-const lc = (str) => {
-  return str.toLowerCase()
-}
+const lc = (str) => str.toLowerCase()
 
 const V2SchemaDictionaries = {
   populateDictionaries: function () {
@@ -59,9 +57,7 @@ const V2SchemaDictionaries = {
       if (dictionaryKey === extensionAllowedAttribute) {
         const tagDictionary = this.stringListToLowercaseTrueDictionary(tags)
         const childTagElements = arrayUtils.flattenDeep(
-          tagElements.map((tagElement) => {
-            return this.getAllChildTags(tagElement)
-          }),
+          tagElements.map((tagElement) => this.getAllChildTags(tagElement)),
         )
         const childTags = childTagElements.map((tagElement) => {
           return this.getTagPathFromTagElement(tagElement)
@@ -116,15 +112,12 @@ const V2SchemaDictionaries = {
           unitClassUnitsElement,
         )
         const units = elementUnits.split(',')
-        this.unitClasses[unitClassName] = units.map((unit) => {
-          return unit.toLowerCase()
-        })
+        this.unitClasses[unitClassName] = units.map((unit) =>
+          unit.toLowerCase(),
+        )
         continue
       }
-      const unitNames = units.map((element) => {
-        return element._
-      })
-      this.unitClasses[unitClassName] = unitNames
+      this.unitClasses[unitClassName] = units.map((element) => element._)
       for (const unit of units) {
         if (unit.$) {
           const unitName = unit._
@@ -293,9 +286,9 @@ const V2SchemaDictionaries = {
       parentElement,
     )
     const childTags = arrayUtils.flattenDeep(
-      tagElementChildren.map((child) => {
-        return this.getAllChildTags(child, elementName, excludeTakeValueTags)
-      }),
+      tagElementChildren.map((child) =>
+        this.getAllChildTags(child, elementName, excludeTakeValueTags),
+      ),
     )
     childTags.push(parentElement)
     return childTags
@@ -580,9 +573,9 @@ const V3SchemaDictionaries = {
       parentElement,
     )
     const childTags = arrayUtils.flattenDeep(
-      tagElementChildren.map((child) => {
-        return this.getAllChildTags(child, elementName, excludeTakeValueTags)
-      }),
+      tagElementChildren.map((child) =>
+        this.getAllChildTags(child, elementName, excludeTakeValueTags),
+      ),
     )
     childTags.push(parentElement)
     return childTags

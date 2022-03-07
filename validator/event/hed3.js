@@ -1,6 +1,5 @@
 const utils = require('../../utils')
-const { hedStringIsAGroup } = require('../stringParser')
-const { ParsedHedGroup, ParsedHedTag } = require('../types')
+const { ParsedHedGroup, ParsedHedTag } = require('../types/parsedHed')
 
 const { HedValidator } = require('./validator')
 
@@ -167,7 +166,7 @@ class Hed3Validator extends HedValidator {
   checkForInvalidTopLevelTags() {
     for (const topLevelTag of this.parsedString.topLevelTags) {
       if (
-        !hedStringIsAGroup(topLevelTag.formattedTag) &&
+        !utils.HED.hedStringIsAGroup(topLevelTag.formattedTag) &&
         (topLevelTag.hasAttribute(tagGroupType) ||
           this.hedSchemas.baseSchema.attributes.tagHasAttribute(
             utils.HED.getParentTag(topLevelTag.formattedTag),

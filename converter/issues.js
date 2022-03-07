@@ -1,4 +1,4 @@
-const issuesUtil = require('../utils/issues/issues')
+const issuesUtil = require('../common/issues/issues')
 
 /**
  * Generate an issue object for tag conversion.

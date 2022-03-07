@@ -1,7 +1,7 @@
 const { parseHedString } = require('../stringParser')
-const { ParsedHedString } = require('../types')
+const { ParsedHedString } = require('../types/parsedHed')
 const { buildSchemaAttributesObject } = require('../schema')
-const { Schemas } = require('../../utils/schema')
+const { Schemas } = require('../../common/schema')
 
 const { HedValidator, Hed2Validator } = require('./validator')
 const { Hed3Validator } = require('./hed3')

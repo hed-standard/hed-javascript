@@ -1,4 +1,4 @@
-const { stringTemplate } = require('../string')
+const { stringTemplate } = require('../../utils/string')
 
 const issueData = {
   parentheses: {

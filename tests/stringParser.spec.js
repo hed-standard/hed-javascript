@@ -1,14 +1,9 @@
 const assert = require('chai').assert
-const { Schemas } = require('../utils/schema')
+const { Schemas } = require('../common/schema')
 const { buildSchema } = require('../converter/schema')
-const {
-  hedStringIsAGroup,
-  parseHedString,
-  removeGroupParentheses,
-  splitHedString,
-} = require('../validator/stringParser')
-const { ParsedHedTag } = require('../validator/types')
-const generateIssue = require('../utils/issues/issues').generateIssue
+const { parseHedString, splitHedString } = require('../validator/stringParser')
+const { ParsedHedTag } = require('../validator/types/parsedHed')
+const generateIssue = require('../common/issues/issues').generateIssue
 
 describe('HED string parsing', () => {
   const nullSchema = new Schemas(null)
@@ -146,37 +141,6 @@ describe('HED string parsing', () => {
           return splitHedString(string, nullSchema)
         },
       )
-    })
-  })
-
-  describe('HED tag groups', () => {
-    it('must be surrounded by parentheses', () => {
-      const testStrings = {
-        group:
-          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
-        nonGroup:
-          '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm',
-      }
-      const expectedResults = {
-        group: true,
-        nonGroup: false,
-      }
-      validatorWithoutIssues(testStrings, expectedResults, (string) => {
-        return hedStringIsAGroup(string)
-      })
-    })
-
-    it('can have its parentheses removed', () => {
-      const testStrings = {
-        group:
-          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
-      }
-      const expectedResults = {
-        group: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm',
-      }
-      validatorWithoutIssues(testStrings, expectedResults, (string) => {
-        return removeGroupParentheses(string)
-      })
     })
   })
 

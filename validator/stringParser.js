@@ -1,33 +1,16 @@
 const utils = require('../utils')
-const { generateIssue } = require('../utils/issues/issues')
+const { hedStringIsAGroup, removeGroupParentheses } = require('../utils/hed')
+const { generateIssue } = require('../common/issues/issues')
 
-const { ParsedHedTag, ParsedHedGroup, ParsedHedString } = require('./types')
+const {
+  ParsedHedTag,
+  ParsedHedGroup,
+  ParsedHedString,
+} = require('./types/parsedHed')
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
 const delimiters = new Set([','])
-
-/**
- * Determine whether a HED string is a group (surrounded by parentheses).
- *
- * @param {string} hedString A HED string.
- */
-const hedStringIsAGroup = function (hedString) {
-  const trimmedHedString = hedString.trim()
-  return (
-    trimmedHedString.startsWith(openingGroupCharacter) &&
-    trimmedHedString.endsWith(closingGroupCharacter)
-  )
-}
-
-/**
- * Return a copy of a group tag with the surrounding parentheses removed.
- *
- * @param {string} tagGroup A tag group string.
- */
-const removeGroupParentheses = function (tagGroup) {
-  return tagGroup.slice(1, -1)
-}
 
 /**
  * Split a full HED string into tags.
@@ -90,7 +73,7 @@ const splitHedString = function (
     } else if (invalidCharacters.includes(character)) {
       // Found an invalid character, so push an issue.
       syntaxIssues.push(
-        utils.issues.generateIssue('invalidCharacter', {
+        generateIssue('invalidCharacter', {
           character: character,
           index: groupStartingIndex + i,
           string: hedString,
@@ -411,8 +394,6 @@ module.exports = {
   ParsedHedTag: ParsedHedTag,
   ParsedHedGroup: ParsedHedGroup,
   ParsedHedString: ParsedHedString,
-  hedStringIsAGroup: hedStringIsAGroup,
-  removeGroupParentheses: removeGroupParentheses,
   splitHedString: splitHedString,
   parseHedString: parseHedString,
   parseHedStrings: parseHedStrings,

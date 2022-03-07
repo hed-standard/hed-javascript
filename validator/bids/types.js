@@ -1,6 +1,6 @@
 const { ParsedHedString, ParsedHedGroup } = require('../stringParser')
 const { sidecarValueHasHed } = require('../../utils/bids')
-const { Issue } = require('../../utils/issues/issues')
+const { Issue } = require('../../common/issues/issues')
 
 class BidsData {
   constructor() {

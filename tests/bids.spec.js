@@ -1,6 +1,6 @@
 const assert = require('chai').assert
 const converterGenerateIssue = require('../converter/issues')
-const { generateIssue } = require('../utils/issues/issues')
+const { generateIssue } = require('../common/issues/issues')
 const {
   BidsDataset,
   BidsEventFile,

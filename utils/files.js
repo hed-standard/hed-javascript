@@ -7,12 +7,10 @@ const request = require('then-request')
  * @param {string} fileName The file path.
  * @return {Promise<unknown>} A promise with the file contents.
  */
-function readFile(fileName) {
-  return new Promise(resolve => {
-    fs.readFile(fileName, 'utf8', function(err, data) {
-      process.nextTick(function() {
-        return resolve(data)
-      })
+const readFile = function (fileName) {
+  return new Promise((resolve) => {
+    fs.readFile(fileName, 'utf8', (err, data) => {
+      process.nextTick(() => resolve(data))
     })
   })
 }
@@ -21,12 +19,10 @@ function readFile(fileName) {
  * Read a remote file using HTTPS.
  *
  * @param {string} url The remote URL.
- * @return {Promise<unknown>} A promise with the file contents.
+ * @return {Promise<string>} A promise with the file contents.
  */
-function readHTTPSFile(url) {
-  return request('GET', url).then(res => {
-    return res.getBody()
-  })
+const readHTTPSFile = function (url) {
+  return request('GET', url).then((res) => res.getBody())
 }
 
 module.exports = {

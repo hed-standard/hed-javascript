@@ -77,6 +77,35 @@ describe('HED tag string utility functions', () => {
       })
     })
 
+    it('must be surrounded by parentheses', () => {
+      const testStrings = {
+        group:
+          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
+        nonGroup:
+          '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm',
+      }
+      const expectedResults = {
+        group: true,
+        nonGroup: false,
+      }
+      validator(testStrings, expectedResults, (string) => {
+        return hed.hedStringIsAGroup(string)
+      })
+    })
+
+    it('can have its parentheses removed', () => {
+      const testStrings = {
+        group:
+          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
+      }
+      const expectedResults = {
+        group: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm',
+      }
+      validator(testStrings, expectedResults, (string) => {
+        return hed.removeGroupParentheses(string)
+      })
+    })
+
     it('should properly determine valid values', () => {
       const testStrings = {
         integer: '4',

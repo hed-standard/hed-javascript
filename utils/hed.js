@@ -66,6 +66,31 @@ const getParentTag = function (tag, character = '/') {
   }
 }
 
+const openingGroupCharacter = '('
+const closingGroupCharacter = ')'
+
+/**
+ * Determine whether a HED string is a group (surrounded by parentheses).
+ *
+ * @param {string} hedString A HED string.
+ */
+const hedStringIsAGroup = function (hedString) {
+  const trimmedHedString = hedString.trim()
+  return (
+    trimmedHedString.startsWith(openingGroupCharacter) &&
+    trimmedHedString.endsWith(closingGroupCharacter)
+  )
+}
+
+/**
+ * Return a copy of a group tag with the surrounding parentheses removed.
+ *
+ * @param {string} tagGroup A tag group string.
+ */
+const removeGroupParentheses = function (tagGroup) {
+  return tagGroup.slice(1, -1)
+}
+
 const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; :]+$/
 const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; ]+$/
 /**
@@ -226,6 +251,8 @@ module.exports = {
   getTagSlashIndices: getTagSlashIndices,
   getTagName: getTagName,
   getParentTag: getParentTag,
+  hedStringIsAGroup: hedStringIsAGroup,
+  removeGroupParentheses: removeGroupParentheses,
   validateValue: validateValue,
   validateUnits: validateUnits,
   getGenerationForSchemaVersion: getGenerationForSchemaVersion,

@@ -1,6 +1,6 @@
 const assert = require('chai').assert
 const schema = require('../validator/schema')
-const schemaUtils = require('../utils/schema')
+const schemaUtils = require('../common/schema')
 
 const fallbackHedSchemaVersion = '8.0.0'
 

@@ -1,7 +1,7 @@
 const utils = require('../../utils')
-const { ParsedHedString, ParsedHedTag } = require('../types')
-const { generateIssue } = require('../../utils/issues/issues')
-const { Schemas } = require('../../utils/schema')
+const { ParsedHedString, ParsedHedTag } = require('../types/parsedHed')
+const { generateIssue } = require('../../common/issues/issues')
+const { Schemas } = require('../../common/schema')
 
 const uniqueType = 'unique'
 const requiredType = 'required'

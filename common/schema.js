@@ -1,9 +1,9 @@
 const isEmpty = require('lodash/isEmpty')
 const xml2js = require('xml2js')
 
-const files = require('./files')
-const { getGenerationForSchemaVersion } = require('./hed')
-const { stringTemplate } = require('./string')
+const files = require('../utils/files')
+const { getGenerationForSchemaVersion } = require('../utils/hed')
+const { stringTemplate } = require('../utils/string')
 
 const fallbackFilePath = 'data/HED8.0.0.xml'
 
