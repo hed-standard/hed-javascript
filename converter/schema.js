@@ -3,8 +3,9 @@
 // Temporary
 const xpath = require('../utils/xpath')
 
-const schemaUtils = require('../utils/schema')
+const schemaUtils = require('../common/schema')
 const { asArray } = require('../utils/array')
+const { setParent } = require('../utils/xml2js')
 
 const types = require('./types')
 const TagEntry = types.TagEntry
@@ -20,7 +21,7 @@ const buildMappingObject = function (xmlData) {
   const nodeData = {}
   let hasNoDuplicates = true
   const rootElement = xmlData.HED
-  schemaUtils.setParent(rootElement, null)
+  setParent(rootElement, null)
   const tagElements = xpath.find(rootElement, '//node')
   for (const tagElement of tagElements) {
     if (getElementTagValue(tagElement) === '#') {

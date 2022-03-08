@@ -4,7 +4,7 @@
  * @param {object} sidecarValue A BIDS sidecar value.
  * @return {boolean} Whether the sidecar value has HED data.
  */
-function sidecarValueHasHed(sidecarValue) {
+const sidecarValueHasHed = function (sidecarValue) {
   return (
     sidecarValue !== null &&
     typeof sidecarValue === 'object' &&

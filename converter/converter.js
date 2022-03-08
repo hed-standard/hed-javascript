@@ -1,6 +1,7 @@
 const types = require('./types')
 const TagEntry = types.TagEntry
 
+const { asArray } = require('../utils/array')
 const generateIssue = require('./issues')
 const splitHedString = require('./splitHedString')
 
@@ -74,12 +75,7 @@ const convertTagToLong = function (schemas, hedTag, hedString, offset) {
         continue
       }
 
-      let tagEntries
-      if (Array.isArray(mapping.mappingData[tag])) {
-        tagEntries = mapping.mappingData[tag]
-      } else {
-        tagEntries = [mapping.mappingData[tag]]
-      }
+      const tagEntries = asArray(mapping.mappingData[tag])
       let tagFound = false
       for (const tagEntry of tagEntries) {
         const tagString = tagEntry.longFormattedTag

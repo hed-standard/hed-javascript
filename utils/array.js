@@ -34,8 +34,9 @@ const flattenDeep = function (array) {
 /**
  * Return a scalar as a singleton array and an array as-is.
  *
- * @param {T|Array<T>} array An array or scalar.
- * @return {Array<T>} The original array or a singleton array of the scalar.
+ * @template T
+ * @param {T|T[]} array An array or scalar.
+ * @return {T[]} The original array or a singleton array of the scalar.
  */
 const asArray = function (array) {
   return Array.isArray(array) ? array : [array]

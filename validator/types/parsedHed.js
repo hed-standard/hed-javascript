@@ -1,36 +1,13 @@
 const differenceWith = require('lodash/differenceWith')
 
+const { Memoizer } = require('../../utils/types')
+
 const {
   getTagSlashIndices,
   replaceTagNameWithPound,
   getTagName,
-} = require('../utils/hed')
-const { convertPartialHedStringToLong } = require('../converter/converter')
-
-/**
- * Mix-in/superclass for property memoization until we can get away with private fields.
- */
-class Memoizer {
-  constructor() {
-    this._memoizedProperties = new Map()
-  }
-
-  /**
-   * Memoize the property.
-   * @param {String} propertyName The property name
-   * @param {function() : *} valueComputer A function to compute the value.
-   * @return {*} The computed value.
-   * @protected
-   */
-  _memoize(propertyName, valueComputer) {
-    if (this._memoizedProperties.has(propertyName)) {
-      return this._memoizedProperties.get(propertyName)
-    }
-    const value = valueComputer()
-    this._memoizedProperties.set(propertyName, value)
-    return value
-  }
-}
+} = require('../../utils/hed')
+const { convertPartialHedStringToLong } = require('../../converter/converter')
 
 /**
  * A parsed HED substring.
@@ -428,7 +405,7 @@ class ParsedHedGroup extends ParsedHedSubstring {
    * @return {string|null}
    */
   get definitionName() {
-    return this._memoize('', () => {
+    return this._memoize('definitionName', () => {
       if (!this.isDefinitionGroup) {
         return null
       }
@@ -463,7 +440,7 @@ class ParsedHedGroup extends ParsedHedSubstring {
    * @return {ParsedHedGroup|null}
    */
   get definitionGroup() {
-    return this._memoize('', () => {
+    return this._memoize('definitionGroup', () => {
       if (!this.isDefinitionGroup) {
         return null
       }
