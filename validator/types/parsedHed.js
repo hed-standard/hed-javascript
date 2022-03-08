@@ -405,7 +405,7 @@ class ParsedHedGroup extends ParsedHedSubstring {
    * @return {string|null}
    */
   get definitionName() {
-    return this._memoize('', () => {
+    return this._memoize('definitionName', () => {
       if (!this.isDefinitionGroup) {
         return null
       }
@@ -440,7 +440,7 @@ class ParsedHedGroup extends ParsedHedSubstring {
    * @return {ParsedHedGroup|null}
    */
   get definitionGroup() {
-    return this._memoize('', () => {
+    return this._memoize('definitionGroup', () => {
       if (!this.isDefinitionGroup) {
         return null
       }
