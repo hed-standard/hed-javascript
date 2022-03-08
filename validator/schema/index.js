@@ -1,14 +1,15 @@
 const semver = require('semver')
 
+const schemaUtils = require('../../common/schema')
+const arrayUtils = require('../../utils/array')
+
 // TODO: Switch require once upstream bugs are fixed.
 // const xpath = require('xml2js-xpath')
 // Temporary
 const xpath = require('../../utils/xpath')
 
-const arrayUtils = require('../../utils/array')
-const schemaUtils = require('../../common/schema')
-
-const buildMappingObject = require('../../converter/schema').buildMappingObject
+const { buildMappingObject } = require('../../converter/schema')
+const { setParent } = require('../../utils/xml2js')
 
 const defaultUnitForTagAttribute = 'default'
 const defaultUnitForUnitClassAttribute = 'defaultUnits'
@@ -668,7 +669,7 @@ class SchemaAttributes {
  */
 const buildSchemaAttributesObject = function (xmlData) {
   const rootElement = xmlData.HED
-  schemaUtils.setParent(rootElement, null)
+  setParent(rootElement, null)
   let schemaDictionaries
   if (semver.gte(rootElement.$.version, '8.0.0-alpha.3')) {
     schemaDictionaries = Object.create(V3SchemaDictionaries)

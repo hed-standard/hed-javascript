@@ -3,7 +3,7 @@ const { Schemas } = require('../common/schema')
 const { buildSchema } = require('../converter/schema')
 const { parseHedString, splitHedString } = require('../validator/stringParser')
 const { ParsedHedTag } = require('../validator/types/parsedHed')
-const generateIssue = require('../common/issues/issues').generateIssue
+const { generateIssue } = require('../common/issues/issues')
 
 describe('HED string parsing', () => {
   const nullSchema = new Schemas(null)

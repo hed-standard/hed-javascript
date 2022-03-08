@@ -7,7 +7,7 @@ const {
   Hed2Validator,
   Hed3Validator,
 } = require('../validator/event')
-const generateIssue = require('../common/issues/issues').generateIssue
+const { generateIssue } = require('../common/issues/issues')
 const converterGenerateIssue = require('../converter/issues')
 const { Schemas } = require('../common/schema')
 

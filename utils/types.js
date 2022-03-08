@@ -18,6 +18,9 @@ class Memoizer {
    * @protected
    */
   _memoize(propertyName, valueComputer) {
+    if (!propertyName) {
+      throw new Error('Invalid property name in Memoizer subclass.')
+    }
     if (this._memoizedProperties.has(propertyName)) {
       return this._memoizedProperties.get(propertyName)
     }

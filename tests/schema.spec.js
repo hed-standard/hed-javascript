@@ -1,13 +1,12 @@
 const assert = require('chai').assert
 const schema = require('../validator/schema')
-const schemaUtils = require('../common/schema')
-
-const fallbackHedSchemaVersion = '8.0.0'
+const schemaCommon = require('../common/schema')
+const fallbackHedSchemaPath = schemaCommon.config.fallbackFilePath
 
 describe('HED schemas', () => {
   describe('Remote HED schemas', () => {
     it('can be loaded from a central GitHub repository', () => {
-      const remoteHedSchemaVersion = fallbackHedSchemaVersion
+      const remoteHedSchemaVersion = '8.0.0'
       return schema
         .buildSchema({ version: remoteHedSchemaVersion })
         .then((hedSchemas) => {
@@ -56,8 +55,14 @@ describe('HED schemas', () => {
       return schema
         .buildSchema({ version: remoteHedSchemaVersion })
         .then((hedSchemas) => {
-          const hedSchemaVersion = hedSchemas.baseSchema.version
-          assert.strictEqual(hedSchemaVersion, fallbackHedSchemaVersion)
+          return Promise.all([
+            Promise.resolve(hedSchemas.baseSchema.version),
+            schema.buildSchema({ path: fallbackHedSchemaPath }),
+          ])
+        })
+        .then(([loadedVersion, fallbackHedSchemas]) => {
+          const fallbackHedSchemaVersion = fallbackHedSchemas.baseSchema.version
+          assert.strictEqual(loadedVersion, fallbackHedSchemaVersion)
         })
     })
 
@@ -67,8 +72,14 @@ describe('HED schemas', () => {
       return schema
         .buildSchema({ path: localHedSchemaFile })
         .then((hedSchemas) => {
-          const hedSchemaVersion = hedSchemas.baseSchema.version
-          assert.strictEqual(hedSchemaVersion, fallbackHedSchemaVersion)
+          return Promise.all([
+            Promise.resolve(hedSchemas.baseSchema.version),
+            schema.buildSchema({ path: fallbackHedSchemaPath }),
+          ])
+        })
+        .then(([loadedVersion, fallbackHedSchemas]) => {
+          const fallbackHedSchemaVersion = fallbackHedSchemas.baseSchema.version
+          assert.strictEqual(loadedVersion, fallbackHedSchemaVersion)
         })
     })
   })
