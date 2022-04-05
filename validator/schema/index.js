@@ -5,7 +5,7 @@ const schemaUtils = require('../../common/schema')
 const { buildMappingObject } = require('../../converter/schema')
 const { setParent } = require('../../utils/xml2js')
 
-const { Hed2SchemaParser, Hed3SchemaParser } = require('./parser')
+const { Hed2SchemaParser, HedV8SchemaParser } = require('./parser')
 const { SchemaAttributes } = require('./types')
 
 /**
@@ -18,7 +18,7 @@ const buildSchemaAttributesObject = function (xmlData) {
   const rootElement = xmlData.HED
   setParent(rootElement, null)
   if (semver.gte(rootElement.$.version, '8.0.0-alpha.3')) {
-    return new Hed3SchemaParser(rootElement).parse()
+    return new HedV8SchemaParser(rootElement).parse()
   } else {
     return new Hed2SchemaParser(rootElement).parse()
   }

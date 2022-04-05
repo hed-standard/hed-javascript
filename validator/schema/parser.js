@@ -5,7 +5,13 @@ const arrayUtils = require('../../utils/array')
 // Temporary
 const xpath = require('../../utils/xpath')
 
-const { SchemaAttributes } = require('./types')
+const {
+  SchemaAttributes,
+  SchemaEntries,
+  SchemaAttribute,
+  SchemaProperty,
+  nodeProperty,
+} = require('./types')
 
 const defaultUnitForTagAttribute = 'default'
 const defaultUnitForUnitClassAttribute = 'defaultUnits'
@@ -45,11 +51,6 @@ class SchemaParser {
     this.rootElement = rootElement
   }
 
-  parse() {
-    this.populateDictionaries()
-    return new SchemaAttributes(this)
-  }
-
   populateDictionaries() {
     this.populateUnitClassDictionaries()
     this.populateUnitModifierDictionaries()
@@ -66,10 +67,7 @@ class SchemaParser {
     elementName = 'node',
     excludeTakeValueTags = true,
   ) {
-    if (
-      excludeTakeValueTags &&
-      this.getElementTagName(parentElement) === '#'
-    ) {
+    if (excludeTakeValueTags && this.getElementTagName(parentElement) === '#') {
       return []
     }
     const tagElementChildren = this.getElementsByName(
@@ -135,6 +133,11 @@ class SchemaParser {
 }
 
 class Hed2SchemaParser extends SchemaParser {
+  parse() {
+    this.populateDictionaries()
+    return new SchemaAttributes(this)
+  }
+
   populateTagDictionaries() {
     this.tagAttributes = {}
     for (const dictionaryKey of tagDictionaryKeys) {
@@ -300,28 +303,32 @@ class Hed2SchemaParser extends SchemaParser {
 }
 
 class Hed3SchemaParser extends SchemaParser {
+  constructor(rootElement) {
+    super(rootElement)
+    this._versionDefinitions = {}
+  }
+
+  parse() {
+    this.populateDictionaries()
+    return new SchemaEntries(this)
+  }
+
+  populateDictionaries() {
+    this.parseProperties()
+    this.parseAttributes()
+    this.populateUnitClassDictionaries()
+    this.populateUnitModifierDictionaries()
+    this.populateTagDictionaries()
+  }
+
   populateTagDictionaries() {
     this.tagAttributes = {}
     this.tagUnitClasses = {}
-    const tagSchemaAttributes = this.getElementsByName(
-      schemaAttributeDefinitionElement,
-    ).filter((element) => {
-      const invalidProperties = [
-        'unitClassProperty',
-        'unitModifierProperty',
-        'unitProperty',
-      ]
-      if (!element.property) {
-        return true
-      }
-      for (const property of element.property) {
-        if (invalidProperties.includes(property.name[0]._)) {
-          return false
-        }
-      }
-      return true
-    })
-    const tagAttributes = tagSchemaAttributes.map(this.getElementTagName)
+
+    const tagSchemaAttributes = Array.from(this.attributes.values()).filter(
+      (attribute) => attribute.categoryProperty === nodeProperty,
+    )
+    const tagAttributes = tagSchemaAttributes.map((attribute) => attribute.name)
     for (const attribute of tagAttributes) {
       if (attribute === 'unitClass') {
         continue
@@ -375,16 +382,20 @@ class Hed3SchemaParser extends SchemaParser {
     this.unitClassAttributes = {}
     this.unitAttributes = {}
 
-    const unitClassSchemaAttributes = this.getElementsByName(
-      schemaAttributeDefinitionElement,
-    ).filter(Hed3SchemaParser.attributeFilter('unitClassProperty'))
-    const unitSchemaAttributes = this.getElementsByName(
-      schemaAttributeDefinitionElement,
-    ).filter(Hed3SchemaParser.attributeFilter('unitProperty'))
+    const unitClassProperty = this.properties.get('unitClassProperty')
+    const unitClassSchemaAttributes = Array.from(
+      this.attributes.values(),
+    ).filter((attribute) => attribute.categoryProperty === unitClassProperty)
     const unitClassAttributes = unitClassSchemaAttributes.map(
-      this.getElementTagName,
+      (attribute) => attribute.name,
     )
-    const unitAttributes = unitSchemaAttributes.map(this.getElementTagName)
+    const unitProperty = this.properties.get('unitProperty')
+    const unitSchemaAttributes = Array.from(this.attributes.values()).filter(
+      (attribute) => attribute.categoryProperty === unitProperty,
+    )
+    const unitAttributes = unitSchemaAttributes.map(
+      (attribute) => attribute.name,
+    )
     for (const attribute of unitAttributes) {
       this.unitAttributes[attribute] = {}
     }
@@ -435,11 +446,12 @@ class Hed3SchemaParser extends SchemaParser {
     }
     this.hasUnitModifiers = true
 
-    const unitModifierSchemaAttributes = this.getElementsByName(
-      schemaAttributeDefinitionElement,
-    ).filter(Hed3SchemaParser.attributeFilter('unitModifierProperty'))
+    const unitModifierProperty = this.properties.get('unitModifierProperty')
+    const unitModifierSchemaAttributes = Array.from(
+      this.attributes.values(),
+    ).filter((attribute) => attribute.categoryProperty === unitModifierProperty)
     const unitModifierAttributes = unitModifierSchemaAttributes.map(
-      this.getElementTagName,
+      (attribute) => attribute.name,
     )
     for (const attribute of unitModifierAttributes) {
       this.unitModifiers[attribute] = {}
@@ -503,9 +515,75 @@ class Hed3SchemaParser extends SchemaParser {
     }
     return [tags, tagElements]
   }
+
+  // Rewrite starts here.
+
+  parseProperties() {
+    const propertyDefinitions = this.getElementsByName('propertyDefinition')
+    this.properties = new Map()
+    for (const definition of propertyDefinitions) {
+      const propertyName = this.getElementTagName(definition)
+      if (
+        this._versionDefinitions.categoryProperties &&
+        this._versionDefinitions.categoryProperties.has(propertyName)
+      ) {
+        this.properties.set(
+          propertyName,
+          new SchemaProperty(propertyName, SchemaProperty.CATEGORY_PROPERTY),
+        )
+      } else if (
+        this._versionDefinitions.typeProperties &&
+        this._versionDefinitions.typeProperties.has(propertyName)
+      ) {
+        this.properties.set(
+          propertyName,
+          new SchemaProperty(propertyName, SchemaProperty.TYPE_PROPERTY),
+        )
+      }
+    }
+  }
+
+  parseAttributes() {
+    const attributeDefinitions = this.getElementsByName(
+      'schemaAttributeDefinition',
+    )
+    this.attributes = new Map()
+    for (const definition of attributeDefinitions) {
+      const attributeName = this.getElementTagName(definition)
+      const propertyElements = definition.property
+      let properties
+      if (propertyElements === undefined) {
+        properties = []
+      } else {
+        properties = propertyElements.map((element) =>
+          this.properties.get(element.name[0]._),
+        )
+      }
+      this.attributes.set(
+        attributeName,
+        new SchemaAttribute(attributeName, properties),
+      )
+    }
+  }
+}
+
+class HedV8SchemaParser extends Hed3SchemaParser {
+  constructor(rootElement) {
+    super(rootElement)
+    this._versionDefinitions = {
+      typeProperties: new Set(['boolProperty']),
+      categoryProperties: new Set([
+        'unitProperty',
+        'unitClassProperty',
+        'unitModifierProperty',
+        'valueClassProperty',
+      ]),
+    }
+  }
 }
 
 module.exports = {
   Hed2SchemaParser: Hed2SchemaParser,
   Hed3SchemaParser: Hed3SchemaParser,
+  HedV8SchemaParser: HedV8SchemaParser,
 }
