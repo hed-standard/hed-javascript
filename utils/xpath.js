@@ -5,7 +5,9 @@ const childToParent = {
   unitModifier: 'unitModifiers',
   unitClassDefinition: 'unitClassDefinitions',
   unitModifierDefinition: 'unitModifierDefinitions',
+  valueClassDefinition: 'valueClassDefinitions',
   schemaAttributeDefinition: 'schemaAttributeDefinitions',
+  propertyDefinition: 'propertyDefinitions',
 }
 
 /**
