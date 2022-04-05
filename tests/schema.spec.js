@@ -351,7 +351,7 @@ describe('HED schemas', () => {
   })
 
   describe('HED-3G schemas', () => {
-    const localHedSchemaFile = 'tests/data/HED8.0.0-alpha.3.xml'
+    const localHedSchemaFile = 'tests/data/HED8.0.0.xml'
     let hedSchemaPromise
 
     beforeAll(() => {

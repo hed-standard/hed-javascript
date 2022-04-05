@@ -1012,7 +1012,7 @@ describe('HED string and event validation', () => {
   })
 
   describe('HED-3G validation', () => {
-    const hedSchemaFile = 'tests/data/HED8.0.0-alpha.3.xml'
+    const hedSchemaFile = 'tests/data/HED8.0.0.xml'
     let hedSchemaPromise
 
     beforeAll(() => {
