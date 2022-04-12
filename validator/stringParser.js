@@ -3,7 +3,8 @@ const { hedStringIsAGroup, removeGroupParentheses } = require('../utils/hed')
 const { generateIssue } = require('../common/issues/issues')
 
 const {
-  ParsedHedTag,
+  ParsedHed2Tag,
+  ParsedHed3Tag,
   ParsedHedGroup,
   ParsedHedString,
 } = require('./types/parsedHed')
@@ -35,6 +36,8 @@ const splitHedString = function (
   let currentTag = ''
   let startingIndex = 0
   let resetStartingIndex = false
+
+  const ParsedHedTag = hedSchemas.isHed3 ? ParsedHed3Tag : ParsedHed2Tag
 
   const pushTag = function (i) {
     if (!utils.string.stringIsEmpty(currentTag)) {
@@ -391,9 +394,6 @@ const parseHedStrings = function (hedStrings, hedSchemas) {
 }
 
 module.exports = {
-  ParsedHedTag: ParsedHedTag,
-  ParsedHedGroup: ParsedHedGroup,
-  ParsedHedString: ParsedHedString,
   splitHedString: splitHedString,
   parseHedString: parseHedString,
   parseHedStrings: parseHedStrings,

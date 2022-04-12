@@ -1,5 +1,7 @@
 // Old-style types
 
+const { MemoizerMixin } = require('../../utils/types')
+
 /**
  * A description of a HED schema's attributes.
  */
@@ -71,11 +73,66 @@ class SchemaAttributes {
   }
 }
 
-class SchemaEntries extends SchemaAttributes {
+class SchemaEntries extends MemoizerMixin(SchemaAttributes) {
   constructor(schemaParser) {
     super(schemaParser)
+    /**
+     * @type {Map<string, Map<string, SchemaEntry>>}
+     */
     this.properties = schemaParser.properties
     this.attributes = schemaParser.attributes
+  }
+
+  /**
+   * Get the schema's unit classes.
+   * @return {Map<string, SchemaUnitClass>}
+   */
+  get unitClassMap() {
+    return this.properties.get('unitClasses')
+  }
+
+  /**
+   * Get a map of all of this schema's units.
+   */
+  get allUnits() {
+    return this._memoize('allUnits', () => {
+      const units = []
+      for (const unitClass of this.unitClassMap.values()) {
+        const unitClassUnits = unitClass.units
+        units.push(...unitClassUnits)
+      }
+      return new Map(units)
+    })
+  }
+
+  /**
+   * Get the schema's SI unit modifiers.
+   * @return {Map<string, SchemaUnitModifier>}
+   */
+  get SIUnitModifiers() {
+    return this._memoize('SIUnitModifiers', () => {
+      /**
+       * @type {Map<string, SchemaUnitModifier>}
+       */
+      const unitModifiers = this.properties.get('unitModifiers')
+      const pairArray = Array.from(unitModifiers.entries())
+      return new Map(pairArray.filter(([k, v]) => v.isSIUnitModifier))
+    })
+  }
+
+  /**
+   * Get the schema's SI unit symbol modifiers.
+   * @return {Map<string, SchemaUnitModifier>}
+   */
+  get SIUnitSymbolModifiers() {
+    return this._memoize('SIUnitSymbolModifiers', () => {
+      /**
+       * @type {Map<string, SchemaUnitModifier>}
+       */
+      const unitModifiers = this.properties.get('unitModifiers')
+      const pairArray = Array.from(unitModifiers.entries())
+      return new Map(pairArray.filter(([k, v]) => v.isSIUnitSymbolModifier))
+    })
   }
 }
 
@@ -101,6 +158,16 @@ class SchemaEntry {
      * @private
      */
     this._valueAttributes = valueAttributes
+
+    // String-mapped versions of the above objects.
+    this._booleanAttributeNames = new Set()
+    for (const attribute of booleanAttributes) {
+      this._booleanAttributeNames.add(attribute.name)
+    }
+    this._valueAttributeNames = new Map()
+    for (const [attributeName, value] of valueAttributes) {
+      this._valueAttributeNames.set(attributeName.name, value)
+    }
   }
 
   /**
@@ -127,6 +194,24 @@ class SchemaEntry {
    */
   getAttributeValue(attribute) {
     return this._valueAttributes.get(attribute)
+  }
+
+  /**
+   * Whether this schema entry has this attribute (by name).
+   * @param {string} attributeName The attribute to check for.
+   * @return {boolean} Whether this schema entry has this attribute.
+   */
+  hasAttributeName(attributeName) {
+    return this._booleanAttributeNames.has(attributeName)
+  }
+
+  /**
+   * Retrieve the value of an attribute (by name) on this schema entry.
+   * @param {string} attributeName The attribute whose value should be returned.
+   * @return {*} The value of the attribute.
+   */
+  getNamedAttributeValue(attributeName) {
+    return this._valueAttributeNames.get(attributeName)
   }
 }
 
@@ -189,10 +274,92 @@ class SchemaAttribute extends SchemaEntry {
   }
 }
 
+class SchemaUnit extends SchemaEntry {
+  constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
+    super(name, booleanAttributes, valueAttributes)
+
+    if (!this.isSIUnit) {
+      return
+    }
+    this._derivativeUnits = [name]
+    for (const [unitModifierName, unitModifier] of unitModifiers) {
+      if (this.isUnitSymbol === unitModifier.isSIUnitSymbolModifier) {
+        this._derivativeUnits.push(unitModifierName + name)
+      }
+    }
+  }
+
+  *derivativeUnits() {
+    for (const unit of this._derivativeUnits) {
+      yield unit
+    }
+  }
+
+  get isPrefixUnit() {
+    return this.hasAttributeName('unitPrefix')
+  }
+
+  get isSIUnit() {
+    return this.hasAttributeName('SIUnit')
+  }
+
+  get isUnitSymbol() {
+    return this.hasAttributeName('UnitSymbol')
+  }
+}
+
+class SchemaUnitClass extends SchemaEntry {
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this unit class.
+   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this unit class.
+   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this unit class.
+   * @param {Map<string, SchemaUnit>} units The units for this unit class.
+   * @constructor
+   */
+  constructor(name, booleanAttributes, valueAttributes, units) {
+    super(name, booleanAttributes, valueAttributes)
+    this._units = units
+  }
+
+  /**
+   * Get the units for this unit class.
+   * @return {Map<string, SchemaUnit>}
+   */
+  get units() {
+    return this._units
+  }
+}
+
+class SchemaUnitModifier extends SchemaEntry {
+  constructor(name, booleanAttributes, valueAttributes) {
+    super(name, booleanAttributes, valueAttributes)
+  }
+
+  get isSIUnitModifier() {
+    return this.hasAttributeName('SIUnitModifier')
+  }
+
+  get isSIUnitSymbolModifier() {
+    return this.hasAttributeName('SIUnitSymbolModifier')
+  }
+}
+
+class SchemaValueClass extends SchemaEntry {
+  constructor(name, booleanAttributes, valueAttributes) {
+    super(name, booleanAttributes, valueAttributes)
+  }
+}
+
 module.exports = {
   nodeProperty: nodeProperty,
   SchemaAttributes: SchemaAttributes,
   SchemaEntries: SchemaEntries,
   SchemaProperty: SchemaProperty,
   SchemaAttribute: SchemaAttribute,
+  SchemaUnit: SchemaUnit,
+  SchemaUnitClass: SchemaUnitClass,
+  SchemaUnitModifier: SchemaUnitModifier,
+  SchemaValueClass: SchemaValueClass,
 }

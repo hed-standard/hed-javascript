@@ -10,6 +10,10 @@ const {
   SchemaEntries,
   SchemaAttribute,
   SchemaProperty,
+  SchemaUnit,
+  SchemaUnitClass,
+  SchemaUnitModifier,
+  SchemaValueClass,
   nodeProperty,
 } = require('./types')
 
@@ -316,8 +320,9 @@ class Hed3SchemaParser extends SchemaParser {
   populateDictionaries() {
     this.parseProperties()
     this.parseAttributes()
-    this.populateUnitClassDictionaries()
-    this.populateUnitModifierDictionaries()
+    this.definitions = new Map()
+    this.parseUnitModifiers()
+    this.parseUnitClasses()
     this.populateTagDictionaries()
   }
 
@@ -371,6 +376,7 @@ class Hed3SchemaParser extends SchemaParser {
     })
   }
 
+  /*
   populateUnitClassDictionaries() {
     const unitClassElements = this.getElementsByName(unitClassDefinitionElement)
     if (unitClassElements.length === 0) {
@@ -471,6 +477,7 @@ class Hed3SchemaParser extends SchemaParser {
       }
     }
   }
+   */
 
   static attributeFilter(propertyName) {
     return (element) => {
@@ -564,6 +571,114 @@ class Hed3SchemaParser extends SchemaParser {
         new SchemaAttribute(attributeName, properties),
       )
     }
+  }
+
+  parseUnitClasses() {
+    const unitClasses = new Map()
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] =
+      this._parseDefinitions('unitClass')
+
+    // Parse units
+    const unitModifiers = this.definitions.get('unitModifiers')
+    const unitClassUnits = new Map()
+    const unitClassElements = this.getElementsByName('unitClassDefinition')
+    for (const element of unitClassElements) {
+      const elementName = this.getElementTagName(element)
+      const units = new Map()
+      if (element.unit) {
+        const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] =
+          this._parseAttributeElements(element.unit)
+        for (const [name, valueAttributes] of unitValueAttributeDefinitions) {
+          const booleanAttributes = unitBooleanAttributeDefinitions.get(name)
+          units.set(
+            name,
+            new SchemaUnit(
+              name,
+              booleanAttributes,
+              valueAttributes,
+              unitModifiers,
+            ),
+          )
+        }
+      }
+      unitClassUnits.set(elementName, units)
+    }
+    for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      const booleanAttributes = booleanAttributeDefinitions.get(name)
+      unitClasses.set(
+        name,
+        new SchemaUnitClass(
+          name,
+          booleanAttributes,
+          valueAttributes,
+          unitClassUnits.get(name),
+        ),
+      )
+    }
+    this.definitions.set('unitClasses', unitClasses)
+  }
+
+  parseUnitModifiers() {
+    const unitModifiers = new Map()
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] =
+      this._parseDefinitions('unitModifier')
+    for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      const booleanAttributes = booleanAttributeDefinitions.get(name)
+      unitModifiers.set(
+        name,
+        new SchemaUnitModifier(name, booleanAttributes, valueAttributes),
+      )
+    }
+    this.definitions.set('unitModifiers', unitModifiers)
+  }
+
+  parseValueClasses() {
+    const valueClasses = new Map()
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] =
+      this._parseDefinitions('valueClass')
+    for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      const booleanAttributes = booleanAttributeDefinitions.get(name)
+      valueClasses.set(
+        name,
+        new SchemaValueClass(name, booleanAttributes, valueAttributes),
+      )
+    }
+    this.definitions.set('valueClasses', valueClasses)
+  }
+
+  _parseDefinitions(category) {
+    const categoryTagName = category + 'Definition'
+    const definitionElements = this.getElementsByName(categoryTagName)
+
+    return this._parseAttributeElements(definitionElements)
+  }
+
+  _parseAttributeElements(elements) {
+    const booleanAttributeDefinitions = new Map()
+    const valueAttributeDefinitions = new Map()
+
+    for (const element of elements) {
+      const elementName = this.getElementTagName(element)
+      const booleanAttributes = new Set()
+      const valueAttributes = new Map()
+
+      if (element.attribute) {
+        for (const tagAttribute of element.attribute) {
+          const attributeName = tagAttribute.name[0]._
+          if (tagAttribute.value === undefined) {
+            booleanAttributes.add(this.attributes.get(attributeName))
+            continue
+          }
+          const values = tagAttribute.value.map((value) => value._)
+          valueAttributes.set(this.attributes.get(attributeName), values)
+        }
+      }
+
+      booleanAttributeDefinitions.set(elementName, booleanAttributes)
+      valueAttributeDefinitions.set(elementName, valueAttributes)
+    }
+
+    return [booleanAttributeDefinitions, valueAttributeDefinitions]
   }
 }
 

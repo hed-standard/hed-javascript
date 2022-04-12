@@ -332,6 +332,46 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 }
 
+class ParsedHed2Tag extends ParsedHedTag {
+  /**
+   * Get the legal units for a particular HED tag.
+   * @return {string[]}
+   */
+  get validUnits() {
+    return this._memoize('validUnits', () => {
+      const tagUnitClasses = this.unitClasses
+      const units = []
+      for (const unitClass of tagUnitClasses) {
+        const unitClassUnits = this.schema.attributes.unitClasses[unitClass]
+        units.push(...unitClassUnits)
+      }
+      return units
+    })
+  }
+}
+
+class ParsedHed3Tag extends ParsedHedTag {
+  /**
+   * Get the legal units for a particular HED tag.
+   * @return {Set<SchemaUnit>}
+   */
+  get validUnits() {
+    return this._memoize('validUnits', () => {
+      const tagUnitClasses = this.unitClasses
+      const units = new Set()
+      for (const unitClass of tagUnitClasses) {
+        const unitClassUnits =
+          this.schema.attributes.unitClassMap.get(unitClass).units
+        for (const unit of unitClassUnits.values()) {
+          units.add(unit)
+        }
+      }
+      return units
+    })
+  }
+}
+
+
 /**
  * Determine a parsed HED tag group's Definition tags.
  *
@@ -550,6 +590,8 @@ class ParsedHedString {
 
 module.exports = {
   ParsedHedTag: ParsedHedTag,
+  ParsedHed2Tag: ParsedHed2Tag,
+  ParsedHed3Tag: ParsedHed3Tag,
   ParsedHedGroup: ParsedHedGroup,
   ParsedHedString: ParsedHedString,
 }
