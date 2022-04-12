@@ -577,32 +577,8 @@ class Hed3SchemaParser extends SchemaParser {
     const unitClasses = new Map()
     const [booleanAttributeDefinitions, valueAttributeDefinitions] =
       this._parseDefinitions('unitClass')
+    const unitClassUnits = this.parseUnits()
 
-    // Parse units
-    const unitModifiers = this.definitions.get('unitModifiers')
-    const unitClassUnits = new Map()
-    const unitClassElements = this.getElementsByName('unitClassDefinition')
-    for (const element of unitClassElements) {
-      const elementName = this.getElementTagName(element)
-      const units = new Map()
-      if (element.unit) {
-        const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] =
-          this._parseAttributeElements(element.unit)
-        for (const [name, valueAttributes] of unitValueAttributeDefinitions) {
-          const booleanAttributes = unitBooleanAttributeDefinitions.get(name)
-          units.set(
-            name,
-            new SchemaUnit(
-              name,
-              booleanAttributes,
-              valueAttributes,
-              unitModifiers,
-            ),
-          )
-        }
-      }
-      unitClassUnits.set(elementName, units)
-    }
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       unitClasses.set(
@@ -616,6 +592,35 @@ class Hed3SchemaParser extends SchemaParser {
       )
     }
     this.definitions.set('unitClasses', unitClasses)
+  }
+
+  parseUnits() {
+    const unitClassUnits = new Map()
+    const unitClassElements = this.getElementsByName('unitClassDefinition')
+    const unitModifiers = this.definitions.get('unitModifiers')
+    for (const element of unitClassElements) {
+      const elementName = this.getElementTagName(element)
+      const units = new Map()
+      unitClassUnits.set(elementName, units)
+      if (element.unit === undefined) {
+        continue
+      }
+      const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] =
+        this._parseAttributeElements(element.unit)
+      for (const [name, valueAttributes] of unitValueAttributeDefinitions) {
+        const booleanAttributes = unitBooleanAttributeDefinitions.get(name)
+        units.set(
+          name,
+          new SchemaUnit(
+            name,
+            booleanAttributes,
+            valueAttributes,
+            unitModifiers,
+          ),
+        )
+      }
+    }
+    return unitClassUnits
   }
 
   parseUnitModifiers() {
@@ -662,20 +667,22 @@ class Hed3SchemaParser extends SchemaParser {
       const booleanAttributes = new Set()
       const valueAttributes = new Map()
 
-      if (element.attribute) {
-        for (const tagAttribute of element.attribute) {
-          const attributeName = tagAttribute.name[0]._
-          if (tagAttribute.value === undefined) {
-            booleanAttributes.add(this.attributes.get(attributeName))
-            continue
-          }
-          const values = tagAttribute.value.map((value) => value._)
-          valueAttributes.set(this.attributes.get(attributeName), values)
-        }
-      }
-
       booleanAttributeDefinitions.set(elementName, booleanAttributes)
       valueAttributeDefinitions.set(elementName, valueAttributes)
+
+      if (element.attribute === undefined) {
+        continue
+      }
+
+      for (const tagAttribute of element.attribute) {
+        const attributeName = tagAttribute.name[0]._
+        if (tagAttribute.value === undefined) {
+          booleanAttributes.add(this.attributes.get(attributeName))
+          continue
+        }
+        const values = tagAttribute.value.map((value) => value._)
+        valueAttributes.set(this.attributes.get(attributeName), values)
+      }
     }
 
     return [booleanAttributeDefinitions, valueAttributeDefinitions]
