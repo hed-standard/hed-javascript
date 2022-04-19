@@ -102,6 +102,10 @@ class ParsedHedTag extends ParsedHedSubstring {
     return this.schema.tagHasAttribute(this.formattedTag, attribute)
   }
 
+  parentHasAttribute(attribute) {
+    return this.schema.tagHasAttribute(this.parentFormattedTag, attribute)
+  }
+
   /**
    * Get the last part of a HED tag.
    *

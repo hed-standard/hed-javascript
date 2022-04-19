@@ -285,10 +285,7 @@ class Hed3Validator extends HedValidator {
       if (
         !utils.HED.hedStringIsAGroup(topLevelTag.formattedTag) &&
         (topLevelTag.hasAttribute(tagGroupType) ||
-          this.hedSchemas.baseSchema.tagHasAttribute(
-            utils.HED.getParentTag(topLevelTag.formattedTag),
-            tagGroupType,
-          ))
+          topLevelTag.parentHasAttribute(tagGroupType))
       ) {
         this.pushIssue('invalidTopLevelTag', {
           tag: topLevelTag.originalTag,
@@ -305,10 +302,7 @@ class Hed3Validator extends HedValidator {
     for (const tag of this.parsedString.tags) {
       if (
         tag.hasAttribute(topLevelTagGroupType) ||
-        this.hedSchemas.baseSchema.tagHasAttribute(
-          utils.HED.getParentTag(tag.formattedTag),
-          topLevelTagGroupType,
-        )
+        tag.parentHasAttribute(topLevelTagGroupType)
       ) {
         let tagFound = false
         this.parsedString.topLevelTagGroups.forEach((tagGroup, index) => {
