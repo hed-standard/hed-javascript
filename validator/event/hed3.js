@@ -51,6 +51,15 @@ class Hed3Validator extends HedValidator {
     this.checkForInvalidTopLevelTagGroupTags()
   }
 
+  _checkForTagAttribute(attribute, fn) {
+    const tags = this.hedSchemas.baseSchema.attributes.definitions
+      .get('tags')
+      .getEntriesWithBooleanAttribute(attribute)
+    for (const tag of tags) {
+      fn(tag.name)
+    }
+  }
+
   /**
    * Check that the unit is valid for the tag's unit class.
    * @param {ParsedHed3Tag} tag A HED tag.
@@ -75,13 +84,7 @@ class Hed3Validator extends HedValidator {
         unitClassUnits: tagUnitClassUnits.sort().join(','),
       })
     } else {
-      const validValue = this.validateValue(
-        value,
-        this.hedSchemas.baseSchema.attributes.tagHasAttribute(
-          utils.HED.replaceTagNameWithPound(tag.formattedTag),
-          'isNumeric',
-        ),
-      )
+      const validValue = this.validateValue(value, true)
       if (!validValue) {
         this.pushIssue('invalidValue', { tag: tag.originalTag })
       }
@@ -96,7 +99,7 @@ class Hed3Validator extends HedValidator {
   validateUnits(tag) {
     const originalTagUnitValue = tag.originalTagName
     const tagUnitClassUnits = tag.validUnits
-    const validUnits = this.schema.attributes.allUnits
+    const validUnits = this.hedSchemas.baseSchema.attributes.allUnits
     const unitStrings = Array.from(validUnits.keys())
     unitStrings.sort((first, second) => {
       return second.length - first.length

@@ -264,7 +264,7 @@ describe('HED schemas', () => {
       })
     })
 
-    it('should identify if a tag has a certain attribute', () => {
+    it('should identify if a tag hasEntry a certain attribute', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const testStrings = {
           value:

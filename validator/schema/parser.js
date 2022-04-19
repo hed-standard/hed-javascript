@@ -8,13 +8,16 @@ const xpath = require('../../utils/xpath')
 const {
   SchemaAttributes,
   SchemaEntries,
+  SchemaEntryManager,
   SchemaAttribute,
   SchemaProperty,
+  SchemaTag,
   SchemaUnit,
   SchemaUnitClass,
   SchemaUnitModifier,
   SchemaValueClass,
   nodeProperty,
+  attributeProperty,
 } = require('./types')
 
 const defaultUnitForTagAttribute = 'default'
@@ -323,161 +326,8 @@ class Hed3SchemaParser extends SchemaParser {
     this.definitions = new Map()
     this.parseUnitModifiers()
     this.parseUnitClasses()
-    this.populateTagDictionaries()
+    this.parseTags()
   }
-
-  populateTagDictionaries() {
-    this.tagAttributes = {}
-    this.tagUnitClasses = {}
-
-    const tagSchemaAttributes = Array.from(this.attributes.values()).filter(
-      (attribute) => attribute.categoryProperty === nodeProperty,
-    )
-    const tagAttributes = tagSchemaAttributes.map((attribute) => attribute.name)
-    for (const attribute of tagAttributes) {
-      if (attribute === 'unitClass') {
-        continue
-      }
-      this.tagAttributes[attribute] = {}
-    }
-    const [tags, tagElements] = this.getAllTags()
-    const lowercaseTags = tags.map(lc)
-    this.tags = lowercaseTags
-    lowercaseTags.forEach((tag, index) => {
-      const tagElement = tagElements[index]
-      for (const attribute of tagAttributes) {
-        const elementAttributeValue = this.elementAttributeValue(
-          tagElement,
-          attribute,
-        )
-        if (elementAttributeValue !== null) {
-          if (attribute === extensionAllowedAttribute) {
-            const tagDictionary = this.stringListToLowercaseTrueDictionary([
-              tag,
-            ])
-            const childTagElements = this.getAllChildTags(tagElement)
-            const childTags = childTagElements.map((element) => {
-              return this.getTagPathFromTagElement(element)
-            })
-            const childDictionary =
-              this.stringListToLowercaseTrueDictionary(childTags)
-            Object.assign(
-              this.tagAttributes[extensionAllowedAttribute],
-              tagDictionary,
-              childDictionary,
-            )
-          } else if (attribute === tagUnitClassAttribute) {
-            this.tagUnitClasses[tag] = elementAttributeValue
-          } else {
-            this.tagAttributes[attribute][tag] = elementAttributeValue
-          }
-        }
-      }
-    })
-  }
-
-  /*
-  populateUnitClassDictionaries() {
-    const unitClassElements = this.getElementsByName(unitClassDefinitionElement)
-    if (unitClassElements.length === 0) {
-      this.hasUnitClasses = false
-      return
-    }
-    this.hasUnitClasses = true
-    this.unitClasses = {}
-    this.unitClassAttributes = {}
-    this.unitAttributes = {}
-
-    const unitClassProperty = this.properties.get('unitClassProperty')
-    const unitClassSchemaAttributes = Array.from(
-      this.attributes.values(),
-    ).filter((attribute) => attribute.categoryProperty === unitClassProperty)
-    const unitClassAttributes = unitClassSchemaAttributes.map(
-      (attribute) => attribute.name,
-    )
-    const unitProperty = this.properties.get('unitProperty')
-    const unitSchemaAttributes = Array.from(this.attributes.values()).filter(
-      (attribute) => attribute.categoryProperty === unitProperty,
-    )
-    const unitAttributes = unitSchemaAttributes.map(
-      (attribute) => attribute.name,
-    )
-    for (const attribute of unitAttributes) {
-      this.unitAttributes[attribute] = {}
-    }
-
-    for (const unitClassElement of unitClassElements) {
-      const unitClassName = this.getElementTagName(unitClassElement)
-      this.unitClassAttributes[unitClassName] = {}
-      let units = unitClassElement[unitClassUnitElement]
-      if (units === undefined) {
-        units = []
-      }
-      for (const attribute of unitClassAttributes) {
-        const elementAttributeValue = this.elementAttributeValue(
-          unitClassElement,
-          attribute,
-          true,
-        )
-        if (elementAttributeValue !== null) {
-          this.unitClassAttributes[unitClassName][attribute] =
-            elementAttributeValue
-        }
-      }
-      const unitNames = units.map(this.getElementTagName)
-      this.unitClasses[unitClassName] = unitNames
-      units.forEach((unit, index) => {
-        const unitName = unitNames[index]
-        for (const attribute of unitAttributes) {
-          const elementAttributeValue = this.elementAttributeValue(
-            unit,
-            attribute,
-          )
-          if (elementAttributeValue !== null) {
-            this.unitAttributes[attribute][unitName] = elementAttributeValue
-          }
-        }
-      })
-    }
-  }
-
-  populateUnitModifierDictionaries() {
-    this.unitModifiers = {}
-    const unitModifierElements = this.getElementsByName(
-      unitModifierDefinitionElement,
-    )
-    if (unitModifierElements.length === 0) {
-      this.hasUnitModifiers = false
-      return
-    }
-    this.hasUnitModifiers = true
-
-    const unitModifierProperty = this.properties.get('unitModifierProperty')
-    const unitModifierSchemaAttributes = Array.from(
-      this.attributes.values(),
-    ).filter((attribute) => attribute.categoryProperty === unitModifierProperty)
-    const unitModifierAttributes = unitModifierSchemaAttributes.map(
-      (attribute) => attribute.name,
-    )
-    for (const attribute of unitModifierAttributes) {
-      this.unitModifiers[attribute] = {}
-    }
-
-    for (const unitModifierElement of unitModifierElements) {
-      const unitModifierName = this.getElementTagName(unitModifierElement)
-      for (const attribute of unitModifierAttributes) {
-        const elementAttributeValue = this.elementAttributeValue(
-          unitModifierElement,
-          attribute,
-        )
-        if (elementAttributeValue !== null) {
-          this.unitModifiers[attribute][unitModifierName] =
-            elementAttributeValue
-        }
-      }
-    }
-  }
-   */
 
   static attributeFilter(propertyName) {
     return (element) => {
@@ -492,25 +342,6 @@ class Hed3SchemaParser extends SchemaParser {
       }
       return false
     }
-  }
-
-  elementAttributeValue(tagElement, attributeName) {
-    if (!tagElement.attribute) {
-      return null
-    }
-    for (const tagAttribute of tagElement.attribute) {
-      if (tagAttribute.name[0]._ === attributeName) {
-        if (tagAttribute.value === undefined) {
-          return true
-        }
-        const values = []
-        for (const value of tagAttribute.value) {
-          values.push(value._)
-        }
-        return values
-      }
-    }
-    return null
   }
 
   getAllTags(tagElementName = 'node') {
@@ -571,6 +402,37 @@ class Hed3SchemaParser extends SchemaParser {
         new SchemaAttribute(attributeName, properties),
       )
     }
+    if (this._addAttributes) {
+      this._addAttributes()
+    }
+  }
+
+  parseValueClasses() {
+    const valueClasses = new Map()
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] =
+      this._parseDefinitions('valueClass')
+    for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      const booleanAttributes = booleanAttributeDefinitions.get(name)
+      valueClasses.set(
+        name,
+        new SchemaValueClass(name, booleanAttributes, valueAttributes),
+      )
+    }
+    this.definitions.set('valueClasses', new SchemaEntryManager(valueClasses))
+  }
+
+  parseUnitModifiers() {
+    const unitModifiers = new Map()
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] =
+      this._parseDefinitions('unitModifier')
+    for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      const booleanAttributes = booleanAttributeDefinitions.get(name)
+      unitModifiers.set(
+        name,
+        new SchemaUnitModifier(name, booleanAttributes, valueAttributes),
+      )
+    }
+    this.definitions.set('unitModifiers', new SchemaEntryManager(unitModifiers))
   }
 
   parseUnitClasses() {
@@ -591,7 +453,7 @@ class Hed3SchemaParser extends SchemaParser {
         ),
       )
     }
-    this.definitions.set('unitClasses', unitClasses)
+    this.definitions.set('unitClasses', new SchemaEntryManager(unitClasses))
   }
 
   parseUnits() {
@@ -606,7 +468,7 @@ class Hed3SchemaParser extends SchemaParser {
         continue
       }
       const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] =
-        this._parseAttributeElements(element.unit)
+        this._parseAttributeElements(element.unit, this.getElementTagName)
       for (const [name, valueAttributes] of unitValueAttributeDefinitions) {
         const booleanAttributes = unitBooleanAttributeDefinitions.get(name)
         units.set(
@@ -623,47 +485,88 @@ class Hed3SchemaParser extends SchemaParser {
     return unitClassUnits
   }
 
-  parseUnitModifiers() {
-    const unitModifiers = new Map()
+  parseTags() {
+    const [tags, tagElements] = this.getAllTags()
+    const lowercaseTags = tags.map(lc)
+    this.tags = new Set(lowercaseTags)
     const [booleanAttributeDefinitions, valueAttributeDefinitions] =
-      this._parseDefinitions('unitModifier')
-    for (const [name, valueAttributes] of valueAttributeDefinitions) {
-      const booleanAttributes = booleanAttributeDefinitions.get(name)
-      unitModifiers.set(
-        name,
-        new SchemaUnitModifier(name, booleanAttributes, valueAttributes),
+      this._parseAttributeElements(tagElements, (element) =>
+        this.getTagPathFromTagElement(element),
       )
-    }
-    this.definitions.set('unitModifiers', unitModifiers)
-  }
 
-  parseValueClasses() {
-    const valueClasses = new Map()
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] =
-      this._parseDefinitions('valueClass')
+    const recursiveAttributes = Array.from(this.attributes.values()).filter(
+      (attribute) => attribute.hasAttributeName('recursive'),
+    )
+    const unitClasses = this.definitions.get('unitClasses')
+    const tagUnitClassAttribute = this.attributes.get('unitClass')
+
+    const tagUnitClassDefinitions = new Map()
+    const recursiveChildren = new Map()
+    tags.forEach((tagName, index) => {
+      const tagElement = tagElements[index]
+      const valueAttributes = valueAttributeDefinitions.get(tagName)
+      if (valueAttributes.has(tagUnitClassAttribute)) {
+        tagUnitClassDefinitions.set(
+          tagName,
+          valueAttributes.get(tagUnitClassAttribute).map((unitClassName) => {
+            return unitClasses.getEntry(unitClassName)
+          }),
+        )
+        valueAttributes.delete(tagUnitClassAttribute)
+      }
+      for (const attribute of recursiveAttributes) {
+        const children = recursiveChildren.get(attribute) || []
+        if (booleanAttributeDefinitions.get(tagName).has(attribute)) {
+          children.push(...this.getAllChildTags(tagElement))
+        }
+        recursiveChildren.set(attribute, children)
+      }
+    })
+
+    for (const [attribute, childTagElements] of recursiveChildren) {
+      for (const tagElement of childTagElements) {
+        const tagName = this.getTagPathFromTagElement(tagElement)
+        booleanAttributeDefinitions.get(tagName).add(attribute)
+      }
+    }
+
+    const tagEntries = new Map()
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
-      valueClasses.set(
-        name,
-        new SchemaValueClass(name, booleanAttributes, valueAttributes),
+      const unitClasses = tagUnitClassDefinitions.get(name)
+      tagEntries.set(
+        lc(name),
+        new SchemaTag(name, booleanAttributes, valueAttributes, unitClasses),
       )
     }
-    this.definitions.set('valueClasses', valueClasses)
+
+    for (const tagElement of tagElements) {
+      const tagName = this.getTagPathFromTagElement(tagElement)
+      const parentTagName = this.getParentTagName(tagElement)
+      if (parentTagName) {
+        tagEntries.get(lc(tagName))._parent = tagEntries.get(lc(parentTagName))
+      }
+    }
+
+    this.definitions.set('tags', new SchemaEntryManager(tagEntries))
   }
 
   _parseDefinitions(category) {
     const categoryTagName = category + 'Definition'
     const definitionElements = this.getElementsByName(categoryTagName)
 
-    return this._parseAttributeElements(definitionElements)
+    return this._parseAttributeElements(
+      definitionElements,
+      this.getElementTagName,
+    )
   }
 
-  _parseAttributeElements(elements) {
+  _parseAttributeElements(elements, namer) {
     const booleanAttributeDefinitions = new Map()
     const valueAttributeDefinitions = new Map()
 
     for (const element of elements) {
-      const elementName = this.getElementTagName(element)
+      const elementName = namer(element)
       const booleanAttributes = new Set()
       const valueAttributes = new Map()
 
@@ -701,6 +604,17 @@ class HedV8SchemaParser extends Hed3SchemaParser {
         'valueClassProperty',
       ]),
     }
+  }
+
+  _addAttributes() {
+    const recursiveAttribute = new SchemaAttribute('recursive', [
+      this.properties.get('boolProperty'),
+      attributeProperty,
+    ])
+    this.attributes.set('recursive', recursiveAttribute)
+    const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
+    extensionAllowedAttribute._booleanAttributes.add(recursiveAttribute)
+    extensionAllowedAttribute._booleanAttributeNames.add('recursive')
   }
 }
 

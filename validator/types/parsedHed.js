@@ -180,15 +180,6 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Determine if this HED tag is in the schema.
-   */
-  get existsInSchema() {
-    return this._memoize('existsInSchema', () => {
-      return this.schema.attributes.tags.includes(this.formattedTag)
-    })
-  }
-
-  /**
    * Check if any level of this HED tag allows extensions.
    */
   get allowsExtensions() {
@@ -213,39 +204,39 @@ class ParsedHedTag extends ParsedHedSubstring {
     })
   }
 
+  equivalent(other) {
+    return (
+      other instanceof ParsedHedTag && this.formattedTag === other.formattedTag
+    )
+  }
+}
+
+class ParsedHed2Tag extends ParsedHedTag {
   /**
-   * Checks if this HED tag has the 'takesValue' attribute.
+   * Determine if this HED tag is in the schema.
    */
-  get takesValue() {
-    return this._memoize('takesValue', () => {
-      const takesValueType = 'takesValue'
-      if (this.schema.isHed3) {
-        for (const ancestor of ParsedHedTag.ancestorIterator(
-          this.formattedTag,
-        )) {
-          const takesValueTag = replaceTagNameWithPound(ancestor)
-          if (
-            this.schema.attributes.tagHasAttribute(
-              takesValueTag,
-              takesValueType,
-            )
-          ) {
-            return true
-          }
-        }
-        return false
-      } else {
-        const takesValueTag = replaceTagNameWithPound(this.formattedTag)
-        return this.schema.attributes.tagHasAttribute(
-          takesValueTag,
-          takesValueType,
-        )
-      }
+  get existsInSchema() {
+    return this._memoize('existsInSchema', () => {
+      return this.schema.attributes.tags.includes(this.formattedTag)
     })
   }
 
   /**
-   * Checks if this HED tag has the 'unitClass' attribute.
+   * Checks if this HED tag hasEntry the 'takesValue' attribute.
+   */
+  get takesValue() {
+    return this._memoize('takesValue', () => {
+      const takesValueType = 'takesValue'
+      const takesValueTag = replaceTagNameWithPound(this.formattedTag)
+      return this.schema.attributes.tagHasAttribute(
+        takesValueTag,
+        takesValueType,
+      )
+    })
+  }
+
+  /**
+   * Checks if this HED tag hasEntry the 'unitClass' attribute.
    */
   get hasUnitClass() {
     return this._memoize('hasUnitClass', () => {
@@ -312,29 +303,6 @@ class ParsedHedTag extends ParsedHedSubstring {
 
   /**
    * Get the legal units for a particular HED tag.
-   */
-  get validUnits() {
-    return this._memoize('validUnits', () => {
-      const tagUnitClasses = this.unitClasses
-      const units = []
-      for (const unitClass of tagUnitClasses) {
-        const unitClassUnits = this.schema.attributes.unitClasses[unitClass]
-        Array.prototype.push.apply(units, unitClassUnits)
-      }
-      return units
-    })
-  }
-
-  equivalent(other) {
-    return (
-      other instanceof ParsedHedTag && this.formattedTag === other.formattedTag
-    )
-  }
-}
-
-class ParsedHed2Tag extends ParsedHedTag {
-  /**
-   * Get the legal units for a particular HED tag.
    * @return {string[]}
    */
   get validUnits() {
@@ -352,6 +320,83 @@ class ParsedHed2Tag extends ParsedHedTag {
 
 class ParsedHed3Tag extends ParsedHedTag {
   /**
+   * Determine if this HED tag is in the schema.
+   */
+  get existsInSchema() {
+    return this._memoize('existsInSchema', () => {
+      return this.schema.attributes.definitions.get('tags').hasEntry(this.formattedTag)
+    })
+  }
+
+  /**
+   * Checks if this HED tag hasEntry the 'takesValue' attribute.
+   */
+  get takesValue() {
+    return this._memoize('takesValue', () => {
+      const takesValueType = 'takesValue'
+      for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
+        const takesValueTag = replaceTagNameWithPound(ancestor)
+        if (
+          this.schema.attributes.tagHasAttribute(takesValueTag, takesValueType)
+        ) {
+          return true
+        }
+      }
+      return false
+    })
+  }
+
+  /**
+   * Checks if this HED tag hasEntry the 'unitClass' attribute.
+   */
+  get hasUnitClass() {
+    return this._memoize('hasUnitClass', () => {
+      if (!this.schema.attributes.definitions.has('unitClasses')) {
+        return false
+      }
+      if (this.takesValueTag === undefined) {
+        return false
+      }
+      return this.takesValueTag.hasUnitClasses
+    })
+  }
+
+  /**
+   * Get the unit classes for this HED tag.
+   */
+  get unitClasses() {
+    return this._memoize('unitClasses', () => {
+      if (this.hasUnitClass) {
+        return this.takesValueTag.unitClasses
+      } else {
+        return []
+      }
+    })
+  }
+
+  /**
+   * Get the default unit for this HED tag.
+   */
+  get defaultUnit() {
+    return this._memoize('defaultUnit', () => {
+      const defaultUnitsForUnitClassAttribute = 'defaultUnits'
+      if (!this.hasUnitClass) {
+        return ''
+      }
+      const tagDefaultUnit = this.takesValueTag.getNamedAttributeValue(
+        defaultUnitsForUnitClassAttribute,
+      )
+      if (tagDefaultUnit) {
+        return tagDefaultUnit
+      }
+      const firstUnitClass = this.unitClasses[0]
+      return firstUnitClass.getNamedAttributeValue(
+        defaultUnitsForUnitClassAttribute,
+      )
+    })
+  }
+
+  /**
    * Get the legal units for a particular HED tag.
    * @return {Set<SchemaUnit>}
    */
@@ -361,7 +406,7 @@ class ParsedHed3Tag extends ParsedHedTag {
       const units = new Set()
       for (const unitClass of tagUnitClasses) {
         const unitClassUnits =
-          this.schema.attributes.unitClassMap.get(unitClass).units
+          this.schema.attributes.unitClassMap.get(unitClass.name).units
         for (const unit of unitClassUnits.values()) {
           units.add(unit)
         }
@@ -369,8 +414,17 @@ class ParsedHed3Tag extends ParsedHedTag {
       return units
     })
   }
-}
 
+  /**
+   * Get the schema tag object for this tag's value-taking form.
+   *
+   * @return {SchemaTag}
+   */
+  get takesValueTag() {
+    const unitClassTag = replaceTagNameWithPound(this.formattedTag)
+    return this.schema.attributes.definitions.get('tags').getEntry(unitClassTag)
+  }
+}
 
 /**
  * Determine a parsed HED tag group's Definition tags.
@@ -414,7 +468,7 @@ const groupDefinitionTag = function (group, hedSchemas) {
 class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Constructor.
-   * @param {(ParsedHedSubstring)[]} parsedHedTags The parsed HED tags in the HED tag group.
+   * @param {(ParsedHedTag|ParsedHedGroup)[]} parsedHedTags The parsed HED tags in the HED tag group.
    * @param {string} originalTagGroup The original pre-parsed version of the HED tag group.
    * @param {int[]} originalBounds The bounds of the HED tag group in the original HED string.
    * @param {Schemas} hedSchemas The collection of HED schemas.
@@ -423,7 +477,7 @@ class ParsedHedGroup extends ParsedHedSubstring {
     super(originalTagGroup, originalBounds)
     /**
      * The parsed HED tags in the HED tag group.
-     * @type {(ParsedHedSubstring)[]}
+     * @type {(ParsedHedTag|ParsedHedGroup)[]}
      */
     this.tags = parsedHedTags
     const [definitionBase, definitionTag] = groupDefinitionTag(this, hedSchemas)

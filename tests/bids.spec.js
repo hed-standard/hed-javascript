@@ -692,6 +692,12 @@ describe('BIDS datasets', () => {
             badDatasets[2].file,
           ),
           new BidsHedIssue(
+            generateIssue('invalidValue', {
+              tag: 'Duration/ferry s',
+            }),
+            badDatasets[3].file,
+          ),
+          new BidsHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Age/30',
               bounds: [0, 6],

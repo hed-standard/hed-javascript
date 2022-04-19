@@ -56,13 +56,11 @@ class HedValidator {
    * Validate the individual HED tags in a parsed HED string object.
    */
   validateIndividualHedTags() {
-    let issues = []
     let previousTag = new ParsedHedTag('', '', [0, 0], this.hedSchemas)
     for (const tag of this.parsedString.tags) {
       this.validateIndividualHedTag(tag, previousTag)
       previousTag = tag
     }
-    return issues
   }
 
   /**
@@ -151,21 +149,11 @@ class HedValidator {
 
     for (const firstTag of tagList) {
       for (const secondTag of tagList) {
-        if (
-          firstTag !== secondTag &&
-          firstTag.formattedTag === secondTag.formattedTag
-        ) {
+        if (firstTag !== secondTag && firstTag.equivalent(secondTag)) {
           addIssue(firstTag)
           addIssue(secondTag)
         }
       }
-    }
-  }
-
-  _checkForTagAttribute(attribute, fn) {
-    const tags = this.hedSchemas.baseSchema.attributes.tagAttributes[attribute]
-    for (const tag of Object.keys(tags)) {
-      fn(tag)
     }
   }
 
@@ -201,6 +189,17 @@ class HedValidator {
       }
     })
   }
+
+  /**
+   * Validation check based on a tag attribute.
+   *
+   * @param {string} attribute The name of the attribute.
+   * @param {function (string): void} fn The actual validation code.
+   * @protected
+   * @abstract
+   */
+  // eslint-disable-next-line no-unused-vars
+  _checkForTagAttribute(attribute, fn) {}
 
   /**
    * Check if a tag is missing a required child.
@@ -251,7 +250,7 @@ class HedValidator {
     if (tag.existsInSchema || tag.takesValue) {
       return
     }
-    // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
+    // Whether this tag hasEntry an ancestor with the 'extensionAllowed' attribute.
     const isExtensionAllowedTag = tag.allowsExtensions
     if (
       this.options.expectValuePlaceholderString &&
@@ -421,6 +420,13 @@ class HedValidator {
 class Hed2Validator extends HedValidator {
   constructor(parsedString, hedSchemas, options) {
     super(parsedString, hedSchemas, options)
+  }
+
+  _checkForTagAttribute(attribute, fn) {
+    const tags = this.hedSchemas.baseSchema.attributes.tagAttributes[attribute]
+    for (const tag of Object.keys(tags)) {
+      fn(tag)
+    }
   }
 
   /**

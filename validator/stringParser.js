@@ -48,7 +48,7 @@ const splitHedString = function (
         hedSchemas,
       )
       hedTags.push(parsedHedTag)
-      conversionIssues.push(parsedHedTag.conversionIssues)
+      conversionIssues.push(...parsedHedTag.conversionIssues)
     }
     resetStartingIndex = true
     currentTag = ''
@@ -95,7 +95,7 @@ const splitHedString = function (
 
   const issues = {
     syntax: syntaxIssues,
-    conversion: conversionIssues.flat(),
+    conversion: conversionIssues,
   }
 
   return [hedTags, issues]

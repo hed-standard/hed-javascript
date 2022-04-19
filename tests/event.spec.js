@@ -1083,7 +1083,6 @@ describe('HED string and event validation', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         validatorBase(
           hedSchemas,
-          Hed3Validator,
           testStrings,
           expectedIssues,
           testFunction,
@@ -1141,15 +1140,15 @@ describe('HED string and event validation', () => {
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator) => {
-          validator.validateFullParsedHedString()
+          validator.validateEventLevel()
         })
       })
 
       it('should not validate strings with short-to-long conversion errors', () => {
         const testStrings = {
           // Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
-          red: 'Attribute/RGB-red, Duration/20 cm',
-          redAndBlue: 'Attribute/RGB-red, Attribute/RGB-blue, Duration/20 cm',
+          red: 'Property/RGB-red, Duration/20 cm',
+          redAndBlue: 'Property/RGB-red, Property/RGB-blue, Duration/20 cm',
         }
         const expectedIssues = {
           red: [
@@ -1157,9 +1156,10 @@ describe('HED string and event validation', () => {
               'invalidParentNode',
               testStrings.red,
               {
-                parentTag: 'Attribute/Sensory/Visual/Color/RGB-color/RGB-red',
+                parentTag:
+                  'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
               },
-              [10, 17],
+              [9, 16],
             ),
           ],
           redAndBlue: [
@@ -1167,17 +1167,19 @@ describe('HED string and event validation', () => {
               'invalidParentNode',
               testStrings.redAndBlue,
               {
-                parentTag: 'Attribute/Sensory/Visual/Color/RGB-color/RGB-red',
+                parentTag:
+                  'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
               },
-              [10, 17],
+              [9, 16],
             ),
             converterGenerateIssue(
               'invalidParentNode',
               testStrings.redAndBlue,
               {
-                parentTag: 'Attribute/Sensory/Visual/Color/RGB-color/RGB-blue',
+                parentTag:
+                  'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-blue',
               },
-              [29, 37],
+              [27, 35],
             ),
           ],
         }
@@ -1253,6 +1255,7 @@ describe('HED string and event validation', () => {
                 }
               }
             }
+            validator.definitions = definitionMap
             for (const tag of validator.parsedString.tags) {
               testFunction(validator, tag)
             }
@@ -1264,7 +1267,7 @@ describe('HED string and event validation', () => {
       it('should exist in the schema or be an allowed extension', () => {
         const testStrings = {
           takesValue: 'Duration/3 ms',
-          full: 'Left-side',
+          full: 'Left-side-of',
           extensionAllowed: 'Human/Driver',
           leafExtension: 'Sensory-event/Something',
           nonExtensionAllowed: 'Event/Nonsense',
@@ -1285,6 +1288,12 @@ describe('HED string and event validation', () => {
             }),
           ],
           illegalComma: [
+            converterGenerateIssue(
+              'invalidTag',
+              testStrings.illegalComma,
+              { tag: 'This' },
+              [22, 26],
+            ),
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',
               tag: 'This/Is/A/Tag',
@@ -1446,7 +1455,7 @@ describe('HED string and event validation', () => {
        *
        * @param {object<string, string>} testStrings A mapping of test strings.
        * @param {object<string, Issue[]>} expectedIssues The expected issues for each test string.
-       * @param {function(HedValidator, ParsedHedGroup): void} testFunction A test-specific function that executes the required validation check.
+       * @param {function(Hed3Validator, ParsedHedGroup): void} testFunction A test-specific function that executes the required validation check.
        * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemantic = function (
@@ -1475,20 +1484,20 @@ describe('HED string and event validation', () => {
           tagGroupDefinition:
             '(Definition/TagGroupDefinition, (Square, RGB-blue))',
           illegalSiblingDefinition:
-            '(Definition/IllegalSiblingDefinition, Train, (Visual))',
+            '(Definition/IllegalSiblingDefinition, Train, (Rectangle))',
           nestedDefinition:
-            '(Definition/NestedDefinition, (Screen, (Definition/InnerDefinition, (Square))))',
+            '(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))',
           multipleTagGroupDefinition:
-            '(Definition/MultipleTagGroupDefinition, (Screen), (Square))',
+            '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
           defExpandOnly: '(Def-expand/SimpleDefExpand)',
           tagGroupDefExpand:
             '(Def-expand/TagGroupDefExpand, (Square, RGB-blue))',
           illegalSiblingDefExpand:
-            '(Def-expand/IllegalSiblingDefExpand, Train, (Visual))',
+            '(Def-expand/IllegalSiblingDefExpand, Train, (Rectangle))',
           nestedDefExpand:
-            '(Def-expand/NestedDefExpand, (Screen, (Def-expand/InnerDefExpand, (Square))))',
+            '(Def-expand/NestedDefExpand, (Touchscreen, (Def-expand/InnerDefExpand, (Square))))',
           multipleTagGroupDefExpand:
-            '(Def-expand/MultipleTagGroupDefExpand, (Screen), (Square))',
+            '(Def-expand/MultipleTagGroupDefExpand, (Touchscreen), (Square))',
           mixedDefinitionFirst:
             '(Definition/DefinitionFirst, Def-expand/DefExpandSecond, (Square))',
           mixedDefExpandFirst:
@@ -1656,7 +1665,7 @@ describe('HED string and event validation', () => {
           singlePlaceholderWithValidDefinitionPlaceholder:
             'Duration/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
           nestedDefinitionPlaceholder:
-            '(Definition/NestedPlaceholderDefinition/#, (Screen, (Square, RGB-blue/#)))',
+            '(Definition/NestedPlaceholderDefinition/#, (Touchscreen, (Square, RGB-blue/#)))',
           threePlaceholderDefinition:
             '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
           fourPlaceholderDefinition:
@@ -1681,7 +1690,7 @@ describe('HED string and event validation', () => {
           singlePlaceholderWithValidDefinitionPlaceholder:
             'Duration/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
           nestedDefinitionPlaceholder:
-            '(Definition/NestedPlaceholderDefinition/#, (Screen, (Square, RGB-blue/#)))',
+            '(Definition/NestedPlaceholderDefinition/#, (Touchscreen, (Square, RGB-blue/#)))',
           threePlaceholderDefinition:
             '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
           fourPlaceholderDefinition:

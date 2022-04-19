@@ -1,8 +1,8 @@
 /**
- * Determine whether a sidecar value has HED data.
+ * Determine whether a sidecar value hasEntry HED data.
  *
  * @param {object} sidecarValue A BIDS sidecar value.
- * @return {boolean} Whether the sidecar value has HED data.
+ * @return {boolean} Whether the sidecar value hasEntry HED data.
  */
 const sidecarValueHasHed = function (sidecarValue) {
   return (
