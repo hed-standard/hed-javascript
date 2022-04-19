@@ -1,11 +1,11 @@
 const assert = require('chai').assert
 const hed = require('../validator/dataset')
-const schema = require('../validator/schema')
+const schema = require('../validator/schema/init')
 const generateValidationIssue = require('../common/issues/issues').generateIssue
 const generateConverterIssue = require('../converter/issues')
 
 describe('HED dataset validation', () => {
-  const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
+  const hedSchemaFile = 'tests/data/HED8.0.0.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
@@ -45,7 +45,7 @@ describe('HED dataset validation', () => {
         multipleValidLong: [
           'Event/Sensory-event',
           'Item/Object/Man-made-object/Vehicle/Train',
-          'Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
+          'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red/0.5',
         ],
         multipleValidShort: ['Sensory-event', 'Train', 'RGB-red/0.5'],
         multipleValidMixed: ['Event/Sensory-event', 'Train', 'RGB-red/0.5'],

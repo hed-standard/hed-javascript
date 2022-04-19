@@ -1,6 +1,6 @@
 const assert = require('chai').assert
 const hed = require('../validator/event')
-const schema = require('../validator/schema')
+const schema = require('../validator/schema/init')
 const { parseHedString } = require('../validator/stringParser')
 const { ParsedHedTag } = require('../validator/types/parsedHed')
 const {

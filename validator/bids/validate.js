@@ -1,6 +1,6 @@
 const { validateHedDataset } = require('../dataset')
 const { validateHedString } = require('../event')
-const { buildSchema } = require('../schema')
+const { buildSchema } = require('../schema/init')
 const { sidecarValueHasHed } = require('../../utils/bids')
 const { generateIssue } = require('../../common/issues/issues')
 const { fallbackFilePath } = require('../../common/schema')

@@ -231,7 +231,7 @@ class HedValidator {
     if (tag.takesValue && !tag.hasUnitClass) {
       const isValidValue = utils.HED.validateValue(
         tag.formattedTagName,
-        this.hedSchemas.baseSchema.attributes.tagHasAttribute(
+        this.hedSchemas.baseSchema.tagHasAttribute(
           utils.HED.replaceTagNameWithPound(tag.formattedTag),
           'isNumeric',
         ),
@@ -475,7 +475,7 @@ class Hed2Validator extends HedValidator {
     )
     const validValue = utils.HED.validateValue(
       value,
-      this.hedSchemas.baseSchema.attributes.tagHasAttribute(
+      this.hedSchemas.baseSchema.tagHasAttribute(
         utils.HED.replaceTagNameWithPound(tag.formattedTag),
         'isNumeric',
       ),

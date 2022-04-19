@@ -99,7 +99,7 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 
   hasAttribute(attribute) {
-    return this.schema.attributes.tagHasAttribute(this.formattedTag, attribute)
+    return this.schema.tagHasAttribute(this.formattedTag, attribute)
   }
 
   /**
@@ -192,10 +192,7 @@ class ParsedHedTag extends ParsedHedSubstring {
       for (const tagSlashIndex of tagSlashIndices) {
         const tagSubstring = this.formattedTag.slice(0, tagSlashIndex)
         if (
-          this.schema.attributes.tagHasAttribute(
-            tagSubstring,
-            extensionAllowedAttribute,
-          )
+          this.schema.tagHasAttribute(tagSubstring, extensionAllowedAttribute)
         ) {
           return true
         }
@@ -228,10 +225,7 @@ class ParsedHed2Tag extends ParsedHedTag {
     return this._memoize('takesValue', () => {
       const takesValueType = 'takesValue'
       const takesValueTag = replaceTagNameWithPound(this.formattedTag)
-      return this.schema.attributes.tagHasAttribute(
-        takesValueTag,
-        takesValueType,
-      )
+      return this.schema.tagHasAttribute(takesValueTag, takesValueType)
     })
   }
 
@@ -274,7 +268,7 @@ class ParsedHed2Tag extends ParsedHedTag {
         return ''
       }
       const unitClassTag = replaceTagNameWithPound(this.formattedTag)
-      let hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
+      let hasDefaultAttribute = this.schema.tagHasAttribute(
         unitClassTag,
         defaultUnitForTagAttribute,
       )
@@ -284,7 +278,7 @@ class ParsedHed2Tag extends ParsedHedTag {
           unitClassTag
         ]
       }
-      hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
+      hasDefaultAttribute = this.schema.tagHasAttribute(
         unitClassTag,
         defaultUnitsForUnitClassAttribute,
       )
@@ -324,7 +318,9 @@ class ParsedHed3Tag extends ParsedHedTag {
    */
   get existsInSchema() {
     return this._memoize('existsInSchema', () => {
-      return this.schema.attributes.definitions.get('tags').hasEntry(this.formattedTag)
+      return this.schema.entries.definitions
+        .get('tags')
+        .hasEntry(this.formattedTag)
     })
   }
 
@@ -336,9 +332,7 @@ class ParsedHed3Tag extends ParsedHedTag {
       const takesValueType = 'takesValue'
       for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
         const takesValueTag = replaceTagNameWithPound(ancestor)
-        if (
-          this.schema.attributes.tagHasAttribute(takesValueTag, takesValueType)
-        ) {
+        if (this.schema.tagHasAttribute(takesValueTag, takesValueType)) {
           return true
         }
       }
@@ -351,7 +345,7 @@ class ParsedHed3Tag extends ParsedHedTag {
    */
   get hasUnitClass() {
     return this._memoize('hasUnitClass', () => {
-      if (!this.schema.attributes.definitions.has('unitClasses')) {
+      if (!this.schema.entries.definitions.has('unitClasses')) {
         return false
       }
       if (this.takesValueTag === undefined) {
@@ -405,8 +399,9 @@ class ParsedHed3Tag extends ParsedHedTag {
       const tagUnitClasses = this.unitClasses
       const units = new Set()
       for (const unitClass of tagUnitClasses) {
-        const unitClassUnits =
-          this.schema.attributes.unitClassMap.get(unitClass.name).units
+        const unitClassUnits = this.schema.entries.unitClassMap.get(
+          unitClass.name,
+        ).units
         for (const unit of unitClassUnits.values()) {
           units.add(unit)
         }
@@ -422,7 +417,7 @@ class ParsedHed3Tag extends ParsedHedTag {
    */
   get takesValueTag() {
     const unitClassTag = replaceTagNameWithPound(this.formattedTag)
-    return this.schema.attributes.definitions.get('tags').getEntry(unitClassTag)
+    return this.schema.entries.definitions.get('tags').getEntry(unitClassTag)
   }
 }
 

@@ -1,5 +1,5 @@
 const assert = require('chai').assert
-const schema = require('../validator/schema')
+const schema = require('../validator/schema/init')
 const schemaCommon = require('../common/schema')
 const fallbackHedSchemaPath = schemaCommon.config.fallbackFilePath
 

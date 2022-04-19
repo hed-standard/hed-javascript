@@ -7,6 +7,13 @@ const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
 
 class Hed3Validator extends HedValidator {
+  /**
+   * Constructor.
+   * @param {ParsedHedString} parsedString
+   * @param {Schemas} hedSchemas
+   * @param {Map<string, ParsedHedGroup>} definitions
+   * @param {object<string, boolean>} options
+   */
   constructor(parsedString, hedSchemas, definitions, options) {
     super(parsedString, hedSchemas, options)
     this.definitions = definitions
@@ -52,7 +59,7 @@ class Hed3Validator extends HedValidator {
   }
 
   _checkForTagAttribute(attribute, fn) {
-    const tags = this.hedSchemas.baseSchema.attributes.definitions
+    const tags = this.hedSchemas.baseSchema.entries.definitions
       .get('tags')
       .getEntriesWithBooleanAttribute(attribute)
     for (const tag of tags) {
@@ -99,7 +106,7 @@ class Hed3Validator extends HedValidator {
   validateUnits(tag) {
     const originalTagUnitValue = tag.originalTagName
     const tagUnitClassUnits = tag.validUnits
-    const validUnits = this.hedSchemas.baseSchema.attributes.allUnits
+    const validUnits = this.hedSchemas.baseSchema.entries.allUnits
     const unitStrings = Array.from(validUnits.keys())
     unitStrings.sort((first, second) => {
       return second.length - first.length
@@ -278,7 +285,7 @@ class Hed3Validator extends HedValidator {
       if (
         !utils.HED.hedStringIsAGroup(topLevelTag.formattedTag) &&
         (topLevelTag.hasAttribute(tagGroupType) ||
-          this.hedSchemas.baseSchema.attributes.tagHasAttribute(
+          this.hedSchemas.baseSchema.tagHasAttribute(
             utils.HED.getParentTag(topLevelTag.formattedTag),
             tagGroupType,
           ))
@@ -298,7 +305,7 @@ class Hed3Validator extends HedValidator {
     for (const tag of this.parsedString.tags) {
       if (
         tag.hasAttribute(topLevelTagGroupType) ||
-        this.hedSchemas.baseSchema.attributes.tagHasAttribute(
+        this.hedSchemas.baseSchema.tagHasAttribute(
           utils.HED.getParentTag(tag.formattedTag),
           topLevelTagGroupType,
         )

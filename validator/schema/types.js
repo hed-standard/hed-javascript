@@ -50,23 +50,23 @@ class SchemaAttributes {
      */
     this.unitModifiers = schemaParser.unitModifiers
     /**
-     * Whether the schema hasEntry unit classes.
+     * Whether the schema has unit classes.
      * @type {boolean}
      */
     this.hasUnitClasses = schemaParser.hasUnitClasses
     /**
-     * Whether the schema hasEntry unit modifiers.
+     * Whether the schema has unit modifiers.
      * @type {boolean}
      */
     this.hasUnitModifiers = schemaParser.hasUnitModifiers
   }
 
   /**
-   * Determine if a HED tag hasEntry a particular attribute in this schema.
+   * Determine if a HED tag has a particular attribute in this schema.
    *
    * @param {string} tag The HED tag to check.
    * @param {string} tagAttribute The attribute to check for.
-   * @return {boolean|null} Whether this tag hasEntry this attribute, or null if the attribute doesn't exist.
+   * @return {boolean|null} Whether this tag has this attribute, or null if the attribute doesn't exist.
    */
   tagHasAttribute(tag, tagAttribute) {
     if (!(tagAttribute in this.tagAttributes)) {
@@ -134,11 +134,11 @@ class SchemaEntries extends Memoizer {
   }
 
   /**
-   * Determine if a HED tag hasEntry a particular attribute in this schema.
+   * Determine if a HED tag has a particular attribute in this schema.
    *
    * @param {string} tag The HED tag to check.
    * @param {string} tagAttribute The attribute to check for.
-   * @return {boolean} Whether this tag hasEntry this attribute.
+   * @return {boolean} Whether this tag has this attribute.
    */
   tagHasAttribute(tag, tagAttribute) {
     if (!this.definitions.get('tags').hasEntry(tag)) {
@@ -190,13 +190,13 @@ class SchemaEntry {
      */
     this._name = name
     /**
-     * The set of boolean attributes this schema entry hasEntry.
+     * The set of boolean attributes this schema entry has.
      * @type {Set<SchemaAttribute>}
      * @private
      */
     this._booleanAttributes = booleanAttributes
     /**
-     * The collection of value attributes this schema entry hasEntry.
+     * The collection of value attributes this schema entry has.
      * @type {Map<SchemaAttribute, *>}
      * @private
      */
@@ -222,9 +222,9 @@ class SchemaEntry {
   }
 
   /**
-   * Whether this schema entry hasEntry this attribute.
+   * Whether this schema entry has this attribute.
    * @param {SchemaAttribute} attribute The attribute to check for.
-   * @return {boolean} Whether this schema entry hasEntry this attribute.
+   * @return {boolean} Whether this schema entry has this attribute.
    */
   hasAttribute(attribute) {
     return this._booleanAttributes.has(attribute)
@@ -246,9 +246,9 @@ class SchemaEntry {
   }
 
   /**
-   * Whether this schema entry hasEntry this attribute (by name).
+   * Whether this schema entry has this attribute (by name).
    * @param {string} attributeName The attribute to check for.
-   * @return {boolean} Whether this schema entry hasEntry this attribute.
+   * @return {boolean} Whether this schema entry has this attribute.
    */
   hasAttributeName(attributeName) {
     return this._booleanAttributeNames.has(attributeName)
