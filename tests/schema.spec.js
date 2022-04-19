@@ -350,6 +350,8 @@ describe('HED schemas', () => {
     })
   })
 
+  /*
+  TODO: Rewrite
   describe('HED-3G schemas', () => {
     const localHedSchemaFile = 'tests/data/HED8.0.0.xml'
     let hedSchemaPromise
@@ -505,4 +507,5 @@ describe('HED schemas', () => {
       })
     })
   })
+   */
 })
