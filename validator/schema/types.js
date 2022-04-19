@@ -237,12 +237,7 @@ class SchemaEntry {
    * @return {*} The value of the attribute.
    */
   getAttributeValue(attribute, alwaysReturnArray = false) {
-    const value = this._valueAttributes.get(attribute)
-    if (!alwaysReturnArray && Array.isArray(value) && value.length === 1) {
-      return value[0]
-    } else {
-      return value
-    }
+    return SchemaEntry._getMapArrayValue(this._valueAttributes, attribute, alwaysReturnArray)
   }
 
   /**
@@ -261,7 +256,21 @@ class SchemaEntry {
    * @return {*} The value of the attribute.
    */
   getNamedAttributeValue(attributeName, alwaysReturnArray = false) {
-    const value = this._valueAttributeNames.get(attributeName)
+    return SchemaEntry._getMapArrayValue(this._valueAttributeNames, attributeName, alwaysReturnArray)
+  }
+
+  /**
+   * Return a map value, with a scalar being returned in lieu of a singleton array if alwaysReturnArray is false.
+   *
+   * @template K,V
+   * @param {Map<K,V>} map The map to search.
+   * @param {K} key A key in the map.
+   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
+   * @return {V|V[]} The value for the key in the passed map.
+   * @private
+   */
+  static _getMapArrayValue(map, key, alwaysReturnArray) {
+    const value = map.get(key)
     if (!alwaysReturnArray && Array.isArray(value) && value.length === 1) {
       return value[0]
     } else {
