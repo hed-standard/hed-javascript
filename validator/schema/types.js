@@ -144,7 +144,10 @@ class SchemaEntries extends Memoizer {
     if (!this.definitions.get('tags').hasEntry(tag)) {
       return false
     }
-    return this.definitions.get('tags').getEntry(tag).hasAttributeName(tagAttribute)
+    return this.definitions
+      .get('tags')
+      .getEntry(tag)
+      .hasAttributeName(tagAttribute)
   }
 }
 
@@ -175,9 +178,15 @@ class SchemaEntryManager extends Memoizer {
 
   getEntriesWithBooleanAttribute(booleanPropertyName) {
     return this._memoize(booleanPropertyName, () => {
-      const pairArray = Array.from(this.definitions.entries())
-      return new Map(pairArray.filter(([k, v]) => v.hasAttributeName(booleanPropertyName)))
+      return this.filter(([_, v]) => {
+        return v.hasAttributeName(booleanPropertyName)
+      })
     })
+  }
+
+  filter(fn) {
+    const pairArray = Array.from(this.definitions.entries())
+    return new Map(pairArray.filter((entry) => fn(entry)))
   }
 }
 
@@ -237,7 +246,11 @@ class SchemaEntry {
    * @return {*} The value of the attribute.
    */
   getAttributeValue(attribute, alwaysReturnArray = false) {
-    return SchemaEntry._getMapArrayValue(this._valueAttributes, attribute, alwaysReturnArray)
+    return SchemaEntry._getMapArrayValue(
+      this._valueAttributes,
+      attribute,
+      alwaysReturnArray,
+    )
   }
 
   /**
@@ -256,7 +269,11 @@ class SchemaEntry {
    * @return {*} The value of the attribute.
    */
   getNamedAttributeValue(attributeName, alwaysReturnArray = false) {
-    return SchemaEntry._getMapArrayValue(this._valueAttributeNames, attributeName, alwaysReturnArray)
+    return SchemaEntry._getMapArrayValue(
+      this._valueAttributeNames,
+      attributeName,
+      alwaysReturnArray,
+    )
   }
 
   /**
@@ -307,22 +324,35 @@ class SchemaProperty extends SchemaEntry {
 
 // Pseudo-properties
 
-const nodeProperty = new SchemaProperty('nodeProperty', SchemaProperty.CATEGORY_PROPERTY)
-const attributeProperty = new SchemaProperty('attributeProperty', SchemaProperty.CATEGORY_PROPERTY)
-const stringProperty = new SchemaProperty('stringProperty', SchemaProperty.TYPE_PROPERTY)
+const nodeProperty = new SchemaProperty(
+  'nodeProperty',
+  SchemaProperty.CATEGORY_PROPERTY,
+)
+const attributeProperty = new SchemaProperty(
+  'attributeProperty',
+  SchemaProperty.CATEGORY_PROPERTY,
+)
+const stringProperty = new SchemaProperty(
+  'stringProperty',
+  SchemaProperty.TYPE_PROPERTY,
+)
 
 class SchemaAttribute extends SchemaEntry {
   constructor(name, properties) {
     super(name, new Set(), new Map())
 
     // Parse properties
-    const categoryProperties = properties.filter((property) => property.isCategoryProperty)
+    const categoryProperties = properties.filter(
+      (property) => property.isCategoryProperty,
+    )
     if (categoryProperties.length === 0) {
       this._categoryProperty = nodeProperty
     } else {
       this._categoryProperty = categoryProperties[0]
     }
-    const typeProperties = properties.filter((property) => property.isTypeProperty)
+    const typeProperties = properties.filter(
+      (property) => property.isTypeProperty,
+    )
     if (typeProperties.length === 0) {
       this._typeProperty = stringProperty
     } else {
@@ -347,18 +377,21 @@ class SchemaUnit extends SchemaEntry {
     if (!this.isSIUnit) {
       return
     }
-    for (const [unitModifierName, unitModifier] of unitModifiers) {
-      if (this.isUnitSymbol === unitModifier.isSIUnitSymbolModifier) {
-        this._derivativeUnits.push(unitModifierName + name)
-      }
+    const matchingModifiers = unitModifiers.filter(
+      ([_, unitModifier]) => {
+        return this.isUnitSymbol === unitModifier.isSIUnitSymbolModifier
+      },
+    )
+    for (const modifierName of matchingModifiers.keys()) {
+      this._derivativeUnits.push(modifierName + name)
     }
     if (!this.isUnitSymbol) {
       const pluralUnit = pluralize.plural(name)
       this._derivativeUnits.push(pluralUnit)
-      for (const [unitModifierName, unitModifier] of unitModifiers) {
-        if (unitModifier.isSIUnitModifier) {
-          this._derivativeUnits.push(unitModifierName + pluralUnit)
-        }
+      const SIUnitModifiers =
+        unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
+      for (const modifierName of SIUnitModifiers.keys()) {
+        this._derivativeUnits.push(modifierName + pluralUnit)
       }
     }
   }
