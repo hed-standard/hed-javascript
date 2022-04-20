@@ -78,7 +78,7 @@ class SchemaAttributes {
 
 class SchemaEntries extends Memoizer {
   constructor(schemaParser) {
-    super(schemaParser)
+    super()
     /**
      * @type {SchemaEntryManager}
      */
