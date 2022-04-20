@@ -59,17 +59,21 @@ function buildBidsSchema(dataset, schemaDefinition) {
 }
 
 function validateDataset(dataset, hedSchemas) {
-  const [sidecarErrorsFound, sidecarIssues] = validateSidecars(
-    dataset.sidecarData,
-    hedSchemas,
-  )
-  if (sidecarErrorsFound) {
-    return Promise.resolve(sidecarIssues)
+  try {
+    const [sidecarErrorsFound, sidecarIssues] = validateSidecars(
+      dataset.sidecarData,
+      hedSchemas,
+    )
+    if (sidecarErrorsFound) {
+      return Promise.resolve(sidecarIssues)
+    }
+    const eventFileIssues = dataset.eventData.map((eventFileData) => {
+      return validateBidsEventFile(eventFileData, hedSchemas)
+    })
+    return Promise.resolve([].concat(sidecarIssues, ...eventFileIssues))
+  } catch (e) {
+    return Promise.reject(e)
   }
-  const eventFileIssues = dataset.eventData.map((eventFileData) => {
-    return validateBidsEventFile(eventFileData, hedSchemas)
-  })
-  return Promise.resolve([].concat(sidecarIssues, ...eventFileIssues))
 }
 
 function validateBidsEventFile(eventFileData, hedSchema) {
