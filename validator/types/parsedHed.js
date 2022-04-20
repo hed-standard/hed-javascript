@@ -223,7 +223,7 @@ class ParsedHed2Tag extends ParsedHedTag {
   }
 
   /**
-   * Checks if this HED tag hasEntry the 'takesValue' attribute.
+   * Checks if this HED tag has the 'takesValue' attribute.
    */
   get takesValue() {
     return this._memoize('takesValue', () => {
@@ -234,7 +234,7 @@ class ParsedHed2Tag extends ParsedHedTag {
   }
 
   /**
-   * Checks if this HED tag hasEntry the 'unitClass' attribute.
+   * Checks if this HED tag has the 'unitClass' attribute.
    */
   get hasUnitClass() {
     return this._memoize('hasUnitClass', () => {
@@ -329,7 +329,7 @@ class ParsedHed3Tag extends ParsedHedTag {
   }
 
   /**
-   * Checks if this HED tag hasEntry the 'takesValue' attribute.
+   * Checks if this HED tag has the 'takesValue' attribute.
    */
   get takesValue() {
     return this._memoize('takesValue', () => {
@@ -345,7 +345,7 @@ class ParsedHed3Tag extends ParsedHedTag {
   }
 
   /**
-   * Checks if this HED tag hasEntry the 'unitClass' attribute.
+   * Checks if this HED tag has the 'unitClass' attribute.
    */
   get hasUnitClass() {
     return this._memoize('hasUnitClass', () => {

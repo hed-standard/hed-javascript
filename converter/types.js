@@ -33,7 +33,7 @@ class Mapping {
   /**
    * Constructor.
    * @param {object<string, (TagEntry|TagEntry[])>} mappingData A dictionary mapping forms to TagEntry instances.
-   * @param {boolean} hasNoDuplicates Whether the mapping hasEntry no duplicates.
+   * @param {boolean} hasNoDuplicates Whether the mapping has no duplicates.
    */
   constructor(mappingData, hasNoDuplicates) {
     /**
@@ -42,7 +42,7 @@ class Mapping {
      */
     this.mappingData = mappingData
     /**
-     * Whether the mapping hasEntry no duplicates.
+     * Whether the mapping has no duplicates.
      * @type {boolean}
      */
     this.hasNoDuplicates = hasNoDuplicates

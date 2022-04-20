@@ -291,7 +291,7 @@ describe('HED tag string utility functions', () => {
       )
     })
 
-    it('should correctly determine if a tag hasEntry a unit class', () => {
+    it('should correctly determine if a tag has a unit class', () => {
       const testStrings = {
         suffixed: 'attribute/direction/left/35 px',
         prefixed: 'participant/effect/cognitive/reward/$10.55',

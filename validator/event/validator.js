@@ -250,7 +250,7 @@ class HedValidator {
     if (tag.existsInSchema || tag.takesValue) {
       return
     }
-    // Whether this tag hasEntry an ancestor with the 'extensionAllowed' attribute.
+    // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
     const isExtensionAllowedTag = tag.allowsExtensions
     if (
       this.options.expectValuePlaceholderString &&

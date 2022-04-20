@@ -71,7 +71,7 @@ class Schema {
    *
    * @param {string} tag The HED tag to check.
    * @param {string} tagAttribute The attribute to check for.
-   * @return {boolean} Whether this tag hasEntry this attribute.
+   * @return {boolean} Whether this tag has this attribute.
    * @abstract
    */
   // eslint-disable-next-line no-unused-vars
@@ -84,7 +84,7 @@ class Hed2Schema extends Schema {
    *
    * @param {string} tag The HED tag to check.
    * @param {string} tagAttribute The attribute to check for.
-   * @return {boolean} Whether this tag hasEntry this attribute.
+   * @return {boolean} Whether this tag has this attribute.
    */
   tagHasAttribute(tag, tagAttribute) {
     return this.attributes.tagHasAttribute(tag, tagAttribute)
@@ -106,7 +106,7 @@ class Hed3Schema extends Schema {
    *
    * @param {string} tag The HED tag to check.
    * @param {string} tagAttribute The attribute to check for.
-   * @return {boolean} Whether this tag hasEntry this attribute.
+   * @return {boolean} Whether this tag has this attribute.
    */
   tagHasAttribute(tag, tagAttribute) {
     return this.entries.tagHasAttribute(tag, tagAttribute)
