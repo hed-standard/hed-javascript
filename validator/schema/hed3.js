@@ -56,12 +56,8 @@ class Hed3SchemaParser extends SchemaParser {
   }
 
   getAllTags(tagElementName = 'node') {
-    const tags = []
     const tagElements = xpath.find(this.rootElement, '//' + tagElementName)
-    for (const tagElement of tagElements) {
-      const tag = this.getTagPathFromTagElement(tagElement)
-      tags.push(tag)
-    }
+    const tags = tagElements.map((element) => this.getTagPathFromTagElement(element))
     return [tags, tagElements]
   }
 
