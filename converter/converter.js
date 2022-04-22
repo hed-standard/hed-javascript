@@ -81,43 +81,46 @@ const convertTagToLong = function (schemas, hedTag, hedString, offset) {
 
     const tagEntries = asArray(mapping.mappingData.get(tag))
 
-    if (!foundUnknownExtension) {
-      if (!mapping.mappingData.has(tag)) {
-        if (foundTagEntry === null) {
-          return [
-            hedTag,
-            [
-              generateIssue('invalidTag', hedString, {}, [
-                startingIndex + offset,
-                endingIndex + offset,
-              ]),
-            ],
-          ]
-        }
-
-        foundUnknownExtension = true
+    if (foundUnknownExtension) {
+      if (mapping.mappingData.has(tag)) {
+        return generateParentNodeIssue(tagEntries, startingIndex, endingIndex)
+      } else {
         continue
       }
+    }
+    if (!mapping.mappingData.has(tag)) {
+      if (foundTagEntry === null) {
+        return [
+          hedTag,
+          [
+            generateIssue('invalidTag', hedString, {}, [
+              startingIndex + offset,
+              endingIndex + offset,
+            ]),
+          ],
+        ]
+      }
 
-      let tagFound = false
-      for (const tagEntry of tagEntries) {
-        const tagString = tagEntry.longFormattedTag
-        const mainHedPortion = cleanedTag.slice(0, endingIndex)
+      foundUnknownExtension = true
+      continue
+    }
 
-        if (tagString.endsWith(mainHedPortion)) {
-          tagFound = true
-          foundEndingIndex = endingIndex
-          foundTagEntry = tagEntry
-          if (tagEntry.takesValue) {
-            takesValueTag = true
-          }
-          break
+    let tagFound = false
+    for (const tagEntry of tagEntries) {
+      const tagString = tagEntry.longFormattedTag
+      const mainHedPortion = cleanedTag.slice(0, endingIndex)
+
+      if (tagString.endsWith(mainHedPortion)) {
+        tagFound = true
+        foundEndingIndex = endingIndex
+        foundTagEntry = tagEntry
+        if (tagEntry.takesValue) {
+          takesValueTag = true
         }
+        break
       }
-      if (!tagFound && !takesValueTag) {
-        return generateParentNodeIssue(tagEntries, startingIndex, endingIndex)
-      }
-    } else if (mapping.mappingData.has(tag)) {
+    }
+    if (!tagFound && !takesValueTag) {
       return generateParentNodeIssue(tagEntries, startingIndex, endingIndex)
     }
   }
