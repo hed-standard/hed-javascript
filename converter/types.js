@@ -32,13 +32,13 @@ class TagEntry {
 class Mapping {
   /**
    * Constructor.
-   * @param {object<string, (TagEntry|TagEntry[])>} mappingData A dictionary mapping forms to TagEntry instances.
+   * @param {Map<string, (TagEntry|TagEntry[])>} mappingData A dictionary mapping forms to TagEntry instances.
    * @param {boolean} hasNoDuplicates Whether the mapping has no duplicates.
    */
   constructor(mappingData, hasNoDuplicates) {
     /**
      * A dictionary mapping forms to TagEntry instances.
-     * @type {Object<string, TagEntry|TagEntry[]>}
+     * @type {Map<string, TagEntry|TagEntry[]>}
      */
     this.mappingData = mappingData
     /**
