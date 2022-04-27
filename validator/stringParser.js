@@ -3,6 +3,7 @@ const { hedStringIsAGroup, removeGroupParentheses } = require('../utils/hed')
 const { generateIssue } = require('../common/issues/issues')
 
 const {
+  ParsedHedTag,
   ParsedHed2Tag,
   ParsedHed3Tag,
   ParsedHedGroup,
@@ -37,11 +38,18 @@ const splitHedString = function (
   let startingIndex = 0
   let resetStartingIndex = false
 
-  const ParsedHedTag = hedSchemas.isHed3 ? ParsedHed3Tag : ParsedHed2Tag
+  let ParsedHedTagClass
+  if (hedSchemas.isHed2) {
+    ParsedHedTagClass = ParsedHed2Tag
+  } else if (hedSchemas.isHed3) {
+    ParsedHedTagClass = ParsedHed3Tag
+  } else {
+    ParsedHedTagClass = ParsedHedTag
+  }
 
   const pushTag = function (i) {
     if (!utils.string.stringIsEmpty(currentTag)) {
-      const parsedHedTag = new ParsedHedTag(
+      const parsedHedTag = new ParsedHedTagClass(
         currentTag.trim(),
         hedString,
         [groupStartingIndex + startingIndex, groupStartingIndex + i],
