@@ -578,7 +578,7 @@ describe('BIDS datasets', () => {
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
-    })
+    }, 10000)
 
     it('should validate placeholders in BIDS sidecars', () => {
       const placeholderDatasets = bidsSidecars[2]
@@ -624,7 +624,7 @@ describe('BIDS datasets', () => {
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
-    })
+    }, 10000)
   })
 
   describe('TSV-only datasets', () => {
@@ -655,7 +655,7 @@ describe('BIDS datasets', () => {
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
-    })
+    }, 10000)
   })
 
   describe('Combined datasets', () => {
@@ -715,7 +715,7 @@ describe('BIDS datasets', () => {
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
-    })
+    }, 10000)
   })
 
   describe('HED 2 combined datasets', () => {
@@ -728,6 +728,6 @@ describe('BIDS datasets', () => {
         all_good: [],
       }
       return validator(testDatasets, expectedIssues, { version: '7.2.0' })
-    })
+    }, 10000)
   })
 })
