@@ -49,7 +49,7 @@ describe('HED dataset validation', () => {
         ],
         multipleValidShort: ['Sensory-event', 'Train', 'RGB-red/0.5'],
         multipleValidMixed: ['Event/Sensory-event', 'Train', 'RGB-red/0.5'],
-        multipleInvalid: ['Train/Maglev', 'Duration/0.5 cm', 'InvalidEvent'],
+        multipleInvalid: ['Duration/0.5 cm', 'InvalidEvent'],
       }
       const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
       const expectedIssues = {
@@ -60,20 +60,17 @@ describe('HED dataset validation', () => {
         multipleValidShort: [],
         multipleValidMixed: [],
         multipleInvalid: [
-          generateValidationIssue('extension', {
-            tag: testDatasets.multipleInvalid[0],
-          }),
           generateValidationIssue('unitClassInvalidUnit', {
-            tag: testDatasets.multipleInvalid[1],
+            tag: testDatasets.multipleInvalid[0],
             unitClassUnits: legalTimeUnits.sort().join(','),
           }),
           // TODO: Duplication temporary
           generateValidationIssue('invalidTag', {
-            tag: testDatasets.multipleInvalid[2],
+            tag: testDatasets.multipleInvalid[1],
           }),
           generateConverterIssue(
             'invalidTag',
-            testDatasets.multipleInvalid[2],
+            testDatasets.multipleInvalid[1],
             {},
             [0, 12],
           ),

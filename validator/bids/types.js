@@ -45,6 +45,19 @@ class BidsTsvFile extends BidsFile {
      * @type {object<string, *[]>}
      */
     this.parsedTsv = parsedTsv
+    this.parseHedColumn()
+  }
+
+  parseHedColumn() {
+    const hedColumnIndex = this.parsedTsv.headers.indexOf('HED')
+    if (hedColumnIndex === -1) {
+      this.hedColumnHedStrings = []
+    } else {
+      this.hedColumnHedStrings = this.parsedTsv.rows
+        .slice(1)
+        .map((rowCells) => rowCells[hedColumnIndex])
+        .map((hedCell) => (hedCell && hedCell !== 'n/a' ? hedCell : ''))
+    }
   }
 }
 

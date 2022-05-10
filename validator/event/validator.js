@@ -274,7 +274,7 @@ class HedValidator {
     } else if (!isExtensionAllowedTag) {
       // This is not a valid tag.
       this.pushIssue('invalidTag', { tag: tag.originalTag })
-    } else if (this.options.checkForWarnings) {
+    } else if (!this.options.isEventLevel && this.options.checkForWarnings) {
       // This is an allowed extension.
       this.pushIssue('extension', { tag: tag.originalTag })
     }

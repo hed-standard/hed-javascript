@@ -153,7 +153,7 @@ describe('HED string parsing', () => {
     })
   })
 
-  describe('Lists of HED Tags', () => {
+  describe('Lists of HED tags', () => {
     it('should be an array', () => {
       const hedString =
         'Event/Category/Sensory-event,Item/Object/Man-made-object/Vehicle/Train,Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple'
@@ -305,7 +305,7 @@ describe('HED string parsing', () => {
     })
   })
 
-  describe('Formatted HED Tags', () => {
+  describe('Formatted HED tags', () => {
     it('should be lowercase and not have leading or trailing double quotes or slashes', () => {
       // Correct formatting
       const formattedHedTag = 'event/category/sensory-event'
@@ -344,7 +344,7 @@ describe('HED string parsing', () => {
     })
   })
 
-  describe('Parsed HED Tags', () => {
+  describe('Parsed HED strings', () => {
     it('must have the correct number of tags, top-level tags, and groups', () => {
       const hedString =
         '/Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow),/Position/X-position/70 px,/Position/Y-position/23 px'
@@ -398,6 +398,14 @@ describe('HED string parsing', () => {
         parsedString.topLevelTags.map(formattedMap),
         parsedFormattedString.topLevelTags.map(originalMap),
       )
+    })
+
+    it('must correctly handle multiple levels of parentheses', () => {
+      const testStrings = {
+        shapes: 'Square,(Definition/RedCircle,(Circle,Red)),Rectangle',
+        vehicles: 'Car,(Definition/TrainVelocity/#,(Train,(Measurement-device/Odometer,Data-maximum/160,Speed/# kph),Blue,Age/12,(Navigational-object/Railway,Data-maximum/150)))',
+        typing: '(((Human-agent,Joyful),Press,Keyboard-key/F),(Braille,Character/A,Screen-window))',
+      }
     })
   })
 
