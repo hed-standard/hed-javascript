@@ -53,6 +53,7 @@ const generateIssue = function (internalCode, parameters) {
   const issueCodeData = issueData[internalCode] || issueData.genericError
   const { hedCode, level, message } = issueCodeData
   const bounds = parameters.bounds || []
+  parameters.internalCode = internalCode
   const parsedMessage = message(...bounds, parameters)
 
   return new Issue(internalCode, hedCode, level, parsedMessage)
