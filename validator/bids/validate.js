@@ -1,4 +1,4 @@
-const { validateHedDataset } = require('../dataset')
+const { validateHedDatasetWithContext } = require('../dataset')
 const { validateHedString } = require('../event')
 const { buildSchema } = require('../schema/init')
 const { sidecarValueHasHed } = require('../../utils/bids')
@@ -52,13 +52,13 @@ function validateBidsDataset(dataset, schemaDefinition) {
 
 function buildBidsSchema(dataset, schemaDefinition) {
   return buildSchema(schemaDefinition, false).then((hedSchemas) => {
-    return validateDataset(dataset, hedSchemas).catch(
+    return validateFullDataset(dataset, hedSchemas).catch(
       generateInternalErrorBidsIssue,
     )
   })
 }
 
-function validateDataset(dataset, hedSchemas) {
+function validateFullDataset(dataset, hedSchemas) {
   try {
     const [sidecarErrorsFound, sidecarIssues] = validateSidecars(
       dataset.sidecarData,
@@ -103,28 +103,14 @@ function validateSidecars(sidecarData, hedSchema) {
   let sidecarErrorsFound = false
   // validate the HED strings in the json sidecars
   for (const sidecar of sidecarData) {
-    const sidecarDictionary = sidecar.sidecarData
-    const sidecarHedValueStrings = []
-    let sidecarHedCategoricalStrings = []
-    const sidecarHedData =
-      Object.values(sidecarDictionary).filter(sidecarValueHasHed)
-    for (const sidecarValue of sidecarHedData) {
-      if (typeof sidecarValue.HED === 'string') {
-        sidecarHedValueStrings.push(sidecarValue.HED)
-      } else {
-        sidecarHedCategoricalStrings = sidecarHedCategoricalStrings.concat(
-          Object.values(sidecarValue.HED),
-        )
-      }
-    }
     const valueStringIssues = validateStrings(
-      sidecarHedValueStrings,
+      sidecar.hedValueStrings,
       hedSchema,
       sidecar.file,
       true,
     )
     const categoricalStringIssues = validateStrings(
-      sidecarHedCategoricalStrings,
+      sidecar.hedCategoricalStrings,
       hedSchema,
       sidecar.file,
       false,
@@ -211,8 +197,9 @@ function parseTsvHed(eventFileData) {
 }
 
 function validateCombinedDataset(hedStrings, hedSchema, eventFileData) {
-  const [isHedDatasetValid, hedIssues] = validateHedDataset(
+  const [isHedDatasetValid, hedIssues] = validateHedDatasetWithContext(
     hedStrings,
+    eventFileData.mergedSidecar.hedStrings,
     hedSchema,
     true,
   )

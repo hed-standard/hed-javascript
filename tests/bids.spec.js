@@ -640,7 +640,12 @@ describe('BIDS datasets', () => {
         tag: 'Speed/300 miles',
         unitClassUnits: legalSpeedUnits.sort().join(','),
       })
-      const converterMaglevError = converterGenerateIssue('invalidTag', 'Maglev', {}, [0, 6])
+      const converterMaglevError = converterGenerateIssue(
+        'invalidTag',
+        'Maglev',
+        {},
+        [0, 6],
+      )
       const maglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
       const expectedIssues = {
@@ -673,6 +678,14 @@ describe('BIDS datasets', () => {
         all_bad: [
           new BidsHedIssue(
             generateIssue('invalidTag', { tag: 'Confused' }),
+            badDatasets[0].file,
+          ),
+          new BidsHedIssue(
+            converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]),
+            badDatasets[0].file,
+          ),
+          new BidsHedIssue(
+            converterGenerateIssue('invalidTag', 'Gray,Confused', {}, [5, 13]),
             badDatasets[0].file,
           ),
           // TODO: Catch warning in sidecar validation
