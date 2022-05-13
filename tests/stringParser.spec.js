@@ -412,7 +412,7 @@ describe('HED string parsing', () => {
         vehicles:
           'Car,(Definition/TrainVelocity/#,(Train,(Measurement-device/Odometer,Data-maximum/160,Speed/# kph),Blue,Age/12,(Navigational-object/Railway,Data-maximum/150)))',
         typing:
-          'Blue,(((Human-agent,Joyful),Press,Keyboard-key/F),(Braille,Character/A,Screen-window))',
+          '((Human-agent,Joyful),Press,Keyboard-key/F),(Braille,Character/A,Screen-window)',
       }
       const expectedTags = {
         shapes: [
@@ -435,7 +435,6 @@ describe('HED string parsing', () => {
           'Data-maximum/150',
         ],
         typing: [
-          'Blue',
           'Human-agent',
           'Joyful',
           'Press',
@@ -464,10 +463,8 @@ describe('HED string parsing', () => {
           ],
         ],
         typing: [
-          [
-            [['Human-agent', 'Joyful'], 'Press', 'Keyboard-key/F'],
-            ['Braille', 'Character/A', 'Screen-window'],
-          ],
+          [['Human-agent', 'Joyful'], 'Press', 'Keyboard-key/F'],
+          ['Braille', 'Character/A', 'Screen-window'],
         ],
       }
       return hedSchemaPromise.then((hedSchema) => {
