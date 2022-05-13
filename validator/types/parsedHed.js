@@ -558,6 +558,22 @@ class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
+   * The deeply nested array of parsed tags.
+   * @returns {ParsedHedTag[]}
+   */
+  nestedGroups() {
+    const currentGroup = []
+    for (const innerTag of this.tags) {
+      if (innerTag instanceof ParsedHedTag) {
+        currentGroup.push(innerTag)
+      } else if (innerTag instanceof ParsedHedGroup) {
+        currentGroup.push(innerTag.nestedGroups())
+      }
+    }
+    return currentGroup
+  }
+
+  /**
    * Iterator over the full HED groups and subgroups in this HED tag group.
    * @return {Generator<*, ParsedHedTag[], *>}
    */
