@@ -1,11 +1,11 @@
 const assert = require('chai').assert
 const hed = require('../validator/dataset')
-const schema = require('../validator/schema')
+const schema = require('../validator/schema/init')
 const generateValidationIssue = require('../common/issues/issues').generateIssue
 const generateConverterIssue = require('../converter/issues')
 
 describe('HED dataset validation', () => {
-  const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
+  const hedSchemaFile = 'tests/data/HED8.0.0.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
@@ -45,11 +45,11 @@ describe('HED dataset validation', () => {
         multipleValidLong: [
           'Event/Sensory-event',
           'Item/Object/Man-made-object/Vehicle/Train',
-          'Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
+          'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red/0.5',
         ],
         multipleValidShort: ['Sensory-event', 'Train', 'RGB-red/0.5'],
         multipleValidMixed: ['Event/Sensory-event', 'Train', 'RGB-red/0.5'],
-        multipleInvalid: ['Train/Maglev', 'Duration/0.5 cm', 'InvalidEvent'],
+        multipleInvalid: ['Duration/0.5 cm', 'InvalidEvent'],
       }
       const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
       const expectedIssues = {
@@ -60,20 +60,17 @@ describe('HED dataset validation', () => {
         multipleValidShort: [],
         multipleValidMixed: [],
         multipleInvalid: [
-          generateValidationIssue('extension', {
-            tag: testDatasets.multipleInvalid[0],
-          }),
           generateValidationIssue('unitClassInvalidUnit', {
-            tag: testDatasets.multipleInvalid[1],
+            tag: testDatasets.multipleInvalid[0],
             unitClassUnits: legalTimeUnits.sort().join(','),
           }),
           // TODO: Duplication temporary
           generateValidationIssue('invalidTag', {
-            tag: testDatasets.multipleInvalid[2],
+            tag: testDatasets.multipleInvalid[1],
           }),
           generateConverterIssue(
             'invalidTag',
-            testDatasets.multipleInvalid[2],
+            testDatasets.multipleInvalid[1],
             {},
             [0, 12],
           ),

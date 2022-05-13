@@ -1,5 +1,5 @@
 const assert = require('chai').assert
-const schema = require('../validator/schema')
+const schema = require('../validator/schema/init')
 const schemaCommon = require('../common/schema')
 const fallbackHedSchemaPath = schemaCommon.config.fallbackFilePath
 
@@ -29,24 +29,24 @@ describe('HED schemas', () => {
     })
   })
 
-  /*
-  describe('Remote HED library schemas', function() {
-    it('can be loaded from a central GitHub repository', function() {
+  describe.skip('Remote HED library schemas', () => {
+    it('can be loaded from a central GitHub repository', () => {
       const remoteHedSchemaLibrary = 'test'
       const remoteHedSchemaVersion = '0.0.1'
-      return schemaUtils
-        .loadSchema({
+      return schema
+        .buildSchema({
           library: remoteHedSchemaLibrary,
           version: remoteHedSchemaVersion,
         })
-        .then(hedSchema => {
-          const schema = new schemaUtils.Schema(hedSchema)
-          assert.strictEqual(schema.library, remoteHedSchemaLibrary)
-          assert.strictEqual(schema.version, remoteHedSchemaVersion)
+        .then((hedSchemas) => {
+          const hedSchema = hedSchemas.librarySchemas.get(
+            remoteHedSchemaLibrary,
+          )
+          assert.strictEqual(hedSchema.library, remoteHedSchemaLibrary)
+          assert.strictEqual(hedSchema.version, remoteHedSchemaVersion)
         })
     })
   })
-  */
 
   describe('Fallback HED schemas', () => {
     it('loads the fallback schema if a remote schema cannot be found', () => {
@@ -350,8 +350,9 @@ describe('HED schemas', () => {
     })
   })
 
-  describe('HED-3G schemas', () => {
-    const localHedSchemaFile = 'tests/data/HED8.0.0-alpha.3.xml'
+  // TODO: Rewrite
+  describe.skip('HED-3G schemas', () => {
+    const localHedSchemaFile = 'tests/data/HED8.0.0.xml'
     let hedSchemaPromise
 
     beforeAll(() => {

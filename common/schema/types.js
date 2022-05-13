@@ -65,6 +65,52 @@ class Schema {
   get isHed3() {
     return this.generation === 3
   }
+
+  /**
+   * Determine if a HED tag has a particular attribute in this schema.
+   *
+   * @param {string} tag The HED tag to check.
+   * @param {string} tagAttribute The attribute to check for.
+   * @return {boolean} Whether this tag has this attribute.
+   * @abstract
+   */
+  // eslint-disable-next-line no-unused-vars
+  tagHasAttribute(tag, tagAttribute) {}
+}
+
+class Hed2Schema extends Schema {
+  /**
+   * Determine if a HED tag has a particular attribute in this schema.
+   *
+   * @param {string} tag The HED tag to check.
+   * @param {string} tagAttribute The attribute to check for.
+   * @return {boolean} Whether this tag has this attribute.
+   */
+  tagHasAttribute(tag, tagAttribute) {
+    return this.attributes.tagHasAttribute(tag, tagAttribute)
+  }
+}
+
+class Hed3Schema extends Schema {
+  constructor(xmlData, entries, mapping) {
+    super(xmlData, null, mapping)
+    /**
+     * The collection of schema entries.
+     * @type {SchemaEntries}
+     */
+    this.entries = entries
+  }
+
+  /**
+   * Determine if a HED tag has a particular attribute in this schema.
+   *
+   * @param {string} tag The HED tag to check.
+   * @param {string} tagAttribute The attribute to check for.
+   * @return {boolean} Whether this tag has this attribute.
+   */
+  tagHasAttribute(tag, tagAttribute) {
+    return this.entries.tagHasAttribute(tag, tagAttribute)
+  }
 }
 
 /**
@@ -121,5 +167,7 @@ class Schemas {
 
 module.exports = {
   Schema: Schema,
+  Hed2Schema: Hed2Schema,
+  Hed3Schema: Hed3Schema,
   Schemas: Schemas,
 }

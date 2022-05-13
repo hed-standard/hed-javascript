@@ -4,6 +4,8 @@ const { generateIssue } = require('../common/issues/issues')
 
 const {
   ParsedHedTag,
+  ParsedHed2Tag,
+  ParsedHed3Tag,
   ParsedHedGroup,
   ParsedHedString,
 } = require('./types/parsedHed')
@@ -36,16 +38,25 @@ const splitHedString = function (
   let startingIndex = 0
   let resetStartingIndex = false
 
+  let ParsedHedTagClass
+  if (hedSchemas.isHed2) {
+    ParsedHedTagClass = ParsedHed2Tag
+  } else if (hedSchemas.isHed3) {
+    ParsedHedTagClass = ParsedHed3Tag
+  } else {
+    ParsedHedTagClass = ParsedHedTag
+  }
+
   const pushTag = function (i) {
     if (!utils.string.stringIsEmpty(currentTag)) {
-      const parsedHedTag = new ParsedHedTag(
+      const parsedHedTag = new ParsedHedTagClass(
         currentTag.trim(),
         hedString,
         [groupStartingIndex + startingIndex, groupStartingIndex + i],
         hedSchemas,
       )
       hedTags.push(parsedHedTag)
-      conversionIssues.push(parsedHedTag.conversionIssues)
+      conversionIssues.push(...parsedHedTag.conversionIssues)
     }
     resetStartingIndex = true
     currentTag = ''
@@ -92,7 +103,7 @@ const splitHedString = function (
 
   const issues = {
     syntax: syntaxIssues,
-    conversion: conversionIssues.flat(),
+    conversion: conversionIssues,
   }
 
   return [hedTags, issues]
@@ -391,9 +402,6 @@ const parseHedStrings = function (hedStrings, hedSchemas) {
 }
 
 module.exports = {
-  ParsedHedTag: ParsedHedTag,
-  ParsedHedGroup: ParsedHedGroup,
-  ParsedHedString: ParsedHedString,
   splitHedString: splitHedString,
   parseHedString: parseHedString,
   parseHedStrings: parseHedStrings,

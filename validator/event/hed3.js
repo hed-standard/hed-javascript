@@ -7,6 +7,13 @@ const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
 
 class Hed3Validator extends HedValidator {
+  /**
+   * Constructor.
+   * @param {ParsedHedString} parsedString
+   * @param {Schemas} hedSchemas
+   * @param {Map<string, ParsedHedGroup>} definitions
+   * @param {object<string, boolean>} options
+   */
   constructor(parsedString, hedSchemas, definitions, options) {
     super(parsedString, hedSchemas, options)
     this.definitions = definitions
@@ -49,6 +56,116 @@ class Hed3Validator extends HedValidator {
    */
   validateTopLevelTagGroups() {
     this.checkForInvalidTopLevelTagGroupTags()
+  }
+
+  _checkForTagAttribute(attribute, fn) {
+    const tags = this.hedSchemas.baseSchema.entries.definitions
+      .get('tags')
+      .getEntriesWithBooleanAttribute(attribute)
+    for (const tag of tags) {
+      fn(tag.name)
+    }
+  }
+
+  /**
+   * Check that the unit is valid for the tag's unit class.
+   * @param {ParsedHed3Tag} tag A HED tag.
+   */
+  checkIfTagUnitClassUnitsAreValid(tag) {
+    if (tag.existsInSchema || !tag.hasUnitClass) {
+      return
+    }
+    const [foundUnit, validUnit, value] = this.validateUnits(tag)
+    if (!foundUnit && this.options.checkForWarnings) {
+      const defaultUnit = tag.defaultUnit
+      this.pushIssue('unitClassDefaultUsed', {
+        tag: tag.originalTag,
+        defaultUnit: defaultUnit,
+      })
+    } else if (!validUnit) {
+      const tagUnitClassUnits = Array.from(tag.validUnits).map(
+        (unit) => unit.name,
+      )
+      this.pushIssue('unitClassInvalidUnit', {
+        tag: tag.originalTag,
+        unitClassUnits: tagUnitClassUnits.sort().join(','),
+      })
+    } else {
+      const validValue = this.validateValue(value, true)
+      if (!validValue) {
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
+      }
+    }
+  }
+
+  /**
+   * Validate a unit and strip it from the value.
+   * @param {ParsedHed3Tag} tag A HED tag.
+   * @return {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
+   */
+  validateUnits(tag) {
+    const originalTagUnitValue = tag.originalTagName
+    const tagUnitClassUnits = tag.validUnits
+    const validUnits = this.hedSchemas.baseSchema.entries.allUnits
+    const unitStrings = Array.from(validUnits.keys())
+    unitStrings.sort((first, second) => {
+      return second.length - first.length
+    })
+    let actualUnit = utils.HED.getTagName(originalTagUnitValue, ' ')
+    let noUnitFound = false
+    if (actualUnit === originalTagUnitValue) {
+      actualUnit = ''
+      noUnitFound = true
+    }
+    let foundUnit, foundWrongCaseUnit, strippedValue
+    for (const unitName of unitStrings) {
+      const unit = validUnits.get(unitName)
+      const isPrefixUnit = unit.isPrefixUnit
+      const isUnitSymbol = unit.isUnitSymbol
+      for (const derivativeUnit of unit.derivativeUnits()) {
+        if (isPrefixUnit && originalTagUnitValue.startsWith(derivativeUnit)) {
+          foundUnit = true
+          noUnitFound = false
+          strippedValue = originalTagUnitValue
+            .substring(derivativeUnit.length)
+            .trim()
+        }
+        if (actualUnit === derivativeUnit) {
+          foundUnit = true
+          strippedValue = utils.HED.getParentTag(originalTagUnitValue, ' ')
+        } else if (actualUnit.toLowerCase() === derivativeUnit.toLowerCase()) {
+          if (isUnitSymbol) {
+            foundWrongCaseUnit = true
+          } else {
+            foundUnit = true
+          }
+          strippedValue = utils.HED.getParentTag(originalTagUnitValue, ' ')
+        }
+        if (foundUnit) {
+          const unitIsValid = tagUnitClassUnits.has(unit)
+          return [true, unitIsValid, strippedValue]
+        }
+      }
+      if (foundWrongCaseUnit) {
+        return [true, false, strippedValue]
+      }
+    }
+    return [!noUnitFound, false, originalTagUnitValue]
+  }
+
+  /**
+   * Determine if a stripped value is valid.
+   */
+  validateValue(value, isNumeric) {
+    if (value === '#') {
+      return true
+    }
+    // TODO: Replace with full value class-based implementation.
+    if (isNumeric) {
+      return utils.string.isNumber(value)
+    }
+    const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; ]+$/
+    return hed3ValidValueCharacters.test(value)
   }
 
   /**
@@ -168,10 +285,7 @@ class Hed3Validator extends HedValidator {
       if (
         !utils.HED.hedStringIsAGroup(topLevelTag.formattedTag) &&
         (topLevelTag.hasAttribute(tagGroupType) ||
-          this.hedSchemas.baseSchema.attributes.tagHasAttribute(
-            utils.HED.getParentTag(topLevelTag.formattedTag),
-            tagGroupType,
-          ))
+          topLevelTag.parentHasAttribute(tagGroupType))
       ) {
         this.pushIssue('invalidTopLevelTag', {
           tag: topLevelTag.originalTag,
@@ -188,10 +302,7 @@ class Hed3Validator extends HedValidator {
     for (const tag of this.parsedString.tags) {
       if (
         tag.hasAttribute(topLevelTagGroupType) ||
-        this.hedSchemas.baseSchema.attributes.tagHasAttribute(
-          utils.HED.getParentTag(tag.formattedTag),
-          topLevelTagGroupType,
-        )
+        tag.parentHasAttribute(topLevelTagGroupType)
       ) {
         let tagFound = false
         this.parsedString.topLevelTagGroups.forEach((tagGroup, index) => {

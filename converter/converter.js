@@ -47,9 +47,30 @@ const convertTagToLong = function (schemas, hedTag, hedString, offset) {
    * @type {TagEntry}
    */
   let foundTagEntry = null
+  let takesValueTag = false
   let endingIndex = 0
   let foundUnknownExtension = false
   let foundEndingIndex = 0
+
+  const generateParentNodeIssue = (tagEntries, startingIndex, endingIndex) => {
+    return [
+      hedTag,
+      [
+        generateIssue(
+          'invalidParentNode',
+          hedString,
+          {
+            parentTag: Array.isArray(tagEntries)
+              ? tagEntries.map((tagEntry) => {
+                  return tagEntry.longTag
+                })
+              : tagEntries.longTag,
+          },
+          [startingIndex + offset, endingIndex + offset],
+        ),
+      ],
+    ]
+  }
 
   for (const tag of splitTag) {
     if (endingIndex !== 0) {
@@ -58,75 +79,49 @@ const convertTagToLong = function (schemas, hedTag, hedString, offset) {
     const startingIndex = endingIndex
     endingIndex += tag.length
 
-    if (!foundUnknownExtension) {
-      if (!(tag in mapping.mappingData)) {
-        foundUnknownExtension = true
-        if (foundTagEntry === null) {
-          return [
-            hedTag,
-            [
-              generateIssue('invalidTag', hedString, {}, [
-                startingIndex + offset,
-                endingIndex + offset,
-              ]),
-            ],
-          ]
-        }
+    const tagEntries = asArray(mapping.mappingData.get(tag))
+
+    if (foundUnknownExtension) {
+      if (mapping.mappingData.has(tag)) {
+        return generateParentNodeIssue(tagEntries, startingIndex, endingIndex)
+      } else {
         continue
       }
-
-      const tagEntries = asArray(mapping.mappingData[tag])
-      let tagFound = false
-      for (const tagEntry of tagEntries) {
-        const tagString = tagEntry.longFormattedTag
-        const mainHedPortion = cleanedTag.slice(0, endingIndex)
-
-        if (!tagString.endsWith(mainHedPortion)) {
-          continue
-        }
-
-        tagFound = true
-        foundEndingIndex = endingIndex
-        foundTagEntry = tagEntry
-        break
-      }
-      if (!tagFound) {
+    }
+    if (!mapping.mappingData.has(tag)) {
+      if (foundTagEntry === null) {
         return [
           hedTag,
           [
-            generateIssue(
-              'invalidParentNode',
-              hedString,
-              {
-                parentTag: Array.isArray(mapping.mappingData[tag])
-                  ? mapping.mappingData[tag].map((tagEntry) => {
-                      return tagEntry.longTag
-                    })
-                  : mapping.mappingData[tag].longTag,
-              },
-              [startingIndex + offset, endingIndex + offset],
-            ),
+            generateIssue('invalidTag', hedString, {}, [
+              startingIndex + offset,
+              endingIndex + offset,
+            ]),
           ],
         ]
       }
-    } else if (tag in mapping.mappingData) {
-      return [
-        hedTag,
-        [
-          generateIssue(
-            'invalidParentNode',
-            hedString,
-            {
-              parentTag: Array.isArray(mapping.mappingData[tag])
-                ? mapping.mappingData[tag].map((tagEntry) => {
-                    return tagEntry.longTag
-                  })
-                : mapping.mappingData[tag].longTag,
-            },
-            [startingIndex + offset, endingIndex + offset],
-          ),
-        ],
-      ]
+
+      foundUnknownExtension = true
+      continue
+    }
+
+    let tagFound = false
+    for (const tagEntry of tagEntries) {
+      const tagString = tagEntry.longFormattedTag
+      const mainHedPortion = cleanedTag.slice(0, endingIndex)
+
+      if (tagString.endsWith(mainHedPortion)) {
+        tagFound = true
+        foundEndingIndex = endingIndex
+        foundTagEntry = tagEntry
+        if (tagEntry.takesValue) {
+          takesValueTag = true
+        }
+        break
+      }
+    }
+    if (!tagFound && !takesValueTag) {
+      return generateParentNodeIssue(tagEntries, startingIndex, endingIndex)
     }
   }
 
@@ -166,8 +161,8 @@ const convertTagToShort = function (schemas, hedTag, hedString, offset) {
   let lastFoundIndex = index
 
   for (const tag of splitTag) {
-    if (tag in mapping.mappingData) {
-      foundTagEntry = mapping.mappingData[tag]
+    if (mapping.mappingData.has(tag)) {
+      foundTagEntry = mapping.mappingData.get(tag)
       lastFoundIndex = index
       index -= tag.length
       break

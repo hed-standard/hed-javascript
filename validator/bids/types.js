@@ -42,9 +42,22 @@ class BidsTsvFile extends BidsFile {
     super(name, file)
     /**
      * This file's parsed TSV data.
-     * @type {object<string, *[]>}
+     * @type {object}
      */
     this.parsedTsv = parsedTsv
+    this.parseHedColumn()
+  }
+
+  parseHedColumn() {
+    const hedColumnIndex = this.parsedTsv.headers.indexOf('HED')
+    if (hedColumnIndex === -1) {
+      this.hedColumnHedStrings = []
+    } else {
+      this.hedColumnHedStrings = this.parsedTsv.rows
+        .slice(1)
+        .map((rowCells) => rowCells[hedColumnIndex])
+        .map((hedCell) => (hedCell && hedCell !== 'n/a' ? hedCell : ''))
+    }
   }
 }
 
@@ -56,26 +69,9 @@ class BidsEventFile extends BidsTsvFile {
      * @type {string[]}
      */
     this.potentialSidecars = potentialSidecars
-    /**
-     * The merged sidecar dictionary.
-     * @type {object}
-     */
-    this.mergedDictionary = mergedDictionary
 
-    this.sidecarHedData = this.mergeSidecarHed()
-  }
-
-  mergeSidecarHed() {
-    const sidecarHedTags = Object.entries(this.mergedDictionary)
-      .map(([sidecarKey, sidecarValue]) => {
-        if (sidecarValueHasHed(sidecarValue)) {
-          return [sidecarKey, sidecarValue.HED]
-        } else {
-          return false
-        }
-      })
-      .filter((x) => Boolean(x))
-    return new Map(sidecarHedTags)
+    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, null)
+    this.sidecarHedData = this.mergedSidecar.hedData
   }
 }
 
@@ -87,6 +83,38 @@ class BidsSidecar extends BidsJsonFile {
      * @type {object}
      */
     this.sidecarData = sidecarData
+
+    this.filterHedStrings()
+    this.categorizeHedStrings()
+  }
+
+  filterHedStrings() {
+    const sidecarHedTags = Object.entries(this.sidecarData)
+      .map(([sidecarKey, sidecarValue]) => {
+        if (sidecarValueHasHed(sidecarValue)) {
+          return [sidecarKey, sidecarValue.HED]
+        } else {
+          return []
+        }
+      })
+      .filter((x) => x.length > 0)
+    this.hedData = new Map(sidecarHedTags)
+  }
+
+  categorizeHedStrings() {
+    this.hedValueStrings = []
+    this.hedCategoricalStrings = []
+    for (const sidecarValue of this.hedData.values()) {
+      if (typeof sidecarValue === 'string') {
+        this.hedValueStrings.push(sidecarValue)
+      } else {
+        this.hedCategoricalStrings.push(...Object.values(sidecarValue))
+      }
+    }
+  }
+
+  get hedStrings() {
+    return this.hedValueStrings.concat(this.hedCategoricalStrings)
   }
 }
 

@@ -210,8 +210,8 @@ describe('BIDS datasets', () => {
           rows: [hedColumnOnlyHeader, ['7', 'something', 'Train/Maglev']],
         },
         {
-          relativePath: '/sub01/sub01_task-test_run-2_events.tsv',
-          path: '/sub01/sub01_task-test_run-2_events.tsv',
+          relativePath: '/sub02/sub02_task-test_run-2_events.tsv',
+          path: '/sub02/sub02_task-test_run-2_events.tsv',
         },
       ),
       new BidsEventFile(
@@ -578,7 +578,7 @@ describe('BIDS datasets', () => {
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
-    })
+    }, 10000)
 
     it('should validate placeholders in BIDS sidecars', () => {
       const placeholderDatasets = bidsSidecars[2]
@@ -624,7 +624,7 @@ describe('BIDS datasets', () => {
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
-    })
+    }, 10000)
   })
 
   describe('TSV-only datasets', () => {
@@ -640,6 +640,12 @@ describe('BIDS datasets', () => {
         tag: 'Speed/300 miles',
         unitClassUnits: legalSpeedUnits.sort().join(','),
       })
+      const converterMaglevError = converterGenerateIssue(
+        'invalidTag',
+        'Maglev',
+        {},
+        [0, 6],
+      )
       const maglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
       const expectedIssues = {
@@ -650,12 +656,13 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(speedIssue, badDatasets[2].file),
           new BidsHedIssue(speedIssue, badDatasets[3].file),
           new BidsHedIssue(maglevError, badDatasets[3].file),
+          new BidsHedIssue(converterMaglevError, badDatasets[3].file),
           new BidsHedIssue(speedIssue, badDatasets[4].file),
           new BidsHedIssue(maglevWarning, badDatasets[4].file),
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
-    })
+    }, 10000)
   })
 
   describe('Combined datasets', () => {
@@ -674,9 +681,18 @@ describe('BIDS datasets', () => {
             badDatasets[0].file,
           ),
           new BidsHedIssue(
+            converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]),
+            badDatasets[0].file,
+          ),
+          new BidsHedIssue(
+            converterGenerateIssue('invalidTag', 'Gray,Confused', {}, [5, 13]),
+            badDatasets[0].file,
+          ),
+          // TODO: Catch warning in sidecar validation
+          /* new BidsHedIssue(
             generateIssue('extension', { tag: 'Train/Maglev' }),
             badDatasets[1].file,
-          ),
+          ), */
           new BidsHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Boat',
@@ -690,6 +706,12 @@ describe('BIDS datasets', () => {
               bounds: [17, 21],
             }),
             badDatasets[2].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('invalidValue', {
+              tag: 'Duration/ferry s',
+            }),
+            badDatasets[3].file,
           ),
           new BidsHedIssue(
             generateIssue('duplicateTag', {
@@ -709,7 +731,7 @@ describe('BIDS datasets', () => {
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
-    })
+    }, 10000)
   })
 
   describe('HED 2 combined datasets', () => {
@@ -722,6 +744,6 @@ describe('BIDS datasets', () => {
         all_good: [],
       }
       return validator(testDatasets, expectedIssues, { version: '7.2.0' })
-    })
+    }, 10000)
   })
 })

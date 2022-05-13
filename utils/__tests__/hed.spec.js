@@ -1,6 +1,6 @@
 const assert = require('chai').assert
 const hed = require('../hed')
-const schema = require('../../validator/schema')
+const schema = require('../../validator/schema/init')
 
 describe('HED tag string utility functions', () => {
   describe('Syntactic utility functions', () => {
@@ -188,8 +188,6 @@ describe('HED tag string utility functions', () => {
       })
     })
 
-
-
     const validatorBase = function (
       testStrings,
       expectedResults,
@@ -234,7 +232,6 @@ describe('HED tag string utility functions', () => {
       )
     }
 
-    /*
     it('should correctly determine if a tag exists', () => {
       const testStrings = {
         direction: 'attribute/direction/left',
@@ -422,9 +419,8 @@ describe('HED tag string utility functions', () => {
         },
       )
     })
-     */
 
-    it('should strip valid units from a value', () => {
+    it.only('should strip valid units from a value', () => {
       const dollarsString = '$25.99'
       const volumeString = '100 m^3'
       const prefixedVolumeString = '100 cm^3'
@@ -467,7 +463,7 @@ describe('HED tag string utility functions', () => {
       })
     })
 
-    /*it('should correctly determine if a tag allows extensions', () => {
+    it('should correctly determine if a tag allows extensions', () => {
       const testStrings = {
         vehicle: 'item/object/vehicle/boat',
         color: 'attribute/color/red/0.5',
@@ -488,6 +484,6 @@ describe('HED tag string utility functions', () => {
           )
         },
       )
-    })*/
+    })
   })
 })

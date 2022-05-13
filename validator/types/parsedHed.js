@@ -99,7 +99,11 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 
   hasAttribute(attribute) {
-    return this.schema.attributes.tagHasAttribute(this.formattedTag, attribute)
+    return this.schema.tagHasAttribute(this.formattedTag, attribute)
+  }
+
+  parentHasAttribute(attribute) {
+    return this.schema.tagHasAttribute(this.parentFormattedTag, attribute)
   }
 
   /**
@@ -180,15 +184,6 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Determine if this HED tag is in the schema.
-   */
-  get existsInSchema() {
-    return this._memoize('existsInSchema', () => {
-      return this.schema.attributes.tags.includes(this.formattedTag)
-    })
-  }
-
-  /**
    * Check if any level of this HED tag allows extensions.
    */
   get allowsExtensions() {
@@ -201,15 +196,29 @@ class ParsedHedTag extends ParsedHedSubstring {
       for (const tagSlashIndex of tagSlashIndices) {
         const tagSubstring = this.formattedTag.slice(0, tagSlashIndex)
         if (
-          this.schema.attributes.tagHasAttribute(
-            tagSubstring,
-            extensionAllowedAttribute,
-          )
+          this.schema.tagHasAttribute(tagSubstring, extensionAllowedAttribute)
         ) {
           return true
         }
       }
       return false
+    })
+  }
+
+  equivalent(other) {
+    return (
+      other instanceof ParsedHedTag && this.formattedTag === other.formattedTag
+    )
+  }
+}
+
+class ParsedHed2Tag extends ParsedHedTag {
+  /**
+   * Determine if this HED tag is in the schema.
+   */
+  get existsInSchema() {
+    return this._memoize('existsInSchema', () => {
+      return this.schema.attributes.tags.includes(this.formattedTag)
     })
   }
 
@@ -219,28 +228,8 @@ class ParsedHedTag extends ParsedHedSubstring {
   get takesValue() {
     return this._memoize('takesValue', () => {
       const takesValueType = 'takesValue'
-      if (this.schema.isHed3) {
-        for (const ancestor of ParsedHedTag.ancestorIterator(
-          this.formattedTag,
-        )) {
-          const takesValueTag = replaceTagNameWithPound(ancestor)
-          if (
-            this.schema.attributes.tagHasAttribute(
-              takesValueTag,
-              takesValueType,
-            )
-          ) {
-            return true
-          }
-        }
-        return false
-      } else {
-        const takesValueTag = replaceTagNameWithPound(this.formattedTag)
-        return this.schema.attributes.tagHasAttribute(
-          takesValueTag,
-          takesValueType,
-        )
-      }
+      const takesValueTag = replaceTagNameWithPound(this.formattedTag)
+      return this.schema.tagHasAttribute(takesValueTag, takesValueType)
     })
   }
 
@@ -283,7 +272,7 @@ class ParsedHedTag extends ParsedHedSubstring {
         return ''
       }
       const unitClassTag = replaceTagNameWithPound(this.formattedTag)
-      let hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
+      let hasDefaultAttribute = this.schema.tagHasAttribute(
         unitClassTag,
         defaultUnitForTagAttribute,
       )
@@ -293,7 +282,7 @@ class ParsedHedTag extends ParsedHedSubstring {
           unitClassTag
         ]
       }
-      hasDefaultAttribute = this.schema.attributes.tagHasAttribute(
+      hasDefaultAttribute = this.schema.tagHasAttribute(
         unitClassTag,
         defaultUnitsForUnitClassAttribute,
       )
@@ -312,6 +301,7 @@ class ParsedHedTag extends ParsedHedSubstring {
 
   /**
    * Get the legal units for a particular HED tag.
+   * @return {string[]}
    */
   get validUnits() {
     return this._memoize('validUnits', () => {
@@ -319,16 +309,119 @@ class ParsedHedTag extends ParsedHedSubstring {
       const units = []
       for (const unitClass of tagUnitClasses) {
         const unitClassUnits = this.schema.attributes.unitClasses[unitClass]
-        Array.prototype.push.apply(units, unitClassUnits)
+        units.push(...unitClassUnits)
+      }
+      return units
+    })
+  }
+}
+
+class ParsedHed3Tag extends ParsedHedTag {
+  /**
+   * Determine if this HED tag is in the schema.
+   */
+  get existsInSchema() {
+    return this._memoize('existsInSchema', () => {
+      return this.schema.entries.definitions
+        .get('tags')
+        .hasEntry(this.formattedTag)
+    })
+  }
+
+  /**
+   * Checks if this HED tag has the 'takesValue' attribute.
+   */
+  get takesValue() {
+    return this._memoize('takesValue', () => {
+      const takesValueType = 'takesValue'
+      for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
+        const takesValueTag = replaceTagNameWithPound(ancestor)
+        if (this.schema.tagHasAttribute(takesValueTag, takesValueType)) {
+          return true
+        }
+      }
+      return false
+    })
+  }
+
+  /**
+   * Checks if this HED tag has the 'unitClass' attribute.
+   */
+  get hasUnitClass() {
+    return this._memoize('hasUnitClass', () => {
+      if (!this.schema.entries.definitions.has('unitClasses')) {
+        return false
+      }
+      if (this.takesValueTag === undefined) {
+        return false
+      }
+      return this.takesValueTag.hasUnitClasses
+    })
+  }
+
+  /**
+   * Get the unit classes for this HED tag.
+   */
+  get unitClasses() {
+    return this._memoize('unitClasses', () => {
+      if (this.hasUnitClass) {
+        return this.takesValueTag.unitClasses
+      } else {
+        return []
+      }
+    })
+  }
+
+  /**
+   * Get the default unit for this HED tag.
+   */
+  get defaultUnit() {
+    return this._memoize('defaultUnit', () => {
+      const defaultUnitsForUnitClassAttribute = 'defaultUnits'
+      if (!this.hasUnitClass) {
+        return ''
+      }
+      const tagDefaultUnit = this.takesValueTag.getNamedAttributeValue(
+        defaultUnitsForUnitClassAttribute,
+      )
+      if (tagDefaultUnit) {
+        return tagDefaultUnit
+      }
+      const firstUnitClass = this.unitClasses[0]
+      return firstUnitClass.getNamedAttributeValue(
+        defaultUnitsForUnitClassAttribute,
+      )
+    })
+  }
+
+  /**
+   * Get the legal units for a particular HED tag.
+   * @return {Set<SchemaUnit>}
+   */
+  get validUnits() {
+    return this._memoize('validUnits', () => {
+      const tagUnitClasses = this.unitClasses
+      const units = new Set()
+      for (const unitClass of tagUnitClasses) {
+        const unitClassUnits = this.schema.entries.unitClassMap.get(
+          unitClass.name,
+        ).units
+        for (const unit of unitClassUnits.values()) {
+          units.add(unit)
+        }
       }
       return units
     })
   }
 
-  equivalent(other) {
-    return (
-      other instanceof ParsedHedTag && this.formattedTag === other.formattedTag
-    )
+  /**
+   * Get the schema tag object for this tag's value-taking form.
+   *
+   * @return {SchemaTag}
+   */
+  get takesValueTag() {
+    const unitClassTag = replaceTagNameWithPound(this.formattedTag)
+    return this.schema.entries.definitions.get('tags').getEntry(unitClassTag)
   }
 }
 
@@ -374,7 +467,7 @@ const groupDefinitionTag = function (group, hedSchemas) {
 class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Constructor.
-   * @param {(ParsedHedSubstring)[]} parsedHedTags The parsed HED tags in the HED tag group.
+   * @param {(ParsedHedTag|ParsedHedGroup)[]} parsedHedTags The parsed HED tags in the HED tag group.
    * @param {string} originalTagGroup The original pre-parsed version of the HED tag group.
    * @param {int[]} originalBounds The bounds of the HED tag group in the original HED string.
    * @param {Schemas} hedSchemas The collection of HED schemas.
@@ -383,7 +476,7 @@ class ParsedHedGroup extends ParsedHedSubstring {
     super(originalTagGroup, originalBounds)
     /**
      * The parsed HED tags in the HED tag group.
-     * @type {(ParsedHedSubstring)[]}
+     * @type {(ParsedHedTag|ParsedHedGroup)[]}
      */
     this.tags = parsedHedTags
     const [definitionBase, definitionTag] = groupDefinitionTag(this, hedSchemas)
@@ -462,6 +555,22 @@ class ParsedHedGroup extends ParsedHedSubstring {
         return ours.equivalent(theirs)
       }).length === 0
     )
+  }
+
+  /**
+   * The deeply nested array of parsed tags.
+   * @returns {ParsedHedTag[]}
+   */
+  nestedGroups() {
+    const currentGroup = []
+    for (const innerTag of this.tags) {
+      if (innerTag instanceof ParsedHedTag) {
+        currentGroup.push(innerTag)
+      } else if (innerTag instanceof ParsedHedGroup) {
+        currentGroup.push(innerTag.nestedGroups())
+      }
+    }
+    return currentGroup
   }
 
   /**
@@ -550,6 +659,8 @@ class ParsedHedString {
 
 module.exports = {
   ParsedHedTag: ParsedHedTag,
+  ParsedHed2Tag: ParsedHed2Tag,
+  ParsedHed3Tag: ParsedHed3Tag,
   ParsedHedGroup: ParsedHedGroup,
   ParsedHedString: ParsedHedString,
 }

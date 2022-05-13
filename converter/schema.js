@@ -18,13 +18,15 @@ const Mapping = types.Mapping
  * @return {Mapping} The mapping object.
  */
 const buildMappingObject = function (xmlData) {
-  const nodeData = {}
+  const nodeData = new Map()
+  const tagElementData = new Map()
   let hasNoDuplicates = true
   const rootElement = xmlData.HED
   setParent(rootElement, null)
   const tagElements = xpath.find(rootElement, '//node')
   for (const tagElement of tagElements) {
     if (getElementTagValue(tagElement) === '#') {
+      tagElementData.get(tagElement.$parent).takesValue = true
       continue
     }
     const tagPath = getTagPathFromTagElement(tagElement)
@@ -33,12 +35,14 @@ const buildMappingObject = function (xmlData) {
     tagPath.reverse()
     const longPath = tagPath.join('/')
     const tagObject = new TagEntry(shortPath, longPath)
-    if (!(cleanedShortPath in nodeData)) {
-      nodeData[cleanedShortPath] = tagObject
+    tagElementData.set(tagElement, tagObject)
+    if (!nodeData.has(cleanedShortPath)) {
+      nodeData.set(cleanedShortPath, tagObject)
     } else {
       hasNoDuplicates = false
-      nodeData[cleanedShortPath] = asArray(nodeData[cleanedShortPath])
-      nodeData[cleanedShortPath].push(tagObject)
+      const duplicateArray = asArray(nodeData.get(cleanedShortPath))
+      duplicateArray.push(tagObject)
+      nodeData.set(cleanedShortPath, duplicateArray)
     }
   }
   return new Mapping(nodeData, hasNoDuplicates)

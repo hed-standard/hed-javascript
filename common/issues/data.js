@@ -154,7 +154,7 @@ const issueData = {
   genericError: {
     hedCode: 'HED_GENERIC_ERROR',
     level: 'error',
-    message: stringTemplate`Unknown HED error.`,
+    message: stringTemplate`Unknown HED error "${'internalCode'}".`,
   },
 }
 

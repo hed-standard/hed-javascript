@@ -104,12 +104,62 @@ const validateHedDataset = function (
     definitions,
     checkForWarnings,
   )
-  stringIssues.concat(Object.values(parsingIssues))
+  const issues = stringIssues.concat(...Object.values(parsingIssues))
   if (!stringsValid) {
-    return [false, stringIssues]
+    return [false, issues]
   }
 
-  return [definitionIssues.length === 0, definitionIssues.concat(stringIssues)]
+  return [definitionIssues.length === 0, definitionIssues.concat(issues)]
+  //return validateDataset(definitions, newHedStrings, hedSchemas)
+}
+
+/**
+ * Validate a HED dataset with additional context.
+ *
+ * @param {string[]} hedStrings The dataset's HED strings.
+ * @param {string[]} contextHedStrings The dataset's context HED strings.
+ * @param {Schemas} hedSchemas The HED schema container object.
+ * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
+ * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
+ */
+const validateHedDatasetWithContext = function (
+  hedStrings,
+  contextHedStrings,
+  hedSchemas,
+  checkForWarnings = false,
+) {
+  if (hedStrings.length + contextHedStrings.length === 0) {
+    return [true, []]
+  }
+  const [parsedHedStrings, parsingIssues] = parseHedStrings(
+    hedStrings,
+    hedSchemas,
+  )
+  const [parsedContextHedStrings, contextParsingIssues] = parseHedStrings(
+    contextHedStrings,
+    hedSchemas,
+  )
+  const combinedParsedHedStrings = parsedHedStrings.concat(
+    parsedContextHedStrings,
+  )
+  const [definitions, definitionIssues] = parseDefinitions(
+    combinedParsedHedStrings,
+  )
+  const [stringsValid, stringIssues] = validateHedEvents(
+    parsedHedStrings,
+    hedSchemas,
+    definitions,
+    checkForWarnings,
+  )
+  const issues = stringIssues.concat(
+    ...Object.values(parsingIssues),
+    ...Object.values(contextParsingIssues),
+  )
+  if (!stringsValid) {
+    return [false, issues]
+  }
+
+  return [definitionIssues.length === 0, definitionIssues.concat(issues)]
   //return validateDataset(definitions, newHedStrings, hedSchemas)
 }
 
@@ -118,4 +168,5 @@ module.exports = {
   validateDataset: validateDataset,
   validateHedEvents: validateHedEvents,
   validateHedDataset: validateHedDataset,
+  validateHedDatasetWithContext: validateHedDatasetWithContext,
 }

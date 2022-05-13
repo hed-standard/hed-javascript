@@ -1,7 +1,7 @@
 const BIDS = require('./bids')
 const dataset = require('./dataset')
 const event = require('./event')
-const schema = require('./schema')
+const schema = require('./schema/init')
 
 module.exports = {
   BidsDataset: BIDS.BidsDataset,

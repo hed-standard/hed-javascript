@@ -4,14 +4,18 @@ const { buildSchema } = require('../converter/schema')
 const { parseHedString, splitHedString } = require('../validator/stringParser')
 const { ParsedHedTag } = require('../validator/types/parsedHed')
 const { generateIssue } = require('../common/issues/issues')
+const { recursiveMap } = require('../utils/array')
 
 describe('HED string parsing', () => {
   const nullSchema = new Schemas(null)
-  const originalMap = (parsedTag) => {
-    return parsedTag.originalTag
-  }
+  /**
+   * Retrieve the original tag from a parsed HED tag object.
+   * @param {ParsedHedTag} parsedTag The parsed tag.
+   * @returns {string} The original tag.
+   */
+  const originalMap = (parsedTag) => parsedTag.originalTag
 
-  const hedSchemaFile = 'tests/data/HED8.0.0-alpha.1.xml'
+  const hedSchemaFile = 'tests/data/HED8.0.0.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
@@ -48,8 +52,8 @@ describe('HED string parsing', () => {
         expectedResults[testStringKey],
         testStrings[testStringKey],
       )
-      assert.sameDeepMembers(
-        Object.values(testIssues).flat(),
+      assert.deepOwnInclude(
+        testIssues,
         expectedIssues[testStringKey],
         testStrings[testStringKey],
       )
@@ -60,32 +64,33 @@ describe('HED string parsing', () => {
     it('cannot have invalid characters', () => {
       const testStrings = {
         openingCurly:
-          '/Attribute/Object side/Left,/Participant/Effect{/Body part/Arm',
+          'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend{/Upper-extremity/Elbow',
         closingCurly:
-          '/Attribute/Object side/Left,/Participant/Effect}/Body part/Arm',
+          'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend}/Upper-extremity/Elbow',
         openingSquare:
-          '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm',
+          'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend[/Upper-extremity/Elbow',
         closingSquare:
-          '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm',
-        tilde: '/Attribute/Object side/Left,/Participant/Effect~/Body part/Arm',
+          'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend]/Upper-extremity/Elbow',
+        tilde:
+          'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend~/Upper-extremity/Elbow',
       }
       const expectedResultList = [
         new ParsedHedTag(
-          '/Attribute/Object side/Left',
-          '/Attribute/Object side/Left',
-          [0, 27],
+          'Relation/Spatial-relation/Left-side-of',
+          'Relation/Spatial-relation/Left-side-of',
+          [0, 38],
           nullSchema,
         ),
         new ParsedHedTag(
-          '/Participant/Effect',
-          '/Participant/Effect',
-          [28, 47],
+          '/Action/Move/Bend',
+          '/Action/Move/Bend',
+          [39, 56],
           nullSchema,
         ),
         new ParsedHedTag(
-          '/Body part/Arm',
-          '/Body part/Arm',
-          [48, 62],
+          '/Upper-extremity/Elbow',
+          '/Upper-extremity/Elbow',
+          [57, 79],
           nullSchema,
         ),
       ]
@@ -97,41 +102,51 @@ describe('HED string parsing', () => {
         tilde: expectedResultList,
       }
       const expectedIssues = {
-        openingCurly: [
-          generateIssue('invalidCharacter', {
-            character: '{',
-            index: 47,
-            string: testStrings.openingCurly,
-          }),
-        ],
-        closingCurly: [
-          generateIssue('invalidCharacter', {
-            character: '}',
-            index: 47,
-            string: testStrings.closingCurly,
-          }),
-        ],
-        openingSquare: [
-          generateIssue('invalidCharacter', {
-            character: '[',
-            index: 47,
-            string: testStrings.openingSquare,
-          }),
-        ],
-        closingSquare: [
-          generateIssue('invalidCharacter', {
-            character: ']',
-            index: 47,
-            string: testStrings.closingSquare,
-          }),
-        ],
-        tilde: [
-          generateIssue('invalidCharacter', {
-            character: '~',
-            index: 47,
-            string: testStrings.tilde,
-          }),
-        ],
+        openingCurly: {
+          syntax: [
+            generateIssue('invalidCharacter', {
+              character: '{',
+              index: 56,
+              string: testStrings.openingCurly,
+            }),
+          ],
+        },
+        closingCurly: {
+          syntax: [
+            generateIssue('invalidCharacter', {
+              character: '}',
+              index: 56,
+              string: testStrings.closingCurly,
+            }),
+          ],
+        },
+        openingSquare: {
+          syntax: [
+            generateIssue('invalidCharacter', {
+              character: '[',
+              index: 56,
+              string: testStrings.openingSquare,
+            }),
+          ],
+        },
+        closingSquare: {
+          syntax: [
+            generateIssue('invalidCharacter', {
+              character: ']',
+              index: 56,
+              string: testStrings.closingSquare,
+            }),
+          ],
+        },
+        tilde: {
+          syntax: [
+            generateIssue('invalidCharacter', {
+              character: '~',
+              index: 56,
+              string: testStrings.tilde,
+            }),
+          ],
+        },
       }
       validatorWithIssues(
         testStrings,
@@ -144,36 +159,36 @@ describe('HED string parsing', () => {
     })
   })
 
-  describe('Lists of HED Tags', () => {
+  describe('Lists of HED tags', () => {
     it('should be an array', () => {
       const hedString =
-        'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
+        'Event/Category/Sensory-event,Item/Object/Man-made-object/Vehicle/Train,Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple'
       const [result] = splitHedString(hedString, nullSchema)
-      assert(result instanceof Array)
+      assert.isTrue(Array.isArray(result))
     })
 
     it('should include each top-level tag as its own single element', () => {
       const hedString =
-        'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
+        'Event/Category/Sensory-event,Item/Object/Man-made-object/Vehicle/Train,Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple'
       const [result, issues] = splitHedString(hedString, nullSchema)
       assert.deepStrictEqual(Object.values(issues).flat(), [])
       assert.deepStrictEqual(result, [
         new ParsedHedTag(
-          'Event/Category/Experimental stimulus',
-          'Event/Category/Experimental stimulus',
-          [0, 36],
+          'Event/Category/Sensory-event',
+          'Event/Category/Sensory-event',
+          [0, 28],
           nullSchema,
         ),
         new ParsedHedTag(
-          'Item/Object/Vehicle/Train',
-          'Item/Object/Vehicle/Train',
-          [37, 62],
+          'Item/Object/Man-made-object/Vehicle/Train',
+          'Item/Object/Man-made-object/Vehicle/Train',
+          [29, 70],
           nullSchema,
         ),
         new ParsedHedTag(
-          'Attribute/Visual/Color/Purple',
-          'Attribute/Visual/Color/Purple',
-          [63, 92],
+          'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple',
+          'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple',
+          [71, 167],
           nullSchema,
         ),
       ])
@@ -181,32 +196,32 @@ describe('HED string parsing', () => {
 
     it('should include each group as its own single element', () => {
       const hedString =
-        '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
+        '/Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow),/Position/X-position/70 px,/Position/Y-position/23 px'
       const [result, issues] = splitHedString(hedString, nullSchema)
       assert.deepStrictEqual(Object.values(issues).flat(), [])
       assert.deepStrictEqual(result, [
         new ParsedHedTag(
-          '/Action/Reach/To touch',
-          '/Action/Reach/To touch',
-          [0, 22],
+          '/Action/Move/Flex',
+          '/Action/Move/Flex',
+          [0, 17],
           nullSchema,
         ),
         new ParsedHedTag(
-          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
-          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
-          [23, 86],
+          '(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow)',
+          '(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow)',
+          [18, 99],
           nullSchema,
         ),
         new ParsedHedTag(
-          '/Attribute/Location/Screen/Top/70 px',
-          '/Attribute/Location/Screen/Top/70 px',
-          [87, 123],
+          '/Position/X-position/70 px',
+          '/Position/X-position/70 px',
+          [100, 126],
           nullSchema,
         ),
         new ParsedHedTag(
-          '/Attribute/Location/Screen/Left/23 px',
-          '/Attribute/Location/Screen/Left/23 px',
-          [124, 161],
+          '/Position/Y-position/23 px',
+          '/Position/Y-position/23 px',
+          [127, 153],
           nullSchema,
         ),
       ])
@@ -214,9 +229,9 @@ describe('HED string parsing', () => {
 
     it('should not include double quotes', () => {
       const doubleQuoteString =
-        'Event/Category/Experimental stimulus,"Item/Object/Vehicle/Train",Attribute/Visual/Color/Purple'
+        'Event/Category/Sensory-event,"Item/Object/Man-made-object/Vehicle/Train",Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple'
       const normalString =
-        'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
+        'Event/Category/Sensory-event,Item/Object/Man-made-object/Vehicle/Train,Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple'
       const [doubleQuoteResult, doubleQuoteIssues] = splitHedString(
         doubleQuoteString,
         nullSchema,
@@ -242,23 +257,23 @@ describe('HED string parsing', () => {
     it('should not include blanks', () => {
       const testStrings = {
         doubleComma:
-          '/Item/Object/Vehicle/Car,,/Attribute/Object control/Perturb',
+          '/Item/Object/Man-made-object/Vehicle/Car,,/Action/Perform/Operate',
         doubleInvalidCharacter:
-          '/Item/Object/Vehicle/Car[]/Attribute/Object control/Perturb',
+          '/Item/Object/Man-made-object/Vehicle/Car[]/Action/Perform/Operate',
         trailingBlank:
-          '/Item/Object/Vehicle/Car, /Attribute/Object control/Perturb,',
+          '/Item/Object/Man-made-object/Vehicle/Car, /Action/Perform/Operate,',
       }
       const expectedList = [
         new ParsedHedTag(
-          '/Item/Object/Vehicle/Car',
-          '/Item/Object/Vehicle/Car',
-          [0, 24],
+          '/Item/Object/Man-made-object/Vehicle/Car',
+          '/Item/Object/Man-made-object/Vehicle/Car',
+          [0, 40],
           nullSchema,
         ),
         new ParsedHedTag(
-          '/Attribute/Object control/Perturb',
-          '/Attribute/Object control/Perturb',
-          [26, 59],
+          '/Action/Perform/Operate',
+          '/Action/Perform/Operate',
+          [42, 65],
           nullSchema,
         ),
       ]
@@ -268,20 +283,22 @@ describe('HED string parsing', () => {
         trailingBlank: expectedList,
       }
       const expectedIssues = {
-        doubleComma: [],
-        doubleInvalidCharacter: [
-          generateIssue('invalidCharacter', {
-            character: '[',
-            index: 24,
-            string: testStrings.doubleInvalidCharacter,
-          }),
-          generateIssue('invalidCharacter', {
-            character: ']',
-            index: 25,
-            string: testStrings.doubleInvalidCharacter,
-          }),
-        ],
-        trailingBlank: [],
+        doubleComma: {},
+        doubleInvalidCharacter: {
+          syntax: [
+            generateIssue('invalidCharacter', {
+              character: '[',
+              index: 40,
+              string: testStrings.doubleInvalidCharacter,
+            }),
+            generateIssue('invalidCharacter', {
+              character: ']',
+              index: 41,
+              string: testStrings.doubleInvalidCharacter,
+            }),
+          ],
+        },
+        trailingBlank: {},
       }
       validatorWithIssues(
         testStrings,
@@ -294,26 +311,23 @@ describe('HED string parsing', () => {
     })
   })
 
-  describe('Formatted HED Tags', () => {
+  describe('Formatted HED tags', () => {
     it('should be lowercase and not have leading or trailing double quotes or slashes', () => {
       // Correct formatting
-      const formattedHedTag = 'event/category/experimental stimulus'
+      const formattedHedTag = 'event/category/sensory-event'
       const testStrings = {
         formatted: formattedHedTag,
-        openingDoubleQuote: '"Event/Category/Experimental stimulus',
-        closingDoubleQuote: 'Event/Category/Experimental stimulus"',
-        openingAndClosingDoubleQuote: '"Event/Category/Experimental stimulus"',
-        openingSlash: '/Event/Category/Experimental stimulus',
-        closingSlash: 'Event/Category/Experimental stimulus/',
-        openingAndClosingSlash: '/Event/Category/Experimental stimulus/',
-        openingDoubleQuotedSlash: '"/Event/Category/Experimental stimulus',
-        closingDoubleQuotedSlash: 'Event/Category/Experimental stimulus/"',
-        openingSlashClosingDoubleQuote:
-          '/Event/Category/Experimental stimulus"',
-        closingSlashOpeningDoubleQuote:
-          '"Event/Category/Experimental stimulus/',
-        openingAndClosingDoubleQuotedSlash:
-          '"/Event/Category/Experimental stimulus/"',
+        openingDoubleQuote: '"Event/Category/Sensory-event',
+        closingDoubleQuote: 'Event/Category/Sensory-event"',
+        openingAndClosingDoubleQuote: '"Event/Category/Sensory-event"',
+        openingSlash: '/Event/Category/Sensory-event',
+        closingSlash: 'Event/Category/Sensory-event/',
+        openingAndClosingSlash: '/Event/Category/Sensory-event/',
+        openingDoubleQuotedSlash: '"/Event/Category/Sensory-event',
+        closingDoubleQuotedSlash: 'Event/Category/Sensory-event/"',
+        openingSlashClosingDoubleQuote: '/Event/Category/Sensory-event"',
+        closingSlashOpeningDoubleQuote: '"Event/Category/Sensory-event/',
+        openingAndClosingDoubleQuotedSlash: '"/Event/Category/Sensory-event/"',
       }
       const expectedResults = {
         formatted: formattedHedTag,
@@ -336,35 +350,42 @@ describe('HED string parsing', () => {
     })
   })
 
-  describe('Parsed HED Tags', () => {
+  describe('Parsed HED strings', () => {
     it('must have the correct number of tags, top-level tags, and groups', () => {
       const hedString =
-        '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
+        '/Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow),/Position/X-position/70 px,/Position/Y-position/23 px'
       const [parsedString, issues] = parseHedString(hedString, nullSchema)
       assert.deepStrictEqual(Object.values(issues).flat(), [])
       assert.sameDeepMembers(parsedString.tags.map(originalMap), [
-        '/Action/Reach/To touch',
-        '/Attribute/Object side/Left',
-        '/Participant/Effect/Body part/Arm',
-        '/Attribute/Location/Screen/Top/70 px',
-        '/Attribute/Location/Screen/Left/23 px',
+        '/Action/Move/Flex',
+        'Relation/Spatial-relation/Left-side-of',
+        '/Action/Move/Bend',
+        '/Upper-extremity/Elbow',
+        '/Position/X-position/70 px',
+        '/Position/Y-position/23 px',
       ])
       assert.sameDeepMembers(parsedString.topLevelTags.map(originalMap), [
-        '/Action/Reach/To touch',
-        '/Attribute/Location/Screen/Top/70 px',
-        '/Attribute/Location/Screen/Left/23 px',
+        '/Action/Move/Flex',
+        '/Position/X-position/70 px',
+        '/Position/Y-position/23 px',
       ])
       assert.sameDeepMembers(
         parsedString.tagGroups.map((group) => group.tags.map(originalMap)),
-        [['/Attribute/Object side/Left', '/Participant/Effect/Body part/Arm']],
+        [
+          [
+            'Relation/Spatial-relation/Left-side-of',
+            '/Action/Move/Bend',
+            '/Upper-extremity/Elbow',
+          ],
+        ],
       )
     })
 
     it('must include properly formatted tags', () => {
       const hedString =
-        '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px'
+        '/Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow),/Position/X-position/70 px,/Position/Y-position/23 px'
       const formattedHedString =
-        'action/reach/to touch,(attribute/object side/left,participant/effect/body part/arm),attribute/location/screen/top/70 px,attribute/location/screen/left/23 px'
+        'action/move/flex,(relation/spatial-relation/left-side-of,action/move/bend,upper-extremity/elbow),position/x-position/70 px,position/y-position/23 px'
       const [parsedString, issues] = parseHedString(hedString, nullSchema)
       const [parsedFormattedString, formattedIssues] = parseHedString(
         formattedHedString,
@@ -384,6 +405,89 @@ describe('HED string parsing', () => {
         parsedFormattedString.topLevelTags.map(originalMap),
       )
     })
+
+    it('must correctly handle multiple levels of parentheses', () => {
+      const testStrings = {
+        shapes: 'Square,(Definition/RedCircle,(Circle,Red)),Rectangle',
+        vehicles:
+          'Car,(Definition/TrainVelocity/#,(Train,(Measurement-device/Odometer,Data-maximum/160,Speed/# kph),Blue,Age/12,(Navigational-object/Railway,Data-maximum/150)))',
+        typing:
+          '((Human-agent,Joyful),Press,Keyboard-key/F),(Braille,Character/A,Screen-window)',
+      }
+      const expectedTags = {
+        shapes: [
+          'Square',
+          'Definition/RedCircle',
+          'Circle',
+          'Red',
+          'Rectangle',
+        ],
+        vehicles: [
+          'Car',
+          'Definition/TrainVelocity/#',
+          'Train',
+          'Measurement-device/Odometer',
+          'Data-maximum/160',
+          'Speed/# kph',
+          'Blue',
+          'Age/12',
+          'Navigational-object/Railway',
+          'Data-maximum/150',
+        ],
+        typing: [
+          'Human-agent',
+          'Joyful',
+          'Press',
+          'Keyboard-key/F',
+          'Braille',
+          'Character/A',
+          'Screen-window',
+        ],
+      }
+      const expectedGroups = {
+        shapes: [['Definition/RedCircle', ['Circle', 'Red']]],
+        vehicles: [
+          [
+            'Definition/TrainVelocity/#',
+            [
+              'Train',
+              [
+                'Measurement-device/Odometer',
+                'Data-maximum/160',
+                'Speed/# kph',
+              ],
+              'Blue',
+              'Age/12',
+              ['Navigational-object/Railway', 'Data-maximum/150'],
+            ],
+          ],
+        ],
+        typing: [
+          [['Human-agent', 'Joyful'], 'Press', 'Keyboard-key/F'],
+          ['Braille', 'Character/A', 'Screen-window'],
+        ],
+      }
+      return hedSchemaPromise.then((hedSchema) => {
+        for (const testStringKey of Object.keys(testStrings)) {
+          const testString = testStrings[testStringKey]
+          const [parsedString, issues] = parseHedString(testString, hedSchema)
+          assert.deepStrictEqual(Object.values(issues).flat(), [])
+          assert.sameDeepMembers(
+            parsedString.tags.map(originalMap),
+            expectedTags[testStringKey],
+            testString,
+          )
+          assert.deepStrictEqual(
+            recursiveMap(
+              originalMap,
+              parsedString.tagGroups.map((tagGroup) => tagGroup.nestedGroups()),
+            ),
+            expectedGroups[testStringKey],
+            testString,
+          )
+        }
+      })
+    })
   })
 
   describe('Canonical HED tags', () => {
@@ -396,7 +500,7 @@ describe('HED string parsing', () => {
         simple: ['Item/Object/Man-made-object/Vehicle/Car'],
         groupAndTag: [
           'Item/Object/Man-made-object/Vehicle/Train',
-          'Attribute/Sensory/Visual/Color/RGB-color/RGB-red/0.5',
+          'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red/0.5',
           'Item/Object/Man-made-object/Vehicle/Car',
         ],
       }

@@ -56,13 +56,11 @@ class HedValidator {
    * Validate the individual HED tags in a parsed HED string object.
    */
   validateIndividualHedTags() {
-    let issues = []
     let previousTag = new ParsedHedTag('', '', [0, 0], this.hedSchemas)
     for (const tag of this.parsedString.tags) {
       this.validateIndividualHedTag(tag, previousTag)
       previousTag = tag
     }
-    return issues
   }
 
   /**
@@ -151,21 +149,11 @@ class HedValidator {
 
     for (const firstTag of tagList) {
       for (const secondTag of tagList) {
-        if (
-          firstTag !== secondTag &&
-          firstTag.formattedTag === secondTag.formattedTag
-        ) {
+        if (firstTag !== secondTag && firstTag.equivalent(secondTag)) {
           addIssue(firstTag)
           addIssue(secondTag)
         }
       }
-    }
-  }
-
-  _checkForTagAttribute(attribute, fn) {
-    const tags = this.hedSchemas.baseSchema.attributes.tagAttributes[attribute]
-    for (const tag of Object.keys(tags)) {
-      fn(tag)
     }
   }
 
@@ -203,6 +191,17 @@ class HedValidator {
   }
 
   /**
+   * Validation check based on a tag attribute.
+   *
+   * @param {string} attribute The name of the attribute.
+   * @param {function (string): void} fn The actual validation code.
+   * @protected
+   * @abstract
+   */
+  // eslint-disable-next-line no-unused-vars
+  _checkForTagAttribute(attribute, fn) {}
+
+  /**
    * Check if a tag is missing a required child.
    *
    * @param {ParsedHedTag} tag The HED tag to be checked.
@@ -218,69 +217,10 @@ class HedValidator {
    * Check that the unit is valid for the tag's unit class.
    *
    * @param {ParsedHedTag} tag A HED tag.
+   * @abstract
    */
-  checkIfTagUnitClassUnitsAreValid(tag) {
-    if (tag.existsInSchema || !tag.hasUnitClass) {
-      return
-    }
-    const tagUnitClasses = tag.unitClasses
-    const originalTagUnitValue = tag.originalTagName
-    const formattedTagUnitValue = tag.formattedTagName
-    const tagUnitClassUnits = tag.validUnits
-    if (
-      dateTimeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
-      tagUnitClasses.includes(dateTimeUnitClass)
-    ) {
-      if (!utils.string.isDateTime(formattedTagUnitValue)) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
-      }
-      return
-    } else if (
-      clockTimeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
-      tagUnitClasses.includes(clockTimeUnitClass)
-    ) {
-      if (!utils.string.isClockFaceTime(formattedTagUnitValue)) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
-      }
-      return
-    } else if (
-      timeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
-      tagUnitClasses.includes(timeUnitClass) &&
-      tag.originalTag.includes(':')
-    ) {
-      if (!utils.string.isClockFaceTime(formattedTagUnitValue)) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
-      }
-      return
-    }
-    const [foundUnit, validUnit, value] = utils.HED.validateUnits(
-      originalTagUnitValue,
-      tagUnitClassUnits,
-      this.hedSchemas.baseSchema.attributes,
-    )
-    const validValue = utils.HED.validateValue(
-      value,
-      this.hedSchemas.baseSchema.attributes.tagHasAttribute(
-        utils.HED.replaceTagNameWithPound(tag.formattedTag),
-        'isNumeric',
-      ),
-      this.hedSchemas.isHed3,
-    )
-    if (!foundUnit && this.options.checkForWarnings) {
-      const defaultUnit = tag.defaultUnit
-      this.pushIssue('unitClassDefaultUsed', {
-        tag: tag.originalTag,
-        defaultUnit: defaultUnit,
-      })
-    } else if (!validUnit) {
-      this.pushIssue('unitClassInvalidUnit', {
-        tag: tag.originalTag,
-        unitClassUnits: tagUnitClassUnits.sort().join(','),
-      })
-    } else if (!validValue) {
-      this.pushIssue('invalidValue', { tag: tag.originalTag })
-    }
-  }
+  // eslint-disable-next-line no-unused-vars
+  checkIfTagUnitClassUnitsAreValid(tag) {}
 
   /**
    * Check the syntax of tag values.
@@ -291,7 +231,7 @@ class HedValidator {
     if (tag.takesValue && !tag.hasUnitClass) {
       const isValidValue = utils.HED.validateValue(
         tag.formattedTagName,
-        this.hedSchemas.baseSchema.attributes.tagHasAttribute(
+        this.hedSchemas.baseSchema.tagHasAttribute(
           utils.HED.replaceTagNameWithPound(tag.formattedTag),
           'isNumeric',
         ),
@@ -334,7 +274,7 @@ class HedValidator {
     } else if (!isExtensionAllowedTag) {
       // This is not a valid tag.
       this.pushIssue('invalidTag', { tag: tag.originalTag })
-    } else if (this.options.checkForWarnings) {
+    } else if (!this.options.isEventLevel && this.options.checkForWarnings) {
       // This is an allowed extension.
       this.pushIssue('extension', { tag: tag.originalTag })
     }
@@ -480,6 +420,95 @@ class HedValidator {
 class Hed2Validator extends HedValidator {
   constructor(parsedString, hedSchemas, options) {
     super(parsedString, hedSchemas, options)
+  }
+
+  _checkForTagAttribute(attribute, fn) {
+    const tags = this.hedSchemas.baseSchema.attributes.tagAttributes[attribute]
+    for (const tag of Object.keys(tags)) {
+      fn(tag)
+    }
+  }
+
+  /**
+   * Check that the unit is valid for the tag's unit class.
+   *
+   * @param {ParsedHedTag} tag A HED tag.
+   */
+  checkIfTagUnitClassUnitsAreValid(tag) {
+    if (tag.existsInSchema || !tag.hasUnitClass) {
+      return
+    }
+    const tagUnitClasses = tag.unitClasses
+    const originalTagUnitValue = tag.originalTagName
+    const formattedTagUnitValue = tag.formattedTagName
+    const tagUnitClassUnits = tag.validUnits
+    if (
+      dateTimeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
+      tagUnitClasses.includes(dateTimeUnitClass)
+    ) {
+      if (!utils.string.isDateTime(formattedTagUnitValue)) {
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
+      }
+      return
+    } else if (
+      clockTimeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
+      tagUnitClasses.includes(clockTimeUnitClass)
+    ) {
+      if (!utils.string.isClockFaceTime(formattedTagUnitValue)) {
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
+      }
+      return
+    } else if (
+      timeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
+      tagUnitClasses.includes(timeUnitClass) &&
+      tag.originalTag.includes(':')
+    ) {
+      if (!utils.string.isClockFaceTime(formattedTagUnitValue)) {
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
+      }
+      return
+    }
+    const [foundUnit, validUnit, value] = utils.HED.validateUnits(
+      originalTagUnitValue,
+      tagUnitClassUnits,
+      this.hedSchemas.baseSchema.attributes,
+    )
+    const validValue = utils.HED.validateValue(
+      value,
+      this.hedSchemas.baseSchema.tagHasAttribute(
+        utils.HED.replaceTagNameWithPound(tag.formattedTag),
+        'isNumeric',
+      ),
+      this.hedSchemas.isHed3,
+    )
+    if (!foundUnit && this.options.checkForWarnings) {
+      const defaultUnit = tag.defaultUnit
+      this.pushIssue('unitClassDefaultUsed', {
+        tag: tag.originalTag,
+        defaultUnit: defaultUnit,
+      })
+    } else if (!validUnit) {
+      this.pushIssue('unitClassInvalidUnit', {
+        tag: tag.originalTag,
+        unitClassUnits: tagUnitClassUnits.sort().join(','),
+      })
+    } else if (!validValue) {
+      this.pushIssue('invalidValue', { tag: tag.originalTag })
+    }
+  }
+
+  /**
+   * Determine if a stripped value is valid.
+   */
+  validateValue(value, isNumeric) {
+    if (value === '#') {
+      return true
+    }
+    if (isNumeric) {
+      return utils.string.isNumber(value)
+    }
+    const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; :]+$/
+    return hed2ValidValueCharacters.test(value)
   }
 }
 
