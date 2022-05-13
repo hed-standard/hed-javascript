@@ -4,9 +4,15 @@ const { buildSchema } = require('../converter/schema')
 const { parseHedString, splitHedString } = require('../validator/stringParser')
 const { ParsedHedTag } = require('../validator/types/parsedHed')
 const { generateIssue } = require('../common/issues/issues')
+const { recursiveMap } = require('../utils/array')
 
 describe('HED string parsing', () => {
   const nullSchema = new Schemas(null)
+  /**
+   * Retrieve the original tag from a parsed HED tag object.
+   * @param {ParsedHedTag} parsedTag The parsed tag.
+   * @returns {string} The original tag.
+   */
   const originalMap = (parsedTag) => parsedTag.originalTag
 
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'
@@ -403,9 +409,87 @@ describe('HED string parsing', () => {
     it('must correctly handle multiple levels of parentheses', () => {
       const testStrings = {
         shapes: 'Square,(Definition/RedCircle,(Circle,Red)),Rectangle',
-        vehicles: 'Car,(Definition/TrainVelocity/#,(Train,(Measurement-device/Odometer,Data-maximum/160,Speed/# kph),Blue,Age/12,(Navigational-object/Railway,Data-maximum/150)))',
-        typing: '(((Human-agent,Joyful),Press,Keyboard-key/F),(Braille,Character/A,Screen-window))',
+        vehicles:
+          'Car,(Definition/TrainVelocity/#,(Train,(Measurement-device/Odometer,Data-maximum/160,Speed/# kph),Blue,Age/12,(Navigational-object/Railway,Data-maximum/150)))',
+        typing:
+          'Blue,(((Human-agent,Joyful),Press,Keyboard-key/F),(Braille,Character/A,Screen-window))',
       }
+      const expectedTags = {
+        shapes: [
+          'Square',
+          'Definition/RedCircle',
+          'Circle',
+          'Red',
+          'Rectangle',
+        ],
+        vehicles: [
+          'Car',
+          'Definition/TrainVelocity/#',
+          'Train',
+          'Measurement-device/Odometer',
+          'Data-maximum/160',
+          'Speed/# kph',
+          'Blue',
+          'Age/12',
+          'Navigational-object/Railway',
+          'Data-maximum/150',
+        ],
+        typing: [
+          'Blue',
+          'Human-agent',
+          'Joyful',
+          'Press',
+          'Keyboard-key/F',
+          'Braille',
+          'Character/A',
+          'Screen-window',
+        ],
+      }
+      const expectedGroups = {
+        shapes: [['Definition/RedCircle', ['Circle', 'Red']]],
+        vehicles: [
+          [
+            'Definition/TrainVelocity/#',
+            [
+              'Train',
+              [
+                'Measurement-device/Odometer',
+                'Data-maximum/160',
+                'Speed/# kph',
+              ],
+              'Blue',
+              'Age/12',
+              ['Navigational-object/Railway', 'Data-maximum/150'],
+            ],
+          ],
+        ],
+        typing: [
+          [
+            [['Human-agent', 'Joyful'], 'Press', 'Keyboard-key/F'],
+            ['Braille', 'Character/A', 'Screen-window'],
+          ],
+        ],
+      }
+      return hedSchemaPromise.then((hedSchema) => {
+        for (const testStringKey of Object.keys(testStrings)) {
+          const testString = testStrings[testStringKey]
+          const [parsedString, issues] = parseHedString(testString, hedSchema)
+          assert.deepStrictEqual(Object.values(issues).flat(), [])
+          assert.sameDeepMembers(
+            parsedString.tags.map(originalMap),
+            expectedTags[testStringKey],
+            testString,
+          )
+          assert.deepStrictEqual(
+            recursiveMap(
+              originalMap,
+              parsedString.tagGroups.map((tagGroup) => tagGroup.nestedGroups()),
+            ),
+            expectedGroups[testStringKey],
+            testString,
+          )
+        }
+      })
     })
   })
 
