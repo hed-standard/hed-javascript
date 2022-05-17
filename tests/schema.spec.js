@@ -350,8 +350,7 @@ describe('HED schemas', () => {
     })
   })
 
-  // TODO: Rewrite
-  describe.skip('HED-3G schemas', () => {
+  describe('HED-3G schemas', () => {
     const localHedSchemaFile = 'tests/data/HED8.0.0.xml'
     let hedSchemaPromise
 
@@ -361,145 +360,111 @@ describe('HED schemas', () => {
       })
     })
 
-    it('should have tag dictionaries for all defined tag attributes', () => {
-      const tagDictionaryKeys = [
-        'extensionAllowed',
-        'isNumeric',
-        'recommended',
-        'relatedTag',
-        'requireChild',
-        'required',
-        'suggestedTag',
-        'tagGroup',
-        'takesValue',
-        'topLevelTagGroup',
-        'unique',
-      ]
-      return hedSchemaPromise.then((hedSchemas) => {
-        const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
-        assert.hasAllKeys(dictionaries, tagDictionaryKeys)
-      })
-    })
-
-    it('should have unit dictionaries for all defined unit attributes', () => {
-      const unitDictionaryKeys = ['SIUnit', 'unitPrefix', 'unitSymbol']
-      return hedSchemaPromise.then((hedSchemas) => {
-        const dictionaries = hedSchemas.baseSchema.attributes.unitAttributes
-        assert.hasAllKeys(dictionaries, unitDictionaryKeys)
-      })
-    })
-
     it('should contain all of the tag group tags', () => {
       return hedSchemaPromise.then((hedSchemas) => {
-        const tagGroupTags = ['attribute/informational/def-expand']
-        const dictionariesTagGroupTags =
-          hedSchemas.baseSchema.attributes.tagAttributes['tagGroup']
-        assert.hasAllKeys(dictionariesTagGroupTags, tagGroupTags)
+        const tagGroupTags = ['property/organizational-property/def-expand']
+        const schemaTagGroupTags = hedSchemas.baseSchema.entries.definitions
+          .get('tags')
+          .getEntriesWithBooleanAttribute('tagGroup')
+        assert.hasAllKeys(schemaTagGroupTags, tagGroupTags)
       })
     })
 
     it('should contain all of the top-level tag group tags', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const tagGroupTags = [
-          'attribute/informational/definition',
-          'attribute/organizational/event-context',
-          'data-property/spatiotemporal-property/temporal-property/onset',
-          'data-property/spatiotemporal-property/temporal-property/offset',
+          'property/organizational-property/definition',
+          'property/organizational-property/event-context',
+          'property/data-property/data-marker/temporal-marker/onset',
+          'property/data-property/data-marker/temporal-marker/offset',
         ]
-        const dictionariesTopLevelTagGroupTags =
-          hedSchemas.baseSchema.attributes.tagAttributes['topLevelTagGroup']
-        assert.hasAllKeys(dictionariesTopLevelTagGroupTags, tagGroupTags)
+        const schemaTagGroupTags = hedSchemas.baseSchema.entries.definitions
+          .get('tags')
+          .getEntriesWithBooleanAttribute('topLevelTagGroup')
+        assert.hasAllKeys(schemaTagGroupTags, tagGroupTags)
       })
     })
 
     it('should contain all of the unit classes with their units and default units', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const defaultUnits = {
-          acceleration: 'm-per-s^2',
-          angle: 'radian',
-          area: 'm^2',
-          currency: '$',
-          dateTime: 'YYYY-MM-DDThh:mm:ss',
-          frequency: 'Hz',
-          intensity: 'dB',
-          jerk: 'm-per-s^3',
-          luminousIntensity: 'cd',
-          memorySize: 'B',
-          posixPath: undefined,
-          physicalLength: 'm',
-          pixels: 'px',
-          speed: 'm-per-s',
-          time: 's',
-          volume: 'm^3',
+          accelerationUnits: 'm-per-s^2',
+          angleUnits: 'radian',
+          areaUnits: 'm^2',
+          currencyUnits: '$',
+          frequencyUnits: 'Hz',
+          intensityUnits: 'dB',
+          jerkUnits: 'm-per-s^3',
+          memorySizeUnits: 'B',
+          physicalLengthUnits: 'm',
+          speedUnits: 'm-per-s',
+          timeUnits: 's',
+          volumeUnits: 'm^3',
+          weightUnits: 'g',
         }
         const allUnits = {
-          acceleration: ['m-per-s^2'],
-          angle: ['radian', 'rad', 'degree'],
-          area: ['m^2', 'px^2', 'pixel^2'],
-          currency: ['dollar', '$', 'point'],
-          dateTime: ['YYYY-MM-DDThh:mm:ss'],
-          frequency: ['hertz', 'Hz'],
-          intensity: ['dB'],
-          jerk: ['m-per-s^3'],
-          luminousIntensity: ['candela', 'cd'],
-          memorySize: ['byte', 'B'],
-          posixPath: [],
-          physicalLength: ['metre', 'm', 'foot', 'mile'],
-          pixels: ['pixel', 'px'],
-          speed: ['m-per-s', 'mph', 'kph'],
-          time: ['second', 's', 'day', 'minute', 'hour'],
-          volume: ['m^3'],
+          accelerationUnits: ['m-per-s^2'],
+          angleUnits: ['radian', 'rad', 'degree'],
+          areaUnits: ['m^2'],
+          currencyUnits: ['dollar', '$', 'point'],
+          frequencyUnits: ['hertz', 'Hz'],
+          intensityUnits: ['dB', 'candela', 'cd'],
+          jerkUnits: ['m-per-s^3'],
+          memorySizeUnits: ['byte', 'B'],
+          physicalLengthUnits: ['metre', 'm', 'inch', 'foot', 'mile'],
+          speedUnits: ['m-per-s', 'mph', 'kph'],
+          timeUnits: ['second', 's', 'day', 'minute', 'hour'],
+          volumeUnits: ['m^3'],
+          weightUnits: ['g', 'gram', 'pound', 'lb'],
         }
 
-        const dictionariesUnitAttributes =
-          hedSchemas.baseSchema.attributes.unitClassAttributes
-        const dictionariesAllUnits =
-          hedSchemas.baseSchema.attributes.unitClasses
-        for (const unitClass in dictionariesUnitAttributes) {
-          const defaultUnit = dictionariesUnitAttributes[unitClass].defaultUnits
-          if (defaultUnit === undefined) {
-            assert.isUndefined(
-              defaultUnits[unitClass],
-              `Default unit for unit class ${unitClass}`,
-            )
-            continue
-          }
-          assert.deepStrictEqual(
-            defaultUnit[0],
-            defaultUnits[unitClass],
-            `Default unit for unit class ${unitClass}`,
+        const schemaUnitClasses =
+          hedSchemas.baseSchema.entries.definitions.get('unitClasses')
+        for (const [unitClassName, unitClass] of schemaUnitClasses) {
+          const defaultUnit = unitClass.defaultUnit
+          assert.strictEqual(
+            defaultUnit.name,
+            defaultUnits[unitClassName],
+            `Default unit for unit class '${unitClassName}'`,
+          )
+          assert.sameDeepMembers(
+            Array.from(unitClass.units.values()).map((unit) => unit.name),
+            allUnits[unitClassName],
+            `All units for unit class '${unitClassName}'`,
           )
         }
-        assert.deepStrictEqual(dictionariesAllUnits, allUnits, 'All units')
       })
     })
 
     it('should contain the correct (large) numbers of tags with certain attributes', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const expectedAttributeTagCount = {
-          isNumeric: 41,
           requireChild: 7,
-          takesValue: 74,
+          takesValue: 88,
         }
 
-        const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
-        for (const attribute in expectedAttributeTagCount) {
+        const schemaTags = hedSchemas.baseSchema.entries.definitions.get('tags')
+        for (const attribute of Object.keys(expectedAttributeTagCount)) {
           assert.lengthOf(
-            Object.keys(dictionaries[attribute]),
+            schemaTags.getEntriesWithBooleanAttribute(attribute),
             expectedAttributeTagCount[attribute],
             'Mismatch on attribute ' + attribute,
           )
         }
 
-        const expectedTagCount = 1042
-        const expectedUnitClassCount = 19
+        const expectedTagCount = 1110
         assert.lengthOf(
-          Object.keys(hedSchemas.baseSchema.attributes.tags),
+          schemaTags.definitions,
           expectedTagCount,
           'Mismatch on overall tag count',
         )
+
+        const expectedUnitClassCount = 27
+        const schemaTagsWithUnitClasses = schemaTags.filter(
+          ([, tag]) => tag.hasUnitClasses,
+        )
         assert.lengthOf(
-          Object.keys(hedSchemas.baseSchema.attributes.tagUnitClasses),
+          schemaTagsWithUnitClasses,
           expectedUnitClassCount,
           'Mismatch on unit class tag count',
         )
