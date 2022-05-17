@@ -4,6 +4,7 @@ const { buildSchema } = require('../converter/schema')
 const { parseHedString, splitHedString } = require('../validator/stringParser')
 const { ParsedHedTag } = require('../validator/types/parsedHed')
 const { generateIssue } = require('../common/issues/issues')
+const converterGenerateIssue = require('../converter/issues')
 const { recursiveMap } = require('../utils/array')
 
 describe('HED string parsing', () => {
@@ -495,6 +496,8 @@ describe('HED string parsing', () => {
       const testStrings = {
         simple: 'Car',
         groupAndTag: '(Train, RGB-red/0.5), Car',
+        invalidTag: 'InvalidTag',
+        invalidParentNode: 'Car/Train/Maglev',
       }
       const expectedResults = {
         simple: ['Item/Object/Man-made-object/Vehicle/Car'],
@@ -503,10 +506,32 @@ describe('HED string parsing', () => {
           'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red/0.5',
           'Item/Object/Man-made-object/Vehicle/Car',
         ],
+        invalidTag: ['InvalidTag'],
+        invalidParentNode: ['Car/Train/Maglev'],
       }
       const expectedIssues = {
-        simple: [],
-        groupAndTag: [],
+        simple: {},
+        groupAndTag: {},
+        invalidTag: {
+          conversion: [
+            converterGenerateIssue(
+              'invalidTag',
+              testStrings.invalidTag,
+              {},
+              [0, 10],
+            ),
+          ],
+        },
+        invalidParentNode: {
+          conversion: [
+            converterGenerateIssue(
+              'invalidParentNode',
+              testStrings.invalidParentNode,
+              { parentTag: 'Item/Object/Man-made-object/Vehicle/Train' },
+              [4, 9],
+            ),
+          ],
+        },
       }
       return hedSchemaPromise.then((hedSchema) => {
         return validatorWithIssues(
