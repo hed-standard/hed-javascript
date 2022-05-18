@@ -18,7 +18,7 @@ const getElementCount = function (array, elementToCount) {
 /**
  * Recursively flatten an array.
  *
- * @param {Array[]} array The array to flatten.
+ * @param {Array} array The array to flatten.
  * @return {Array} The flattened array.
  */
 const flattenDeep = function (array) {
