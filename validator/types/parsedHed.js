@@ -163,6 +163,12 @@ class ParsedHedTag extends ParsedHedSubstring {
     })
   }
 
+  /**
+   * Iterate through a tag's ancestor tag strings.
+   *
+   * @param {string} tagString A tag string.
+   * @yield {string} The tag's ancestor tags.
+   */
   static *ancestorIterator(tagString) {
     while (tagString.lastIndexOf('/') >= 0) {
       yield tagString
@@ -262,7 +268,6 @@ class ParsedHed2Tag extends ParsedHedTag {
 
   /**
    * Get the default unit for this HED tag.
-   * TODO: Replace return with new Unit type.
    */
   get defaultUnit() {
     return this._memoize('defaultUnit', () => {
@@ -276,7 +281,6 @@ class ParsedHed2Tag extends ParsedHedTag {
         unitClassTag,
         defaultUnitForTagAttribute,
       )
-      // TODO: New versions of the spec have defaultUnits instead of default.
       if (hasDefaultAttribute) {
         return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][
           unitClassTag
@@ -559,7 +563,7 @@ class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * The deeply nested array of parsed tags.
-   * @returns {ParsedHedTag[]}
+   * @return {ParsedHedTag[]}
    */
   nestedGroups() {
     const currentGroup = []
@@ -575,7 +579,8 @@ class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Iterator over the full HED groups and subgroups in this HED tag group.
-   * @return {Generator<*, ParsedHedTag[], *>}
+   *
+   * @yield {ParsedHedTag[]} The subgroups of this tag group.
    */
   *subGroupIterator() {
     const currentGroup = []
@@ -591,7 +596,8 @@ class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Iterator over the parsed HED tags in this HED tag group.
-   * @return {Generator<*, ParsedHedTag, *>}
+   *
+   * @yield {ParsedHedTag} This tag group's HED tags.
    */
   *tagIterator() {
     for (const innerTag of this.tags) {
