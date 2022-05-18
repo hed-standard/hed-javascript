@@ -437,6 +437,14 @@ class SchemaUnitClass extends SchemaEntry {
   get units() {
     return this._units
   }
+
+  /**
+   * Get the default unit for this unit class.
+   * @returns {SchemaUnit}
+   */
+  get defaultUnit() {
+    return this._units.get(this.getNamedAttributeValue('defaultUnits'))
+  }
 }
 
 class SchemaUnitModifier extends SchemaEntry {
