@@ -336,6 +336,15 @@ const validateFullUnparsedHedString = function (hedString) {
   }
 }
 
+const mergeParsingIssues = function (previousIssues, currentIssues) {
+  for (const key of Object.keys(currentIssues)) {
+    previousIssues[key] =
+      previousIssues[key] !== undefined
+        ? previousIssues[key].concat(currentIssues[key])
+        : currentIssues[key]
+  }
+}
+
 /**
  * Parse a full HED string into a object of tag types.
  *
@@ -364,12 +373,7 @@ const parseHedString = function (hedString, hedSchemas) {
   )
   const parsingIssues = Object.assign(fullStringIssues, splitIssues)
   for (const tagGroup of tagGroupIssues) {
-    for (const key of Object.keys(tagGroup)) {
-      parsingIssues[key] =
-        parsingIssues[key] !== undefined
-          ? parsingIssues[key].concat(tagGroup[key])
-          : tagGroup[key]
-    }
+    mergeParsingIssues(parsingIssues, tagGroup)
   }
   return [parsedString, parsingIssues]
 }
@@ -389,12 +393,7 @@ const parseHedStrings = function (hedStrings, hedSchemas) {
     .reduce(
       ([previousStrings, previousIssues], [currentString, currentIssues]) => {
         previousStrings.push(currentString)
-        for (const key of Object.keys(currentIssues)) {
-          previousIssues[key] =
-            previousIssues[key] !== undefined
-              ? previousIssues[key].concat(currentIssues[key])
-              : currentIssues[key]
-        }
+        mergeParsingIssues(previousIssues, currentIssues)
         return [previousStrings, previousIssues]
       },
       [[], {}],
