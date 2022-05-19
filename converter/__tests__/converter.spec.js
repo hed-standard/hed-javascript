@@ -634,6 +634,53 @@ describe('HED string conversion', () => {
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
+
+      it.skip('should properly handle node names in value-taking strings', () => {
+        const testStrings = {
+          valueTaking: 'Label/Red',
+          nonValueTaking: 'Train/Car',
+          definitionName: 'Definition/Blue',
+          definitionNameWithPlaceholder: 'Definition/BlueCircle/#',
+          definitionNameWithNodeValue: 'Definition/BlueSquare/SteelBlue',
+          definitionNodeNameWithValue: 'Definition/Blue/Cobalt',
+        }
+        const expectedResults = {
+          valueTaking: 'Property/Informational-property/Label/Red',
+          nonValueTaking: 'Train/Car',
+          definitionName: 'Property/Organizational-property/Definition/Blue',
+          definitionNameWithPlaceholder:
+            'Property/Organizational-property/Definition/BlueCircle/#',
+          definitionNameWithNodeValue:
+            'Property/Organizational-property/Definition/BlueSquare/SteelBlue',
+          definitionNodeNameWithValue: 'Definition/Blue/Cobalt',
+        }
+        const expectedIssues = {
+          valueTaking: [],
+          nonValueTaking: [
+            generateIssue(
+              'invalidParentNode',
+              testStrings.nonValueTaking,
+              { parentTag: 'Item/Object/Man-made-object/Vehicle/Car' },
+              [6, 9],
+            ),
+          ],
+          definitionName: [], // To be caught in validation.
+          definitionNameWithPlaceholder: [],
+          definitionNameWithNodeValue: [],
+          definitionNodeNameWithValue: [
+            generateIssue(
+              'invalidParentNode',
+              testStrings.definitionNodeNameWithValue,
+              {
+                parentTag:
+                  'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Blue-color/Blue',
+              },
+              [11, 15],
+            ),
+          ],
+        }
+        return validator(testStrings, expectedResults, expectedIssues)
+      })
     })
   })
 
