@@ -162,6 +162,11 @@ describe('HED dataset validation', () => {
           '(Definition/BlueSquare,(RGB-blue/1.0,Square))',
           '(Definition/RedCircle,(Red,Circle))',
         ],
+        valueDuplicateDefinition: [
+          '(Definition/BlueSquare,(Blue,Square))',
+          '(Definition/BlueSquare/#,(RGB-blue/#,Square))',
+          '(Definition/RedCircle,(Red,Circle))',
+        ],
       }
       const expectedIssues = {
         valid: [],
@@ -174,6 +179,16 @@ describe('HED dataset validation', () => {
           generateValidationIssue('duplicateDefinition', {
             definition: 'BlueSquare',
             tagGroup: '(Definition/BlueSquare,(RGB-blue/1.0,Square))',
+          }),
+        ],
+        valueDuplicateDefinition: [
+          generateValidationIssue('duplicateDefinition', {
+            definition: 'BlueSquare',
+            tagGroup: '(Definition/BlueSquare,(Blue,Square))',
+          }),
+          generateValidationIssue('duplicateDefinition', {
+            definition: 'BlueSquare',
+            tagGroup: '(Definition/BlueSquare/#,(RGB-blue/#,Square))',
           }),
         ],
       }
