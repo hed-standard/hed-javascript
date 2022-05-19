@@ -345,19 +345,13 @@ class SchemaAttribute extends SchemaEntry {
     const categoryProperties = properties.filter(
       (property) => property.isCategoryProperty,
     )
-    if (categoryProperties.length === 0) {
-      this._categoryProperty = nodeProperty
-    } else {
-      this._categoryProperty = categoryProperties[0]
-    }
+    this._categoryProperty =
+      categoryProperties.length === 0 ? nodeProperty : categoryProperties[0]
     const typeProperties = properties.filter(
       (property) => property.isTypeProperty,
     )
-    if (typeProperties.length === 0) {
-      this._typeProperty = stringProperty
-    } else {
-      this._typeProperty = typeProperties[0]
-    }
+    this._typeProperty =
+      typeProperties.length === 0 ? stringProperty : typeProperties[0]
   }
 
   get categoryProperty() {
@@ -377,11 +371,9 @@ class SchemaUnit extends SchemaEntry {
     if (!this.isSIUnit) {
       return
     }
-    const matchingModifiers = unitModifiers.filter(
-      ([_, unitModifier]) => {
-        return this.isUnitSymbol === unitModifier.isSIUnitSymbolModifier
-      },
-    )
+    const matchingModifiers = unitModifiers.filter(([_, unitModifier]) => {
+      return this.isUnitSymbol === unitModifier.isSIUnitSymbolModifier
+    })
     for (const modifierName of matchingModifiers.keys()) {
       this._derivativeUnits.push(modifierName + name)
     }
