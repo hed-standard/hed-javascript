@@ -6,7 +6,7 @@ This package contains a JavaScript validator for HED (hierarchical event descrip
 Any type of event can be annotated using HED-type syntax.
 The HED annotation strategy is very general and a standardized vocabulary in the form of a
 [HED schema](https://github.com/hed-standard/hed-specification) enables
-annotation of events in an understand-able, machine actionable format.
+annotation of events in an understandable, machine-actionable format.
 
 Additional [library schemas](https://github.com/hed-standard/hed-schema-library) 
 with specialized vocabularies needed for particular subfields are under development.
@@ -52,11 +52,6 @@ To use the `hed-validator` you must install the npm `hed-validator` package and 
 Currently, only validation at the BIDS dataset level is supported as an external interface,
 because full HED-3G validation requires the entire events file and merged sidecars be available.
 
-The HED JavaScript validator is very much tied to the BIDS dataset format.
-Because full validation of all the features of HED-3G (versions >= 8.0.0) requires full knowledge
-of an events file and its merged sidecars, the `hed-validator` currently only exposes its interface
-at the dataset level.
-
 A sample call can be found in the BIDS validator in
 [hed.js](https://github.com/bids-standard/bids-validator/blob/94ee5225fdc965afc45f0841ec8013f148048084/bids-validator/validators/events/hed.js#L17)
 
@@ -84,5 +79,5 @@ const dataset = new hedValidator.validator.BidsDataset(eventData, sidecarData)
 }
 ```
 The BIDS dataset creates a HED schema from its `dataset_description.json` and is self-contained.
-The primary objects created for BIDS validation can be found in 
+The primary objects needed for HED validation can be found in 
 [types.js](https://github.com/hed-standard/hed-javascript/blob/master/validator/bids/types.js).
