@@ -78,6 +78,6 @@ const dataset = new hedValidator.validator.BidsDataset(eventData, sidecarData)
   }
 }
 ```
-The BIDS dataset creates a HED schema from its `dataset_description.json` and is self-contained.
+The HED BidsDataset object creates a HED schema from its `dataset_description.json` and is self-contained.
 The primary objects needed for HED validation can be found in 
 [types.js](https://github.com/hed-standard/hed-javascript/blob/master/validator/bids/types.js).
