@@ -40,11 +40,10 @@ jobs:
         node-version: lts/*
     - name: Download dependencies
       run: npm ci
-    - name: Test coverage with Node.js LTS
-      run: ./node_modules/.bin/jest --coverage
-    - name: Publish code coverage
+    - name: Test & publish code coverage
       uses: paambaati/codeclimate-action@v3.0.0
       env:
         CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       with:
-        coverageLocations: ${{github.workspace}}/coverage/*.lcov:lcov
+        coverageCommand: ./node_modules/.bin/jest --coverage
+        debug: true
