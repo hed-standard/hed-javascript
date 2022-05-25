@@ -19,7 +19,7 @@ Semantic validation verifies validity at many levels:
 1. **Tag-level validation** checks that tags are in the schema
    and have correct units and value type.
 2. **String-level validation** performs additional checks for correctness.
-   Depending on implementation tag-level and string-level validation may occur at the same time.
+   In this implementation, tag-level and string-level validation occur at the same time.
 3. **Event-level validation** checks that the entire assembled HED annotation for an event is valid.
    This includes checks for required tags, duplicate tags, top-level tags, top-level tag groups,
    and unique tags. This usually implies the existence of an events file and an accompanying JSON sidecar
@@ -35,18 +35,18 @@ at the dataset level.
 The current focus of the `hed-validator` package is to support full validation of HED in
 [BIDS datasets](https://bids-specification.readthedocs.io/en/stable/)
 
-HED validation is currently also supported in an [online version of the HED validator](http://hedtools.ucsd.edu/hed).
-This online validator is implemented in Python.
+HED validation is currently also supported in an [online version of the HED validator](http://hedtools.ucsd.edu/hed),
+which is implemented in Python and developed in a [public GitHub repository](https://github.com/hed-standard/hed-python/).
 Validation and other HED operations are also available through web-services and a docker module.
 
 ## Usage from JavaScript
 
-The JavaScript version of the HED validator, implemented in this package is meant primarily to be
+The JavaScript version of the HED validator, implemented in this package, is meant primarily to be
 called during validation of BIDS datasets and is called by the
 [bids-validator](https://github.com/bids-standard/bids-validator).
 This package has been deployed on npm as [hed-validator](https://www.npmjs.com/package/hed-validator).
 
-To use the `hed-validator` you must install the npm `hed-validator` package and add:
+To use the `hed-validator`, you must install the npm `hed-validator` package and add:
 `const hedValidator = require('hed-validator')` to your JavaScript program.
 
 Currently, only validation at the BIDS dataset level is supported as an external interface,
@@ -78,6 +78,8 @@ const dataset = new hedValidator.validator.BidsDataset(eventData, sidecarData)
   }
 }
 ```
-The HED BidsDataset object creates a HED schema from its `dataset_description.json` and is self-contained.
+The `schemaDefinition` object follows a similar format as the BIDS `HEDVersion` object,
+but with local `path` values pre-parsed to use the fully qualified path name.
+
 The primary objects needed for HED validation can be found in 
-[types.js](https://github.com/hed-standard/hed-javascript/blob/master/validator/bids/types.js).
+[validator/bids/types.js](https://github.com/hed-standard/hed-javascript/blob/master/validator/bids/types.js).
