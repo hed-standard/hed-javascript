@@ -296,10 +296,11 @@ class SchemaEntry {
   }
 }
 
-class SchemaProperty extends SchemaEntry {
-  static CATEGORY_PROPERTY = 'categoryProperty'
-  static TYPE_PROPERTY = 'typeProperty'
+// TODO: Switch back to class constant once upstream bug is fixed.
+const categoryProperty = 'categoryProperty'
+const typeProperty = 'typeProperty'
 
+class SchemaProperty extends SchemaEntry {
   constructor(name, propertyType) {
     super(name, new Set(), new Map())
     this._propertyType = propertyType
@@ -310,7 +311,7 @@ class SchemaProperty extends SchemaEntry {
    * @return {boolean}
    */
   get isCategoryProperty() {
-    return this._propertyType === SchemaProperty.CATEGORY_PROPERTY
+    return this._propertyType === categoryProperty
   }
 
   /**
@@ -318,24 +319,19 @@ class SchemaProperty extends SchemaEntry {
    * @return {boolean}
    */
   get isTypeProperty() {
-    return this._propertyType === SchemaProperty.TYPE_PROPERTY
+    return this._propertyType === typeProperty
   }
 }
 
 // Pseudo-properties
 
-const nodeProperty = new SchemaProperty(
-  'nodeProperty',
-  SchemaProperty.CATEGORY_PROPERTY,
-)
+// TODO: Switch back to class constant once upstream bug is fixed.
+const nodeProperty = new SchemaProperty('nodeProperty', categoryProperty)
 const attributeProperty = new SchemaProperty(
   'attributeProperty',
-  SchemaProperty.CATEGORY_PROPERTY,
+  categoryProperty,
 )
-const stringProperty = new SchemaProperty(
-  'stringProperty',
-  SchemaProperty.TYPE_PROPERTY,
-)
+const stringProperty = new SchemaProperty('stringProperty', typeProperty)
 
 class SchemaAttribute extends SchemaEntry {
   constructor(name, properties) {

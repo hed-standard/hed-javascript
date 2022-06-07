@@ -74,7 +74,8 @@ class Hed3SchemaParser extends SchemaParser {
       ) {
         this.properties.set(
           propertyName,
-          new SchemaProperty(propertyName, SchemaProperty.CATEGORY_PROPERTY),
+          // TODO: Switch back to class constant once upstream bug is fixed.
+          new SchemaProperty(propertyName, 'categoryProperty'),
         )
       } else if (
         this._versionDefinitions.typeProperties &&
@@ -82,7 +83,8 @@ class Hed3SchemaParser extends SchemaParser {
       ) {
         this.properties.set(
           propertyName,
-          new SchemaProperty(propertyName, SchemaProperty.TYPE_PROPERTY),
+          // TODO: Switch back to class constant once upstream bug is fixed.
+          new SchemaProperty(propertyName, 'typeProperty'),
         )
       }
     }
