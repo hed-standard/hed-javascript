@@ -2,159 +2,84 @@
 
 This package contains a JavaScript validator for HED (hierarchical event descriptor) strings.
 
-[HED](http://www.hedtags.org/) is a system for annotating events using comma-separated path strings. Any type of event can be annotated using HED-type syntax. The current version of `hed-validator` performs both syntactic and semantic validation. Syntactic validation only checks for syntactic issues like mismatched parentheses, and it does not require a schema.
+[HED](http://www.hedtags.org/) is a system for annotating events using comma-separated path strings.
+Any type of event can be annotated using HED-type syntax.
+The HED annotation strategy is very general and a standardized vocabulary in the form of a
+[HED schema](https://github.com/hed-standard/hed-specification) enables
+annotation of events in an understandable, machine-actionable format.
 
-The HED annotation strategy is very general and a standardized vocabulary for a particular domain can be represented using a HED schema. HED provides one [standardized schema](https://github.com/hed-standard/hed-specification) for annotating events in neuroimaging experiments. Validation of HED strings against a particular HED schema is called semantic validation. Semantic validation is currently supported for the [web version of the HED validator](http://visual.cs.utsa.edu/hed).
+Additional [library schemas](https://github.com/hed-standard/hed-schema-library) 
+with specialized vocabularies needed for particular subfields are under development.
 
-## Usage
+HED validation occurs at several levels.
+Syntactic validation checks that HED strings comply with the required syntax,
+but not whether tags comply with the additional requirements of a HED schema.
 
-To use the validator, follow these instructions:
+Semantic validation verifies validity at many levels:
+1. **Tag-level validation** checks that tags are in the schema
+   and have correct units and value type.
+2. **String-level validation** performs additional checks for correctness.
+   In this implementation, tag-level and string-level validation occur at the same time.
+3. **Event-level validation** checks that the entire assembled HED annotation for an event is valid.
+   This includes checks for required tags, duplicate tags, top-level tags, top-level tag groups,
+   and unique tags. This usually implies the existence of an events file and an accompanying JSON sidecar
+   so that annotations for different columns of an events file can be assembled into a single string.
+4. **Dataset-level validation** parses out the definitions
+   and checks that the needed definitions are present and not duplications.
+   Dataset-level validation also checks for `Onset`-`Offset` tag consistency.
 
-1. Install the npm package `hed-validator`.
-1. Add `const hedValidator = require('hed-validator')`.
-1. (Semantic validation)
-   1. Load a HED schema version using `hedValidator.validator.buildSchema()`. This returns a JavaScript `Promise` object. An optional object may be passed to `buildSchema()`. A `path` value is the path to a locally stored schema, while passing a `version` value will download that version. If no object or an empty object is passed, the latest version of the HED schema will be downloaded.
-   1. Call the validator as follows (assuming `hedString` is the string to validate).
-   ```javascript
-   hedValidator.validator.buildSchema().then(hedSchema => {
-     const [result, issues] = hedValidator.validator.validateHedString(
-       hedString,
-       hedSchema,
-     )
-   })
-   ```
-1. (Syntactic validation only) Call the validator as follows (assuming `hedString` is the string to validate). The second parameter is only required if checking for warnings.
-   ```javascript
-   const [result, issues] = hedValidator.validator.validateHedString(
-     hedString,
-     {},
-   )
-   ```
+The current version of `hed-validator` performs both syntactic and semantic validation.
+Because full validation of all the features of HED-3G (versions >= 8.0.0) requires full knowledge
+of an events file and its merged sidecars, the `hed-validator` currently only exposes its interface
+at the dataset level.
+The current focus of the `hed-validator` package is to support full validation of HED in
+[BIDS datasets](https://bids-specification.readthedocs.io/en/stable/)
 
-To check for warnings, pass `true` as the optional third argument.
+HED validation is currently also supported in an [online version of the HED validator](http://hedtools.ucsd.edu/hed),
+which is implemented in Python and developed in a [public GitHub repository](https://github.com/hed-standard/hed-python/).
+Validation and other HED operations are also available through web-services and a docker module.
 
-## Examples
+## Usage from JavaScript
 
-All of the examples assume that the `hed-validator` has been loaded:
+The JavaScript version of the HED validator, implemented in this package, is meant primarily to be
+called during validation of BIDS datasets and is called by the
+[bids-validator](https://github.com/bids-standard/bids-validator).
+This package has been deployed on npm as [hed-validator](https://www.npmjs.com/package/hed-validator).
 
-```javascript
-// For all examples
-const hedValidator = require('hed-validator')
-```
+To use the `hed-validator`, you must install the npm `hed-validator` package and add:
+`const hedValidator = require('hed-validator')` to your JavaScript program.
 
-### Example 1: Calling `hed-validator` on a valid HED string
+Currently, only validation at the BIDS dataset level is supported as an external interface,
+because full HED-3G validation requires the entire events file and merged sidecars be available.
 
-```javascript
-// Initializing parameters and making the call
-const validHedString =
-  'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
-const [isValid1, issues1] = hedValidator.validator.validateHedString(
-  validHedString,
-)
-```
-
-After the call, the `isValid1` variable is `true` and `issues1` is empty.
-
-### Example 2: Calling `hed-validator` when the HED string has a syntactic error (mismatched parentheses)
+A sample call can be found in the BIDS validator in
+[hed.js](https://github.com/bids-standard/bids-validator/blob/94ee5225fdc965afc45f0841ec8013f148048084/bids-validator/validators/events/hed.js#L17)
 
 ```javascript
-// Initializing parameters and making the call
-const invalidHedString2 =
-  '/Action/Reach/To touch,((/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px'
-const [isValid2, issues2] = hedValidator.validator.validateHedString(
-  invalidHedString2,
-)
-```
-
-After the call, `isValid2` is `false` and `issues2` has the value
-
-```javascript
-;[
-  {
-    code: 'parentheses',
-    message:
-      'ERROR: Number of opening and closing parentheses are unequal. 2 opening parentheses. 1 closing parentheses',
-  },
-]
-```
-
-### Example 3: Calling `hed-validator` when the HED string has a syntactic warning (bad capitalization), but no errors
-
-```javascript
-const warningHedString = 'Event/something'
-const [isErrorFree, errorIssues] = hedValidator.validator.validateHedString(
-  warningHedString,
-)
-const [isWarningFree, warningIssues] = hedValidator.validator.validateHedString(
-  warningHedString,
-  {},
-  true,
-)
-```
-
-After the calls, `isErrorFree` is `true` and `isWarningFree` is `false`. The `errorIssues` variable is empty, while the `warningIssues` variable contains
-
-```javascript
-;[
-  {
-    code: 'capitalization',
-    message:
-      'WARNING: First word not capitalized or camel case - "Event/something"',
-  },
-]
-```
-
-### Example 4: Calling `hed-validator` when the HED string has a semantic error (invalid tag)
-
-```javascript
-// Initialize parameter
-const invalidHedString4 = 'Item/Nonsense'
-// Build schema
-hedValidator.validator.buildSchema().then(hedSchema => {
-  // Validate
-  const [isValid4, issues4] = hedValidator.validator.validateHedString(
-    invalidHedString4,
-    hedSchema,
+...
+const dataset = new hedValidator.validator.BidsDataset(eventData, sidecarData)
+  const [schemaDefinition, schemaDefinitionIssues] = parseHedVersion(
+    jsonContents,
+    dir,
   )
-})
+  try {
+    return hedValidator.validator
+      .validateBidsDataset(dataset, schemaDefinition)
+      .then(hedValidationIssues => {
+        return schemaDefinitionIssues.concat(
+          convertHedIssuesToBidsIssues(hedValidationIssues),
+        )
+      })
+  } catch (error) {
+    const issues = schemaDefinitionIssues.concat(
+      internalHedValidatorIssue(error),
+    )
+    return Promise.resolve(issues)
+  }
+}
 ```
+The `schemaDefinition` object follows a similar format as the BIDS `HEDVersion` object,
+but with local `path` values pre-parsed to use the fully qualified path name.
 
-After the call, but inside the `then()` block, `isValid4` is `false` and `issues4` has the value
-
-```javascript
-;[
-  {
-    code: 'invalidTag',
-    message: 'ERROR: Invalid tag - "Item/Nonsense"',
-  },
-]
-```
-
-### Example 5: Loading a non-default HED schema version
-
-```javascript
-const validHedString =
-  'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple'
-
-// Load a remotely hosted schema version.
-hedValidator.validator.buildSchema({ version: '7.0.4' }).then(hedSchema => {
-  // Validate
-  const [
-    isValid5Remote,
-    issues5Remote,
-  ] = hedValidator.validator.validateHedString(validHedString, hedSchema)
-  // Do something with results...
-})
-
-// Load a local schema file.
-hedValidator.validator
-  .buildSchema({ path: '/path/to/schema/file' })
-  .then(hedSchema => {
-    // Validate
-    const [
-      isValid5Local,
-      issues5Local,
-    ] = hedValidator.validator.validateHedString(validHedString, hedSchema)
-    // Do something with results...
-  })
-```
+The primary objects needed for HED validation can be found in 
+[validator/bids/types.js](https://github.com/hed-standard/hed-javascript/blob/master/validator/bids/types.js).
