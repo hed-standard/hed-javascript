@@ -25,19 +25,25 @@ describe('HED schemas', () => {
     })
   })
 
-  describe.skip('Remote HED library schemas', () => {
+  describe('Remote HED library schemas', () => {
     it('can be loaded from a central GitHub repository', () => {
-      const remoteHedSchemaLibrary = 'test'
-      const remoteHedSchemaVersion = '0.0.1'
+      const remoteHedSchemaVersion = '8.0.0'
+      const remoteHedSchemaLibrary = 'testlib'
+      const remoteHedSchemaLibraryVersion = '1.0.2'
       return schema
         .buildSchema({
-          library: remoteHedSchemaLibrary,
           version: remoteHedSchemaVersion,
+          libraries: {
+            testlib: {
+              library: remoteHedSchemaLibrary,
+              version: remoteHedSchemaLibraryVersion,
+            },
+          },
         })
         .then((hedSchemas) => {
           const hedSchema = hedSchemas.librarySchemas.get(remoteHedSchemaLibrary)
           assert.strictEqual(hedSchema.library, remoteHedSchemaLibrary)
-          assert.strictEqual(hedSchema.version, remoteHedSchemaVersion)
+          assert.strictEqual(hedSchema.version, remoteHedSchemaLibraryVersion)
         })
     })
   })

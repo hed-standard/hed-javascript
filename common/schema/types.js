@@ -120,8 +120,9 @@ class Schemas {
   /**
    * Constructor.
    * @param {Schema} baseSchema The base HED schema.
+   * @param {Map<string, Schema>} librarySchemas The imported library HED schemas.
    */
-  constructor(baseSchema) {
+  constructor(baseSchema, librarySchemas = undefined) {
     /**
      * The base HED schema.
      * @type {Schema}
@@ -131,7 +132,7 @@ class Schemas {
      * The imported library HED schemas.
      * @type {Map<string, Schema>}
      */
-    this.librarySchemas = new Map()
+    this.librarySchemas = librarySchemas || new Map()
   }
 
   /**

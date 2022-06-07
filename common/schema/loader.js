@@ -24,9 +24,9 @@ const loadSchema = function (schemaDef = {}, useFallback = true) {
   let schemaPromise
   if (schemaDef.path) {
     schemaPromise = loadLocalSchema(schemaDef.path)
-  } /* else if (schemaDef.library) {
+  } else if (schemaDef.library) {
     return loadRemoteLibrarySchema(schemaDef.library, schemaDef.version)
-  } */ else if (schemaDef.version) {
+  } else if (schemaDef.version) {
     schemaPromise = loadRemoteBaseSchema(schemaDef.version)
   } else {
     return Promise.reject(new Error('Invalid schema definition format.'))
@@ -63,7 +63,7 @@ const loadRemoteBaseSchema = function (version = 'Latest') {
  * @return {Promise<object>} The library schema XML data.
  */
 const loadRemoteLibrarySchema = function (library, version = 'Latest') {
-  const url = `https://raw.githubusercontent.com/hed-standard/hed-schema-library/master/hedxml/HED_${library}_${version}.xml`
+  const url = `https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/${library}/hedxml/HED_${library}_${version}.xml`
   return loadSchemaFile(
     files.readHTTPSFile(url),
     stringTemplate`Could not load HED library schema ${1}, version "${2}", from remote repository - "${0}".`,
