@@ -151,10 +151,15 @@ const issueData = {
     level: 'error',
     message: stringTemplate`The fallback schema bundled with this validator failed to load. The error given was "${'error'}". No HED validation was performed.`,
   },
+  unmatchedLibrarySchema: {
+    hedCode: 'HED_LIBRARY_UNMATCHED',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" is declared to use a library schema nicknamed "${'library'}" in the dataset's schema listing, but no such schema was found.`,
+  },
   genericError: {
     hedCode: 'HED_GENERIC_ERROR',
     level: 'error',
-    message: stringTemplate`Unknown HED error "${'internalCode'}".`,
+    message: stringTemplate`Unknown HED error "${'internalCode'}" - parameters: "${'parameters'}".`,
   },
 }
 

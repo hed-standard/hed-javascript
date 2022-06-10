@@ -150,6 +150,14 @@ class Schemas {
   }
 
   /**
+   * Whether this schema collection is for syntactic validation only.
+   * @return {boolean}
+   */
+  get isSyntaxOnly() {
+    return this.generation === 0
+  }
+
+  /**
    * Whether this schema collection comprises HED 2 schemas.
    * @return {boolean}
    */

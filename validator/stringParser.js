@@ -18,6 +18,8 @@ const delimiters = new Set([','])
  */
 const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) {
   const doubleQuoteCharacter = '"'
+  const colonCharacter = ':'
+  const slashCharacter = '/'
   const invalidCharacters = ['{', '}', '[', ']', '~']
 
   const hedTags = []
@@ -27,6 +29,7 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
   let currentTag = ''
   let startingIndex = 0
   let resetStartingIndex = false
+  let extraColons = { before: [], after: [] }
 
   let ParsedHedTagClass
   if (hedSchemas.isHed2) {
@@ -39,17 +42,34 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
 
   const pushTag = function (i) {
     if (!utils.string.stringIsEmpty(currentTag)) {
+      let librarySchemaName = ''
+      if (extraColons.before.length === 1) {
+        const colonIndex = extraColons.before.pop()
+        librarySchemaName = currentTag.substring(0, colonIndex)
+        currentTag = currentTag.substring(colonIndex + 1)
+      }
       const parsedHedTag = new ParsedHedTagClass(
         currentTag.trim(),
         hedString,
         [groupStartingIndex + startingIndex, groupStartingIndex + i],
         hedSchemas,
+        librarySchemaName,
       )
       hedTags.push(parsedHedTag)
       conversionIssues.push(...parsedHedTag.conversionIssues)
     }
     resetStartingIndex = true
     currentTag = ''
+    for (const extraColonIndex of extraColons.before) {
+      syntaxIssues.push(
+        generateIssue('invalidCharacter', {
+          character: colonCharacter,
+          index: groupStartingIndex + extraColonIndex,
+          string: hedString,
+        }),
+      )
+    }
+    extraColons = { before: [], after: [] }
   }
 
   // Loop a character at a time.
@@ -67,6 +87,11 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
       groupDepth++
     } else if (character === closingGroupCharacter) {
       groupDepth--
+    } else if (character === slashCharacter) {
+      extraColons.before.push(...extraColons.after)
+      extraColons.after = []
+    } else if (character === colonCharacter) {
+      extraColons.after.push(i)
     }
     if (groupDepth === 0 && delimiters.has(character)) {
       // Found the end of a tag, so push the current tag.

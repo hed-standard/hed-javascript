@@ -18,13 +18,13 @@ describe('HED string conversion', () => {
      * @param {Object<string, string>} testStrings The test strings.
      * @param {Object<string, string>} expectedResults The expected results.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
-     * @param {function (Schemas, string, string, number): [string, Issue[]]} testFunction The test function.
-     * @return {Promise<void> | PromiseLike<any> | Promise<any>}
+     * @param {function (Schema, string, string, number): [string, Issue[]]} testFunction The test function.
+     * @return {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
       return schemaPromise.then((schemas) => {
         for (const testStringKey of Object.keys(testStrings)) {
-          const [testResult, issues] = testFunction(schemas, testStrings[testStringKey], testStrings[testStringKey], 0)
+          const [testResult, issues] = testFunction(schemas.baseSchema, testStrings[testStringKey], testStrings[testStringKey], 0)
           assert.strictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
           assert.sameDeepMembers(issues, expectedIssues[testStringKey], testStrings[testStringKey])
         }
@@ -583,7 +583,7 @@ describe('HED string conversion', () => {
      * @param {Object<string, string>} expectedResults The expected results.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      * @param {function (Schemas, string): [string, Issue[]]} testFunction The test function.
-     * @return {Promise<void> | PromiseLike<any> | Promise<any>}
+     * @return {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
       return schemaPromise.then((schemas) => {

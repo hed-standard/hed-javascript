@@ -4,6 +4,7 @@ const { Memoizer } = require('../../utils/types')
 
 const { getTagSlashIndices, replaceTagNameWithPound, getTagName } = require('../../utils/hed')
 const { convertPartialHedStringToLong } = require('../../converter/converter')
+const { generateIssue } = require('../../common/issues/issues')
 
 /**
  * A parsed HED substring.
@@ -39,44 +40,80 @@ class ParsedHedTag extends ParsedHedSubstring {
    * @param {string} hedString The original HED string.
    * @param {int[]} originalBounds The bounds of the HED tag in the original HED string.
    * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string} librarySchemaName The label of this tag's library schema in the dataset's schema spec.
    */
-  constructor(originalTag, hedString, originalBounds, hedSchemas) {
+  constructor(
+    originalTag,
+    hedString,
+    originalBounds,
+    hedSchemas,
+    librarySchemaName,
+  ) {
     super(originalTag, originalBounds)
-    let canonicalTag, conversionIssues
-    if (hedSchemas.baseSchema) {
-      ;[canonicalTag, conversionIssues] = convertPartialHedStringToLong(
-        hedSchemas,
-        originalTag,
-        hedString,
-        originalBounds[0],
-      )
-    } else {
-      canonicalTag = originalTag
-      conversionIssues = []
-    }
-    /**
-     * The canonical form of the HED tag.
-     * @type {string}
-     */
-    this.canonicalTag = canonicalTag
-    /**
-     * Any issues encountered during tag conversion.
-     * @type {Array}
-     */
-    this.conversionIssues = conversionIssues
-    // TODO: Implement
-    this.schema = hedSchemas.baseSchema
+
+    this.convertTag(hedString, hedSchemas, librarySchemaName)
     /**
      * The formatted canonical version of the HED tag.
      * @type {string}
      */
-    this.formattedTag = this.format()
+    this.formattedTag = this.formatTag()
+  }
+
+  /**
+   * Convert this tag to long form.
+   *
+   * @param {string} hedString The original HED string.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string} librarySchemaName The label of this tag's library schema in the dataset's schema spec.
+   */
+  convertTag(hedString, hedSchemas, librarySchemaName) {
+    if (hedSchemas.isSyntaxOnly) {
+      /**
+       * The canonical form of the HED tag.
+       * @type {string}
+       */
+      this.canonicalTag = this.originalTag
+      /**
+       * Any issues encountered during tag conversion.
+       * @type {Issue[]}
+       */
+      this.conversionIssues = []
+
+      return
+    }
+    if (librarySchemaName) {
+      /**
+       * The HED schema this tag belongs to.
+       * @type {Schema}
+       */
+      this.schema = hedSchemas.librarySchemas.get(librarySchemaName)
+      if (this.schema === undefined) {
+        this.conversionIssues = [
+          generateIssue('unmatchedLibrarySchema', {
+            tag: this.originalTag,
+            library: librarySchemaName,
+          }),
+        ]
+        this.canonicalTag = this.originalTag
+        return
+      }
+    } else {
+      this.schema = hedSchemas.baseSchema
+    }
+    const [canonicalTag, conversionIssues] = convertPartialHedStringToLong(
+      this.schema,
+      this.originalTag,
+      hedString,
+      this.originalBounds[0],
+    )
+    this.canonicalTag = canonicalTag
+    this.conversionIssues = conversionIssues
   }
 
   /**
    * Format this HED tag by removing newlines, double quotes, and slashes.
    */
-  format() {
+  formatTag() {
     this.originalTag = this.originalTag.replace('\n', ' ')
     let hedTagString = this.canonicalTag.trim()
     if (hedTagString.startsWith('"')) {

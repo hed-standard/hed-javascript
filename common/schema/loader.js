@@ -25,7 +25,10 @@ const loadSchema = function (schemaDef = {}, useFallback = true) {
   if (schemaDef.path) {
     schemaPromise = loadLocalSchema(schemaDef.path)
   } else if (schemaDef.library) {
-    return loadRemoteLibrarySchema(schemaDef.library, schemaDef.version)
+    schemaPromise = loadRemoteLibrarySchema(
+      schemaDef.library,
+      schemaDef.version,
+    )
   } else if (schemaDef.version) {
     schemaPromise = loadRemoteBaseSchema(schemaDef.version)
   } else {
