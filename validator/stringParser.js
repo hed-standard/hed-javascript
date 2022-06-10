@@ -9,18 +9,17 @@ const closingGroupCharacter = ')'
 const delimiters = new Set([','])
 
 /**
- * Split a full HED string into tags.
+ * Split a HED string into tags.
  *
- * @param {string} hedString The full HED string.
+ * @param {string} hedString The HED string to be split.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @param {int} groupStartingIndex The start index of the group in the full HED string.
- * @returns {[ParsedHedTag[], object<string, Issue[]>]} An array of HED tags (top-level relative to the passed string) and any issues found.
+ * @param {int} groupStartingIndex The start index of the containing group in the full HED string.
+ * @returns {[ParsedHedTag[], Object<string, Issue[]>]} An array of HED tags (top-level relative to the passed string) and any issues found.
  */
 const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) {
-  const doubleQuoteCharacter = '"'
   const colonCharacter = ':'
   const slashCharacter = '/'
-  const invalidCharacters = ['{', '}', '[', ']', '~']
+  const invalidCharacters = ['{', '}', '[', ']', '~', '"']
 
   const hedTags = []
   const conversionIssues = []
@@ -79,10 +78,7 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
       resetStartingIndex = false
     }
     const character = hedString.charAt(i)
-    if (character === doubleQuoteCharacter) {
-      // Skip double quotes
-      continue
-    } else if (character === openingGroupCharacter) {
+    if (character === openingGroupCharacter) {
       // Count group characters
       groupDepth++
     } else if (character === closingGroupCharacter) {
@@ -131,7 +127,7 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @param {ParsedHedString} parsedString The object to store parsed output in.
  * @param {boolean} isTopLevel Whether these tag groups are at the top level.
- * @return {object<string, Issue[]>[]} The array of issues.
+ * @return {Object<string, Issue[]>[]} The array of issues.
  */
 const findTagGroups = function (groupTagsList, hedSchemas, parsedString, isTopLevel) {
   const issues = []
@@ -309,7 +305,7 @@ const findDelimiterIssuesInHedString = function (hedString) {
  * Validate the full unparsed HED string.
  *
  * @param {string} hedString The unparsed HED string.
- * @return {object<string, Issue[]>} String substitution issues and other issues.
+ * @return {Object<string, Issue[]>} String substitution issues and other issues.
  */
 const validateFullUnparsedHedString = function (hedString) {
   const [fixedHedString, substitutionIssues] = substituteCharacters(hedString)
@@ -332,11 +328,11 @@ const mergeParsingIssues = function (previousIssues, currentIssues) {
 }
 
 /**
- * Parse a full HED string into a object of tag types.
+ * Parse a full HED string into an object of tag types.
  *
  * @param {string} hedString The full HED string to parse.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @returns {[ParsedHedString|null, object<string, Issue[]>]} The parsed HED tag data and an object containing lists of parsing issues.
+ * @returns {[ParsedHedString|null, Object<string, Issue[]>]} The parsed HED tag data and an object containing lists of parsing issues.
  */
 const parseHedString = function (hedString, hedSchemas) {
   const fullStringIssues = validateFullUnparsedHedString(hedString)
@@ -344,8 +340,8 @@ const parseHedString = function (hedString, hedSchemas) {
     fullStringIssues.syntax = []
     return [null, fullStringIssues]
   }
-  const parsedString = new ParsedHedString(hedString)
   const [hedTagList, splitIssues] = splitHedString(hedString, hedSchemas)
+  const parsedString = new ParsedHedString(hedString)
   parsedString.topLevelTags = findTopLevelTags(hedTagList, hedSchemas, parsedString)
   const tagGroupIssues = findTagGroups(hedTagList, hedSchemas, parsedString, true)
   const parsingIssues = Object.assign(fullStringIssues, splitIssues)
@@ -360,7 +356,7 @@ const parseHedString = function (hedString, hedSchemas) {
  *
  * @param {string[]} hedStrings A set of HED strings.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @return {[ParsedHedString[], object<string, Issue[]>]} The parsed HED strings and any issues found.
+ * @return {[ParsedHedString[], Object<string, Issue[]>]} The parsed HED strings and any issues found.
  */
 const parseHedStrings = function (hedStrings, hedSchemas) {
   return hedStrings
