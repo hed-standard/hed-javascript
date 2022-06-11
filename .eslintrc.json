@@ -16,9 +16,9 @@
   },
   "extends": ["eslint:recommended", "prettier"],
   "rules": {
-    "prettier/prettier": "error",
     "no-console": ["error", { "allow": ["warn"] }],
     "linebreak-style": ["error", "unix"],
-    "guard-for-in": "error"
+    "guard-for-in": "error",
+    "max-len": "off"
   }
 }
