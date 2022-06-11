@@ -12,11 +12,9 @@ const { filterNonEqualDuplicates } = require('../utils/map')
  */
 const parseDefinitions = function (parsedHedStrings) {
   const issues = []
-  const parsedHedStringDefinitions = parsedHedStrings.flatMap(
-    (parsedHedString) => {
-      return parsedHedString.definitions
-    },
-  )
+  const parsedHedStringDefinitions = parsedHedStrings.flatMap((parsedHedString) => {
+    return parsedHedString.definitions
+  })
   const [definitionMap, definitionDuplicates] = filterNonEqualDuplicates(
     parsedHedStringDefinitions,
     (definition, other) => {
@@ -56,21 +54,11 @@ const validateDataset = function (definitions, hedStrings, hedSchemas) {
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED strings are valid and any issues found.
  */
-const validateHedEvents = function (
-  parsedHedStrings,
-  hedSchemas,
-  definitions,
-  checkForWarnings,
-) {
+const validateHedEvents = function (parsedHedStrings, hedSchemas, definitions, checkForWarnings) {
   let stringsValid = true
   let stringIssues = []
   for (const hedString of parsedHedStrings) {
-    const [valid, issues] = validateHedEventWithDefinitions(
-      hedString,
-      hedSchemas,
-      definitions,
-      checkForWarnings,
-    )
+    const [valid, issues] = validateHedEventWithDefinitions(hedString, hedSchemas, definitions, checkForWarnings)
     stringsValid = stringsValid && valid
     stringIssues = stringIssues.concat(issues)
   }
@@ -85,25 +73,13 @@ const validateHedEvents = function (
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
-const validateHedDataset = function (
-  hedStrings,
-  hedSchemas,
-  checkForWarnings = false,
-) {
+const validateHedDataset = function (hedStrings, hedSchemas, checkForWarnings = false) {
   if (hedStrings.length === 0) {
     return [true, []]
   }
-  const [parsedHedStrings, parsingIssues] = parseHedStrings(
-    hedStrings,
-    hedSchemas,
-  )
+  const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas)
   const [definitions, definitionIssues] = parseDefinitions(parsedHedStrings)
-  const [stringsValid, stringIssues] = validateHedEvents(
-    parsedHedStrings,
-    hedSchemas,
-    definitions,
-    checkForWarnings,
-  )
+  const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, checkForWarnings)
   const issues = stringIssues.concat(...Object.values(parsingIssues))
   if (!stringsValid) {
     return [false, issues]
@@ -122,39 +98,16 @@ const validateHedDataset = function (
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
-const validateHedDatasetWithContext = function (
-  hedStrings,
-  contextHedStrings,
-  hedSchemas,
-  checkForWarnings = false,
-) {
+const validateHedDatasetWithContext = function (hedStrings, contextHedStrings, hedSchemas, checkForWarnings = false) {
   if (hedStrings.length + contextHedStrings.length === 0) {
     return [true, []]
   }
-  const [parsedHedStrings, parsingIssues] = parseHedStrings(
-    hedStrings,
-    hedSchemas,
-  )
-  const [parsedContextHedStrings, contextParsingIssues] = parseHedStrings(
-    contextHedStrings,
-    hedSchemas,
-  )
-  const combinedParsedHedStrings = parsedHedStrings.concat(
-    parsedContextHedStrings,
-  )
-  const [definitions, definitionIssues] = parseDefinitions(
-    combinedParsedHedStrings,
-  )
-  const [stringsValid, stringIssues] = validateHedEvents(
-    parsedHedStrings,
-    hedSchemas,
-    definitions,
-    checkForWarnings,
-  )
-  const issues = stringIssues.concat(
-    ...Object.values(parsingIssues),
-    ...Object.values(contextParsingIssues),
-  )
+  const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas)
+  const [parsedContextHedStrings, contextParsingIssues] = parseHedStrings(contextHedStrings, hedSchemas)
+  const combinedParsedHedStrings = parsedHedStrings.concat(parsedContextHedStrings)
+  const [definitions, definitionIssues] = parseDefinitions(combinedParsedHedStrings)
+  const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, checkForWarnings)
+  const issues = stringIssues.concat(...Object.values(parsingIssues), ...Object.values(contextParsingIssues))
   if (!stringsValid) {
     return [false, issues]
   }

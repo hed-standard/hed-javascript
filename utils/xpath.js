@@ -73,10 +73,7 @@ const parseXPath = function (query) {
  */
 const search = function (element, elementName, attributeName) {
   let result = []
-  if (
-    attributeName === undefined ||
-    ('$' in element && attributeName in element.$)
-  ) {
+  if (attributeName === undefined || ('$' in element && attributeName in element.$)) {
     result.push(element)
   }
   if (elementName in element) {

@@ -2,13 +2,7 @@ const utils = require('../utils')
 const { hedStringIsAGroup, removeGroupParentheses } = require('../utils/hed')
 const { generateIssue } = require('../common/issues/issues')
 
-const {
-  ParsedHedTag,
-  ParsedHed2Tag,
-  ParsedHed3Tag,
-  ParsedHedGroup,
-  ParsedHedString,
-} = require('./types/parsedHed')
+const { ParsedHedTag, ParsedHed2Tag, ParsedHed3Tag, ParsedHedGroup, ParsedHedString } = require('./types/parsedHed')
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -22,11 +16,7 @@ const delimiters = new Set([','])
  * @param {int} groupStartingIndex The start index of the group in the full HED string.
  * @returns {[ParsedHedTag[], object<string, Issue[]>]} An array of HED tags (top-level relative to the passed string) and any issues found.
  */
-const splitHedString = function (
-  hedString,
-  hedSchemas,
-  groupStartingIndex = 0,
-) {
+const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) {
   const doubleQuoteCharacter = '"'
   const invalidCharacters = ['{', '}', '[', ']', '~']
 
@@ -118,12 +108,7 @@ const splitHedString = function (
  * @param {boolean} isTopLevel Whether these tag groups are at the top level.
  * @return {object<string, Issue[]>[]} The array of issues.
  */
-const findTagGroups = function (
-  groupTagsList,
-  hedSchemas,
-  parsedString,
-  isTopLevel,
-) {
+const findTagGroups = function (groupTagsList, hedSchemas, parsedString, isTopLevel) {
   const issues = []
   const copiedGroupTagsList = groupTagsList.slice()
   copiedGroupTagsList.forEach((tagOrGroup, index) => {
@@ -135,12 +120,7 @@ const findTagGroups = function (
         hedSchemas,
         tagOrGroup.originalBounds[0] + 1,
       )
-      const nestedIssues = findTagGroups(
-        nestedGroupTagList,
-        hedSchemas,
-        parsedString,
-        false,
-      )
+      const nestedIssues = findTagGroups(nestedGroupTagList, hedSchemas, parsedString, false)
       groupTagsList[index] = new ParsedHedGroup(
         tagOrGroup.originalTag,
         nestedGroupTagList,
@@ -221,14 +201,8 @@ const substituteCharacters = function (hedString) {
  */
 const countTagGroupParentheses = function (hedString) {
   const issues = []
-  const numberOfOpeningParentheses = utils.string.getCharacterCount(
-    hedString,
-    openingGroupCharacter,
-  )
-  const numberOfClosingParentheses = utils.string.getCharacterCount(
-    hedString,
-    closingGroupCharacter,
-  )
+  const numberOfOpeningParentheses = utils.string.getCharacterCount(hedString, openingGroupCharacter)
+  const numberOfClosingParentheses = utils.string.getCharacterCount(hedString, closingGroupCharacter)
   if (numberOfOpeningParentheses !== numberOfClosingParentheses) {
     issues.push(
       generateIssue('parentheses', {
@@ -243,16 +217,10 @@ const countTagGroupParentheses = function (hedString) {
 /**
  * Check if a comma is missing after an opening parenthesis.
  */
-const isCommaMissingAfterClosingParenthesis = function (
-  lastNonEmptyCharacter,
-  currentCharacter,
-) {
+const isCommaMissingAfterClosingParenthesis = function (lastNonEmptyCharacter, currentCharacter) {
   return (
     lastNonEmptyCharacter === closingGroupCharacter &&
-    !(
-      delimiters.has(currentCharacter) ||
-      currentCharacter === closingGroupCharacter
-    )
+    !(delimiters.has(currentCharacter) || currentCharacter === closingGroupCharacter)
   )
 }
 
@@ -289,12 +257,7 @@ const findDelimiterIssuesInHedString = function (hedString) {
       } else {
         issues.push(generateIssue('invalidTag', { tag: currentTag }))
       }
-    } else if (
-      isCommaMissingAfterClosingParenthesis(
-        lastNonEmptyValidCharacter,
-        currentCharacter,
-      )
-    ) {
+    } else if (isCommaMissingAfterClosingParenthesis(lastNonEmptyValidCharacter, currentCharacter)) {
       issues.push(
         generateIssue('commaMissing', {
           tag: currentTag.slice(0, -1),
@@ -339,9 +302,7 @@ const validateFullUnparsedHedString = function (hedString) {
 const mergeParsingIssues = function (previousIssues, currentIssues) {
   for (const key of Object.keys(currentIssues)) {
     previousIssues[key] =
-      previousIssues[key] !== undefined
-        ? previousIssues[key].concat(currentIssues[key])
-        : currentIssues[key]
+      previousIssues[key] !== undefined ? previousIssues[key].concat(currentIssues[key]) : currentIssues[key]
   }
 }
 
@@ -360,17 +321,8 @@ const parseHedString = function (hedString, hedSchemas) {
   }
   const parsedString = new ParsedHedString(hedString)
   const [hedTagList, splitIssues] = splitHedString(hedString, hedSchemas)
-  parsedString.topLevelTags = findTopLevelTags(
-    hedTagList,
-    hedSchemas,
-    parsedString,
-  )
-  const tagGroupIssues = findTagGroups(
-    hedTagList,
-    hedSchemas,
-    parsedString,
-    true,
-  )
+  parsedString.topLevelTags = findTopLevelTags(hedTagList, hedSchemas, parsedString)
+  const tagGroupIssues = findTagGroups(hedTagList, hedSchemas, parsedString, true)
   const parsingIssues = Object.assign(fullStringIssues, splitIssues)
   for (const tagGroup of tagGroupIssues) {
     mergeParsingIssues(parsingIssues, tagGroup)

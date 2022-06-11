@@ -25,55 +25,29 @@ describe('HED string parsing', () => {
     })
   })
 
-  const validatorWithoutIssues = function (
-    testStrings,
-    expectedResults,
-    testFunction,
-  ) {
+  const validatorWithoutIssues = function (testStrings, expectedResults, testFunction) {
     for (const testStringKey of Object.keys(testStrings)) {
       const testResult = testFunction(testStrings[testStringKey])
-      assert.deepStrictEqual(
-        testResult,
-        expectedResults[testStringKey],
-        testStrings[testStringKey],
-      )
+      assert.deepStrictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
     }
   }
 
-  const validatorWithIssues = function (
-    testStrings,
-    expectedResults,
-    expectedIssues,
-    testFunction,
-  ) {
+  const validatorWithIssues = function (testStrings, expectedResults, expectedIssues, testFunction) {
     for (const testStringKey of Object.keys(testStrings)) {
       const [testResult, testIssues] = testFunction(testStrings[testStringKey])
-      assert.sameDeepMembers(
-        testResult,
-        expectedResults[testStringKey],
-        testStrings[testStringKey],
-      )
-      assert.deepOwnInclude(
-        testIssues,
-        expectedIssues[testStringKey],
-        testStrings[testStringKey],
-      )
+      assert.sameDeepMembers(testResult, expectedResults[testStringKey], testStrings[testStringKey])
+      assert.deepOwnInclude(testIssues, expectedIssues[testStringKey], testStrings[testStringKey])
     }
   }
 
   describe('HED strings', () => {
     it('cannot have invalid characters', () => {
       const testStrings = {
-        openingCurly:
-          'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend{/Upper-extremity/Elbow',
-        closingCurly:
-          'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend}/Upper-extremity/Elbow',
-        openingSquare:
-          'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend[/Upper-extremity/Elbow',
-        closingSquare:
-          'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend]/Upper-extremity/Elbow',
-        tilde:
-          'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend~/Upper-extremity/Elbow',
+        openingCurly: 'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend{/Upper-extremity/Elbow',
+        closingCurly: 'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend}/Upper-extremity/Elbow',
+        openingSquare: 'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend[/Upper-extremity/Elbow',
+        closingSquare: 'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend]/Upper-extremity/Elbow',
+        tilde: 'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend~/Upper-extremity/Elbow',
       }
       const expectedResultList = [
         new ParsedHedTag(
@@ -82,18 +56,8 @@ describe('HED string parsing', () => {
           [0, 38],
           nullSchema,
         ),
-        new ParsedHedTag(
-          '/Action/Move/Bend',
-          '/Action/Move/Bend',
-          [39, 56],
-          nullSchema,
-        ),
-        new ParsedHedTag(
-          '/Upper-extremity/Elbow',
-          '/Upper-extremity/Elbow',
-          [57, 79],
-          nullSchema,
-        ),
+        new ParsedHedTag('/Action/Move/Bend', '/Action/Move/Bend', [39, 56], nullSchema),
+        new ParsedHedTag('/Upper-extremity/Elbow', '/Upper-extremity/Elbow', [57, 79], nullSchema),
       ]
       const expectedResults = {
         openingCurly: expectedResultList,
@@ -149,14 +113,9 @@ describe('HED string parsing', () => {
           ],
         },
       }
-      validatorWithIssues(
-        testStrings,
-        expectedResults,
-        expectedIssues,
-        (string) => {
-          return splitHedString(string, nullSchema)
-        },
-      )
+      validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
+        return splitHedString(string, nullSchema)
+      })
     })
   })
 
@@ -174,12 +133,7 @@ describe('HED string parsing', () => {
       const [result, issues] = splitHedString(hedString, nullSchema)
       assert.deepStrictEqual(Object.values(issues).flat(), [])
       assert.deepStrictEqual(result, [
-        new ParsedHedTag(
-          'Event/Category/Sensory-event',
-          'Event/Category/Sensory-event',
-          [0, 28],
-          nullSchema,
-        ),
+        new ParsedHedTag('Event/Category/Sensory-event', 'Event/Category/Sensory-event', [0, 28], nullSchema),
         new ParsedHedTag(
           'Item/Object/Man-made-object/Vehicle/Train',
           'Item/Object/Man-made-object/Vehicle/Train',
@@ -201,30 +155,15 @@ describe('HED string parsing', () => {
       const [result, issues] = splitHedString(hedString, nullSchema)
       assert.deepStrictEqual(Object.values(issues).flat(), [])
       assert.deepStrictEqual(result, [
-        new ParsedHedTag(
-          '/Action/Move/Flex',
-          '/Action/Move/Flex',
-          [0, 17],
-          nullSchema,
-        ),
+        new ParsedHedTag('/Action/Move/Flex', '/Action/Move/Flex', [0, 17], nullSchema),
         new ParsedHedTag(
           '(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow)',
           '(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow)',
           [18, 99],
           nullSchema,
         ),
-        new ParsedHedTag(
-          '/Position/X-position/70 px',
-          '/Position/X-position/70 px',
-          [100, 126],
-          nullSchema,
-        ),
-        new ParsedHedTag(
-          '/Position/Y-position/23 px',
-          '/Position/Y-position/23 px',
-          [127, 153],
-          nullSchema,
-        ),
+        new ParsedHedTag('/Position/X-position/70 px', '/Position/X-position/70 px', [100, 126], nullSchema),
+        new ParsedHedTag('/Position/Y-position/23 px', '/Position/Y-position/23 px', [127, 153], nullSchema),
       ])
     })
 
@@ -233,14 +172,8 @@ describe('HED string parsing', () => {
         'Event/Category/Sensory-event,"Item/Object/Man-made-object/Vehicle/Train",Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple'
       const normalString =
         'Event/Category/Sensory-event,Item/Object/Man-made-object/Vehicle/Train,Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple'
-      const [doubleQuoteResult, doubleQuoteIssues] = splitHedString(
-        doubleQuoteString,
-        nullSchema,
-      )
-      const [normalResult, normalIssues] = splitHedString(
-        normalString,
-        nullSchema,
-      )
+      const [doubleQuoteResult, doubleQuoteIssues] = splitHedString(doubleQuoteString, nullSchema)
+      const [normalResult, normalIssues] = splitHedString(normalString, nullSchema)
       assert.deepStrictEqual(Object.values(doubleQuoteIssues).flat(), [])
       assert.deepStrictEqual(Object.values(normalIssues).flat(), [])
       const noBoundsMap = (parsedTag) => {
@@ -257,12 +190,9 @@ describe('HED string parsing', () => {
 
     it('should not include blanks', () => {
       const testStrings = {
-        doubleComma:
-          '/Item/Object/Man-made-object/Vehicle/Car,,/Action/Perform/Operate',
-        doubleInvalidCharacter:
-          '/Item/Object/Man-made-object/Vehicle/Car[]/Action/Perform/Operate',
-        trailingBlank:
-          '/Item/Object/Man-made-object/Vehicle/Car, /Action/Perform/Operate,',
+        doubleComma: '/Item/Object/Man-made-object/Vehicle/Car,,/Action/Perform/Operate',
+        doubleInvalidCharacter: '/Item/Object/Man-made-object/Vehicle/Car[]/Action/Perform/Operate',
+        trailingBlank: '/Item/Object/Man-made-object/Vehicle/Car, /Action/Perform/Operate,',
       }
       const expectedList = [
         new ParsedHedTag(
@@ -271,12 +201,7 @@ describe('HED string parsing', () => {
           [0, 40],
           nullSchema,
         ),
-        new ParsedHedTag(
-          '/Action/Perform/Operate',
-          '/Action/Perform/Operate',
-          [42, 65],
-          nullSchema,
-        ),
+        new ParsedHedTag('/Action/Perform/Operate', '/Action/Perform/Operate', [42, 65], nullSchema),
       ]
       const expectedResults = {
         doubleComma: expectedList,
@@ -301,14 +226,9 @@ describe('HED string parsing', () => {
         },
         trailingBlank: {},
       }
-      validatorWithIssues(
-        testStrings,
-        expectedResults,
-        expectedIssues,
-        (string) => {
-          return splitHedString(string, nullSchema)
-        },
-      )
+      validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
+        return splitHedString(string, nullSchema)
+      })
     })
   })
 
@@ -372,13 +292,7 @@ describe('HED string parsing', () => {
       ])
       assert.sameDeepMembers(
         parsedString.tagGroups.map((group) => group.tags.map(originalMap)),
-        [
-          [
-            'Relation/Spatial-relation/Left-side-of',
-            '/Action/Move/Bend',
-            '/Upper-extremity/Elbow',
-          ],
-        ],
+        [['Relation/Spatial-relation/Left-side-of', '/Action/Move/Bend', '/Upper-extremity/Elbow']],
       )
     })
 
@@ -388,19 +302,13 @@ describe('HED string parsing', () => {
       const formattedHedString =
         'action/move/flex,(relation/spatial-relation/left-side-of,action/move/bend,upper-extremity/elbow),position/x-position/70 px,position/y-position/23 px'
       const [parsedString, issues] = parseHedString(hedString, nullSchema)
-      const [parsedFormattedString, formattedIssues] = parseHedString(
-        formattedHedString,
-        nullSchema,
-      )
+      const [parsedFormattedString, formattedIssues] = parseHedString(formattedHedString, nullSchema)
       const formattedMap = (parsedTag) => {
         return parsedTag.formattedTag
       }
       assert.deepStrictEqual(Object.values(issues).flat(), [])
       assert.deepStrictEqual(Object.values(formattedIssues).flat(), [])
-      assert.deepStrictEqual(
-        parsedString.tags.map(formattedMap),
-        parsedFormattedString.tags.map(originalMap),
-      )
+      assert.deepStrictEqual(parsedString.tags.map(formattedMap), parsedFormattedString.tags.map(originalMap))
       assert.deepStrictEqual(
         parsedString.topLevelTags.map(formattedMap),
         parsedFormattedString.topLevelTags.map(originalMap),
@@ -412,17 +320,10 @@ describe('HED string parsing', () => {
         shapes: 'Square,(Definition/RedCircle,(Circle,Red)),Rectangle',
         vehicles:
           'Car,(Definition/TrainVelocity/#,(Train,(Measurement-device/Odometer,Data-maximum/160,Speed/# kph),Blue,Age/12,(Navigational-object/Railway,Data-maximum/150)))',
-        typing:
-          '((Human-agent,Joyful),Press,Keyboard-key/F),(Braille,Character/A,Screen-window)',
+        typing: '((Human-agent,Joyful),Press,Keyboard-key/F),(Braille,Character/A,Screen-window)',
       }
       const expectedTags = {
-        shapes: [
-          'Square',
-          'Definition/RedCircle',
-          'Circle',
-          'Red',
-          'Rectangle',
-        ],
+        shapes: ['Square', 'Definition/RedCircle', 'Circle', 'Red', 'Rectangle'],
         vehicles: [
           'Car',
           'Definition/TrainVelocity/#',
@@ -435,15 +336,7 @@ describe('HED string parsing', () => {
           'Navigational-object/Railway',
           'Data-maximum/150',
         ],
-        typing: [
-          'Human-agent',
-          'Joyful',
-          'Press',
-          'Keyboard-key/F',
-          'Braille',
-          'Character/A',
-          'Screen-window',
-        ],
+        typing: ['Human-agent', 'Joyful', 'Press', 'Keyboard-key/F', 'Braille', 'Character/A', 'Screen-window'],
       }
       const expectedGroups = {
         shapes: [['Definition/RedCircle', ['Circle', 'Red']]],
@@ -452,11 +345,7 @@ describe('HED string parsing', () => {
             'Definition/TrainVelocity/#',
             [
               'Train',
-              [
-                'Measurement-device/Odometer',
-                'Data-maximum/160',
-                'Speed/# kph',
-              ],
+              ['Measurement-device/Odometer', 'Data-maximum/160', 'Speed/# kph'],
               'Blue',
               'Age/12',
               ['Navigational-object/Railway', 'Data-maximum/150'],
@@ -473,11 +362,7 @@ describe('HED string parsing', () => {
           const testString = testStrings[testStringKey]
           const [parsedString, issues] = parseHedString(testString, hedSchema)
           assert.deepStrictEqual(Object.values(issues).flat(), [])
-          assert.sameDeepMembers(
-            parsedString.tags.map(originalMap),
-            expectedTags[testStringKey],
-            testString,
-          )
+          assert.sameDeepMembers(parsedString.tags.map(originalMap), expectedTags[testStringKey], testString)
           assert.deepStrictEqual(
             recursiveMap(
               originalMap,
@@ -513,14 +398,7 @@ describe('HED string parsing', () => {
         simple: {},
         groupAndTag: {},
         invalidTag: {
-          conversion: [
-            converterGenerateIssue(
-              'invalidTag',
-              testStrings.invalidTag,
-              {},
-              [0, 10],
-            ),
-          ],
+          conversion: [converterGenerateIssue('invalidTag', testStrings.invalidTag, {}, [0, 10])],
         },
         invalidParentNode: {
           conversion: [
@@ -534,18 +412,13 @@ describe('HED string parsing', () => {
         },
       }
       return hedSchemaPromise.then((hedSchema) => {
-        return validatorWithIssues(
-          testStrings,
-          expectedResults,
-          expectedIssues,
-          (string) => {
-            const [parsedString, issues] = parseHedString(string, hedSchema)
-            const canonicalTags = parsedString.tags.map((parsedTag) => {
-              return parsedTag.canonicalTag
-            })
-            return [canonicalTags, issues]
-          },
-        )
+        return validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
+          const [parsedString, issues] = parseHedString(string, hedSchema)
+          const canonicalTags = parsedString.tags.map((parsedTag) => {
+            return parsedTag.canonicalTag
+          })
+          return [canonicalTags, issues]
+        })
       })
     })
   })

@@ -1,10 +1,4 @@
-const {
-  BidsDataset,
-  BidsEventFile,
-  BidsHedIssue,
-  BidsIssue,
-  BidsSidecar,
-} = require('./types')
+const { BidsDataset, BidsEventFile, BidsHedIssue, BidsIssue, BidsSidecar } = require('./types')
 const validateBidsDataset = require('./validate')
 
 module.exports = {

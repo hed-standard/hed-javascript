@@ -77,10 +77,7 @@ class Hed3SchemaParser extends SchemaParser {
           // TODO: Switch back to class constant once upstream bug is fixed.
           new SchemaProperty(propertyName, 'categoryProperty'),
         )
-      } else if (
-        this._versionDefinitions.typeProperties &&
-        this._versionDefinitions.typeProperties.has(propertyName)
-      ) {
+      } else if (this._versionDefinitions.typeProperties && this._versionDefinitions.typeProperties.has(propertyName)) {
         this.properties.set(
           propertyName,
           // TODO: Switch back to class constant once upstream bug is fixed.
@@ -91,9 +88,7 @@ class Hed3SchemaParser extends SchemaParser {
   }
 
   parseAttributes() {
-    const attributeDefinitions = this.getElementsByName(
-      'schemaAttributeDefinition',
-    )
+    const attributeDefinitions = this.getElementsByName('schemaAttributeDefinition')
     this.attributes = new Map()
     for (const definition of attributeDefinitions) {
       const attributeName = this.getElementTagName(definition)
@@ -102,14 +97,9 @@ class Hed3SchemaParser extends SchemaParser {
       if (propertyElements === undefined) {
         properties = []
       } else {
-        properties = propertyElements.map((element) =>
-          this.properties.get(element.name[0]._),
-        )
+        properties = propertyElements.map((element) => this.properties.get(element.name[0]._))
       }
-      this.attributes.set(
-        attributeName,
-        new SchemaAttribute(attributeName, properties),
-      )
+      this.attributes.set(attributeName, new SchemaAttribute(attributeName, properties))
     }
     if (this._addAttributes) {
       this._addAttributes()
@@ -118,49 +108,32 @@ class Hed3SchemaParser extends SchemaParser {
 
   parseValueClasses() {
     const valueClasses = new Map()
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] =
-      this._parseDefinitions('valueClass')
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('valueClass')
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
-      valueClasses.set(
-        name,
-        new SchemaValueClass(name, booleanAttributes, valueAttributes),
-      )
+      valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes))
     }
     this.definitions.set('valueClasses', new SchemaEntryManager(valueClasses))
   }
 
   parseUnitModifiers() {
     const unitModifiers = new Map()
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] =
-      this._parseDefinitions('unitModifier')
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('unitModifier')
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
-      unitModifiers.set(
-        name,
-        new SchemaUnitModifier(name, booleanAttributes, valueAttributes),
-      )
+      unitModifiers.set(name, new SchemaUnitModifier(name, booleanAttributes, valueAttributes))
     }
     this.definitions.set('unitModifiers', new SchemaEntryManager(unitModifiers))
   }
 
   parseUnitClasses() {
     const unitClasses = new Map()
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] =
-      this._parseDefinitions('unitClass')
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('unitClass')
     const unitClassUnits = this.parseUnits()
 
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
-      unitClasses.set(
-        name,
-        new SchemaUnitClass(
-          name,
-          booleanAttributes,
-          valueAttributes,
-          unitClassUnits.get(name),
-        ),
-      )
+      unitClasses.set(name, new SchemaUnitClass(name, booleanAttributes, valueAttributes, unitClassUnits.get(name)))
     }
     this.definitions.set('unitClasses', new SchemaEntryManager(unitClasses))
   }
@@ -176,19 +149,13 @@ class Hed3SchemaParser extends SchemaParser {
       if (element.unit === undefined) {
         continue
       }
-      const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] =
-        this._parseAttributeElements(element.unit, this.getElementTagName)
+      const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] = this._parseAttributeElements(
+        element.unit,
+        this.getElementTagName,
+      )
       for (const [name, valueAttributes] of unitValueAttributeDefinitions) {
         const booleanAttributes = unitBooleanAttributeDefinitions.get(name)
-        units.set(
-          name,
-          new SchemaUnit(
-            name,
-            booleanAttributes,
-            valueAttributes,
-            unitModifiers,
-          ),
-        )
+        units.set(name, new SchemaUnit(name, booleanAttributes, valueAttributes, unitModifiers))
       }
     }
     return unitClassUnits
@@ -198,13 +165,13 @@ class Hed3SchemaParser extends SchemaParser {
     const [tags, tagElements] = this.getAllTags()
     const lowercaseTags = tags.map(lc)
     this.tags = new Set(lowercaseTags)
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] =
-      this._parseAttributeElements(tagElements, (element) =>
-        this.getTagPathFromTagElement(element),
-      )
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseAttributeElements(
+      tagElements,
+      (element) => this.getTagPathFromTagElement(element),
+    )
 
-    const recursiveAttributes = Array.from(this.attributes.values()).filter(
-      (attribute) => attribute.hasAttributeName('recursive'),
+    const recursiveAttributes = Array.from(this.attributes.values()).filter((attribute) =>
+      attribute.hasAttributeName('recursive'),
     )
     const unitClasses = this.definitions.get('unitClasses')
     const tagUnitClassAttribute = this.attributes.get('unitClass')
@@ -243,10 +210,7 @@ class Hed3SchemaParser extends SchemaParser {
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       const unitClasses = tagUnitClassDefinitions.get(name)
-      tagEntries.set(
-        lc(name),
-        new SchemaTag(name, booleanAttributes, valueAttributes, unitClasses),
-      )
+      tagEntries.set(lc(name), new SchemaTag(name, booleanAttributes, valueAttributes, unitClasses))
     }
 
     for (const tagElement of tagElements) {
@@ -264,10 +228,7 @@ class Hed3SchemaParser extends SchemaParser {
     const categoryTagName = category + 'Definition'
     const definitionElements = this.getElementsByName(categoryTagName)
 
-    return this._parseAttributeElements(
-      definitionElements,
-      this.getElementTagName,
-    )
+    return this._parseAttributeElements(definitionElements, this.getElementTagName)
   }
 
   _parseAttributeElements(elements, namer) {
@@ -306,12 +267,7 @@ class HedV8SchemaParser extends Hed3SchemaParser {
     super(rootElement)
     this._versionDefinitions = {
       typeProperties: new Set(['boolProperty']),
-      categoryProperties: new Set([
-        'unitProperty',
-        'unitClassProperty',
-        'unitModifierProperty',
-        'valueClassProperty',
-      ]),
+      categoryProperties: new Set(['unitProperty', 'unitClassProperty', 'unitModifierProperty', 'valueClassProperty']),
     }
   }
 

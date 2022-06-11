@@ -56,13 +56,8 @@ class Hed2SchemaParser extends SchemaParser {
         const childTags = childTagElements.map((tagElement) => {
           return this.getTagPathFromTagElement(tagElement)
         })
-        const childDictionary =
-          this.stringListToLowercaseTrueDictionary(childTags)
-        this.tagAttributes[extensionAllowedAttribute] = Object.assign(
-          {},
-          tagDictionary,
-          childDictionary,
-        )
+        const childDictionary = this.stringListToLowercaseTrueDictionary(childTags)
+        this.tagAttributes[extensionAllowedAttribute] = Object.assign({}, tagDictionary, childDictionary)
       } else if (dictionaryKey === defaultUnitForTagAttribute) {
         this.populateTagToAttributeDictionary(tags, tagElements, dictionaryKey)
       } else if (dictionaryKey === tagUnitClassAttribute) {
@@ -71,8 +66,7 @@ class Hed2SchemaParser extends SchemaParser {
         const tags = this.getAllTags()[0]
         this.tags = tags.map(lc)
       } else {
-        this.tagAttributes[dictionaryKey] =
-          this.stringListToLowercaseTrueDictionary(tags)
+        this.tagAttributes[dictionaryKey] = this.stringListToLowercaseTrueDictionary(tags)
       }
     }
   }
@@ -98,13 +92,9 @@ class Hed2SchemaParser extends SchemaParser {
     for (const unitClassElement of unitClassElements) {
       const unitClassName = this.getElementTagName(unitClassElement)
       this.unitClassAttributes[unitClassName] = {}
-      const units =
-        unitClassElement[unitClassUnitsElement][0][unitClassUnitElement]
+      const units = unitClassElement[unitClassUnitsElement][0][unitClassUnitElement]
       if (units === undefined) {
-        const elementUnits = this.getElementTagValue(
-          unitClassElement,
-          unitClassUnitsElement,
-        )
+        const elementUnits = this.getElementTagValue(unitClassElement, unitClassUnitsElement)
         const units = elementUnits.split(',')
         this.unitClasses[unitClassName] = units.map(lc)
         continue
@@ -126,13 +116,11 @@ class Hed2SchemaParser extends SchemaParser {
       const elementName = this.getElementTagName(unitClassElement)
       const defaultUnit = unitClassElement.$[defaultUnitForUnitClassAttribute]
       if (defaultUnit === undefined) {
-        this.unitClassAttributes[elementName][
-          defaultUnitForUnitClassAttribute
-          ] = [unitClassElement.$[defaultUnitForOldUnitClassAttribute]]
+        this.unitClassAttributes[elementName][defaultUnitForUnitClassAttribute] = [
+          unitClassElement.$[defaultUnitForOldUnitClassAttribute],
+        ]
       } else {
-        this.unitClassAttributes[elementName][
-          defaultUnitForUnitClassAttribute
-          ] = [defaultUnit]
+        this.unitClassAttributes[elementName][defaultUnitForUnitClassAttribute] = [defaultUnit]
       }
     }
   }
@@ -153,8 +141,7 @@ class Hed2SchemaParser extends SchemaParser {
       if (unitModifierElement.$) {
         for (const unitModifierKey of unitModifierDictionaryKeys) {
           if (unitModifierElement.$[unitModifierKey] !== undefined) {
-            this.unitModifiers[unitModifierKey][unitModifierName] =
-              unitModifierElement.$[unitModifierKey]
+            this.unitModifiers[unitModifierKey][unitModifierName] = unitModifierElement.$[unitModifierKey]
           }
         }
       }
@@ -165,8 +152,7 @@ class Hed2SchemaParser extends SchemaParser {
     this.tagAttributes[attributeName] = {}
     for (let i = 0; i < tagList.length; i++) {
       const tag = tagList[i]
-      this.tagAttributes[attributeName][tag.toLowerCase()] =
-        tagElementList[i].$[attributeName]
+      this.tagAttributes[attributeName][tag.toLowerCase()] = tagElementList[i].$[attributeName]
     }
   }
 
@@ -183,10 +169,7 @@ class Hed2SchemaParser extends SchemaParser {
 
   getTagsByAttribute(attributeName) {
     const tags = []
-    const tagElements = xpath.find(
-      this.rootElement,
-      '//node[@' + attributeName + ']',
-    )
+    const tagElements = xpath.find(this.rootElement, '//node[@' + attributeName + ']')
     for (const attributeTagElement of tagElements) {
       const tag = this.getTagPathFromTagElement(attributeTagElement)
       tags.push(tag)

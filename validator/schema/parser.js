@@ -21,22 +21,13 @@ class SchemaParser {
   populateUnitClassDictionaries() {}
   populateUnitModifierDictionaries() {}
 
-  getAllChildTags(
-    parentElement,
-    elementName = 'node',
-    excludeTakeValueTags = true,
-  ) {
+  getAllChildTags(parentElement, elementName = 'node', excludeTakeValueTags = true) {
     if (excludeTakeValueTags && this.getElementTagName(parentElement) === '#') {
       return []
     }
-    const tagElementChildren = this.getElementsByName(
-      elementName,
-      parentElement,
-    )
+    const tagElementChildren = this.getElementsByName(elementName, parentElement)
     const childTags = arrayUtils.flattenDeep(
-      tagElementChildren.map((child) =>
-        this.getAllChildTags(child, elementName, excludeTakeValueTags),
-      ),
+      tagElementChildren.map((child) => this.getAllChildTags(child, elementName, excludeTakeValueTags)),
     )
     childTags.push(parentElement)
     return childTags

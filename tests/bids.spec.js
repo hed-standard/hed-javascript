@@ -77,8 +77,7 @@ describe('BIDS datasets', () => {
       {
         valid_placeholder_definition: {
           HED: {
-            definition:
-              '(Definition/ValidPlaceholderDefinition/#, (RGB-red/#))',
+            definition: '(Definition/ValidPlaceholderDefinition/#, (RGB-red/#))',
           },
         },
       },
@@ -100,8 +99,7 @@ describe('BIDS datasets', () => {
       {
         multiple_placeholders_in_group: {
           HED: {
-            definition:
-              '(Definition/MultiplePlaceholdersInGroupDefinition/#, (Age/#, Duration/# s))',
+            definition: '(Definition/MultiplePlaceholdersInGroupDefinition/#, (Age/#, Duration/# s))',
           },
         },
       },
@@ -131,8 +129,7 @@ describe('BIDS datasets', () => {
       {
         test: {
           HED: {
-            first:
-              'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
+            first: 'Event/Label/Test,Event/Category/Miscellaneous/Test,Event/Description/Test',
           },
         },
       },
@@ -161,11 +158,7 @@ describe('BIDS datasets', () => {
         {},
         {
           headers: hedColumnOnlyHeader,
-          rows: [
-            hedColumnOnlyHeader,
-            ['7', 'something', 'Cellphone'],
-            ['11', 'else', 'Desktop-computer'],
-          ],
+          rows: [hedColumnOnlyHeader, ['7', 'something', 'Cellphone'], ['11', 'else', 'Desktop-computer']],
         },
         {
           relativePath: '/sub01/sub01_task-test_run-2_events.tsv',
@@ -220,11 +213,7 @@ describe('BIDS datasets', () => {
         {},
         {
           headers: hedColumnOnlyHeader,
-          rows: [
-            hedColumnOnlyHeader,
-            ['7', 'something', 'Train'],
-            ['11', 'else', 'Speed/300 miles'],
-          ],
+          rows: [hedColumnOnlyHeader, ['7', 'something', 'Train'], ['11', 'else', 'Speed/300 miles']],
         },
         {
           relativePath: '/sub02/sub02_task-test_run-3_events.tsv',
@@ -237,11 +226,7 @@ describe('BIDS datasets', () => {
         {},
         {
           headers: hedColumnOnlyHeader,
-          rows: [
-            hedColumnOnlyHeader,
-            ['7', 'something', 'Maglev'],
-            ['11', 'else', 'Speed/300 miles'],
-          ],
+          rows: [hedColumnOnlyHeader, ['7', 'something', 'Maglev'], ['11', 'else', 'Speed/300 miles']],
         },
         {
           relativePath: '/sub02/sub02_task-test_run-4_events.tsv',
@@ -254,11 +239,7 @@ describe('BIDS datasets', () => {
         {},
         {
           headers: hedColumnOnlyHeader,
-          rows: [
-            hedColumnOnlyHeader,
-            ['7', 'something', 'Train/Maglev'],
-            ['11', 'else', 'Speed/300 miles'],
-          ],
+          rows: [hedColumnOnlyHeader, ['7', 'something', 'Train/Maglev'], ['11', 'else', 'Speed/300 miles']],
         },
         {
           relativePath: '/sub02/sub02_task-test_run-5_events.tsv',
@@ -347,10 +328,7 @@ describe('BIDS datasets', () => {
       ),
       new BidsEventFile(
         '/sub03/sub03_task-test_run-6_events.tsv',
-        [
-          '/sub01/sub01_task-test_run-1_events.json',
-          '/sub01/sub01_task-test_run-2_events.json',
-        ],
+        ['/sub01/sub01_task-test_run-1_events.json', '/sub01/sub01_task-test_run-2_events.json'],
         Object.assign({}, sidecars[0][0], sidecars[0][1]),
         {
           headers: ['onset', 'duration', 'color', 'vehicle', 'speed'],
@@ -366,10 +344,7 @@ describe('BIDS datasets', () => {
       ),
       new BidsEventFile(
         '/sub03/sub03_task-test_run-7_events.tsv',
-        [
-          '/sub01/sub01_task-test_run-1_events.json',
-          '/sub01/sub01_task-test_run-2_events.json',
-        ],
+        ['/sub01/sub01_task-test_run-1_events.json', '/sub01/sub01_task-test_run-2_events.json'],
         Object.assign({}, sidecars[0][0], sidecars[0][1]),
         {
           headers: ['onset', 'duration', 'color', 'vehicle', 'speed'],
@@ -428,10 +403,7 @@ describe('BIDS datasets', () => {
       ),
       new BidsEventFile(
         '/sub04/sub04_task-test_run-3_events.tsv',
-        [
-          '/sub01/sub01_task-test_run-2_events.json',
-          '/sub02/sub02_task-test_run-1_events.json',
-        ],
+        ['/sub01/sub01_task-test_run-2_events.json', '/sub02/sub02_task-test_run-1_events.json'],
         Object.assign({}, sidecars[0][1], sidecars[1][0]),
         {
           headers: ['onset', 'duration', 'vehicle', 'transport', 'speed'],
@@ -509,9 +481,7 @@ describe('BIDS datasets', () => {
   beforeAll(() => {
     bidsSidecars = sidecars.map((sub_data, sub) => {
       return sub_data.map((run_data, run) => {
-        const name = `/sub0${sub + 1}/sub0${sub + 1}_task-test_run-${
-          run + 1
-        }_events.json`
+        const name = `/sub0${sub + 1}/sub0${sub + 1}_task-test_run-${run + 1}_events.json`
         return new BidsSidecar(name, run_data, {
           relativePath: name,
           path: name,
@@ -531,11 +501,7 @@ describe('BIDS datasets', () => {
     return Promise.all(
       Object.entries(testDatasets).map(([datasetName, dataset]) => {
         return validateBidsDataset(dataset, versionSpec).then((issues) => {
-          assert.sameDeepMembers(
-            issues,
-            expectedIssues[datasetName],
-            datasetName,
-          )
+          assert.sameDeepMembers(issues, expectedIssues[datasetName], datasetName)
         })
       }),
     )
@@ -547,34 +513,19 @@ describe('BIDS datasets', () => {
       const testDatasets = {
         single: new BidsDataset([], [bidsSidecars[0][0]]),
         all_good: new BidsDataset([], goodDatasets),
-        warning_and_good: new BidsDataset(
-          [],
-          goodDatasets.concat([bidsSidecars[1][0]]),
-        ),
-        error_and_good: new BidsDataset(
-          [],
-          goodDatasets.concat([bidsSidecars[1][1]]),
-        ),
+        warning_and_good: new BidsDataset([], goodDatasets.concat([bidsSidecars[1][0]])),
+        error_and_good: new BidsDataset([], goodDatasets.concat([bidsSidecars[1][1]])),
       }
       const expectedIssues = {
         single: [],
         all_good: [],
         warning_and_good: [
-          new BidsHedIssue(
-            generateIssue('extension', { tag: 'Train/Maglev' }),
-            bidsSidecars[1][0].file,
-          ),
+          new BidsHedIssue(generateIssue('extension', { tag: 'Train/Maglev' }), bidsSidecars[1][0].file),
         ],
         error_and_good: [
           // TODO: Duplication temporary
-          new BidsHedIssue(
-            converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]),
-            bidsSidecars[1][1].file,
-          ),
-          new BidsHedIssue(
-            generateIssue('invalidTag', { tag: 'Confused' }),
-            bidsSidecars[1][1].file,
-          ),
+          new BidsHedIssue(converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]), bidsSidecars[1][1].file),
+          new BidsHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), bidsSidecars[1][1].file),
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
@@ -605,22 +556,10 @@ describe('BIDS datasets', () => {
             }),
             bidsSidecars[2][5].file,
           ),
-          new BidsHedIssue(
-            generateIssue('invalidPlaceholder', { tag: 'Duration/# s' }),
-            bidsSidecars[2][6].file,
-          ),
-          new BidsHedIssue(
-            generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#' }),
-            bidsSidecars[2][6].file,
-          ),
-          new BidsHedIssue(
-            generateIssue('missingPlaceholder', { string: 'Sad' }),
-            bidsSidecars[2][7].file,
-          ),
-          new BidsHedIssue(
-            generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' }),
-            bidsSidecars[2][8].file,
-          ),
+          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'Duration/# s' }), bidsSidecars[2][6].file),
+          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#' }), bidsSidecars[2][6].file),
+          new BidsHedIssue(generateIssue('missingPlaceholder', { string: 'Sad' }), bidsSidecars[2][7].file),
+          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' }), bidsSidecars[2][8].file),
         ],
       }
       return validator(testDatasets, expectedIssues, { version: '8.0.0' })
@@ -640,12 +579,7 @@ describe('BIDS datasets', () => {
         tag: 'Speed/300 miles',
         unitClassUnits: legalSpeedUnits.sort().join(','),
       })
-      const converterMaglevError = converterGenerateIssue(
-        'invalidTag',
-        'Maglev',
-        {},
-        [0, 6],
-      )
+      const converterMaglevError = converterGenerateIssue('invalidTag', 'Maglev', {}, [0, 6])
       const maglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
       const expectedIssues = {
@@ -676,18 +610,9 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         all_good: [],
         all_bad: [
-          new BidsHedIssue(
-            generateIssue('invalidTag', { tag: 'Confused' }),
-            badDatasets[0].file,
-          ),
-          new BidsHedIssue(
-            converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]),
-            badDatasets[0].file,
-          ),
-          new BidsHedIssue(
-            converterGenerateIssue('invalidTag', 'Gray,Confused', {}, [5, 13]),
-            badDatasets[0].file,
-          ),
+          new BidsHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
+          new BidsHedIssue(converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]), badDatasets[0].file),
+          new BidsHedIssue(converterGenerateIssue('invalidTag', 'Gray,Confused', {}, [5, 13]), badDatasets[0].file),
           // TODO: Catch warning in sidecar validation
           /* new BidsHedIssue(
             generateIssue('extension', { tag: 'Train/Maglev' }),

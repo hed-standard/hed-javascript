@@ -144,10 +144,7 @@ class SchemaEntries extends Memoizer {
     if (!this.definitions.get('tags').hasEntry(tag)) {
       return false
     }
-    return this.definitions
-      .get('tags')
-      .getEntry(tag)
-      .hasAttributeName(tagAttribute)
+    return this.definitions.get('tags').getEntry(tag).hasAttributeName(tagAttribute)
   }
 }
 
@@ -246,11 +243,7 @@ class SchemaEntry {
    * @return {*} The value of the attribute.
    */
   getAttributeValue(attribute, alwaysReturnArray = false) {
-    return SchemaEntry._getMapArrayValue(
-      this._valueAttributes,
-      attribute,
-      alwaysReturnArray,
-    )
+    return SchemaEntry._getMapArrayValue(this._valueAttributes, attribute, alwaysReturnArray)
   }
 
   /**
@@ -269,11 +262,7 @@ class SchemaEntry {
    * @return {*} The value of the attribute.
    */
   getNamedAttributeValue(attributeName, alwaysReturnArray = false) {
-    return SchemaEntry._getMapArrayValue(
-      this._valueAttributeNames,
-      attributeName,
-      alwaysReturnArray,
-    )
+    return SchemaEntry._getMapArrayValue(this._valueAttributeNames, attributeName, alwaysReturnArray)
   }
 
   /**
@@ -327,10 +316,7 @@ class SchemaProperty extends SchemaEntry {
 
 // TODO: Switch back to class constant once upstream bug is fixed.
 const nodeProperty = new SchemaProperty('nodeProperty', categoryProperty)
-const attributeProperty = new SchemaProperty(
-  'attributeProperty',
-  categoryProperty,
-)
+const attributeProperty = new SchemaProperty('attributeProperty', categoryProperty)
 const stringProperty = new SchemaProperty('stringProperty', typeProperty)
 
 class SchemaAttribute extends SchemaEntry {
@@ -338,16 +324,10 @@ class SchemaAttribute extends SchemaEntry {
     super(name, new Set(), new Map())
 
     // Parse properties
-    const categoryProperties = properties.filter(
-      (property) => property.isCategoryProperty,
-    )
-    this._categoryProperty =
-      categoryProperties.length === 0 ? nodeProperty : categoryProperties[0]
-    const typeProperties = properties.filter(
-      (property) => property.isTypeProperty,
-    )
-    this._typeProperty =
-      typeProperties.length === 0 ? stringProperty : typeProperties[0]
+    const categoryProperties = properties.filter((property) => property.isCategoryProperty)
+    this._categoryProperty = categoryProperties.length === 0 ? nodeProperty : categoryProperties[0]
+    const typeProperties = properties.filter((property) => property.isTypeProperty)
+    this._typeProperty = typeProperties.length === 0 ? stringProperty : typeProperties[0]
   }
 
   get categoryProperty() {
@@ -376,8 +356,7 @@ class SchemaUnit extends SchemaEntry {
     if (!this.isUnitSymbol) {
       const pluralUnit = pluralize.plural(name)
       this._derivativeUnits.push(pluralUnit)
-      const SIUnitModifiers =
-        unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
+      const SIUnitModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
       for (const modifierName of SIUnitModifiers.keys()) {
         this._derivativeUnits.push(modifierName + pluralUnit)
       }

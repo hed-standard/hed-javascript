@@ -54,15 +54,9 @@ const splitHedString = function (hedString) {
   }
 
   if (startPosition >= 0) {
-    resultPositions.push([
-      true,
-      [startPosition, hedString.length - currentSpacing],
-    ])
+    resultPositions.push([true, [startPosition, hedString.length - currentSpacing]])
     if (currentSpacing > 0) {
-      resultPositions.push([
-        false,
-        [hedString.length - currentSpacing, hedString.length],
-      ])
+      resultPositions.push([false, [hedString.length - currentSpacing, hedString.length]])
     }
   }
 

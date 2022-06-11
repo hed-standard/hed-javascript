@@ -7,12 +7,10 @@ describe('HED schemas', () => {
   describe('Remote HED schemas', () => {
     it('can be loaded from a central GitHub repository', () => {
       const remoteHedSchemaVersion = '8.0.0'
-      return schema
-        .buildSchema({ version: remoteHedSchemaVersion })
-        .then((hedSchemas) => {
-          const hedSchemaVersion = hedSchemas.baseSchema.version
-          assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
-        })
+      return schema.buildSchema({ version: remoteHedSchemaVersion }).then((hedSchemas) => {
+        const hedSchemaVersion = hedSchemas.baseSchema.version
+        assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
+      })
     })
   })
 
@@ -20,12 +18,10 @@ describe('HED schemas', () => {
     const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
     const localHedSchemaVersion = '7.1.1'
     it('can be loaded from a file', () => {
-      return schema
-        .buildSchema({ path: localHedSchemaFile })
-        .then((hedSchemas) => {
-          const hedSchemaVersion = hedSchemas.baseSchema.version
-          assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
-        })
+      return schema.buildSchema({ path: localHedSchemaFile }).then((hedSchemas) => {
+        const hedSchemaVersion = hedSchemas.baseSchema.version
+        assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
+      })
     })
   })
 
@@ -39,9 +35,7 @@ describe('HED schemas', () => {
           version: remoteHedSchemaVersion,
         })
         .then((hedSchemas) => {
-          const hedSchema = hedSchemas.librarySchemas.get(
-            remoteHedSchemaLibrary,
-          )
+          const hedSchema = hedSchemas.librarySchemas.get(remoteHedSchemaLibrary)
           assert.strictEqual(hedSchema.library, remoteHedSchemaLibrary)
           assert.strictEqual(hedSchema.version, remoteHedSchemaVersion)
         })
@@ -123,40 +117,24 @@ describe('HED schemas', () => {
 
     it('should contain all of the required tags', () => {
       return hedSchemaPromise.then((hedSchemas) => {
-        const requiredTags = [
-          'event/category',
-          'event/description',
-          'event/label',
-        ]
-        const dictionariesRequiredTags =
-          hedSchemas.baseSchema.attributes.tagAttributes['required']
+        const requiredTags = ['event/category', 'event/description', 'event/label']
+        const dictionariesRequiredTags = hedSchemas.baseSchema.attributes.tagAttributes['required']
         assert.hasAllKeys(dictionariesRequiredTags, requiredTags)
       })
     })
 
     it('should contain all of the positioned tags', () => {
       return hedSchemaPromise.then((hedSchemas) => {
-        const positionedTags = [
-          'event/category',
-          'event/description',
-          'event/label',
-          'event/long name',
-        ]
-        const dictionariesPositionedTags =
-          hedSchemas.baseSchema.attributes.tagAttributes['position']
+        const positionedTags = ['event/category', 'event/description', 'event/label', 'event/long name']
+        const dictionariesPositionedTags = hedSchemas.baseSchema.attributes.tagAttributes['position']
         assert.hasAllKeys(dictionariesPositionedTags, positionedTags)
       })
     })
 
     it('should contain all of the unique tags', () => {
       return hedSchemaPromise.then((hedSchemas) => {
-        const uniqueTags = [
-          'event/description',
-          'event/label',
-          'event/long name',
-        ]
-        const dictionariesUniqueTags =
-          hedSchemas.baseSchema.attributes.tagAttributes['unique']
+        const uniqueTags = ['event/description', 'event/label', 'event/long name']
+        const dictionariesUniqueTags = hedSchemas.baseSchema.attributes.tagAttributes['unique']
         assert.hasAllKeys(dictionariesUniqueTags, uniqueTags)
       })
     })
@@ -169,8 +147,7 @@ describe('HED schemas', () => {
           'attribute/blink/pavr/#': 'centiseconds',
           'attribute/blink/navr/#': 'centiseconds',
         }
-        const dictionariesDefaultUnitTags =
-          hedSchemas.baseSchema.attributes.tagAttributes['default']
+        const dictionariesDefaultUnitTags = hedSchemas.baseSchema.attributes.tagAttributes['default']
         assert.deepStrictEqual(dictionariesDefaultUnitTags, defaultUnitTags)
       })
     })
@@ -214,17 +191,11 @@ describe('HED schemas', () => {
           volume: ['m^3'],
         }
 
-        const dictionariesUnitAttributes =
-          hedSchemas.baseSchema.attributes.unitClassAttributes
-        const dictionariesAllUnits =
-          hedSchemas.baseSchema.attributes.unitClasses
+        const dictionariesUnitAttributes = hedSchemas.baseSchema.attributes.unitClassAttributes
+        const dictionariesAllUnits = hedSchemas.baseSchema.attributes.unitClasses
         for (const unitClass in dictionariesUnitAttributes) {
           const defaultUnit = dictionariesUnitAttributes[unitClass].defaultUnits
-          assert.deepStrictEqual(
-            defaultUnit[0],
-            defaultUnits[unitClass],
-            `Default unit for unit class ${unitClass}`,
-          )
+          assert.deepStrictEqual(defaultUnit[0], defaultUnits[unitClass], `Default unit for unit class ${unitClass}`)
         }
         assert.deepStrictEqual(dictionariesAllUnits, allUnits, 'All units')
       })
@@ -267,10 +238,8 @@ describe('HED schemas', () => {
     it('should identify if a tag has a certain attribute', () => {
       return hedSchemaPromise.then((hedSchemas) => {
         const testStrings = {
-          value:
-            'Attribute/Location/Reference frame/Relative to participant/Azimuth/#',
-          valueParent:
-            'Attribute/Location/Reference frame/Relative to participant/Azimuth',
+          value: 'Attribute/Location/Reference frame/Relative to participant/Azimuth/#',
+          valueParent: 'Attribute/Location/Reference frame/Relative to participant/Azimuth',
           extensionAllowed: 'Item/Object/Road sign',
         }
         const expectedResults = {
@@ -336,10 +305,7 @@ describe('HED schemas', () => {
               )
             } else {
               assert.strictEqual(
-                hedSchemas.baseSchema.attributes.tagHasAttribute(
-                  testString,
-                  expectedKey,
-                ),
+                hedSchemas.baseSchema.attributes.tagHasAttribute(testString, expectedKey),
                 expected[expectedKey],
                 `Test string: ${testString}. Attribute: ${expectedKey}.`,
               )
@@ -418,8 +384,7 @@ describe('HED schemas', () => {
           weightUnits: ['g', 'gram', 'pound', 'lb'],
         }
 
-        const schemaUnitClasses =
-          hedSchemas.baseSchema.entries.definitions.get('unitClasses')
+        const schemaUnitClasses = hedSchemas.baseSchema.entries.definitions.get('unitClasses')
         for (const [unitClassName, unitClass] of schemaUnitClasses) {
           const defaultUnit = unitClass.defaultUnit
           assert.strictEqual(
@@ -453,21 +418,11 @@ describe('HED schemas', () => {
         }
 
         const expectedTagCount = 1110
-        assert.lengthOf(
-          schemaTags.definitions,
-          expectedTagCount,
-          'Mismatch on overall tag count',
-        )
+        assert.lengthOf(schemaTags.definitions, expectedTagCount, 'Mismatch on overall tag count')
 
         const expectedUnitClassCount = 27
-        const schemaTagsWithUnitClasses = schemaTags.filter(
-          ([, tag]) => tag.hasUnitClasses,
-        )
-        assert.lengthOf(
-          schemaTagsWithUnitClasses,
-          expectedUnitClassCount,
-          'Mismatch on unit class tag count',
-        )
+        const schemaTagsWithUnitClasses = schemaTags.filter(([, tag]) => tag.hasUnitClasses)
+        assert.lengthOf(schemaTagsWithUnitClasses, expectedUnitClassCount, 'Mismatch on unit class tag count')
       })
     })
   })

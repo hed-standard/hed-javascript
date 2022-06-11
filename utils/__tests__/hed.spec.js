@@ -7,11 +7,7 @@ describe('HED tag string utility functions', () => {
     const validator = function (testStrings, expectedResults, testFunction) {
       for (const testStringKey of Object.keys(testStrings)) {
         const testResult = testFunction(testStrings[testStringKey])
-        assert.deepStrictEqual(
-          testResult,
-          expectedResults[testStringKey],
-          testStrings[testStringKey],
-        )
+        assert.deepStrictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
       }
     }
 
@@ -79,10 +75,8 @@ describe('HED tag string utility functions', () => {
 
     it('must be surrounded by parentheses', () => {
       const testStrings = {
-        group:
-          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
-        nonGroup:
-          '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm',
+        group: '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
+        nonGroup: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm',
       }
       const expectedResults = {
         group: true,
@@ -95,8 +89,7 @@ describe('HED tag string utility functions', () => {
 
     it('can have its parentheses removed', () => {
       const testStrings = {
-        group:
-          '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
+        group: '(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm)',
       }
       const expectedResults = {
         group: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm',
@@ -188,48 +181,21 @@ describe('HED tag string utility functions', () => {
       })
     })
 
-    const validatorBase = function (
-      testStrings,
-      expectedResults,
-      testFunction,
-      assertionFunction,
-    ) {
+    const validatorBase = function (testStrings, expectedResults, testFunction, assertionFunction) {
       return hedSchemaPromise.then((schema) => {
         for (const testStringKey of Object.keys(testStrings)) {
           const testResult = testFunction(testStrings[testStringKey], schema)
-          assertionFunction(
-            testResult,
-            expectedResults[testStringKey],
-            testStrings[testStringKey],
-          )
+          assertionFunction(testResult, expectedResults[testStringKey], testStrings[testStringKey])
         }
       })
     }
 
-    const validatorString = function (
-      testStrings,
-      expectedResults,
-      testFunction,
-    ) {
-      return validatorBase(
-        testStrings,
-        expectedResults,
-        testFunction,
-        assert.strictEqual,
-      )
+    const validatorString = function (testStrings, expectedResults, testFunction) {
+      return validatorBase(testStrings, expectedResults, testFunction, assert.strictEqual)
     }
 
-    const validatorList = function (
-      testStrings,
-      expectedResults,
-      testFunction,
-    ) {
-      return validatorBase(
-        testStrings,
-        expectedResults,
-        testFunction,
-        assert.sameDeepMembers,
-      )
+    const validatorList = function (testStrings, expectedResults, testFunction) {
+      return validatorBase(testStrings, expectedResults, testFunction, assert.sameDeepMembers)
     }
 
     it('should correctly determine if a tag exists', () => {
@@ -249,13 +215,9 @@ describe('HED tag string utility functions', () => {
         missingSub: false,
         missingValue: false,
       }
-      return validatorString(
-        testStrings,
-        expectedResults,
-        (string, hedSchemas) => {
-          return hed.tagExistsInSchema(string, hedSchemas.baseSchema.attributes)
-        },
-      )
+      return validatorString(testStrings, expectedResults, (string, hedSchemas) => {
+        return hed.tagExistsInSchema(string, hedSchemas.baseSchema.attributes)
+      })
     })
 
     it('should correctly determine if a tag takes a value', () => {
@@ -275,17 +237,9 @@ describe('HED tag string utility functions', () => {
         noValueSub: false,
         noValuePound: false,
       }
-      return validatorString(
-        testStrings,
-        expectedResults,
-        (string, hedSchemas) => {
-          return hed.tagTakesValue(
-            string,
-            hedSchemas.baseSchema.attributes,
-            false,
-          )
-        },
-      )
+      return validatorString(testStrings, expectedResults, (string, hedSchemas) => {
+        return hed.tagTakesValue(string, hedSchemas.baseSchema.attributes, false)
+      })
     })
 
     it('should correctly determine if a tag has a unit class', () => {
@@ -305,21 +259,16 @@ describe('HED tag string utility functions', () => {
         noUnitClassValue: false,
         noUnitClassPound: false,
       }
-      return validatorString(
-        testStrings,
-        expectedResults,
-        (string, hedSchemas) => {
-          return hed.isUnitClassTag(string, hedSchemas.baseSchema.attributes)
-        },
-      )
+      return validatorString(testStrings, expectedResults, (string, hedSchemas) => {
+        return hed.isUnitClassTag(string, hedSchemas.baseSchema.attributes)
+      })
     })
 
     it("should correctly determine a tag's default unit, if any", () => {
       const testStrings = {
         suffixed: 'attribute/blink/duration/35 ms',
         prefixed: 'participant/effect/cognitive/reward/$10.55',
-        suffixedWithPrefixDefault:
-          'participant/effect/cognitive/reward/11 dollars',
+        suffixedWithPrefixDefault: 'participant/effect/cognitive/reward/11 dollars',
         unitClassPound: 'event/duration/#',
         noUnitClassValue: 'attribute/color/red/0.5',
         noValue: 'attribute/color/black',
@@ -334,24 +283,16 @@ describe('HED tag string utility functions', () => {
         noValue: '',
         noValuePound: '',
       }
-      return validatorString(
-        testStrings,
-        expectedResults,
-        (string, hedSchemas) => {
-          return hed.getUnitClassDefaultUnit(
-            string,
-            hedSchemas.baseSchema.attributes,
-          )
-        },
-      )
+      return validatorString(testStrings, expectedResults, (string, hedSchemas) => {
+        return hed.getUnitClassDefaultUnit(string, hedSchemas.baseSchema.attributes)
+      })
     })
 
     it("should correctly determine a tag's unit classes, if any", () => {
       const testStrings = {
         suffixed: 'attribute/direction/left/35 px',
         prefixed: 'participant/effect/cognitive/reward/$10.55',
-        suffixedWithPrefixDefault:
-          'participant/effect/cognitive/reward/11 dollars',
+        suffixedWithPrefixDefault: 'participant/effect/cognitive/reward/11 dollars',
         unitClassPound: 'event/duration/#',
         noUnitClassValue: 'attribute/color/red/0.5',
         noValue: 'attribute/color/black',
@@ -366,37 +307,22 @@ describe('HED tag string utility functions', () => {
         noValue: [],
         noValuePound: [],
       }
-      return validatorList(
-        testStrings,
-        expectedResults,
-        (string, hedSchemas) => {
-          return hed.getTagUnitClasses(string, hedSchemas.baseSchema.attributes)
-        },
-      )
+      return validatorList(testStrings, expectedResults, (string, hedSchemas) => {
+        return hed.getTagUnitClasses(string, hedSchemas.baseSchema.attributes)
+      })
     })
 
     it("should correctly determine a tag's legal units, if any", () => {
       const testStrings = {
         suffixed: 'attribute/direction/left/35 px',
         prefixed: 'participant/effect/cognitive/reward/$10.55',
-        suffixedWithPrefixDefault:
-          'participant/effect/cognitive/reward/11 dollars',
+        suffixedWithPrefixDefault: 'participant/effect/cognitive/reward/11 dollars',
         unitClassPound: 'event/duration/#',
         noUnitClassValue: 'attribute/color/red/0.5',
         noValue: 'attribute/color/black',
         noValuePound: 'participant/#',
       }
-      const directionUnits = [
-        'degree',
-        'radian',
-        'rad',
-        'm',
-        'foot',
-        'metre',
-        'mile',
-        'px',
-        'pixel',
-      ]
+      const directionUnits = ['degree', 'radian', 'rad', 'm', 'foot', 'metre', 'mile', 'px', 'pixel']
       const currencyUnits = ['dollar', '$', 'point', 'fraction']
       const timeUnits = ['second', 's', 'day', 'minute', 'hour']
       const expectedResults = {
@@ -408,16 +334,9 @@ describe('HED tag string utility functions', () => {
         noValue: [],
         noValuePound: [],
       }
-      return validatorList(
-        testStrings,
-        expectedResults,
-        (string, hedSchemas) => {
-          return hed.getTagUnitClassUnits(
-            string,
-            hedSchemas.baseSchema.attributes,
-          )
-        },
-      )
+      return validatorList(testStrings, expectedResults, (string, hedSchemas) => {
+        return hed.getTagUnitClassUnits(string, hedSchemas.baseSchema.attributes)
+      })
     })
 
     it.only('should strip valid units from a value', () => {
@@ -428,16 +347,8 @@ describe('HED tag string utility functions', () => {
       const currencyUnits = ['dollars', '$', 'points', 'fraction']
       const volumeUnits = ['m^3']
       return hedSchemaPromise.then((hedSchemas) => {
-        const strippedDollarsString = hed.validateUnits(
-          dollarsString,
-          currencyUnits,
-          hedSchemas.baseSchema.attributes,
-        )
-        const strippedVolumeString = hed.validateUnits(
-          volumeString,
-          volumeUnits,
-          hedSchemas.baseSchema.attributes,
-        )
+        const strippedDollarsString = hed.validateUnits(dollarsString, currencyUnits, hedSchemas.baseSchema.attributes)
+        const strippedVolumeString = hed.validateUnits(volumeString, volumeUnits, hedSchemas.baseSchema.attributes)
         const strippedPrefixedVolumeString = hed.validateUnits(
           prefixedVolumeString,
           volumeUnits,
@@ -450,16 +361,8 @@ describe('HED tag string utility functions', () => {
         )
         assert.sameOrderedMembers(strippedDollarsString, [true, true, '25.99'])
         assert.sameOrderedMembers(strippedVolumeString, [true, true, '100'])
-        assert.sameOrderedMembers(strippedPrefixedVolumeString, [
-          true,
-          true,
-          '100',
-        ])
-        assert.sameOrderedMembers(strippedInvalidVolumeString, [
-          true,
-          false,
-          '200',
-        ])
+        assert.sameOrderedMembers(strippedPrefixedVolumeString, [true, true, '100'])
+        assert.sameOrderedMembers(strippedInvalidVolumeString, [true, false, '200'])
       })
     })
 
@@ -474,16 +377,9 @@ describe('HED tag string utility functions', () => {
         color: true,
         noExtension: false,
       }
-      return validatorString(
-        testStrings,
-        expectedResults,
-        (string, hedSchemas) => {
-          return hed.isExtensionAllowedTag(
-            string,
-            hedSchemas.baseSchema.attributes,
-          )
-        },
-      )
+      return validatorString(testStrings, expectedResults, (string, hedSchemas) => {
+        return hed.isExtensionAllowedTag(string, hedSchemas.baseSchema.attributes)
+      })
     })
   })
 })

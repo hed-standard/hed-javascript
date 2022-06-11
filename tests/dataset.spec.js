@@ -22,17 +22,8 @@ describe('HED dataset validation', () => {
     const validator = function (testDatasets, expectedIssues) {
       return hedSchemaPromise.then((hedSchema) => {
         for (const testDatasetKey in testDatasets) {
-          const [, testIssues] = hed.validateHedEvents(
-            testDatasets[testDatasetKey],
-            hedSchema,
-            null,
-            true,
-          )
-          assert.sameDeepMembers(
-            testIssues,
-            expectedIssues[testDatasetKey],
-            testDatasets[testDatasetKey].join(','),
-          )
+          const [, testIssues] = hed.validateHedEvents(testDatasets[testDatasetKey], hedSchema, null, true)
+          assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDatasets[testDatasetKey].join(','))
         }
       })
     }
@@ -68,12 +59,7 @@ describe('HED dataset validation', () => {
           generateValidationIssue('invalidTag', {
             tag: testDatasets.multipleInvalid[1],
           }),
-          generateConverterIssue(
-            'invalidTag',
-            testDatasets.multipleInvalid[1],
-            {},
-            [0, 12],
-          ),
+          generateConverterIssue('invalidTag', testDatasets.multipleInvalid[1], {}, [0, 12]),
         ],
       }
       return validator(testDatasets, expectedIssues)
@@ -90,16 +76,8 @@ describe('HED dataset validation', () => {
     const validator = function (testDatasets, expectedIssues) {
       return hedSchemaPromise.then((hedSchema) => {
         for (const testDatasetKey in testDatasets) {
-          const [, testIssues] = hed.validateHedDataset(
-            testDatasets[testDatasetKey],
-            hedSchema,
-            true,
-          )
-          assert.sameDeepMembers(
-            testIssues,
-            expectedIssues[testDatasetKey],
-            testDatasets[testDatasetKey].join(','),
-          )
+          const [, testIssues] = hed.validateHedDataset(testDatasets[testDatasetKey], hedSchema, true)
+          assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDatasets[testDatasetKey].join(','))
         }
       })
     }
@@ -135,12 +113,7 @@ describe('HED dataset validation', () => {
           generateValidationIssue('invalidTag', {
             tag: testDatasets.multipleInvalid[1],
           }),
-          generateConverterIssue(
-            'invalidTag',
-            testDatasets.multipleInvalid[1],
-            {},
-            [0, 12],
-          ),
+          generateConverterIssue('invalidTag', testDatasets.multipleInvalid[1], {}, [0, 12]),
         ],
       }
       return validator(testDatasets, expectedIssues)
@@ -148,10 +121,7 @@ describe('HED dataset validation', () => {
 
     it('should properly validate HED datasets with definitions', () => {
       const testDatasets = {
-        valid: [
-          '(Definition/BlueSquare,(Blue,Square))',
-          '(Definition/RedCircle,(Red,Circle))',
-        ],
+        valid: ['(Definition/BlueSquare,(Blue,Square))', '(Definition/RedCircle,(Red,Circle))'],
         equalDuplicateDefinition: [
           '(Definition/BlueSquare,(Blue,Square))',
           '(Definition/BlueSquare,(Blue,Square))',

@@ -90,15 +90,7 @@ const convertTagToLong = function (schemas, hedTag, hedString, offset) {
     }
     if (!mapping.mappingData.has(tag)) {
       if (foundTagEntry === null) {
-        return [
-          hedTag,
-          [
-            generateIssue('invalidTag', hedString, {}, [
-              startingIndex + offset,
-              endingIndex + offset,
-            ]),
-          ],
-        ]
+        return [hedTag, [generateIssue('invalidTag', hedString, {}, [startingIndex + offset, endingIndex + offset])]]
       }
 
       foundUnknownExtension = true
@@ -177,15 +169,7 @@ const convertTagToShort = function (schemas, hedTag, hedString, offset) {
   }
 
   if (foundTagEntry === null) {
-    return [
-      hedTag,
-      [
-        generateIssue('invalidTag', hedString, {}, [
-          index + offset,
-          lastFoundIndex + offset,
-        ]),
-      ],
-    ]
+    return [hedTag, [generateIssue('invalidTag', hedString, {}, [index + offset, lastFoundIndex + offset])]]
   }
 
   const mainHedPortion = cleanedTag.slice(0, lastFoundIndex)
@@ -194,12 +178,10 @@ const convertTagToShort = function (schemas, hedTag, hedString, offset) {
     return [
       hedTag,
       [
-        generateIssue(
-          'invalidParentNode',
-          hedString,
-          { parentTag: foundTagEntry.longTag },
-          [index + offset, lastFoundIndex + offset],
-        ),
+        generateIssue('invalidParentNode', hedString, { parentTag: foundTagEntry.longTag }, [
+          index + offset,
+          lastFoundIndex + offset,
+        ]),
       ],
     ]
   }
@@ -220,12 +202,7 @@ const convertTagToShort = function (schemas, hedTag, hedString, offset) {
  * @param {number} offset The offset of the partial HED string within the full string.
  * @return {[string, Issue[]]} The converted string and any issues.
  */
-const convertPartialHedStringToLong = function (
-  schemas,
-  partialHedString,
-  fullHedString,
-  offset,
-) {
+const convertPartialHedStringToLong = function (schemas, partialHedString, fullHedString, offset) {
   let issues = []
 
   const hedString = removeSlashesAndSpaces(partialHedString)
@@ -241,12 +218,7 @@ const convertPartialHedStringToLong = function (
   for (const [isHedTag, [startPosition, endPosition]] of hedTags) {
     const tag = hedString.slice(startPosition, endPosition)
     if (isHedTag) {
-      const [shortTagString, singleError] = convertTagToLong(
-        schemas,
-        tag,
-        fullHedString,
-        startPosition + offset,
-      )
+      const [shortTagString, singleError] = convertTagToLong(schemas, tag, fullHedString, startPosition + offset)
       issues = issues.concat(singleError)
       finalString += shortTagString
     } else {
@@ -286,12 +258,7 @@ const convertHedString = function (schemas, hedString, conversionFn) {
   for (const [isHedTag, [startPosition, endPosition]] of hedTags) {
     const tag = hedString.slice(startPosition, endPosition)
     if (isHedTag) {
-      const [shortTagString, singleError] = conversionFn(
-        schemas,
-        tag,
-        hedString,
-        startPosition,
-      )
+      const [shortTagString, singleError] = conversionFn(schemas, tag, hedString, startPosition)
       issues = issues.concat(singleError)
       finalString += shortTagString
     } else {

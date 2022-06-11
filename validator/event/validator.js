@@ -162,10 +162,7 @@ class HedValidator {
    */
   checkForMultipleUniqueTags(tagList) {
     this._checkForTagAttribute(uniqueType, (uniqueTagPrefix) => {
-      if (
-        tagList.filter((tag) => tag.formattedTag.startsWith(uniqueTagPrefix))
-          .length > 1
-      ) {
+      if (tagList.filter((tag) => tag.formattedTag.startsWith(uniqueTagPrefix)).length > 1) {
         this.pushIssue('multipleUniqueTags', {
           tag: uniqueTagPrefix,
         })
@@ -178,11 +175,7 @@ class HedValidator {
    */
   checkForRequiredTags() {
     this._checkForTagAttribute(requiredType, (requiredTagPrefix) => {
-      if (
-        !this.parsedString.topLevelTags.some((tag) =>
-          tag.formattedTag.startsWith(requiredTagPrefix),
-        )
-      ) {
+      if (!this.parsedString.topLevelTags.some((tag) => tag.formattedTag.startsWith(requiredTagPrefix))) {
         this.pushIssue('requiredPrefixMissing', {
           tagPrefix: requiredTagPrefix,
         })
@@ -231,10 +224,7 @@ class HedValidator {
     if (tag.takesValue && !tag.hasUnitClass) {
       const isValidValue = utils.HED.validateValue(
         tag.formattedTagName,
-        this.hedSchemas.baseSchema.tagHasAttribute(
-          utils.HED.replaceTagNameWithPound(tag.formattedTag),
-          'isNumeric',
-        ),
+        this.hedSchemas.baseSchema.tagHasAttribute(utils.HED.replaceTagNameWithPound(tag.formattedTag), 'isNumeric'),
         this.hedSchemas.isHed3,
       )
       if (!isValidValue) {
@@ -252,10 +242,7 @@ class HedValidator {
     }
     // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
     const isExtensionAllowedTag = tag.allowsExtensions
-    if (
-      this.options.expectValuePlaceholderString &&
-      tag.formattedTag.split('#').length === 2
-    ) {
+    if (this.options.expectValuePlaceholderString && tag.formattedTag.split('#').length === 2) {
       const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
       if (valueTag.split('#').length !== 2) {
         // To avoid a redundant issue.
@@ -286,10 +273,7 @@ class HedValidator {
    * @param {ParsedHedTag} tag A HED tag.
    */
   checkPlaceholderTagSyntax(tag) {
-    const placeholderCount = utils.string.getCharacterCount(
-      tag.formattedTag,
-      '#',
-    )
+    const placeholderCount = utils.string.getCharacterCount(tag.formattedTag, '#')
     if (placeholderCount === 1) {
       const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
       if (utils.string.getCharacterCount(valueTag, '#') !== 1) {
@@ -322,14 +306,9 @@ class HedValidator {
       }
       if (
         tagPlaceholders &&
-        ((!this.options.expectValuePlaceholderString &&
-          standalonePlaceholders) ||
-          standalonePlaceholders > 1)
+        ((!this.options.expectValuePlaceholderString && standalonePlaceholders) || standalonePlaceholders > 1)
       ) {
-        if (
-          this.options.expectValuePlaceholderString &&
-          !standaloneIssueGenerated
-        ) {
+        if (this.options.expectValuePlaceholderString && !standaloneIssueGenerated) {
           this.pushIssue('invalidPlaceholder', {
             tag: firstStandaloneTag,
           })
@@ -343,18 +322,14 @@ class HedValidator {
     for (const tagGroup of this.parsedString.tagGroups) {
       if (tagGroup.isDefinitionGroup) {
         definitionPlaceholders = 0
-        const isDefinitionPlaceholder =
-          tagGroup.definitionTag.formattedTagName === '#'
+        const isDefinitionPlaceholder = tagGroup.definitionTag.formattedTagName === '#'
         const definitionName = tagGroup.definitionName
         for (const tag of tagGroup.tagIterator()) {
           if (isDefinitionPlaceholder && tag === tagGroup.definitionTag) {
             continue
           }
           const tagString = tag.formattedTag
-          definitionPlaceholders += utils.string.getCharacterCount(
-            tagString,
-            '#',
-          )
+          definitionPlaceholders += utils.string.getCharacterCount(tagString, '#')
         }
         if (
           !(
@@ -376,14 +351,9 @@ class HedValidator {
           }
           if (
             tagPlaceholders &&
-            ((!this.options.expectValuePlaceholderString &&
-              standalonePlaceholders) ||
-              standalonePlaceholders > 1)
+            ((!this.options.expectValuePlaceholderString && standalonePlaceholders) || standalonePlaceholders > 1)
           ) {
-            if (
-              this.options.expectValuePlaceholderString &&
-              !standaloneIssueGenerated
-            ) {
+            if (this.options.expectValuePlaceholderString && !standaloneIssueGenerated) {
               this.pushIssue('invalidPlaceholder', {
                 tag: firstStandaloneTag,
               })
@@ -396,10 +366,7 @@ class HedValidator {
         }
       }
     }
-    if (
-      this.options.expectValuePlaceholderString &&
-      standalonePlaceholders === 0
-    ) {
+    if (this.options.expectValuePlaceholderString && standalonePlaceholders === 0) {
       this.pushIssue('missingPlaceholder', {
         string: this.parsedString.hedString,
       })
@@ -475,10 +442,7 @@ class Hed2Validator extends HedValidator {
     )
     const validValue = utils.HED.validateValue(
       value,
-      this.hedSchemas.baseSchema.tagHasAttribute(
-        utils.HED.replaceTagNameWithPound(tag.formattedTag),
-        'isNumeric',
-      ),
+      this.hedSchemas.baseSchema.tagHasAttribute(utils.HED.replaceTagNameWithPound(tag.formattedTag), 'isNumeric'),
       this.hedSchemas.isHed3,
     )
     if (!foundUnit && this.options.checkForWarnings) {

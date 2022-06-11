@@ -3,11 +3,7 @@ const hed = require('../validator/event')
 const schema = require('../validator/schema/init')
 const { parseHedString } = require('../validator/stringParser')
 const { ParsedHedTag } = require('../validator/types/parsedHed')
-const {
-  HedValidator,
-  Hed2Validator,
-  Hed3Validator,
-} = require('../validator/event')
+const { HedValidator, Hed2Validator, Hed3Validator } = require('../validator/event')
 const { generateIssue } = require('../common/issues/issues')
 const converterGenerateIssue = require('../converter/issues')
 const { Schemas } = require('../common/schema')
@@ -32,20 +28,10 @@ describe('HED string and event validation', () => {
     testOptions = {},
   ) {
     for (const [testStringKey, testString] of Object.entries(testStrings)) {
-      const [parsedTestString, parsingIssues] = parseHedString(
-        testString,
-        hedSchemas,
-      )
-      const validator = new ValidatorClass(
-        parsedTestString,
-        hedSchemas,
-        testOptions,
-      )
+      const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
+      const validator = new ValidatorClass(parsedTestString, hedSchemas, testOptions)
       testFunction(validator)
-      const issues = [].concat(
-        ...Object.values(parsingIssues),
-        validator.issues,
-      )
+      const issues = [].concat(...Object.values(parsingIssues), validator.issues)
       assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
     }
   }
@@ -61,21 +47,9 @@ describe('HED string and event validation', () => {
      * @param {function(HedValidator): void} testFunction A test-specific function that executes the required validation check.
      * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
      */
-    const validatorSyntacticBase = function (
-      testStrings,
-      expectedIssues,
-      testFunction,
-      testOptions = {},
-    ) {
+    const validatorSyntacticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
       const dummySchema = new Schemas(null)
-      validatorBase(
-        dummySchema,
-        HedValidator,
-        testStrings,
-        expectedIssues,
-        testFunction,
-        testOptions,
-      )
+      validatorBase(dummySchema, HedValidator, testStrings, expectedIssues, testFunction, testOptions)
     }
 
     describe('Full HED Strings', () => {
@@ -92,12 +66,8 @@ describe('HED string and event validation', () => {
             '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
         }
         const expectedIssues = {
-          extraOpening: [
-            generateIssue('parentheses', { opening: 2, closing: 1 }),
-          ],
-          extraClosing: [
-            generateIssue('parentheses', { opening: 1, closing: 2 }),
-          ],
+          extraOpening: [generateIssue('parentheses', { opening: 2, closing: 1 })],
+          extraClosing: [generateIssue('parentheses', { opening: 1, closing: 2 })],
           valid: [],
         }
         // No-op function as this check is done during the parsing stage.
@@ -129,9 +99,7 @@ describe('HED string and event validation', () => {
             '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm,(/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px)),Event/Duration/3 ms',
         }
         const expectedIssues = {
-          missingOpeningComma: [
-            generateIssue('invalidTag', { tag: '/Action/Reach/To touch(' }),
-          ],
+          missingOpeningComma: [generateIssue('invalidTag', { tag: '/Action/Reach/To touch(' })],
           missingClosingComma: [
             generateIssue('commaMissing', {
               tag: '/Participant/Effect/Body part/Arm)',
@@ -198,16 +166,11 @@ describe('HED string and event validation', () => {
 
       it('should not have invalid characters', () => {
         const testStrings = {
-          openingBrace:
-            '/Attribute/Object side/Left,/Participant/Effect{/Body part/Arm',
-          closingBrace:
-            '/Attribute/Object side/Left,/Participant/Effect}/Body part/Arm',
-          openingBracket:
-            '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm',
-          closingBracket:
-            '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm',
-          tilde:
-            '/Attribute/Object side/Left,/Participant/Effect~/Body part/Arm',
+          openingBrace: '/Attribute/Object side/Left,/Participant/Effect{/Body part/Arm',
+          closingBrace: '/Attribute/Object side/Left,/Participant/Effect}/Body part/Arm',
+          openingBracket: '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm',
+          closingBracket: '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm',
+          tilde: '/Attribute/Object side/Left,/Participant/Effect~/Body part/Arm',
         }
         const expectedIssues = {
           openingBrace: [
@@ -279,12 +242,7 @@ describe('HED string and event validation', () => {
        * @param {function(HedValidator, ParsedHedTag[]): void} testFunction A test-specific function that executes the required validation check.
        * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
-      const validatorSyntactic = function (
-        testStrings,
-        expectedIssues,
-        testFunction,
-        testOptions = {},
-      ) {
+      const validatorSyntactic = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
         validatorSyntacticBase(
           testStrings,
           expectedIssues,
@@ -302,20 +260,16 @@ describe('HED string and event validation', () => {
 
       it('should not contain duplicates', () => {
         const testStrings = {
-          topLevelDuplicate:
-            'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
+          topLevelDuplicate: 'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
           groupDuplicate:
             'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Attribute/Visual/Color/Purple,Event/Category/Experimental stimulus)',
           nestedGroupDuplicate:
             'Item/Object/Vehicle/Train,(Attribute/Visual/Color/Purple,(Event/Category/Experimental stimulus,Event/Category/Experimental stimulus))',
-          noDuplicate:
-            'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple',
-          legalDuplicate:
-            'Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
+          noDuplicate: 'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple',
+          legalDuplicate: 'Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
           nestedLegalDuplicate:
             '(Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus))',
-          legalDuplicateDifferentValue:
-            '(Attribute/Language/Unit/Word/Brain,Attribute/Language/Unit/Word/Study)',
+          legalDuplicateDifferentValue: '(Attribute/Language/Unit/Word/Brain,Attribute/Language/Unit/Word/Study)',
         }
         const expectedIssues = {
           topLevelDuplicate: [
@@ -353,13 +307,9 @@ describe('HED string and event validation', () => {
           nestedLegalDuplicate: [],
           legalDuplicateDifferentValue: [],
         }
-        validatorSyntactic(
-          testStrings,
-          expectedIssues,
-          (validator, tagLevel) => {
-            validator.checkForDuplicateTags(tagLevel)
-          },
-        )
+        validatorSyntactic(testStrings, expectedIssues, (validator, tagLevel) => {
+          validator.checkForDuplicateTags(tagLevel)
+        })
       })
     })
   })
@@ -383,21 +333,9 @@ describe('HED string and event validation', () => {
        * @param {function(HedValidator): void} testFunction A test-specific function that executes the required validation check.
        * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
-      const validatorSemanticBase = function (
-        testStrings,
-        expectedIssues,
-        testFunction,
-        testOptions = {},
-      ) {
+      const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
         return hedSchemaPromise.then((hedSchemas) => {
-          validatorBase(
-            hedSchemas,
-            Hed2Validator,
-            testStrings,
-            expectedIssues,
-            testFunction,
-            testOptions,
-          )
+          validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
         })
       }
 
@@ -459,22 +397,12 @@ describe('HED string and event validation', () => {
          * @param {function(HedValidator, ParsedHedTag, ParsedHedTag): void} testFunction A test-specific function that executes the required validation check.
          * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
          */
-        const validatorSemantic = function (
-          testStrings,
-          expectedIssues,
-          testFunction,
-          testOptions,
-        ) {
+        const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions) {
           return validatorSemanticBase(
             testStrings,
             expectedIssues,
             (validator) => {
-              let previousTag = new ParsedHedTag(
-                '',
-                '',
-                [0, 0],
-                validator.hedSchemas,
-              )
+              let previousTag = new ParsedHedTag('', '', [0, 0], validator.hedSchemas)
               for (const tag of validator.parsedString.tags) {
                 testFunction(validator, tag, previousTag)
                 previousTag = tag
@@ -496,24 +424,15 @@ describe('HED string and event validation', () => {
           const expectedIssues = {
             takesValue: [],
             full: [],
-            extensionAllowed: [
-              generateIssue('extension', { tag: testStrings.extensionAllowed }),
-            ],
-            leafExtension: [
-              generateIssue('invalidTag', { tag: testStrings.leafExtension }),
-            ],
+            extensionAllowed: [generateIssue('extension', { tag: testStrings.extensionAllowed })],
+            leafExtension: [generateIssue('invalidTag', { tag: testStrings.leafExtension })],
             nonExtensionAllowed: [
               generateIssue('invalidTag', {
                 tag: testStrings.nonExtensionAllowed,
               }),
             ],
             illegalComma: [
-              converterGenerateIssue(
-                'invalidTag',
-                testStrings.illegalComma,
-                {},
-                [28, 32],
-              ),
+              converterGenerateIssue('invalidTag', testStrings.illegalComma, {}, [28, 32]),
               generateIssue('extraCommaOrInvalid', {
                 previousTag: 'Event/Label/This is a label',
                 tag: 'This/Is/A/Tag',
@@ -537,9 +456,7 @@ describe('HED string and event validation', () => {
           }
           const expectedIssues = {
             hasChild: [],
-            missingChild: [
-              generateIssue('childRequired', { tag: testStrings.missingChild }),
-            ],
+            missingChild: [generateIssue('childRequired', { tag: testStrings.missingChild })],
           }
           return validatorSemantic(
             testStrings,
@@ -567,11 +484,9 @@ describe('HED string and event validation', () => {
             incorrectNonNumericValue: 'Event/Duration/A ms',
             incorrectPluralUnit: 'Attribute/Temporal rate/3 hertzs',
             incorrectSymbolCapitalizedUnit: 'Attribute/Temporal rate/3 hz',
-            incorrectSymbolCapitalizedUnitModifier:
-              'Attribute/Temporal rate/3 KHz',
+            incorrectSymbolCapitalizedUnitModifier: 'Attribute/Temporal rate/3 KHz',
             incorrectNonSIUnitModifier: 'Event/Duration/1 millihour',
-            incorrectNonSIUnitSymbolModifier:
-              'Attribute/Path/Velocity/100 Mkph',
+            incorrectNonSIUnitSymbolModifier: 'Attribute/Path/Velocity/100 Mkph',
             notRequiredNumber: 'Attribute/Visual/Color/Red/0.5',
             notRequiredScientific: 'Attribute/Visual/Color/Red/5e-1',
             properTime: 'Item/2D shape/Clock face/08:30',
@@ -667,12 +582,7 @@ describe('HED string and event validation', () => {
          * @param {function(HedValidator, ParsedHedTag[]): void} testFunction A test-specific function that executes the required validation check.
          * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
          */
-        const validatorSemantic = function (
-          testStrings,
-          expectedIssues,
-          testFunction,
-          testOptions = {},
-        ) {
+        const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
           validatorSemanticBase(
             testStrings,
             expectedIssues,
@@ -697,17 +607,11 @@ describe('HED string and event validation', () => {
           }
           const expectedIssues = {
             legal: [],
-            multipleDesc: [
-              generateIssue('multipleUniqueTags', { tag: 'event/description' }),
-            ],
+            multipleDesc: [generateIssue('multipleUniqueTags', { tag: 'event/description' })],
           }
-          return validatorSemantic(
-            testStrings,
-            expectedIssues,
-            (validator, tagLevel) => {
-              validator.checkForMultipleUniqueTags(tagLevel)
-            },
-          )
+          return validatorSemantic(testStrings, expectedIssues, (validator, tagLevel) => {
+            validator.checkForMultipleUniqueTags(tagLevel)
+          })
         })
       })
 
@@ -720,10 +624,8 @@ describe('HED string and event validation', () => {
               'Event/Label/Bus,Event/Category/Experimental stimulus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus',
             missingLabel:
               'Event/Category/Experimental stimulus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus',
-            missingCategory:
-              'Event/Label/Bus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus',
-            missingDescription:
-              'Event/Label/Bus,Event/Category/Experimental stimulus,Item/Object/Vehicle/Bus',
+            missingCategory: 'Event/Label/Bus,Event/Description/Shown a picture of a bus,Item/Object/Vehicle/Bus',
+            missingDescription: 'Event/Label/Bus,Event/Category/Experimental stimulus,Item/Object/Vehicle/Bus',
             missingAllRequired: 'Item/Object/Vehicle/Bus',
           }
           const expectedIssues = {
@@ -767,11 +669,7 @@ describe('HED string and event validation', () => {
       })
 
       describe('HED Strings', () => {
-        const validator = function (
-          testStrings,
-          expectedIssues,
-          expectValuePlaceholderString = false,
-        ) {
+        const validator = function (testStrings, expectedIssues, expectValuePlaceholderString = false) {
           return hedSchemaPromise.then((schema) => {
             for (const testStringKey in testStrings) {
               const [, testIssues] = hed.validateHedString(
@@ -780,11 +678,7 @@ describe('HED string and event validation', () => {
                 true,
                 expectValuePlaceholderString,
               )
-              assert.sameDeepMembers(
-                testIssues,
-                expectedIssues[testStringKey],
-                testStrings[testStringKey],
-              )
+              assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testStrings[testStringKey])
             }
           })
         }
@@ -792,8 +686,7 @@ describe('HED string and event validation', () => {
         it('should skip tag group-level checks', () => {
           const testStrings = {
             duplicate: 'Item/Object/Vehicle/Train,Item/Object/Vehicle/Train',
-            multipleUnique:
-              'Event/Description/Rail vehicles,Event/Description/Locomotive-pulled or multiple units',
+            multipleUnique: 'Event/Description/Rail vehicles,Event/Description/Locomotive-pulled or multiple units',
           }
           const expectedIssues = {
             duplicate: [],
@@ -815,9 +708,7 @@ describe('HED string and event validation', () => {
           const expectedIssues = {
             takesValue: [],
             withUnit: [],
-            child: [
-              generateIssue('invalidPlaceholder', { tag: testStrings.child }),
-            ],
+            child: [generateIssue('invalidPlaceholder', { tag: testStrings.child })],
             extensionAllowed: [
               generateIssue('invalidPlaceholder', {
                 tag: testStrings.extensionAllowed,
@@ -871,21 +762,9 @@ describe('HED string and event validation', () => {
        * @param {function(HedValidator): void} testFunction A test-specific function that executes the required validation check.
        * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
-      const validatorSemanticBase = function (
-        testStrings,
-        expectedIssues,
-        testFunction,
-        testOptions = {},
-      ) {
+      const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
         return hedSchemaPromise.then((hedSchemas) => {
-          validatorBase(
-            hedSchemas,
-            Hed2Validator,
-            testStrings,
-            expectedIssues,
-            testFunction,
-            testOptions,
-          )
+          validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
         })
       }
 
@@ -898,22 +777,12 @@ describe('HED string and event validation', () => {
          * @param {function(HedValidator, ParsedHedTag, ParsedHedTag): void} testFunction A test-specific function that executes the required validation check.
          * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
          */
-        const validatorSemantic = function (
-          testStrings,
-          expectedIssues,
-          testFunction,
-          testOptions,
-        ) {
+        const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions) {
           return validatorSemanticBase(
             testStrings,
             expectedIssues,
             (validator) => {
-              let previousTag = new ParsedHedTag(
-                '',
-                '',
-                [0, 0],
-                validator.hedSchemas,
-              )
+              let previousTag = new ParsedHedTag('', '', [0, 0], validator.hedSchemas)
               for (const tag of validator.parsedString.tags) {
                 testFunction(validator, tag, previousTag)
                 previousTag = tag
@@ -1033,34 +902,13 @@ describe('HED string and event validation', () => {
      * @param {function(HedValidator): void} testFunction A test-specific function that executes the required validation check.
      * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
      */
-    const validatorBase = function (
-      hedSchemas,
-      testStrings,
-      expectedIssues,
-      testFunction,
-      testOptions = {},
-    ) {
+    const validatorBase = function (hedSchemas, testStrings, expectedIssues, testFunction, testOptions = {}) {
       for (const [testStringKey, testString] of Object.entries(testStrings)) {
-        const [parsedTestString, parsingIssues] = parseHedString(
-          testString,
-          hedSchemas,
-        )
-        const validator = new Hed3Validator(
-          parsedTestString,
-          hedSchemas,
-          null,
-          testOptions,
-        )
+        const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
+        const validator = new Hed3Validator(parsedTestString, hedSchemas, null, testOptions)
         testFunction(validator)
-        const issues = [].concat(
-          ...Object.values(parsingIssues),
-          validator.issues,
-        )
-        assert.sameDeepMembers(
-          issues,
-          expectedIssues[testStringKey],
-          testString,
-        )
+        const issues = [].concat(...Object.values(parsingIssues), validator.issues)
+        assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
       }
     }
 
@@ -1074,20 +922,9 @@ describe('HED string and event validation', () => {
      * @param {function(Hed3Validator): void} testFunction A test-specific function that executes the required validation check.
      * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
      */
-    const validatorSemanticBase = function (
-      testStrings,
-      expectedIssues,
-      testFunction,
-      testOptions = {},
-    ) {
+    const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
       return hedSchemaPromise.then((hedSchemas) => {
-        validatorBase(
-          hedSchemas,
-          testStrings,
-          expectedIssues,
-          testFunction,
-          testOptions,
-        )
+        validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
       })
     }
 
@@ -1156,8 +993,7 @@ describe('HED string and event validation', () => {
               'invalidParentNode',
               testStrings.red,
               {
-                parentTag:
-                  'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
+                parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
               },
               [9, 16],
             ),
@@ -1167,8 +1003,7 @@ describe('HED string and event validation', () => {
               'invalidParentNode',
               testStrings.redAndBlue,
               {
-                parentTag:
-                  'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
+                parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
               },
               [9, 16],
             ),
@@ -1176,8 +1011,7 @@ describe('HED string and event validation', () => {
               'invalidParentNode',
               testStrings.redAndBlue,
               {
-                parentTag:
-                  'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-blue',
+                parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-blue',
               },
               [27, 35],
             ),
@@ -1198,22 +1032,12 @@ describe('HED string and event validation', () => {
        * @param {function(Hed3Validator, ParsedHedTag, ParsedHedTag): void} testFunction A test-specific function that executes the required validation check.
        * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
-      const validatorSemantic = function (
-        testStrings,
-        expectedIssues,
-        testFunction,
-        testOptions,
-      ) {
+      const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions) {
         return validatorSemanticBase(
           testStrings,
           expectedIssues,
           (validator) => {
-            let previousTag = new ParsedHedTag(
-              '',
-              '',
-              [0, 0],
-              validator.hedSchemas,
-            )
+            let previousTag = new ParsedHedTag('', '', [0, 0], validator.hedSchemas)
             for (const tag of validator.parsedString.tags) {
               testFunction(validator, tag, previousTag)
               previousTag = tag
@@ -1246,10 +1070,7 @@ describe('HED string and event validation', () => {
           (validator) => {
             if (definitionMap.size === 0) {
               for (const value of Object.values(testDefinitions)) {
-                const parsedString = parseHedString(
-                  value,
-                  validator.hedSchemas,
-                )[0]
+                const parsedString = parseHedString(value, validator.hedSchemas)[0]
                 for (const def of parsedString.definitionGroups) {
                   definitionMap.set(def.definitionName, def.definitionGroup)
                 }
@@ -1276,24 +1097,15 @@ describe('HED string and event validation', () => {
         const expectedIssues = {
           takesValue: [],
           full: [],
-          extensionAllowed: [
-            generateIssue('extension', { tag: testStrings.extensionAllowed }),
-          ],
-          leafExtension: [
-            generateIssue('invalidTag', { tag: testStrings.leafExtension }),
-          ],
+          extensionAllowed: [generateIssue('extension', { tag: testStrings.extensionAllowed })],
+          leafExtension: [generateIssue('invalidTag', { tag: testStrings.leafExtension })],
           nonExtensionAllowed: [
             generateIssue('invalidTag', {
               tag: testStrings.nonExtensionAllowed,
             }),
           ],
           illegalComma: [
-            converterGenerateIssue(
-              'invalidTag',
-              testStrings.illegalComma,
-              { tag: 'This' },
-              [22, 26],
-            ),
+            converterGenerateIssue('invalidTag', testStrings.illegalComma, { tag: 'This' }, [22, 26]),
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',
               tag: 'This/Is/A/Tag',
@@ -1414,8 +1226,7 @@ describe('HED string and event validation', () => {
 
       it('should not contain undefined definitions', () => {
         const testDefinitions = {
-          greenTriangle:
-            '(Definition/GreenTriangleDefinition/#, (RGB-green/#, Triangle))',
+          greenTriangle: '(Definition/GreenTriangleDefinition/#, (RGB-green/#, Triangle))',
           train: '(Definition/TrainDefinition, (Train))',
           yellowCube: '(Definition/CubeDefinition, (Yellow, Cube))',
         }
@@ -1430,22 +1241,13 @@ describe('HED string and event validation', () => {
           greenTriangleDef: [],
           trainDefExpand: [],
           yellowCubeDef: [],
-          invalidDef: [
-            generateIssue('missingDefinition', { def: 'InvalidDefinition' }),
-          ],
-          invalidDefExpand: [
-            generateIssue('missingDefinition', { def: 'InvalidDefExpand' }),
-          ],
+          invalidDef: [generateIssue('missingDefinition', { def: 'InvalidDefinition' })],
+          invalidDefExpand: [generateIssue('missingDefinition', { def: 'InvalidDefExpand' })],
         }
-        return validatorSemanticWithDefinitions(
-          testStrings,
-          testDefinitions,
-          expectedIssues,
-          (validator, tag) => {
-            validator.checkForMissingDefinitions(tag, 'Def')
-            validator.checkForMissingDefinitions(tag, 'Def-expand')
-          },
-        )
+        return validatorSemanticWithDefinitions(testStrings, testDefinitions, expectedIssues, (validator, tag) => {
+          validator.checkForMissingDefinitions(tag, 'Def')
+          validator.checkForMissingDefinitions(tag, 'Def-expand')
+        })
       })
     })
 
@@ -1458,12 +1260,7 @@ describe('HED string and event validation', () => {
        * @param {function(Hed3Validator, ParsedHedGroup): void} testFunction A test-specific function that executes the required validation check.
        * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
-      const validatorSemantic = function (
-        testStrings,
-        expectedIssues,
-        testFunction,
-        testOptions = {},
-      ) {
+      const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
         validatorSemanticBase(
           testStrings,
           expectedIssues,
@@ -1481,31 +1278,19 @@ describe('HED string and event validation', () => {
           nonDefinition: 'Car',
           nonDefinitionGroup: '(Train/Maglev, Age/15, RGB-red/0.5)',
           definitionOnly: '(Definition/SimpleDefinition)',
-          tagGroupDefinition:
-            '(Definition/TagGroupDefinition, (Square, RGB-blue))',
-          illegalSiblingDefinition:
-            '(Definition/IllegalSiblingDefinition, Train, (Rectangle))',
-          nestedDefinition:
-            '(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))',
-          multipleTagGroupDefinition:
-            '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
+          tagGroupDefinition: '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          illegalSiblingDefinition: '(Definition/IllegalSiblingDefinition, Train, (Rectangle))',
+          nestedDefinition: '(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))',
+          multipleTagGroupDefinition: '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
           defExpandOnly: '(Def-expand/SimpleDefExpand)',
-          tagGroupDefExpand:
-            '(Def-expand/TagGroupDefExpand, (Square, RGB-blue))',
-          illegalSiblingDefExpand:
-            '(Def-expand/IllegalSiblingDefExpand, Train, (Rectangle))',
-          nestedDefExpand:
-            '(Def-expand/NestedDefExpand, (Touchscreen, (Def-expand/InnerDefExpand, (Square))))',
-          multipleTagGroupDefExpand:
-            '(Def-expand/MultipleTagGroupDefExpand, (Touchscreen), (Square))',
-          mixedDefinitionFirst:
-            '(Definition/DefinitionFirst, Def-expand/DefExpandSecond, (Square))',
-          mixedDefExpandFirst:
-            '(Def-expand/DefExpandFirst, Definition/DefinitionSecond, (Square))',
-          defNestedInDefinition:
-            '(Definition/DefNestedInDefinition, (Def/Nested, Triangle))',
-          defNestedInDefExpand:
-            '(Def-expand/DefNestedInDefExpand, (Def/Nested, Triangle))',
+          tagGroupDefExpand: '(Def-expand/TagGroupDefExpand, (Square, RGB-blue))',
+          illegalSiblingDefExpand: '(Def-expand/IllegalSiblingDefExpand, Train, (Rectangle))',
+          nestedDefExpand: '(Def-expand/NestedDefExpand, (Touchscreen, (Def-expand/InnerDefExpand, (Square))))',
+          multipleTagGroupDefExpand: '(Def-expand/MultipleTagGroupDefExpand, (Touchscreen), (Square))',
+          mixedDefinitionFirst: '(Definition/DefinitionFirst, Def-expand/DefExpandSecond, (Square))',
+          mixedDefExpandFirst: '(Def-expand/DefExpandFirst, Definition/DefinitionSecond, (Square))',
+          defNestedInDefinition: '(Definition/DefNestedInDefinition, (Def/Nested, Triangle))',
+          defNestedInDefExpand: '(Def-expand/DefNestedInDefExpand, (Def/Nested, Triangle))',
         }
         const expectedIssues = {
           nonDefinition: [],
@@ -1569,13 +1354,9 @@ describe('HED string and event validation', () => {
             }),
           ],
         }
-        return validatorSemantic(
-          testStrings,
-          expectedIssues,
-          (validator, tagGroup) => {
-            validator.checkDefinitionSyntax(tagGroup)
-          },
-        )
+        return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
+          validator.checkDefinitionSyntax(tagGroup)
+        })
       })
     })
 
@@ -1635,11 +1416,7 @@ describe('HED string and event validation', () => {
     })
 
     describe('HED Strings', () => {
-      const validatorSemantic = function (
-        testStrings,
-        expectedIssues,
-        expectValuePlaceholderString = false,
-      ) {
+      const validatorSemantic = function (testStrings, expectedIssues, expectValuePlaceholderString = false) {
         return validatorSemanticBase(
           testStrings,
           expectedIssues,
@@ -1655,19 +1432,15 @@ describe('HED string and event validation', () => {
           noPlaceholders: 'Car',
           noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',
           noPlaceholderDefinitionGroup: '(Definition/SimpleDefinition)',
-          noPlaceholderTagGroupDefinition:
-            '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          noPlaceholderTagGroupDefinition: '(Definition/TagGroupDefinition, (Square, RGB-blue))',
           singlePlaceholder: 'RGB-green/#',
-          definitionPlaceholder:
-            '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
-          definitionPlaceholderWithTag:
-            'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
+          definitionPlaceholder: '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
+          definitionPlaceholderWithTag: 'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
           singlePlaceholderWithValidDefinitionPlaceholder:
             'Duration/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
           nestedDefinitionPlaceholder:
             '(Definition/NestedPlaceholderDefinition/#, (Touchscreen, (Square, RGB-blue/#)))',
-          threePlaceholderDefinition:
-            '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
+          threePlaceholderDefinition: '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
           fourPlaceholderDefinition:
             '(Definition/FourPlaceholderDefinition/#, (RGB-green/#, (Cube, Volume/#, RGB-blue/#)))',
           multiPlaceholder: 'RGB-red/#, Circle, RGB-blue/#',
@@ -1680,19 +1453,15 @@ describe('HED string and event validation', () => {
           noPlaceholders: 'Car',
           noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',
           noPlaceholderDefinitionGroup: '(Definition/SimpleDefinition)',
-          noPlaceholderTagGroupDefinition:
-            '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          noPlaceholderTagGroupDefinition: '(Definition/TagGroupDefinition, (Square, RGB-blue))',
           singlePlaceholder: 'RGB-green/#',
-          definitionPlaceholder:
-            '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
-          definitionPlaceholderWithTag:
-            'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
+          definitionPlaceholder: '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
+          definitionPlaceholderWithTag: 'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
           singlePlaceholderWithValidDefinitionPlaceholder:
             'Duration/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
           nestedDefinitionPlaceholder:
             '(Definition/NestedPlaceholderDefinition/#, (Touchscreen, (Square, RGB-blue/#)))',
-          threePlaceholderDefinition:
-            '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
+          threePlaceholderDefinition: '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
           fourPlaceholderDefinition:
             '(Definition/FourPlaceholderDefinition/#, (RGB-green/#, (Cube, Volume/#, RGB-blue/#)))',
           multiPlaceholder: 'RGB-red/#, Circle, RGB-blue/#',
@@ -1714,14 +1483,12 @@ describe('HED string and event validation', () => {
           ],
           noPlaceholderDefinitionGroup: [
             generateIssue('missingPlaceholder', {
-              string:
-                expectedPlaceholdersTestStrings.noPlaceholderDefinitionGroup,
+              string: expectedPlaceholdersTestStrings.noPlaceholderDefinitionGroup,
             }),
           ],
           noPlaceholderTagGroupDefinition: [
             generateIssue('missingPlaceholder', {
-              string:
-                expectedPlaceholdersTestStrings.noPlaceholderTagGroupDefinition,
+              string: expectedPlaceholdersTestStrings.noPlaceholderTagGroupDefinition,
             }),
           ],
           singlePlaceholder: [],
@@ -1732,21 +1499,18 @@ describe('HED string and event validation', () => {
           ],
           definitionPlaceholderWithTag: [
             generateIssue('missingPlaceholder', {
-              string:
-                expectedPlaceholdersTestStrings.definitionPlaceholderWithTag,
+              string: expectedPlaceholdersTestStrings.definitionPlaceholderWithTag,
             }),
           ],
           singlePlaceholderWithValidDefinitionPlaceholder: [],
           nestedDefinitionPlaceholder: [
             generateIssue('missingPlaceholder', {
-              string:
-                expectedPlaceholdersTestStrings.nestedDefinitionPlaceholder,
+              string: expectedPlaceholdersTestStrings.nestedDefinitionPlaceholder,
             }),
           ],
           threePlaceholderDefinition: [
             generateIssue('missingPlaceholder', {
-              string:
-                expectedPlaceholdersTestStrings.threePlaceholderDefinition,
+              string: expectedPlaceholdersTestStrings.threePlaceholderDefinition,
             }),
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'ThreePlaceholderDefinition',
@@ -1781,14 +1545,10 @@ describe('HED string and event validation', () => {
           noPlaceholderGroup: [],
           noPlaceholderDefinitionGroup: [],
           noPlaceholderTagGroupDefinition: [],
-          singlePlaceholder: [
-            generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' }),
-          ],
+          singlePlaceholder: [generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' })],
           definitionPlaceholder: [],
           definitionPlaceholderWithTag: [],
-          singlePlaceholderWithValidDefinitionPlaceholder: [
-            generateIssue('invalidPlaceholder', { tag: 'Duration/#' }),
-          ],
+          singlePlaceholderWithValidDefinitionPlaceholder: [generateIssue('invalidPlaceholder', { tag: 'Duration/#' })],
           nestedDefinitionPlaceholder: [],
           threePlaceholderDefinition: [
             generateIssue('invalidPlaceholderInDefinition', {
@@ -1817,16 +1577,8 @@ describe('HED string and event validation', () => {
           ],
         }
         return Promise.all([
-          validatorSemantic(
-            expectedPlaceholdersTestStrings,
-            expectedPlaceholdersIssues,
-            true,
-          ),
-          validatorSemantic(
-            noExpectedPlaceholdersTestStrings,
-            noExpectedPlaceholdersIssues,
-            false,
-          ),
+          validatorSemantic(expectedPlaceholdersTestStrings, expectedPlaceholdersIssues, true),
+          validatorSemantic(noExpectedPlaceholdersTestStrings, noExpectedPlaceholdersIssues, false),
         ])
       })
     })

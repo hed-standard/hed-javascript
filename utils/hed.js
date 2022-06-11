@@ -76,10 +76,7 @@ const closingGroupCharacter = ')'
  */
 const hedStringIsAGroup = function (hedString) {
   const trimmedHedString = hedString.trim()
-  return (
-    trimmedHedString.startsWith(openingGroupCharacter) &&
-    trimmedHedString.endsWith(closingGroupCharacter)
-  )
+  return trimmedHedString.startsWith(openingGroupCharacter) && trimmedHedString.endsWith(closingGroupCharacter)
 }
 
 /**
@@ -134,18 +131,14 @@ const isPrefixUnit = function (unit, hedSchemaAttributes) {
  */
 const getValidDerivativeUnits = function (unit, hedSchemaAttributes) {
   const pluralUnits = [unit]
-  const isUnitSymbol =
-    hedSchemaAttributes.unitAttributes[unitSymbolType][unit] !== undefined
+  const isUnitSymbol = hedSchemaAttributes.unitAttributes[unitSymbolType][unit] !== undefined
   if (hedSchemaAttributes.hasUnitModifiers && !isUnitSymbol) {
     pluralUnits.push(pluralize.plural(unit))
   }
-  const isSIUnit =
-    hedSchemaAttributes.unitAttributes[SIUnitKey][unit] !== undefined
+  const isSIUnit = hedSchemaAttributes.unitAttributes[SIUnitKey][unit] !== undefined
   if (isSIUnit && hedSchemaAttributes.hasUnitModifiers) {
     const derivativeUnits = [].concat(pluralUnits)
-    const modifierKey = isUnitSymbol
-      ? SIUnitSymbolModifierKey
-      : SIUnitModifierKey
+    const modifierKey = isUnitSymbol ? SIUnitSymbolModifierKey : SIUnitModifierKey
     for (const unitModifier in hedSchemaAttributes.unitModifiers[modifierKey]) {
       for (const plural of pluralUnits) {
         derivativeUnits.push(unitModifier + plural)
@@ -164,11 +157,7 @@ const getValidDerivativeUnits = function (unit, hedSchemaAttributes) {
  * @param {SchemaAttributes} hedSchemaAttributes The collection of schema attributes.
  * @return {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
  */
-const validateUnits = function (
-  originalTagUnitValue,
-  tagUnitClassUnits,
-  hedSchemaAttributes,
-) {
+const validateUnits = function (originalTagUnitValue, tagUnitClassUnits, hedSchemaAttributes) {
   const validUnits = getAllUnits(hedSchemaAttributes)
   validUnits.sort((first, second) => {
     return second.length - first.length
@@ -181,19 +170,13 @@ const validateUnits = function (
   }
   let foundUnit, foundWrongCaseUnit, strippedValue
   for (const unit of validUnits) {
-    const isUnitSymbol =
-      hedSchemaAttributes.unitAttributes[unitSymbolType][unit] !== undefined
+    const isUnitSymbol = hedSchemaAttributes.unitAttributes[unitSymbolType][unit] !== undefined
     const derivativeUnits = getValidDerivativeUnits(unit, hedSchemaAttributes)
     for (const derivativeUnit of derivativeUnits) {
-      if (
-        isPrefixUnit(unit, hedSchemaAttributes) &&
-        originalTagUnitValue.startsWith(derivativeUnit)
-      ) {
+      if (isPrefixUnit(unit, hedSchemaAttributes) && originalTagUnitValue.startsWith(derivativeUnit)) {
         foundUnit = true
         noUnitFound = false
-        strippedValue = originalTagUnitValue
-          .substring(derivativeUnit.length)
-          .trim()
+        strippedValue = originalTagUnitValue.substring(derivativeUnit.length).trim()
       }
       if (actualUnit === derivativeUnit) {
         foundUnit = true

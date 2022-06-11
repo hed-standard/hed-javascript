@@ -59,9 +59,7 @@ class Hed3Validator extends HedValidator {
   }
 
   _checkForTagAttribute(attribute, fn) {
-    const tags = this.hedSchemas.baseSchema.entries.definitions
-      .get('tags')
-      .getEntriesWithBooleanAttribute(attribute)
+    const tags = this.hedSchemas.baseSchema.entries.definitions.get('tags').getEntriesWithBooleanAttribute(attribute)
     for (const tag of tags) {
       fn(tag.name)
     }
@@ -83,9 +81,7 @@ class Hed3Validator extends HedValidator {
         defaultUnit: defaultUnit,
       })
     } else if (!validUnit) {
-      const tagUnitClassUnits = Array.from(tag.validUnits).map(
-        (unit) => unit.name,
-      )
+      const tagUnitClassUnits = Array.from(tag.validUnits).map((unit) => unit.name)
       this.pushIssue('unitClassInvalidUnit', {
         tag: tag.originalTag,
         unitClassUnits: tagUnitClassUnits.sort().join(','),
@@ -126,9 +122,7 @@ class Hed3Validator extends HedValidator {
         if (isPrefixUnit && originalTagUnitValue.startsWith(derivativeUnit)) {
           foundUnit = true
           noUnitFound = false
-          strippedValue = originalTagUnitValue
-            .substring(derivativeUnit.length)
-            .trim()
+          strippedValue = originalTagUnitValue.substring(derivativeUnit.length).trim()
         }
         if (actualUnit === derivativeUnit) {
           foundUnit = true
@@ -202,11 +196,7 @@ class Hed3Validator extends HedValidator {
     }
     let tagGroupValidated = false
     let tagGroupIssueGenerated = false
-    const nestedDefinitionParentTags = [
-      definitionParentTag,
-      defExpandParentTag,
-      defParentTag,
-    ]
+    const nestedDefinitionParentTags = [definitionParentTag, defExpandParentTag, defParentTag]
     for (const tag of tagGroup.tags) {
       if (tag instanceof ParsedHedGroup) {
         if (tagGroupValidated && !tagGroupIssueGenerated) {
@@ -251,10 +241,7 @@ class Hed3Validator extends HedValidator {
     if (!tag.isDescendantOf(defParentTag)) {
       return
     }
-    const defName = ParsedHedGroup.findDefinitionName(
-      tag.canonicalTag,
-      defShortTag,
-    )
+    const defName = ParsedHedGroup.findDefinitionName(tag.canonicalTag, defShortTag)
     if (!this.definitions.has(defName)) {
       this.pushIssue('missingDefinition', { def: defName })
     }
@@ -267,12 +254,7 @@ class Hed3Validator extends HedValidator {
    * @return {ParsedHedTag} A parsed HED tag object representing the full tag.
    */
   getParsedParentTag(shortTag) {
-    const parentTag = new ParsedHedTag(
-      shortTag,
-      shortTag,
-      [0, shortTag.length - 1],
-      this.hedSchemas,
-    )
+    const parentTag = new ParsedHedTag(shortTag, shortTag, [0, shortTag.length - 1], this.hedSchemas)
     this.issues = this.issues.concat(parentTag.conversionIssues)
     return parentTag
   }
@@ -284,8 +266,7 @@ class Hed3Validator extends HedValidator {
     for (const topLevelTag of this.parsedString.topLevelTags) {
       if (
         !utils.HED.hedStringIsAGroup(topLevelTag.formattedTag) &&
-        (topLevelTag.hasAttribute(tagGroupType) ||
-          topLevelTag.parentHasAttribute(tagGroupType))
+        (topLevelTag.hasAttribute(tagGroupType) || topLevelTag.parentHasAttribute(tagGroupType))
       ) {
         this.pushIssue('invalidTopLevelTag', {
           tag: topLevelTag.originalTag,
@@ -300,10 +281,7 @@ class Hed3Validator extends HedValidator {
   checkForInvalidTopLevelTagGroupTags() {
     const topLevelTagGroupTagsFound = {}
     for (const tag of this.parsedString.tags) {
-      if (
-        tag.hasAttribute(topLevelTagGroupType) ||
-        tag.parentHasAttribute(topLevelTagGroupType)
-      ) {
+      if (tag.hasAttribute(topLevelTagGroupType) || tag.parentHasAttribute(topLevelTagGroupType)) {
         let tagFound = false
         this.parsedString.topLevelTagGroups.forEach((tagGroup, index) => {
           if (tagGroup.includes(tag)) {

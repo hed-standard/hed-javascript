@@ -21,46 +21,19 @@ describe('HED string conversion', () => {
      * @param {function (Schemas, string, string, number): [string, Issue[]]} testFunction The test function.
      * @return {Promise<void> | PromiseLike<any> | Promise<any>}
      */
-    const validatorBase = function (
-      testStrings,
-      expectedResults,
-      expectedIssues,
-      testFunction,
-    ) {
+    const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
       return schemaPromise.then((schemas) => {
         for (const testStringKey of Object.keys(testStrings)) {
-          const [testResult, issues] = testFunction(
-            schemas,
-            testStrings[testStringKey],
-            testStrings[testStringKey],
-            0,
-          )
-          assert.strictEqual(
-            testResult,
-            expectedResults[testStringKey],
-            testStrings[testStringKey],
-          )
-          assert.sameDeepMembers(
-            issues,
-            expectedIssues[testStringKey],
-            testStrings[testStringKey],
-          )
+          const [testResult, issues] = testFunction(schemas, testStrings[testStringKey], testStrings[testStringKey], 0)
+          assert.strictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
+          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testStrings[testStringKey])
         }
       })
     }
 
     describe('Long-to-short', () => {
-      const validator = function (
-        testStrings,
-        expectedResults,
-        expectedIssues,
-      ) {
-        return validatorBase(
-          testStrings,
-          expectedResults,
-          expectedIssues,
-          converter.convertTagToShort,
-        )
+      const validator = function (testStrings, expectedResults, expectedIssues) {
+        return validatorBase(testStrings, expectedResults, expectedIssues, converter.convertTagToShort)
       }
 
       it('should convert basic HED tags to short form', () => {
@@ -91,8 +64,7 @@ describe('HED string conversion', () => {
       it('should convert HED tags with values to short form', () => {
         const testStrings = {
           uniqueValue: 'Item/Sound/Environmental-sound/Unique Value',
-          multiLevel:
-            'Item/Sound/Environmental-sound/Long Unique Value With/Slash Marks',
+          multiLevel: 'Item/Sound/Environmental-sound/Long Unique Value With/Slash Marks',
           partialPath: 'Sound/Environmental-sound/Unique Value',
         }
         const expectedResults = {
@@ -120,21 +92,9 @@ describe('HED string conversion', () => {
           mixed: 'Item/Sound/Event/Sensory-event/Environmental-sound',
         }
         const expectedIssues = {
-          singleLevel: [
-            generateIssue(
-              'invalidParentNode',
-              testStrings.singleLevel,
-              { parentTag: 'Event' },
-              [31, 36],
-            ),
-          ],
+          singleLevel: [generateIssue('invalidParentNode', testStrings.singleLevel, { parentTag: 'Event' }, [31, 36])],
           multiLevel: [
-            generateIssue(
-              'invalidParentNode',
-              testStrings.multiLevel,
-              { parentTag: 'Event/Sensory-event' },
-              [37, 50],
-            ),
+            generateIssue('invalidParentNode', testStrings.multiLevel, { parentTag: 'Event/Sensory-event' }, [37, 50]),
           ],
           mixed: [
             generateIssue(
@@ -169,31 +129,22 @@ describe('HED string conversion', () => {
 
       it('should raise an issue if an "extension" is already a valid node', () => {
         const testStrings = {
-          validThenInvalid:
-            'Event/Experiment-control/valid extension followed by invalid/Event',
+          validThenInvalid: 'Event/Experiment-control/valid extension followed by invalid/Event',
           singleLevel: 'Event/Experiment-control/Geometric-object',
           singleLevelAlreadyShort: 'Experiment-control/Geometric-object',
           twoLevels: 'Event/Experiment-control/Geometric-object/Event',
-          duplicate:
-            'Item/Object/Geometric-object/Item/Object/Geometric-object',
+          duplicate: 'Item/Object/Geometric-object/Item/Object/Geometric-object',
         }
         const expectedResults = {
-          validThenInvalid:
-            'Event/Experiment-control/valid extension followed by invalid/Event',
+          validThenInvalid: 'Event/Experiment-control/valid extension followed by invalid/Event',
           singleLevel: 'Event/Experiment-control/Geometric-object',
           singleLevelAlreadyShort: 'Experiment-control/Geometric-object',
           twoLevels: 'Event/Experiment-control/Geometric-object/Event',
-          duplicate:
-            'Item/Object/Geometric-object/Item/Object/Geometric-object',
+          duplicate: 'Item/Object/Geometric-object/Item/Object/Geometric-object',
         }
         const expectedIssues = {
           validThenInvalid: [
-            generateIssue(
-              'invalidParentNode',
-              testStrings.validThenInvalid,
-              { parentTag: 'Event' },
-              [61, 66],
-            ),
+            generateIssue('invalidParentNode', testStrings.validThenInvalid, { parentTag: 'Event' }, [61, 66]),
           ],
           singleLevel: [
             generateIssue(
@@ -211,14 +162,7 @@ describe('HED string conversion', () => {
               [19, 35],
             ),
           ],
-          twoLevels: [
-            generateIssue(
-              'invalidParentNode',
-              testStrings.twoLevels,
-              { parentTag: 'Event' },
-              [42, 47],
-            ),
-          ],
+          twoLevels: [generateIssue('invalidParentNode', testStrings.twoLevels, { parentTag: 'Event' }, [42, 47])],
           duplicate: [
             generateIssue(
               'invalidParentNode',
@@ -233,19 +177,15 @@ describe('HED string conversion', () => {
 
       it('should raise an issue if an invalid node is found', () => {
         const testStrings = {
-          invalidParentWithExistingGrandchild:
-            'InvalidEvent/Experiment-control/Geometric-object',
-          invalidChildWithExistingGrandchild:
-            'Event/InvalidEvent/Geometric-object',
+          invalidParentWithExistingGrandchild: 'InvalidEvent/Experiment-control/Geometric-object',
+          invalidChildWithExistingGrandchild: 'Event/InvalidEvent/Geometric-object',
           invalidParentWithExistingChild: 'InvalidEvent/Geometric-object',
           invalidSingle: 'InvalidEvent',
           invalidWithExtension: 'InvalidEvent/InvalidExtension',
         }
         const expectedResults = {
-          invalidParentWithExistingGrandchild:
-            'InvalidEvent/Experiment-control/Geometric-object',
-          invalidChildWithExistingGrandchild:
-            'Event/InvalidEvent/Geometric-object',
+          invalidParentWithExistingGrandchild: 'InvalidEvent/Experiment-control/Geometric-object',
+          invalidChildWithExistingGrandchild: 'Event/InvalidEvent/Geometric-object',
           invalidParentWithExistingChild: 'InvalidEvent/Geometric-object',
           invalidSingle: 'InvalidEvent',
           invalidWithExtension: 'InvalidEvent/InvalidExtension',
@@ -275,17 +215,8 @@ describe('HED string conversion', () => {
               [13, 29],
             ),
           ],
-          invalidSingle: [
-            generateIssue('invalidTag', testStrings.invalidSingle, {}, [0, 12]),
-          ],
-          invalidWithExtension: [
-            generateIssue(
-              'invalidTag',
-              testStrings.invalidWithExtension,
-              {},
-              [0, 12],
-            ),
-          ],
+          invalidSingle: [generateIssue('invalidTag', testStrings.invalidSingle, {}, [0, 12])],
+          invalidWithExtension: [generateIssue('invalidTag', testStrings.invalidWithExtension, {}, [0, 12])],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
@@ -293,8 +224,7 @@ describe('HED string conversion', () => {
       it('should not validate whether a node actually allows extensions', () => {
         const testStrings = {
           validTakesValue: 'Property/Agent-property/Agent-trait/Age/15',
-          cascadeExtension:
-            'Property/Agent-property/Agent-state/Agent-emotional-state/Awed/Cascade Extension',
+          cascadeExtension: 'Property/Agent-property/Agent-state/Agent-emotional-state/Awed/Cascade Extension',
           invalidExtension: 'Event/Agent-action/Good/Time',
         }
         const expectedResults = {
@@ -338,18 +268,15 @@ describe('HED string conversion', () => {
           leadingSingle: '/Event',
           leadingExtension: '/Event/Extension',
           leadingMultiLevel: '/Item/Object/Man-made-object/Vehicle/Train',
-          leadingMultiLevelExtension:
-            '/Item/Object/Man-made-object/Vehicle/Train/Maglev',
+          leadingMultiLevelExtension: '/Item/Object/Man-made-object/Vehicle/Train/Maglev',
           trailingSingle: 'Event/',
           trailingExtension: 'Event/Extension/',
           trailingMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train/',
-          trailingMultiLevelExtension:
-            'Item/Object/Man-made-object/Vehicle/Train/Maglev/',
+          trailingMultiLevelExtension: 'Item/Object/Man-made-object/Vehicle/Train/Maglev/',
           bothSingle: '/Event/',
           bothExtension: '/Event/Extension/',
           bothMultiLevel: '/Item/Object/Man-made-object/Vehicle/Train/',
-          bothMultiLevelExtension:
-            '/Item/Object/Man-made-object/Vehicle/Train/Maglev/',
+          bothMultiLevelExtension: '/Item/Object/Man-made-object/Vehicle/Train/Maglev/',
         }
         const expectedResults = {
           leadingSingle: 'Event',
@@ -384,17 +311,8 @@ describe('HED string conversion', () => {
     })
 
     describe('Short-to-long', () => {
-      const validator = function (
-        testStrings,
-        expectedResults,
-        expectedIssues,
-      ) {
-        return validatorBase(
-          testStrings,
-          expectedResults,
-          expectedIssues,
-          converter.convertTagToLong,
-        )
+      const validator = function (testStrings, expectedResults, expectedIssues) {
+        return validatorBase(testStrings, expectedResults, expectedIssues, converter.convertTagToLong)
       }
 
       it('should convert basic HED tags to long form', () => {
@@ -430,8 +348,7 @@ describe('HED string conversion', () => {
         }
         const expectedResults = {
           uniqueValue: 'Item/Sound/Environmental-sound/Unique Value',
-          multiLevel:
-            'Item/Sound/Environmental-sound/Long Unique Value With/Slash Marks',
+          multiLevel: 'Item/Sound/Environmental-sound/Long Unique Value With/Slash Marks',
           partialPath: 'Item/Sound/Environmental-sound/Unique Value',
         }
         const expectedIssues = {
@@ -463,16 +380,14 @@ describe('HED string conversion', () => {
 
       it('should raise an issue if an "extension" is already a valid node', () => {
         const testStrings = {
-          validThenInvalid:
-            'Experiment-control/valid extension followed by invalid/Event',
+          validThenInvalid: 'Experiment-control/valid extension followed by invalid/Event',
           singleLevel: 'Experiment-control/Geometric-object',
           singleLevelAlreadyLong: 'Event/Experiment-control/Geometric-object',
           twoLevels: 'Experiment-control/Geometric-object/Event',
           partialDuplicate: 'Geometric-object/Item/Object/Geometric-object',
         }
         const expectedResults = {
-          validThenInvalid:
-            'Experiment-control/valid extension followed by invalid/Event',
+          validThenInvalid: 'Experiment-control/valid extension followed by invalid/Event',
           singleLevel: 'Experiment-control/Geometric-object',
           singleLevelAlreadyLong: 'Event/Experiment-control/Geometric-object',
           twoLevels: 'Experiment-control/Geometric-object/Event',
@@ -480,12 +395,7 @@ describe('HED string conversion', () => {
         }
         const expectedIssues = {
           validThenInvalid: [
-            generateIssue(
-              'invalidParentNode',
-              testStrings.validThenInvalid,
-              { parentTag: 'Event' },
-              [55, 60],
-            ),
+            generateIssue('invalidParentNode', testStrings.validThenInvalid, { parentTag: 'Event' }, [55, 60]),
           ],
           singleLevel: [
             generateIssue(
@@ -512,12 +422,7 @@ describe('HED string conversion', () => {
             ),
           ],
           partialDuplicate: [
-            generateIssue(
-              'invalidParentNode',
-              testStrings.partialDuplicate,
-              { parentTag: 'Item' },
-              [17, 21],
-            ),
+            generateIssue('invalidParentNode', testStrings.partialDuplicate, { parentTag: 'Item' }, [17, 21]),
           ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
@@ -535,15 +440,9 @@ describe('HED string conversion', () => {
           validChild: 'InvalidEvent/Event',
         }
         const expectedIssues = {
-          single: [
-            generateIssue('invalidTag', testStrings.single, {}, [0, 12]),
-          ],
-          invalidChild: [
-            generateIssue('invalidTag', testStrings.invalidChild, {}, [0, 12]),
-          ],
-          validChild: [
-            generateIssue('invalidTag', testStrings.validChild, {}, [0, 12]),
-          ],
+          single: [generateIssue('invalidTag', testStrings.single, {}, [0, 12])],
+          invalidChild: [generateIssue('invalidTag', testStrings.invalidChild, {}, [0, 12])],
+          validChild: [generateIssue('invalidTag', testStrings.validChild, {}, [0, 12])],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
@@ -556,8 +455,7 @@ describe('HED string conversion', () => {
         }
         const expectedResults = {
           validTakesValue: 'Property/Agent-property/Agent-trait/Age/15',
-          cascadeExtension:
-            'Property/Agent-property/Agent-state/Agent-emotional-state/Awed/Cascade Extension',
+          cascadeExtension: 'Property/Agent-property/Agent-state/Agent-emotional-state/Awed/Cascade Extension',
           invalidExtension: 'Event/Agent-action/Good/Time',
         }
         const expectedIssues = {
@@ -578,9 +476,7 @@ describe('HED string conversion', () => {
           trailingSpace: 'Item/Sound/Environmental-sound/Unique Value ',
         }
         const expectedIssues = {
-          leadingSpace: [
-            generateIssue('invalidTag', testStrings.leadingSpace, {}, [0, 20]),
-          ],
+          leadingSpace: [generateIssue('invalidTag', testStrings.leadingSpace, {}, [0, 20])],
           trailingSpace: [],
         }
         return validator(testStrings, expectedResults, expectedIssues)
@@ -605,18 +501,15 @@ describe('HED string conversion', () => {
           leadingSingle: 'Event',
           leadingExtension: 'Event/Extension',
           leadingMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
-          leadingMultiLevelExtension:
-            'Item/Object/Man-made-object/Vehicle/Train/Maglev',
+          leadingMultiLevelExtension: 'Item/Object/Man-made-object/Vehicle/Train/Maglev',
           trailingSingle: 'Event',
           trailingExtension: 'Event/Extension',
           trailingMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
-          trailingMultiLevelExtension:
-            'Item/Object/Man-made-object/Vehicle/Train/Maglev',
+          trailingMultiLevelExtension: 'Item/Object/Man-made-object/Vehicle/Train/Maglev',
           bothSingle: 'Event',
           bothExtension: 'Event/Extension',
           bothMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train',
-          bothMultiLevelExtension:
-            'Item/Object/Man-made-object/Vehicle/Train/Maglev',
+          bothMultiLevelExtension: 'Item/Object/Man-made-object/Vehicle/Train/Maglev',
         }
         const expectedIssues = {
           leadingSingle: [],
@@ -648,10 +541,8 @@ describe('HED string conversion', () => {
           valueTaking: 'Property/Informational-property/Label/Red',
           nonValueTaking: 'Train/Car',
           definitionName: 'Property/Organizational-property/Definition/Blue',
-          definitionNameWithPlaceholder:
-            'Property/Organizational-property/Definition/BlueCircle/#',
-          definitionNameWithNodeValue:
-            'Property/Organizational-property/Definition/BlueSquare/SteelBlue',
+          definitionNameWithPlaceholder: 'Property/Organizational-property/Definition/BlueCircle/#',
+          definitionNameWithNodeValue: 'Property/Organizational-property/Definition/BlueSquare/SteelBlue',
           definitionNodeNameWithValue: 'Definition/Blue/Cobalt',
         }
         const expectedIssues = {
@@ -694,44 +585,19 @@ describe('HED string conversion', () => {
      * @param {function (Schemas, string): [string, Issue[]]} testFunction The test function.
      * @return {Promise<void> | PromiseLike<any> | Promise<any>}
      */
-    const validatorBase = function (
-      testStrings,
-      expectedResults,
-      expectedIssues,
-      testFunction,
-    ) {
+    const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
       return schemaPromise.then((schemas) => {
         for (const testStringKey of Object.keys(testStrings)) {
-          const [testResult, issues] = testFunction(
-            schemas,
-            testStrings[testStringKey],
-          )
-          assert.strictEqual(
-            testResult,
-            expectedResults[testStringKey],
-            testStrings[testStringKey],
-          )
-          assert.sameDeepMembers(
-            issues,
-            expectedIssues[testStringKey],
-            testStrings[testStringKey],
-          )
+          const [testResult, issues] = testFunction(schemas, testStrings[testStringKey])
+          assert.strictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
+          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testStrings[testStringKey])
         }
       })
     }
 
     describe('Long-to-short', () => {
-      const validator = function (
-        testStrings,
-        expectedResults,
-        expectedIssues,
-      ) {
-        return validatorBase(
-          testStrings,
-          expectedResults,
-          expectedIssues,
-          converter.convertHedStringToShort,
-        )
+      const validator = function (testStrings, expectedResults, expectedIssues) {
+        return validatorBase(testStrings, expectedResults, expectedIssues, converter.convertHedStringToShort)
       }
 
       it('should properly convert HED strings to short form', () => {
@@ -776,8 +642,7 @@ describe('HED string conversion', () => {
           double: double,
           both: single + ', ' + double,
           singleWithTwoValid: 'Property, ' + single + ', Event',
-          doubleWithValid:
-            double + ', Item/Object/Man-made-object/Vehicle/Car/Minivan',
+          doubleWithValid: double + ', Item/Object/Man-made-object/Vehicle/Car/Minivan',
         }
         const expectedResults = {
           single: single,
@@ -793,22 +658,8 @@ describe('HED string conversion', () => {
             generateIssue('invalidTag', testStrings.both, {}, [0, 12]),
             generateIssue('invalidTag', testStrings.both, {}, [14, 26]),
           ],
-          singleWithTwoValid: [
-            generateIssue(
-              'invalidTag',
-              testStrings.singleWithTwoValid,
-              {},
-              [10, 22],
-            ),
-          ],
-          doubleWithValid: [
-            generateIssue(
-              'invalidTag',
-              testStrings.doubleWithValid,
-              {},
-              [0, 12],
-            ),
-          ],
+          singleWithTwoValid: [generateIssue('invalidTag', testStrings.singleWithTwoValid, {}, [10, 22])],
+          doubleWithValid: [generateIssue('invalidTag', testStrings.doubleWithValid, {}, [0, 12])],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
@@ -818,10 +669,8 @@ describe('HED string conversion', () => {
           leadingSpace: ' Item/Sound/Environmental-sound/Unique Value',
           trailingSpace: 'Item/Sound/Environmental-sound/Unique Value ',
           bothSpace: ' Item/Sound/Environmental-sound/Unique Value ',
-          leadingSpaceTwo:
-            ' Item/Sound/Environmental-sound/Unique Value, Event',
-          trailingSpaceTwo:
-            'Event, Item/Sound/Environmental-sound/Unique Value ',
+          leadingSpaceTwo: ' Item/Sound/Environmental-sound/Unique Value, Event',
+          trailingSpaceTwo: 'Event, Item/Sound/Environmental-sound/Unique Value ',
           bothSpaceTwo: ' Event, Item/Sound/Environmental-sound/Unique Value ',
         }
         const expectedResults = {
@@ -945,26 +794,15 @@ describe('HED string conversion', () => {
           emptyString: '',
         }
         const expectedIssues = {
-          emptyString: [
-            generateIssue('emptyTagFound', testStrings.emptyString),
-          ],
+          emptyString: [generateIssue('emptyTagFound', testStrings.emptyString)],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
     })
 
     describe('Short-to-long', () => {
-      const validator = function (
-        testStrings,
-        expectedResults,
-        expectedIssues,
-      ) {
-        return validatorBase(
-          testStrings,
-          expectedResults,
-          expectedIssues,
-          converter.convertHedStringToLong,
-        )
+      const validator = function (testStrings, expectedResults, expectedIssues) {
+        return validatorBase(testStrings, expectedResults, expectedIssues, converter.convertHedStringToLong)
       }
 
       it('should properly convert HED strings to long form', () => {
@@ -1016,8 +854,7 @@ describe('HED string conversion', () => {
           double: double,
           both: single + ', ' + double,
           singleWithTwoValid: 'Property, ' + single + ', Event',
-          doubleWithValid:
-            double + ', Item/Object/Man-made-object/Vehicle/Car/Minivan',
+          doubleWithValid: double + ', Item/Object/Man-made-object/Vehicle/Car/Minivan',
         }
         const expectedIssues = {
           single: [generateIssue('invalidTag', single, {}, [0, 12])],
@@ -1026,22 +863,8 @@ describe('HED string conversion', () => {
             generateIssue('invalidTag', testStrings.both, {}, [0, 12]),
             generateIssue('invalidTag', testStrings.both, {}, [14, 26]),
           ],
-          singleWithTwoValid: [
-            generateIssue(
-              'invalidTag',
-              testStrings.singleWithTwoValid,
-              {},
-              [10, 22],
-            ),
-          ],
-          doubleWithValid: [
-            generateIssue(
-              'invalidTag',
-              testStrings.doubleWithValid,
-              {},
-              [0, 12],
-            ),
-          ],
+          singleWithTwoValid: [generateIssue('invalidTag', testStrings.singleWithTwoValid, {}, [10, 22])],
+          doubleWithValid: [generateIssue('invalidTag', testStrings.doubleWithValid, {}, [0, 12])],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
@@ -1059,10 +882,8 @@ describe('HED string conversion', () => {
           leadingSpace: ' Item/Sound/Environmental-sound/Unique Value',
           trailingSpace: 'Item/Sound/Environmental-sound/Unique Value ',
           bothSpace: ' Item/Sound/Environmental-sound/Unique Value ',
-          leadingSpaceTwo:
-            ' Item/Sound/Environmental-sound/Unique Value, Event',
-          trailingSpaceTwo:
-            'Event, Item/Sound/Environmental-sound/Unique Value ',
+          leadingSpaceTwo: ' Item/Sound/Environmental-sound/Unique Value, Event',
+          trailingSpaceTwo: 'Event, Item/Sound/Environmental-sound/Unique Value ',
           bothSpaceTwo: ' Event, Item/Sound/Environmental-sound/Unique Value ',
         }
         const expectedIssues = {
@@ -1178,9 +999,7 @@ describe('HED string conversion', () => {
           emptyString: '',
         }
         const expectedIssues = {
-          emptyString: [
-            generateIssue('emptyTagFound', testStrings.emptyString),
-          ],
+          emptyString: [generateIssue('emptyTagFound', testStrings.emptyString)],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })

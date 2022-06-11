@@ -23,10 +23,7 @@ const getElementCount = function (array, elementToCount) {
  */
 const flattenDeep = function (array) {
   return array.reduce(
-    (accumulator, value) =>
-      Array.isArray(value)
-        ? accumulator.concat(flattenDeep(value))
-        : accumulator.concat(value),
+    (accumulator, value) => (Array.isArray(value) ? accumulator.concat(flattenDeep(value)) : accumulator.concat(value)),
     [],
   )
 }

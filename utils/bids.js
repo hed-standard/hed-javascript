@@ -5,11 +5,7 @@
  * @return {boolean} Whether the sidecar value has HED data.
  */
 const sidecarValueHasHed = function (sidecarValue) {
-  return (
-    sidecarValue !== null &&
-    typeof sidecarValue === 'object' &&
-    sidecarValue.HED !== undefined
-  )
+  return sidecarValue !== null && typeof sidecarValue === 'object' && sidecarValue.HED !== undefined
 }
 
 module.exports = {

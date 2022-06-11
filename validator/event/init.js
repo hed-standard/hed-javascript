@@ -15,12 +15,7 @@ const { Hed3Validator } = require('./hed3')
  * @param {Map<string, ParsedHedGroup>?} definitions The definitions for this HED dataset.
  * @return {[ParsedHedString, Schemas, Issue[], HedValidator]} The parsed HED string, the actual HED schema collection to use, any issues found, and whether to perform semantic validation.
  */
-const initiallyValidateHedString = function (
-  hedString,
-  hedSchemas,
-  options,
-  definitions = null,
-) {
+const initiallyValidateHedString = function (hedString, hedSchemas, options, definitions = null) {
   let doSemanticValidation = hedSchemas instanceof Schemas
   if (!doSemanticValidation) {
     hedSchemas = new Schemas(null)
@@ -40,9 +35,7 @@ const initiallyValidateHedString = function (
     hedSchemas = new Schemas(null)
   }
   if (doSemanticValidation && !hedSchemas.baseSchema.attributes) {
-    hedSchemas.baseSchema.attributes = buildSchemaAttributesObject(
-      hedSchemas.baseSchema.xmlData,
-    )
+    hedSchemas.baseSchema.attributes = buildSchemaAttributesObject(hedSchemas.baseSchema.xmlData)
   }
   let hedValidator
   switch (hedSchemas.generation) {
@@ -53,12 +46,7 @@ const initiallyValidateHedString = function (
       hedValidator = new Hed2Validator(parsedString, hedSchemas, options)
       break
     case 3:
-      hedValidator = new Hed3Validator(
-        parsedString,
-        hedSchemas,
-        definitions,
-        options,
-      )
+      hedValidator = new Hed3Validator(parsedString, hedSchemas, definitions, options)
   }
   const allParsingIssues = [].concat(...Object.values(parsingIssues))
   return [parsedString, allParsingIssues, hedValidator]
@@ -80,11 +68,10 @@ const validateHedString = function (
   checkForWarnings = false,
   expectValuePlaceholderString = false,
 ) {
-  const [parsedString, parsedStringIssues, hedValidator] =
-    initiallyValidateHedString(hedString, hedSchemas, {
-      checkForWarnings: checkForWarnings,
-      expectValuePlaceholderString: expectValuePlaceholderString,
-    })
+  const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, {
+    checkForWarnings: checkForWarnings,
+    expectValuePlaceholderString: expectValuePlaceholderString,
+  })
   if (parsedString === null) {
     return [false, parsedStringIssues]
   }
@@ -104,15 +91,10 @@ const validateHedString = function (
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  * @deprecated
  */
-const validateHedEvent = function (
-  hedString,
-  hedSchemas,
-  checkForWarnings = false,
-) {
-  const [parsedString, parsedStringIssues, hedValidator] =
-    initiallyValidateHedString(hedString, hedSchemas, {
-      checkForWarnings: checkForWarnings,
-    })
+const validateHedEvent = function (hedString, hedSchemas, checkForWarnings = false) {
+  const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, {
+    checkForWarnings: checkForWarnings,
+  })
   if (parsedString === null) {
     return [false, parsedStringIssues]
   }
@@ -132,19 +114,13 @@ const validateHedEvent = function (
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  */
-const validateHedEventWithDefinitions = function (
-  hedString,
-  hedSchemas,
-  definitions,
-  checkForWarnings = false,
-) {
-  const [parsedString, parsedStringIssues, hedValidator] =
-    initiallyValidateHedString(
-      hedString,
-      hedSchemas,
-      { checkForWarnings: checkForWarnings },
-      definitions,
-    )
+const validateHedEventWithDefinitions = function (hedString, hedSchemas, definitions, checkForWarnings = false) {
+  const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(
+    hedString,
+    hedSchemas,
+    { checkForWarnings: checkForWarnings },
+    definitions,
+  )
   if (parsedString === null) {
     return [false, parsedStringIssues]
   }

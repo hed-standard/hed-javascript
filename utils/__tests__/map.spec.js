@@ -24,16 +24,9 @@ describe('Map utility functions', () => {
         ['duplicate', 63],
         ['duplicate', 64],
       ]
-      const [actualMap, actualDuplicates] = mapUtils.filterNonEqualDuplicates(
-        keyValueList,
-        isEqual,
-      )
+      const [actualMap, actualDuplicates] = mapUtils.filterNonEqualDuplicates(keyValueList, isEqual)
       assert.deepStrictEqual(actualMap, expectedMap, 'Filtered map')
-      assert.sameDeepMembers(
-        actualDuplicates,
-        expectedDuplicates,
-        'Duplicate map',
-      )
+      assert.sameDeepMembers(actualDuplicates, expectedDuplicates, 'Duplicate map')
     })
   })
 })

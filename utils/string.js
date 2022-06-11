@@ -42,9 +42,7 @@ const capitalizeString = function (string) {
  * @return {boolean} Whether the string is a valid clock face time.
  */
 const isClockFaceTime = function (timeString) {
-  return (
-    date.isValid(timeString, 'HH:mm') || date.isValid(timeString, 'HH:mm:ss')
-  )
+  return date.isValid(timeString, 'HH:mm') || date.isValid(timeString, 'HH:mm:ss')
 }
 
 /**
@@ -54,9 +52,7 @@ const isClockFaceTime = function (timeString) {
  * @return {boolean} Whether the string is a valid date-time.
  */
 const isDateTime = function (dateTimeString) {
-  return (
-    dateIsValid(parseISO(dateTimeString)) && rfc3339ish.test(dateTimeString)
-  )
+  return dateIsValid(parseISO(dateTimeString)) && rfc3339ish.test(dateTimeString)
 }
 
 /**

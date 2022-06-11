@@ -2,11 +2,7 @@ const differenceWith = require('lodash/differenceWith')
 
 const { Memoizer } = require('../../utils/types')
 
-const {
-  getTagSlashIndices,
-  replaceTagNameWithPound,
-  getTagName,
-} = require('../../utils/hed')
+const { getTagSlashIndices, replaceTagNameWithPound, getTagName } = require('../../utils/hed')
 const { convertPartialHedStringToLong } = require('../../converter/converter')
 
 /**
@@ -201,9 +197,7 @@ class ParsedHedTag extends ParsedHedSubstring {
       const tagSlashIndices = getTagSlashIndices(this.formattedTag)
       for (const tagSlashIndex of tagSlashIndices) {
         const tagSubstring = this.formattedTag.slice(0, tagSlashIndex)
-        if (
-          this.schema.tagHasAttribute(tagSubstring, extensionAllowedAttribute)
-        ) {
+        if (this.schema.tagHasAttribute(tagSubstring, extensionAllowedAttribute)) {
           return true
         }
       }
@@ -212,9 +206,7 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 
   equivalent(other) {
-    return (
-      other instanceof ParsedHedTag && this.formattedTag === other.formattedTag
-    )
+    return other instanceof ParsedHedTag && this.formattedTag === other.formattedTag
   }
 }
 
@@ -277,29 +269,17 @@ class ParsedHed2Tag extends ParsedHedTag {
         return ''
       }
       const unitClassTag = replaceTagNameWithPound(this.formattedTag)
-      let hasDefaultAttribute = this.schema.tagHasAttribute(
-        unitClassTag,
-        defaultUnitForTagAttribute,
-      )
+      let hasDefaultAttribute = this.schema.tagHasAttribute(unitClassTag, defaultUnitForTagAttribute)
       if (hasDefaultAttribute) {
-        return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][
-          unitClassTag
-        ]
+        return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][unitClassTag]
       }
-      hasDefaultAttribute = this.schema.tagHasAttribute(
-        unitClassTag,
-        defaultUnitsForUnitClassAttribute,
-      )
+      hasDefaultAttribute = this.schema.tagHasAttribute(unitClassTag, defaultUnitsForUnitClassAttribute)
       if (hasDefaultAttribute) {
-        return this.schema.attributes.tagAttributes[
-          defaultUnitsForUnitClassAttribute
-        ][unitClassTag]
+        return this.schema.attributes.tagAttributes[defaultUnitsForUnitClassAttribute][unitClassTag]
       }
       const unitClasses = this.schema.attributes.tagUnitClasses[unitClassTag]
       const firstUnitClass = unitClasses[0]
-      return this.schema.attributes.unitClassAttributes[firstUnitClass][
-        defaultUnitsForUnitClassAttribute
-      ][0]
+      return this.schema.attributes.unitClassAttributes[firstUnitClass][defaultUnitsForUnitClassAttribute][0]
     })
   }
 
@@ -326,9 +306,7 @@ class ParsedHed3Tag extends ParsedHedTag {
    */
   get existsInSchema() {
     return this._memoize('existsInSchema', () => {
-      return this.schema.entries.definitions
-        .get('tags')
-        .hasEntry(this.formattedTag)
+      return this.schema.entries.definitions.get('tags').hasEntry(this.formattedTag)
     })
   }
 
@@ -385,16 +363,12 @@ class ParsedHed3Tag extends ParsedHedTag {
       if (!this.hasUnitClass) {
         return ''
       }
-      const tagDefaultUnit = this.takesValueTag.getNamedAttributeValue(
-        defaultUnitsForUnitClassAttribute,
-      )
+      const tagDefaultUnit = this.takesValueTag.getNamedAttributeValue(defaultUnitsForUnitClassAttribute)
       if (tagDefaultUnit) {
         return tagDefaultUnit
       }
       const firstUnitClass = this.unitClasses[0]
-      return firstUnitClass.getNamedAttributeValue(
-        defaultUnitsForUnitClassAttribute,
-      )
+      return firstUnitClass.getNamedAttributeValue(defaultUnitsForUnitClassAttribute)
     })
   }
 
@@ -407,9 +381,7 @@ class ParsedHed3Tag extends ParsedHedTag {
       const tagUnitClasses = this.unitClasses
       const units = new Set()
       for (const unitClass of tagUnitClasses) {
-        const unitClassUnits = this.schema.entries.unitClassMap.get(
-          unitClass.name,
-        ).units
+        const unitClassUnits = this.schema.entries.unitClassMap.get(unitClass.name).units
         for (const unit of unitClassUnits.values()) {
           units.add(unit)
         }
@@ -449,10 +421,7 @@ const groupDefinitionTag = function (group, hedSchemas) {
   )
   const definitionTags = group.tags.filter((tag) => {
     return (
-      hedSchemas.baseSchema &&
-      hedSchemas.isHed3 &&
-      tag instanceof ParsedHedTag &&
-      tag.isDescendantOf(definitionTag)
+      hedSchemas.baseSchema && hedSchemas.isHed3 && tag instanceof ParsedHedTag && tag.isDescendantOf(definitionTag)
     )
   })
   switch (definitionTags.length) {
@@ -506,10 +475,7 @@ class ParsedHedGroup extends ParsedHedSubstring {
       if (!this.isDefinitionGroup) {
         return null
       }
-      return ParsedHedGroup.findDefinitionName(
-        this.definitionTag.canonicalTag,
-        this.definitionBase,
-      )
+      return ParsedHedGroup.findDefinitionName(this.definitionTag.canonicalTag, this.definitionBase)
     })
   }
 

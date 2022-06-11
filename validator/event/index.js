@@ -1,8 +1,4 @@
-const {
-  validateHedString,
-  validateHedEvent,
-  validateHedEventWithDefinitions,
-} = require('./init')
+const { validateHedString, validateHedEvent, validateHedEventWithDefinitions } = require('./init')
 
 const { HedValidator, Hed2Validator } = require('./validator')
 const { Hed3Validator } = require('./hed3')

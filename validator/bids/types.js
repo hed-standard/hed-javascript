@@ -119,17 +119,10 @@ class BidsSidecar extends BidsJsonFile {
 }
 
 // TODO: Remove in v4.0.0.
-const fallbackDatasetDescription = new BidsJsonFile(
-  './dataset_description.json',
-  null,
-)
+const fallbackDatasetDescription = new BidsJsonFile('./dataset_description.json', null)
 
 class BidsDataset extends BidsData {
-  constructor(
-    eventData,
-    sidecarData,
-    datasetDescription = fallbackDatasetDescription,
-  ) {
+  constructor(eventData, sidecarData, datasetDescription = fallbackDatasetDescription) {
     super()
     this.eventData = eventData
     this.sidecarData = sidecarData
