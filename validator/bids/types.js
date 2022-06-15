@@ -1,4 +1,4 @@
-const { ParsedHedString, ParsedHedGroup } = require('../stringParser')
+const { ParsedHedString, ParsedHedGroup } = require('../parser/main')
 const { sidecarValueHasHed } = require('../../utils/bids')
 const { Issue } = require('../../common/issues/issues')
 

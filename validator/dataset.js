@@ -1,5 +1,5 @@
 const { validateHedEventWithDefinitions } = require('./event')
-const { parseHedStrings } = require('./stringParser')
+const { parseHedStrings } = require('./parser/main')
 
 const { generateIssue } = require('../common/issues/issues')
 const { filterNonEqualDuplicates } = require('../utils/map')

@@ -1,8 +1,9 @@
 const assert = require('chai').assert
 const { Schemas } = require('../common/schema')
 const { buildSchema } = require('../converter/schema')
-const { parseHedString, splitHedString } = require('../validator/stringParser')
-const { ParsedHedTag } = require('../validator/types/parsedHed')
+const { parseHedString } = require('../validator/parser/main')
+const splitHedString = require('../validator/parser/splitHedString')
+const { ParsedHedTag } = require('../validator/parser/types')
 const { generateIssue } = require('../common/issues/issues')
 const converterGenerateIssue = require('../converter/issues')
 const { recursiveMap } = require('../utils/array')
@@ -165,27 +166,6 @@ describe('HED string parsing', () => {
         new ParsedHedTag('/Position/X-position/70 px', '/Position/X-position/70 px', [100, 126], nullSchema),
         new ParsedHedTag('/Position/Y-position/23 px', '/Position/Y-position/23 px', [127, 153], nullSchema),
       ])
-    })
-
-    it('should not include double quotes', () => {
-      const doubleQuoteString =
-        'Event/Category/Sensory-event,"Item/Object/Man-made-object/Vehicle/Train",Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple'
-      const normalString =
-        'Event/Category/Sensory-event,Item/Object/Man-made-object/Vehicle/Train,Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple'
-      const [doubleQuoteResult, doubleQuoteIssues] = splitHedString(doubleQuoteString, nullSchema)
-      const [normalResult, normalIssues] = splitHedString(normalString, nullSchema)
-      assert.deepStrictEqual(Object.values(doubleQuoteIssues).flat(), [])
-      assert.deepStrictEqual(Object.values(normalIssues).flat(), [])
-      const noBoundsMap = (parsedTag) => {
-        return {
-          canonicalTag: parsedTag.canonicalTag,
-          formattedTag: parsedTag.formattedTag,
-          originalTag: parsedTag.originalTag,
-        }
-      }
-      const doubleQuoteResultNoBounds = doubleQuoteResult.map(noBoundsMap)
-      const normalResultNoBounds = normalResult.map(noBoundsMap)
-      assert.deepStrictEqual(doubleQuoteResultNoBounds, normalResultNoBounds)
     })
 
     it('should not include blanks', () => {

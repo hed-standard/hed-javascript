@@ -229,6 +229,13 @@ const getGenerationForSchemaVersion = function (version) {
   }
 }
 
+const mergeParsingIssues = function (previousIssues, currentIssues) {
+  for (const key of Object.keys(currentIssues)) {
+    previousIssues[key] =
+      previousIssues[key] !== undefined ? previousIssues[key].concat(currentIssues[key]) : currentIssues[key]
+  }
+}
+
 module.exports = {
   replaceTagNameWithPound: replaceTagNameWithPound,
   getTagSlashIndices: getTagSlashIndices,
@@ -239,4 +246,5 @@ module.exports = {
   validateValue: validateValue,
   validateUnits: validateUnits,
   getGenerationForSchemaVersion: getGenerationForSchemaVersion,
+  mergeParsingIssues: mergeParsingIssues,
 }

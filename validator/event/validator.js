@@ -1,5 +1,6 @@
 const utils = require('../../utils')
-const { ParsedHedString, ParsedHedTag } = require('../types/parsedHed')
+const { ParsedHedTag } = require('../parser/types')
+const ParsedHedString = require('../parser/parsedString')
 const { generateIssue } = require('../../common/issues/issues')
 const { Schemas } = require('../../common/schema')
 

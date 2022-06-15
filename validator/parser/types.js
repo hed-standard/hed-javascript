@@ -2,9 +2,17 @@ const differenceWith = require('lodash/differenceWith')
 
 const { Memoizer } = require('../../utils/types')
 
-const { getTagSlashIndices, replaceTagNameWithPound, getTagName } = require('../../utils/hed')
+const {
+  getTagSlashIndices,
+  replaceTagNameWithPound,
+  getTagName,
+  removeGroupParentheses,
+  hedStringIsAGroup,
+  mergeParsingIssues,
+} = require('../../utils/hed')
 const { convertPartialHedStringToLong } = require('../../converter/converter')
 const { generateIssue } = require('../../common/issues/issues')
+const splitHedString = require('./splitHedString')
 
 /**
  * A parsed HED substring.
@@ -42,13 +50,7 @@ class ParsedHedTag extends ParsedHedSubstring {
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} librarySchemaName The label of this tag's library schema in the dataset's schema spec.
    */
-  constructor(
-    originalTag,
-    hedString,
-    originalBounds,
-    hedSchemas,
-    librarySchemaName,
-  ) {
+  constructor(originalTag, hedString, originalBounds, hedSchemas, librarySchemaName) {
     super(originalTag, originalBounds)
 
     this.convertTag(hedString, hedSchemas, librarySchemaName)
@@ -613,63 +615,9 @@ class ParsedHedGroup extends ParsedHedSubstring {
   }
 }
 
-/**
- * A parsed HED string.
- */
-class ParsedHedString {
-  /**
-   * Constructor.
-   * @param {string} hedString The original HED string.
-   */
-  constructor(hedString) {
-    /**
-     * The original HED string.
-     * @type {string}
-     */
-    this.hedString = hedString
-    /**
-     * All of the tags in the string.
-     * @type ParsedHedTag[]
-     */
-    this.tags = []
-    /**
-     * The tag groups in the string.
-     * @type ParsedHedGroup[]
-     */
-    this.tagGroups = []
-    /**
-     * The tag groups, kept in their original parenthesized form.
-     * @type ParsedHedTag[]
-     */
-    this.tagGroupStrings = []
-    /**
-     * All of the top-level tags in the string.
-     * @type ParsedHedTag[]
-     */
-    this.topLevelTags = []
-    /**
-     * The top-level tag groups in the string, split into arrays.
-     * @type ParsedHedTag[][]
-     */
-    this.topLevelTagGroups = []
-    /**
-     * The definition tag groups in the string.
-     * @type ParsedHedGroup[]
-     */
-    this.definitionGroups = []
-  }
-
-  get definitions() {
-    return this.definitionGroups.map((group) => {
-      return [group.definitionName, group]
-    })
-  }
-}
-
 module.exports = {
   ParsedHedTag: ParsedHedTag,
   ParsedHed2Tag: ParsedHed2Tag,
   ParsedHed3Tag: ParsedHed3Tag,
   ParsedHedGroup: ParsedHedGroup,
-  ParsedHedString: ParsedHedString,
 }

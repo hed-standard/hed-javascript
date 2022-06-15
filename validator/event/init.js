@@ -1,5 +1,5 @@
-const { parseHedString } = require('../stringParser')
-const { ParsedHedString } = require('../types/parsedHed')
+const { parseHedString } = require('../parser/main')
+const ParsedHedString = require('../parser/parsedString')
 const { buildSchemaAttributesObject } = require('../schema/init')
 const { Schemas } = require('../../common/schema')
 
@@ -11,9 +11,9 @@ const { Hed3Validator } = require('./hed3')
  *
  * @param {string|ParsedHedString} hedString The HED string to validate.
  * @param {Schemas} hedSchemas The HED schemas to validate against.
- * @param {object<string, boolean>} options Any validation options passed in.
+ * @param {Object<string, boolean>} options Any validation options passed in.
  * @param {Map<string, ParsedHedGroup>?} definitions The definitions for this HED dataset.
- * @return {[ParsedHedString, Schemas, Issue[], HedValidator]} The parsed HED string, the actual HED schema collection to use, any issues found, and whether to perform semantic validation.
+ * @return {[ParsedHedString, Issue[], HedValidator]} The parsed HED string, the actual HED schema collection to use, any issues found, and whether to perform semantic validation.
  */
 const initiallyValidateHedString = function (hedString, hedSchemas, options, definitions = null) {
   let doSemanticValidation = hedSchemas instanceof Schemas

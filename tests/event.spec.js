@@ -1,8 +1,8 @@
 const assert = require('chai').assert
 const hed = require('../validator/event')
 const schema = require('../validator/schema/init')
-const { parseHedString } = require('../validator/stringParser')
-const { ParsedHedTag } = require('../validator/types/parsedHed')
+const { parseHedString } = require('../validator/parser/main')
+const { ParsedHedTag } = require('../validator/parser/types')
 const { HedValidator, Hed2Validator, Hed3Validator } = require('../validator/event')
 const { generateIssue } = require('../common/issues/issues')
 const converterGenerateIssue = require('../converter/issues')
@@ -171,6 +171,7 @@ describe('HED string and event validation', () => {
           openingBracket: '/Attribute/Object side/Left,/Participant/Effect[/Body part/Arm',
           closingBracket: '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm',
           tilde: '/Attribute/Object side/Left,/Participant/Effect~/Body part/Arm',
+          doubleQuote: '/Attribute/Object side/Left,/Participant/Effect"/Body part/Arm',
         }
         const expectedIssues = {
           openingBrace: [
@@ -206,6 +207,13 @@ describe('HED string and event validation', () => {
               character: '~',
               index: 47,
               string: testStrings.tilde,
+            }),
+          ],
+          doubleQuote: [
+            generateIssue('invalidCharacter', {
+              character: '"',
+              index: 47,
+              string: testStrings.doubleQuote,
             }),
           ],
         }

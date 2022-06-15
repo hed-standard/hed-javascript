@@ -1,5 +1,5 @@
 const utils = require('../../utils')
-const { ParsedHedGroup, ParsedHedTag } = require('../types/parsedHed')
+const { ParsedHedGroup, ParsedHedTag } = require('../parser/types')
 
 const { HedValidator } = require('./validator')
 
