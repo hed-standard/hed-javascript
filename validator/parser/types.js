@@ -2,17 +2,9 @@ const differenceWith = require('lodash/differenceWith')
 
 const { Memoizer } = require('../../utils/types')
 
-const {
-  getTagSlashIndices,
-  replaceTagNameWithPound,
-  getTagName,
-  removeGroupParentheses,
-  hedStringIsAGroup,
-  mergeParsingIssues,
-} = require('../../utils/hed')
+const { getTagSlashIndices, replaceTagNameWithPound, getTagName } = require('../../utils/hed')
 const { convertPartialHedStringToLong } = require('../../converter/converter')
 const { generateIssue } = require('../../common/issues/issues')
-const splitHedString = require('./splitHedString')
 
 /**
  * A parsed HED substring.
@@ -198,6 +190,12 @@ class ParsedHedTag extends ParsedHedSubstring {
     })
   }
 
+  get takesValueFormattedTag() {
+    return this._memoize('takesValueFormattedTag', () => {
+      return replaceTagNameWithPound(this.formattedTag)
+    })
+  }
+
   /**
    * Iterate through a tag's ancestor tag strings.
    *
@@ -264,9 +262,7 @@ class ParsedHed2Tag extends ParsedHedTag {
    */
   get takesValue() {
     return this._memoize('takesValue', () => {
-      const takesValueType = 'takesValue'
-      const takesValueTag = replaceTagNameWithPound(this.formattedTag)
-      return this.schema.tagHasAttribute(takesValueTag, takesValueType)
+      return this.schema.tagHasAttribute(this.takesValueFormattedTag, 'takesValue')
     })
   }
 
@@ -278,8 +274,7 @@ class ParsedHed2Tag extends ParsedHedTag {
       if (!this.schema.attributes.hasUnitClasses) {
         return false
       }
-      const takesValueTag = replaceTagNameWithPound(this.formattedTag)
-      return takesValueTag in this.schema.attributes.tagUnitClasses
+      return this.takesValueFormattedTag in this.schema.attributes.tagUnitClasses
     })
   }
 
@@ -289,8 +284,7 @@ class ParsedHed2Tag extends ParsedHedTag {
   get unitClasses() {
     return this._memoize('unitClasses', () => {
       if (this.hasUnitClass) {
-        const unitClassTag = replaceTagNameWithPound(this.formattedTag)
-        return this.schema.attributes.tagUnitClasses[unitClassTag]
+        return this.schema.attributes.tagUnitClasses[this.takesValueFormattedTag]
       } else {
         return []
       }
@@ -307,16 +301,16 @@ class ParsedHed2Tag extends ParsedHedTag {
       if (!this.hasUnitClass) {
         return ''
       }
-      const unitClassTag = replaceTagNameWithPound(this.formattedTag)
-      let hasDefaultAttribute = this.schema.tagHasAttribute(unitClassTag, defaultUnitForTagAttribute)
+      const takesValueTag = this.takesValueFormattedTag
+      let hasDefaultAttribute = this.schema.tagHasAttribute(takesValueTag, defaultUnitForTagAttribute)
       if (hasDefaultAttribute) {
-        return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][unitClassTag]
+        return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][takesValueTag]
       }
-      hasDefaultAttribute = this.schema.tagHasAttribute(unitClassTag, defaultUnitsForUnitClassAttribute)
+      hasDefaultAttribute = this.schema.tagHasAttribute(takesValueTag, defaultUnitsForUnitClassAttribute)
       if (hasDefaultAttribute) {
-        return this.schema.attributes.tagAttributes[defaultUnitsForUnitClassAttribute][unitClassTag]
+        return this.schema.attributes.tagAttributes[defaultUnitsForUnitClassAttribute][takesValueTag]
       }
-      const unitClasses = this.schema.attributes.tagUnitClasses[unitClassTag]
+      const unitClasses = this.schema.attributes.tagUnitClasses[takesValueTag]
       const firstUnitClass = unitClasses[0]
       return this.schema.attributes.unitClassAttributes[firstUnitClass][defaultUnitsForUnitClassAttribute][0]
     })
@@ -435,8 +429,9 @@ class ParsedHed3Tag extends ParsedHedTag {
    * @return {SchemaTag}
    */
   get takesValueTag() {
-    const unitClassTag = replaceTagNameWithPound(this.formattedTag)
-    return this.schema.entries.definitions.get('tags').getEntry(unitClassTag)
+    return this._memoize('takesValueTag', () => {
+      return this.schema.entries.definitions.get('tags').getEntry(this.takesValueFormattedTag)
+    })
   }
 }
 
@@ -459,9 +454,7 @@ const groupDefinitionTag = function (group, hedSchemas) {
     hedSchemas,
   )
   const definitionTags = group.tags.filter((tag) => {
-    return (
-      hedSchemas.baseSchema && hedSchemas.isHed3 && tag instanceof ParsedHedTag && tag.isDescendantOf(definitionTag)
-    )
+    return tag instanceof ParsedHedTag && tag.isDescendantOf(definitionTag)
   })
   switch (definitionTags.length) {
     case 0:
@@ -522,7 +515,7 @@ class ParsedHedGroup extends ParsedHedSubstring {
    * Determine the name of this group's definition.
    */
   static findDefinitionName(canonicalTag, definitionBase) {
-    let tag = canonicalTag
+    const tag = canonicalTag
     let value = getTagName(tag)
     let previousValue
     for (const level of ParsedHedTag.ancestorIterator(tag)) {

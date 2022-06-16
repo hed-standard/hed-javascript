@@ -12,7 +12,7 @@ class Hed3Validator extends HedValidator {
    * @param {ParsedHedString} parsedString
    * @param {Schemas} hedSchemas
    * @param {Map<string, ParsedHedGroup>} definitions
-   * @param {object<string, boolean>} options
+   * @param {Object<string, boolean>} options
    */
   constructor(parsedString, hedSchemas, definitions, options) {
     super(parsedString, hedSchemas, options)
@@ -95,6 +95,23 @@ class Hed3Validator extends HedValidator {
   }
 
   /**
+   * Check the syntax of tag values.
+   *
+   * @param {ParsedHed3Tag} tag A HED tag.
+   */
+  checkValueTagSyntax(tag) {
+    if (tag.takesValue && !tag.hasUnitClass) {
+      const isValidValue = this.validateValue(
+        tag.formattedTagName,
+        tag.takesValueTag.hasAttributeName('isNumeric'), // Always false
+      )
+      if (!isValidValue) {
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
+      }
+    }
+  }
+
+  /**
    * Validate a unit and strip it from the value.
    * @param {ParsedHed3Tag} tag A HED tag.
    * @return {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
@@ -149,6 +166,9 @@ class Hed3Validator extends HedValidator {
 
   /**
    * Determine if a stripped value is valid.
+   *
+   * @param {string} value The stripped value.
+   * @param {boolean} isNumeric Whether the tag is numeric.
    */
   validateValue(value, isNumeric) {
     if (value === '#') {
