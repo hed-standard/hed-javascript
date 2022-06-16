@@ -6,6 +6,13 @@ const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
 const delimiters = new Set([','])
 
+const generationToClass = [
+  ParsedHedTag,
+  ParsedHedTag, // Generation 1 is not supported by this validator.
+  ParsedHed2Tag,
+  ParsedHed3Tag,
+]
+
 /**
  * Split a HED string into tags.
  *
@@ -28,14 +35,7 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
   let resetStartingIndex = false
   let extraColons = { before: [], after: [] }
 
-  let ParsedHedTagClass
-  if (hedSchemas.isHed2) {
-    ParsedHedTagClass = ParsedHed2Tag
-  } else if (hedSchemas.isHed3) {
-    ParsedHedTagClass = ParsedHed3Tag
-  } else {
-    ParsedHedTagClass = ParsedHedTag
-  }
+  const ParsedHedTagClass = generationToClass[hedSchemas.generation]
 
   const pushTag = function (i) {
     if (!utils.string.stringIsEmpty(currentTag)) {
