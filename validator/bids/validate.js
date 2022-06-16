@@ -37,7 +37,7 @@ function validateBidsDataset(dataset, schemaDefinition) {
             generateIssue('fallbackSchemaLoadFailed', {
               error: error.message,
             }),
-            dataset.datasetDescription.file,
+            null,
           ),
         )
         return []
