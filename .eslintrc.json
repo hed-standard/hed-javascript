@@ -21,6 +21,14 @@
     "guard-for-in": "error",
     "max-len": "off",
     "no-var": "error",
-    "prefer-const": "error"
+    "prefer-const": "error",
+    "array-callback-return": "error",
+    "no-constant-binary-expression": "error",
+    "no-constructor-return": "error",
+    "no-self-compare": "error",
+    "no-template-curly-in-string": "error",
+    "no-unmodified-loop-condition": "error",
+    "no-unreachable": "error",
+    "prefer-arrow-callback": ["error", { "allowUnboundThis": false }]
   }
 }

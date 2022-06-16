@@ -1427,7 +1427,7 @@ describe('HED string and event validation', () => {
         return validatorSemanticBase(
           testStrings,
           expectedIssues,
-          function (validator) {
+          (validator) => {
             validator.validateStringLevel()
           },
           { expectValuePlaceholderString: expectValuePlaceholderString },
