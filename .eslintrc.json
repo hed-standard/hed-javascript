@@ -19,6 +19,8 @@
     "no-console": ["error", { "allow": ["warn"] }],
     "linebreak-style": ["error", "unix"],
     "guard-for-in": "error",
-    "max-len": "off"
+    "max-len": "off",
+    "no-var": "error",
+    "prefer-const": "error"
   }
 }

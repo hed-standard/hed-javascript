@@ -501,7 +501,6 @@ describe('HED string and event validation', () => {
             invalidTime: 'Item/2D shape/Clock face/54:54',
           }
           const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
-          const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
           const legalFrequencyUnits = ['Hz', 'hertz']
           const legalSpeedUnits = ['m-per-s', 'kph', 'mph']
           const expectedIssues = {
@@ -1153,7 +1152,7 @@ describe('HED string and event validation', () => {
           invalidTime: 'Clockface/54:54',*/
         }
         const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
-        const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
+        // const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
         const legalFrequencyUnits = ['Hz', 'hertz']
         const legalSpeedUnits = ['m-per-s', 'kph', 'mph']
         const expectedIssues = {

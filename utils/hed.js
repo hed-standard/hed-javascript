@@ -5,9 +5,6 @@ const lt = require('semver/functions/lt')
 
 const { isNumber } = require('./string')
 
-const tagsDictionaryKey = 'tags'
-const unitClassType = 'unitClass'
-const unitClassUnitsType = 'units'
 const unitPrefixType = 'unitPrefix'
 const unitSymbolType = 'unitSymbol'
 const SIUnitKey = 'SIUnit'
