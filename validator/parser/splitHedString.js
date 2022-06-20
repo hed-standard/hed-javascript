@@ -24,7 +24,7 @@ const generationToClass = [
 const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) {
   const colonCharacter = ':'
   const slashCharacter = '/'
-  const invalidCharacters = ['{', '}', '[', ']', '~', '"']
+  const invalidCharacters = new Set(['{', '}', '[', ']', '~', '"'])
 
   const hedTags = []
   const conversionIssues = []
@@ -90,7 +90,7 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
     if (groupDepth === 0 && delimiters.has(character)) {
       // Found the end of a tag, so push the current tag.
       pushTag(i)
-    } else if (invalidCharacters.includes(character)) {
+    } else if (invalidCharacters.has(character)) {
       // Found an invalid character, so push an issue.
       syntaxIssues.push(
         generateIssue('invalidCharacter', {
