@@ -24,7 +24,7 @@ class ParsedHedString {
      */
     this.tags = []
 
-    this._issues = {}
+    this._issues = { syntax: [], conversion: [] }
     const topLevelData = this._buildTagGroupTagList(tagList, hedSchemas)
     /**
      * The tag groups in the string.

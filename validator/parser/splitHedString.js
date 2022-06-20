@@ -2,9 +2,13 @@ const { ParsedHed2Tag, ParsedHed3Tag, ParsedHedTag } = require('./types')
 const utils = require('../../utils')
 
 const { generateIssue } = require('../../common/issues/issues')
+
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
+const colonCharacter = ':'
+const slashCharacter = '/'
 const delimiters = new Set([','])
+const invalidCharacters = new Set(['{', '}', '[', ']', '~', '"'])
 
 const generationToClass = [
   ParsedHedTag,
@@ -22,10 +26,6 @@ const generationToClass = [
  * @returns {[ParsedHedTag[], Object<string, Issue[]>]} An array of HED tags (top-level relative to the passed string) and any issues found.
  */
 const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) {
-  const colonCharacter = ':'
-  const slashCharacter = '/'
-  const invalidCharacters = new Set(['{', '}', '[', ']', '~', '"'])
-
   const hedTags = []
   const conversionIssues = []
   const syntaxIssues = []
@@ -33,15 +33,19 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
   let currentTag = ''
   let startingIndex = 0
   let resetStartingIndex = false
-  let extraColons = { before: [], after: [] }
+  /**
+   * Indices of colons found before and after the last slash character in currentTag.
+   * @type {{before: number[], after: number[]}}
+   */
+  let colonsFound = { before: [], after: [] }
 
   const ParsedHedTagClass = generationToClass[hedSchemas.generation]
 
   const pushTag = function (i) {
     if (!utils.string.stringIsEmpty(currentTag)) {
       let librarySchemaName = ''
-      if (extraColons.before.length === 1) {
-        const colonIndex = extraColons.before.pop()
+      if (colonsFound.before.length === 1) {
+        const colonIndex = colonsFound.before.pop()
         librarySchemaName = currentTag.substring(0, colonIndex)
         currentTag = currentTag.substring(colonIndex + 1)
       }
@@ -57,7 +61,7 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
     }
     resetStartingIndex = true
     currentTag = ''
-    for (const extraColonIndex of extraColons.before) {
+    for (const extraColonIndex of colonsFound.before) {
       syntaxIssues.push(
         generateIssue('invalidCharacter', {
           character: colonCharacter,
@@ -66,7 +70,7 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
         }),
       )
     }
-    extraColons = { before: [], after: [] }
+    colonsFound = { before: [], after: [] }
   }
 
   // Loop a character at a time.
@@ -82,10 +86,10 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
     } else if (character === closingGroupCharacter) {
       groupDepth--
     } else if (character === slashCharacter) {
-      extraColons.before.push(...extraColons.after)
-      extraColons.after = []
+      colonsFound.before.push(...colonsFound.after)
+      colonsFound.after = []
     } else if (character === colonCharacter) {
-      extraColons.after.push(i)
+      colonsFound.after.push(i)
     }
     if (groupDepth === 0 && delimiters.has(character)) {
       // Found the end of a tag, so push the current tag.

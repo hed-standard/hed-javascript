@@ -107,8 +107,10 @@ class HedValidator {
    * Validate the HED tag groups in a parsed HED string.
    */
   validateHedTagGroups() {
-    for (const parsedTagGroup of this.parsedString.tagGroups) {
-      this.validateHedTagGroup(parsedTagGroup)
+    for (const tagGroup of this.parsedString.tagGroups) {
+      for (const subGroup of tagGroup.subGroupIterator()) {
+        this.validateHedTagGroup(subGroup)
+      }
     }
   }
 
