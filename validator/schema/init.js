@@ -18,10 +18,7 @@ const { HedV8SchemaParser } = require('./hed3')
  * @returns {boolean} Whether the schema is a HED 3 schema.
  */
 const isHed3Schema = function (xmlData) {
-  return (
-    xmlData.HED.$.library !== undefined ||
-    semver.gte(xmlData.HED.$.version, '8.0.0-alpha.3')
-  )
+  return xmlData.HED.$.library !== undefined || semver.gte(xmlData.HED.$.version, '8.0.0-alpha.3')
 }
 
 /**
@@ -49,13 +46,11 @@ const buildSchemaAttributesObject = function (xmlData) {
 const buildSchemaObject = function (xmlData) {
   const schemaAttributes = buildSchemaAttributesObject(xmlData)
   const mapping = buildMappingObject(xmlData)
-  let schema
   if (isHed3Schema(xmlData)) {
-    schema = new Hed3Schema(xmlData, schemaAttributes, mapping)
+    return new Hed3Schema(xmlData, schemaAttributes, mapping)
   } else {
-    schema = new Hed2Schema(xmlData, schemaAttributes, mapping)
+    return new Hed2Schema(xmlData, schemaAttributes, mapping)
   }
-  return schema
 }
 
 /**
@@ -71,9 +66,7 @@ const buildSchema = function (schemaDef = {}, useFallback = true) {
     if (schemaDef.libraries === undefined) {
       return new Schemas(baseSchema)
     }
-    const [libraryKeys, libraryDefs] = zip(
-      ...Object.entries(schemaDef.libraries),
-    )
+    const [libraryKeys, libraryDefs] = zip(...Object.entries(schemaDef.libraries))
     return Promise.all(
       libraryDefs.map((libraryDef) => {
         return loadSchema(libraryDef, false)

@@ -9,26 +9,7 @@ const { generateIssue } = require('../../common/issues/issues')
 /**
  * A parsed HED substring.
  */
-class ParsedHedSubstring extends Memoizer {
-  /**
-   * Constructor.
-   * @param {string} originalTag The original pre-parsed version of the HED substring.
-   * @param {int[]} originalBounds The bounds of the HED substring in the original HED string.
-   */
-  constructor(originalTag, originalBounds) {
-    super()
-    /**
-     * The original pre-parsed version of the HED tag.
-     * @type {string}
-     */
-    this.originalTag = originalTag
-    /**
-     * The bounds of the HED tag in the original HED string.
-     * @type {int[]}
-     */
-    this.originalBounds = originalBounds
-  }
-}
+class ParsedHedSubstring extends Memoizer {}
 
 /**
  * A parsed HED tag.
@@ -42,8 +23,19 @@ class ParsedHedTag extends ParsedHedSubstring {
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} librarySchemaName The label of this tag's library schema in the dataset's schema spec.
    */
-  constructor(originalTag, hedString, originalBounds, hedSchemas, librarySchemaName) {
-    super(originalTag, originalBounds)
+  constructor(originalTag, hedString, originalBounds, hedSchemas, librarySchemaName = '') {
+    super()
+
+    /**
+     * The original pre-parsed version of the HED tag.
+     * @type {string}
+     */
+    this.originalTag = originalTag
+    /**
+     * The bounds of the HED tag in the original HED string.
+     * @type {int[]}
+     */
+    this.originalBounds = originalBounds
 
     this.convertTag(hedString, hedSchemas, librarySchemaName)
     /**
@@ -483,12 +475,10 @@ class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Constructor.
    * @param {(ParsedHedTag|ParsedHedGroup)[]} parsedHedTags The parsed HED tags in the HED tag group.
-   * @param {string} originalTagGroup The original pre-parsed version of the HED tag group.
-   * @param {int[]} originalBounds The bounds of the HED tag group in the original HED string.
    * @param {Schemas} hedSchemas The collection of HED schemas.
    */
-  constructor(originalTagGroup, parsedHedTags, originalBounds, hedSchemas) {
-    super(originalTagGroup, originalBounds)
+  constructor(parsedHedTags, hedSchemas) {
+    super()
     /**
      * The parsed HED tags in the HED tag group.
      * @type {(ParsedHedTag|ParsedHedGroup)[]}

@@ -1,14 +1,15 @@
-const { ParsedHedSubstring, ParsedHed2Tag, ParsedHed3Tag, ParsedHedTag } = require('./types')
+const { ParsedHedGroup, ParsedHed2Tag, ParsedHed3Tag, ParsedHedTag } = require('./types')
 
 const { generateIssue } = require('../../common/issues/issues')
-const { hedStringIsAGroup } = require('../../utils/hed')
+const { recursiveMap } = require('../../utils/array')
+const { mergeParsingIssues } = require('../../utils/hed')
 const { stringIsEmpty } = require('../../utils/string')
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
+const commaCharacter = ','
 const colonCharacter = ':'
 const slashCharacter = '/'
-const delimiters = new Set([','])
 const invalidCharacters = new Set(['{', '}', '[', ']', '~', '"'])
 
 const generationToClass = [
@@ -19,114 +20,160 @@ const generationToClass = [
 ]
 
 /**
- * Split a HED string into tags.
+ * Split a HED string into delimiters and tags.
  *
  * @param {string} hedString The HED string to be split.
- * @param {Schemas} hedSchemas The collection of HED schemas.
- * @param {int} groupStartingIndex The start index of the containing group in the full HED string.
- * @returns {[ParsedHedSubstring[], Object<string, Issue[]>]} An array of HED tags (top-level relative to the passed string) and any issues found.
+ * @return {[Array, Object<string, Issue[]>]} The tag specifications and any issues found.
  */
-const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) {
-  const hedTags = []
-  const conversionIssues = []
+const tokenizeHedString = function (hedString) {
   const syntaxIssues = []
-  let groupDepth = 0
+
   let currentTag = ''
+  let groupDepth = 0
   let startingIndex = 0
   let resetStartingIndex = false
-  /**
-   * Indices of colons found before and after the last slash character in currentTag.
-   * @type {{before: number[], after: number[]}}
-   */
-  let colonsFound = { before: [], after: [] }
   let slashFound = false
+  let librarySchema = ''
+  const currentGroupStack = [[]]
 
-  const ParsedHedTagClass = generationToClass[hedSchemas.generation]
-
-  const pushTag = function (i) {
-    if (stringIsEmpty(currentTag)) {
-      resetStartingIndex = true
-      return
-    }
-
-    let librarySchemaName = ''
-    const colonsUsed = slashFound ? colonsFound.before : colonsFound.after
-    if (colonsUsed.length === 1) {
-      const colonIndex = colonsUsed.pop()
-      librarySchemaName = currentTag.substring(0, colonIndex)
-      currentTag = currentTag.substring(colonIndex + 1)
-    }
-    const currentBounds = [groupStartingIndex + startingIndex, groupStartingIndex + i]
-    currentTag = currentTag.trim()
-    if (hedStringIsAGroup(currentTag)) {
-      hedTags.push(new ParsedHedSubstring(currentTag, currentBounds))
-    } else {
-      const parsedHedTag = new ParsedHedTagClass(currentTag, hedString, currentBounds, hedSchemas, librarySchemaName)
-      hedTags.push(parsedHedTag)
-      conversionIssues.push(...parsedHedTag.conversionIssues)
-    }
-    for (const extraColonIndex of colonsFound.before) {
-      syntaxIssues.push(
-        generateIssue('invalidCharacter', {
-          character: colonCharacter,
-          index: groupStartingIndex + extraColonIndex,
-          string: hedString,
-        }),
-      )
-    }
-    resetStartingIndex = true
-    colonsFound = { before: [], after: [] }
-    slashFound = false
-  }
-
-  // Loop a character at a time.
   for (let i = 0; i < hedString.length; i++) {
     const character = hedString.charAt(i)
-    if (character === openingGroupCharacter) {
-      // Count group characters
-      groupDepth++
-    } else if (character === closingGroupCharacter) {
-      groupDepth--
-    } else if (character === slashCharacter) {
-      colonsFound.before.push(...colonsFound.after)
-      colonsFound.after = []
-      slashFound = true
-    } else if (character === colonCharacter) {
-      colonsFound.after.push(i)
-    }
-    if (groupDepth === 0 && delimiters.has(character)) {
-      // Found the end of a tag, so push the current tag.
-      pushTag(i)
-    } else if (invalidCharacters.has(character)) {
-      // Found an invalid character, so push an issue.
-      syntaxIssues.push(
-        generateIssue('invalidCharacter', {
-          character: character,
-          index: groupStartingIndex + i,
-          string: hedString,
-        }),
-      )
-      pushTag(i)
-    } else {
-      currentTag += character
-      if (stringIsEmpty(currentTag)) {
+    switch (character) {
+      case openingGroupCharacter:
+        currentGroupStack.push([])
         resetStartingIndex = true
-      }
+        groupDepth++
+        break
+      case closingGroupCharacter:
+        try {
+          if (!stringIsEmpty(currentTag)) {
+            currentGroupStack[groupDepth].push({
+              library: librarySchema,
+              tag: currentTag.trim(),
+              bounds: [startingIndex, i],
+            })
+          }
+          currentGroupStack[groupDepth - 1].push(currentGroupStack.pop())
+          resetStartingIndex = true
+          groupDepth--
+        } catch (e) {
+          groupDepth = 0
+        }
+        break
+      case commaCharacter:
+        if (!stringIsEmpty(currentTag)) {
+          currentGroupStack[groupDepth].push({
+            library: librarySchema,
+            tag: currentTag.trim(),
+            bounds: [startingIndex, i],
+          })
+          resetStartingIndex = true
+        }
+        break
+      case colonCharacter:
+        if (!slashFound) {
+          librarySchema = currentTag
+          resetStartingIndex = true
+        } else {
+          currentTag += character
+        }
+        break
+      case slashCharacter:
+        slashFound = true
+        currentTag += character
+        break
+      default:
+        if (invalidCharacters.has(character)) {
+          // Found an invalid character, so push an issue.
+          syntaxIssues.push(
+            generateIssue('invalidCharacter', {
+              character: character,
+              index: i,
+              string: hedString,
+            }),
+          )
+          currentGroupStack[groupDepth].push({
+            library: librarySchema,
+            tag: currentTag.trim(),
+            bounds: [startingIndex, i],
+          })
+        }
+        currentTag += character
+        if (stringIsEmpty(currentTag)) {
+          resetStartingIndex = true
+        }
     }
     if (resetStartingIndex) {
       resetStartingIndex = false
       startingIndex = i + 1
       currentTag = ''
+      librarySchema = ''
     }
   }
-  pushTag(hedString.length)
+  if (!stringIsEmpty(currentTag)) {
+    currentGroupStack[groupDepth].push({
+      library: librarySchema,
+      tag: currentTag.trim(),
+      bounds: [startingIndex, hedString.length],
+    })
+  }
+
+  const tagSpecs = currentGroupStack.pop()
+  const issues = {
+    syntax: syntaxIssues,
+    conversion: [],
+  }
+  return [tagSpecs, issues]
+}
+
+/**
+ * Create the parsed HED tag and group objects.
+ *
+ * @param {string} hedString The HED string to be split.
+ * @param {Schemas} hedSchemas The collection of HED schemas.
+ * @param {Array} tagSpecs The tag specifications.
+ * @return {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
+ */
+const createParsedTags = function (hedString, hedSchemas, tagSpecs) {
+  const conversionIssues = []
+  const syntaxIssues = []
+  const ParsedHedTagClass = generationToClass[hedSchemas.generation]
+
+  const createParsedTag = ({ library: librarySchema, tag: originalTag, bounds: originalBounds }) => {
+    const parsedTag = new ParsedHedTagClass(originalTag, hedString, originalBounds, hedSchemas, librarySchema)
+    conversionIssues.push(...parsedTag.conversionIssues)
+    return parsedTag
+  }
+  const createParsedGroup = (tags) => {
+    if (Array.isArray(tags)) {
+      return new ParsedHedGroup(tags.map(createParsedGroup), hedSchemas)
+    } else {
+      return tags
+    }
+  }
+  const parsedTags = recursiveMap(createParsedTag, tagSpecs)
+  const parsedTagsWithGroups = parsedTags.map(createParsedGroup)
 
   const issues = {
     syntax: syntaxIssues,
     conversion: conversionIssues,
   }
 
-  return [hedTags, issues]
+  return [parsedTagsWithGroups, issues]
+}
+
+/**
+ * Split a HED string.
+ *
+ * @param {string} hedString The HED string to be split.
+ * @param {Schemas} hedSchemas The collection of HED schemas.
+ * @return {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
+ */
+const splitHedString = function (hedString, hedSchemas) {
+  const [tagSpecs, splitIssues] = tokenizeHedString(hedString)
+  const [parsedTags, parsingIssues] = createParsedTags(hedString, hedSchemas, tagSpecs)
+  mergeParsingIssues(splitIssues, parsingIssues)
+  return [parsedTags, splitIssues]
 }
 
 module.exports = splitHedString

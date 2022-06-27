@@ -268,7 +268,7 @@ describe('HED string and event validation', () => {
 
       it('should not contain duplicates', () => {
         const testStrings = {
-          topLevelDuplicate: 'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
+          //topLevelDuplicate: 'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
           groupDuplicate:
             'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Attribute/Visual/Color/Purple,Event/Category/Experimental stimulus)',
           nestedGroupDuplicate:
