@@ -1,7 +1,8 @@
-const { ParsedHed2Tag, ParsedHed3Tag, ParsedHedTag } = require('./types')
-const utils = require('../../utils')
+const { ParsedHedSubstring, ParsedHed2Tag, ParsedHed3Tag, ParsedHedTag } = require('./types')
 
 const { generateIssue } = require('../../common/issues/issues')
+const { hedStringIsAGroup } = require('../../utils/hed')
+const { stringIsEmpty } = require('../../utils/string')
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -23,7 +24,7 @@ const generationToClass = [
  * @param {string} hedString The HED string to be split.
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @param {int} groupStartingIndex The start index of the containing group in the full HED string.
- * @returns {[ParsedHedTag[], Object<string, Issue[]>]} An array of HED tags (top-level relative to the passed string) and any issues found.
+ * @returns {[ParsedHedSubstring[], Object<string, Issue[]>]} An array of HED tags (top-level relative to the passed string) and any issues found.
  */
 const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) {
   const hedTags = []
@@ -38,29 +39,32 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
    * @type {{before: number[], after: number[]}}
    */
   let colonsFound = { before: [], after: [] }
+  let slashFound = false
 
   const ParsedHedTagClass = generationToClass[hedSchemas.generation]
 
   const pushTag = function (i) {
-    if (!utils.string.stringIsEmpty(currentTag)) {
-      let librarySchemaName = ''
-      if (colonsFound.before.length === 1) {
-        const colonIndex = colonsFound.before.pop()
-        librarySchemaName = currentTag.substring(0, colonIndex)
-        currentTag = currentTag.substring(colonIndex + 1)
-      }
-      const parsedHedTag = new ParsedHedTagClass(
-        currentTag.trim(),
-        hedString,
-        [groupStartingIndex + startingIndex, groupStartingIndex + i],
-        hedSchemas,
-        librarySchemaName,
-      )
+    if (stringIsEmpty(currentTag)) {
+      resetStartingIndex = true
+      return
+    }
+
+    let librarySchemaName = ''
+    const colonsUsed = slashFound ? colonsFound.before : colonsFound.after
+    if (colonsUsed.length === 1) {
+      const colonIndex = colonsUsed.pop()
+      librarySchemaName = currentTag.substring(0, colonIndex)
+      currentTag = currentTag.substring(colonIndex + 1)
+    }
+    const currentBounds = [groupStartingIndex + startingIndex, groupStartingIndex + i]
+    currentTag = currentTag.trim()
+    if (hedStringIsAGroup(currentTag)) {
+      hedTags.push(new ParsedHedSubstring(currentTag, currentBounds))
+    } else {
+      const parsedHedTag = new ParsedHedTagClass(currentTag, hedString, currentBounds, hedSchemas, librarySchemaName)
       hedTags.push(parsedHedTag)
       conversionIssues.push(...parsedHedTag.conversionIssues)
     }
-    resetStartingIndex = true
-    currentTag = ''
     for (const extraColonIndex of colonsFound.before) {
       syntaxIssues.push(
         generateIssue('invalidCharacter', {
@@ -70,15 +74,13 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
         }),
       )
     }
+    resetStartingIndex = true
     colonsFound = { before: [], after: [] }
+    slashFound = false
   }
 
   // Loop a character at a time.
   for (let i = 0; i < hedString.length; i++) {
-    if (resetStartingIndex) {
-      startingIndex = i
-      resetStartingIndex = false
-    }
     const character = hedString.charAt(i)
     if (character === openingGroupCharacter) {
       // Count group characters
@@ -88,6 +90,7 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
     } else if (character === slashCharacter) {
       colonsFound.before.push(...colonsFound.after)
       colonsFound.after = []
+      slashFound = true
     } else if (character === colonCharacter) {
       colonsFound.after.push(i)
     }
@@ -106,10 +109,14 @@ const splitHedString = function (hedString, hedSchemas, groupStartingIndex = 0) 
       pushTag(i)
     } else {
       currentTag += character
-      if (utils.string.stringIsEmpty(currentTag)) {
+      if (stringIsEmpty(currentTag)) {
         resetStartingIndex = true
-        currentTag = ''
       }
+    }
+    if (resetStartingIndex) {
+      resetStartingIndex = false
+      startingIndex = i + 1
+      currentTag = ''
     }
   }
   pushTag(hedString.length)

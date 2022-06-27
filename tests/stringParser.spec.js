@@ -3,7 +3,7 @@ const { Schemas } = require('../common/schema')
 const { buildSchema } = require('../converter/schema')
 const { parseHedString } = require('../validator/parser/main')
 const splitHedString = require('../validator/parser/splitHedString')
-const { ParsedHedTag } = require('../validator/parser/types')
+const { ParsedHedTag, ParsedHedSubstring } = require('../validator/parser/types')
 const { generateIssue } = require('../common/issues/issues')
 const converterGenerateIssue = require('../converter/issues')
 const { recursiveMap } = require('../utils/array')
@@ -157,11 +157,9 @@ describe('HED string parsing', () => {
       assert.deepStrictEqual(Object.values(issues).flat(), [])
       assert.deepStrictEqual(result, [
         new ParsedHedTag('/Action/Move/Flex', '/Action/Move/Flex', [0, 17], nullSchema),
-        new ParsedHedTag(
-          '(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow)',
+        new ParsedHedSubstring(
           '(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow)',
           [18, 99],
-          nullSchema,
         ),
         new ParsedHedTag('/Position/X-position/70 px', '/Position/X-position/70 px', [100, 126], nullSchema),
         new ParsedHedTag('/Position/Y-position/23 px', '/Position/Y-position/23 px', [127, 153], nullSchema),

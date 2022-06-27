@@ -256,7 +256,7 @@ describe('HED string and event validation', () => {
           expectedIssues,
           (validator) => {
             for (const tagGroup of validator.parsedString.tagGroups) {
-              for (const subGroup of tagGroup.subGroupIterator()) {
+              for (const subGroup of tagGroup.subGroupArrayIterator()) {
                 testFunction(validator, subGroup)
               }
             }
@@ -595,7 +595,7 @@ describe('HED string and event validation', () => {
             expectedIssues,
             (validator) => {
               for (const tagGroup of validator.parsedString.tagGroups) {
-                for (const subGroup of tagGroup.subGroupIterator()) {
+                for (const subGroup of tagGroup.subGroupArrayIterator()) {
                   testFunction(validator, subGroup)
                 }
               }

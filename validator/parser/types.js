@@ -343,19 +343,25 @@ class ParsedHed3Tag extends ParsedHedTag {
     })
   }
 
+  get takesValueFormattedTag() {
+    return this._memoize('takesValueFormattedTag', () => {
+      const takesValueType = 'takesValue'
+      for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
+        const takesValueTag = replaceTagNameWithPound(ancestor)
+        if (this.schema.tagHasAttribute(takesValueTag, takesValueType)) {
+          return takesValueTag
+        }
+      }
+      return null
+    })
+  }
+
   /**
    * Checks if this HED tag has the 'takesValue' attribute.
    */
   get takesValue() {
     return this._memoize('takesValue', () => {
-      const takesValueType = 'takesValue'
-      for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
-        const takesValueTag = replaceTagNameWithPound(ancestor)
-        if (this.schema.tagHasAttribute(takesValueTag, takesValueType)) {
-          return true
-        }
-      }
-      return false
+      return this.takesValueFormattedTag !== null
     })
   }
 
@@ -367,7 +373,7 @@ class ParsedHed3Tag extends ParsedHedTag {
       if (!this.schema.entries.definitions.has('unitClasses')) {
         return false
       }
-      if (this.takesValueTag === undefined) {
+      if (this.takesValueTag === null) {
         return false
       }
       return this.takesValueTag.hasUnitClasses
@@ -430,7 +436,11 @@ class ParsedHed3Tag extends ParsedHedTag {
    */
   get takesValueTag() {
     return this._memoize('takesValueTag', () => {
-      return this.schema.entries.definitions.get('tags').getEntry(this.takesValueFormattedTag)
+      if (this.takesValueFormattedTag !== null) {
+        return this.schema.entries.definitions.get('tags').getEntry(this.takesValueFormattedTag)
+      } else {
+        return null
+      }
     })
   }
 }
@@ -580,16 +590,30 @@ class ParsedHedGroup extends ParsedHedSubstring {
    *
    * @yield {ParsedHedTag[]} The subgroups of this tag group.
    */
-  *subGroupIterator() {
+  *subGroupArrayIterator() {
     const currentGroup = []
     for (const innerTag of this.tags) {
       if (innerTag instanceof ParsedHedTag) {
         currentGroup.push(innerTag)
       } else if (innerTag instanceof ParsedHedGroup) {
-        yield* innerTag.subGroupIterator()
+        yield* innerTag.subGroupArrayIterator()
       }
     }
     yield currentGroup
+  }
+
+  /**
+   * Iterator over the ParsedHedGroup objects in this HED tag group.
+   *
+   * @yield {ParsedHedGroup} This object and the ParsedHedGroup objects belonging to this tag group.
+   */
+  *subParsedGroupIterator() {
+    yield this
+    for (const innerTag of this.tags) {
+      if (innerTag instanceof ParsedHedGroup) {
+        yield* innerTag.subParsedGroupIterator()
+      }
+    }
   }
 
   /**
@@ -609,6 +633,7 @@ class ParsedHedGroup extends ParsedHedSubstring {
 }
 
 module.exports = {
+  ParsedHedSubstring: ParsedHedSubstring,
   ParsedHedTag: ParsedHedTag,
   ParsedHed2Tag: ParsedHed2Tag,
   ParsedHed3Tag: ParsedHed3Tag,

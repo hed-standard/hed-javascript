@@ -86,7 +86,7 @@ class HedValidator {
    */
   validateHedTagLevels() {
     for (const tagGroup of this.parsedString.tagGroups) {
-      for (const subGroup of tagGroup.subGroupIterator()) {
+      for (const subGroup of tagGroup.subGroupArrayIterator()) {
         this.validateHedTagLevel(subGroup)
       }
     }
@@ -108,7 +108,7 @@ class HedValidator {
    */
   validateHedTagGroups() {
     for (const tagGroup of this.parsedString.tagGroups) {
-      for (const subGroup of tagGroup.subGroupIterator()) {
+      for (const subGroup of tagGroup.subParsedGroupIterator()) {
         this.validateHedTagGroup(subGroup)
       }
     }
