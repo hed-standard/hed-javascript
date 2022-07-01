@@ -190,12 +190,6 @@ class ParsedHedTag extends ParsedHedSubstring {
     })
   }
 
-  get takesValueFormattedTag() {
-    return this._memoize('takesValueFormattedTag', () => {
-      return replaceTagNameWithPound(this.formattedTag)
-    })
-  }
-
   /**
    * Iterate through a tag's ancestor tag strings.
    *
@@ -254,6 +248,15 @@ class ParsedHed2Tag extends ParsedHedTag {
   get existsInSchema() {
     return this._memoize('existsInSchema', () => {
       return this.schema.attributes.tags.includes(this.formattedTag)
+    })
+  }
+
+  /**
+   * Determine value-taking form of this tag.
+   */
+  get takesValueFormattedTag() {
+    return this._memoize('takesValueFormattedTag', () => {
+      return replaceTagNameWithPound(this.formattedTag)
     })
   }
 
@@ -343,6 +346,9 @@ class ParsedHed3Tag extends ParsedHedTag {
     })
   }
 
+  /**
+   * Determine value-taking form of this tag.
+   */
   get takesValueFormattedTag() {
     return this._memoize('takesValueFormattedTag', () => {
       const takesValueType = 'takesValue'
