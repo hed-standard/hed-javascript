@@ -1,5 +1,5 @@
 const assert = require('chai').assert
-const schema = require('../validator/schema/init')
+const { buildSchema } = require('../validator/schema/init')
 const schemaCommon = require('../common/schema')
 const fallbackHedSchemaPath = schemaCommon.config.fallbackFilePath
 
@@ -8,7 +8,7 @@ describe('HED schemas', () => {
     describe('Remote HED schemas', () => {
       it('can be loaded from a central GitHub repository', () => {
         const remoteHedSchemaVersion = '8.0.0'
-        return schema.buildSchema({ version: remoteHedSchemaVersion }).then((hedSchemas) => {
+        return buildSchema({ version: remoteHedSchemaVersion }).then((hedSchemas) => {
           const hedSchemaVersion = hedSchemas.baseSchema.version
           assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
         })
@@ -19,7 +19,7 @@ describe('HED schemas', () => {
       it('can be loaded from a file', () => {
         const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
         const localHedSchemaVersion = '7.1.1'
-        return schema.buildSchema({ path: localHedSchemaFile }).then((hedSchemas) => {
+        return buildSchema({ path: localHedSchemaFile }).then((hedSchemas) => {
           const hedSchemaVersion = hedSchemas.baseSchema.version
           assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
         })
@@ -31,21 +31,19 @@ describe('HED schemas', () => {
         const remoteHedStandardSchemaVersion = '8.0.0'
         const remoteHedLibrarySchemaName = 'testlib'
         const remoteHedLibrarySchemaVersion = '1.0.2'
-        return schema
-          .buildSchema({
-            version: remoteHedStandardSchemaVersion,
-            libraries: {
-              testlib: {
-                library: remoteHedLibrarySchemaName,
-                version: remoteHedLibrarySchemaVersion,
-              },
+        return buildSchema({
+          version: remoteHedStandardSchemaVersion,
+          libraries: {
+            testlib: {
+              library: remoteHedLibrarySchemaName,
+              version: remoteHedLibrarySchemaVersion,
             },
-          })
-          .then((hedSchemas) => {
-            const hedSchema = hedSchemas.librarySchemas.get(remoteHedLibrarySchemaName)
-            assert.strictEqual(hedSchema.library, remoteHedLibrarySchemaName)
-            assert.strictEqual(hedSchema.version, remoteHedLibrarySchemaVersion)
-          })
+          },
+        }).then((hedSchemas) => {
+          const hedSchema = hedSchemas.librarySchemas.get(remoteHedLibrarySchemaName)
+          assert.strictEqual(hedSchema.library, remoteHedLibrarySchemaName)
+          assert.strictEqual(hedSchema.version, remoteHedLibrarySchemaVersion)
+        })
       })
     })
 
@@ -55,20 +53,18 @@ describe('HED schemas', () => {
         const localHedLibrarySchemaName = 'testlib'
         const localHedLibrarySchemaVersion = '1.0.2'
         const localHedLibrarySchemaFile = 'tests/data/HED_testlib_1.0.2.xml'
-        return schema
-          .buildSchema({
-            version: remoteHedStandardSchemaVersion,
-            libraries: {
-              testlib: {
-                path: localHedLibrarySchemaFile,
-              },
+        return buildSchema({
+          version: remoteHedStandardSchemaVersion,
+          libraries: {
+            testlib: {
+              path: localHedLibrarySchemaFile,
             },
-          })
-          .then((hedSchemas) => {
-            const hedSchema = hedSchemas.librarySchemas.get(localHedLibrarySchemaName)
-            assert.strictEqual(hedSchema.library, localHedLibrarySchemaName)
-            assert.strictEqual(hedSchema.version, localHedLibrarySchemaVersion)
-          })
+          },
+        }).then((hedSchemas) => {
+          const hedSchema = hedSchemas.librarySchemas.get(localHedLibrarySchemaName)
+          assert.strictEqual(hedSchema.library, localHedLibrarySchemaName)
+          assert.strictEqual(hedSchema.version, localHedLibrarySchemaVersion)
+        })
       })
     })
 
@@ -76,12 +72,11 @@ describe('HED schemas', () => {
       it('loads the fallback schema if a remote schema cannot be found', () => {
         // Invalid base schema version
         const remoteHedSchemaVersion = '0.0.1'
-        return schema
-          .buildSchema({ version: remoteHedSchemaVersion })
+        return buildSchema({ version: remoteHedSchemaVersion })
           .then((hedSchemas) => {
             return Promise.all([
               Promise.resolve(hedSchemas.baseSchema.version),
-              schema.buildSchema({ path: fallbackHedSchemaPath }),
+              buildSchema({ path: fallbackHedSchemaPath }),
             ])
           })
           .then(([loadedVersion, fallbackHedSchemas]) => {
@@ -93,12 +88,11 @@ describe('HED schemas', () => {
       it('loads the fallback schema if a local schema cannot be found', () => {
         // Invalid base schema path
         const localHedSchemaFile = 'tests/data/HEDNotFound.xml'
-        return schema
-          .buildSchema({ path: localHedSchemaFile })
+        return buildSchema({ path: localHedSchemaFile })
           .then((hedSchemas) => {
             return Promise.all([
               Promise.resolve(hedSchemas.baseSchema.version),
-              schema.buildSchema({ path: fallbackHedSchemaPath }),
+              buildSchema({ path: fallbackHedSchemaPath }),
             ])
           })
           .then(([loadedVersion, fallbackHedSchemas]) => {
@@ -114,7 +108,7 @@ describe('HED schemas', () => {
     let hedSchemaPromise
 
     beforeAll(() => {
-      hedSchemaPromise = schema.buildSchema({
+      hedSchemaPromise = buildSchema({
         path: localHedSchemaFile,
       })
     })
@@ -224,8 +218,8 @@ describe('HED schemas', () => {
 
         const dictionariesUnitAttributes = hedSchemas.baseSchema.attributes.unitClassAttributes
         const dictionariesAllUnits = hedSchemas.baseSchema.attributes.unitClasses
-        for (const unitClass in dictionariesUnitAttributes) {
-          const defaultUnit = dictionariesUnitAttributes[unitClass].defaultUnits
+        for (const [unitClass, unitClassAttributes] of Object.entries(dictionariesUnitAttributes)) {
+          const defaultUnit = unitClassAttributes.defaultUnits
           assert.deepStrictEqual(defaultUnit[0], defaultUnits[unitClass], `Default unit for unit class ${unitClass}`)
         }
         assert.deepStrictEqual(dictionariesAllUnits, allUnits, 'All units')
@@ -243,12 +237,8 @@ describe('HED schemas', () => {
         }
 
         const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
-        for (const attribute in expectedAttributeTagCount) {
-          assert.lengthOf(
-            Object.keys(dictionaries[attribute]),
-            expectedAttributeTagCount[attribute],
-            'Mismatch on attribute ' + attribute,
-          )
+        for (const [attribute, count] of Object.entries(expectedAttributeTagCount)) {
+          assert.lengthOf(Object.keys(dictionaries[attribute]), count, 'Mismatch on attribute ' + attribute)
         }
 
         const expectedTagCount = 1116 - 119 + 2
@@ -318,26 +308,26 @@ describe('HED schemas', () => {
           },
         }
 
-        for (const testStringKey in testStrings) {
-          const testString = testStrings[testStringKey].toLowerCase()
+        for (const [testStringKey, testString] of Object.entries(testStrings)) {
+          const testStringLowercase = testString.toLowerCase()
           const expected = expectedResults[testStringKey]
-          for (const expectedKey in expected) {
+          for (const [expectedKey, expectedResult] of Object.entries(expected)) {
             if (expectedKey === 'tags') {
               assert.strictEqual(
-                hedSchemas.baseSchema.attributes.tags.includes(testString),
-                expected[expectedKey],
+                hedSchemas.baseSchema.attributes.tags.includes(testStringLowercase),
+                expectedResult,
                 `Test string: ${testString}. Attribute: ${expectedKey}`,
               )
             } else if (expectedKey === 'unitClass') {
               assert.strictEqual(
-                testString in hedSchemas.baseSchema.attributes.tagUnitClasses,
-                expected[expectedKey],
+                testStringLowercase in hedSchemas.baseSchema.attributes.tagUnitClasses,
+                expectedResult,
                 `Test string: ${testString}. Attribute: ${expectedKey}`,
               )
             } else {
               assert.strictEqual(
-                hedSchemas.baseSchema.attributes.tagHasAttribute(testString, expectedKey),
-                expected[expectedKey],
+                hedSchemas.baseSchema.attributes.tagHasAttribute(testStringLowercase, expectedKey),
+                expectedResult,
                 `Test string: ${testString}. Attribute: ${expectedKey}.`,
               )
             }
@@ -352,7 +342,7 @@ describe('HED schemas', () => {
     let hedSchemaPromise
 
     beforeAll(() => {
-      hedSchemaPromise = schema.buildSchema({
+      hedSchemaPromise = buildSchema({
         path: localHedSchemaFile,
       })
     })
@@ -440,10 +430,10 @@ describe('HED schemas', () => {
         }
 
         const schemaTags = hedSchemas.baseSchema.entries.definitions.get('tags')
-        for (const attribute of Object.keys(expectedAttributeTagCount)) {
+        for (const [attribute, count] of Object.entries(expectedAttributeTagCount)) {
           assert.lengthOf(
             schemaTags.getEntriesWithBooleanAttribute(attribute),
-            expectedAttributeTagCount[attribute],
+            count,
             'Mismatch on attribute ' + attribute,
           )
         }
