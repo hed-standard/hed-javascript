@@ -20,11 +20,19 @@ const generationToClass = [
   ParsedHed3Tag,
 ]
 
+class TagSpec {
+  constructor(tag, start, end, librarySchema) {
+    this.tag = tag.trim()
+    this.bounds = [start, end]
+    this.library = librarySchema
+  }
+}
+
 /**
  * Split a HED string into delimiters and tags.
  *
  * @param {string} hedString The HED string to be split.
- * @return {[Array, Object<string, Issue[]>]} The tag specifications and any issues found.
+ * @return {[TagSpec[], Object<string, Issue[]>]} The tag specifications and any issues found.
  */
 const tokenizeHedString = function (hedString) {
   const syntaxIssues = []
@@ -40,11 +48,7 @@ const tokenizeHedString = function (hedString) {
 
   const pushTag = (i) => {
     if (!stringIsEmpty(currentTag)) {
-      currentGroupStack[groupDepth].push({
-        library: librarySchema,
-        tag: currentTag.trim(),
-        bounds: [startingIndex, i],
-      })
+      currentGroupStack[groupDepth].push(new TagSpec(currentTag, startingIndex, i, librarySchema))
     }
     resetStartingIndex = true
     librarySchema = ''
@@ -91,9 +95,7 @@ const tokenizeHedString = function (hedString) {
         break
       default:
         currentTag += character
-        if (stringIsEmpty(currentTag)) {
-          resetStartingIndex = true
-        }
+        resetStartingIndex = stringIsEmpty(currentTag)
     }
     if (resetStartingIndex) {
       resetStartingIndex = false
@@ -125,7 +127,7 @@ const tokenizeHedString = function (hedString) {
  * Check the split HED tags for invalid characters
  *
  * @param {string} hedString The HED string to be split.
- * @param {Array} tagSpecs The tag specifications.
+ * @param {TagSpec[]} tagSpecs The tag specifications.
  * @return {Object<string, Issue[]>} Any issues found.
  */
 const checkForInvalidCharacters = function (hedString, tagSpecs) {
@@ -161,7 +163,7 @@ const checkForInvalidCharacters = function (hedString, tagSpecs) {
  *
  * @param {string} hedString The HED string to be split.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @param {Array} tagSpecs The tag specifications.
+ * @param {TagSpec[]} tagSpecs The tag specifications.
  * @return {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
  */
 const createParsedTags = function (hedString, hedSchemas, tagSpecs) {
