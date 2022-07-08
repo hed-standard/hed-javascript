@@ -1,5 +1,3 @@
-const { removeGroupParentheses, mergeParsingIssues, hedStringIsAGroup } = require('../../utils/hed')
-const splitHedString = require('./splitHedString')
 const { ParsedHedGroup, ParsedHedTag } = require('./types')
 
 /**
@@ -10,16 +8,13 @@ class ParsedHedString {
    * Constructor.
    * @param {string} hedString The original HED string.
    * @param {ParsedHedSubstring[]} parsedTags The nested list of parsed HED tags and groups.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
    */
-  constructor(hedString, parsedTags, hedSchemas) {
+  constructor(hedString, parsedTags) {
     /**
      * The original HED string.
      * @type {string}
      */
     this.hedString = hedString
-
-    this._issues = { syntax: [], conversion: [] }
     /**
      * The tag groups in the string.
      * @type ParsedHedGroup[]

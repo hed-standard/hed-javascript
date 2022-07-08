@@ -204,8 +204,11 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs) {
 const splitHedString = function (hedString, hedSchemas) {
   const [tagSpecs, splitIssues] = tokenizeHedString(hedString)
   const characterIssues = checkForInvalidCharacters(hedString, tagSpecs)
-  const [parsedTags, parsingIssues] = createParsedTags(hedString, hedSchemas, tagSpecs)
   mergeParsingIssues(splitIssues, characterIssues)
+  if (splitIssues.syntax.length > 0) {
+    return [null, splitIssues]
+  }
+  const [parsedTags, parsingIssues] = createParsedTags(hedString, hedSchemas, tagSpecs)
   mergeParsingIssues(splitIssues, parsingIssues)
   return [parsedTags, splitIssues]
 }
