@@ -32,7 +32,7 @@ class TagSpec {
  * Split a HED string into delimiters and tags.
  *
  * @param {string} hedString The HED string to be split.
- * @return {[TagSpec[], Object<string, Issue[]>]} The tag specifications and any issues found.
+ * @return {[TagSpec[], Object[], Object<string, Issue[]>]} The tag specifications, group bounds, and any issues found.
  */
 const tokenizeHedString = function (hedString) {
   const syntaxIssues = []
@@ -44,7 +44,7 @@ const tokenizeHedString = function (hedString) {
   let slashFound = false
   let librarySchema = ''
   const currentGroupStack = [[]]
-  const parenthesesStack = []
+  const parenthesesStack = [{ start: 0, children: [], finish: hedString.length }]
 
   const pushTag = (i) => {
     if (!stringIsEmpty(currentTag)) {
@@ -54,30 +54,37 @@ const tokenizeHedString = function (hedString) {
     librarySchema = ''
   }
 
+  const closeGroup = (i) => {
+    const bounds = parenthesesStack.pop()
+    bounds.finish = i + 1
+    parenthesesStack[groupDepth - 1].children.push(bounds)
+    currentGroupStack[groupDepth - 1].push(currentGroupStack.pop())
+    groupDepth--
+  }
+
   for (let i = 0; i < hedString.length; i++) {
     const character = hedString.charAt(i)
     switch (character) {
       case openingGroupCharacter:
         currentGroupStack.push([])
-        parenthesesStack.push(i)
+        parenthesesStack.push({ start: i, children: [] })
         resetStartingIndex = true
         groupDepth++
         break
-      case closingGroupCharacter:
+      case closingGroupCharacter: {
         pushTag(i)
-        parenthesesStack.pop()
-        if (groupDepth > 0) {
-          currentGroupStack[groupDepth - 1].push(currentGroupStack.pop())
-          groupDepth--
-        } else {
+        if (groupDepth <= 0) {
           syntaxIssues.push(
             generateIssue('unopenedParenthesis', {
               index: i,
               string: hedString,
             }),
           )
+          break
         }
+        closeGroup(i)
         break
+      }
       case commaCharacter:
         pushTag(i)
         break
@@ -104,23 +111,26 @@ const tokenizeHedString = function (hedString) {
     }
   }
   pushTag(hedString.length)
+
+  // groupDepth is decremented in closeGroup.
+  // eslint-disable-next-line no-unmodified-loop-condition
   while (groupDepth > 0) {
     syntaxIssues.push(
       generateIssue('unclosedParenthesis', {
-        index: parenthesesStack.pop(),
+        index: parenthesesStack[parenthesesStack.length - 1].start,
         string: hedString,
       }),
     )
-    currentGroupStack[groupDepth - 1].push(currentGroupStack.pop())
-    groupDepth--
+    closeGroup(hedString.length)
   }
 
   const tagSpecs = currentGroupStack.pop()
+  const groupBounds = parenthesesStack.pop()
   const issues = {
     syntax: syntaxIssues,
     conversion: [],
   }
-  return [tagSpecs, issues]
+  return [tagSpecs, groupBounds, issues]
 }
 
 /**
@@ -164,9 +174,10 @@ const checkForInvalidCharacters = function (hedString, tagSpecs) {
  * @param {string} hedString The HED string to be split.
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @param {TagSpec[]} tagSpecs The tag specifications.
+ * @param {number[][]} groupBounds The bounds of the tag groups.
  * @return {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
  */
-const createParsedTags = function (hedString, hedSchemas, tagSpecs) {
+const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupBounds) {
   const conversionIssues = []
   const syntaxIssues = []
   const ParsedHedTagClass = generationToClass[hedSchemas.generation]
@@ -176,15 +187,26 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs) {
     conversionIssues.push(...parsedTag.conversionIssues)
     return parsedTag
   }
-  const createParsedGroup = (tags) => {
-    if (Array.isArray(tags)) {
-      return new ParsedHedGroup(tags.map(createParsedGroup), hedSchemas)
-    } else {
-      return tags
+  const createParsedGroups = (tags, groupBounds) => {
+    const tagGroups = []
+    let index = 0
+    for (const tag of tags) {
+      if (Array.isArray(tag)) {
+        tagGroups.push(
+          new ParsedHedGroup(createParsedGroups(tag, groupBounds[index].children), hedSchemas, hedString, [
+            groupBounds[index].start,
+            groupBounds[index].finish,
+          ]),
+        )
+        index++
+      } else {
+        tagGroups.push(tag)
+      }
     }
+    return tagGroups
   }
   const parsedTags = recursiveMap(createParsedTag, tagSpecs)
-  const parsedTagsWithGroups = parsedTags.map(createParsedGroup)
+  const parsedTagsWithGroups = createParsedGroups(parsedTags, groupBounds.children)
 
   const issues = {
     syntax: syntaxIssues,
@@ -202,13 +224,13 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs) {
  * @return {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
  */
 const splitHedString = function (hedString, hedSchemas) {
-  const [tagSpecs, splitIssues] = tokenizeHedString(hedString)
+  const [tagSpecs, groupBounds, splitIssues] = tokenizeHedString(hedString)
   const characterIssues = checkForInvalidCharacters(hedString, tagSpecs)
   mergeParsingIssues(splitIssues, characterIssues)
   if (splitIssues.syntax.length > 0) {
     return [null, splitIssues]
   }
-  const [parsedTags, parsingIssues] = createParsedTags(hedString, hedSchemas, tagSpecs)
+  const [parsedTags, parsingIssues] = createParsedTags(hedString, hedSchemas, tagSpecs, groupBounds)
   mergeParsingIssues(splitIssues, parsingIssues)
   return [parsedTags, splitIssues]
 }
