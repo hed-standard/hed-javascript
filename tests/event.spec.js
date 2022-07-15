@@ -62,12 +62,18 @@ describe('HED string and event validation', () => {
           // The extra comma is needed to avoid a comma error.
           extraClosing:
             '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
+          wrongOrder:
+            '/Action/Reach/To touch,((/Attribute/Object side/Left),/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px),(/Attribute/Location/Screen/Left/23 px',
           valid:
             '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm),/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px',
         }
         const expectedIssues = {
           extraOpening: [generateIssue('parentheses', { opening: 2, closing: 1 })],
           extraClosing: [generateIssue('parentheses', { opening: 1, closing: 2 })],
+          wrongOrder: [
+            generateIssue('unopenedParenthesis', { index: 125, string: testStrings.wrongOrder }),
+            generateIssue('unclosedParenthesis', { index: 127, string: testStrings.wrongOrder }),
+          ],
           valid: [],
         }
         // No-op function as this check is done during the parsing stage.
@@ -268,7 +274,7 @@ describe('HED string and event validation', () => {
 
       it('should not contain duplicates', () => {
         const testStrings = {
-          topLevelDuplicate: 'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
+          //topLevelDuplicate: 'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
           groupDuplicate:
             'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Attribute/Visual/Color/Purple,Event/Category/Experimental stimulus)',
           nestedGroupDuplicate:

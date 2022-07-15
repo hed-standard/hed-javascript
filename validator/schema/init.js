@@ -46,13 +46,11 @@ const buildSchemaAttributesObject = function (xmlData) {
 const buildSchemaObject = function (xmlData) {
   const schemaAttributes = buildSchemaAttributesObject(xmlData)
   const mapping = buildMappingObject(xmlData)
-  let schema
   if (isHed3Schema(xmlData)) {
-    schema = new Hed3Schema(xmlData, schemaAttributes, mapping)
+    return new Hed3Schema(xmlData, schemaAttributes, mapping)
   } else {
-    schema = new Hed2Schema(xmlData, schemaAttributes, mapping)
+    return new Hed2Schema(xmlData, schemaAttributes, mapping)
   }
-  return schema
 }
 
 /**

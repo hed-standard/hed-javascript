@@ -6,6 +6,16 @@ const issueData = {
     level: 'error',
     message: stringTemplate`Number of opening and closing parentheses are unequal. ${'opening'} opening parentheses. ${'closing'} closing parentheses.`,
   },
+  unopenedParentheses: {
+    hedCode: 'HED_PARENTHESES_MISMATCH',
+    level: 'error',
+    message: stringTemplate`Closing parenthesis at index ${'index'} of string "${'string'}" does not have a corresponding opening parenthesis.`,
+  },
+  unclosedParentheses: {
+    hedCode: 'HED_PARENTHESES_MISMATCH',
+    level: 'error',
+    message: stringTemplate`Opening parenthesis at index ${'index'} of string "${'string'}" does not have a corresponding closing parenthesis.`,
+  },
   invalidTag: {
     hedCode: 'HED_TAG_INVALID',
     level: 'error',

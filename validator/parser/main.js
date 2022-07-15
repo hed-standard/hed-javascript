@@ -153,10 +153,12 @@ const parseHedString = function (hedString, hedSchemas) {
     fullStringIssues.syntax = []
     return [null, fullStringIssues]
   }
-  const [hedTagList, splitIssues] = splitHedString(hedString, hedSchemas)
-  const parsedString = new ParsedHedString(hedString, hedTagList, hedSchemas)
+  const [parsedTags, splitIssues] = splitHedString(hedString, hedSchemas)
   const parsingIssues = Object.assign(fullStringIssues, splitIssues)
-  mergeParsingIssues(parsingIssues, parsedString._issues)
+  if (parsedTags === null) {
+    return [null, parsingIssues]
+  }
+  const parsedString = new ParsedHedString(hedString, parsedTags)
   return [parsedString, parsingIssues]
 }
 
