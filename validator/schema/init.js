@@ -93,7 +93,7 @@ const buildSchemas = function (schemaSpecs, useFallback = true) {
   return Promise.all(
     schemaKeys.map((k) => {
       const spec = schemaSpecs.get(k)
-      return loadSchema(spec, useFallback && spec.library === undefined)
+      return loadSchema(spec, useFallback && spec.isFallbackEligible)
     }),
   ).then((schemaXmlData) => {
     const schemaObjects = schemaXmlData.map(buildSchemaObject)

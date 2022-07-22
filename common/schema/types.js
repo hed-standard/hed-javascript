@@ -157,7 +157,7 @@ class Schemas {
   /**
    * The library schemas, i.e. the schema with nicknames, if any are defined.
    *
-   * @returns {Schema|null}
+   * @returns {Map<string, Schema>|null}
    */
   get librarySchemas() {
     if (this.schemas !== null) {
@@ -229,6 +229,10 @@ class SchemaSpec {
     const spec = new SchemaSpec()
     spec.path = path
     return spec
+  }
+
+  get isFallbackEligible() {
+    return this.library === undefined
   }
 }
 
