@@ -164,28 +164,46 @@ const checkForInvalidCharacters = function (hedString, tagSpecs) {
   const syntaxIssues = []
   const flatTagSpecs = flattenDeep(tagSpecs)
 
-  const checkTag = (tagSpec, tag, invalidSet) => {
-    for (let i = 0; i < tag.length; i++) {
-      const character = tag.charAt(i)
-      if (invalidSet.has(character)) {
-        tagSpec.invalidCharacter = true
-        syntaxIssues.push(
-          generateIssue('invalidCharacter', {
-            character: character,
-            index: tagSpec.bounds[0] + i,
-            string: hedString,
-          }),
-        )
-      }
-    }
-  }
   for (const tagSpec of flatTagSpecs) {
-    checkTag(tagSpec, tagSpec.tag, invalidCharacters)
+    const alwaysInvalidIssues = checkTagForInvalidCharacters(hedString, tagSpec, tagSpec.tag, invalidCharacters)
     const valueTag = replaceTagNameWithPound(tagSpec.tag)
-    checkTag(tagSpec, valueTag, invalidCharactersOutsideOfValues)
+    const outsideValueIssues = checkTagForInvalidCharacters(
+      hedString,
+      tagSpec,
+      valueTag,
+      invalidCharactersOutsideOfValues,
+    )
+    syntaxIssues.push(...alwaysInvalidIssues, ...outsideValueIssues)
   }
 
   return { syntax: syntaxIssues, conversion: [] }
+}
+
+/**
+ * Check an individual tag for invalid characters.
+ *
+ * @param {string} hedString The HED string to be split.
+ * @param {TagSpec} tagSpec A tag specification.
+ * @param {string} tag The tag form to be checked.
+ * @param {Set<string>} invalidSet The set of invalid characters.
+ * @returns {Issue[]} Any issues found.
+ */
+const checkTagForInvalidCharacters = function (hedString, tagSpec, tag, invalidSet) {
+  const issues = []
+  for (let i = 0; i < tag.length; i++) {
+    const character = tag.charAt(i)
+    if (invalidSet.has(character)) {
+      tagSpec.invalidCharacter = true
+      issues.push(
+        generateIssue('invalidCharacter', {
+          character: character,
+          index: tagSpec.bounds[0] + i,
+          string: hedString,
+        }),
+      )
+    }
+  }
+  return issues
 }
 
 /**
