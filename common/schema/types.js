@@ -119,20 +119,54 @@ class Hed3Schema extends Schema {
 class Schemas {
   /**
    * Constructor.
-   * @param {Schema} baseSchema The base HED schema.
-   * @param {Map<string, Schema>} librarySchemas The imported library HED schemas.
+   * @param {Schema|Map<string, Schema>} schemas The imported HED schemas.
    */
-  constructor(baseSchema, librarySchemas = undefined) {
-    /**
-     * The base HED schema.
-     * @type {Schema}
-     */
-    this.baseSchema = baseSchema
-    /**
-     * The imported library HED schemas.
-     * @type {Map<string, Schema>}
-     */
-    this.librarySchemas = librarySchemas || new Map()
+  constructor(schemas) {
+    if (schemas === null || schemas instanceof Map) {
+      /**
+       * The imported HED schemas.
+       *
+       * The empty string key ("") corresponds to the schema with no nickname,
+       * while other keys correspond to the respective nicknames.
+       *
+       * This field is null for syntax-only validation.
+       *
+       * @type {Map<string, Schema>|null}
+       */
+      this.schemas = schemas
+    } else if (schemas instanceof Schema) {
+      this.schemas = new Map([['', schemas]])
+    } else {
+      throw new Error('Invalid type passed to Schemas constructor')
+    }
+  }
+
+  /**
+   * The base schema, i.e. the schema with no nickname, if one is defined.
+   *
+   * @returns {Schema|null}
+   */
+  get baseSchema() {
+    if (this.schemas !== null) {
+      return this.schemas.get('')
+    } else {
+      return null
+    }
+  }
+
+  /**
+   * The library schemas, i.e. the schema with nicknames, if any are defined.
+   *
+   * @returns {Schema|null}
+   */
+  get librarySchemas() {
+    if (this.schemas !== null) {
+      const schemasCopy = new Map(this.schemas)
+      schemasCopy.delete('')
+      return schemasCopy
+    } else {
+      return null
+    }
   }
 
   /**
@@ -142,10 +176,13 @@ class Schemas {
    * @type {Number}
    */
   get generation() {
-    if (this.baseSchema === null) {
+    if (this.schemas === null) {
       return 0
-    } else {
+    } else if (this.baseSchema !== undefined) {
       return this.baseSchema.generation
+    } else {
+      // Only library schemas are defined, so this must be HED 3.
+      return 3
     }
   }
 
@@ -174,9 +211,31 @@ class Schemas {
   }
 }
 
+class SchemaSpec {
+  static createSpecForRemoteStandardSchema(version) {
+    const spec = new SchemaSpec()
+    spec.version = version
+    return spec
+  }
+
+  static createSpecForRemoteLibrarySchema(library, version) {
+    const spec = new SchemaSpec()
+    spec.library = library
+    spec.version = version
+    return spec
+  }
+
+  static createSpecForLocalSchema(path) {
+    const spec = new SchemaSpec()
+    spec.path = path
+    return spec
+  }
+}
+
 module.exports = {
   Schema: Schema,
   Hed2Schema: Hed2Schema,
   Hed3Schema: Hed3Schema,
   Schemas: Schemas,
+  SchemaSpec: SchemaSpec,
 }
