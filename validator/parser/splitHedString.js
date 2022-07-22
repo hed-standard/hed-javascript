@@ -26,7 +26,25 @@ class TagSpec {
   constructor(tag, start, end, librarySchema) {
     this.tag = tag.trim()
     this.bounds = [start, end]
+    /**
+     * @type {string}
+     */
     this.library = librarySchema
+  }
+}
+
+class GroupSpec {
+  constructor(start, finish) {
+    this.start = start
+    this.finish = finish
+    /**
+     * @type {GroupSpec[]}
+     */
+    this.children = []
+  }
+
+  get bounds() {
+    return [this.start, this.finish]
   }
 }
 
@@ -34,7 +52,7 @@ class TagSpec {
  * Split a HED string into delimiters and tags.
  *
  * @param {string} hedString The HED string to be split.
- * @return {[TagSpec[], Object[], Object<string, Issue[]>]} The tag specifications, group bounds, and any issues found.
+ * @return {[TagSpec[], GroupSpec, Object<string, Issue[]>]} The tag specifications, group bounds, and any issues found.
  */
 const tokenizeHedString = function (hedString) {
   const syntaxIssues = []
@@ -46,7 +64,7 @@ const tokenizeHedString = function (hedString) {
   let slashFound = false
   let librarySchema = ''
   const currentGroupStack = [[]]
-  const parenthesesStack = [{ start: 0, children: [], finish: hedString.length }]
+  const parenthesesStack = [new GroupSpec(0, hedString.length)]
 
   const pushTag = (i) => {
     if (!stringIsEmpty(currentTag)) {
@@ -69,7 +87,7 @@ const tokenizeHedString = function (hedString) {
     switch (character) {
       case openingGroupCharacter:
         currentGroupStack.push([])
-        parenthesesStack.push({ start: i, children: [] })
+        parenthesesStack.push(new GroupSpec(i))
         resetStartingIndex = true
         groupDepth++
         break
@@ -127,12 +145,12 @@ const tokenizeHedString = function (hedString) {
   }
 
   const tagSpecs = currentGroupStack.pop()
-  const groupBounds = parenthesesStack.pop()
+  const groupSpecs = parenthesesStack.pop()
   const issues = {
     syntax: syntaxIssues,
     conversion: [],
   }
-  return [tagSpecs, groupBounds, issues]
+  return [tagSpecs, groupSpecs, issues]
 }
 
 /**
@@ -176,10 +194,10 @@ const checkForInvalidCharacters = function (hedString, tagSpecs) {
  * @param {string} hedString The HED string to be split.
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @param {TagSpec[]} tagSpecs The tag specifications.
- * @param {number[][]} groupBounds The bounds of the tag groups.
+ * @param {GroupSpec} groupSpecs The bounds of the tag groups.
  * @return {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
  */
-const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupBounds) {
+const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) {
   const conversionIssues = []
   const syntaxIssues = []
   const ParsedHedTagClass = generationToClass[hedSchemas.generation]
@@ -189,16 +207,18 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupBounds)
     conversionIssues.push(...parsedTag.conversionIssues)
     return parsedTag
   }
-  const createParsedGroups = (tags, groupBounds) => {
+  const createParsedGroups = (tags, groupSpecs) => {
     const tagGroups = []
     let index = 0
     for (const tag of tags) {
       if (Array.isArray(tag)) {
         tagGroups.push(
-          new ParsedHedGroup(createParsedGroups(tag, groupBounds[index].children), hedSchemas, hedString, [
-            groupBounds[index].start,
-            groupBounds[index].finish,
-          ]),
+          new ParsedHedGroup(
+            createParsedGroups(tag, groupSpecs[index].children),
+            hedSchemas,
+            hedString,
+            groupSpecs[index].bounds,
+          ),
         )
         index++
       } else {
@@ -208,7 +228,7 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupBounds)
     return tagGroups
   }
   const parsedTags = recursiveMap(createParsedTag, tagSpecs)
-  const parsedTagsWithGroups = createParsedGroups(parsedTags, groupBounds.children)
+  const parsedTagsWithGroups = createParsedGroups(parsedTags, groupSpecs.children)
 
   const issues = {
     syntax: syntaxIssues,
