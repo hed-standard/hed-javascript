@@ -1,4 +1,4 @@
-const arrayUtils = require('../../utils/array')
+const flattenDeep = require('lodash/flattenDeep')
 
 // TODO: Switch require once upstream bugs are fixed.
 // const xpath = require('xml2js-xpath')
@@ -50,9 +50,7 @@ class Hed2SchemaParser extends SchemaParser {
       const [tags, tagElements] = this.getTagsByAttribute(dictionaryKey)
       if (dictionaryKey === extensionAllowedAttribute) {
         const tagDictionary = this.stringListToLowercaseTrueDictionary(tags)
-        const childTagElements = arrayUtils.flattenDeep(
-          tagElements.map((tagElement) => this.getAllChildTags(tagElement)),
-        )
+        const childTagElements = flattenDeep(tagElements.map((tagElement) => this.getAllChildTags(tagElement)))
         const childTags = childTagElements.map((tagElement) => {
           return this.getTagPathFromTagElement(tagElement)
         })

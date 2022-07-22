@@ -42,17 +42,4 @@ describe('Array utility functions', () => {
       assert.strictEqual(resultF, 1)
     })
   })
-
-  describe('Array flattening', () => {
-    it('must correctly flatten nested arrays', () => {
-      const array1 = ['a', ['b', 'c'], 'd', 'e', [['f', 'g']]]
-      const array2 = [1, 2, 3, 4]
-      const array3 = []
-      const array4 = [2, [4, [6, [8, [], [10]]]]]
-      assert.deepStrictEqual(utils.array.flattenDeep(array1), ['a', 'b', 'c', 'd', 'e', 'f', 'g'])
-      assert.deepStrictEqual(utils.array.flattenDeep(array2), [1, 2, 3, 4])
-      assert.deepStrictEqual(utils.array.flattenDeep(array3), [])
-      assert.deepStrictEqual(utils.array.flattenDeep(array4), [2, 4, 6, 8, 10])
-    })
-  })
 })

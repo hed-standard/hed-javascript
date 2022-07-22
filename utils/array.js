@@ -16,19 +16,6 @@ const getElementCount = function (array, elementToCount) {
 }
 
 /**
- * Recursively flatten an array.
- *
- * @param {Array} array The array to flatten.
- * @return {Array} The flattened array.
- */
-const flattenDeep = function (array) {
-  return array.reduce(
-    (accumulator, value) => (Array.isArray(value) ? accumulator.concat(flattenDeep(value)) : accumulator.concat(value)),
-    [],
-  )
-}
-
-/**
  * Return a scalar as a singleton array and an array as-is.
  *
  * @template T
@@ -57,7 +44,6 @@ function recursiveMap(fn, array) {
 
 module.exports = {
   getElementCount: getElementCount,
-  flattenDeep: flattenDeep,
   asArray: asArray,
   recursiveMap: recursiveMap,
 }

@@ -1,4 +1,4 @@
-const arrayUtils = require('../../utils/array')
+const flattenDeep = require('lodash/flattenDeep')
 
 // TODO: Switch require once upstream bugs are fixed.
 // const xpath = require('xml2js-xpath')
@@ -26,7 +26,7 @@ class SchemaParser {
       return []
     }
     const tagElementChildren = this.getElementsByName(elementName, parentElement)
-    const childTags = arrayUtils.flattenDeep(
+    const childTags = flattenDeep(
       tagElementChildren.map((child) => this.getAllChildTags(child, elementName, excludeTakeValueTags)),
     )
     childTags.push(parentElement)
