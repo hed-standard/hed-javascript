@@ -212,13 +212,9 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
     let index = 0
     for (const tag of tags) {
       if (Array.isArray(tag)) {
+        const groupSpec = groupSpecs[index]
         tagGroups.push(
-          new ParsedHedGroup(
-            createParsedGroups(tag, groupSpecs[index].children),
-            hedSchemas,
-            hedString,
-            groupSpecs[index].bounds,
-          ),
+          new ParsedHedGroup(createParsedGroups(tag, groupSpec.children), hedSchemas, hedString, groupSpec.bounds),
         )
         index++
       } else {
