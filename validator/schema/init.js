@@ -56,9 +56,10 @@ const buildSchemaObject = function (xmlData) {
 /**
  * Build a schema collection object from a schema specification.
  *
- * @param {{path: string?, version: string?, libraries: Object<string, {path: string?, version: string?, library: string?}>?}} schemaDef The description of which base schema to use.
+ * @param {{path: string?, version: string?, libraries: Object<string, {path: string?, version: string?, library: string?}>?}} schemaDef The description of which schemas to use.
  * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
  * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
+ * @deprecated
  */
 const buildSchema = function (schemaDef = {}, useFallback = true) {
   return loadSchema(schemaDef, useFallback).then((xmlData) => {
@@ -73,13 +74,36 @@ const buildSchema = function (schemaDef = {}, useFallback = true) {
       }),
     ).then((libraryXmlData) => {
       const librarySchemaObjects = libraryXmlData.map(buildSchemaObject)
-      const librarySchemas = new Map(zip(libraryKeys, librarySchemaObjects))
-      return new Schemas(baseSchema, librarySchemas)
+      const schemas = new Map(zip(libraryKeys, librarySchemaObjects))
+      schemas.set('', baseSchema)
+      return new Schemas(schemas)
     })
+  })
+}
+
+/**
+ * Build a schema collection object from a schema specification.
+ *
+ * @param {Map<string, SchemaSpec>} schemaSpecs The description of which schemas to use.
+ * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
+ * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
+ */
+const buildSchemas = function (schemaSpecs, useFallback = true) {
+  const schemaKeys = Array.from(schemaSpecs.keys())
+  return Promise.all(
+    schemaKeys.map((k) => {
+      const spec = schemaSpecs.get(k)
+      return loadSchema(spec, useFallback && spec.isFallbackEligible)
+    }),
+  ).then((schemaXmlData) => {
+    const schemaObjects = schemaXmlData.map(buildSchemaObject)
+    const schemas = new Map(zip(schemaKeys, schemaObjects))
+    return new Schemas(schemas)
   })
 }
 
 module.exports = {
   buildSchema: buildSchema,
+  buildSchemas: buildSchemas,
   buildSchemaAttributesObject: buildSchemaAttributesObject,
 }

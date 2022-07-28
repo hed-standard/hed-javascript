@@ -2,7 +2,6 @@
 
 /* Imports */
 
-const isEmpty = require('lodash/isEmpty')
 const xml2js = require('xml2js')
 
 const files = require('../../utils/files')
@@ -13,22 +12,18 @@ const { fallbackFilePath } = require('./config')
 /**
  * Load schema XML data from a schema version or path description.
  *
- * @param {{path: string?, library: string?, version: string?}} schemaDef The description of which schema to use.
+ * @param {SchemaSpec} schemaDef The description of which schema to use.
  * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
  * @return {Promise<never>|Promise<object>} The schema XML data or an error.
  */
-const loadSchema = function (schemaDef = {}, useFallback = true) {
-  if (isEmpty(schemaDef)) {
-    schemaDef.version = 'Latest'
-  }
+const loadSchema = function (schemaDef = null, useFallback = true) {
   let schemaPromise
-  if (schemaDef.path) {
+  if (schemaDef === null) {
+    schemaPromise = loadRemoteBaseSchema('Latest')
+  } else if (schemaDef.path) {
     schemaPromise = loadLocalSchema(schemaDef.path)
   } else if (schemaDef.library) {
-    schemaPromise = loadRemoteLibrarySchema(
-      schemaDef.library,
-      schemaDef.version,
-    )
+    schemaPromise = loadRemoteLibrarySchema(schemaDef.library, schemaDef.version)
   } else if (schemaDef.version) {
     schemaPromise = loadRemoteBaseSchema(schemaDef.version)
   } else {
