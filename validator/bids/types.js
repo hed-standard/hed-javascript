@@ -120,6 +120,10 @@ class BidsSidecar extends BidsJsonFile {
   get hedStrings() {
     return this.hedValueStrings.concat(this.hedCategoricalStrings)
   }
+
+  get sidecarData() {
+    return this.jsonData
+  }
 }
 
 // TODO: Remove in v4.0.0.
