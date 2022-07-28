@@ -250,10 +250,47 @@ class SchemaSpec {
   }
 }
 
+class SchemasSpec {
+  constructor() {
+    this.data = new Map()
+  }
+
+  addRemoteStandardBaseSchema(version) {
+    return this.addRemoteStandardSchema('', version)
+  }
+
+  addLocalBaseSchema(path) {
+    return this.addLocalSchema('', path)
+  }
+
+  addRemoteStandardSchema(name, version) {
+    const spec = new SchemaSpec()
+    spec.version = version
+    this.data.set(name, spec)
+    return this
+  }
+
+  addRemoteLibrarySchema(name, library, version) {
+    const spec = new SchemaSpec()
+    spec.library = library
+    spec.version = version
+    this.data.set(name, spec)
+    return this
+  }
+
+  addLocalSchema(name, path) {
+    const spec = new SchemaSpec()
+    spec.path = path
+    this.data.set(name, spec)
+    return this
+  }
+}
+
 module.exports = {
   Schema: Schema,
   Hed2Schema: Hed2Schema,
   Hed3Schema: Hed3Schema,
   Schemas: Schemas,
   SchemaSpec: SchemaSpec,
+  SchemasSpec: SchemasSpec,
 }

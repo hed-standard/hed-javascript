@@ -1,7 +1,7 @@
 const assert = require('chai').assert
 const { buildSchema, buildSchemas } = require('../validator/schema/init')
 const schemaCommon = require('../common/schema')
-const { SchemaSpec } = require('../common/schema/types')
+const { SchemasSpec } = require('../common/schema/types')
 const fallbackHedSchemaPath = schemaCommon.config.fallbackFilePath
 
 describe('HED schemas', () => {
@@ -9,7 +9,8 @@ describe('HED schemas', () => {
     describe('Remote HED schemas', () => {
       it('can be loaded from a central GitHub repository', () => {
         const remoteHedSchemaVersion = '8.0.0'
-        return buildSchema({ version: remoteHedSchemaVersion }).then((hedSchemas) => {
+        const spec = new SchemasSpec().addRemoteStandardBaseSchema(remoteHedSchemaVersion)
+        return buildSchemas(spec).then((hedSchemas) => {
           const hedSchemaVersion = hedSchemas.baseSchema.version
           assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
         })
@@ -20,7 +21,8 @@ describe('HED schemas', () => {
       it('can be loaded from a file', () => {
         const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
         const localHedSchemaVersion = '7.1.1'
-        return buildSchema({ path: localHedSchemaFile }).then((hedSchemas) => {
+        const spec = new SchemasSpec().addLocalBaseSchema(localHedSchemaFile)
+        return buildSchemas(spec).then((hedSchemas) => {
           const hedSchemaVersion = hedSchemas.baseSchema.version
           assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
         })
@@ -31,14 +33,12 @@ describe('HED schemas', () => {
       it('can be loaded from a central GitHub repository', () => {
         const remoteHedLibrarySchemaName = 'testlib'
         const remoteHedLibrarySchemaVersion = '1.0.2'
-        return buildSchemas(
-          new Map([
-            [
-              remoteHedLibrarySchemaName,
-              SchemaSpec.createSpecForRemoteLibrarySchema(remoteHedLibrarySchemaName, remoteHedLibrarySchemaVersion),
-            ],
-          ]),
-        ).then((hedSchemas) => {
+        const spec = new SchemasSpec().addRemoteLibrarySchema(
+          remoteHedLibrarySchemaName,
+          remoteHedLibrarySchemaName,
+          remoteHedLibrarySchemaVersion,
+        )
+        return buildSchemas(spec).then((hedSchemas) => {
           const hedSchema = hedSchemas.getSchema(remoteHedLibrarySchemaName)
           assert.strictEqual(hedSchema.library, remoteHedLibrarySchemaName)
           assert.strictEqual(hedSchema.version, remoteHedLibrarySchemaVersion)
@@ -51,9 +51,8 @@ describe('HED schemas', () => {
         const localHedLibrarySchemaName = 'testlib'
         const localHedLibrarySchemaVersion = '1.0.2'
         const localHedLibrarySchemaFile = 'tests/data/HED_testlib_1.0.2.xml'
-        return buildSchemas(
-          new Map([[localHedLibrarySchemaName, SchemaSpec.createSpecForLocalSchema(localHedLibrarySchemaFile)]]),
-        ).then((hedSchemas) => {
+        const spec = new SchemasSpec().addLocalSchema(localHedLibrarySchemaName, localHedLibrarySchemaFile)
+        return buildSchemas(spec).then((hedSchemas) => {
           const hedSchema = hedSchemas.getSchema(localHedLibrarySchemaName)
           assert.strictEqual(hedSchema.library, localHedLibrarySchemaName)
           assert.strictEqual(hedSchema.version, localHedLibrarySchemaVersion)
@@ -65,12 +64,11 @@ describe('HED schemas', () => {
       it('loads the fallback schema if a remote schema cannot be found', () => {
         // Invalid base schema version
         const remoteHedSchemaVersion = '0.0.1'
-        return buildSchema({ version: remoteHedSchemaVersion })
+        const spec = new SchemasSpec().addRemoteStandardBaseSchema(remoteHedSchemaVersion)
+        const fallbackSpec = new SchemasSpec().addLocalBaseSchema(fallbackHedSchemaPath)
+        return buildSchemas(spec)
           .then((hedSchemas) => {
-            return Promise.all([
-              Promise.resolve(hedSchemas.baseSchema.version),
-              buildSchema({ path: fallbackHedSchemaPath }),
-            ])
+            return Promise.all([Promise.resolve(hedSchemas.baseSchema.version), buildSchemas(fallbackSpec)])
           })
           .then(([loadedVersion, fallbackHedSchemas]) => {
             const fallbackHedSchemaVersion = fallbackHedSchemas.baseSchema.version
@@ -81,12 +79,11 @@ describe('HED schemas', () => {
       it('loads the fallback schema if a local schema cannot be found', () => {
         // Invalid base schema path
         const localHedSchemaFile = 'tests/data/HEDNotFound.xml'
-        return buildSchema({ path: localHedSchemaFile })
+        const spec = new SchemasSpec().addLocalBaseSchema(localHedSchemaFile)
+        const fallbackSpec = new SchemasSpec().addLocalBaseSchema(fallbackHedSchemaPath)
+        return buildSchemas(spec)
           .then((hedSchemas) => {
-            return Promise.all([
-              Promise.resolve(hedSchemas.baseSchema.version),
-              buildSchema({ path: fallbackHedSchemaPath }),
-            ])
+            return Promise.all([Promise.resolve(hedSchemas.baseSchema.version), buildSchemas(fallbackSpec)])
           })
           .then(([loadedVersion, fallbackHedSchemas]) => {
             const fallbackHedSchemaVersion = fallbackHedSchemas.baseSchema.version
