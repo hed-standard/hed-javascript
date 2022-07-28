@@ -71,6 +71,7 @@ const tokenizeHedString = function (hedString) {
       currentGroupStack[groupDepth].push(new TagSpec(currentTag, startingIndex, i, librarySchema))
     }
     resetStartingIndex = true
+    slashFound = false
     librarySchema = ''
   }
 
