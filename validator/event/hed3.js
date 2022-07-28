@@ -59,9 +59,12 @@ class Hed3Validator extends HedValidator {
   }
 
   _checkForTagAttribute(attribute, fn) {
-    const tags = this.hedSchemas.baseSchema.entries.definitions.get('tags').getEntriesWithBooleanAttribute(attribute)
-    for (const tag of tags) {
-      fn(tag.name)
+    const schemas = this.hedSchemas.schemas.values()
+    for (const schema of schemas) {
+      const tags = schema.entries.definitions.get('tags').getEntriesWithBooleanAttribute(attribute)
+      for (const tag of tags) {
+        fn(tag.name)
+      }
     }
   }
 
@@ -119,7 +122,7 @@ class Hed3Validator extends HedValidator {
   validateUnits(tag) {
     const originalTagUnitValue = tag.originalTagName
     const tagUnitClassUnits = tag.validUnits
-    const validUnits = this.hedSchemas.baseSchema.entries.allUnits
+    const validUnits = tag.schema.entries.allUnits
     const unitStrings = Array.from(validUnits.keys())
     unitStrings.sort((first, second) => {
       return second.length - first.length

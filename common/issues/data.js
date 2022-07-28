@@ -161,6 +161,11 @@ const issueData = {
     level: 'error',
     message: stringTemplate`The fallback schema bundled with this validator failed to load. The error given was "${'error'}". No HED validation was performed.`,
   },
+  unmatchedBaseSchema: {
+    hedCode: 'HED_LIBRARY_UNMATCHED',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" is declared to use a base schema in the dataset's schema listing, but no such schema was defined.`,
+  },
   unmatchedLibrarySchema: {
     hedCode: 'HED_LIBRARY_UNMATCHED',
     level: 'error',
