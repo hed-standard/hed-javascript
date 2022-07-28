@@ -1,9 +1,10 @@
 const { validateHedDatasetWithContext } = require('../dataset')
 const { validateHedString } = require('../event')
-const { buildSchema } = require('../schema/init')
+const { buildSchema, buildSchemas } = require('../schema/init')
 const { sidecarValueHasHed } = require('../../utils/bids')
 const { generateIssue } = require('../../common/issues/issues')
 const { fallbackFilePath } = require('../../common/schema')
+const { SchemasSpec } = require('../../common/schema/types')
 const { BidsDataset, BidsHedIssue, BidsIssue } = require('./types')
 
 function generateInternalErrorBidsIssue(error) {
@@ -49,9 +50,57 @@ function validateBidsDataset(dataset, schemaDefinition) {
 }
 
 function buildBidsSchema(dataset, schemaDefinition) {
-  return buildSchema(schemaDefinition, false).then((hedSchemas) => {
-    return validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue)
-  })
+  if (
+    schemaDefinition === undefined &&
+    dataset.datasetDescription.jsonData &&
+    dataset.datasetDescription.jsonData.HEDVersion
+  ) {
+    // Build our own spec.
+    try {
+      const schemaSpec = buildSchemaSpec(dataset)
+      return buildSchemas(schemaSpec, false).then((hedSchemas) => {
+        return validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue)
+      })
+    } catch (error) {
+      return generateInternalErrorBidsIssue(error)
+    }
+  } else {
+    // Use their spec.
+    return buildSchema(schemaDefinition, false).then((hedSchemas) => {
+      return validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue)
+    })
+  }
+}
+
+function buildSchemaSpec(dataset) {
+  const datasetVersion = dataset.datasetDescription.jsonData.HEDVersion
+  const schemaSpec = new SchemasSpec()
+  if (Array.isArray(datasetVersion)) {
+    for (const schemaVersion of datasetVersion) {
+      const nicknameSplit = schemaVersion.split(':')
+      let nickname, schema
+      if (nicknameSplit.length > 1) {
+        ;[nickname, schema] = nicknameSplit
+      } else {
+        schema = nicknameSplit[0]
+        nickname = ''
+      }
+      if (schema.indexOf(':') > -1) {
+        throw new Error('Local paths not supported.')
+      }
+      const versionSplit = schema.split('_')
+      let library, version
+      if (versionSplit.length > 1) {
+        ;[library, version] = versionSplit
+      } else {
+        version = versionSplit[0]
+      }
+      schemaSpec.addRemoteLibrarySchema(nickname, library, version)
+    }
+  } else if (typeof datasetVersion === 'string') {
+    schemaSpec.addRemoteStandardBaseSchema(datasetVersion)
+  }
+  return schemaSpec
 }
 
 function validateFullDataset(dataset, hedSchemas) {

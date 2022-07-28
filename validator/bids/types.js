@@ -35,7 +35,16 @@ class BidsFile extends BidsData {
   }
 }
 
-class BidsJsonFile extends BidsFile {}
+class BidsJsonFile extends BidsFile {
+  constructor(name, jsonData, file) {
+    super(name, file)
+    /**
+     * This file's JSON data.
+     * @type {object}
+     */
+    this.jsonData = jsonData
+  }
+}
 
 class BidsTsvFile extends BidsFile {
   constructor(name, parsedTsv, file) {
@@ -77,19 +86,14 @@ class BidsEventFile extends BidsTsvFile {
 
 class BidsSidecar extends BidsJsonFile {
   constructor(name, sidecarData = {}, file) {
-    super(name, file)
-    /**
-     * The unparsed sidecar data.
-     * @type {object}
-     */
-    this.sidecarData = sidecarData
+    super(name, sidecarData, file)
 
     this.filterHedStrings()
     this.categorizeHedStrings()
   }
 
   filterHedStrings() {
-    const sidecarHedTags = Object.entries(this.sidecarData)
+    const sidecarHedTags = Object.entries(this.jsonData)
       .map(([sidecarKey, sidecarValue]) => {
         if (sidecarValueHasHed(sidecarValue)) {
           return [sidecarKey, sidecarValue.HED]
@@ -122,11 +126,12 @@ class BidsSidecar extends BidsJsonFile {
 const fallbackDatasetDescription = new BidsJsonFile('./dataset_description.json', null)
 
 class BidsDataset extends BidsData {
-  constructor(eventData, sidecarData, datasetDescription = fallbackDatasetDescription) {
+  constructor(eventData, sidecarData, datasetDescription = fallbackDatasetDescription, datasetRootDirectory = null) {
     super()
     this.eventData = eventData
     this.sidecarData = sidecarData
     this.datasetDescription = datasetDescription
+    this.datasetRootDirectory = datasetRootDirectory
   }
 }
 
