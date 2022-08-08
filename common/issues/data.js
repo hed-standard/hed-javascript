@@ -1,6 +1,7 @@
 const { stringTemplate } = require('../../utils/string')
 
 const issueData = {
+  // Syntax issues
   parentheses: {
     hedCode: 'HED_PARENTHESES_MISMATCH',
     level: 'error',
@@ -15,11 +16,6 @@ const issueData = {
     hedCode: 'HED_PARENTHESES_MISMATCH',
     level: 'error',
     message: stringTemplate`Opening parenthesis at index ${'index'} of string "${'string'}" does not have a corresponding closing parenthesis.`,
-  },
-  invalidTag: {
-    hedCode: 'HED_TAG_INVALID',
-    level: 'error',
-    message: stringTemplate`Invalid tag - "${'tag'}"`,
   },
   extraDelimiter: {
     hedCode: 'HED_TAG_EMPTY',
@@ -36,15 +32,26 @@ const issueData = {
     level: 'error',
     message: stringTemplate`Duplicate tag at indices (${0}, ${1}) - "${'tag'}"`,
   },
+  invalidCharacter: {
+    hedCode: 'HED_CHARACTER_INVALID',
+    level: 'error',
+    message: stringTemplate`Invalid character "${'character'}" at index ${'index'} of string "${'string'}"`,
+  },
+  // Common semantic validation issues
+  invalidTag: {
+    hedCode: 'HED_TAG_INVALID',
+    level: 'error',
+    message: stringTemplate`Invalid tag - "${'tag'}"`,
+  },
+  extraCommaOrInvalid: {
+    hedCode: 'HED_TAG_INVALID',
+    level: 'error',
+    message: stringTemplate`Either "${'previousTag'}" contains a comma when it should not or "${'tag'}" is not a valid tag`,
+  },
   multipleUniqueTags: {
     hedCode: 'HED_TAG_NOT_UNIQUE',
     level: 'error',
     message: stringTemplate`Multiple unique tags with prefix - "${'tag'}"`,
-  },
-  tooManyTildes: {
-    hedCode: 'HED_TILDES_UNSUPPORTED',
-    level: 'error',
-    message: stringTemplate`Too many tildes - group "${'tagGroup'}"`,
   },
   childRequired: {
     hedCode: 'HED_TAG_REQUIRES_CHILD',
@@ -66,75 +73,51 @@ const issueData = {
     level: 'error',
     message: stringTemplate`Invalid unit - "${'tag'}" - valid units are "${'unitClassUnits'}"`,
   },
-  extraCommaOrInvalid: {
-    hedCode: 'HED_TAG_INVALID',
+  invalidValue: {
+    hedCode: 'HED_VALUE_INVALID',
     level: 'error',
-    message: stringTemplate`Either "${'previousTag'}" contains a comma when it should not or "${'tag'}" is not a valid tag`,
-  },
-  invalidCharacter: {
-    hedCode: 'HED_CHARACTER_INVALID',
-    level: 'error',
-    message: stringTemplate`Invalid character "${'character'}" at index ${'index'} of string "${'string'}"`,
-  },
-  extension: {
-    hedCode: 'HED_TAG_EXTENDED',
-    level: 'warning',
-    message: stringTemplate`Tag extension found - "${'tag'}"`,
+    message: stringTemplate`Invalid placeholder value for tag "${'tag'}"`,
   },
   invalidPlaceholder: {
     hedCode: 'HED_PLACEHOLDER_INVALID',
     level: 'error',
     message: stringTemplate`Invalid placeholder - "${'tag'}"`,
   },
-  invalidPlaceholderInDefinition: {
-    hedCode: 'HED_PLACEHOLDER_INVALID',
-    level: 'error',
-    message: stringTemplate`Invalid placeholder in definition - "${'definition'}"`,
-  },
   missingPlaceholder: {
     hedCode: 'HED_PLACEHOLDER_INVALID',
     level: 'error',
     message: stringTemplate`HED value string "${'string'}" is missing a required placeholder.`,
   },
-  invalidValue: {
-    hedCode: 'HED_VALUE_INVALID',
-    level: 'error',
-    message: stringTemplate`Invalid placeholder value for tag "${'tag'}"`,
+  extension: {
+    hedCode: 'HED_TAG_EXTENDED',
+    level: 'warning',
+    message: stringTemplate`Tag extension found - "${'tag'}"`,
   },
-  invalidParentNode: {
-    hedCode: 'HED_VALUE_IS_NODE',
+  // HED 3-specific validation issues
+  invalidPlaceholderInDefinition: {
+    hedCode: 'HED_PLACEHOLDER_INVALID',
     level: 'error',
-    message: stringTemplate`"${'tag'}" appears as "${'parentTag'}" and cannot be used as an extension. Indices (${0}, ${1}).`,
-  },
-  emptyTagFound: {
-    hedCode: 'HED_NODE_NAME_EMPTY',
-    level: 'error',
-    message: stringTemplate`Empty tag cannot be converted.`,
-  },
-  duplicateTagsInSchema: {
-    hedCode: 'HED_GENERIC_ERROR',
-    level: 'error',
-    message: stringTemplate`Source HED schema is invalid as it contains duplicate tags.`,
-  },
-  illegalDefinitionGroupTag: {
-    hedCode: 'HED_DEFINITION_INVALID',
-    level: 'error',
-    message: stringTemplate`Illegal tag "${'tag'}" in tag group for definition "${'definition'}"`,
+    message: stringTemplate`Invalid placeholder in definition - "${'definition'}"`,
   },
   nestedDefinition: {
     hedCode: 'HED_DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Illegal nested definition in tag group for definition "${'definition'}"`,
   },
+  duplicateDefinition: {
+    hedCode: 'HED_DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Definition "${'definition'}" is declared multiple times. This instance's tag group is "${'tagGroup'}"`,
+  },
   multipleTagGroupsInDefinition: {
     hedCode: 'HED_DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Multiple inner tag groups found in definition "${'definition'}"`,
   },
-  duplicateDefinition: {
+  illegalDefinitionGroupTag: {
     hedCode: 'HED_DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Definition "${'definition'}" is declared multiple times. This instance's tag group is "${'tagGroup'}"`,
+    message: stringTemplate`Illegal tag "${'tag'}" in tag group for definition "${'definition'}"`,
   },
   invalidTopLevelTagGroupTag: {
     hedCode: 'HED_TAG_GROUP_ERROR',
@@ -151,6 +134,23 @@ const issueData = {
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is only allowed inside of a tag group.`,
   },
+  // Tag conversion issues
+  invalidParentNode: {
+    hedCode: 'HED_VALUE_IS_NODE',
+    level: 'error',
+    message: stringTemplate`"${'tag'}" appears as "${'parentTag'}" and cannot be used as an extension. Indices (${0}, ${1}).`,
+  },
+  emptyTagFound: {
+    hedCode: 'HED_NODE_NAME_EMPTY',
+    level: 'error',
+    message: stringTemplate`Empty tag cannot be converted.`,
+  },
+  duplicateTagsInSchema: {
+    hedCode: 'HED_GENERIC_ERROR',
+    level: 'error',
+    message: stringTemplate`Source HED schema is invalid as it contains duplicate tags.`,
+  },
+  // Schema issues
   requestedSchemaLoadFailed: {
     hedCode: 'HED_SCHEMA_LOAD_FAILED',
     level: 'warning',
@@ -171,6 +171,7 @@ const issueData = {
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is declared to use a library schema nicknamed "${'library'}" in the dataset's schema listing, but no such schema was found.`,
   },
+  // Generic errors
   genericError: {
     hedCode: 'HED_GENERIC_ERROR',
     level: 'error',
