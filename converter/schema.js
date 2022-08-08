@@ -80,7 +80,7 @@ const getParentTagName = function (tagElement) {
  * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
  */
 const buildSchema = function (schemaDef = {}) {
-  return schemaUtils.loadSchema(schemaDef).then((xmlData) => {
+  return schemaUtils.loadSchema(schemaDef).then(([xmlData, issues]) => {
     const mapping = buildMappingObject(xmlData)
     const baseSchema = new schemaUtils.Schema(xmlData, undefined, mapping)
     return new schemaUtils.Schemas(baseSchema)

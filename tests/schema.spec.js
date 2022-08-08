@@ -10,7 +10,7 @@ describe('HED schemas', () => {
       it('can be loaded from a central GitHub repository', () => {
         const remoteHedSchemaVersion = '8.0.0'
         const spec = new SchemasSpec().addRemoteStandardBaseSchema(remoteHedSchemaVersion)
-        return buildSchemas(spec).then((hedSchemas) => {
+        return buildSchemas(spec).then(([hedSchemas, issues]) => {
           const hedSchemaVersion = hedSchemas.baseSchema.version
           assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
         })
@@ -22,7 +22,7 @@ describe('HED schemas', () => {
         const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
         const localHedSchemaVersion = '7.1.1'
         const spec = new SchemasSpec().addLocalBaseSchema(localHedSchemaFile)
-        return buildSchemas(spec).then((hedSchemas) => {
+        return buildSchemas(spec).then(([hedSchemas, issues]) => {
           const hedSchemaVersion = hedSchemas.baseSchema.version
           assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
         })
@@ -38,7 +38,7 @@ describe('HED schemas', () => {
           remoteHedLibrarySchemaName,
           remoteHedLibrarySchemaVersion,
         )
-        return buildSchemas(spec).then((hedSchemas) => {
+        return buildSchemas(spec).then(([hedSchemas, issues]) => {
           const hedSchema = hedSchemas.getSchema(remoteHedLibrarySchemaName)
           assert.strictEqual(hedSchema.library, remoteHedLibrarySchemaName)
           assert.strictEqual(hedSchema.version, remoteHedLibrarySchemaVersion)
@@ -52,7 +52,7 @@ describe('HED schemas', () => {
         const localHedLibrarySchemaVersion = '1.0.2'
         const localHedLibrarySchemaFile = 'tests/data/HED_testlib_1.0.2.xml'
         const spec = new SchemasSpec().addLocalSchema(localHedLibrarySchemaName, localHedLibrarySchemaFile)
-        return buildSchemas(spec).then((hedSchemas) => {
+        return buildSchemas(spec).then(([hedSchemas, issues]) => {
           const hedSchema = hedSchemas.getSchema(localHedLibrarySchemaName)
           assert.strictEqual(hedSchema.library, localHedLibrarySchemaName)
           assert.strictEqual(hedSchema.version, localHedLibrarySchemaVersion)
@@ -67,10 +67,10 @@ describe('HED schemas', () => {
         const spec = new SchemasSpec().addRemoteStandardBaseSchema(remoteHedSchemaVersion)
         const fallbackSpec = new SchemasSpec().addLocalBaseSchema(fallbackHedSchemaPath)
         return buildSchemas(spec)
-          .then((hedSchemas) => {
+          .then(([hedSchemas, issues]) => {
             return Promise.all([Promise.resolve(hedSchemas.baseSchema.version), buildSchemas(fallbackSpec)])
           })
-          .then(([loadedVersion, fallbackHedSchemas]) => {
+          .then(([loadedVersion, [fallbackHedSchemas, issues]]) => {
             const fallbackHedSchemaVersion = fallbackHedSchemas.baseSchema.version
             assert.strictEqual(loadedVersion, fallbackHedSchemaVersion)
           })
@@ -82,10 +82,10 @@ describe('HED schemas', () => {
         const spec = new SchemasSpec().addLocalBaseSchema(localHedSchemaFile)
         const fallbackSpec = new SchemasSpec().addLocalBaseSchema(fallbackHedSchemaPath)
         return buildSchemas(spec)
-          .then((hedSchemas) => {
+          .then(([hedSchemas, issues]) => {
             return Promise.all([Promise.resolve(hedSchemas.baseSchema.version), buildSchemas(fallbackSpec)])
           })
-          .then(([loadedVersion, fallbackHedSchemas]) => {
+          .then(([loadedVersion, [fallbackHedSchemas, issues]]) => {
             const fallbackHedSchemaVersion = fallbackHedSchemas.baseSchema.version
             assert.strictEqual(loadedVersion, fallbackHedSchemaVersion)
           })

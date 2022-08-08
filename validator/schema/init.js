@@ -62,7 +62,7 @@ const buildSchemaObject = function (xmlData) {
  * @deprecated
  */
 const buildSchema = function (schemaDef = {}, useFallback = true) {
-  return loadSchema(schemaDef, useFallback).then((xmlData) => {
+  return loadSchema(schemaDef, useFallback).then(([xmlData, baseSchemaIssues]) => {
     const baseSchema = buildSchemaObject(xmlData)
     if (schemaDef.libraries === undefined) {
       return new Schemas(baseSchema)
@@ -72,7 +72,8 @@ const buildSchema = function (schemaDef = {}, useFallback = true) {
       libraryDefs.map((libraryDef) => {
         return loadSchema(libraryDef, false)
       }),
-    ).then((libraryXmlData) => {
+    ).then((libraryXmlDataAndIssues) => {
+      const [libraryXmlData, libraryXmlIssues] = zip(...libraryXmlDataAndIssues)
       const librarySchemaObjects = libraryXmlData.map(buildSchemaObject)
       const schemas = new Map(zip(libraryKeys, librarySchemaObjects))
       schemas.set('', baseSchema)
@@ -86,7 +87,7 @@ const buildSchema = function (schemaDef = {}, useFallback = true) {
  *
  * @param {Map<string, SchemaSpec>|SchemasSpec} schemaSpecs The description of which schemas to use.
  * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
- * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
+ * @return {Promise<never>|Promise<[Schemas, Issue[]]>} The schema container object and any issues found.
  */
 const buildSchemas = function (schemaSpecs, useFallback = true) {
   if (schemaSpecs instanceof SchemasSpec) {
@@ -98,10 +99,11 @@ const buildSchemas = function (schemaSpecs, useFallback = true) {
       const spec = schemaSpecs.get(k)
       return loadSchema(spec, useFallback && spec.isFallbackEligible)
     }),
-  ).then((schemaXmlData) => {
+  ).then((schemaXmlDataAndIssues) => {
+    const [schemaXmlData, schemaXmlIssues] = zip(...schemaXmlDataAndIssues)
     const schemaObjects = schemaXmlData.map(buildSchemaObject)
     const schemas = new Map(zip(schemaKeys, schemaObjects))
-    return new Schemas(schemas)
+    return [new Schemas(schemas), schemaXmlIssues.flat()]
   })
 }
 

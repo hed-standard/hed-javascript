@@ -19,33 +19,12 @@ function generateInternalErrorBidsIssue(error) {
  * @return {Promise<Array<BidsIssue>>} Any issues found.
  */
 function validateBidsDataset(dataset, schemaDefinition) {
-  // loop through event data files
-  const schemaLoadIssues = []
   return buildBidsSchema(dataset, schemaDefinition)
-    .catch((error) => {
-      schemaLoadIssues.push(
-        new BidsHedIssue(
-          generateIssue('requestedSchemaLoadFailed', {
-            schemaDefinition: JSON.stringify(schemaDefinition),
-            error: error.message,
-          }),
-          dataset.datasetDescription.file,
-        ),
-      )
-      return buildBidsSchema(dataset, { path: fallbackFilePath }).catch((error) => {
-        schemaLoadIssues.push(
-          new BidsHedIssue(
-            generateIssue('fallbackSchemaLoadFailed', {
-              error: error.message,
-            }),
-            null,
-          ),
-        )
-        return []
-      })
+    .catch((issues) => {
+      return convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file)
     })
-    .then((datasetIssues) => {
-      return Promise.resolve(datasetIssues.concat(schemaLoadIssues))
+    .then((hedSchemas) => {
+      return validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue)
     })
 }
 
@@ -56,19 +35,11 @@ function buildBidsSchema(dataset, schemaDefinition) {
     dataset.datasetDescription.jsonData.HEDVersion
   ) {
     // Build our own spec.
-    try {
-      const schemaSpec = buildSchemaSpec(dataset)
-      return buildSchemas(schemaSpec, false).then((hedSchemas) => {
-        return validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue)
-      })
-    } catch (error) {
-      return generateInternalErrorBidsIssue(error)
-    }
+    const schemaSpec = buildSchemaSpec(dataset)
+    return buildSchemas(schemaSpec, true)
   } else {
     // Use their spec.
-    return buildSchema(schemaDefinition, false).then((hedSchemas) => {
-      return validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue)
-    })
+    return buildSchema(schemaDefinition, true)
   }
 }
 
@@ -86,7 +57,7 @@ function buildSchemaSpec(dataset) {
         nickname = ''
       }
       if (schema.indexOf(':') > -1) {
-        throw new Error('Local paths not supported.')
+        return Promise.reject([generateIssue('invalidSchemaSpec', { spec: datasetVersion })])
       }
       const versionSplit = schema.split('_')
       let library, version

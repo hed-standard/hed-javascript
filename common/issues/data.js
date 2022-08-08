@@ -151,15 +151,40 @@ const issueData = {
     message: stringTemplate`Source HED schema is invalid as it contains duplicate tags.`,
   },
   // Schema issues
-  requestedSchemaLoadFailed: {
+  invalidSchemaSpec: {
+    hedCode: 'HED_SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`The supplied schema specification is invalid. Specification: ${'spec'}`,
+  },
+  requestedSchemaLoadFailedFallbackUsed: {
     hedCode: 'HED_SCHEMA_LOAD_FAILED',
     level: 'warning',
-    message: stringTemplate`The requested schema "${'schemaDefinition'}" failed to load. The error given was "${'error'}". The fallback schema bundled with this validator will be used instead.`,
+    message: stringTemplate`The requested schema failed to load. The fallback schema bundled with this validator will be used instead. Specification: ${'spec'}`,
+  },
+  requestedSchemaLoadFailedNoFallbackUsed: {
+    hedCode: 'HED_SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`The requested schema failed to load. The validator did not attempt to load a fallback schema. Specification: ${'spec'}`,
   },
   fallbackSchemaLoadFailed: {
     hedCode: 'HED_SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`The fallback schema bundled with this validator failed to load. The error given was "${'error'}". No HED validation was performed.`,
+    message: stringTemplate`The fallback schema bundled with this validator failed to load. No HED validation was performed.`,
+  },
+  localSchemaLoadFailed: {
+    hedCode: 'HED_SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Could not load HED schema from path "${'path'}" - "${'error'}".`,
+  },
+  remoteStandardSchemaLoadFailed: {
+    hedCode: 'HED_SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Could not load HED standard schema, version "${'version'}", from remote repository - "${'error'}".`,
+  },
+  remoteLibrarySchemaLoadFailed: {
+    hedCode: 'HED_SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Could not load HED library schema "${'library'}", version "${'version'}", from remote repository - "${'error'}".`,
   },
   unmatchedBaseSchema: {
     hedCode: 'HED_LIBRARY_UNMATCHED',
