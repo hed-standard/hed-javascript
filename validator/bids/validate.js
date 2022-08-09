@@ -49,7 +49,7 @@ function buildSchemaSpec(dataset) {
   const schemaSpec = new SchemasSpec()
   if (Array.isArray(datasetVersion)) {
     for (const schemaVersion of datasetVersion) {
-      const nicknameSplit = schemaVersion.split(':', 1)
+      const nicknameSplit = schemaVersion.split(':', 2)
       let nickname, schema
       if (nicknameSplit.length > 1) {
         ;[nickname, schema] = nicknameSplit

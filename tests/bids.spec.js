@@ -809,7 +809,7 @@ describe('BIDS datasets', () => {
   })
 
   describe('HED 3 Library Tests', () => {
-    it('should validate HED 3 in BIDS event with a dataset description and no version spec', () => {
+    it('should validate HED 3 in BIDS event with json and a dataset description and no version spec', () => {
       // const goodEvents0 = [bidsTsvFiles[5][0]]
       // const goodEvents1 = [bidsTsvFiles[5][1]]
       const goodEvents2 = [bidsTsvFiles[5][2]]
@@ -822,7 +822,7 @@ describe('BIDS datasets', () => {
       return validator(testDatasets, expectedIssues)
     }, 10000)
 
-    it('should validate HED 3 in BIDS event with a dataset description and version spec', () => {
+    it('should validate HED 3 in BIDS event with json and a dataset description and version spec', () => {
       // const goodEvents0 = [bidsTsvFiles[5][0]]
       // const goodEvents1 = [bidsTsvFiles[5][1]]
       const goodEvents2 = [bidsTsvFiles[5][2]]
@@ -835,17 +835,64 @@ describe('BIDS datasets', () => {
       return validator(testDatasets, expectedIssues, { version: '8.1.0' })
     }, 10000)
 
-    it('should validate HED 3 in BIDS event files combined with JSON sidecar data on hold', () => {
+    // it('should validate HED 3 in BIDS event files combined with JSON sidecar data on hold', () => {
+    //   const goodEvents0 = [bidsTsvFiles[5][0]]
+    //   const goodEvents1 = [bidsTsvFiles[5][1]]
+    //   const goodEvents2 = [bidsTsvFiles[5][2]]
+    //   const testDatasets = {
+    //     just_base2: new BidsDataset(goodEvents2, []),
+    //   }
+    //   const expectedIssues = {
+    //     just_base2: [],
+    //   }
+    //   return validator(testDatasets, expectedIssues, { version: '8.1.0' })
+    // }, 10000)
+
+    // it('should validate HED 3 in BIDS event with a dataset description and version spec', () => {
+    //   // const goodEvents0 = [bidsTsvFiles[5][0]]
+    //   // const goodEvents1 = [bidsTsvFiles[5][1]]
+    //   const goodEvents2 = [bidsTsvFiles[5][2]]
+    //   const testDatasets = {
+    //     just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
+    //   }
+    //   const expectedIssues = {
+    //     just_base2: [],
+    //   }
+    //   return validator(testDatasets, expectedIssues, {version: '8.1.0'})
+    // }, 10000)
+
+    it('should validate HED 3 in BIDS event files combined with JSON sidecar data', () => {
       const goodEvents0 = [bidsTsvFiles[5][0]]
       const goodEvents1 = [bidsTsvFiles[5][1]]
       const goodEvents2 = [bidsTsvFiles[5][2]]
       const testDatasets = {
-        just_base2: new BidsDataset(goodEvents2, []),
+        just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
+        library_not_needed1: new BidsDataset(goodEvents2, [], bidsDataDescriptions[1]),
+        library_not_needed2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[3]),
       }
       const expectedIssues = {
         just_base2: [],
+        library_not_needed1: [],
+        library_not_needed2: [],
       }
-      return validator(testDatasets, expectedIssues, { version: '8.1.0' })
+      return validator(testDatasets, expectedIssues)
+    }, 10000)
+
+    it('should validate HED 3 in BIDS event files combined with JSON sidecar data', () => {
+      const goodEvents0 = [bidsTsvFiles[5][0]]
+      const goodEvents1 = [bidsTsvFiles[5][1]]
+      const goodEvents2 = [bidsTsvFiles[5][2]]
+      const testDatasets = {
+        just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
+        library_not_needed1: new BidsDataset(goodEvents2, [], bidsDataDescriptions[1]),
+        library_not_needed2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[3]),
+      }
+      const expectedIssues = {
+        just_base2: [],
+        library_not_needed1: [],
+        library_not_needed2: [],
+      }
+      return validator(testDatasets, expectedIssues)
     }, 10000)
   })
 })
