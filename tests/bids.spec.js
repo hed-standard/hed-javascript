@@ -142,7 +142,7 @@ describe('BIDS datasets', () => {
         event_type: {
           HED: {
             show_face: 'Sensory-event, ts:Visual-presentation',
-            left_press: 'Push-press, Def/My-def1, ts:Def/My-def2/3',
+            left_press: 'Press, Def/My-def1, ts:Def/My-def2/3',
           },
         },
         dummy_defs: {
@@ -883,11 +883,22 @@ describe('BIDS datasets', () => {
       const goodEvents1 = [bidsTsvFiles[5][1]]
       const goodEvents2 = [bidsTsvFiles[5][2]]
       const testDatasets = {
+        library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], bidsDataDescriptions[1]),
+        library_and_defs_no_base: new BidsDataset(goodEvents0, [], bidsDataDescriptions[3]),
+        library_only_with_extra_base: new BidsDataset(goodEvents1, [], bidsDataDescriptions[1]),
+        library_only: new BidsDataset(goodEvents1, [], bidsDataDescriptions[1]),
         just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
         library_not_needed1: new BidsDataset(goodEvents2, [], bidsDataDescriptions[1]),
         library_not_needed2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[3]),
+        library_and_base_with_extra_schema: new BidsDataset(goodEvents1, [], bidsDataDescriptions[3]),
       }
       const expectedIssues = {
+        library_and_defs_base_ignored: [],
+        library_and_defs_no_base: [],
+        library_only_with_extra_base: [],
+        library_only: [],
+        library_only_extra_schema: [],
+        only_libraries: [],
         just_base2: [],
         library_not_needed1: [],
         library_not_needed2: [],
