@@ -568,29 +568,44 @@ describe('BIDS datasets', () => {
 
   const bidsDataDescriptions = [
     new BidsJsonFile(
-      'dataset_description1.json',
+      '/dataset_description.json',
       { Name: 'Try0', BIDSVersion: '1.7.0', HEDVersion: '8.1.0' },
-      'dataset_description1.json',
+      {
+        relativePath: '/dataset_description.json',
+        path: '/dataset_description.json',
+      },
     ),
     new BidsJsonFile(
-      'dataset_description2.json',
+      '/dataset_description.json',
       { Name: 'Try1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2'] },
-      'dataset_description2.json',
+      {
+        relativePath: '/dataset_description.json',
+        path: '/dataset_description.json',
+      },
     ),
     new BidsJsonFile(
-      'dataset_description3.json',
+      '/dataset_description.json',
       { Name: 'Try2', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2'] },
-      'dataset_description3.json',
+      {
+        relativePath: '/dataset_description.json',
+        path: '/dataset_description.json',
+      },
     ),
     new BidsJsonFile(
-      'dataset_description4.json',
+      '/dataset_description.json',
       { Name: 'Try3', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
-      'dataset_description4.json',
+      {
+        relativePath: '/dataset_description.json',
+        path: '/dataset_description.json',
+      },
     ),
     new BidsJsonFile(
-      'dataset_description5.json',
+      '/dataset_description.json',
       { Name: 'Try4', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
-      'dataset_description5.json',
+      {
+        relativePath: '/dataset_description.json',
+        path: '/dataset_description.json',
+      },
     ),
   ]
 

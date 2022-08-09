@@ -20,7 +20,11 @@ function generateInternalErrorBidsIssue(error) {
  */
 function validateBidsDataset(dataset, schemaDefinition) {
   return buildBidsSchema(dataset, schemaDefinition).then(
-    (hedSchemas) => validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue),
+    ([hedSchemas, schemaLoadIssues]) => {
+      return validateFullDataset(dataset, hedSchemas)
+        .catch(generateInternalErrorBidsIssue)
+        .then((issues) => schemaLoadIssues.concat(issues))
+    },
     (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file),
   )
 }
@@ -36,7 +40,7 @@ function buildBidsSchema(dataset, schemaDefinition) {
     return buildSchemas(schemaSpec, true)
   } else {
     // Use their spec.
-    return buildSchema(schemaDefinition, true)
+    return buildSchema(schemaDefinition, true).then((schemas) => [schemas, []])
   }
 }
 
