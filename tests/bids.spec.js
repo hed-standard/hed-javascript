@@ -5,6 +5,7 @@ const {
   BidsDataset,
   BidsEventFile,
   BidsHedIssue,
+  BidsJsonFile,
   BidsIssue,
   BidsSidecar,
   validateBidsDataset,
@@ -134,7 +135,44 @@ describe('BIDS datasets', () => {
         },
       },
     ],
+    // sub05 - HED 3 sidecars with libraries
+    [
+      {
+        // Library and base and defs
+        event_type: {
+          HED: {
+            show_face: 'Sensory-event, ts:Visual-presentation',
+            left_press: 'Push-press, Def/My-def1, ts:Def/My-def2/3',
+          },
+        },
+        dummy_defs: {
+          HED: {
+            def1: '(Definition/My-def1, (Red, Blue))',
+            def2: '(ts:Definition/My-def2/#, (Green, Label/#))',
+          },
+        },
+      },
+      {
+        // Just library
+        event_type: {
+          HED: {
+            show_face: 'ts:Sensory-event, ts:Visual-presentation',
+            left_press: 'ts:Push-button',
+          },
+        },
+      },
+      {
+        // Just base
+        event_type: {
+          HED: {
+            show_face: 'Sensory-event, Visual-presentation',
+            left_press: 'Push-button',
+          },
+        },
+      },
+    ],
   ]
+
   const hedColumnOnlyHeader = ['onset', 'duration', 'HED']
   const bidsTsvFiles = [
     // sub01 - Valid TSV-only data
@@ -457,7 +495,7 @@ describe('BIDS datasets', () => {
     [
       new BidsEventFile(
         '/sub05/sub05_task-test_run-1_events.tsv',
-        ['/sub04/sub04_task-test_run-1_events.json'],
+        ['/sub05/sub05_task-test_run-1_events.json'],
         sidecars[3][0],
         {
           headers: ['onset', 'duration', 'test', 'HED'],
@@ -472,7 +510,90 @@ describe('BIDS datasets', () => {
         },
       ),
     ],
+    // sub06 - Valid combined sidecar/TSV data with library
+    [
+      new BidsEventFile(
+        '/sub06/sub06_task-test_run-1_events.tsv',
+        ['/sub06/sub06_task-test_run-1_events.json'],
+        sidecars[4][0],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][1],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][2],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+    ],
   ]
+
+  const bidsDataDescriptions = [
+    new BidsJsonFile(
+      'dataset_description1.json',
+      { Name: 'Try0', BIDSVersion: '1.7.0', HEDVersion: '8.1.0' },
+      'dataset_description1.json',
+    ),
+    new BidsJsonFile(
+      'dataset_description2.json',
+      { Name: 'Try1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2'] },
+      'dataset_description2.json',
+    ),
+    new BidsJsonFile(
+      'dataset_description3.json',
+      { Name: 'Try2', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2'] },
+      'dataset_description3.json',
+    ),
+    new BidsJsonFile(
+      'dataset_description4.json',
+      { Name: 'Try3', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
+      'dataset_description4.json',
+    ),
+    new BidsJsonFile(
+      'dataset_description5.json',
+      { Name: 'Try4', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
+      'dataset_description5.json',
+    ),
+  ]
+
   /**
    * @type {object[][]}
    */
@@ -669,6 +790,25 @@ describe('BIDS datasets', () => {
         all_good: [],
       }
       return validator(testDatasets, expectedIssues, { version: '7.2.0' })
+    }, 10000)
+  })
+
+  describe('HED 3 Library Tests', () => {
+    it('should validate HED 3 in BIDS event files combined with JSON sidecar data', () => {
+      const goodEvents0 = [bidsTsvFiles[5][0]]
+      const goodEvents1 = [bidsTsvFiles[5][1]]
+      const goodEvents2 = [bidsTsvFiles[5][2]]
+      const testDatasets = {
+        just_base2: new BidsDataset(goodEvents2),
+        just_library1: new BidsDataset(goodEvents0),
+        just_library3: new BidsDataset(goodEvents1),
+      }
+      const expectedIssues = {
+        just_base2: [],
+        just_library1: [],
+        just_library3: [],
+      }
+      return validator(testDatasets, expectedIssues, ['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
     }, 10000)
   })
 })

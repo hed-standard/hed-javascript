@@ -139,6 +139,8 @@ class BidsDataset extends BidsData {
   }
 }
 
+const bidsHedErrorCodes = new Set([104, 106, 107])
+
 class BidsIssue {
   constructor(issueCode, file, evidence) {
     this.code = issueCode
@@ -147,7 +149,7 @@ class BidsIssue {
   }
 
   isError() {
-    return this.code === 104 || this.code === 106
+    return bidsHedErrorCodes.has(this.code)
   }
 }
 
