@@ -20,12 +20,8 @@ function generateInternalErrorBidsIssue(error) {
  */
 function validateBidsDataset(dataset, schemaDefinition) {
   return buildBidsSchema(dataset, schemaDefinition).then(
-    (hedSchemas) => {
-      return validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue)
-    },
-    (issues) => {
-      return convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file)
-    },
+    (hedSchemas) => validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue),
+    (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file),
   )
 }
 
