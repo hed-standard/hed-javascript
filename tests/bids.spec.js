@@ -834,7 +834,7 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         just_base2: [],
       }
-      return validator(testDatasets, expectedIssues, '8.1.0')
+      return validator(testDatasets, expectedIssues, { version: '8.1.0' })
     }, 10000)
   })
 })
