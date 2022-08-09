@@ -795,20 +795,31 @@ describe('BIDS datasets', () => {
 
   describe('HED 3 Library Tests', () => {
     it('should validate HED 3 in BIDS event files combined with JSON sidecar data', () => {
+      // const goodEvents0 = [bidsTsvFiles[5][0]]
+      // const goodEvents1 = [bidsTsvFiles[5][1]]
+      const goodEvents2 = [bidsTsvFiles[5][2]]
+      const testDatasets = {
+        just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
+      }
+      const expectedIssues = {
+        just_base2: [],
+      }
+      return validator(testDatasets, expectedIssues, { version: '8.1.0' })
+    }, 10000)
+  })
+
+  describe('HED 3 Library Tests', () => {
+    it('should validate HED 3 in BIDS event files combined with JSON sidecar data', () => {
       const goodEvents0 = [bidsTsvFiles[5][0]]
       const goodEvents1 = [bidsTsvFiles[5][1]]
       const goodEvents2 = [bidsTsvFiles[5][2]]
       const testDatasets = {
-        just_base2: new BidsDataset(goodEvents2),
-        just_library1: new BidsDataset(goodEvents0),
-        just_library3: new BidsDataset(goodEvents1),
+        just_base2: new BidsDataset(goodEvents2, []),
       }
       const expectedIssues = {
         just_base2: [],
-        just_library1: [],
-        just_library3: [],
       }
-      return validator(testDatasets, expectedIssues, ['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
+      return validator(testDatasets, expectedIssues, '8.1.0')
     }, 10000)
   })
 })
