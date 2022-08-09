@@ -19,13 +19,14 @@ function generateInternalErrorBidsIssue(error) {
  * @return {Promise<Array<BidsIssue>>} Any issues found.
  */
 function validateBidsDataset(dataset, schemaDefinition) {
-  return buildBidsSchema(dataset, schemaDefinition)
-    .catch((issues) => {
-      return convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file)
-    })
-    .then((hedSchemas) => {
+  return buildBidsSchema(dataset, schemaDefinition).then(
+    (hedSchemas) => {
       return validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue)
-    })
+    },
+    (issues) => {
+      return convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file)
+    },
+  )
 }
 
 function buildBidsSchema(dataset, schemaDefinition) {
