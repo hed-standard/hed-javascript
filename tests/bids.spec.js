@@ -806,9 +806,7 @@ describe('BIDS datasets', () => {
       }
       return validator(testDatasets, expectedIssues)
     }, 10000)
-  })
 
-  describe('HED 3 Library Tests', () => {
     it('should validate HED 3 in BIDS event with a dataset description and version spec', () => {
       // const goodEvents0 = [bidsTsvFiles[5][0]]
       // const goodEvents1 = [bidsTsvFiles[5][1]]
@@ -821,9 +819,7 @@ describe('BIDS datasets', () => {
       }
       return validator(testDatasets, expectedIssues, { version: '8.1.0' })
     }, 10000)
-  })
 
-  describe('HED 3 Library Tests', () => {
     it('should validate HED 3 in BIDS event files combined with JSON sidecar data on hold', () => {
       const goodEvents0 = [bidsTsvFiles[5][0]]
       const goodEvents1 = [bidsTsvFiles[5][1]]
