@@ -2,6 +2,7 @@ const assert = require('chai').assert
 const converterGenerateIssue = require('../converter/issues')
 const { generateIssue } = require('../common/issues/issues')
 const { SchemaSpec } = require('../common/schema/types')
+const { recursiveMap } = require('../utils/array')
 const {
   BidsDataset,
   BidsEventFile,
@@ -567,81 +568,51 @@ describe('BIDS datasets', () => {
     ],
   ]
 
-  const bidsDataDescriptions = [
-    new BidsJsonFile(
-      '/dataset_description.json',
+  const datasetDescriptions = [
+    // Good datasetDescription.json files
+    [
       { Name: 'Try0', BIDSVersion: '1.7.0', HEDVersion: '8.1.0' },
-      {
-        relativePath: '/dataset_description.json',
-        path: '/dataset_description.json',
-      },
-    ),
-    new BidsJsonFile(
-      '/dataset_description.json',
       { Name: 'Try1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2'] },
-      {
-        relativePath: '/dataset_description.json',
-        path: '/dataset_description.json',
-      },
-    ),
-    new BidsJsonFile(
-      '/dataset_description.json',
       { Name: 'Try2', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2'] },
-      {
-        relativePath: '/dataset_description.json',
-        path: '/dataset_description.json',
-      },
-    ),
-    new BidsJsonFile(
-      '/dataset_description.json',
       { Name: 'Try3', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
-      {
-        relativePath: '/dataset_description.json',
-        path: '/dataset_description.json',
-      },
-    ),
-    new BidsJsonFile(
-      '/dataset_description.json',
       { Name: 'Try4', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
-      {
-        relativePath: '/dataset_description.json',
-        path: '/dataset_description.json',
-      },
-    ),
+    ],
+    // Bad datasetDescription.json files
+    [{ Name: 'BadLibraryName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] }],
   ]
 
-  const badDataDescriptions = [
-    new BidsJsonFile(
-      '/dataset_description.json',
-      { Name: 'BadLibraryName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] },
-      {
-        relativePath: '/dataset_description.json',
-        path: '/dataset_description.json',
-      },
-    ),
-  ]
   /**
-   * @type {object[][]}
+   * @type {BidsSidecar[][]}
    */
   let bidsSidecars
+  /**
+   * @type {BidsJsonFile[][]}
+   */
+  let bidsDatasetDescriptions
 
   beforeAll(() => {
-    bidsSidecars = sidecars.map((sub_data, sub) => {
-      return sub_data.map((run_data, run) => {
+    bidsSidecars = sidecars.map((subData, sub) => {
+      return subData.map((runData, run) => {
         const name = `/sub0${sub + 1}/sub0${sub + 1}_task-test_run-${run + 1}_events.json`
-        return new BidsSidecar(name, run_data, {
+        return new BidsSidecar(name, runData, {
           relativePath: name,
           path: name,
         })
       })
     })
+    bidsDatasetDescriptions = recursiveMap((datasetDescriptionData) => {
+      return new BidsJsonFile('/dataset_description.json', datasetDescriptionData, {
+        relativePath: '/dataset_description.json',
+        path: '/dataset_description.json',
+      })
+    }, datasetDescriptions)
   })
 
   /**
    * Validate the test datasets.
-   * @param {object<string,BidsDataset>} testDatasets The datasets to test with.
-   * @param {object<string,BidsIssue[]>} expectedIssues The expected issues.
-   * @param {object} versionSpec The schema version to test with.
+   * @param {Object<string,BidsDataset>} testDatasets The datasets to test with.
+   * @param {Object<string,BidsIssue[]>} expectedIssues The expected issues.
+   * @param {object?} versionSpec The schema version to test with.
    * @return {Promise}
    */
   const validator = (testDatasets, expectedIssues, versionSpec) => {
@@ -820,14 +791,22 @@ describe('BIDS datasets', () => {
     }, 10000)
   })
 
-  describe('HED 3 Library Tests', () => {
-    describe('HED 3 library good tests', () => {
+  describe('HED 3 library schema tests', () => {
+    let goodEvents0, goodEvents1, goodEvents2
+    let goodDatasetDescriptions, badDatasetDescriptions
+
+    beforeAll(() => {
+      goodEvents0 = [bidsTsvFiles[5][0]]
+      goodEvents1 = [bidsTsvFiles[5][1]]
+      goodEvents2 = [bidsTsvFiles[5][2]]
+      goodDatasetDescriptions = bidsDatasetDescriptions[0]
+      badDatasetDescriptions = bidsDatasetDescriptions[1]
+    })
+
+    describe('HED 3 library schema good tests', () => {
       it('should validate HED 3 in BIDS event with json and a dataset description and no version spec', () => {
-        // const goodEvents0 = [bidsTsvFiles[5][0]]
-        // const goodEvents1 = [bidsTsvFiles[5][1]]
-        const goodEvents2 = [bidsTsvFiles[5][2]]
         const testDatasets = {
-          just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
+          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
         }
         const expectedIssues = {
           just_base2: [],
@@ -836,18 +815,15 @@ describe('BIDS datasets', () => {
       }, 10000)
 
       it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
-        const goodEvents0 = [bidsTsvFiles[5][0]]
-        const goodEvents1 = [bidsTsvFiles[5][1]]
-        const goodEvents2 = [bidsTsvFiles[5][2]]
         const testDatasets = {
-          library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], bidsDataDescriptions[1]),
-          library_and_defs_no_base: new BidsDataset(goodEvents0, [], bidsDataDescriptions[3]),
-          library_only_with_extra_base: new BidsDataset(goodEvents1, [], bidsDataDescriptions[1]),
-          library_only: new BidsDataset(goodEvents1, [], bidsDataDescriptions[1]),
-          just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
-          library_not_needed1: new BidsDataset(goodEvents2, [], bidsDataDescriptions[1]),
-          library_not_needed2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[3]),
-          library_and_base_with_extra_schema: new BidsDataset(goodEvents2, [], bidsDataDescriptions[3]),
+          library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
+          library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
+          library_only_with_extra_base: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
+          library_only: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
+          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
+          library_not_needed1: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
+          library_not_needed2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
+          library_and_base_with_extra_schema: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
         }
         const expectedIssues = {
           library_and_defs_base_ignored: [],
@@ -865,11 +841,10 @@ describe('BIDS datasets', () => {
       }, 10000)
     })
 
-    describe('HED 3 Bad Library Tests', () => {
+    describe('HED 3 library schema bad tests', () => {
       it('should not validate when library schema version specs are invalid', () => {
-        const goodEvents2 = [bidsTsvFiles[5][2]]
         const testDatasets = {
-          unknown_library: new BidsDataset(goodEvents2, [], badDataDescriptions[0]),
+          unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
         }
         const expectedIssues = {
           unknown_library: [
@@ -880,13 +855,13 @@ describe('BIDS datasets', () => {
                 error:
                   'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
               }),
-              badDataDescriptions[0].file,
+              badDatasetDescriptions[0].file,
             ),
             new BidsHedIssue(
               generateIssue('requestedSchemaLoadFailedNoFallbackUsed', {
                 spec: JSON.stringify(SchemaSpec.createSpecForRemoteLibrarySchema('badlib', '1.0.2')),
               }),
-              badDataDescriptions[0].file,
+              badDatasetDescriptions[0].file,
             ),
           ],
         }
