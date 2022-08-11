@@ -1,6 +1,7 @@
 const assert = require('chai').assert
 const converterGenerateIssue = require('../converter/issues')
 const { generateIssue } = require('../common/issues/issues')
+const { SchemaSpec } = require('../common/schema/types')
 const {
   BidsDataset,
   BidsEventFile,
@@ -142,7 +143,7 @@ describe('BIDS datasets', () => {
         event_type: {
           HED: {
             show_face: 'Sensory-event, ts:Visual-presentation',
-            left_press: 'Push-press, Def/My-def1, ts:Def/My-def2/3',
+            left_press: 'Press, Def/My-def1, ts:Def/My-def2/3',
           },
         },
         dummy_defs: {
@@ -609,6 +610,16 @@ describe('BIDS datasets', () => {
     ),
   ]
 
+  const badDataDescriptions = [
+    new BidsJsonFile(
+      '/dataset_description.json',
+      { Name: 'BadLibraryName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] },
+      {
+        relativePath: '/dataset_description.json',
+        path: '/dataset_description.json',
+      },
+    ),
+  ]
   /**
    * @type {object[][]}
    */
@@ -636,6 +647,7 @@ describe('BIDS datasets', () => {
   const validator = (testDatasets, expectedIssues, versionSpec) => {
     return Promise.all(
       Object.entries(testDatasets).map(([datasetName, dataset]) => {
+        assert.property(expectedIssues, datasetName, datasetName + ' is not in expectedIssues')
         return validateBidsDataset(dataset, versionSpec).then((issues) => {
           assert.sameDeepMembers(issues, expectedIssues[datasetName], datasetName)
         })
@@ -809,90 +821,77 @@ describe('BIDS datasets', () => {
   })
 
   describe('HED 3 Library Tests', () => {
-    it('should validate HED 3 in BIDS event with json and a dataset description and no version spec', () => {
-      // const goodEvents0 = [bidsTsvFiles[5][0]]
-      // const goodEvents1 = [bidsTsvFiles[5][1]]
-      const goodEvents2 = [bidsTsvFiles[5][2]]
-      const testDatasets = {
-        just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
-      }
-      const expectedIssues = {
-        just_base2: [],
-      }
-      return validator(testDatasets, expectedIssues)
-    }, 10000)
+    describe('HED 3 library good tests', () => {
+      it('should validate HED 3 in BIDS event with json and a dataset description and no version spec', () => {
+        // const goodEvents0 = [bidsTsvFiles[5][0]]
+        // const goodEvents1 = [bidsTsvFiles[5][1]]
+        const goodEvents2 = [bidsTsvFiles[5][2]]
+        const testDatasets = {
+          just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
+        }
+        const expectedIssues = {
+          just_base2: [],
+        }
+        return validator(testDatasets, expectedIssues)
+      }, 10000)
 
-    it('should validate HED 3 in BIDS event with json and a dataset description and version spec', () => {
-      // const goodEvents0 = [bidsTsvFiles[5][0]]
-      // const goodEvents1 = [bidsTsvFiles[5][1]]
-      const goodEvents2 = [bidsTsvFiles[5][2]]
-      const testDatasets = {
-        just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
-      }
-      const expectedIssues = {
-        just_base2: [],
-      }
-      return validator(testDatasets, expectedIssues, { version: '8.1.0' })
-    }, 10000)
+      it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
+        const goodEvents0 = [bidsTsvFiles[5][0]]
+        const goodEvents1 = [bidsTsvFiles[5][1]]
+        const goodEvents2 = [bidsTsvFiles[5][2]]
+        const testDatasets = {
+          library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], bidsDataDescriptions[1]),
+          library_and_defs_no_base: new BidsDataset(goodEvents0, [], bidsDataDescriptions[3]),
+          library_only_with_extra_base: new BidsDataset(goodEvents1, [], bidsDataDescriptions[1]),
+          library_only: new BidsDataset(goodEvents1, [], bidsDataDescriptions[1]),
+          just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
+          library_not_needed1: new BidsDataset(goodEvents2, [], bidsDataDescriptions[1]),
+          library_not_needed2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[3]),
+          library_and_base_with_extra_schema: new BidsDataset(goodEvents2, [], bidsDataDescriptions[3]),
+        }
+        const expectedIssues = {
+          library_and_defs_base_ignored: [],
+          library_and_defs_no_base: [],
+          library_only_with_extra_base: [],
+          library_only: [],
+          library_only_extra_schema: [],
+          only_libraries: [],
+          just_base2: [],
+          library_not_needed1: [],
+          library_not_needed2: [],
+          library_and_base_with_extra_schema: [],
+        }
+        return validator(testDatasets, expectedIssues)
+      }, 10000)
+    })
 
-    // it('should validate HED 3 in BIDS event files combined with JSON sidecar data on hold', () => {
-    //   const goodEvents0 = [bidsTsvFiles[5][0]]
-    //   const goodEvents1 = [bidsTsvFiles[5][1]]
-    //   const goodEvents2 = [bidsTsvFiles[5][2]]
-    //   const testDatasets = {
-    //     just_base2: new BidsDataset(goodEvents2, []),
-    //   }
-    //   const expectedIssues = {
-    //     just_base2: [],
-    //   }
-    //   return validator(testDatasets, expectedIssues, { version: '8.1.0' })
-    // }, 10000)
-
-    // it('should validate HED 3 in BIDS event with a dataset description and version spec', () => {
-    //   // const goodEvents0 = [bidsTsvFiles[5][0]]
-    //   // const goodEvents1 = [bidsTsvFiles[5][1]]
-    //   const goodEvents2 = [bidsTsvFiles[5][2]]
-    //   const testDatasets = {
-    //     just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
-    //   }
-    //   const expectedIssues = {
-    //     just_base2: [],
-    //   }
-    //   return validator(testDatasets, expectedIssues, {version: '8.1.0'})
-    // }, 10000)
-
-    it('should validate HED 3 in BIDS event files combined with JSON sidecar data', () => {
-      const goodEvents0 = [bidsTsvFiles[5][0]]
-      const goodEvents1 = [bidsTsvFiles[5][1]]
-      const goodEvents2 = [bidsTsvFiles[5][2]]
-      const testDatasets = {
-        just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
-        library_not_needed1: new BidsDataset(goodEvents2, [], bidsDataDescriptions[1]),
-        library_not_needed2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[3]),
-      }
-      const expectedIssues = {
-        just_base2: [],
-        library_not_needed1: [],
-        library_not_needed2: [],
-      }
-      return validator(testDatasets, expectedIssues)
-    }, 10000)
-
-    it('should validate HED 3 in BIDS event files combined with JSON sidecar data', () => {
-      const goodEvents0 = [bidsTsvFiles[5][0]]
-      const goodEvents1 = [bidsTsvFiles[5][1]]
-      const goodEvents2 = [bidsTsvFiles[5][2]]
-      const testDatasets = {
-        just_base2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[0]),
-        library_not_needed1: new BidsDataset(goodEvents2, [], bidsDataDescriptions[1]),
-        library_not_needed2: new BidsDataset(goodEvents2, [], bidsDataDescriptions[3]),
-      }
-      const expectedIssues = {
-        just_base2: [],
-        library_not_needed1: [],
-        library_not_needed2: [],
-      }
-      return validator(testDatasets, expectedIssues)
-    }, 10000)
+    describe('HED 3 Bad Library Tests', () => {
+      it('should not validate when library schema version specs are invalid', () => {
+        const goodEvents2 = [bidsTsvFiles[5][2]]
+        const testDatasets = {
+          unknown_library: new BidsDataset(goodEvents2, [], badDataDescriptions[0]),
+        }
+        const expectedIssues = {
+          unknown_library: [
+            new BidsHedIssue(
+              generateIssue('remoteLibrarySchemaLoadFailed', {
+                library: 'badlib',
+                version: '1.0.2',
+                error:
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
+              }),
+              badDataDescriptions[0].file,
+            ),
+            new BidsHedIssue(
+              generateIssue('requestedSchemaLoadFailedNoFallbackUsed', {
+                spec: JSON.stringify(SchemaSpec.createSpecForRemoteLibrarySchema('badlib', '1.0.2')),
+              }),
+              badDataDescriptions[0].file,
+            ),
+          ],
+        }
+        return validator(testDatasets, expectedIssues)
+      }, 10000)
+    })
   })
 })
