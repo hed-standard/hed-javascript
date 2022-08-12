@@ -571,14 +571,21 @@ describe('BIDS datasets', () => {
   const datasetDescriptions = [
     // Good datasetDescription.json files
     [
-      { Name: 'Try0', BIDSVersion: '1.7.0', HEDVersion: '8.1.0' },
-      { Name: 'Try1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2'] },
-      { Name: 'Try2', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2'] },
-      { Name: 'Try3', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
-      { Name: 'Try4', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
+      { Name: 'OnlyBase', BIDSVersion: '1.7.0', HEDVersion: '8.1.0' },
+      { Name: 'BaseAndTest', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2'] },
+      { Name: 'OnlyTest', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2'] },
+      { Name: 'BaseAndTwoTests', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
+      { Name: 'TwoTests', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
     ],
-    // Bad datasetDescription.json files
-    [{ Name: 'BadLibraryName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] }],
+    [
+      { Name: 'NonExistentLibrary', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] },
+      { Name: 'LeadingColon', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', ':ts:testlib_1.0.2'] },
+      { Name: 'BadNickName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', '1ts:testlib_1.0.2'] },
+      { Name: 'MultipleColons1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts::testlib_1.0.2'] },
+      { Name: 'NoLibraryName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:_1.0.2'] },
+      { Name: 'BadVersion1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib1.0.2'] },
+      { Name: 'BadVersion2', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.a.2'] },
+    ],
   ]
 
   /**
@@ -857,6 +864,7 @@ describe('BIDS datasets', () => {
       it('should not validate when library schema version specs are invalid', () => {
         const testDatasets = {
           unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
+          leading_colon: new BidsDataset(goodEvents2, [], badDatasetDescriptions[1]),
         }
         const expectedIssues = {
           unknown_library: [
@@ -867,6 +875,12 @@ describe('BIDS datasets', () => {
                   'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
               }),
               badDatasetDescriptions[0].file,
+            ),
+          ],
+          leading_colon: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: ':ts:testlib_1.0.2' }),
+              badDatasetDescriptions[1].file,
             ),
           ],
         }

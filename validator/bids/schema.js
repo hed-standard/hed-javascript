@@ -15,7 +15,7 @@ function buildBidsSchemas(dataset, schemaDefinition) {
     ;[schemasSpec, issues] = [null, [generateIssue('invalidSchemaSpecification', { spec: 'no schema available' })]]
   }
   if (issues.length > 0) {
-    return Promise.resolve([null, issues])
+    return Promise.reject(issues)
   } else {
     return buildSchemas(schemasSpec).then(([schemas]) => [schemas, issues])
   }
@@ -41,7 +41,7 @@ function parseSchemasSpec(hedVersion) {
   for (const schemaVersion of processVersion) {
     const [schemaSpec, verIssues] = parseSchemaSpec(schemaVersion)
     if (verIssues.length > 0) {
-      issues.concat(verIssues)
+      issues.push(...verIssues)
     } else if (schemasSpec.isDuplicate(schemaSpec)) {
       issues.push(generateIssue('invalidSchemaNickname', { spec: schemaVersion, nickname: schemaSpec.nickname }))
     } else {
