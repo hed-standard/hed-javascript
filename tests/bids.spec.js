@@ -11,7 +11,11 @@ const {
   BidsIssue,
   BidsSidecar,
   validateBidsDataset,
+  getSchemaSpecs,
 } = require('../validator/bids')
+const splitHedString = require('../validator/parser/splitHedString')
+
+//const {stringTemplate} = require("../../utils/string");
 
 describe('BIDS datasets', () => {
   const sidecars = [
@@ -824,13 +828,13 @@ describe('BIDS datasets', () => {
       it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
         const testDatasets = {
           library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
-          library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
-          library_only_with_extra_base: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
-          library_only: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
-          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
-          library_not_needed1: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
-          library_not_needed2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
-          library_and_base_with_extra_schema: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
+          // library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
+          // library_only_with_extra_base: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
+          // library_only: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
+          // just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
+          // library_not_needed1: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
+          // library_not_needed2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
+          // library_and_base_with_extra_schema: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
         }
         const expectedIssues = {
           library_and_defs_base_ignored: [],
@@ -851,40 +855,44 @@ describe('BIDS datasets', () => {
     describe('HED 3 library schema bad tests', () => {
       it('should not validate when library schema version specs are invalid', () => {
         const testDatasets = {
-          unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
+          // unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
           leading_colon: new BidsDataset(goodEvents2, [], badDatasetDescriptions[1]),
         }
-        const expectedIssues = {
-          unknown_library: [
-            new BidsHedIssue(
-              generateIssue('remoteLibrarySchemaLoadFailed', {
-                library: 'badlib',
-                version: '1.0.2',
-                error:
-                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
-              }),
-              badDatasetDescriptions[0].file,
-            ),
-            new BidsHedIssue(
-              generateIssue('requestedSchemaLoadFailedNoFallbackUsed', {
-                spec: JSON.stringify(SchemaSpec.createSpecForRemoteLibrarySchema('badlib', '1.0.2')),
-              }),
-              badDatasetDescriptions[0].file,
-            ),
-          ],
-          leading_colon: [
-            new BidsHedIssue(
-              generateIssue('remoteLibrarySchemaLoadFailed', {
-                library: 'testlib',
-                version: '1.0.2',
-                error:
-                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
-              }),
-              badDatasetDescriptions[1].file,
-            ),
-          ],
-        }
-        return validator(testDatasets, expectedIssues)
+        // const expectedIssues = {
+        //   unknown_library: [
+        //     new BidsHedIssue(
+        //         generateIssue('remoteLibrarySchemaLoadFailed', {
+        //           library: 'badlib',
+        //           version: '1.0.2',
+        //           error:
+        //               'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
+        //         }),
+        //         badDatasetDescriptions[0].file,
+        //     ),
+        //     new BidsHedIssue(
+        //         generateIssue('requestedSchemaLoadFailedNoFallbackUsed', {
+        //           spec: JSON.stringify(SchemaSpec.createSpecForRemoteLibrarySchema('badlib', '1.0.2')),
+        //         }),
+        //         badDatasetDescriptions[0].file,
+        //     ),
+        //   ],
+        //   leading_colon: [
+        //     new BidsHedIssue(
+        //         generateIssue('remoteLibrarySchemaLoadFailed', {
+        //           nickname: '',
+        //           schemaVersion: ':ts:testlib_1.0.2',
+        //           error: 'The prefix nickname "" in schema :ts:testlib_1.0.2 is not valid',
+        //         }),
+        //         badDatasetDescriptions[1].file,
+        //     ),
+        //   ],
+        // }
+        const dataset = testDatasets['leading_colon']
+        const versionSpec = null
+        let issues
+        issues = validateBidsDataset(dataset, versionSpec)
+        let x = 3
+        // return validator(testDatasets, expectedIssues)
       }, 10000)
     })
   })

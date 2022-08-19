@@ -232,6 +232,19 @@ class SchemaSpec {
     return spec
   }
 
+  static createSchemaSpec(nickname, version, library, localPath) {
+    const spec = new SchemaSpec()
+    spec.nickname = nickname
+    spec.version = version
+    if (library.length > 0) {
+      spec.library = library
+    }
+    if (localPath.length > 0) {
+      spec.path = localPath
+    }
+    return spec
+  }
+
   static createSpecForRemoteLibrarySchema(library, version) {
     const spec = new SchemaSpec()
     spec.library = library
@@ -253,6 +266,15 @@ class SchemaSpec {
 class SchemasSpec {
   constructor() {
     this.data = new Map()
+  }
+
+  isDuplicate(spec) {
+    return this.data.has(spec.nickname)
+  }
+
+  addSchemaSpec(spec) {
+    this.data.set(spec.nickname, spec)
+    return this
   }
 
   addRemoteStandardBaseSchema(version) {

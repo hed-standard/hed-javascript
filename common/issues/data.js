@@ -151,7 +151,12 @@ const issueData = {
     message: stringTemplate`Source HED schema is invalid as it contains duplicate tags.`,
   },
   // Schema issues
-  invalidSchemaSpec: {
+  invalidSchemaNickname: {
+    hedCode: 'HED_SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`The prefix nickname "${'nickname'}" in schema ${'schemaVersion'} is duplicated or invalid`,
+  },
+  invalidSchemaSpecification: {
     hedCode: 'HED_SCHEMA_LOAD_FAILED',
     level: 'error',
     message: stringTemplate`The supplied schema specification is invalid. Specification: ${'spec'}`,

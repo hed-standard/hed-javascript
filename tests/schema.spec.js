@@ -1,7 +1,11 @@
 const assert = require('chai').assert
 const { buildSchema, buildSchemas } = require('../validator/schema/init')
 const schemaCommon = require('../common/schema')
-const { SchemasSpec } = require('../common/schema/types')
+const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
+const { validateBidsDataset } = require('../validator/bids')
+const splitHedString = require('../validator/parser/splitHedString')
+const { getSchemaSpec, getSchemasSpec } = require('../validator/bids/schemas')
+const { generateIssue } = require('../common/issues/issues')
 const fallbackHedSchemaPath = schemaCommon.config.fallbackFilePath
 
 describe('HED schemas', () => {
@@ -435,6 +439,125 @@ describe('HED schemas', () => {
         const schemaTagsWithUnitClasses = schemaTags.filter(([, tag]) => tag.hasUnitClasses)
         assert.lengthOf(schemaTagsWithUnitClasses, expectedUnitClassCount, 'Mismatch on unit class tag count')
       })
+    })
+  })
+
+  const checkWithIssues = function (testStrings, expectedResults, expectedIssues, testFunction) {
+    for (const testStringKey of Object.keys(testStrings)) {
+      const [testResult, testIssues] = testFunction(testStrings[testStringKey])
+      assert.deepEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
+      assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testStrings[testStringKey])
+    }
+  }
+
+  describe('HED 3 schemaSpec tests', () => {
+    it('should be return a SchemaSpec and no issues when valid', () => {
+      const tests = {
+        just_version: '8.1.0',
+        just_library: 'score_0.1.0',
+        base_with_nick: 'bt:8.1.0',
+      }
+      const expectedResults = {
+        just_version: SchemaSpec.createSchemaSpec('', '8.1.0', '', ''),
+        just_library: SchemaSpec.createSchemaSpec('', '0.1.0', 'score', ''),
+        base_with_nick: SchemaSpec.createSchemaSpec('bt', '8.1.0', '', ''),
+      }
+      const expectedIssues = {
+        just_version: [],
+        just_library: [],
+        base_with_nick: [],
+      }
+
+      return checkWithIssues(
+        tests,
+        expectedResults,
+        expectedIssues,
+        (string) => {
+          const [sp, issues] = getSchemaSpec(string)
+          return [sp, issues]
+        },
+        10000,
+      )
+    })
+
+    it('should return issues when invalid', () => {
+      const tests = {
+        bad_version: '3.1.a',
+      }
+      const expectedResults = {
+        bad_version: null,
+      }
+      const expectedIssues = {
+        bad_version: [generateIssue('invalidSchemaSpecification', { spec: '3.1.a' })],
+      }
+
+      return checkWithIssues(
+        tests,
+        expectedResults,
+        expectedIssues,
+        (string) => {
+          const [sp, issues] = getSchemaSpec(string)
+          return [sp, issues]
+        },
+        10000,
+      )
+    })
+  })
+
+  describe('HED 3 schemasSpec tests', () => {
+    it('should be return a SchemasSpec and no issues when valid', () => {
+      const schemas1 = new SchemasSpec()
+      schemas1.addSchemaSpec(SchemaSpec.createSchemaSpec('', '8.1.0', '', ''))
+
+      const tests = {
+        just_version: '8.1.0',
+      }
+      const expectedResults = {
+        just_version: schemas1,
+      }
+      const expectedIssues = {
+        just_version: [],
+      }
+
+      return checkWithIssues(
+        tests,
+        expectedResults,
+        expectedIssues,
+        (string) => {
+          const [sp, issues] = getSchemasSpec(string)
+          return [sp, issues]
+        },
+        10000,
+      )
+    })
+
+    it('should return issues when invalid', () => {
+      const schemas1 = new SchemasSpec()
+      schemas1.addSchemaSpec(SchemaSpec.createSchemaSpec('', '8.1.0', '', ''))
+
+      const tests = {
+        // bad_version: '3.1.a',
+        duplicate_key: ['8.1.0', '8.0.0'],
+      }
+      const expectedResults = {
+        bad_version: new SchemasSpec(),
+        duplicate_key: schemas1,
+      }
+      const expectedIssues = {
+        bad_version: [generateIssue('invalidSchemaSpecification', { spec: '3.1.a' })],
+        duplicate_key: [generateIssue('invalidSchemaNickname', { spec: ['8.1.0', '8.0.0'], nickname: '' })],
+      }
+
+      return checkWithIssues(
+        tests,
+        expectedResults,
+        expectedIssues,
+        (string) => {
+          const [sp, issues] = getSchemasSpec(string)
+          return [sp, issues]
+        },
+        10000,
+      )
     })
   })
 })

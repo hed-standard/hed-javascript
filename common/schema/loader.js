@@ -3,11 +3,8 @@
 /* Imports */
 
 const xml2js = require('xml2js')
-
 const files = require('../../utils/files')
-const { stringTemplate } = require('../../utils/string')
 const { generateIssue } = require('../issues/issues')
-
 const { fallbackFilePath } = require('./config')
 
 /**
@@ -121,4 +118,6 @@ const parseSchemaXML = function (data) {
   return xml2js.parseStringPromise(data, { explicitCharkey: true })
 }
 
-module.exports = loadSchema
+module.exports = {
+  loadSchema,
+}
