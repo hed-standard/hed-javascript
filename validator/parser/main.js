@@ -2,7 +2,7 @@ const utils = require('../../utils')
 const { mergeParsingIssues } = require('../../utils/hed')
 const { generateIssue } = require('../../common/issues/issues')
 
-const ParsedHedString = require('./parsedString')
+const ParsedHedString = require('./parsedHedString')
 
 const splitHedString = require('./splitHedString')
 

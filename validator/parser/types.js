@@ -5,7 +5,7 @@ const { Memoizer } = require('../../utils/types')
 const { getTagSlashIndices, replaceTagNameWithPound, getTagName } = require('../../utils/hed')
 const { convertPartialHedStringToLong } = require('../../converter/converter')
 const { generateIssue } = require('../../common/issues/issues')
-
+const { Schema, Hed2Schema, Hed3Schema, Schemas } = require('../../common/schema/types')
 /**
  * A parsed HED substring.
  */

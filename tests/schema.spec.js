@@ -13,6 +13,7 @@ describe('HED schemas', () => {
         return buildSchemas(specs).then(([hedSchemas, issues]) => {
           assert.strictEqual(hedSchemas.baseSchema.version, spec1.version)
           assert.equal(issues.length, 0)
+          assert.equal(hedSchemas.generation, 3)
         })
       })
 
@@ -23,6 +24,7 @@ describe('HED schemas', () => {
           assert.strictEqual(hedSchemas.baseSchema.version, spec1.version)
           assert.strictEqual(hedSchemas.baseSchema.library, spec1.library)
           assert.equal(issues.length, 0)
+          assert.equal(hedSchemas.generation, 3)
         })
       })
 
@@ -34,6 +36,7 @@ describe('HED schemas', () => {
           assert.strictEqual(schema1.version, spec1.version)
           assert.strictEqual(schema1.library, spec1.library)
           assert.equal(issues.length, 0)
+          assert.equal(hedSchemas.generation, 3)
         })
       })
 
@@ -68,6 +71,7 @@ describe('HED schemas', () => {
           const schema1 = hedSchemas.getSchema(spec1.nickname)
           assert.strictEqual(schema1.version, spec1.version)
           assert.strictEqual(schema1.library, spec1.library)
+          assert.equal(hedSchemas.generation, 2)
         })
       })
     })
@@ -78,6 +82,7 @@ describe('HED schemas', () => {
         const specs = new SchemasSpec().addSchemaSpec(spec1)
         return buildSchemas(specs).then(([hedSchemas, issues]) => {
           assert.equal(issues.length, 0)
+          assert.equal(hedSchemas.generation, 3)
           const schema1 = hedSchemas.getSchema(spec1.nickname)
           assert.strictEqual(schema1.version, spec1.version)
           assert.strictEqual(schema1.library, spec1.library)
@@ -91,6 +96,7 @@ describe('HED schemas', () => {
         const specs = new SchemasSpec().addSchemaSpec(spec1)
         return buildSchemas(specs).then(([hedSchemas, issues]) => {
           assert.equal(issues.length, 0)
+          assert.equal(hedSchemas.generation, 2)
           const schema1 = hedSchemas.getSchema(spec1.nickname)
           assert.strictEqual(schema1.version, spec1.version)
           assert.strictEqual(schema1.library, spec1.library)
@@ -102,6 +108,7 @@ describe('HED schemas', () => {
         const specs = new SchemasSpec().addSchemaSpec(spec1)
         return buildSchemas(specs).then(([hedSchemas, issues]) => {
           assert.equal(issues.length, 0)
+          assert.equal(hedSchemas.generation, 3)
           const schema1 = hedSchemas.getSchema(spec1.nickname)
           assert.strictEqual(schema1.version, spec1.version)
           assert.strictEqual(schema1.library, spec1.library)
@@ -143,6 +150,7 @@ describe('HED schemas', () => {
     it('should have unit dictionaries for all required unit attributes', () => {
       const unitDictionaryKeys = ['SIUnit', 'unitSymbol']
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.equal(hedSchemas.generation, 2)
         assert.equal(issues.length, 0)
         const dictionaries = hedSchemas.baseSchema.attributes.unitAttributes
         assert.hasAllKeys(dictionaries, unitDictionaryKeys)
@@ -152,6 +160,7 @@ describe('HED schemas', () => {
     it('should contain all of the required tags', () => {
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
         assert.equal(issues.length, 0)
+        assert.equal(hedSchemas.generation, 2)
         const requiredTags = ['event/category', 'event/description', 'event/label']
         const dictionariesRequiredTags = hedSchemas.baseSchema.attributes.tagAttributes['required']
         assert.hasAllKeys(dictionariesRequiredTags, requiredTags)
@@ -161,6 +170,7 @@ describe('HED schemas', () => {
     it('should contain all of the positioned tags', () => {
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
         assert.equal(issues.length, 0)
+        assert.equal(hedSchemas.generation, 2)
         const positionedTags = ['event/category', 'event/description', 'event/label', 'event/long name']
         const dictionariesPositionedTags = hedSchemas.baseSchema.attributes.tagAttributes['position']
         assert.hasAllKeys(dictionariesPositionedTags, positionedTags)
@@ -170,6 +180,7 @@ describe('HED schemas', () => {
     it('should contain all of the unique tags', () => {
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
         assert.equal(issues.length, 0)
+        assert.equal(hedSchemas.generation, 2)
         const uniqueTags = ['event/description', 'event/label', 'event/long name']
         const dictionariesUniqueTags = hedSchemas.baseSchema.attributes.tagAttributes['unique']
         assert.hasAllKeys(dictionariesUniqueTags, uniqueTags)
@@ -179,6 +190,7 @@ describe('HED schemas', () => {
     it('should contain all of the tags with default units', () => {
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
         assert.equal(issues.length, 0)
+        assert.equal(hedSchemas.generation, 2)
         const defaultUnitTags = {
           'attribute/blink/time shut/#': 's',
           'attribute/blink/duration/#': 's',
@@ -193,6 +205,7 @@ describe('HED schemas', () => {
     it('should contain all of the unit classes with their units and default units', () => {
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
         assert.equal(issues.length, 0)
+        assert.equal(hedSchemas.generation, 2)
         const defaultUnits = {
           acceleration: 'm-per-s^2',
           currency: '$',

@@ -1,7 +1,7 @@
 const flattenDeep = require('lodash/flattenDeep')
 
 const { ParsedHedGroup, ParsedHed2Tag, ParsedHed3Tag, ParsedHedTag } = require('./types')
-
+const { Schema, Schemas } = require('../../common/schema/types')
 const { generateIssue } = require('../../common/issues/issues')
 const { recursiveMap } = require('../../utils/array')
 const { mergeParsingIssues, replaceTagNameWithPound } = require('../../utils/hed')
@@ -222,7 +222,7 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
   const ParsedHedTagClass = generationToClass[hedSchemas.generation]
 
   const createParsedTag = ({ library: librarySchema, tag: originalTag, bounds: originalBounds }) => {
-    const parsedTag = new ParsedHedTagClass(originalTag, hedString, originalBounds, hedSchemas, librarySchema)
+    const parsedTag = new ParsedHed3Tag(originalTag, hedString, originalBounds, hedSchemas, librarySchema)
     conversionIssues.push(...parsedTag.conversionIssues)
     return parsedTag
   }

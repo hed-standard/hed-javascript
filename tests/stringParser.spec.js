@@ -1,12 +1,13 @@
 const assert = require('chai').assert
 const { Schemas } = require('../common/schema')
-const { buildSchema } = require('../converter/schema')
 const { parseHedString } = require('../validator/parser/main')
 const splitHedString = require('../validator/parser/splitHedString')
 const { ParsedHedTag, ParsedHedSubstring } = require('../validator/parser/types')
 const { generateIssue } = require('../common/issues/issues')
 const converterGenerateIssue = require('../converter/issues')
 const { recursiveMap } = require('../utils/array')
+const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
+const { buildSchemas } = require('../validator/schema/init')
 
 describe('HED string parsing', () => {
   const nullSchema = new Schemas(null)
@@ -21,9 +22,9 @@ describe('HED string parsing', () => {
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = buildSchema({
-      path: hedSchemaFile,
-    })
+    const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', hedSchemaFile)
+    const specs = new SchemasSpec().addSchemaSpec(spec1)
+    hedSchemaPromise = buildSchemas(specs)
   })
 
   const validatorWithoutIssues = function (testStrings, expectedResults, testFunction) {
@@ -319,10 +320,15 @@ describe('HED string parsing', () => {
           ['Braille', 'Character/A', 'Screen-window'],
         ],
       }
-      return hedSchemaPromise.then((hedSchema) => {
+      const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', '')
+      const specs = new SchemasSpec().addSchemaSpec(spec1)
+      hedSchemaPromise = buildSchemas(specs)
+
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.equal(issues.length, 0)
         for (const testStringKey of Object.keys(testStrings)) {
           const testString = testStrings[testStringKey]
-          const [parsedString, issues] = parseHedString(testString, hedSchema)
+          const [parsedString, issues] = parseHedString(testString, hedSchemas)
           assert.deepStrictEqual(Object.values(issues).flat(), [])
           assert.sameDeepMembers(parsedString.tags.map(originalMap), expectedTags[testStringKey], testString)
           assert.deepStrictEqual(

@@ -7,6 +7,8 @@ const { HedValidator, Hed2Validator, Hed3Validator } = require('../validator/eve
 const { generateIssue } = require('../common/issues/issues')
 const converterGenerateIssue = require('../converter/issues')
 const { Schemas } = require('../common/schema')
+const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
+const { buildSchemas } = require('../validator/schema/init')
 
 describe('HED string and event validation', () => {
   /**
@@ -334,7 +336,9 @@ describe('HED string and event validation', () => {
       let hedSchemaPromise
 
       beforeAll(() => {
-        hedSchemaPromise = schema.buildSchema({ path: hedSchemaFile })
+        const spec1 = SchemaSpec.createSchemaSpec('', '7.1.1', '', hedSchemaFile)
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        hedSchemaPromise = buildSchemas(specs)
       })
 
       /**
