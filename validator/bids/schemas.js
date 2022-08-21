@@ -1,79 +1,25 @@
-const { validateHedDatasetWithContext } = require('../dataset')
-const { validateHedString } = require('../event')
-const { buildSchema, buildSchemas } = require('../schema/init')
-const { sidecarValueHasHed } = require('../../utils/bids')
+// const schemaUtils = require('../common/schema')
+const { buildSchemas } = require('../schema/init')
 const { generateIssue } = require('../../common/issues/issues')
-const { fallbackFilePath } = require('../../common/schema')
 const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
-const { BidsDataset, BidsHedIssue, BidsIssue } = require('./types')
 const semver = require('semver')
 
 function buildBidsSchema(dataset, schemaDefinition) {
-  let schemaSpec
+  let schemasSpec
   let issues
-  if (
-    (schemaDefinition === undefined || schemaDefinition == null) &&
-    dataset.datasetDescription.jsonData &&
-    dataset.datasetDescription.jsonData.HEDVersion
-  ) {
-    // Build our own spec.
-
-    ;[schemaSpec, issues] = buildSchemaSpec(dataset.datasetDescription.jsonData.HEDVersion)
-    if (issues) {
-      return Promise.resolve([
-        ,
-        [generateIssue('invalidSchemaSpec', { spec: dataset.datasetDescription.jsonData.HEDVersion })],
-      ])
-    }
-  } else if (schemaDefinition === undefined || schemaDefinition == null) {
-    return Promise.resolve([, [generateIssue('invalidSchemaSpec', { spec: 'unknown' })]])
+  if (schemaDefinition) {
+    ;[schemasSpec, issues] = validateSchemasSpec(schemaDefinition)
+  } else if (dataset.datasetDescription.jsonData && dataset.datasetDescription.jsonData.HEDVersion) {
+    ;[schemasSpec, issues] = getSchemasSpec(dataset.datasetDescription.jsonData.HEDVersion)
   } else {
-    schemaSpec = schemaDefinition // TODO: Write a checker and check here
+    ;[schemasSpec, issues] = [null, [generateIssue('invalidSchemaSpecification', { spec: 'no schema available' })]]
   }
-  return buildSchema(schemaSpec, true).then((schemas) => [schemas, []])
+  if (issues.length > 0) {
+    return Promise.resolve([null, issues])
+  } else {
+    return buildSchemas(schemasSpec).then(([schemas, issues]) => [schemas, issues])
+  }
 }
-
-// function getSchemaSpecs(hedVersion) {
-//   const schemasSpec = new SchemasSpec()
-//   let processVersion
-//   if (Array.isArray(datasetVersion)) {
-//     processVersion = datasetVersion
-//   } else {
-//     processVersion = [datasetVersion]
-//   }
-//   for (const schemaVersion of processVersion) {
-//     const schemaSpec = schemaSpec(schemaVersion)
-//     const nicknameSplit = schemaVersion.split(':', 2)
-//     let nickname = ''
-//     let schema
-//     if (nicknameSplit.length > 1) {
-//       ;[nickname, schema] = nicknameSplit
-//       if (nickname === '') {
-//         return Promise.resolve([
-//           ,
-//           [generateIssue('invalidSchemaNickname', { nickname: nickname, version: schemaVersion })],
-//         ])
-//       }
-//     } else {
-//       schema = nicknameSplit[0]
-//       nickname = ''
-//     }
-//     if (schema.indexOf(':') > -1) {
-//       return [, [generateIssue('invalidSchemaSpec', { spec: datasetVersion })]]
-//     }
-//     const versionSplit = schema.split('_')
-//     let library, version
-//     if (versionSplit.length > 1) {
-//       ;[library, version] = versionSplit
-//       schemasSpec.addRemoteLibrarySchema(nickname, library, version)
-//     } else {
-//       version = versionSplit[0]
-//       schemasSpec.addRemoteStandardSchema('', version)
-//     }
-//   }
-//
-//   // return Promise.resolve([schemaSpec, []])
-// }
 
 const getSchemaSpec = function (schemaVersion) {
   const nicknameSplit = schemaVersion.split(':', 2)
@@ -99,7 +45,7 @@ const getSchemaSpec = function (schemaVersion) {
   } else {
     version = versionSplit[0]
   }
-  if (semver.valid(version) === null) {
+  if (!semver.valid(version)) {
     return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
   }
   const x = SchemaSpec.createSchemaSpec(nickname, version, library, '')
@@ -128,7 +74,25 @@ function getSchemasSpec(hedVersion) {
   return [schemasSpec, issues]
 }
 
+function validateSchemaSpec(spec) {
+  // ToDO: implement
+  if (!(spec instanceof SchemaSpec)) {
+    return [null, generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(spec) })]
+  }
+  return [spec, []]
+}
+
+function validateSchemasSpec(specs) {
+  // ToDO: implement
+  if (!(specs instanceof SchemasSpec)) {
+    return [null, generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(specs) })]
+  }
+  return [specs, []]
+}
+
 module.exports = {
+  validateSchemaSpec,
+  validateSchemasSpec,
   buildBidsSchema,
   getSchemaSpec,
   getSchemasSpec,

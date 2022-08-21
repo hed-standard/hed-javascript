@@ -12,6 +12,17 @@ function generateInternalErrorBidsIssue(error) {
   return Promise.resolve([new BidsIssue(107, null, error.message)])
 }
 
+function validateBidsDataset(dataset, schemaDefinition) {
+  return buildBidsSchema(dataset, schemaDefinition).then(
+    ([hedSchemas, schemaLoadIssues]) => {
+      return validateFullDataset(dataset, hedSchemas)
+        .catch(generateInternalErrorBidsIssue)
+        .then((issues) => schemaLoadIssues.concat(issues))
+    },
+    (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file),
+  )
+}
+
 /**
  * Validate a BIDS dataset.
  *
@@ -19,7 +30,7 @@ function generateInternalErrorBidsIssue(error) {
  * @param {object} schemaDefinition The version spec for the schema to be loaded.
  * @return {Promise<Array<BidsIssue>>} Any issues found.
  */
-function validateBidsDataset(dataset, schemaDefinition) {
+function validateBidsDatasetA(dataset, schemaDefinition) {
   return getBidsSchema(dataset, schemaDefinition).then(([schemaSpecs, schemaIssues]) => {
     if (schemaIssues) {
       return [, convertHedIssuesToBidsIssues(schemaIssues, dataset.datasetDescription.file)]
@@ -38,7 +49,7 @@ function validateBidsDataset(dataset, schemaDefinition) {
   // (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file);
 }
 
-function buildBidsSchema(dataset, schemaDefinition) {
+function buildBidsSchemaA(dataset, schemaDefinition) {
   let schemaSpec
   let issues
   if (
@@ -52,11 +63,11 @@ function buildBidsSchema(dataset, schemaDefinition) {
     if (issues) {
       return Promise.resolve([
         ,
-        [generateIssue('invalidSchemaSpec', { spec: dataset.datasetDescription.jsonData.HEDVersion })],
+        [generateIssue('invalidSchemaSpecification', { spec: dataset.datasetDescription.jsonData.HEDVersion })],
       ])
     }
   } else if (schemaDefinition === undefined || schemaDefinition == null) {
-    return Promise.resolve([, [generateIssue('invalidSchemaSpec', { spec: 'unknown' })]])
+    return Promise.resolve([, [generateIssue('invalidSchemaSpecification', { spec: 'unknown' })]])
   } else {
     schemaSpec = schemaDefinition // TODO: Write a checker and check here
   }
@@ -89,7 +100,7 @@ function getSchemaSpecsA(datasetVersion) {
       nickname = ''
     }
     if (schema.indexOf(':') > -1) {
-      return [, [generateIssue('invalidSchemaSpec', { spec: datasetVersion })]]
+      return [, [generateIssue('invalidSchemaSpecification', { spec: datasetVersion })]]
     }
     const versionSplit = schema.split('_')
     let library, version

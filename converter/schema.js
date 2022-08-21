@@ -82,7 +82,7 @@ const getParentTagName = function (tagElement) {
 const buildSchema = function (schemaDef = {}) {
   return schemaUtils.loadSchema(schemaDef).then(([xmlData, issues]) => {
     const mapping = buildMappingObject(xmlData)
-    const baseSchema = new schemaUtils.Schema(xmlData, undefined, mapping)
+    const baseSchema = new schemaUtils.Schema(xmlData, null, mapping)
     return new schemaUtils.Schemas(baseSchema)
   })
 }

@@ -1,10 +1,8 @@
 const zip = require('lodash/zip')
 
 const semver = require('semver')
-
-const loadSchema = require('../../common/schema/loader')
 const { Schemas, Hed2Schema, Hed3Schema, SchemasSpec } = require('../../common/schema/types')
-
+const { loadSchemaFromSpec, loadSchema } = require('../../common/schema/loader')
 const { buildMappingObject } = require('../../converter/schema')
 const { setParent } = require('../../utils/xml2js')
 
@@ -86,10 +84,9 @@ const buildSchema = function (schemaDef = {}, useFallback = true) {
  * Build a schema collection object from a schema specification.
  *
  * @param {Map<string, SchemaSpec>|SchemasSpec} schemaSpecs The description of which schemas to use.
- * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
  * @return {Promise<never>|Promise<[Schemas, Issue[]]>} The schema container object and any issues found.
  */
-const buildSchemas = function (schemaSpecs, useFallback = true) {
+const buildSchemas = function (schemaSpecs) {
   if (schemaSpecs instanceof SchemasSpec) {
     schemaSpecs = schemaSpecs.data
   }
@@ -97,7 +94,7 @@ const buildSchemas = function (schemaSpecs, useFallback = true) {
   return Promise.all(
     schemaKeys.map((k) => {
       const spec = schemaSpecs.get(k)
-      return loadSchema(spec, useFallback && spec.isFallbackEligible)
+      return loadSchemaFromSpec(spec)
     }),
   ).then((schemaXmlDataAndIssues) => {
     const [schemaXmlData, schemaXmlIssues] = zip(...schemaXmlDataAndIssues)

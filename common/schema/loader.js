@@ -4,8 +4,9 @@
 
 const xml2js = require('xml2js')
 const files = require('../../utils/files')
+const { SchemaSpec } = require('./types')
 const { generateIssue } = require('../issues/issues')
-const { fallbackFilePath } = require('./config')
+const { fallbackFilePath, fallbackDirectory, localSchemaList } = require('./config')
 
 /**
  * Load schema XML data from a schema version or path description.
@@ -38,6 +39,24 @@ const loadSchema = function (schemaDef = null, useFallback = true) {
 }
 
 /**
+ * Load schema XML data from a schema version or path description.
+ *
+ * @param {SchemaSpec} schemaDef The description of which schema to use.
+ * @return {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
+ */
+const loadSchemaFromSpec = function (schemaDef = null) {
+  const schemaPromise = loadPromise(schemaDef)
+  if (schemaPromise === null) {
+    return Promise.reject([generateIssue('invalidSchemaSpec', { spec: JSON.stringify(schemaDef) })])
+  }
+  return schemaPromise
+    .then((xmlData) => [xmlData, []])
+    .catch((issues) => {
+      return Promise.reject(issues)
+    })
+}
+
+/**
  * Choose the schema Promise from a schema version or path description.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
@@ -45,43 +64,51 @@ const loadSchema = function (schemaDef = null, useFallback = true) {
  */
 const loadPromise = function (schemaDef) {
   if (schemaDef === null) {
-    return loadRemoteStandardSchema('Latest')
-  } else if (schemaDef.path) {
-    return loadLocalSchema(schemaDef.path)
-  } else if (schemaDef.library) {
-    return loadRemoteLibrarySchema(schemaDef.library, schemaDef.version)
-  } else if (schemaDef.version) {
-    return loadRemoteStandardSchema(schemaDef.version)
-  } else {
     return null
+  } else if (schemaDef.localPath) {
+    return loadLocalSchema(schemaDef.localPath)
+  } else {
+    const localName = SchemaSpec.getSpecLocalName(schemaDef)
+    if (localSchemaList.includes(localName)) {
+      const filePath = fallbackDirectory + localName + '.xml'
+      return loadLocalSchema(filePath)
+    } else {
+      return loadRemoteSchema(schemaDef)
+    }
   }
 }
 
 /**
  * Load standard schema XML data from the HED specification GitHub repository.
  *
- * @param {string} version The standard schema version to load.
+ * @param {SchemaSpec} schemaDef The standard schema version to load.
  * @return {Promise<object>} The schema XML data.
  */
-const loadRemoteStandardSchema = function (version = 'Latest') {
-  const url = `https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/HED${version}.xml`
-  return loadSchemaFile(files.readHTTPSFile(url), 'remoteStandardSchemaLoadFailed', { version: version })
+const loadRemoteSchema = function (schemaDef) {
+  let url
+  if (schemaDef.library) {
+    url = `https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/${schemaDef.library}/hedxml/HED_${schemaDef.library}_${schemaDef.version}.xml`
+  } else {
+    url = `https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/HED${schemaDef.version}.xml`
+  }
+  return loadSchemaFile(files.readHTTPSFile(url), 'remoteSchemaLoadFailed', { spec: JSON.stringify(schemaDef) })
 }
 
-/**
- * Load library schema XML data from the HED specification GitHub repository.
- *
- * @param {string} library The library schema to load.
- * @param {string} version The schema version to load.
- * @return {Promise<object>} The library schema XML data.
- */
-const loadRemoteLibrarySchema = function (library, version = 'Latest') {
-  const url = `https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/${library}/hedxml/HED_${library}_${version}.xml`
-  return loadSchemaFile(files.readHTTPSFile(url), 'remoteLibrarySchemaLoadFailed', {
-    library: library,
-    version: version,
-  })
-}
+//
+// /**
+//  * Load library schema XML data from the HED specification GitHub repository.
+//  *
+//  * @param {string} library The library schema to load.
+//  * @param {string} version The schema version to load.
+//  * @return {Promise<object>} The library schema XML data.
+//  */
+// const loadRemoteLibrarySchema = function (library, version = 'Latest') {
+//   const url = `https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/${library}/hedxml/HED_${library}_${version}.xml`
+//   return loadSchemaFile(files.readHTTPSFile(url), 'remoteLibrarySchemaLoadFailed', {
+//     library: library,
+//     version: version,
+//   })
+// }
 
 /**
  * Load schema XML data from a local file.
@@ -119,5 +146,6 @@ const parseSchemaXML = function (data) {
 }
 
 module.exports = {
+  loadSchemaFromSpec,
   loadSchema,
 }

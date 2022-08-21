@@ -29,6 +29,9 @@ class Schema {
      * @type {string|undefined}
      */
     this.library = rootElement.$.library
+    if (!this.library) {
+      this.library = ''
+    }
     /**
      * The description of tag attributes.
      * @type {SchemaAttributes}
@@ -43,7 +46,7 @@ class Schema {
      * The HED generation of this schema.
      * @type {Number}
      */
-    if (this.library !== undefined) {
+    if (!this.library) {
       this.generation = 3
     } else {
       this.generation = getGenerationForSchemaVersion(this.version)
@@ -148,7 +151,9 @@ class Schemas {
    * @returns {Schema|null} The schema object corresponding to that nickname, or null if no schemas are defined.
    */
   getSchema(schemaName) {
-    if (this.schemas !== null) {
+    if (this.schemas === null) {
+      return null
+    } else if (this.schemas.has(schemaName)) {
       return this.schemas.get(schemaName)
     } else {
       return null
@@ -226,41 +231,51 @@ class Schemas {
 }
 
 class SchemaSpec {
-  static createSpecForRemoteStandardSchema(version) {
-    const spec = new SchemaSpec()
-    spec.version = version
-    return spec
+  // static createSpecForRemoteStandardSchema(version) {
+  //   const spec = new SchemaSpec()
+  //   spec.version = version
+  //   return spec
+  // }
+
+  static getSpecLocalName(spec) {
+    if (!spec.library) {
+      return 'HED' + spec.version
+    } else {
+      return 'HED_' + spec.library + '_' + spec.version
+    }
   }
 
   static createSchemaSpec(nickname, version, library, localPath) {
     const spec = new SchemaSpec()
     spec.nickname = nickname
     spec.version = version
-    if (library.length > 0) {
-      spec.library = library
-    }
-    if (localPath.length > 0) {
-      spec.path = localPath
-    }
-    return spec
-  }
-
-  static createSpecForRemoteLibrarySchema(library, version) {
-    const spec = new SchemaSpec()
     spec.library = library
-    spec.version = version
+    spec.localPath = localPath
+    // if (library.length > 0) {
+    //   spec.library = library
+    // }
+    // if (localPath.length > 0) {
+    //   spec.path = localPath
+    // }
     return spec
   }
-
-  static createSpecForLocalSchema(path) {
-    const spec = new SchemaSpec()
-    spec.path = path
-    return spec
-  }
-
-  get isFallbackEligible() {
-    return this.library === undefined
-  }
+  //
+  // static createSpecForRemoteLibrarySchema(library, version) {
+  //   const spec = new SchemaSpec()
+  //   spec.library = library
+  //   spec.version = version
+  //   return spec
+  // }
+  //
+  // static createSpecForLocalSchema(path) {
+  //   const spec = new SchemaSpec()
+  //   spec.path = path
+  //   return spec
+  // }
+  //
+  // get isFallbackEligible() {
+  //   return this.library === undefined
+  // }
 }
 
 class SchemasSpec {
@@ -277,35 +292,35 @@ class SchemasSpec {
     return this
   }
 
-  addRemoteStandardBaseSchema(version) {
-    return this.addRemoteStandardSchema('', version)
-  }
-
-  addLocalBaseSchema(path) {
-    return this.addLocalSchema('', path)
-  }
-
-  addRemoteStandardSchema(name, version) {
-    const spec = new SchemaSpec()
-    spec.version = version
-    this.data.set(name, spec)
-    return this
-  }
-
-  addRemoteLibrarySchema(name, library, version) {
-    const spec = new SchemaSpec()
-    spec.library = library
-    spec.version = version
-    this.data.set(name, spec)
-    return this
-  }
-
-  addLocalSchema(name, path) {
-    const spec = new SchemaSpec()
-    spec.path = path
-    this.data.set(name, spec)
-    return this
-  }
+  // addRemoteStandardBaseSchema(version) {
+  //   return this.addRemoteStandardSchema('', version)
+  // }
+  //
+  // addLocalBaseSchema(path) {
+  //   return this.addLocalSchema('', path)
+  // }
+  //
+  // addRemoteStandardSchema(name, version) {
+  //   const spec = new SchemaSpec()
+  //   spec.version = version
+  //   this.data.set(name, spec)
+  //   return this
+  // }
+  //
+  // addRemoteLibrarySchema(name, library, version) {
+  //   const spec = new SchemaSpec()
+  //   spec.library = library
+  //   spec.version = version
+  //   this.data.set(name, spec)
+  //   return this
+  // }
+  //
+  // addLocalSchema(name, path) {
+  //   const spec = new SchemaSpec()
+  //   spec.path = path
+  //   this.data.set(name, spec)
+  //   return this
+  // }
 }
 
 module.exports = {
