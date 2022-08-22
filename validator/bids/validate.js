@@ -1,6 +1,7 @@
 const { validateHedDatasetWithContext } = require('../dataset')
 const { validateHedString } = require('../event')
 const { buildSchema, buildSchemas } = require('../schema/init')
+const { buildBidsSchemas } = require('./schemas')
 const { sidecarValueHasHed } = require('../../utils/bids')
 const { generateIssue } = require('../../common/issues/issues')
 const { fallbackFilePath } = require('../../common/schema')
@@ -12,8 +13,15 @@ function generateInternalErrorBidsIssue(error) {
   return Promise.resolve([new BidsIssue(107, null, error.message)])
 }
 
+/**
+ * Validate a BIDS dataset.
+ *
+ * @param {BidsDataset} dataset The BIDS dataset.
+ * @param {SchemasSpec} schemaDefinition The version spec for the schema to be loaded.
+ * @return {Promise<Array<BidsIssue>>} Any issues found.
+ */
 function validateBidsDataset(dataset, schemaDefinition) {
-  return buildBidsSchema(dataset, schemaDefinition).then(
+  return buildBidsSchemas(dataset, schemaDefinition).then(
     ([hedSchemas, schemaLoadIssues]) => {
       return validateFullDataset(dataset, hedSchemas)
         .catch(generateInternalErrorBidsIssue)
@@ -23,31 +31,31 @@ function validateBidsDataset(dataset, schemaDefinition) {
   )
 }
 
-/**
- * Validate a BIDS dataset.
- *
- * @param {BidsDataset} dataset The BIDS dataset.
- * @param {object} schemaDefinition The version spec for the schema to be loaded.
- * @return {Promise<Array<BidsIssue>>} Any issues found.
- */
-function validateBidsDatasetA(dataset, schemaDefinition) {
-  return getBidsSchema(dataset, schemaDefinition).then(([schemaSpecs, schemaIssues]) => {
-    if (schemaIssues) {
-      return [, convertHedIssuesToBidsIssues(schemaIssues, dataset.datasetDescription.file)]
-    } else {
-      return buildBidsSchema(schemaSpecs).then(([hedSchemas, schemaLoadIssues]) => {
-        if (schemaLoadIssues) {
-          return [, convertHedIssuesToBidsIssues(schemaLoadIssues, dataset.datasetDescription.file)]
-        } else {
-          return validateFullDataset(dataset, hedSchemas)
-            .catch(generateInternalErrorBidsIssue)
-            .then((issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file))
-        }
-      })
-    }
-  })
-  // (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file);
-}
+// /**
+//  * Validate a BIDS dataset.
+//  *
+//  * @param {BidsDataset} dataset The BIDS dataset.
+//  * @param {object} schemaDefinition The version spec for the schema to be loaded.
+//  * @return {Promise<Array<BidsIssue>>} Any issues found.
+//  */
+// function validateBidsDatasetA(dataset, schemaDefinition) {
+//   return getBidsSchema(dataset, schemaDefinition).then(([schemaSpecs, schemaIssues]) => {
+//     if (schemaIssues) {
+//       return [, convertHedIssuesToBidsIssues(schemaIssues, dataset.datasetDescription.file)]
+//     } else {
+//       return buildBidsSchema(schemaSpecs).then(([hedSchemas, schemaLoadIssues]) => {
+//         if (schemaLoadIssues) {
+//           return [, convertHedIssuesToBidsIssues(schemaLoadIssues, dataset.datasetDescription.file)]
+//         } else {
+//           return validateFullDataset(dataset, hedSchemas)
+//             .catch(generateInternalErrorBidsIssue)
+//             .then((issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file))
+//         }
+//       })
+//     }
+//   })
+//   // (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file);
+// }
 
 function buildBidsSchemaA(dataset, schemaDefinition) {
   let schemaSpec

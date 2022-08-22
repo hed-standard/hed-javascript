@@ -4,7 +4,7 @@ const { generateIssue } = require('../../common/issues/issues')
 const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
 const semver = require('semver')
 
-function buildBidsSchema(dataset, schemaDefinition) {
+function buildBidsSchemas(dataset, schemaDefinition) {
   let schemasSpec
   let issues
   if (schemaDefinition) {
@@ -93,7 +93,7 @@ function validateSchemasSpec(specs) {
 module.exports = {
   validateSchemaSpec,
   validateSchemasSpec,
-  buildBidsSchema,
+  buildBidsSchemas,
   getSchemaSpec,
   getSchemasSpec,
 }
