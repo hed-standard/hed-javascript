@@ -1,7 +1,7 @@
 const assert = require('chai').assert
 const converterGenerateIssue = require('../converter/issues')
 const { generateIssue } = require('../common/issues/issues')
-const { SchemaSpec } = require('../common/schema/types')
+const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
 const { recursiveMap } = require('../utils/array')
 const {
   BidsDataset,
@@ -589,8 +589,20 @@ describe('BIDS datasets', () => {
    * @type {BidsJsonFile[][]}
    */
   let bidsDatasetDescriptions
+  /**
+   * @type {SchemasSpec}
+   */
+  let specs
+  /**
+   * @type {SchemasSpec}
+   */
+  let specs2
 
   beforeAll(() => {
+    const spec1 = new SchemaSpec('', '8.0.0')
+    specs = new SchemasSpec().addSchemaSpec(spec1)
+    const spec2 = new SchemaSpec('', '7.2.0')
+    specs2 = new SchemasSpec().addSchemaSpec(spec2)
     bidsSidecars = sidecars.map((subData, sub) => {
       return subData.map((runData, run) => {
         const name = `/sub0${sub + 1}/sub0${sub + 1}_task-test_run-${run + 1}_events.json`
@@ -647,7 +659,7 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), bidsSidecars[1][1].file),
         ],
       }
-      return validator(testDatasets, expectedIssues, { version: '8.0.0' })
+      return validator(testDatasets, expectedIssues, specs)
     }, 10000)
 
     it('should validate placeholders in BIDS sidecars', () => {
@@ -681,7 +693,7 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' }), bidsSidecars[2][8].file),
         ],
       }
-      return validator(testDatasets, expectedIssues, { version: '8.0.0' })
+      return validator(testDatasets, expectedIssues, specs)
     }, 10000)
   })
 
@@ -714,7 +726,7 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(maglevWarning, badDatasets[4].file),
         ],
       }
-      return validator(testDatasets, expectedIssues, { version: '8.0.0' })
+      return validator(testDatasets, expectedIssues, specs)
     }, 10000)
   })
 
@@ -774,7 +786,7 @@ describe('BIDS datasets', () => {
           new BidsIssue(108, badDatasets[4].file, 'purple'),
         ],
       }
-      return validator(testDatasets, expectedIssues, { version: '8.0.0' })
+      return validator(testDatasets, expectedIssues, specs)
     }, 10000)
   })
 
@@ -787,7 +799,7 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         all_good: [],
       }
-      return validator(testDatasets, expectedIssues, { version: '7.2.0' })
+      return validator(testDatasets, expectedIssues, specs2)
     }, 10000)
   })
 
