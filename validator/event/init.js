@@ -1,5 +1,5 @@
 const { parseHedString } = require('../parser/main')
-const ParsedHedString = require('../parser/parsedString')
+const ParsedHedString = require('../parser/parsedHedString')
 const { Schemas } = require('../../common/schema')
 
 const { HedValidator, Hed2Validator } = require('./validator')
