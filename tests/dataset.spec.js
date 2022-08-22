@@ -1,15 +1,18 @@
 const assert = require('chai').assert
 const hed = require('../validator/dataset')
-const schema = require('../validator/schema/init')
 const generateValidationIssue = require('../common/issues/issues').generateIssue
 const generateConverterIssue = require('../converter/issues')
+const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
+const { buildSchemas } = require('../validator/schema/init')
 
 describe('HED dataset validation', () => {
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = schema.buildSchema({ path: hedSchemaFile })
+    const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', hedSchemaFile)
+    const specs = new SchemasSpec().addSchemaSpec(spec1)
+    hedSchemaPromise = buildSchemas(specs)
   })
 
   describe('Basic HED string lists', () => {
@@ -20,9 +23,10 @@ describe('HED dataset validation', () => {
      * @param {object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = function (testDatasets, expectedIssues) {
-      return hedSchemaPromise.then((hedSchema) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.equal(issues.length, 0)
         for (const testDatasetKey in testDatasets) {
-          const [, testIssues] = hed.validateHedEvents(testDatasets[testDatasetKey], hedSchema, null, true)
+          const [, testIssues] = hed.validateHedEvents(testDatasets[testDatasetKey], hedSchemas, null, true)
           assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDatasets[testDatasetKey].join(','))
         }
       })
@@ -74,9 +78,10 @@ describe('HED dataset validation', () => {
      * @param {object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = function (testDatasets, expectedIssues) {
-      return hedSchemaPromise.then((hedSchema) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.equal(issues.length, 0)
         for (const testDatasetKey in testDatasets) {
-          const [, testIssues] = hed.validateHedDataset(testDatasets[testDatasetKey], hedSchema, true)
+          const [, testIssues] = hed.validateHedDataset(testDatasets[testDatasetKey], hedSchemas, true)
           assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDatasets[testDatasetKey].join(','))
         }
       })

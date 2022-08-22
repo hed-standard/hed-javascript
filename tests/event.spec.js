@@ -352,7 +352,8 @@ describe('HED string and event validation', () => {
        * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-        return hedSchemaPromise.then((hedSchemas) => {
+        return hedSchemaPromise.then(([hedSchemas, issues]) => {
+          assert.equal(issues.length, 0)
           validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
         })
       }
@@ -903,9 +904,9 @@ describe('HED string and event validation', () => {
     let hedSchemaPromise
 
     beforeAll(() => {
-      hedSchemaPromise = schema.buildSchema({
-        path: hedSchemaFile,
-      })
+      const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', hedSchemaFile)
+      const specs = new SchemasSpec().addSchemaSpec(spec1)
+      hedSchemaPromise = buildSchemas(specs)
     })
 
     /**
@@ -940,7 +941,8 @@ describe('HED string and event validation', () => {
      * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
      */
     const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.equal(issues.length, 0)
         validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
       })
     }

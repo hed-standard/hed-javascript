@@ -379,9 +379,14 @@ describe('HED string parsing', () => {
           ],
         },
       }
-      return hedSchemaPromise.then((hedSchema) => {
+      const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', '')
+      const specs = new SchemasSpec().addSchemaSpec(spec1)
+      hedSchemaPromise = buildSchemas(specs)
+
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.equal(issues.length, 0)
         return validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
-          const [parsedString, issues] = parseHedString(string, hedSchema)
+          const [parsedString, issues] = parseHedString(string, hedSchemas)
           const canonicalTags = parsedString.tags.map((parsedTag) => {
             return parsedTag.canonicalTag
           })
