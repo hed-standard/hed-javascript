@@ -151,6 +151,10 @@ class BidsIssue {
   isError() {
     return bidsHedErrorCodes.has(this.code)
   }
+
+  static generateInternalErrorPromise(error) {
+    return Promise.resolve([new BidsIssue(107, null, error.message)])
+  }
 }
 
 class BidsHedIssue extends BidsIssue {

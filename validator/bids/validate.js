@@ -2,14 +2,11 @@ const { validateHedDatasetWithContext } = require('../dataset')
 const { validateHedString } = require('../event')
 const { buildSchema, buildSchemas } = require('../schema/init')
 const { sidecarValueHasHed } = require('../../utils/bids')
+const { getCharacterCount } = require('../../utils/string')
 const { generateIssue } = require('../../common/issues/issues')
 const { fallbackFilePath } = require('../../common/schema')
 const { SchemasSpec } = require('../../common/schema/types')
 const { BidsDataset, BidsHedIssue, BidsIssue } = require('./types')
-
-function generateInternalErrorBidsIssue(error) {
-  return Promise.resolve([new BidsIssue(107, null, error.message)])
-}
 
 /**
  * Validate a BIDS dataset.
@@ -22,7 +19,7 @@ function validateBidsDataset(dataset, schemaDefinition) {
   return buildBidsSchema(dataset, schemaDefinition).then(
     ([hedSchemas, schemaLoadIssues]) => {
       return validateFullDataset(dataset, hedSchemas)
-        .catch(generateInternalErrorBidsIssue)
+        .catch(BidsIssue.generateInternalErrorPromise)
         .then((issues) => schemaLoadIssues.concat(issues))
     },
     (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file),
@@ -36,8 +33,7 @@ function buildBidsSchema(dataset, schemaDefinition) {
     dataset.datasetDescription.jsonData.HEDVersion
   ) {
     // Build our own spec.
-    const schemaSpec = buildSchemaSpec(dataset)
-    return buildSchemas(schemaSpec, true)
+    return buildSchemaSpec(dataset).then((schemasSpec) => buildSchemas(schemasSpec, true))
   } else {
     // Use their spec.
     return buildSchema(schemaDefinition, true).then((schemas) => [schemas, []])
@@ -49,16 +45,16 @@ function buildSchemaSpec(dataset) {
   const schemaSpec = new SchemasSpec()
   if (Array.isArray(datasetVersion)) {
     for (const schemaVersion of datasetVersion) {
-      const nicknameSplit = schemaVersion.split(':', 2)
+      if (getCharacterCount(schemaVersion, ':') > 1 || getCharacterCount(schemaVersion, '_') > 1) {
+        return Promise.reject([generateIssue('invalidSchemaSpec', { spec: datasetVersion })])
+      }
+      const nicknameSplit = schemaVersion.split(':')
       let nickname, schema
       if (nicknameSplit.length > 1) {
         ;[nickname, schema] = nicknameSplit
       } else {
         schema = nicknameSplit[0]
         nickname = ''
-      }
-      if (schema.indexOf(':') > -1) {
-        return Promise.reject([generateIssue('invalidSchemaSpec', { spec: datasetVersion })])
       }
       const versionSplit = schema.split('_')
       let library, version
@@ -72,7 +68,7 @@ function buildSchemaSpec(dataset) {
   } else if (typeof datasetVersion === 'string') {
     schemaSpec.addRemoteStandardBaseSchema(datasetVersion)
   }
-  return schemaSpec
+  return Promise.resolve(schemaSpec)
 }
 
 function validateFullDataset(dataset, hedSchemas) {
