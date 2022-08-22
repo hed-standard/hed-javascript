@@ -222,7 +222,7 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
   const ParsedHedTagClass = generationToClass[hedSchemas.generation]
 
   const createParsedTag = ({ library: librarySchema, tag: originalTag, bounds: originalBounds }) => {
-    const parsedTag = new ParsedHed3Tag(originalTag, hedString, originalBounds, hedSchemas, librarySchema)
+    const parsedTag = new ParsedHedTagClass(originalTag, hedString, originalBounds, hedSchemas, librarySchema)
     conversionIssues.push(...parsedTag.conversionIssues)
     return parsedTag
   }

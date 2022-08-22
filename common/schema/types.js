@@ -200,7 +200,6 @@ class Schemas {
     } else if (this.librarySchemas.size > 0) {
       return 3
     } else if (this.baseSchema) {
-      // Only library schemas are defined, so this must be HED 3.
       return this.baseSchema.generation
     } else {
       return 0

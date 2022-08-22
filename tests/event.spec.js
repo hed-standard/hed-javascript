@@ -1,6 +1,5 @@
 const assert = require('chai').assert
 const hed = require('../validator/event')
-const schema = require('../validator/schema/init')
 const { parseHedString } = require('../validator/parser/main')
 const { ParsedHedTag } = require('../validator/parser/types')
 const { HedValidator, Hed2Validator, Hed3Validator } = require('../validator/event')
@@ -688,11 +687,12 @@ describe('HED string and event validation', () => {
 
       describe('HED Strings', () => {
         const validator = function (testStrings, expectedIssues, expectValuePlaceholderString = false) {
-          return hedSchemaPromise.then((schema) => {
+          return hedSchemaPromise.then(([schemas, issues]) => {
+            assert.equal(issues.length, 0)
             for (const testStringKey in testStrings) {
               const [, testIssues] = hed.validateHedString(
                 testStrings[testStringKey],
-                schema,
+                schemas,
                 true,
                 expectValuePlaceholderString,
               )
@@ -765,9 +765,9 @@ describe('HED string and event validation', () => {
       let hedSchemaPromise
 
       beforeAll(() => {
-        hedSchemaPromise = schema.buildSchema({
-          path: hedSchemaFile,
-        })
+        const spec1 = SchemaSpec.createSchemaSpec('', '', '', hedSchemaFile)
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        hedSchemaPromise = buildSchemas(specs)
       })
 
       /**
