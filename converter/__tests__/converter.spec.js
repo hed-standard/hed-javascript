@@ -1,14 +1,17 @@
 const assert = require('chai').assert
 const converter = require('../converter')
-const schema = require('../schema')
 const generateIssue = require('../issues')
+const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
+const { buildSchemas } = require('../../validator/schema/init')
 
 describe('HED string conversion', () => {
-  const hedSchemaFile = 'tests/data/HED8.0.0.xml'
-  let schemaPromise
+  let hedSchemaPromise
+  let specs
 
   beforeAll(() => {
-    schemaPromise = schema.buildSchema({ path: hedSchemaFile })
+    const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', '')
+    specs = new SchemasSpec().addSchemaSpec(spec1)
+    hedSchemaPromise = buildSchemas(specs)
   })
 
   describe('HED tags', () => {
@@ -22,9 +25,15 @@ describe('HED string conversion', () => {
      * @return {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
-      return schemaPromise.then((schemas) => {
+      return hedSchemaPromise.then(([schemas, issues]) => {
+        assert.equal(issues.length, 0)
         for (const testStringKey of Object.keys(testStrings)) {
-          const [testResult, issues] = testFunction(schemas.baseSchema, testStrings[testStringKey], testStrings[testStringKey], 0)
+          const [testResult, issues] = testFunction(
+            schemas.baseSchema,
+            testStrings[testStringKey],
+            testStrings[testStringKey],
+            0,
+          )
           assert.strictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
           assert.sameDeepMembers(issues, expectedIssues[testStringKey], testStrings[testStringKey])
         }
@@ -586,7 +595,8 @@ describe('HED string conversion', () => {
      * @return {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
-      return schemaPromise.then((schemas) => {
+      return hedSchemaPromise.then(([schemas, issues]) => {
+        assert.equal(issues.length, 0)
         for (const testStringKey of Object.keys(testStrings)) {
           const [testResult, issues] = testFunction(schemas, testStrings[testStringKey])
           assert.strictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
