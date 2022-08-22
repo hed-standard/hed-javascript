@@ -86,10 +86,9 @@ const buildSchema = function (schemaDef = {}, useFallback = true) {
  * Build a schema collection object from a schema specification.
  *
  * @param {Map<string, SchemaSpec>|SchemasSpec} schemaSpecs The description of which schemas to use.
- * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
  * @return {Promise<never>|Promise<[Schemas, Issue[]]>} The schema container object and any issues found.
  */
-const buildSchemas = function (schemaSpecs, useFallback = true) {
+const buildSchemas = function (schemaSpecs) {
   if (schemaSpecs instanceof SchemasSpec) {
     schemaSpecs = schemaSpecs.data
   }
@@ -97,7 +96,7 @@ const buildSchemas = function (schemaSpecs, useFallback = true) {
   return Promise.all(
     schemaKeys.map((k) => {
       const spec = schemaSpecs.get(k)
-      return loadSchema(spec, useFallback && spec.isFallbackEligible)
+      return loadSchema(spec, false)
     }),
   ).then((schemaXmlDataAndIssues) => {
     const [schemaXmlData, schemaXmlIssues] = zip(...schemaXmlDataAndIssues)

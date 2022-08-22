@@ -859,7 +859,7 @@ describe('BIDS datasets', () => {
             ),
             new BidsHedIssue(
               generateIssue('requestedSchemaLoadFailedNoFallbackUsed', {
-                spec: JSON.stringify(SchemaSpec.createSpecForRemoteLibrarySchema('badlib', '1.0.2')),
+                spec: JSON.stringify(new SchemaSpec('ts', '1.0.2', 'badlib')),
               }),
               badDatasetDescriptions[0].file,
             ),

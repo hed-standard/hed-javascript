@@ -5,7 +5,7 @@ const { sidecarValueHasHed } = require('../../utils/bids')
 const { getCharacterCount } = require('../../utils/string')
 const { generateIssue } = require('../../common/issues/issues')
 const { fallbackFilePath } = require('../../common/schema')
-const { SchemasSpec } = require('../../common/schema/types')
+const { SchemasSpec, SchemaSpec } = require('../../common/schema/types')
 const { BidsDataset, BidsHedIssue, BidsIssue } = require('./types')
 
 /**
@@ -42,7 +42,7 @@ function buildBidsSchema(dataset, schemaDefinition) {
 
 function buildSchemaSpec(dataset) {
   const datasetVersion = dataset.datasetDescription.jsonData.HEDVersion
-  const schemaSpec = new SchemasSpec()
+  const schemasSpec = new SchemasSpec()
   if (Array.isArray(datasetVersion)) {
     for (const schemaVersion of datasetVersion) {
       if (getCharacterCount(schemaVersion, ':') > 1 || getCharacterCount(schemaVersion, '_') > 1) {
@@ -63,12 +63,12 @@ function buildSchemaSpec(dataset) {
       } else {
         version = versionSplit[0]
       }
-      schemaSpec.addRemoteLibrarySchema(nickname, library, version)
+      schemasSpec.addSchemaSpec(new SchemaSpec(nickname, version, library))
     }
   } else if (typeof datasetVersion === 'string') {
-    schemaSpec.addRemoteStandardBaseSchema(datasetVersion)
+    schemasSpec.addSchemaSpec(new SchemaSpec('', datasetVersion))
   }
-  return Promise.resolve(schemaSpec)
+  return Promise.resolve(schemasSpec)
 }
 
 function validateFullDataset(dataset, hedSchemas) {
