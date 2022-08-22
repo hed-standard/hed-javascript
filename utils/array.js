@@ -43,7 +43,7 @@ function recursiveMap(fn, array) {
 }
 
 module.exports = {
-  getElementCount: getElementCount,
-  asArray: asArray,
-  recursiveMap: recursiveMap,
+  getElementCount,
+  asArray,
+  recursiveMap,
 }

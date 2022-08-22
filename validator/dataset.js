@@ -117,9 +117,9 @@ const validateHedDatasetWithContext = function (hedStrings, contextHedStrings, h
 }
 
 module.exports = {
-  parseDefinitions: parseDefinitions,
-  validateDataset: validateDataset,
-  validateHedEvents: validateHedEvents,
-  validateHedDataset: validateHedDataset,
-  validateHedDatasetWithContext: validateHedDatasetWithContext,
+  parseDefinitions,
+  validateDataset,
+  validateHedEvents,
+  validateHedDataset,
+  validateHedDatasetWithContext,
 }

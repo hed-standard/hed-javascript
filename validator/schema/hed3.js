@@ -284,6 +284,6 @@ class HedV8SchemaParser extends Hed3SchemaParser {
 }
 
 module.exports = {
-  Hed3SchemaParser: Hed3SchemaParser,
-  HedV8SchemaParser: HedV8SchemaParser,
+  Hed3SchemaParser,
+  HedV8SchemaParser,
 }

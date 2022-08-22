@@ -165,10 +165,10 @@ class BidsHedIssue extends BidsIssue {
 }
 
 module.exports = {
-  BidsDataset: BidsDataset,
-  BidsEventFile: BidsEventFile,
-  BidsHedIssue: BidsHedIssue,
-  BidsIssue: BidsIssue,
-  BidsJsonFile: BidsJsonFile,
-  BidsSidecar: BidsSidecar,
+  BidsDataset,
+  BidsEventFile,
+  BidsHedIssue,
+  BidsIssue,
+  BidsJsonFile,
+  BidsSidecar,
 }

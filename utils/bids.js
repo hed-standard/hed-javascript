@@ -9,5 +9,5 @@ const sidecarValueHasHed = function (sidecarValue) {
 }
 
 module.exports = {
-  sidecarValueHasHed: sidecarValueHasHed,
+  sidecarValueHasHed,
 }

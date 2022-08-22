@@ -108,7 +108,7 @@ const buildSchemas = function (schemaSpecs, useFallback = true) {
 }
 
 module.exports = {
-  buildSchema: buildSchema,
-  buildSchemas: buildSchemas,
-  buildSchemaAttributesObject: buildSchemaAttributesObject,
+  buildSchema,
+  buildSchemas,
+  buildSchemaAttributesObject,
 }

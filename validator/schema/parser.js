@@ -83,5 +83,5 @@ class SchemaParser {
 }
 
 module.exports = {
-  SchemaParser: SchemaParser,
+  SchemaParser,
 }

@@ -127,7 +127,7 @@ const validateHedEventWithDefinitions = function (hedString, hedSchemas, definit
 }
 
 module.exports = {
-  validateHedString: validateHedString,
-  validateHedEvent: validateHedEvent,
-  validateHedEventWithDefinitions: validateHedEventWithDefinitions,
+  validateHedString,
+  validateHedEvent,
+  validateHedEventWithDefinitions,
 }

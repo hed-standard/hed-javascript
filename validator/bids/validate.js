@@ -16,7 +16,7 @@ function generateInternalErrorBidsIssue(error) {
  *
  * @param {BidsDataset} dataset The BIDS dataset.
  * @param {object} schemaDefinition The version spec for the schema to be loaded.
- * @return {Promise<Array<BidsIssue>>} Any issues found.
+ * @return {Promise<BidsIssue[]>} Any issues found.
  */
 function validateBidsDataset(dataset, schemaDefinition) {
   return buildBidsSchema(dataset, schemaDefinition).then(

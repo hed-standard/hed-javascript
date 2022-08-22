@@ -87,11 +87,11 @@ const stringTemplate = function (strings, ...keys) {
 }
 
 module.exports = {
-  stringIsEmpty: stringIsEmpty,
-  getCharacterCount: getCharacterCount,
-  capitalizeString: capitalizeString,
-  isClockFaceTime: isClockFaceTime,
-  isDateTime: isDateTime,
-  isNumber: isNumber,
-  stringTemplate: stringTemplate,
+  stringIsEmpty,
+  getCharacterCount,
+  capitalizeString,
+  isClockFaceTime,
+  isDateTime,
+  isNumber,
+  stringTemplate,
 }

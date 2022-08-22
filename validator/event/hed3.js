@@ -330,5 +330,5 @@ class Hed3Validator extends HedValidator {
 }
 
 module.exports = {
-  Hed3Validator: Hed3Validator,
+  Hed3Validator,
 }

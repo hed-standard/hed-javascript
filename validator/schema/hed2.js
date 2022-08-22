@@ -190,5 +190,5 @@ class Hed2SchemaParser extends SchemaParser {
 }
 
 module.exports = {
-  Hed2SchemaParser: Hed2SchemaParser,
+  Hed2SchemaParser,
 }

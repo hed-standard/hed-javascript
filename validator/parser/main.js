@@ -185,7 +185,7 @@ const parseHedStrings = function (hedStrings, hedSchemas) {
 }
 
 module.exports = {
-  splitHedString: splitHedString,
-  parseHedString: parseHedString,
-  parseHedStrings: parseHedStrings,
+  splitHedString,
+  parseHedString,
+  parseHedStrings,
 }

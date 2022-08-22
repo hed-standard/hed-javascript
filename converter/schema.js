@@ -88,6 +88,6 @@ const buildSchema = function (schemaDef = {}) {
 }
 
 module.exports = {
-  buildSchema: buildSchema,
-  buildMappingObject: buildMappingObject,
+  buildSchema,
+  buildMappingObject,
 }

@@ -2,11 +2,11 @@ const { BidsDataset, BidsEventFile, BidsHedIssue, BidsIssue, BidsJsonFile, BidsS
 const validateBidsDataset = require('./validate')
 
 module.exports = {
-  BidsDataset: BidsDataset,
-  BidsEventFile: BidsEventFile,
-  BidsHedIssue: BidsHedIssue,
-  BidsIssue: BidsIssue,
-  BidsJsonFile: BidsJsonFile,
-  BidsSidecar: BidsSidecar,
-  validateBidsDataset: validateBidsDataset,
+  BidsDataset,
+  BidsEventFile,
+  BidsHedIssue,
+  BidsIssue,
+  BidsJsonFile,
+  BidsSidecar,
+  validateBidsDataset,
 }

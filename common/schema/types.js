@@ -287,10 +287,10 @@ class SchemasSpec {
 }
 
 module.exports = {
-  Schema: Schema,
-  Hed2Schema: Hed2Schema,
-  Hed3Schema: Hed3Schema,
-  Schemas: Schemas,
-  SchemaSpec: SchemaSpec,
-  SchemasSpec: SchemasSpec,
+  Schema,
+  Hed2Schema,
+  Hed3Schema,
+  Schemas,
+  SchemaSpec,
+  SchemasSpec,
 }
