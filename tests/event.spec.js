@@ -709,8 +709,8 @@ describe('HED string and event validation', () => {
 
         it('should properly handle strings with placeholders', () => {
           const testStrings = {
-            // takesValue: 'Attribute/Visual/Color/Red/#',
-            // withUnit: 'Event/Duration/# ms',
+            takesValue: 'Attribute/Visual/Color/Red/#',
+            withUnit: 'Event/Duration/# ms',
             child: 'Attribute/Object side/#',
             extensionAllowed: 'Item/Object/Person/Driver/#',
             invalidParent: 'Event/Nonsense/#',
