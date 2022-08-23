@@ -96,7 +96,7 @@ const buildSchemas = function (schemaSpecs) {
   return Promise.all(
     schemaKeys.map((k) => {
       const spec = schemaSpecs.get(k)
-      return loadSchema(spec, false)
+      return loadSchema(spec, false, false)
     }),
   ).then((schemaXmlDataAndIssues) => {
     const [schemaXmlData, schemaXmlIssues] = zip(...schemaXmlDataAndIssues)

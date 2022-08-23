@@ -861,17 +861,10 @@ describe('BIDS datasets', () => {
         const expectedIssues = {
           unknown_library: [
             new BidsHedIssue(
-              generateIssue('remoteLibrarySchemaLoadFailed', {
-                library: 'badlib',
-                version: '1.0.2',
+              generateIssue('remoteSchemaLoadFailed', {
+                spec: JSON.stringify(new SchemaSpec('ts', '1.0.2', 'badlib')),
                 error:
                   'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
-              }),
-              badDatasetDescriptions[0].file,
-            ),
-            new BidsHedIssue(
-              generateIssue('requestedSchemaLoadFailedNoFallbackUsed', {
-                spec: JSON.stringify(new SchemaSpec('ts', '1.0.2', 'badlib')),
               }),
               badDatasetDescriptions[0].file,
             ),

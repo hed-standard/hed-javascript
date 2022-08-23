@@ -256,6 +256,8 @@ class SchemaSpec {
   /**
    * Alias to old name of localPath.
    *
+   * @todo Replace with localPath in 4.0.0.
+   *
    * @returns {string} The local path for this schema.
    */
   get path() {
