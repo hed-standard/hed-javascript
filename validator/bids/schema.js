@@ -3,19 +3,29 @@ const { buildSchemas } = require('../schema/init')
 const { generateIssue } = require('../../common/issues/issues')
 const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
 const { getCharacterCount } = require('../../utils/string')
+const { BidsHedIssue } = require('./types')
+
+const alphanumericRegExp = new RegExp('^[a-zA-Z0-9]+$')
+
+function convertIssuesToBidsHedIssues(issues, file) {
+  return issues.map((issue) => new BidsHedIssue(issue, file))
+}
 
 function buildBidsSchemas(dataset, schemaDefinition) {
   let schemasSpec
   let issues
+  let descriptionFile = null
   if (schemaDefinition) {
     ;[schemasSpec, issues] = validateSchemasSpec(schemaDefinition)
   } else if (dataset.datasetDescription.jsonData && dataset.datasetDescription.jsonData.HEDVersion) {
     ;[schemasSpec, issues] = parseSchemasSpec(dataset.datasetDescription.jsonData.HEDVersion)
+    descriptionFile = dataset.datasetDescription.file
   } else {
     ;[schemasSpec, issues] = [null, [generateIssue('invalidSchemaSpecification', { spec: 'no schema available' })]]
   }
   if (issues.length > 0) {
-    return Promise.resolve([null, issues])
+    let issuesNew = convertIssuesToBidsHedIssues(issues, descriptionFile)
+    return Promise.resolve([null, convertIssuesToBidsHedIssues(issues, descriptionFile)])
   } else {
     return buildSchemas(schemasSpec).then(([schemas]) => [schemas, issues])
   }
@@ -37,13 +47,15 @@ function parseSchemasSpec(hedVersion) {
   } else {
     processVersion = [hedVersion]
   }
-  const issues = []
+  let issues = []
   for (const schemaVersion of processVersion) {
     const [schemaSpec, verIssues] = parseSchemaSpec(schemaVersion)
     if (verIssues.length > 0) {
-      issues.concat(verIssues)
+      issues = issues.concat(verIssues)
     } else if (schemasSpec.isDuplicate(schemaSpec)) {
-      issues.push(generateIssue('invalidSchemaNickname', { spec: schemaVersion, nickname: schemaSpec.nickname }))
+      issues = issues.concat(
+        generateIssue('invalidSchemaNickname', { spec: schemaVersion, nickname: schemaSpec.nickname }),
+      )
     } else {
       schemasSpec.addSchemaSpec(schemaSpec)
     }
@@ -60,9 +72,8 @@ function parseSchemaSpec(schemaVersion) {
   let schema
   if (nicknameSplit.length > 1) {
     ;[nickname, schema] = nicknameSplit
-    if (nickname === '') {
-      // ToDo:  put in regular expression check instead of this one
-      return [null, [generateIssue('invalidSchemaNickname', { nickname: nickname, version: schemaVersion })]]
+    if (nickname === '' || !alphanumericRegExp.test(nickname)) {
+      return [null, [generateIssue('invalidSchemaNickname', { nickname: nickname, schemaVersion: schemaVersion })]]
     }
   } else {
     schema = nicknameSplit[0]

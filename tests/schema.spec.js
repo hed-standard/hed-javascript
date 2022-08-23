@@ -2,7 +2,7 @@ const assert = require('chai').assert
 const { buildSchemas } = require('../validator/schema/init')
 const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
 
-const { getSchemaSpec, getSchemasSpec } = require('../validator/bids/schemas')
+const { parseSchemaSpec, parseSchemasSpec } = require('../validator/bids/schema')
 const { generateIssue } = require('../common/issues/issues')
 
 describe('HED schemas', () => {
@@ -553,7 +553,7 @@ describe('HED schemas', () => {
         expectedResults,
         expectedIssues,
         (string) => {
-          const [sp, issues] = getSchemaSpec(string)
+          const [sp, issues] = parseSchemaSpec(string)
           return [sp, issues]
         },
         10000,
@@ -576,7 +576,7 @@ describe('HED schemas', () => {
         expectedResults,
         expectedIssues,
         (string) => {
-          const [sp, issues] = getSchemaSpec(string)
+          const [sp, issues] = parseSchemaSpec(string)
           return [sp, issues]
         },
         10000,
@@ -604,7 +604,7 @@ describe('HED schemas', () => {
         expectedResults,
         expectedIssues,
         (string) => {
-          const [sp, issues] = getSchemasSpec(string)
+          const [sp, issues] = parseSchemasSpec(string)
           return [sp, issues]
         },
         10000,
@@ -633,7 +633,7 @@ describe('HED schemas', () => {
         expectedResults,
         expectedIssues,
         (string) => {
-          const [sp, issues] = getSchemasSpec(string)
+          const [sp, issues] = parseSchemasSpec(string)
           return [sp, issues]
         },
         10000,
