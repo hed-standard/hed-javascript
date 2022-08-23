@@ -1,6 +1,7 @@
 const assert = require('chai').assert
 const hed = require('../hed')
-const schema = require('../../validator/schema/init')
+const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
+const { buildSchemas } = require('../../validator/schema/init')
 
 describe('HED tag string utility functions', () => {
   describe('Syntactic utility functions', () => {
@@ -170,15 +171,14 @@ describe('HED tag string utility functions', () => {
     })
   })
 
-  const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
-
   describe('HED tag schema-based utility functions', () => {
+    const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
     let hedSchemaPromise
 
     beforeAll(() => {
-      hedSchemaPromise = schema.buildSchema({
-        path: localHedSchemaFile,
-      })
+      const spec1 = new SchemaSpec('', '7.1.1', '', localHedSchemaFile)
+      const specs = new SchemasSpec().addSchemaSpec(spec1)
+      hedSchemaPromise = buildSchemas(specs)
     })
 
     it('should strip valid units from a value', () => {
@@ -188,7 +188,8 @@ describe('HED tag string utility functions', () => {
       const invalidVolumeString = '200 cm'
       const currencyUnits = ['dollars', '$', 'points', 'fraction']
       const volumeUnits = ['m^3']
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.deepEqual(issues, [], 'Schema loading issues occurred')
         const strippedDollarsString = hed.validateUnits(dollarsString, currencyUnits, hedSchemas.baseSchema.attributes)
         const strippedVolumeString = hed.validateUnits(volumeString, volumeUnits, hedSchemas.baseSchema.attributes)
         const strippedPrefixedVolumeString = hed.validateUnits(
