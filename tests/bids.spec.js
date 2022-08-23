@@ -594,13 +594,20 @@ describe('BIDS datasets', () => {
    * @type {BidsJsonFile[][]}
    */
   let bidsDatasetDescriptions
+
+  /**
+   * @type {SchemasSpec}
+   */
   let specs
+  /**
+   * @type {SchemasSpec}
+   */
   let specs2
 
   beforeAll(() => {
-    const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', '')
+    const spec1 = new SchemaSpec('', '8.0.0')
     specs = new SchemasSpec().addSchemaSpec(spec1)
-    const spec2 = SchemaSpec.createSchemaSpec('', '7.2.0', '', '')
+    const spec2 = new SchemaSpec('', '7.2.0')
     specs2 = new SchemasSpec().addSchemaSpec(spec2)
     bidsSidecars = sidecars.map((subData, sub) => {
       return subData.map((runData, run) => {
@@ -858,41 +865,21 @@ describe('BIDS datasets', () => {
           // unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
           leading_colon: new BidsDataset(goodEvents2, [], badDatasetDescriptions[1]),
         }
-        // const expectedIssues = {
-        //   unknown_library: [
-        //     new BidsHedIssue(
-        //         generateIssue('remoteLibrarySchemaLoadFailed', {
-        //           library: 'badlib',
-        //           version: '1.0.2',
-        //           error:
-        //               'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
-        //         }),
-        //         badDatasetDescriptions[0].file,
-        //     ),
-        //     new BidsHedIssue(
-        //         generateIssue('requestedSchemaLoadFailedNoFallbackUsed', {
-        //           spec: JSON.stringify(SchemaSpec.createSpecForRemoteLibrarySchema('badlib', '1.0.2')),
-        //         }),
-        //         badDatasetDescriptions[0].file,
-        //     ),
-        //   ],
-        //   leading_colon: [
-        //     new BidsHedIssue(
-        //         generateIssue('remoteLibrarySchemaLoadFailed', {
-        //           nickname: '',
-        //           schemaVersion: ':ts:testlib_1.0.2',
-        //           error: 'The prefix nickname "" in schema :ts:testlib_1.0.2 is not valid',
-        //         }),
-        //         badDatasetDescriptions[1].file,
-        //     ),
-        //   ],
-        // }
-        const dataset = testDatasets['leading_colon']
-        const versionSpec = null
-        let issues
-        issues = validateBidsDataset(dataset, versionSpec)
-        let x = 3
-        // return validator(testDatasets, expectedIssues)
+
+        const expectedIssues = {
+          leading_colon: [],
+          unknown_library: [
+            new BidsHedIssue(
+              generateIssue('remoteSchemaLoadFailed', {
+                spec: JSON.stringify(new SchemaSpec('ts', '1.0.2', 'badlib')),
+                error:
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
+              }),
+              badDatasetDescriptions[0].file,
+            ),
+          ],
+        }
+        return validator(testDatasets, expectedIssues)
       }, 10000)
     })
   })

@@ -36,6 +36,6 @@ const MemoizerMixin = (Base) => {
 class Memoizer extends MemoizerMixin(Object) {}
 
 module.exports = {
-  Memoizer: Memoizer,
-  MemoizerMixin: MemoizerMixin,
+  Memoizer,
+  MemoizerMixin,
 }

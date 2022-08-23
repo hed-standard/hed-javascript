@@ -63,6 +63,6 @@ const generateIssue = function (internalCode, parameters) {
 }
 
 module.exports = {
-  generateIssue: generateIssue,
-  Issue: Issue,
+  generateIssue,
+  Issue,
 }

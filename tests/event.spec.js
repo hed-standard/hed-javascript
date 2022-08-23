@@ -1,13 +1,12 @@
 const assert = require('chai').assert
 const hed = require('../validator/event')
+const { buildSchemas } = require('../validator/schema/init')
 const { parseHedString } = require('../validator/parser/main')
 const { ParsedHedTag } = require('../validator/parser/types')
 const { HedValidator, Hed2Validator, Hed3Validator } = require('../validator/event')
 const { generateIssue } = require('../common/issues/issues')
 const converterGenerateIssue = require('../converter/issues')
-const { Schemas } = require('../common/schema')
-const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
-const { buildSchemas } = require('../validator/schema/init')
+const { Schemas, SchemaSpec, SchemasSpec } = require('../common/schema/types')
 
 describe('HED string and event validation', () => {
   /**
@@ -335,7 +334,7 @@ describe('HED string and event validation', () => {
       let hedSchemaPromise
 
       beforeAll(() => {
-        const spec1 = SchemaSpec.createSchemaSpec('', '7.1.1', '', hedSchemaFile)
+        const spec1 = new SchemaSpec('', '7.1.1', '', hedSchemaFile)
         const specs = new SchemasSpec().addSchemaSpec(spec1)
         hedSchemaPromise = buildSchemas(specs)
       })
@@ -352,7 +351,7 @@ describe('HED string and event validation', () => {
        */
       const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
         return hedSchemaPromise.then(([hedSchemas, issues]) => {
-          assert.equal(issues.length, 0)
+          assert.deepEqual(issues, [], 'Schema loading issues occurred')
           validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
         })
       }
@@ -687,16 +686,11 @@ describe('HED string and event validation', () => {
 
       describe('HED Strings', () => {
         const validator = function (testStrings, expectedIssues, expectValuePlaceholderString = false) {
-          return hedSchemaPromise.then(([schemas, issues]) => {
-            assert.equal(issues.length, 0)
-            for (const testStringKey in testStrings) {
-              const [, testIssues] = hed.validateHedString(
-                testStrings[testStringKey],
-                schemas,
-                true,
-                expectValuePlaceholderString,
-              )
-              assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testStrings[testStringKey])
+          return hedSchemaPromise.then(([hedSchemas, issues]) => {
+            assert.deepEqual(issues, [], 'Schema loading issues occurred')
+            for (const [testStringKey, testString] of Object.entries(testStrings)) {
+              const [, testIssues] = hed.validateHedString(testString, hedSchemas, true, expectValuePlaceholderString)
+              assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testString)
             }
           })
         }
@@ -765,8 +759,8 @@ describe('HED string and event validation', () => {
       let hedSchemaPromise
 
       beforeAll(() => {
-        const spec1 = SchemaSpec.createSchemaSpec('', '', '', hedSchemaFile)
-        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        const spec2 = new SchemaSpec('', '7.0.4', '', hedSchemaFile)
+        const specs = new SchemasSpec().addSchemaSpec(spec2)
         hedSchemaPromise = buildSchemas(specs)
       })
 
@@ -781,7 +775,8 @@ describe('HED string and event validation', () => {
        * @param {object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-        return hedSchemaPromise.then((hedSchemas) => {
+        return hedSchemaPromise.then(([hedSchemas, issues]) => {
+          assert.deepEqual(issues, [], 'Schema loading issues occurred')
           validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
         })
       }
@@ -904,8 +899,8 @@ describe('HED string and event validation', () => {
     let hedSchemaPromise
 
     beforeAll(() => {
-      const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', hedSchemaFile)
-      const specs = new SchemasSpec().addSchemaSpec(spec1)
+      const spec3 = new SchemaSpec('', '8.0.0', '', hedSchemaFile)
+      const specs = new SchemasSpec().addSchemaSpec(spec3)
       hedSchemaPromise = buildSchemas(specs)
     })
 
@@ -942,7 +937,7 @@ describe('HED string and event validation', () => {
      */
     const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.equal(issues.length, 0)
+        assert.deepEqual(issues, [], 'Schema loading issues occurred')
         validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
       })
     }

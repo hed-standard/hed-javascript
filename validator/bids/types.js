@@ -151,6 +151,10 @@ class BidsIssue {
   isError() {
     return bidsHedErrorCodes.has(this.code)
   }
+
+  static generateInternalErrorPromise(error) {
+    return Promise.resolve([new BidsIssue(107, null, error.message)])
+  }
 }
 
 class BidsHedIssue extends BidsIssue {
@@ -165,10 +169,10 @@ class BidsHedIssue extends BidsIssue {
 }
 
 module.exports = {
-  BidsDataset: BidsDataset,
-  BidsEventFile: BidsEventFile,
-  BidsHedIssue: BidsHedIssue,
-  BidsIssue: BidsIssue,
-  BidsJsonFile: BidsJsonFile,
-  BidsSidecar: BidsSidecar,
+  BidsDataset,
+  BidsEventFile,
+  BidsHedIssue,
+  BidsIssue,
+  BidsJsonFile,
+  BidsSidecar,
 }

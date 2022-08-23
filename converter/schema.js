@@ -78,6 +78,7 @@ const getParentTagName = function (tagElement) {
  *
  * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
+ * @deprecated
  */
 const buildSchema = function (schemaDef = {}) {
   return schemaUtils.loadSchema(schemaDef).then(([xmlData, issues]) => {
@@ -88,6 +89,6 @@ const buildSchema = function (schemaDef = {}) {
 }
 
 module.exports = {
-  buildSchema: buildSchema,
-  buildMappingObject: buildMappingObject,
+  buildSchema,
+  buildMappingObject,
 }

@@ -5,12 +5,12 @@ const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
 const { buildSchemas } = require('../../validator/schema/init')
 
 describe('HED string conversion', () => {
+  const hedSchemaFile = 'tests/data/HED8.0.0.xml'
   let hedSchemaPromise
-  let specs
 
   beforeAll(() => {
-    const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', '')
-    specs = new SchemasSpec().addSchemaSpec(spec1)
+    const spec1 = new SchemaSpec('', '8.0.0', '', hedSchemaFile)
+    const specs = new SchemasSpec().addSchemaSpec(spec1)
     hedSchemaPromise = buildSchemas(specs)
   })
 
@@ -25,17 +25,12 @@ describe('HED string conversion', () => {
      * @return {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
-      return hedSchemaPromise.then(([schemas, issues]) => {
-        assert.equal(issues.length, 0)
-        for (const testStringKey of Object.keys(testStrings)) {
-          const [testResult, issues] = testFunction(
-            schemas.baseSchema,
-            testStrings[testStringKey],
-            testStrings[testStringKey],
-            0,
-          )
-          assert.strictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
-          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testStrings[testStringKey])
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.deepEqual(issues, [], 'Schema loading issues occurred')
+        for (const [testStringKey, testString] of Object.entries(testStrings)) {
+          const [testResult, issues] = testFunction(hedSchemas.baseSchema, testString, testString, 0)
+          assert.strictEqual(testResult, expectedResults[testStringKey], testString)
+          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
         }
       })
     }
@@ -595,12 +590,12 @@ describe('HED string conversion', () => {
      * @return {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
-      return hedSchemaPromise.then(([schemas, issues]) => {
-        assert.equal(issues.length, 0)
-        for (const testStringKey of Object.keys(testStrings)) {
-          const [testResult, issues] = testFunction(schemas, testStrings[testStringKey])
-          assert.strictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
-          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testStrings[testStringKey])
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.deepEqual(issues, [], 'Schema loading issues occurred')
+        for (const [testStringKey, testString] of Object.entries(testStrings)) {
+          const [testResult, issues] = testFunction(hedSchemas, testString)
+          assert.strictEqual(testResult, expectedResults[testStringKey], testString)
+          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
         }
       })
     }

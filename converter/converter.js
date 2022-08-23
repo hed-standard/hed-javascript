@@ -294,10 +294,10 @@ const convertHedStringToShort = function (schemas, hedString) {
 }
 
 module.exports = {
-  convertHedStringToShort: convertHedStringToShort,
-  convertHedStringToLong: convertHedStringToLong,
-  convertPartialHedStringToLong: convertPartialHedStringToLong,
-  convertTagToShort: convertTagToShort,
-  convertTagToLong: convertTagToLong,
-  removeSlashesAndSpaces: removeSlashesAndSpaces,
+  convertHedStringToShort,
+  convertHedStringToLong,
+  convertPartialHedStringToLong,
+  convertTagToShort,
+  convertTagToLong,
+  removeSlashesAndSpaces,
 }

@@ -48,8 +48,7 @@ const getSchemaSpec = function (schemaVersion) {
   if (!semver.valid(version)) {
     return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
   }
-  const x = SchemaSpec.createSchemaSpec(nickname, version, library, '')
-  return [x, []]
+  return [new SchemaSpec(nickname, version, library, ''), []]
 }
 
 function getSchemasSpec(hedVersion) {

@@ -26,12 +26,10 @@ class Schema {
     this.version = rootElement.$.version
     /**
      * The HED library schema name.
-     * @type {string|undefined}
+     * @type {string}
      */
-    this.library = rootElement.$.library
-    if (!this.library) {
-      this.library = ''
-    }
+    this.library = rootElement.$.library || ''
+
     /**
      * The description of tag attributes.
      * @type {SchemaAttributes}
@@ -151,12 +149,10 @@ class Schemas {
    * @returns {Schema|null} The schema object corresponding to that nickname, or null if no schemas are defined.
    */
   getSchema(schemaName) {
-    if (this.schemas === null) {
+    if (this.schemas === null || !this.schemas.has(schemaName)) {
       return null
-    } else if (this.schemas.has(schemaName)) {
-      return this.schemas.get(schemaName)
     } else {
-      return null
+      return this.schemas.get(schemaName)
     }
   }
 
@@ -166,11 +162,7 @@ class Schemas {
    * @returns {Schema|null}
    */
   get baseSchema() {
-    if (this.schemas !== null) {
-      return this.schemas.get('')
-    } else {
-      return null
-    }
+    return this.getSchema('')
   }
 
   /**
@@ -195,7 +187,7 @@ class Schemas {
    * @type {Number}
    */
   get generation() {
-    if (this.schemas === null || this.schemas.size == 0) {
+    if (this.schemas === null || this.schemas.size === 0) {
       return 0
     } else if (this.librarySchemas.size > 0) {
       return 3
@@ -231,104 +223,85 @@ class Schemas {
   }
 }
 
+/**
+ * A schema version specification.
+ */
 class SchemaSpec {
-  // static createSpecForRemoteStandardSchema(version) {
-  //   const spec = new SchemaSpec()
-  //   spec.version = version
-  //   return spec
-  // }
+  /**
+   * Constructor.
+   *
+   * @param {string} nickname The nickname of this schema.
+   * @param {string} version The version of this schema.
+   * @param {string?} library The library name of this schema.
+   * @param {string?} localPath The local path for this schema.
+   */
+  constructor(nickname, version, library = '', localPath = '') {
+    this.nickname = nickname
+    this.version = version
+    this.library = library
+    this.localPath = localPath
+  }
 
-  static getSpecLocalName(spec) {
-    if (!spec.library) {
-      return 'HED' + spec.version
+  /**
+   * Compute the name for the bundled copy of this schema.
+   *
+   * @returns {string}
+   */
+  get localName() {
+    if (!this.library) {
+      return 'HED' + this.version
     } else {
-      return 'HED_' + spec.library + '_' + spec.version
+      return 'HED_' + this.library + '_' + this.version
     }
   }
 
-  static createSchemaSpec(nickname, version, library, localPath) {
-    const spec = new SchemaSpec()
-    spec.nickname = nickname
-    spec.version = version
-    spec.library = library
-    spec.localPath = localPath
-    // if (library.length > 0) {
-    //   spec.library = library
-    // }
-    // if (localPath.length > 0) {
-    //   spec.path = localPath
-    // }
-    return spec
+  /**
+   * Alias to old name of localPath.
+   *
+   * @todo Replace with localPath in 4.0.0.
+   *
+   * @returns {string} The local path for this schema.
+   */
+  get path() {
+    return this.localPath
   }
-  //
-  // static createSpecForRemoteLibrarySchema(library, version) {
-  //   const spec = new SchemaSpec()
-  //   spec.library = library
-  //   spec.version = version
-  //   return spec
-  // }
-  //
-  // static createSpecForLocalSchema(path) {
-  //   const spec = new SchemaSpec()
-  //   spec.path = path
-  //   return spec
-  // }
-  //
-  // get isFallbackEligible() {
-  //   return this.library === undefined
-  // }
 }
 
+/**
+ * A specification mapping schema nicknames to SchemaSpec objects.
+ */
 class SchemasSpec {
   constructor() {
     this.data = new Map()
   }
 
-  isDuplicate(spec) {
-    return this.data.has(spec.nickname)
-  }
-
-  addSchemaSpec(spec) {
-    this.data.set(spec.nickname, spec)
+  /**
+   * Add a schema to this specification.
+   *
+   * @param {SchemaSpec} schemaSpec A schema specification.
+   * @returns {SchemasSpec} This object.
+   */
+  addSchemaSpec(schemaSpec) {
+    this.data.set(schemaSpec.nickname, schemaSpec)
     return this
   }
 
-  // addRemoteStandardBaseSchema(version) {
-  //   return this.addRemoteStandardSchema('', version)
-  // }
-  //
-  // addLocalBaseSchema(path) {
-  //   return this.addLocalSchema('', path)
-  // }
-  //
-  // addRemoteStandardSchema(name, version) {
-  //   const spec = new SchemaSpec()
-  //   spec.version = version
-  //   this.data.set(name, spec)
-  //   return this
-  // }
-  //
-  // addRemoteLibrarySchema(name, library, version) {
-  //   const spec = new SchemaSpec()
-  //   spec.library = library
-  //   spec.version = version
-  //   this.data.set(name, spec)
-  //   return this
-  // }
-  //
-  // addLocalSchema(name, path) {
-  //   const spec = new SchemaSpec()
-  //   spec.path = path
-  //   this.data.set(name, spec)
-  //   return this
-  // }
+  /**
+   * Determine whether this specification already has a schema with the given nickname.
+   *
+   * @param {SchemaSpec} schemaSpec A schema specification with a nickname.
+   * @returns {boolean} Whether the nickname exists in this specification.
+   */
+  isDuplicate(schemaSpec) {
+    return this.data.has(schemaSpec.nickname)
+  }
 }
 
 module.exports = {
-  Schema: Schema,
-  Hed2Schema: Hed2Schema,
-  Hed3Schema: Hed3Schema,
-  Schemas: Schemas,
-  SchemaSpec: SchemaSpec,
-  SchemasSpec: SchemasSpec,
+  Schema,
+  Hed2Schema,
+  Hed3Schema,
+  Schemas,
+  SchemaSpec,
+  SchemasSpec,
 }

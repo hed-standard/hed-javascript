@@ -489,6 +489,6 @@ class Hed2Validator extends HedValidator {
 }
 
 module.exports = {
-  HedValidator: HedValidator,
-  Hed2Validator: Hed2Validator,
+  HedValidator,
+  Hed2Validator,
 }

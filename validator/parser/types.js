@@ -646,9 +646,9 @@ class ParsedHedGroup extends ParsedHedSubstring {
 }
 
 module.exports = {
-  ParsedHedSubstring: ParsedHedSubstring,
-  ParsedHedTag: ParsedHedTag,
-  ParsedHed2Tag: ParsedHed2Tag,
-  ParsedHed3Tag: ParsedHed3Tag,
-  ParsedHedGroup: ParsedHedGroup,
+  ParsedHedSubstring,
+  ParsedHedTag,
+  ParsedHed2Tag,
+  ParsedHed3Tag,
+  ParsedHedGroup,
 }

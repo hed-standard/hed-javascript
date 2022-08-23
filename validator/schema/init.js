@@ -2,7 +2,7 @@ const zip = require('lodash/zip')
 
 const semver = require('semver')
 const { Schemas, Hed2Schema, Hed3Schema, SchemasSpec } = require('../../common/schema/types')
-const { loadSchemaFromSpec, loadSchema } = require('../../common/schema/loader')
+const { loadSchema } = require('../../common/schema/loader')
 const { buildMappingObject } = require('../../converter/schema')
 const { setParent } = require('../../utils/xml2js')
 
@@ -94,7 +94,7 @@ const buildSchemas = function (schemaSpecs) {
   return Promise.all(
     schemaKeys.map((k) => {
       const spec = schemaSpecs.get(k)
-      return loadSchemaFromSpec(spec)
+      return loadSchema(spec, false, false)
     }),
   ).then((schemaXmlDataAndIssues) => {
     const [schemaXmlData, schemaXmlIssues] = zip(...schemaXmlDataAndIssues)
@@ -105,7 +105,7 @@ const buildSchemas = function (schemaSpecs) {
 }
 
 module.exports = {
-  buildSchema: buildSchema,
-  buildSchemas: buildSchemas,
-  buildSchemaAttributesObject: buildSchemaAttributesObject,
+  buildSchema,
+  buildSchemas,
+  buildSchemaAttributesObject,
 }

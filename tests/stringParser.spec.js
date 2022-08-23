@@ -4,9 +4,9 @@ const { parseHedString } = require('../validator/parser/main')
 const splitHedString = require('../validator/parser/splitHedString')
 const { ParsedHedTag, ParsedHedSubstring } = require('../validator/parser/types')
 const { generateIssue } = require('../common/issues/issues')
+const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
 const converterGenerateIssue = require('../converter/issues')
 const { recursiveMap } = require('../utils/array')
-const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
 const { buildSchemas } = require('../validator/schema/init')
 
 describe('HED string parsing', () => {
@@ -22,8 +22,8 @@ describe('HED string parsing', () => {
   let hedSchemaPromise
 
   beforeAll(() => {
-    const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', hedSchemaFile)
-    const specs = new SchemasSpec().addSchemaSpec(spec1)
+    const spec2 = new SchemaSpec('', '8.0.0', '', hedSchemaFile)
+    const specs = new SchemasSpec().addSchemaSpec(spec2)
     hedSchemaPromise = buildSchemas(specs)
   })
 
@@ -320,12 +320,9 @@ describe('HED string parsing', () => {
           ['Braille', 'Character/A', 'Screen-window'],
         ],
       }
-      const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', '')
-      const specs = new SchemasSpec().addSchemaSpec(spec1)
-      hedSchemaPromise = buildSchemas(specs)
 
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.equal(issues.length, 0)
+        assert.deepEqual(issues, [], 'Schema loading issues occurred')
         for (const testStringKey of Object.keys(testStrings)) {
           const testString = testStrings[testStringKey]
           const [parsedString, issues] = parseHedString(testString, hedSchemas)
@@ -379,12 +376,9 @@ describe('HED string parsing', () => {
           ],
         },
       }
-      const spec1 = SchemaSpec.createSchemaSpec('', '8.0.0', '', '')
-      const specs = new SchemasSpec().addSchemaSpec(spec1)
-      hedSchemaPromise = buildSchemas(specs)
 
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.equal(issues.length, 0)
+        assert.deepEqual(issues, [], 'Schema loading issues occurred')
         return validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
           const [parsedString, issues] = parseHedString(string, hedSchemas)
           const canonicalTags = parsedString.tags.map((parsedTag) => {

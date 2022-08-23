@@ -234,14 +234,14 @@ const mergeParsingIssues = function (previousIssues, currentIssues) {
 }
 
 module.exports = {
-  replaceTagNameWithPound: replaceTagNameWithPound,
-  getTagSlashIndices: getTagSlashIndices,
-  getTagName: getTagName,
-  getParentTag: getParentTag,
-  hedStringIsAGroup: hedStringIsAGroup,
-  removeGroupParentheses: removeGroupParentheses,
-  validateValue: validateValue,
-  validateUnits: validateUnits,
-  getGenerationForSchemaVersion: getGenerationForSchemaVersion,
-  mergeParsingIssues: mergeParsingIssues,
+  replaceTagNameWithPound,
+  getTagSlashIndices,
+  getTagName,
+  getParentTag,
+  hedStringIsAGroup,
+  removeGroupParentheses,
+  validateValue,
+  validateUnits,
+  getGenerationForSchemaVersion,
+  mergeParsingIssues,
 }

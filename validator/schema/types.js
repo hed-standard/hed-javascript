@@ -450,16 +450,16 @@ class SchemaTag extends SchemaEntry {
 }
 
 module.exports = {
-  nodeProperty: nodeProperty,
-  attributeProperty: attributeProperty,
-  SchemaAttributes: SchemaAttributes,
-  SchemaEntries: SchemaEntries,
-  SchemaEntryManager: SchemaEntryManager,
-  SchemaProperty: SchemaProperty,
-  SchemaAttribute: SchemaAttribute,
-  SchemaTag: SchemaTag,
-  SchemaUnit: SchemaUnit,
-  SchemaUnitClass: SchemaUnitClass,
-  SchemaUnitModifier: SchemaUnitModifier,
-  SchemaValueClass: SchemaValueClass,
+  nodeProperty,
+  attributeProperty,
+  SchemaAttributes,
+  SchemaEntries,
+  SchemaEntryManager,
+  SchemaProperty,
+  SchemaAttribute,
+  SchemaTag,
+  SchemaUnit,
+  SchemaUnitClass,
+  SchemaUnitModifier,
+  SchemaValueClass,
 }

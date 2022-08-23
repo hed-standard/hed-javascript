@@ -171,13 +171,12 @@ describe('HED tag string utility functions', () => {
     })
   })
 
-  const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
-
   describe('HED tag schema-based utility functions', () => {
+    const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
     let hedSchemaPromise
 
     beforeAll(() => {
-      const spec1 = SchemaSpec.createSchemaSpec('', '', '', localHedSchemaFile)
+      const spec1 = new SchemaSpec('', '7.1.1', '', localHedSchemaFile)
       const specs = new SchemasSpec().addSchemaSpec(spec1)
       hedSchemaPromise = buildSchemas(specs)
     })
@@ -190,6 +189,7 @@ describe('HED tag string utility functions', () => {
       const currencyUnits = ['dollars', '$', 'points', 'fraction']
       const volumeUnits = ['m^3']
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.deepEqual(issues, [], 'Schema loading issues occurred')
         const strippedDollarsString = hed.validateUnits(dollarsString, currencyUnits, hedSchemas.baseSchema.attributes)
         const strippedVolumeString = hed.validateUnits(volumeString, volumeUnits, hedSchemas.baseSchema.attributes)
         const strippedPrefixedVolumeString = hed.validateUnits(
