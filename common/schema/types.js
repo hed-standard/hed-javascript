@@ -26,9 +26,9 @@ class Schema {
     this.version = rootElement.$.version
     /**
      * The HED library schema name.
-     * @type {string|undefined}
+     * @type {string}
      */
-    this.library = rootElement.$.library
+    this.library = rootElement.$.library || ''
     /**
      * The description of tag attributes.
      * @type {SchemaAttributes}
@@ -43,7 +43,7 @@ class Schema {
      * The HED generation of this schema.
      * @type {Number}
      */
-    if (this.library !== undefined) {
+    if (this.library) {
       this.generation = 3
     } else {
       this.generation = getGenerationForSchemaVersion(this.version)
@@ -148,10 +148,10 @@ class Schemas {
    * @returns {Schema|null} The schema object corresponding to that nickname, or null if no schemas are defined.
    */
   getSchema(schemaName) {
-    if (this.schemas !== null) {
-      return this.schemas.get(schemaName)
-    } else {
+    if (this.schemas === null || !this.schemas.has(schemaName)) {
       return null
+    } else {
+      return this.schemas.get(schemaName)
     }
   }
 
@@ -186,13 +186,14 @@ class Schemas {
    * @type {Number}
    */
   get generation() {
-    if (this.schemas === null) {
+    if (this.schemas === null || this.schemas.size === 0) {
       return 0
-    } else if (this.baseSchema !== undefined) {
+    } else if (this.librarySchemas.size > 0) {
+      return 3
+    } else if (this.baseSchema) {
       return this.baseSchema.generation
     } else {
-      // Only library schemas are defined, so this must be HED 3.
-      return 3
+      return 0
     }
   }
 
