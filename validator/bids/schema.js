@@ -73,7 +73,7 @@ function parseSchemaSpec(schemaVersion) {
   if (nicknameSplit.length > 1) {
     ;[nickname, schema] = nicknameSplit
     if (nickname === '' || !alphanumericRegExp.test(nickname)) {
-      return [null, [generateIssue('invalidSchemaNickname', { nickname: nickname, schemaVersion: schemaVersion })]]
+      return [null, [generateIssue('invalidSchemaNickname', { nickname: nickname, spec: schemaVersion })]]
     }
   } else {
     schema = nicknameSplit[0]
@@ -83,6 +83,9 @@ function parseSchemaSpec(schemaVersion) {
   let version
   if (versionSplit.length > 1) {
     ;[library, version] = versionSplit
+    if (library === '' || !alphanumericRegExp.test(library)) {
+      return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
+    }
   } else {
     version = versionSplit[0]
   }

@@ -625,7 +625,7 @@ describe('HED schemas', () => {
       }
       const expectedIssues = {
         bad_version: [generateIssue('invalidSchemaSpecification', { spec: '3.1.a' })],
-        duplicate_key: [generateIssue('invalidSchemaNickname', { spec: ['8.1.0', '8.0.0'], nickname: '' })],
+        duplicate_key: [generateIssue('invalidSchemaNickname', { spec: '8.0.0', nickname: '' })],
       }
 
       return checkWithIssues(

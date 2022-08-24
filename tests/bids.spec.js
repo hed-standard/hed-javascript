@@ -584,6 +584,8 @@ describe('BIDS datasets', () => {
       { Name: 'NoLibraryName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:_1.0.2'] },
       { Name: 'BadVersion1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib1.0.2'] },
       { Name: 'BadVersion2', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.a.2'] },
+      { Name: 'BadRemote1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.800.2'] },
+      { Name: 'BadRemote2', BIDSVersion: '1.7.0', HEDVersion: '8.828.0' },
     ],
   ]
 
@@ -873,12 +875,16 @@ describe('BIDS datasets', () => {
     describe('HED 3 library schema bad tests', () => {
       it('should not validate when library schema version specs are invalid', () => {
         const testDatasets = {
-          //unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
-          //leading_colon: new BidsDataset(goodEvents2, [], badDatasetDescriptions[1]),
-          //bad_nickname: new BidsDataset(goodEvents2, [], badDatasetDescriptions[2]),
-          //multipleColons1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[3]),
-          //multipleColons2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[4]),
+          unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
+          leading_colon: new BidsDataset(goodEvents2, [], badDatasetDescriptions[1]),
+          bad_nickname: new BidsDataset(goodEvents2, [], badDatasetDescriptions[2]),
+          multipleColons1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[3]),
+          multipleColons2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[4]),
           noLibraryName: new BidsDataset(goodEvents2, [], badDatasetDescriptions[5]),
+          badVersion1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[6]),
+          badVersion2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[7]),
+          badRemote1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[8]),
+          badRemote2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[9]),
         }
 
         const expectedIssues = {
@@ -894,14 +900,14 @@ describe('BIDS datasets', () => {
           ],
           leading_colon: [
             new BidsHedIssue(
-              generateIssue('invalidSchemaNickname', { nickname: '', schemaVersion: ':testlib_1.0.2' }),
+              generateIssue('invalidSchemaNickname', { nickname: '', spec: ':testlib_1.0.2' }),
               badDatasetDescriptions[1].file,
             ),
             new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
           ],
           bad_nickname: [
             new BidsHedIssue(
-              generateIssue('invalidSchemaNickname', { nickname: 't-s', schemaVersion: 't-s:testlib_1.0.2' }),
+              generateIssue('invalidSchemaNickname', { nickname: 't-s', spec: 't-s:testlib_1.0.2' }),
               badDatasetDescriptions[2].file,
             ),
             new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
@@ -923,9 +929,43 @@ describe('BIDS datasets', () => {
           noLibraryName: [
             new BidsHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: 'ts:_1.0.2' }),
-              badDatasetDescriptions[4].file,
+              badDatasetDescriptions[5].file,
             ),
             new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          badVersion1: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts:testlib1.0.2' }),
+              badDatasetDescriptions[6].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          badVersion2: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts:testlib_1.a.2' }),
+              badDatasetDescriptions[7].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          badRemote1: [
+            new BidsHedIssue(
+              generateIssue('remoteSchemaLoadFailed', {
+                spec: JSON.stringify(new SchemaSpec('ts', '1.800.2', 'testlib')),
+                error:
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/testlib/hedxml/HED_testlib_1.800.2.xml with status code 404:\n404: Not Found',
+              }),
+              badDatasetDescriptions[8].file,
+            ),
+          ],
+          badRemote2: [
+            new BidsHedIssue(
+              generateIssue('remoteSchemaLoadFailed', {
+                spec: JSON.stringify(new SchemaSpec('', '8.828.0', '')),
+                error:
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/HED8.828.0.xml with status code 404:\n404: Not Found',
+              }),
+              badDatasetDescriptions[9].file,
+            ),
           ],
         }
         return validator(testDatasets, expectedIssues, null)

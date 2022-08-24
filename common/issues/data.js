@@ -154,7 +154,7 @@ const issueData = {
   invalidSchemaNickname: {
     hedCode: 'HED_SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`The prefix nickname "${'nickname'}" in schema "${'schemaVersion'}" is duplicated or invalid.`,
+    message: stringTemplate`The prefix nickname "${'nickname'}" in specification "${'spec'}" is duplicated or invalid.`,
   },
   invalidSchemaSpecification: {
     hedCode: 'HED_SCHEMA_LOAD_FAILED',
@@ -184,7 +184,7 @@ const issueData = {
   remoteSchemaLoadFailed: {
     hedCode: 'HED_SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`Could not load HED standard schema, specification "${'spec'}", from remote repository - "${'error'}".`,
+    message: stringTemplate`Could not load HED schema "${'spec'}" from remote repository - "${'error'}".`,
   },
   unmatchedBaseSchema: {
     hedCode: 'HED_LIBRARY_UNMATCHED',
