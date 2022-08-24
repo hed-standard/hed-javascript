@@ -6,15 +6,72 @@ const { buildSchemas } = require('../validator/schema/init')
 
 describe('HED schemas', () => {
   describe('Schema loading', () => {
+    describe('Bundled HED schemas', () => {
+      it('a standard schema can be loaded from locally stored schema', () => {
+        const spec1 = new SchemaSpec('', '8.0.0', '', '')
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        return buildSchemas(specs).then(([hedSchemas, issues]) => {
+          assert.strictEqual(hedSchemas.baseSchema.version, spec1.version)
+          assert.equal(issues.length, 0)
+          assert.equal(hedSchemas.generation, 3)
+        })
+      })
+
+      it('a library schema can be loaded from locally stored schema', () => {
+        const spec1 = new SchemaSpec('', '1.0.2', 'testlib', '')
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        return buildSchemas(specs).then(([hedSchemas, issues]) => {
+          assert.strictEqual(hedSchemas.baseSchema.version, spec1.version)
+          assert.strictEqual(hedSchemas.baseSchema.library, spec1.library)
+          assert.equal(issues.length, 0)
+          assert.equal(hedSchemas.generation, 3)
+        })
+      })
+
+      it('a base schema with a nickname can be loaded from locally stored schema', () => {
+        const spec1 = new SchemaSpec('nk', '8.0.0', '', '')
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        return buildSchemas(specs).then(([hedSchemas, issues]) => {
+          const schema1 = hedSchemas.getSchema(spec1.nickname)
+          assert.strictEqual(schema1.version, spec1.version)
+          assert.strictEqual(schema1.library, spec1.library)
+          assert.equal(issues.length, 0)
+          assert.equal(hedSchemas.generation, 3)
+        })
+      })
+
+      it('multiple local schemas can be loaded', () => {
+        const spec1 = new SchemaSpec('nk', '8.0.0', '', '')
+        const spec2 = new SchemaSpec('ts', '1.0.2', 'testlib', '')
+        const spec3 = new SchemaSpec('', '1.0.2', 'testlib', '')
+        const specs = new SchemasSpec().addSchemaSpec(spec1).addSchemaSpec(spec2).addSchemaSpec(spec3)
+        return buildSchemas(specs).then(([hedSchemas, issues]) => {
+          const schema1 = hedSchemas.getSchema(spec1.nickname)
+          const schema2 = hedSchemas.getSchema(spec2.nickname)
+          const schema3 = hedSchemas.getSchema(spec3.nickname)
+          assert.strictEqual(schema1.version, spec1.version)
+          assert.strictEqual(schema1.library, spec1.library)
+          assert.strictEqual(schema2.version, spec2.version)
+          assert.strictEqual(schema2.library, spec2.library)
+          assert.strictEqual(schema3.version, spec3.version)
+          assert.strictEqual(schema3.library, spec3.library)
+          assert.equal(issues.length, 0)
+          const schema4 = hedSchemas.getSchema('baloney')
+          assert.strictEqual(schema4, null)
+        })
+      })
+    })
+
     describe('Remote HED schemas', () => {
-      it('can be loaded from a central GitHub repository', () => {
-        const remoteHedSchemaVersion = '8.0.0'
-        const schemaSpec = new SchemaSpec('', remoteHedSchemaVersion)
-        const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
-        return buildSchemas(schemasSpec).then(([hedSchemas, issues]) => {
-          assert.deepEqual(issues, [], 'Schema loading issues occurred')
-          const hedSchemaVersion = hedSchemas.baseSchema.version
-          assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
+      it('a HED 2 schema can be loaded remotely', () => {
+        const spec1 = new SchemaSpec('', '7.2.0', '', '')
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        return buildSchemas(specs).then(([hedSchemas, issues]) => {
+          assert.equal(issues.length, 0)
+          const schema1 = hedSchemas.getSchema(spec1.nickname)
+          assert.strictEqual(schema1.version, spec1.version)
+          assert.strictEqual(schema1.library, spec1.library)
+          assert.equal(hedSchemas.generation, 2)
         })
       })
     })
@@ -29,25 +86,6 @@ describe('HED schemas', () => {
           assert.deepEqual(issues, [], 'Schema loading issues occurred')
           const hedSchemaVersion = hedSchemas.baseSchema.version
           assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
-        })
-      })
-    })
-
-    describe('Remote HED library schemas', () => {
-      it('can be loaded from a central GitHub repository', () => {
-        const remoteHedLibrarySchemaName = 'testlib'
-        const remoteHedLibrarySchemaVersion = '1.0.2'
-        const schemaSpec = new SchemaSpec(
-          remoteHedLibrarySchemaName,
-          remoteHedLibrarySchemaVersion,
-          remoteHedLibrarySchemaName,
-        )
-        const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
-        return buildSchemas(schemasSpec).then(([hedSchemas, issues]) => {
-          assert.deepEqual(issues, [], 'Schema loading issues occurred')
-          const hedSchema = hedSchemas.getSchema(remoteHedLibrarySchemaName)
-          assert.strictEqual(hedSchema.library, remoteHedLibrarySchemaName)
-          assert.strictEqual(hedSchema.version, remoteHedLibrarySchemaVersion)
         })
       })
     })
@@ -530,7 +568,7 @@ describe('HED schemas', () => {
       }
       const expectedIssues = {
         bad_version: [generateIssue('invalidSchemaSpecification', { spec: '3.1.a' })],
-        duplicate_key: [generateIssue('invalidSchemaNickname', { spec: ['8.1.0', '8.0.0'], nickname: '' })],
+        duplicate_key: [generateIssue('invalidSchemaNickname', { spec: '8.0.0', nickname: '' })],
       }
 
       return checkWithIssues(
