@@ -24,8 +24,8 @@ function buildBidsSchemas(dataset, schemaDefinition) {
     ;[schemasSpec, issues] = [null, [generateIssue('invalidSchemaSpecification', { spec: 'no schema available' })]]
   }
   if (issues.length > 0) {
-    let issuesNew = convertIssuesToBidsHedIssues(issues, descriptionFile)
     return Promise.resolve([null, convertIssuesToBidsHedIssues(issues, descriptionFile)])
+    //return Promise.reject(issues)
   } else {
     return buildSchemas(schemasSpec).then(([schemas]) => [schemas, issues])
   }

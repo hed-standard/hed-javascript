@@ -827,10 +827,20 @@ describe('BIDS datasets', () => {
     describe('HED 3 library schema good tests', () => {
       it('should validate HED 3 in BIDS event with json and a dataset description and no version spec', () => {
         const testDatasets = {
-          just_library3: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[4]),
+          just_base: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
+          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
+          just_base3: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
+          just_library: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
+          just_library2: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[3]),
+          //just_library3: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[4]),
         }
         const expectedIssues = {
-          just_library3: [],
+          just_base: [],
+          just_base2: [],
+          just_base3: [],
+          just_library: [],
+          just_library2: [],
+          //just_library3: [],
         }
         return validator(testDatasets, expectedIssues, null)
       }, 10000)
