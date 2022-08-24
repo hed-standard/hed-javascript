@@ -827,26 +827,16 @@ describe('BIDS datasets', () => {
     describe('HED 3 library schema good tests', () => {
       it('should validate HED 3 in BIDS event with json and a dataset description and no version spec', () => {
         const testDatasets = {
-          // just_base: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
-          // just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
-          // just_base3: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
-          // just_library: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
-          // just_library2: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[3]),
-          // just_library3: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[4]),
+          just_library3: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[4]),
         }
         const expectedIssues = {
-          just_base: [],
-          just_base2: [],
-          just_base3: [],
-          just_library: [],
-          just_library2: [],
           just_library3: [],
         }
         return validator(testDatasets, expectedIssues, null)
       }, 10000)
 
       it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
-        const testDatasets = {
+        const testDatasets1 = {
           library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
           library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
           library_only_with_extra_base: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
@@ -856,7 +846,7 @@ describe('BIDS datasets', () => {
           library_not_needed2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
           library_and_base_with_extra_schema: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
         }
-        const expectedIssues = {
+        const expectedIssues1 = {
           library_and_defs_base_ignored: [],
           library_and_defs_no_base: [],
           library_only_with_extra_base: [],
@@ -868,7 +858,7 @@ describe('BIDS datasets', () => {
           library_not_needed2: [],
           library_and_base_with_extra_schema: [],
         }
-        return validator(testDatasets, expectedIssues, null)
+        return validator(testDatasets1, expectedIssues1, null)
       }, 10000)
     })
 
