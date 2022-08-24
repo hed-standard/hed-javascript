@@ -909,48 +909,6 @@ describe('BIDS datasets', () => {
         }
         return validator(testDatasets1, expectedIssues1, null)
       }, 10000)
-
-      it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
-        const spec1 = new SchemaSpec('', '8.1.0')
-        const spec2 = new SchemaSpec('ts', '1.0.2', 'testlib')
-        const spec3 = new SchemaSpec('bg', '1.0.2', 'testlib')
-        const specs1 = parseSchemasSpec(['8.1.0'])
-        const testDatasets1 = {
-          // library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
-          // library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
-          // library_only_with_extra_base: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
-          // library_only: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
-          //just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
-          // library_not_needed1: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
-          // library_not_needed2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
-          // library_and_base_with_extra_schema: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
-        }
-        const expectedIssues1 = {
-          library_and_defs_base_ignored: [],
-          library_and_defs_no_base: [],
-          library_only_with_extra_base: [],
-          library_only: [],
-          library_only_extra_schema: [],
-          only_libraries: [],
-          just_base2: [],
-          library_not_needed1: [],
-          library_not_needed2: [],
-          library_and_base_with_extra_schema: [],
-        }
-        const schemaSpecs = {
-          library_and_defs_base_ignored: [],
-          library_and_defs_no_base: [],
-          library_only_with_extra_base: [],
-          library_only: [],
-          library_only_extra_schema: [],
-          only_libraries: [],
-          just_base2: specs1,
-          library_not_needed1: [],
-          library_not_needed2: [],
-          library_and_base_with_extra_schema: [],
-        }
-        return validatorWithSpecs(testDatasets1, expectedIssues1, schemaSpecs)
-      }, 10000)
     })
 
     describe('HED 3 library schema bad tests', () => {
@@ -1042,6 +1000,47 @@ describe('BIDS datasets', () => {
           ],
         }
         return validator(testDatasets, expectedIssues, null)
+      }, 10000)
+    })
+
+    describe('HED 3 library schema with version spec', () => {
+      it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
+        const [specs0] = parseSchemasSpec(['8.1.0'])
+        const [specs1] = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2'])
+        const [specs2] = parseSchemasSpec(['ts:testlib_1.0.2'])
+        const [specs3] = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
+        const [specs4] = parseSchemasSpec(['ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
+        const testDatasets1 = {
+          library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
+          library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
+          library_only_with_extra_base: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
+          library_only: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
+          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
+          library_not_needed1: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
+          library_not_needed2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
+          library_and_base_with_extra_schema: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
+        }
+        const expectedIssues1 = {
+          library_and_defs_base_ignored: [],
+          library_and_defs_no_base: [],
+          library_only_with_extra_base: [],
+          library_only: [],
+          just_base2: [],
+          library_not_needed1: [],
+          library_not_needed2: [],
+          library_and_base_with_extra_schema: [],
+        }
+        const schemaSpecs = {
+          library_and_defs_base_ignored: specs1,
+          library_and_defs_no_base: specs3,
+          library_only_with_extra_base: specs1,
+          library_only: specs1,
+          just_base2: specs0,
+          library_not_needed1: specs1,
+          library_not_needed2: specs3,
+          library_and_base_with_extra_schema: specs1,
+        }
+        return validatorWithSpecs(testDatasets1, expectedIssues1, schemaSpecs)
       }, 10000)
     })
   })
