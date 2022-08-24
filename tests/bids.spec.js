@@ -578,7 +578,7 @@ describe('BIDS datasets', () => {
     [
       { Name: 'NonExistentLibrary', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] },
       { Name: 'LeadingColon', BIDSVersion: '1.7.0', HEDVersion: [':testlib_1.0.2', '8.1.0'] },
-      { Name: 'BadNickName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', '1ts:testlib_1.0.2'] },
+      { Name: 'BadNickName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 't-s:testlib_1.0.2'] },
       { Name: 'MultipleColons1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts::testlib_1.0.2'] },
       { Name: 'MultipleColons2', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', ':ts:testlib_1.0.2'] },
       { Name: 'NoLibraryName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:_1.0.2'] },
@@ -873,25 +873,57 @@ describe('BIDS datasets', () => {
     describe('HED 3 library schema bad tests', () => {
       it('should not validate when library schema version specs are invalid', () => {
         const testDatasets = {
-          // unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
-          leading_colon: new BidsDataset(goodEvents2, [], badDatasetDescriptions[1]),
+          //unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
+          //leading_colon: new BidsDataset(goodEvents2, [], badDatasetDescriptions[1]),
+          //bad_nickname: new BidsDataset(goodEvents2, [], badDatasetDescriptions[2]),
+          //multipleColons1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[3]),
+          //multipleColons2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[4]),
+          noLibraryName: new BidsDataset(goodEvents2, [], badDatasetDescriptions[5]),
         }
 
         const expectedIssues = {
-          // unknown_library: [
-          //   new BidsHedIssue(
-          //     generateIssue('remoteSchemaLoadFailed', {
-          //       spec: JSON.stringify(new SchemaSpec('ts', '1.0.2', 'badlib')),
-          //       error:
-          //         'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
-          //     }),
-          //     badDatasetDescriptions[0].file,
-          //   ),
-          // ],
+          unknown_library: [
+            new BidsHedIssue(
+              generateIssue('remoteSchemaLoadFailed', {
+                spec: JSON.stringify(new SchemaSpec('ts', '1.0.2', 'badlib')),
+                error:
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
+              }),
+              badDatasetDescriptions[0].file,
+            ),
+          ],
           leading_colon: [
             new BidsHedIssue(
               generateIssue('invalidSchemaNickname', { nickname: '', schemaVersion: ':testlib_1.0.2' }),
-              badDatasetDescriptions[0].file,
+              badDatasetDescriptions[1].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          bad_nickname: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaNickname', { nickname: 't-s', schemaVersion: 't-s:testlib_1.0.2' }),
+              badDatasetDescriptions[2].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          multipleColons1: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts::testlib_1.0.2' }),
+              badDatasetDescriptions[3].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          multipleColons2: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: ':ts:testlib_1.0.2' }),
+              badDatasetDescriptions[4].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          noLibraryName: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts:_1.0.2' }),
+              badDatasetDescriptions[4].file,
             ),
             new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
           ],
