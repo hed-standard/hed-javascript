@@ -579,12 +579,15 @@ describe('BIDS datasets', () => {
     ],
     [
       { Name: 'NonExistentLibrary', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] },
-      { Name: 'LeadingColon', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', ':ts:testlib_1.0.2'] },
-      { Name: 'BadNickName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', '1ts:testlib_1.0.2'] },
+      { Name: 'LeadingColon', BIDSVersion: '1.7.0', HEDVersion: [':testlib_1.0.2', '8.1.0'] },
+      { Name: 'BadNickName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 't-s:testlib_1.0.2'] },
       { Name: 'MultipleColons1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts::testlib_1.0.2'] },
+      { Name: 'MultipleColons2', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', ':ts:testlib_1.0.2'] },
       { Name: 'NoLibraryName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:_1.0.2'] },
       { Name: 'BadVersion1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib1.0.2'] },
       { Name: 'BadVersion2', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.a.2'] },
+      { Name: 'BadRemote1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.800.2'] },
+      { Name: 'BadRemote2', BIDSVersion: '1.7.0', HEDVersion: '8.828.0' },
     ],
   ]
 
@@ -825,16 +828,26 @@ describe('BIDS datasets', () => {
     describe('HED 3 library schema good tests', () => {
       it('should validate HED 3 in BIDS event with json and a dataset description and no version spec', () => {
         const testDatasets = {
-          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
+          just_base: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
+          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
+          just_base3: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
+          just_library: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
+          just_library2: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[3]),
+          //just_library3: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[4]),
         }
         const expectedIssues = {
+          just_base: [],
           just_base2: [],
+          just_base3: [],
+          just_library: [],
+          just_library2: [],
+          //just_library3: [],
         }
-        return validator(testDatasets, expectedIssues)
+        return validator(testDatasets, expectedIssues, null)
       }, 10000)
 
       it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
-        const testDatasets = {
+        const testDatasets1 = {
           library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
           library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
           library_only_with_extra_base: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
@@ -844,7 +857,7 @@ describe('BIDS datasets', () => {
           library_not_needed2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
           library_and_base_with_extra_schema: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
         }
-        const expectedIssues = {
+        const expectedIssues1 = {
           library_and_defs_base_ignored: [],
           library_and_defs_no_base: [],
           library_only_with_extra_base: [],
@@ -856,7 +869,7 @@ describe('BIDS datasets', () => {
           library_not_needed2: [],
           library_and_base_with_extra_schema: [],
         }
-        return validator(testDatasets, expectedIssues)
+        return validator(testDatasets1, expectedIssues1, null)
       }, 10000)
     })
 
@@ -865,6 +878,14 @@ describe('BIDS datasets', () => {
         const testDatasets = {
           unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
           leading_colon: new BidsDataset(goodEvents2, [], badDatasetDescriptions[1]),
+          bad_nickname: new BidsDataset(goodEvents2, [], badDatasetDescriptions[2]),
+          multipleColons1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[3]),
+          multipleColons2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[4]),
+          noLibraryName: new BidsDataset(goodEvents2, [], badDatasetDescriptions[5]),
+          badVersion1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[6]),
+          badVersion2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[7]),
+          badRemote1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[8]),
+          badRemote2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[9]),
         }
         const expectedIssues = {
           unknown_library: [
@@ -879,12 +900,75 @@ describe('BIDS datasets', () => {
           ],
           leading_colon: [
             new BidsHedIssue(
-              generateIssue('invalidSchemaSpecification', { spec: ':ts:testlib_1.0.2' }),
+              generateIssue('invalidSchemaNickname', { nickname: '', spec: ':testlib_1.0.2' }),
               badDatasetDescriptions[1].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          bad_nickname: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaNickname', { nickname: 't-s', spec: 't-s:testlib_1.0.2' }),
+              badDatasetDescriptions[2].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          multipleColons1: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts::testlib_1.0.2' }),
+              badDatasetDescriptions[3].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          multipleColons2: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: ':ts:testlib_1.0.2' }),
+              badDatasetDescriptions[4].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          noLibraryName: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts:_1.0.2' }),
+              badDatasetDescriptions[5].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          badVersion1: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts:testlib1.0.2' }),
+              badDatasetDescriptions[6].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          badVersion2: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts:testlib_1.a.2' }),
+              badDatasetDescriptions[7].file,
+            ),
+            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
+          ],
+          badRemote1: [
+            new BidsHedIssue(
+              generateIssue('remoteSchemaLoadFailed', {
+                spec: JSON.stringify(new SchemaSpec('ts', '1.800.2', 'testlib')),
+                error:
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/testlib/hedxml/HED_testlib_1.800.2.xml with status code 404:\n404: Not Found',
+              }),
+              badDatasetDescriptions[8].file,
+            ),
+          ],
+          badRemote2: [
+            new BidsHedIssue(
+              generateIssue('remoteSchemaLoadFailed', {
+                spec: JSON.stringify(new SchemaSpec('', '8.828.0', '')),
+                error:
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/HED8.828.0.xml with status code 404:\n404: Not Found',
+              }),
+              badDatasetDescriptions[9].file,
             ),
           ],
         }
-        return validator(testDatasets, expectedIssues)
+        return validator(testDatasets, expectedIssues, null)
       }, 10000)
     })
   })

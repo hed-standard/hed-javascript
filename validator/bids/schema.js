@@ -2,20 +2,29 @@ const semver = require('semver')
 const { buildSchemas } = require('../schema/init')
 const { generateIssue } = require('../../common/issues/issues')
 const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
-const { getCharacterCount } = require('../../utils/string')
+const { BidsHedIssue } = require('./types')
+
+const alphanumericRegExp = new RegExp('^[a-zA-Z0-9]+$')
+
+function convertIssuesToBidsHedIssues(issues, file) {
+  return issues.map((issue) => new BidsHedIssue(issue, file))
+}
 
 function buildBidsSchemas(dataset, schemaDefinition) {
   let schemasSpec
   let issues
+  let descriptionFile = null
   if (schemaDefinition) {
     ;[schemasSpec, issues] = validateSchemasSpec(schemaDefinition)
   } else if (dataset.datasetDescription.jsonData && dataset.datasetDescription.jsonData.HEDVersion) {
     ;[schemasSpec, issues] = parseSchemasSpec(dataset.datasetDescription.jsonData.HEDVersion)
+    descriptionFile = dataset.datasetDescription.file
   } else {
     ;[schemasSpec, issues] = [null, [generateIssue('invalidSchemaSpecification', { spec: 'no schema available' })]]
   }
   if (issues.length > 0) {
-    return Promise.reject(issues)
+    return Promise.resolve([null, convertIssuesToBidsHedIssues(issues, descriptionFile)])
+    //return Promise.reject(issues)
   } else {
     return buildSchemas(schemasSpec).then(([schemas]) => [schemas, issues])
   }
@@ -52,17 +61,16 @@ function parseSchemasSpec(hedVersion) {
 }
 
 function parseSchemaSpec(schemaVersion) {
-  if (getCharacterCount(schemaVersion, ':') > 1 || getCharacterCount(schemaVersion, '_') > 1) {
-    return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
-  }
   const nicknameSplit = schemaVersion.split(':')
   let nickname = ''
   let schema
+  if (nicknameSplit.length > 2) {
+    return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
+  }
   if (nicknameSplit.length > 1) {
     ;[nickname, schema] = nicknameSplit
-    if (nickname === '') {
-      // ToDo:  put in regular expression check instead of this one
-      return [null, [generateIssue('invalidSchemaNickname', { nickname: nickname, version: schemaVersion })]]
+    if (nickname === '' || !alphanumericRegExp.test(nickname)) {
+      return [null, [generateIssue('invalidSchemaNickname', { nickname: nickname, spec: schemaVersion })]]
     }
   } else {
     schema = nicknameSplit[0]
@@ -70,8 +78,14 @@ function parseSchemaSpec(schemaVersion) {
   const versionSplit = schema.split('_')
   let library = ''
   let version
+  if (versionSplit.length > 2) {
+    return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
+  }
   if (versionSplit.length > 1) {
     ;[library, version] = versionSplit
+    if (library === '' || !alphanumericRegExp.test(library)) {
+      return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
+    }
   } else {
     version = versionSplit[0]
   }
