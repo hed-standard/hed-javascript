@@ -320,6 +320,7 @@ describe('HED string parsing', () => {
           ['Braille', 'Character/A', 'Screen-window'],
         ],
       }
+
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
         assert.deepEqual(issues, [], 'Schema loading issues occurred')
         for (const testStringKey of Object.keys(testStrings)) {
@@ -375,6 +376,7 @@ describe('HED string parsing', () => {
           ],
         },
       }
+
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
         assert.deepEqual(issues, [], 'Schema loading issues occurred')
         return validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {

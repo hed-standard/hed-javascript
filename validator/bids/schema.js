@@ -46,13 +46,15 @@ function parseSchemasSpec(hedVersion) {
   } else {
     processVersion = [hedVersion]
   }
-  const issues = []
+  let issues = []
   for (const schemaVersion of processVersion) {
     const [schemaSpec, verIssues] = parseSchemaSpec(schemaVersion)
     if (verIssues.length > 0) {
-      issues.push(...verIssues)
+      issues = issues.concat(verIssues)
     } else if (schemasSpec.isDuplicate(schemaSpec)) {
-      issues.push(generateIssue('invalidSchemaNickname', { spec: schemaVersion, nickname: schemaSpec.nickname }))
+      issues = issues.concat(
+        generateIssue('invalidSchemaNickname', { spec: schemaVersion, nickname: schemaSpec.nickname }),
+      )
     } else {
       schemasSpec.addSchemaSpec(schemaSpec)
     }

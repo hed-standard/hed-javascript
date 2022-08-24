@@ -1,10 +1,8 @@
 const zip = require('lodash/zip')
 
 const semver = require('semver')
-
-const loadSchema = require('../../common/schema/loader')
 const { Schemas, Hed2Schema, Hed3Schema, SchemasSpec } = require('../../common/schema/types')
-
+const { loadSchema } = require('../../common/schema/loader')
 const { buildMappingObject } = require('../../converter/schema')
 const { setParent } = require('../../utils/xml2js')
 

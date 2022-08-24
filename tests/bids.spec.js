@@ -3,15 +3,13 @@ const converterGenerateIssue = require('../converter/issues')
 const { generateIssue } = require('../common/issues/issues')
 const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
 const { recursiveMap } = require('../utils/array')
-const {
-  BidsDataset,
-  BidsEventFile,
-  BidsHedIssue,
-  BidsJsonFile,
-  BidsIssue,
-  BidsSidecar,
-  validateBidsDataset,
-} = require('../validator/bids')
+const { validateBidsDataset } = require('../validator/bids/validate')
+// const { getSchemaSpecs } = require('../validator/bids/schemas')
+const { BidsDataset, BidsEventFile, BidsHedIssue, BidsJsonFile, BidsIssue, BidsSidecar } = require('../validator/bids')
+// const splitHedString = require('../validator/parser/splitHedString')
+// const { buildSchemas } = require('../validator/schema/init')
+
+//const {stringTemplate} = require("../../utils/string");
 
 describe('BIDS datasets', () => {
   const sidecars = [
@@ -599,6 +597,7 @@ describe('BIDS datasets', () => {
    * @type {BidsJsonFile[][]}
    */
   let bidsDatasetDescriptions
+
   /**
    * @type {SchemasSpec}
    */
@@ -887,6 +886,7 @@ describe('BIDS datasets', () => {
           badRemote1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[8]),
           badRemote2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[9]),
         }
+
         const expectedIssues = {
           unknown_library: [
             new BidsHedIssue(

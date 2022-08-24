@@ -29,6 +29,7 @@ class Schema {
      * @type {string}
      */
     this.library = rootElement.$.library || ''
+
     /**
      * The description of tag attributes.
      * @type {SchemaAttributes}

@@ -3,7 +3,6 @@
 /* Imports */
 
 const xml2js = require('xml2js')
-
 const files = require('../../utils/files')
 const { generateIssue } = require('../issues/issues')
 
@@ -58,6 +57,24 @@ const loadSchema = function (schemaDef = null) {
   return schemaPromise.then((xmlData) => [xmlData, []])
 }
 */
+
+/**
+ * Load schema XML data from a schema version or path description.
+ *
+ * @param {SchemaSpec} schemaDef The description of which schema to use.
+ * @return {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
+ */
+const loadSchemaFromSpec = function (schemaDef = null) {
+  const schemaPromise = loadPromise(schemaDef)
+  if (schemaPromise === null) {
+    return Promise.reject([generateIssue('invalidSchemaSpec', { spec: JSON.stringify(schemaDef) })])
+  }
+  return schemaPromise
+    .then((xmlData) => [xmlData, []])
+    .catch((issues) => {
+      return Promise.reject(issues)
+    })
+}
 
 /**
  * Choose the schema Promise from a schema version or path description.
@@ -133,4 +150,7 @@ const parseSchemaXML = function (data) {
   return xml2js.parseStringPromise(data, { explicitCharkey: true })
 }
 
-module.exports = loadSchema
+module.exports = {
+  loadSchemaFromSpec,
+  loadSchema,
+}
