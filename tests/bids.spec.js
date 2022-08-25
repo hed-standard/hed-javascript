@@ -156,7 +156,7 @@ describe('BIDS datasets', () => {
         },
       },
       {
-        // Just library
+        // Just library no defs
         event_type: {
           HED: {
             show_face: 'ts:Sensory-event, ts:Visual-presentation',
@@ -170,6 +170,54 @@ describe('BIDS datasets', () => {
           HED: {
             show_face: 'Sensory-event, Visual-presentation',
             left_press: 'Push-button',
+          },
+        },
+      },
+      {
+        // Just score as base
+        event_type: {
+          HED: {
+            show_face: 'Manual-eye-closure, Drowsiness',
+            left_press: 'Wicket-spikes, Frequency',
+          },
+        },
+      },
+      {
+        // Just score as a library
+        event_type: {
+          HED: {
+            show_face: 'sc:Manual-eye-closure, sc:Drowsiness',
+            left_press: 'sc:Wicket-spikes, sc:Frequency',
+          },
+        },
+      },
+      {
+        // Testlib with Defs as base
+        event_type: {
+          HED: {
+            show_face: 'Sensory-event, Visual-presentation',
+            left_press: 'Press, Def/My-def1, Def/My-def2/3',
+          },
+        },
+        dummy_defs: {
+          HED: {
+            def1: '(Definition/My-def1, (Red, Blue))',
+            def2: '(Definition/My-def2/#, (Green, Label/#))',
+          },
+        },
+      },
+      {
+        // Testlib with defs with as library
+        event_type: {
+          HED: {
+            show_face: 'ts:Sensory-event, ts:Visual-presentation',
+            left_press: 'ts:Press, ts:Def/My-def1, ts:Def/My-def2/3',
+          },
+        },
+        dummy_defs: {
+          HED: {
+            def1: '(ts:Definition/My-def1, (ts:Red, ts:Blue))',
+            def2: '(ts:Definition/My-def2/#, (ts:Green, ts:Label/#))',
           },
         },
       },
@@ -566,6 +614,74 @@ describe('BIDS datasets', () => {
           path: '/sub06/sub06_task-test_run-1_events.tsv',
         },
       ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][3],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][4],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][5],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][6],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
     ],
   ]
 
@@ -574,9 +690,12 @@ describe('BIDS datasets', () => {
     [
       { Name: 'OnlyBase', BIDSVersion: '1.7.0', HEDVersion: '8.1.0' },
       { Name: 'BaseAndTest', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2'] },
-      { Name: 'OnlyTest', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2'] },
+      { Name: 'OnlyTestAsLib', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2'] },
       { Name: 'BaseAndTwoTests', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
       { Name: 'TwoTests', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
+      { Name: 'OnlyScoreAsBase', BIDSVersion: '1.7.0', HEDVersion: 'score_0.0.1' },
+      { Name: 'OnlyScoreAsLib', BIDSVersion: '1.7.0', HEDVersion: 'sc:score_0.0.1' },
+      { Name: 'OnlyTestAsBase', BIDSVersion: '1.7.0', HEDVersion: 'testlib_1.0.2' },
     ],
     [
       { Name: 'NonExistentLibrary', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] },
