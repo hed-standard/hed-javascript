@@ -983,8 +983,7 @@ describe('BIDS datasets', () => {
             [],
             goodDatasetDescriptions[3],
           ),
-          // libtestlib_with_two_libtestlibs_nodefs:
-          //     new BidsDataset([goodEvents[1]], [], goodDatasetDescriptions[4]),
+          libtestlib_with_two_libtestlibs_nodefs: new BidsDataset([goodEvents[1]], [], goodDatasetDescriptions[4]),
           basestd_libtestlib_with_basestd_and_libtestlib_defs: new BidsDataset(
             [goodEvents[0]],
             [],
@@ -995,10 +994,8 @@ describe('BIDS datasets', () => {
             [],
             goodDatasetDescriptions[3],
           ),
-          // basescore_with_basescore_no_defs:
-          //     new BidsDataset([goodEvents[3]], [], goodDatasetDescriptions[5]),
-          // libscore_with_libscore_nodefs:
-          //     new BidsDataset([goodEvents[4]], [], goodDatasetDescriptions[6]),
+          basescore_with_basescore_no_defs: new BidsDataset([goodEvents[3]], [], goodDatasetDescriptions[5]),
+          libscore_with_libscore_nodefs: new BidsDataset([goodEvents[4]], [], goodDatasetDescriptions[6]),
           basetestlib_with_basetestlib_with_defs: new BidsDataset([goodEvents[5]], [], goodDatasetDescriptions[7]),
           libtestlib_with_basestd_and_libtestlib_with_defs: new BidsDataset(
             [goodEvents[6]],
@@ -1007,8 +1004,11 @@ describe('BIDS datasets', () => {
           ),
           // libtestlib_with_libtestlib_with_defs:
           //     new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[2]),
-          // libtestlib_with_basestd_and_two_libtestlib_with_defs:
-          //     new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[3]),
+          libtestlib_with_basestd_and_two_libtestlib_with_defs: new BidsDataset(
+            [goodEvents[6]],
+            [],
+            goodDatasetDescriptions[3],
+          ),
           // libtestlib_with_two_libtestlib_with_defs:
           //     new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[4]),
         }
