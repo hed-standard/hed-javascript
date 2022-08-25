@@ -5,10 +5,19 @@ const { buildSchemas } = require('../../validator/schema/init')
 
 describe('HED tag string utility functions', () => {
   describe('Syntactic utility functions', () => {
+    /**
+     * Test-validate a list of strings.
+     *
+     * @template T
+     * @param {Object<string, string>} testStrings The strings to test.
+     * @param {Object<string, T>} expectedResults The expected results.
+     * @param {function (string): T} testFunction The testing function.
+     */
     const validator = function (testStrings, expectedResults, testFunction) {
-      for (const testStringKey of Object.keys(testStrings)) {
-        const testResult = testFunction(testStrings[testStringKey])
-        assert.deepStrictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
+      for (const [testStringKey, testString] of Object.entries(testStrings)) {
+        assert.property(expectedResults, testStringKey, testStringKey + ' is not in expectedResults')
+        const testResult = testFunction(testString)
+        assert.deepStrictEqual(testResult, expectedResults[testStringKey], testString)
       }
     }
 

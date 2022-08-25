@@ -28,7 +28,7 @@ describe('HED string parsing', () => {
   })
 
   /**
-   * Test-validate a dataset.
+   * Test-validate a list of strings without issues.
    *
    * @template T
    * @param {Object<string, string>} testStrings The strings to test.
@@ -44,7 +44,7 @@ describe('HED string parsing', () => {
   }
 
   /**
-   * Test-validate a dataset.
+   * Test-validate a list of strings with issues.
    *
    * @template T
    * @param {Object<string, string>} testStrings The strings to test.
