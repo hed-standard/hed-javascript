@@ -3,27 +3,21 @@ const { buildSchemas } = require('../schema/init')
 const { generateIssue } = require('../../common/issues/issues')
 const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
 const { BidsHedIssue } = require('./types')
+const { asArray } = require('../../utils/array')
 
 const alphanumericRegExp = new RegExp('^[a-zA-Z0-9]+$')
-
-function convertIssuesToBidsHedIssues(issues, file) {
-  return issues.map((issue) => new BidsHedIssue(issue, file))
-}
 
 function buildBidsSchemas(dataset, schemaDefinition) {
   let schemasSpec
   let issues
-  let descriptionFile = null
   if (schemaDefinition) {
     ;[schemasSpec, issues] = validateSchemasSpec(schemaDefinition)
   } else if (dataset.datasetDescription.jsonData && dataset.datasetDescription.jsonData.HEDVersion) {
     ;[schemasSpec, issues] = parseSchemasSpec(dataset.datasetDescription.jsonData.HEDVersion)
-    descriptionFile = dataset.datasetDescription.file
   } else {
     ;[schemasSpec, issues] = [null, [generateIssue('invalidSchemaSpecification', { spec: 'no schema available' })]]
   }
   if (issues.length > 0) {
-    //return Promise.resolve([null, convertIssuesToBidsHedIssues(issues, descriptionFile)])
     return Promise.reject(issues)
   } else {
     return buildSchemas(schemasSpec).then(([schemas]) => [schemas, issues])
@@ -53,21 +47,14 @@ function convertOldSpecToSchemasSpec(oldSpec) {
 
 function parseSchemasSpec(hedVersion) {
   const schemasSpec = new SchemasSpec()
-  let processVersion
-  if (Array.isArray(hedVersion)) {
-    processVersion = hedVersion
-  } else {
-    processVersion = [hedVersion]
-  }
-  let issues = []
+  const processVersion = asArray(hedVersion)
+  const issues = []
   for (const schemaVersion of processVersion) {
     const [schemaSpec, verIssues] = parseSchemaSpec(schemaVersion)
     if (verIssues.length > 0) {
-      issues = issues.concat(verIssues)
+      issues.push(...verIssues)
     } else if (schemasSpec.isDuplicate(schemaSpec)) {
-      issues = issues.concat(
-        generateIssue('invalidSchemaNickname', { spec: schemaVersion, nickname: schemaSpec.nickname }),
-      )
+      issues.push(generateIssue('invalidSchemaNickname', { spec: schemaVersion, nickname: schemaSpec.nickname }))
     } else {
       schemasSpec.addSchemaSpec(schemaSpec)
     }
