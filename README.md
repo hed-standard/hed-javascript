@@ -54,7 +54,7 @@ Currently, only validation at the BIDS dataset level is supported as an external
 because full HED-3G validation requires the entire events file and merged sidecars be available.
 
 A sample call can be found in the BIDS validator in
-[hedStrings.js](https://github.com/bids-standard/bids-validator/blob/94ee5225fdc965afc45f0841ec8013f148048084/bids-validator/validators/events/hed.js#L17)
+[hed.js](https://github.com/bids-standard/bids-validator/blob/94ee5225fdc965afc45f0841ec8013f148048084/bids-validator/validators/events/hed.js#L17)
 
 ```javascript
 ...
