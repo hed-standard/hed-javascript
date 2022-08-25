@@ -23,8 +23,8 @@ function buildBidsSchemas(dataset, schemaDefinition) {
     ;[schemasSpec, issues] = [null, [generateIssue('invalidSchemaSpecification', { spec: 'no schema available' })]]
   }
   if (issues.length > 0) {
-    return Promise.resolve([null, convertIssuesToBidsHedIssues(issues, descriptionFile)])
-    //return Promise.reject(issues)
+    //return Promise.resolve([null, convertIssuesToBidsHedIssues(issues, descriptionFile)])
+    return Promise.reject(issues)
   } else {
     return buildSchemas(schemasSpec).then(([schemas]) => [schemas, issues])
   }
@@ -32,10 +32,23 @@ function buildBidsSchemas(dataset, schemaDefinition) {
 
 function validateSchemasSpec(schemasSpec) {
   // ToDO: implement
-  if (!(schemasSpec instanceof SchemasSpec)) {
-    return [null, generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemasSpec) })]
+  if (schemasSpec instanceof SchemasSpec) {
+    return [schemasSpec, []]
+  } else if (schemasSpec instanceof Map) {
+    const newSchemasSpec = new SchemasSpec()
+    newSchemasSpec.data = schemasSpec
+    return [newSchemasSpec, []]
+  } else if ('version' in schemasSpec || 'path' in schemasSpec || 'libraries' in schemasSpec) {
+    return [convertOldSpecToSchemasSpec(schemasSpec), []]
+  } else {
+    return [null, [generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemasSpec) })]]
   }
-  return [schemasSpec, []]
+}
+
+function convertOldSpecToSchemasSpec(oldSpec) {
+  const newSpec = new SchemasSpec()
+  // TODO:  implement
+  return newSpec
 }
 
 function parseSchemasSpec(hedVersion) {
@@ -101,7 +114,7 @@ function parseSchemaSpec(schemaVersion) {
 function validateSchemaSpec(schemaSpec) {
   // ToDO: implement
   if (!(schemaSpec instanceof SchemaSpec)) {
-    return [null, generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaSpec) })]
+    return [null, [generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaSpec) })]]
   }
   return [schemaSpec, []]
 }

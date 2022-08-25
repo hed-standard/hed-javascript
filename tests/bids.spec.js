@@ -3,13 +3,16 @@ const converterGenerateIssue = require('../converter/issues')
 const { generateIssue } = require('../common/issues/issues')
 const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
 const { recursiveMap } = require('../utils/array')
-const { validateBidsDataset } = require('../validator/bids/validate')
-// const { getSchemaSpecs } = require('../validator/bids/schemas')
-const { BidsDataset, BidsEventFile, BidsHedIssue, BidsJsonFile, BidsIssue, BidsSidecar } = require('../validator/bids')
-// const splitHedString = require('../validator/parser/splitHedString')
-// const { buildSchemas } = require('../validator/schema/init')
-
-//const {stringTemplate} = require("../../utils/string");
+const { parseSchemasSpec } = require('../validator/bids/schema')
+const {
+  BidsDataset,
+  BidsEventFile,
+  BidsHedIssue,
+  BidsJsonFile,
+  BidsIssue,
+  BidsSidecar,
+  validateBidsDataset,
+} = require('../validator/bids')
 
 describe('BIDS datasets', () => {
   const sidecars = [
@@ -629,6 +632,20 @@ describe('BIDS datasets', () => {
     }, datasetDescriptions)
   })
 
+  // /**
+  //  * Create a schema spec for .
+  //  * @param {list} specList The datasets to test with.
+  //  * @return {SchemasSpec}
+  //  */
+  // const getSchemaSpecs = (specList) =>{
+  //   const specs = new SchemasSpec()
+  //   for (let i=0; i < specList.length; i++) {
+  //     const spec = specList[i]
+  //     specs.addSchemaSpec(spec.nickname, spec)
+  //   }
+  //   return specs
+  // }
+
   /**
    * Validate the test datasets.
    * @param {Object<string,BidsDataset>} testDatasets The datasets to test with.
@@ -641,6 +658,29 @@ describe('BIDS datasets', () => {
       Object.entries(testDatasets).map(([datasetName, dataset]) => {
         assert.property(expectedIssues, datasetName, datasetName + ' is not in expectedIssues')
         return validateBidsDataset(dataset, versionSpec).then((issues) => {
+          assert.sameDeepMembers(issues, expectedIssues[datasetName], datasetName)
+        })
+      }),
+    )
+  }
+
+  /**
+   * Validate the test datasets.
+   * @param {Object<string,BidsDataset>} testDatasets The datasets to test with.
+   * @param {Object<string,BidsIssue[]>} expectedIssues The expected issues.
+   * @param {SchemasSpec} versionSpec The schema version to test with.
+   * @return {Promise}
+   */
+  const validatorWithSpecs = (testDatasets, expectedIssues, versionSpecs) => {
+    return Promise.all(
+      Object.entries(testDatasets).map(([datasetName, dataset]) => {
+        assert.property(expectedIssues, datasetName, datasetName + ' is not in expectedIssues')
+        let specs = versionSpecs
+        if (versionSpecs) {
+          assert.property(versionSpecs, datasetName, datasetName + ' is not in versionSpecs')
+          specs = versionSpecs[datasetName]
+        }
+        return validateBidsDataset(dataset, specs).then((issues) => {
           assert.sameDeepMembers(issues, expectedIssues[datasetName], datasetName)
         })
       }),
@@ -845,7 +885,7 @@ describe('BIDS datasets', () => {
         return validator(testDatasets, expectedIssues, null)
       }, 10000)
 
-      it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
+      it('should validate HED 3 in BIDS event files sidecars and libraries using dataset descriptions', () => {
         const testDatasets1 = {
           library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
           library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
@@ -873,7 +913,7 @@ describe('BIDS datasets', () => {
     })
 
     describe('HED 3 library schema bad tests', () => {
-      it('should not validate when library schema version specs are invalid', () => {
+      it('should not validate when library schema specifications are invalid', () => {
         const testDatasets = {
           unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
           leading_colon: new BidsDataset(goodEvents2, [], badDatasetDescriptions[1]),
@@ -903,49 +943,42 @@ describe('BIDS datasets', () => {
               generateIssue('invalidSchemaNickname', { nickname: '', spec: ':testlib_1.0.2' }),
               badDatasetDescriptions[1].file,
             ),
-            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
           ],
           bad_nickname: [
             new BidsHedIssue(
               generateIssue('invalidSchemaNickname', { nickname: 't-s', spec: 't-s:testlib_1.0.2' }),
               badDatasetDescriptions[2].file,
             ),
-            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
           ],
           multipleColons1: [
             new BidsHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: 'ts::testlib_1.0.2' }),
               badDatasetDescriptions[3].file,
             ),
-            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
           ],
           multipleColons2: [
             new BidsHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: ':ts:testlib_1.0.2' }),
               badDatasetDescriptions[4].file,
             ),
-            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
           ],
           noLibraryName: [
             new BidsHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: 'ts:_1.0.2' }),
               badDatasetDescriptions[5].file,
             ),
-            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
           ],
           badVersion1: [
             new BidsHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: 'ts:testlib1.0.2' }),
               badDatasetDescriptions[6].file,
             ),
-            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
           ],
           badVersion2: [
             new BidsHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: 'ts:testlib_1.a.2' }),
               badDatasetDescriptions[7].file,
             ),
-            new BidsIssue(107, null, "Cannot read properties of null (reading 'generation')"),
           ],
           badRemote1: [
             new BidsHedIssue(
@@ -969,6 +1002,47 @@ describe('BIDS datasets', () => {
           ],
         }
         return validator(testDatasets, expectedIssues, null)
+      }, 10000)
+    })
+
+    describe('HED 3 library schema with version spec', () => {
+      it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
+        const [specs0] = parseSchemasSpec(['8.1.0'])
+        const [specs1] = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2'])
+        const [specs2] = parseSchemasSpec(['ts:testlib_1.0.2'])
+        const [specs3] = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
+        const [specs4] = parseSchemasSpec(['ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
+        const testDatasets1 = {
+          library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
+          library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
+          library_only_with_extra_base: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
+          library_only: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
+          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
+          library_not_needed1: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
+          library_not_needed2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
+          library_and_base_with_extra_schema: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
+        }
+        const expectedIssues1 = {
+          library_and_defs_base_ignored: [],
+          library_and_defs_no_base: [],
+          library_only_with_extra_base: [],
+          library_only: [],
+          just_base2: [],
+          library_not_needed1: [],
+          library_not_needed2: [],
+          library_and_base_with_extra_schema: [],
+        }
+        const schemaSpecs = {
+          library_and_defs_base_ignored: specs1,
+          library_and_defs_no_base: specs3,
+          library_only_with_extra_base: specs1,
+          library_only: specs1,
+          just_base2: specs0,
+          library_not_needed1: specs1,
+          library_not_needed2: specs3,
+          library_and_base_with_extra_schema: specs1,
+        }
+        return validatorWithSpecs(testDatasets1, expectedIssues1, schemaSpecs)
       }, 10000)
     })
   })
