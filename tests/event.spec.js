@@ -690,6 +690,7 @@ describe('HED string and event validation', () => {
           return hedSchemaPromise.then(([hedSchemas, issues]) => {
             assert.isEmpty(issues, 'Schema loading issues occurred')
             for (const [testStringKey, testString] of Object.entries(testStrings)) {
+              assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
               const [, testIssues] = hed.validateHedString(testString, hedSchemas, true, expectValuePlaceholderString)
               assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testString)
             }
@@ -918,6 +919,7 @@ describe('HED string and event validation', () => {
      */
     const validatorBase = function (hedSchemas, testStrings, expectedIssues, testFunction, testOptions = {}) {
       for (const [testStringKey, testString] of Object.entries(testStrings)) {
+        assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
         const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
         const validator = new Hed3Validator(parsedTestString, hedSchemas, null, testOptions)
         testFunction(validator)
