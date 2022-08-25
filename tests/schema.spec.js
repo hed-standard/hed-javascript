@@ -467,10 +467,12 @@ describe('HED schemas', () => {
   })
 
   const checkWithIssues = function (testStrings, expectedResults, expectedIssues, testFunction) {
-    for (const testStringKey of Object.keys(testStrings)) {
-      const [testResult, testIssues] = testFunction(testStrings[testStringKey])
-      assert.deepStrictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
-      assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testStrings[testStringKey])
+    for (const [testStringKey, testString] of Object.entries(testStrings)) {
+      assert.property(expectedResults, testStringKey, testStringKey + ' is not in expectedResults')
+      assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
+      const [testResult, testIssues] = testFunction(testString)
+      assert.deepStrictEqual(testResult, expectedResults[testStringKey], testString)
+      assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testString)
     }
   }
 
