@@ -278,7 +278,7 @@ class SchemasSpec {
    * Add a schema to this specification.
    *
    * @param {SchemaSpec} schemaSpec A schema specification.
-   * @returns {SchemasSpec} This object.
+   * @returns {SchemasSpec| map} This object.
    */
   addSchemaSpec(schemaSpec) {
     this.data.set(schemaSpec.nickname, schemaSpec)
