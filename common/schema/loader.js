@@ -1,8 +1,9 @@
 /** HED schema loading functions. */
 
 /* Imports */
-
+const path = require('path')
 const xml2js = require('xml2js')
+
 const files = require('../../utils/files')
 const { generateIssue } = require('../issues/issues')
 
@@ -72,7 +73,7 @@ const loadPromise = function (schemaDef) {
   } else {
     const localName = schemaDef.localName
     if (localSchemaList.has(localName)) {
-      const filePath = fallbackDirectory + localName + '.xml'
+      const filePath = path.resolve(fallbackDirectory, localName + '.xml')
       return loadLocalSchema(filePath)
     } else {
       return loadRemoteSchema(schemaDef)
