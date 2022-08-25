@@ -41,25 +41,10 @@ const loadSchema = function (schemaDef = null, useFallback = true, reportNoFallb
     })
 }
 
-/*
- * Load schema XML data from a schema version or path description.
- *
- * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @return {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
- */
-/*
-TODO: Replace above implementation with this one in 4.0.0.
-const loadSchema = function (schemaDef = null) {
-  const schemaPromise = loadPromise(schemaDef)
-  if (schemaPromise === null) {
-    return Promise.reject([generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })])
-  }
-  return schemaPromise.then((xmlData) => [xmlData, []])
-}
-*/
-
 /**
  * Load schema XML data from a schema version or path description.
+ *
+ * @todo Rename to {@link loadSchema} in 4.0.0.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
@@ -67,13 +52,9 @@ const loadSchema = function (schemaDef = null) {
 const loadSchemaFromSpec = function (schemaDef = null) {
   const schemaPromise = loadPromise(schemaDef)
   if (schemaPromise === null) {
-    return Promise.reject([generateIssue('invalidSchemaSpec', { spec: JSON.stringify(schemaDef) })])
+    return Promise.reject([generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })])
   }
-  return schemaPromise
-    .then((xmlData) => [xmlData, []])
-    .catch((issues) => {
-      return Promise.reject(issues)
-    })
+  return schemaPromise.then((xmlData) => [xmlData, []])
 }
 
 /**
@@ -90,7 +71,7 @@ const loadPromise = function (schemaDef) {
     return loadLocalSchema(schemaDef.path)
   } else {
     const localName = schemaDef.localName
-    if (localSchemaList.includes(localName)) {
+    if (localSchemaList.has(localName)) {
       const filePath = fallbackDirectory + localName + '.xml'
       return loadLocalSchema(filePath)
     } else {
