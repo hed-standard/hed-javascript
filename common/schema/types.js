@@ -1,6 +1,6 @@
 /** HED schema classes */
 
-const { getGenerationForSchemaVersion } = require('../../utils/hed')
+const { getGenerationForSchemaVersion } = require('../../utils/hedData')
 
 /**
  * An imported HED schema object.

@@ -8,7 +8,7 @@ The HED annotation strategy is very general and a standardized vocabulary in the
 [HED schema](https://github.com/hed-standard/hed-specification) enables
 annotation of events in an understandable, machine-actionable format.
 
-Additional [library schemas](https://github.com/hed-standard/hed-schema-library) 
+Additional [library schemas](https://github.com/hed-standard/hed-schema-library)
 with specialized vocabularies needed for particular subfields are under development.
 
 HED validation occurs at several levels.
@@ -16,6 +16,7 @@ Syntactic validation checks that HED strings comply with the required syntax,
 but not whether tags comply with the additional requirements of a HED schema.
 
 Semantic validation verifies validity at many levels:
+
 1. **Tag-level validation** checks that tags are in the schema
    and have correct units and value type.
 2. **String-level validation** performs additional checks for correctness.
@@ -53,7 +54,7 @@ Currently, only validation at the BIDS dataset level is supported as an external
 because full HED-3G validation requires the entire events file and merged sidecars be available.
 
 A sample call can be found in the BIDS validator in
-[hed.js](https://github.com/bids-standard/bids-validator/blob/94ee5225fdc965afc45f0841ec8013f148048084/bids-validator/validators/events/hed.js#L17)
+[hedStrings.js](https://github.com/bids-standard/bids-validator/blob/94ee5225fdc965afc45f0841ec8013f148048084/bids-validator/validators/events/hed.js#L17)
 
 ```javascript
 ...
@@ -78,8 +79,9 @@ const dataset = new hedValidator.validator.BidsDataset(eventData, sidecarData)
   }
 }
 ```
+
 The `schemaDefinition` object follows a similar format as the BIDS `HEDVersion` object,
 but with local `path` values pre-parsed to use the fully qualified path name.
 
-The primary objects needed for HED validation can be found in 
+The primary objects needed for HED validation can be found in
 [validator/bids/types.js](https://github.com/hed-standard/hed-javascript/blob/master/validator/bids/types.js).

@@ -1,5 +1,7 @@
 const utils = require('../../utils')
-const { ParsedHedGroup, ParsedHedTag } = require('../parser/types')
+const { getParsedParentTags } = require('../../utils/hedData')
+const ParsedHedGroup = require('../parser/parsedHedGroup')
+const { ParsedHedTag } = require('../parser/parsedHedTag')
 
 const { HedValidator } = require('./validator')
 
@@ -194,9 +196,9 @@ class Hed3Validator extends HedValidator {
     const definitionShortTag = 'definition'
     const defExpandShortTag = 'def-expand'
     const defShortTag = 'def'
-    const definitionParentTags = this.getParsedParentTags(definitionShortTag)
-    const defExpandParentTags = this.getParsedParentTags(defExpandShortTag)
-    const defParentTags = this.getParsedParentTags(defShortTag)
+    const definitionParentTags = getParsedParentTags(this.hedSchemas, definitionShortTag)
+    const defExpandParentTags = getParsedParentTags(this.hedSchemas, defExpandShortTag)
+    const defParentTags = getParsedParentTags(this.hedSchemas, defShortTag)
     let definitionTagFound = false
     let defExpandTagFound = false
     let definitionName
@@ -264,7 +266,7 @@ class Hed3Validator extends HedValidator {
    * @param {string} defShortTag The short tag to check for.
    */
   checkForMissingDefinitions(tag, defShortTag = 'Def') {
-    const defParentTags = this.getParsedParentTags(defShortTag)
+    const defParentTags = getParsedParentTags(this.hedSchemas, defShortTag)
     if (!tag.isDescendantOf(defParentTags.get(tag.schema))) {
       return
     }
@@ -272,23 +274,6 @@ class Hed3Validator extends HedValidator {
     if (!this.definitions.has(defName)) {
       this.pushIssue('missingDefinition', { def: defName })
     }
-  }
-
-  /**
-   * Get the parent tag objects for a given short tag.
-   *
-   * @param {string} shortTag A short-form HED 3 tag.
-   * @return {Map<Schema, ParsedHedTag>} A Map mapping a {@link Schema} to a {@link ParsedHedTag} object representing the full tag.
-   */
-  getParsedParentTags(shortTag) {
-    const parentTags = new Map()
-    for (const [schemaNickname, schema] of this.hedSchemas.schemas) {
-      const parentTag = new ParsedHedTag(shortTag, shortTag, [0, shortTag.length - 1], this.hedSchemas, schemaNickname)
-      parentTags.set(schema, parentTag)
-      const issues = parentTag.conversionIssues.filter((issue) => issue.internalCode !== 'invalidTag')
-      this.issues.push(...issues)
-    }
-    return parentTags
   }
 
   /**

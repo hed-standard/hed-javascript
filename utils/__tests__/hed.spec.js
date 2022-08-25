@@ -1,5 +1,5 @@
 const assert = require('chai').assert
-const hed = require('../hed')
+const hed = require('../hedStrings')
 const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
 const { buildSchemas } = require('../../validator/schema/init')
 

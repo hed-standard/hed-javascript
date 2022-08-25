@@ -1,4 +1,5 @@
-const { ParsedHedGroup, ParsedHedTag } = require('./types')
+const { ParsedHedTag } = require('./parsedHedTag')
+const ParsedHedGroup = require('./parsedHedGroup')
 
 /**
  * A parsed HED string.

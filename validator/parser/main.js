@@ -1,5 +1,5 @@
 const utils = require('../../utils')
-const { mergeParsingIssues } = require('../../utils/hed')
+const { mergeParsingIssues } = require('../../utils/hedData')
 const { generateIssue } = require('../../common/issues/issues')
 
 const ParsedHedString = require('./parsedHedString')

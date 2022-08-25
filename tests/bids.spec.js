@@ -773,7 +773,7 @@ describe('BIDS datasets', () => {
    * Validate the test datasets.
    * @param {Object<string,BidsDataset>} testDatasets The datasets to test with.
    * @param {Object<string,BidsIssue[]>} expectedIssues The expected issues.
-   * @param {SchemasSpec} versionSpec The schema version to test with.
+   * @param {SchemasSpec} versionSpecs The schema version to test with.
    * @return {Promise}
    */
   const validatorWithSpecs = (testDatasets, expectedIssues, versionSpecs) => {
@@ -1002,15 +1002,13 @@ describe('BIDS datasets', () => {
             [],
             goodDatasetDescriptions[1],
           ),
-          // libtestlib_with_libtestlib_with_defs:
-          //     new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[2]),
+          libtestlib_with_libtestlib_with_defs: new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[2]),
           libtestlib_with_basestd_and_two_libtestlib_with_defs: new BidsDataset(
             [goodEvents[6]],
             [],
             goodDatasetDescriptions[3],
           ),
-          // libtestlib_with_two_libtestlib_with_defs:
-          //     new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[4]),
+          libtestlib_with_two_libtestlib_with_defs: new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[4]),
         }
         const expectedIssues = {
           basestd_with_std_no_defs: [],

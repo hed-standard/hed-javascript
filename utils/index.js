@@ -1,4 +1,4 @@
-const HED = require('./hed')
+const HED = require('./hedStrings')
 const array = require('./array')
 const files = require('./files')
 const string = require('./string')

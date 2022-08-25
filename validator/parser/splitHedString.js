@@ -1,10 +1,12 @@
 const flattenDeep = require('lodash/flattenDeep')
 
-const { ParsedHedGroup, ParsedHed2Tag, ParsedHed3Tag, ParsedHedTag } = require('./types')
+const { ParsedHedTag, ParsedHed2Tag, ParsedHed3Tag } = require('./parsedHedTag')
+const ParsedHedGroup = require('./parsedHedGroup')
 const { Schema, Schemas } = require('../../common/schema/types')
 const { generateIssue } = require('../../common/issues/issues')
 const { recursiveMap } = require('../../utils/array')
-const { mergeParsingIssues, replaceTagNameWithPound } = require('../../utils/hed')
+const { replaceTagNameWithPound } = require('../../utils/hedStrings')
+const { mergeParsingIssues } = require('../../utils/hedData')
 const { stringIsEmpty } = require('../../utils/string')
 
 const openingGroupCharacter = '('
