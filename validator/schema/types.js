@@ -21,32 +21,32 @@ class SchemaAttributes {
     this.tags = schemaParser.tags
     /**
      * The mapping from attributes to tags to values.
-     * @type {object<string, object<string, boolean|string|string[]>>}
+     * @type {Object<string, Object<string, boolean|string|string[]>>}
      */
     this.tagAttributes = schemaParser.tagAttributes
     /**
      * The mapping from tags to their unit classes.
-     * @type {object<string, string[]>}
+     * @type {Object<string, string[]>}
      */
     this.tagUnitClasses = schemaParser.tagUnitClasses
     /**
      * The mapping from unit classes to their units.
-     * @type {object<string, string[]>}
+     * @type {Object<string, string[]>}
      */
     this.unitClasses = schemaParser.unitClasses
     /**
      * The mapping from unit classes to their attributes.
-     * @type {object<string, object<string, boolean|string|string[]>>}
+     * @type {Object<string, Object<string, boolean|string|string[]>>}
      */
     this.unitClassAttributes = schemaParser.unitClassAttributes
     /**
      * The mapping from units to their attributes.
-     * @type {object<string, object<string, boolean|string|string[]>>}
+     * @type {Object<string, Object<string, boolean|string|string[]>>}
      */
     this.unitAttributes = schemaParser.unitAttributes
     /**
      * The mapping from unit modifier types to unit modifiers.
-     * @type {object<string, string[]>}
+     * @type {Object<string, string[]>}
      */
     this.unitModifiers = schemaParser.unitModifiers
     /**

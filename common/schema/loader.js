@@ -3,7 +3,6 @@
 /* Imports */
 
 const xml2js = require('xml2js')
-
 const files = require('../../utils/files')
 const { generateIssue } = require('../issues/issues')
 
@@ -42,22 +41,21 @@ const loadSchema = function (schemaDef = null, useFallback = true, reportNoFallb
     })
 }
 
-/*
+/**
  * Load schema XML data from a schema version or path description.
+ *
+ * @todo Rename to {@link loadSchema} in 4.0.0.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
  */
-/*
-TODO: Replace above implementation with this one in 4.0.0.
-const loadSchema = function (schemaDef = null) {
+const loadSchemaFromSpec = function (schemaDef = null) {
   const schemaPromise = loadPromise(schemaDef)
   if (schemaPromise === null) {
     return Promise.reject([generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })])
   }
   return schemaPromise.then((xmlData) => [xmlData, []])
 }
-*/
 
 /**
  * Choose the schema Promise from a schema version or path description.
@@ -73,7 +71,7 @@ const loadPromise = function (schemaDef) {
     return loadLocalSchema(schemaDef.path)
   } else {
     const localName = schemaDef.localName
-    if (localSchemaList.includes(localName)) {
+    if (localSchemaList.has(localName)) {
       const filePath = fallbackDirectory + localName + '.xml'
       return loadLocalSchema(filePath)
     } else {
@@ -133,4 +131,7 @@ const parseSchemaXML = function (data) {
   return xml2js.parseStringPromise(data, { explicitCharkey: true })
 }
 
-module.exports = loadSchema
+module.exports = {
+  loadSchemaFromSpec,
+  loadSchema,
+}

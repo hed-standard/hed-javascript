@@ -27,18 +27,38 @@ describe('HED string parsing', () => {
     hedSchemaPromise = buildSchemas(specs)
   })
 
+  /**
+   * Test-validate a list of strings without issues.
+   *
+   * @template T
+   * @param {Object<string, string>} testStrings The strings to test.
+   * @param {Object<string, T>} expectedResults The expected results.
+   * @param {function (string): T} testFunction The testing function.
+   */
   const validatorWithoutIssues = function (testStrings, expectedResults, testFunction) {
-    for (const testStringKey of Object.keys(testStrings)) {
-      const testResult = testFunction(testStrings[testStringKey])
-      assert.deepStrictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
+    for (const [testStringKey, testString] of Object.entries(testStrings)) {
+      assert.property(expectedResults, testStringKey, testStringKey + ' is not in expectedResults')
+      const testResult = testFunction(testString)
+      assert.deepStrictEqual(testResult, expectedResults[testStringKey], testString)
     }
   }
 
+  /**
+   * Test-validate a list of strings with issues.
+   *
+   * @template T
+   * @param {Object<string, string>} testStrings The strings to test.
+   * @param {Object<string, T>} expectedResults The expected results.
+   * @param {Object<string, Object<string, Issue[]>>} expectedIssues The expected issues.
+   * @param {function (string): [T, Object<string, Object<string, Issue[]>>]} testFunction The testing function.
+   */
   const validatorWithIssues = function (testStrings, expectedResults, expectedIssues, testFunction) {
-    for (const testStringKey of Object.keys(testStrings)) {
-      const [testResult, testIssues] = testFunction(testStrings[testStringKey])
-      assert.sameDeepMembers(testResult, expectedResults[testStringKey], testStrings[testStringKey])
-      assert.deepOwnInclude(testIssues, expectedIssues[testStringKey], testStrings[testStringKey])
+    for (const [testStringKey, testString] of Object.entries(testStrings)) {
+      assert.property(expectedResults, testStringKey, testStringKey + ' is not in expectedResults')
+      assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
+      const [testResult, testIssues] = testFunction(testString)
+      assert.sameDeepMembers(testResult, expectedResults[testStringKey], testString)
+      assert.deepOwnInclude(testIssues, expectedIssues[testStringKey], testString)
     }
   }
 
@@ -320,8 +340,9 @@ describe('HED string parsing', () => {
           ['Braille', 'Character/A', 'Screen-window'],
         ],
       }
+
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.deepEqual(issues, [], 'Schema loading issues occurred')
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         for (const testStringKey of Object.keys(testStrings)) {
           const testString = testStrings[testStringKey]
           const [parsedString, issues] = parseHedString(testString, hedSchemas)
@@ -375,8 +396,9 @@ describe('HED string parsing', () => {
           ],
         },
       }
+
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.deepEqual(issues, [], 'Schema loading issues occurred')
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         return validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
           const [parsedString, issues] = parseHedString(string, hedSchemas)
           const canonicalTags = parsedString.tags.map((parsedTag) => {

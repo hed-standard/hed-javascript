@@ -68,13 +68,11 @@ describe('String utility functions', () => {
 
   describe('Simple string validation functions', () => {
     const validate = function (fn, validStrings, invalidStrings) {
-      for (const key of Object.keys(validStrings)) {
-        const string = validStrings[key]
+      for (const string of Object.values(validStrings)) {
         const result = fn(string)
         assert.strictEqual(result, true, string)
       }
-      for (const key of Object.keys(invalidStrings)) {
-        const string = invalidStrings[key]
+      for (const string of Object.values(invalidStrings)) {
         const result = fn(string)
         assert.strictEqual(result, false, string)
       }

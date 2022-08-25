@@ -1,7 +1,7 @@
 const flattenDeep = require('lodash/flattenDeep')
 
 const { ParsedHedGroup, ParsedHed2Tag, ParsedHed3Tag, ParsedHedTag } = require('./types')
-
+const { Schema, Schemas } = require('../../common/schema/types')
 const { generateIssue } = require('../../common/issues/issues')
 const { recursiveMap } = require('../../utils/array')
 const { mergeParsingIssues, replaceTagNameWithPound } = require('../../utils/hed')

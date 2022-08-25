@@ -719,6 +719,7 @@ describe('BIDS datasets', () => {
    * @type {BidsJsonFile[][]}
    */
   let bidsDatasetDescriptions
+
   /**
    * @type {SchemasSpec}
    */
@@ -1044,6 +1045,7 @@ describe('BIDS datasets', () => {
           badRemote1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[8]),
           badRemote2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[9]),
         }
+
         const expectedIssues = {
           unknown_library: [
             new BidsHedIssue(

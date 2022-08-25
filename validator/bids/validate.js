@@ -160,4 +160,4 @@ function convertHedIssuesToBidsIssues(hedIssues, file) {
   return hedIssues.map((hedIssue) => new BidsHedIssue(hedIssue, file))
 }
 
-module.exports = validateBidsDataset
+module.exports = { validateBidsDataset }

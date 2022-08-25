@@ -48,7 +48,7 @@ const validateDataset = function (definitions, hedStrings, hedSchemas) {
 /**
  * Validate a group of HED strings.
  *
- * @param {ParsedHedString[]} parsedHedStrings The dataset's parsed HED strings.
+ * @param {(string|ParsedHedString)[]} parsedHedStrings The dataset's parsed HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
  * @param {Map<string, ParsedHedGroup>} definitions The dataset's parsed definitions.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
