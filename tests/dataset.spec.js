@@ -26,6 +26,7 @@ describe('HED dataset validation', () => {
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
         assert.isEmpty(issues, 'Schema loading issues occurred')
         for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
+          assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
           const [, testIssues] = hed.validateHedEvents(testDataset, hedSchemas, null, true)
           assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
         }
@@ -81,6 +82,7 @@ describe('HED dataset validation', () => {
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
         assert.isEmpty(issues, 'Schema loading issues occurred')
         for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
+          assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
           const [, testIssues] = hed.validateHedDataset(testDataset, hedSchemas, true)
           assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
         }

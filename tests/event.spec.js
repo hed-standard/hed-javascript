@@ -28,6 +28,7 @@ describe('HED string and event validation', () => {
     testOptions = {},
   ) {
     for (const [testStringKey, testString] of Object.entries(testStrings)) {
+      assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
       const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
       const validator = new ValidatorClass(parsedTestString, hedSchemas, testOptions)
       testFunction(validator)
