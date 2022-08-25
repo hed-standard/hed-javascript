@@ -2,7 +2,6 @@ const semver = require('semver')
 const { buildSchemas } = require('../schema/init')
 const { generateIssue } = require('../../common/issues/issues')
 const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
-const { BidsHedIssue } = require('./types')
 const { asArray } = require('../../utils/array')
 
 const alphanumericRegExp = new RegExp('^[a-zA-Z0-9]+$')

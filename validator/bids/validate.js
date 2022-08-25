@@ -15,7 +15,9 @@ function validateBidsDataset(dataset, schemaDefinition) {
     ([hedSchemas, schemaLoadIssues]) => {
       return validateFullDataset(dataset, hedSchemas)
         .catch(BidsIssue.generateInternalErrorPromise)
-        .then((issues) => schemaLoadIssues.concat(issues))
+        .then((issues) =>
+          issues.concat(convertHedIssuesToBidsIssues(schemaLoadIssues, dataset.datasetDescription.file)),
+        )
     },
     (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file),
   )
