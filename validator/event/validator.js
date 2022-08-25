@@ -57,7 +57,7 @@ class HedValidator {
    * Validate the individual HED tags in a parsed HED string object.
    */
   validateIndividualHedTags() {
-    let previousTag = new ParsedHedTag('', '', [0, 0], this.hedSchemas)
+    let previousTag = null
     for (const tag of this.parsedString.tags) {
       this.validateIndividualHedTag(tag, previousTag)
       previousTag = tag
@@ -244,7 +244,7 @@ class HedValidator {
           tag: tag.originalTag,
         })
       }
-    } else if (!isExtensionAllowedTag && previousTag.takesValue) {
+    } else if (!isExtensionAllowedTag && previousTag && previousTag.takesValue) {
       // This tag isn't an allowed extension, but the previous tag takes a value.
       // This is likely caused by an extraneous comma.
       this.pushIssue('extraCommaOrInvalid', {

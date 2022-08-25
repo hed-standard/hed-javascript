@@ -21,6 +21,7 @@ class Issue {
      * Also the internal error code.
      *
      * TODO: This is kept for backward compatibility until the next major version bump.
+     * @deprecated
      * @type {string}
      */
     this.code = internalCode
