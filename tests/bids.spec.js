@@ -156,7 +156,7 @@ describe('BIDS datasets', () => {
         },
       },
       {
-        // Just library
+        // Just library no defs
         event_type: {
           HED: {
             show_face: 'ts:Sensory-event, ts:Visual-presentation',
@@ -170,6 +170,54 @@ describe('BIDS datasets', () => {
           HED: {
             show_face: 'Sensory-event, Visual-presentation',
             left_press: 'Push-button',
+          },
+        },
+      },
+      {
+        // Just score as base
+        event_type: {
+          HED: {
+            show_face: 'Manual-eye-closure, Drowsiness',
+            left_press: 'Wicket-spikes, Frequency',
+          },
+        },
+      },
+      {
+        // Just score as a library
+        event_type: {
+          HED: {
+            show_face: 'sc:Manual-eye-closure, sc:Drowsiness',
+            left_press: 'sc:Wicket-spikes, sc:Frequency',
+          },
+        },
+      },
+      {
+        // Testlib with Defs as base
+        event_type: {
+          HED: {
+            show_face: 'Sensory-event, Visual-presentation',
+            left_press: 'Press, Def/My-def1, Def/My-def2/3',
+          },
+        },
+        dummy_defs: {
+          HED: {
+            def1: '(Definition/My-def1, (Red, Blue))',
+            def2: '(Definition/My-def2/#, (Green, Label/#))',
+          },
+        },
+      },
+      {
+        // Testlib with defs with as library
+        event_type: {
+          HED: {
+            show_face: 'ts:Sensory-event, ts:Visual-presentation',
+            left_press: 'ts:Press, ts:Def/My-def1, ts:Def/My-def2/3',
+          },
+        },
+        dummy_defs: {
+          HED: {
+            def1: '(ts:Definition/My-def1, (ts:Red, ts:Blue))',
+            def2: '(ts:Definition/My-def2/#, (ts:Green, ts:Label/#))',
           },
         },
       },
@@ -566,6 +614,74 @@ describe('BIDS datasets', () => {
           path: '/sub06/sub06_task-test_run-1_events.tsv',
         },
       ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][3],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][4],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][5],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][6],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
     ],
   ]
 
@@ -574,9 +690,12 @@ describe('BIDS datasets', () => {
     [
       { Name: 'OnlyBase', BIDSVersion: '1.7.0', HEDVersion: '8.1.0' },
       { Name: 'BaseAndTest', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2'] },
-      { Name: 'OnlyTest', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2'] },
+      { Name: 'OnlyTestAsLib', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2'] },
       { Name: 'BaseAndTwoTests', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
       { Name: 'TwoTests', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
+      { Name: 'OnlyScoreAsBase', BIDSVersion: '1.7.0', HEDVersion: 'score_0.0.1' },
+      { Name: 'OnlyScoreAsLib', BIDSVersion: '1.7.0', HEDVersion: 'sc:score_0.0.1' },
+      { Name: 'OnlyTestAsBase', BIDSVersion: '1.7.0', HEDVersion: 'testlib_1.0.2' },
     ],
     [
       { Name: 'NonExistentLibrary', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] },
@@ -631,20 +750,6 @@ describe('BIDS datasets', () => {
       })
     }, datasetDescriptions)
   })
-
-  // /**
-  //  * Create a schema spec for .
-  //  * @param {list} specList The datasets to test with.
-  //  * @return {SchemasSpec}
-  //  */
-  // const getSchemaSpecs = (specList) =>{
-  //   const specs = new SchemasSpec()
-  //   for (let i=0; i < specList.length; i++) {
-  //     const spec = specList[i]
-  //     specs.addSchemaSpec(spec.nickname, spec)
-  //   }
-  //   return specs
-  // }
 
   /**
    * Validate the test datasets.
@@ -853,13 +958,11 @@ describe('BIDS datasets', () => {
   })
 
   describe('HED 3 library schema tests', () => {
-    let goodEvents0, goodEvents1, goodEvents2
+    let goodEvents
     let goodDatasetDescriptions, badDatasetDescriptions
 
     beforeAll(() => {
-      goodEvents0 = [bidsTsvFiles[5][0]]
-      goodEvents1 = [bidsTsvFiles[5][1]]
-      goodEvents2 = [bidsTsvFiles[5][2]]
+      goodEvents = bidsTsvFiles[5]
       goodDatasetDescriptions = bidsDatasetDescriptions[0]
       badDatasetDescriptions = bidsDatasetDescriptions[1]
     })
@@ -867,64 +970,82 @@ describe('BIDS datasets', () => {
     describe('HED 3 library schema good tests', () => {
       it('should validate HED 3 in BIDS event with json and a dataset description and no version spec', () => {
         const testDatasets = {
-          just_base: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
-          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
-          just_base3: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
-          just_library: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
-          just_library2: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[3]),
-          just_library3: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[4]),
+          basestd_with_std_no_defs: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[0]),
+          basestd_with_std_and_libtestlib_nodefs: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[1]),
+          basestd_with_std_and_two_libtestlibs_nodefs: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[3]),
+          libtestlib_with_basestd_and_libtestlib_nodefs: new BidsDataset(
+            [goodEvents[1]],
+            [],
+            goodDatasetDescriptions[1],
+          ),
+          libtestlib_with_basestd_and_two_libtestlibs_nodefs: new BidsDataset(
+            [goodEvents[1]],
+            [],
+            goodDatasetDescriptions[3],
+          ),
+          libtestlib_with_two_libtestlibs_nodefs: new BidsDataset([goodEvents[1]], [], goodDatasetDescriptions[4]),
+          basestd_libtestlib_with_basestd_and_libtestlib_defs: new BidsDataset(
+            [goodEvents[0]],
+            [],
+            goodDatasetDescriptions[1],
+          ),
+          basestd_libtestlib_with_basestd_and_two_libtestlib_defs: new BidsDataset(
+            [goodEvents[0]],
+            [],
+            goodDatasetDescriptions[3],
+          ),
+          basescore_with_basescore_no_defs: new BidsDataset([goodEvents[3]], [], goodDatasetDescriptions[5]),
+          libscore_with_libscore_nodefs: new BidsDataset([goodEvents[4]], [], goodDatasetDescriptions[6]),
+          basetestlib_with_basetestlib_with_defs: new BidsDataset([goodEvents[5]], [], goodDatasetDescriptions[7]),
+          libtestlib_with_basestd_and_libtestlib_with_defs: new BidsDataset(
+            [goodEvents[6]],
+            [],
+            goodDatasetDescriptions[1],
+          ),
+          // libtestlib_with_libtestlib_with_defs:
+          //     new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[2]),
+          libtestlib_with_basestd_and_two_libtestlib_with_defs: new BidsDataset(
+            [goodEvents[6]],
+            [],
+            goodDatasetDescriptions[3],
+          ),
+          // libtestlib_with_two_libtestlib_with_defs:
+          //     new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[4]),
         }
         const expectedIssues = {
-          just_base: [],
-          just_base2: [],
-          just_base3: [],
-          just_library: [],
-          just_library2: [],
-          just_library3: [],
+          basestd_with_std_no_defs: [],
+          basestd_with_std_and_libtestlib_nodefs: [],
+          basestd_with_std_and_two_libtestlibs_nodefs: [],
+          libtestlib_with_basestd_and_libtestlib_nodefs: [],
+          libtestlib_with_basestd_and_two_libtestlibs_nodefs: [],
+          libtestlib_with_two_libtestlibs_nodefs: [],
+          basestd_libtestlib_with_basestd_and_libtestlib_defs: [],
+          basestd_libtestlib_with_basestd_and_two_libtestlib_defs: [],
+          basescore_with_basescore_no_defs: [],
+          libscore_with_libscore_nodefs: [],
+          basetestlib_with_basetestlib_with_defs: [],
+          libtestlib_with_basestd_and_libtestlib_with_defs: [],
+          libtestlib_with_libtestlib_with_defs: [],
+          libtestlib_with_basestd_and_two_libtestlib_with_defs: [],
+          libtestlib_with_two_libtestlib_with_defs: [],
         }
         return validator(testDatasets, expectedIssues, null)
-      }, 10000)
-
-      it('should validate HED 3 in BIDS event files sidecars and libraries using dataset descriptions', () => {
-        const testDatasets1 = {
-          library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
-          library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
-          library_only_with_extra_base: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
-          library_only: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
-          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
-          library_not_needed1: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
-          library_not_needed2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
-          library_and_base_with_extra_schema: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
-        }
-        const expectedIssues1 = {
-          library_and_defs_base_ignored: [],
-          library_and_defs_no_base: [],
-          library_only_with_extra_base: [],
-          library_only: [],
-          library_only_extra_schema: [],
-          only_libraries: [],
-          just_base2: [],
-          library_not_needed1: [],
-          library_not_needed2: [],
-          library_and_base_with_extra_schema: [],
-        }
-        return validator(testDatasets1, expectedIssues1, null)
       }, 10000)
     })
 
     describe('HED 3 library schema bad tests', () => {
       it('should not validate when library schema specifications are invalid', () => {
         const testDatasets = {
-          unknown_library: new BidsDataset(goodEvents2, [], badDatasetDescriptions[0]),
-          leading_colon: new BidsDataset(goodEvents2, [], badDatasetDescriptions[1]),
-          bad_nickname: new BidsDataset(goodEvents2, [], badDatasetDescriptions[2]),
-          multipleColons1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[3]),
-          multipleColons2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[4]),
-          noLibraryName: new BidsDataset(goodEvents2, [], badDatasetDescriptions[5]),
-          badVersion1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[6]),
-          badVersion2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[7]),
-          badRemote1: new BidsDataset(goodEvents2, [], badDatasetDescriptions[8]),
-          badRemote2: new BidsDataset(goodEvents2, [], badDatasetDescriptions[9]),
+          unknown_library: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[0]),
+          leading_colon: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[1]),
+          bad_nickname: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[2]),
+          multipleColons1: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[3]),
+          multipleColons2: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[4]),
+          noLibraryName: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[5]),
+          badVersion1: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[6]),
+          badVersion2: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[7]),
+          badRemote1: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[8]),
+          badRemote2: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[9]),
         }
 
         const expectedIssues = {
@@ -1013,14 +1134,14 @@ describe('BIDS datasets', () => {
         const [specs3] = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
         const [specs4] = parseSchemasSpec(['ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
         const testDatasets1 = {
-          library_and_defs_base_ignored: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
-          library_and_defs_no_base: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[3]),
-          library_only_with_extra_base: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
-          library_only: new BidsDataset(goodEvents1, [], goodDatasetDescriptions[1]),
-          just_base2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[0]),
-          library_not_needed1: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[1]),
-          library_not_needed2: new BidsDataset(goodEvents2, [], goodDatasetDescriptions[3]),
-          library_and_base_with_extra_schema: new BidsDataset(goodEvents0, [], goodDatasetDescriptions[1]),
+          library_and_defs_base_ignored: new BidsDataset([goodEvents[0]], [], goodDatasetDescriptions[1]),
+          library_and_defs_no_base: new BidsDataset([goodEvents[0]], [], goodDatasetDescriptions[3]),
+          library_only_with_extra_base: new BidsDataset([goodEvents[1]], [], goodDatasetDescriptions[1]),
+          library_only: new BidsDataset([goodEvents[1]], [], goodDatasetDescriptions[1]),
+          just_base2: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[0]),
+          library_not_needed1: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[1]),
+          library_not_needed2: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[3]),
+          library_and_base_with_extra_schema: new BidsDataset([goodEvents[0]], [], goodDatasetDescriptions[1]),
         }
         const expectedIssues1 = {
           library_and_defs_base_ignored: [],
