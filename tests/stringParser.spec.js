@@ -322,7 +322,7 @@ describe('HED string parsing', () => {
       }
 
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.deepEqual(issues, [], 'Schema loading issues occurred')
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         for (const testStringKey of Object.keys(testStrings)) {
           const testString = testStrings[testStringKey]
           const [parsedString, issues] = parseHedString(testString, hedSchemas)
@@ -378,7 +378,7 @@ describe('HED string parsing', () => {
       }
 
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.deepEqual(issues, [], 'Schema loading issues occurred')
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         return validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
           const [parsedString, issues] = parseHedString(string, hedSchemas)
           const canonicalTags = parsedString.tags.map((parsedTag) => {

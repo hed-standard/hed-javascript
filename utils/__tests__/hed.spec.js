@@ -189,7 +189,7 @@ describe('HED tag string utility functions', () => {
       const currencyUnits = ['dollars', '$', 'points', 'fraction']
       const volumeUnits = ['m^3']
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.deepEqual(issues, [], 'Schema loading issues occurred')
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const strippedDollarsString = hed.validateUnits(dollarsString, currencyUnits, hedSchemas.baseSchema.attributes)
         const strippedVolumeString = hed.validateUnits(volumeString, volumeUnits, hedSchemas.baseSchema.attributes)
         const strippedPrefixedVolumeString = hed.validateUnits(
