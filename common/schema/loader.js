@@ -6,7 +6,7 @@ const xml2js = require('xml2js')
 
 const files = require('../../utils/files')
 const { generateIssue } = require('../issues/issues')
-
+//const {newPath} = require.resolve('hed-javascript')
 const { fallbackFilePath, fallbackDirectory, localSchemaList } = require('./config')
 
 /**
