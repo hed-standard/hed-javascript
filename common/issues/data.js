@@ -176,6 +176,11 @@ const issueData = {
     level: 'error',
     message: stringTemplate`The fallback schema bundled with this validator failed to load. No HED validation was performed.`,
   },
+  bundledSchemaLoadFailed: {
+    hedCode: 'HED_SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Could not load HED schema for spec "${'spec'}" from bundled copy - "${'error'}".`,
+  },
   localSchemaLoadFailed: {
     hedCode: 'HED_SCHEMA_LOAD_FAILED',
     level: 'error',

@@ -71,9 +71,8 @@ const loadPromise = function (schemaDef) {
     // TODO: Replace with localPath in 4.0.0.
     return loadLocalSchema(schemaDef.path)
   } else {
-    const localName = schemaDef.localName
-    if (localSchemaList.has(localName)) {
-      return loadLocalSchema(localSchemaList.get(localName))
+    if (localSchemaList.has(schemaDef.localName)) {
+      return loadBundledSchema(schemaDef)
     } else {
       return loadRemoteSchema(schemaDef)
     }
@@ -104,6 +103,19 @@ const loadRemoteSchema = function (schemaDef) {
  */
 const loadLocalSchema = function (path) {
   return loadSchemaFile(files.readFile(path), 'localSchemaLoadFailed', { path: path })
+}
+
+/**
+ * Load schema XML data from a bundled file.
+ *
+ * @param {SchemaSpec} schemaDef The description of which schema to use.
+ * @return {Promise<object>} The schema XML data.
+ */
+const loadBundledSchema = function (schemaDef) {
+  return parseSchemaXML(localSchemaList.get(schemaDef.localName)).catch((error) => {
+    const issueArgs = { spec: schemaDef, error: error.message }
+    return Promise.reject([generateIssue('bundledSchemaLoadFailed', issueArgs)])
+  })
 }
 
 /**

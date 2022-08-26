@@ -5,7 +5,7 @@ const GlobalsPlugin = require('esbuild-plugin-globals')
 // Node.js target build
 esbuild.build({
   entryPoints: [path.join(process.cwd(), 'index.js')],
-  loader: { '.xml': 'file' },
+  loader: { '.xml': 'text' },
   outdir: path.join(process.cwd(), 'dist', 'commonjs'),
   target: 'node12',
   bundle: true,
@@ -16,7 +16,7 @@ esbuild.build({
 // Browser target build
 esbuild.build({
   entryPoints: [path.join(process.cwd(), 'index.js')],
-  loader: { '.xml': 'file' },
+  loader: { '.xml': 'text' },
   outdir: path.join(process.cwd(), 'dist', 'esm'),
   bundle: true,
   sourcemap: true,
