@@ -2,3 +2,6 @@ coverage
 node_modules
 .directory
 .idea
+node_modules
+.DS_Store
+dist/

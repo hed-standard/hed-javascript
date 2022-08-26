@@ -1,13 +1,12 @@
 /** HED schema loading functions. */
 
 /* Imports */
-const path = require('path')
 const xml2js = require('xml2js')
 
 const files = require('../../utils/files')
 const { generateIssue } = require('../issues/issues')
 
-const { fallbackFilePath, localSchemaList } = require('./config')
+const { fallbackFilePath, localSchemaList, testFlag } = require('./config')
 
 /**
  * Load schema XML data from a schema version or path description.
@@ -70,12 +69,12 @@ const loadPromise = function (schemaDef) {
   } else if (schemaDef.path) {
     // TODO: Replace with localPath in 4.0.0.
     return loadLocalSchema(schemaDef.path)
+  } else if (testFlag && localSchemaList.has(schemaDef.localName)) {
+    return loadLocalSchema(localSchemaList.get(schemaDef.localName))
+  } else if (!testFlag && localSchemaList.has(schemaDef.localName)) {
+    return loadBundledSchema(schemaDef)
   } else {
-    if (localSchemaList.has(schemaDef.localName)) {
-      return loadBundledSchema(schemaDef)
-    } else {
-      return loadRemoteSchema(schemaDef)
-    }
+    return loadRemoteSchema(schemaDef)
   }
 }
 
@@ -98,11 +97,15 @@ const loadRemoteSchema = function (schemaDef) {
 /**
  * Load schema XML data from a local file.
  *
- * @param {string} path The path to the schema XML data.
+ * @param {string} localPath The path to the schema XML data.
  * @return {Promise<object>} The schema XML data.
  */
-const loadLocalSchema = function (path) {
-  return loadSchemaFile(files.readFile(path), 'localSchemaLoadFailed', { path: path })
+const loadLocalSchema = function (localPath) {
+  const x = JSON.stringify(localPath)
+  console.dir(JSON.stringify(localPath))
+  /* const resolved = path.resolve(localPath)
+  console.dir("resolved" + resolved)*/
+  return loadSchemaFile(files.readFile(localPath), 'localSchemaLoadFailed', { path: localPath })
 }
 
 /**
