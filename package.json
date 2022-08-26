@@ -14,7 +14,8 @@
     "lint": "./node_modules/eslint/bin/eslint.js ./**/*.js",
     "test": "./node_modules/.bin/jest",
     "coverage": "./node_modules/.bin/jest --coverage",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build": "node ./esbuild.cjs"
   },
   "contributors": [
     "Alexander Jones",
@@ -26,10 +27,14 @@
   },
   "homepage": "https://github.com/hed-standard/hed-javascript",
   "dependencies": {
-    "build": "^0.1.4",
+    "buffer": "^6.0.3",
     "date-and-time": "^0.14.2",
     "date-fns": "^2.17.0",
+    "esbuild": "^0.15.5",
+    "esbuild-plugin-globals": "^0.1.1",
+    "events": "^3.3.0",
     "lodash": "^4.17.21",
+    "path": "^0.12.7",
     "pluralize": "^8.0.0",
     "semver": "^7.3.4",
     "then-request": "^6.0.2",
