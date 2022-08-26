@@ -5,8 +5,8 @@
   "main": "./dist/commonjs/index.js",
   "exports": {
     ".": {
-      "import": "./dist/esm/index.js",
-      "require": "./dist/commonjs/index.js"
+      "browser": "./dist/esm/index.js",
+      "node": "./dist/commonjs/index.js"
     }
   },
   "repository": {
@@ -34,9 +34,12 @@
   },
   "homepage": "https://github.com/hed-standard/hed-javascript",
   "dependencies": {
+    "buffer": "^6.0.3",
     "date-and-time": "^0.14.2",
     "date-fns": "^2.17.0",
+    "events": "^3.3.0",
     "lodash": "^4.17.21",
+    "path": "^0.12.7",
     "pluralize": "^8.0.0",
     "semver": "^7.3.4",
     "then-request": "^6.0.2",

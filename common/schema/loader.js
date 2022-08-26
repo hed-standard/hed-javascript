@@ -7,7 +7,7 @@ const xml2js = require('xml2js')
 const files = require('../../utils/files')
 const { generateIssue } = require('../issues/issues')
 
-const { fallbackFilePath, fallbackDirectory, localSchemaList } = require('./config')
+const { fallbackFilePath, localSchemaList } = require('./config')
 
 /**
  * Load schema XML data from a schema version or path description.
@@ -73,8 +73,7 @@ const loadPromise = function (schemaDef) {
   } else {
     const localName = schemaDef.localName
     if (localSchemaList.has(localName)) {
-      const filePath = require('../../data/' + localName + '.xml')
-      return loadLocalSchema(filePath)
+      return loadLocalSchema(localSchemaList.get(localName))
     } else {
       return loadRemoteSchema(schemaDef)
     }

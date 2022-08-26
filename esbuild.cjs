@@ -43,9 +43,6 @@ esbuild.build({
       os: 'globalThis',
       timers: 'globalThis',
       process: 'globalThis',
-      events: 'events',
-      buffer: 'buffer',
-      path: 'path',
     }),
   ],
 })
