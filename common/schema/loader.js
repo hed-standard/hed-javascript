@@ -73,7 +73,7 @@ const loadPromise = function (schemaDef) {
   } else {
     const localName = schemaDef.localName
     if (localSchemaList.has(localName)) {
-      const filePath = path.resolve(fallbackDirectory, localName + '.xml')
+      const filePath = require('../../data/' + localName + '.xml')
       return loadLocalSchema(filePath)
     } else {
       return loadRemoteSchema(schemaDef)
