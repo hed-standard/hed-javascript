@@ -1,6 +1,6 @@
 module.exports = {
   process(sourceText, sourcePath, options) {
-    sourceText = sourceText.replaceAll('`', '\\`')
+    sourceText = sourceText.replace(/`/g, '\\`')
     return {
       code: `module.exports = \`${sourceText}\`;`,
     }
