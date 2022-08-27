@@ -67,7 +67,8 @@
   "jest": {
     "testEnvironment": "node",
     "transform": {
-      "\\.js$": "esbuild-runner/jest"
+      "\\.js$": "esbuild-runner/jest",
+      "\\.xml$": "<rootDir>/tests/fileTransformer.js"
     }
   },
   "browser": {
