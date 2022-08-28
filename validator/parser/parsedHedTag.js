@@ -216,7 +216,7 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 
   equivalent(other) {
-    return other instanceof ParsedHedTag && this.formattedTag === other.formattedTag
+    return other instanceof ParsedHedTag && this.formattedTag === other.formattedTag && this.schema === other.schema
   }
 }
 
