@@ -1,5 +1,5 @@
 const { validateHedEventWithDefinitions } = require('./event')
-const { parseHedStrings } = require('./stringParser')
+const { parseHedStrings } = require('./parser/main')
 
 const { generateIssue } = require('../common/issues/issues')
 const { filterNonEqualDuplicates } = require('../utils/map')
@@ -48,7 +48,7 @@ const validateDataset = function (definitions, hedStrings, hedSchemas) {
 /**
  * Validate a group of HED strings.
  *
- * @param {ParsedHedString[]} parsedHedStrings The dataset's parsed HED strings.
+ * @param {(string|ParsedHedString)[]} parsedHedStrings The dataset's parsed HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
  * @param {Map<string, ParsedHedGroup>} definitions The dataset's parsed definitions.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
@@ -117,9 +117,9 @@ const validateHedDatasetWithContext = function (hedStrings, contextHedStrings, h
 }
 
 module.exports = {
-  parseDefinitions: parseDefinitions,
-  validateDataset: validateDataset,
-  validateHedEvents: validateHedEvents,
-  validateHedDataset: validateHedDataset,
-  validateHedDatasetWithContext: validateHedDatasetWithContext,
+  parseDefinitions,
+  validateDataset,
+  validateHedEvents,
+  validateHedDataset,
+  validateHedDatasetWithContext,
 }

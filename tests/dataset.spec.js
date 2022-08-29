@@ -1,29 +1,34 @@
 const assert = require('chai').assert
 const hed = require('../validator/dataset')
-const schema = require('../validator/schema/init')
+const { buildSchemas } = require('../validator/schema/init')
 const generateValidationIssue = require('../common/issues/issues').generateIssue
 const generateConverterIssue = require('../converter/issues')
+const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
 
 describe('HED dataset validation', () => {
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
-    hedSchemaPromise = schema.buildSchema({ path: hedSchemaFile })
+    const spec1 = new SchemaSpec('', '8.0.0', '', hedSchemaFile)
+    const specs = new SchemasSpec().addSchemaSpec(spec1)
+    hedSchemaPromise = buildSchemas(specs)
   })
 
   describe('Basic HED string lists', () => {
     /**
      * Test-validate a dataset.
      *
-     * @param {object<string, string[]>} testDatasets The datasets to test.
-     * @param {object<string, Issue[]>} expectedIssues The expected issues.
+     * @param {Object<string, string[]>} testDatasets The datasets to test.
+     * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = function (testDatasets, expectedIssues) {
-      return hedSchemaPromise.then((hedSchema) => {
-        for (const testDatasetKey in testDatasets) {
-          const [, testIssues] = hed.validateHedEvents(testDatasets[testDatasetKey], hedSchema, null, true)
-          assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDatasets[testDatasetKey].join(','))
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
+        for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
+          assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
+          const [, testIssues] = hed.validateHedEvents(testDataset, hedSchemas, null, true)
+          assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
         }
       })
     }
@@ -70,14 +75,16 @@ describe('HED dataset validation', () => {
     /**
      * Test-validate a dataset.
      *
-     * @param {object<string, string[]>} testDatasets The datasets to test.
-     * @param {object<string, Issue[]>} expectedIssues The expected issues.
+     * @param {Object<string, string[]>} testDatasets The datasets to test.
+     * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = function (testDatasets, expectedIssues) {
-      return hedSchemaPromise.then((hedSchema) => {
-        for (const testDatasetKey in testDatasets) {
-          const [, testIssues] = hed.validateHedDataset(testDatasets[testDatasetKey], hedSchema, true)
-          assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDatasets[testDatasetKey].join(','))
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
+        for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
+          assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
+          const [, testIssues] = hed.validateHedDataset(testDataset, hedSchemas, true)
+          assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
         }
       })
     }

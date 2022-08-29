@@ -29,5 +29,5 @@ const filterNonEqualDuplicates = function (list, equalityFunction = isEqual) {
 }
 
 module.exports = {
-  filterNonEqualDuplicates: filterNonEqualDuplicates,
+  filterNonEqualDuplicates,
 }

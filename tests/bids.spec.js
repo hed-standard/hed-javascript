@@ -1,10 +1,14 @@
 const assert = require('chai').assert
 const converterGenerateIssue = require('../converter/issues')
 const { generateIssue } = require('../common/issues/issues')
+const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
+const { recursiveMap } = require('../utils/array')
+const { parseSchemasSpec } = require('../validator/bids/schema')
 const {
   BidsDataset,
   BidsEventFile,
   BidsHedIssue,
+  BidsJsonFile,
   BidsIssue,
   BidsSidecar,
   validateBidsDataset,
@@ -134,7 +138,92 @@ describe('BIDS datasets', () => {
         },
       },
     ],
+    // sub05 - HED 3 sidecars with libraries
+    [
+      {
+        // Library and base and defs
+        event_type: {
+          HED: {
+            show_face: 'Sensory-event, ts:Visual-presentation',
+            left_press: 'Press, Def/My-def1, ts:Def/My-def2/3',
+          },
+        },
+        dummy_defs: {
+          HED: {
+            def1: '(Definition/My-def1, (Red, Blue))',
+            def2: '(ts:Definition/My-def2/#, (Green, Label/#))',
+          },
+        },
+      },
+      {
+        // Just library no defs
+        event_type: {
+          HED: {
+            show_face: 'ts:Sensory-event, ts:Visual-presentation',
+            left_press: 'ts:Push-button',
+          },
+        },
+      },
+      {
+        // Just base
+        event_type: {
+          HED: {
+            show_face: 'Sensory-event, Visual-presentation',
+            left_press: 'Push-button',
+          },
+        },
+      },
+      {
+        // Just score as base
+        event_type: {
+          HED: {
+            show_face: 'Manual-eye-closure, Drowsiness',
+            left_press: 'Wicket-spikes, Frequency',
+          },
+        },
+      },
+      {
+        // Just score as a library
+        event_type: {
+          HED: {
+            show_face: 'sc:Manual-eye-closure, sc:Drowsiness',
+            left_press: 'sc:Wicket-spikes, sc:Frequency',
+          },
+        },
+      },
+      {
+        // Testlib with Defs as base
+        event_type: {
+          HED: {
+            show_face: 'Sensory-event, Visual-presentation',
+            left_press: 'Press, Def/My-def1, Def/My-def2/3',
+          },
+        },
+        dummy_defs: {
+          HED: {
+            def1: '(Definition/My-def1, (Red, Blue))',
+            def2: '(Definition/My-def2/#, (Green, Label/#))',
+          },
+        },
+      },
+      {
+        // Testlib with defs with as library
+        event_type: {
+          HED: {
+            show_face: 'ts:Sensory-event, ts:Visual-presentation',
+            left_press: 'ts:Press, ts:Def/My-def1, ts:Def/My-def2/3',
+          },
+        },
+        dummy_defs: {
+          HED: {
+            def1: '(ts:Definition/My-def1, (ts:Red, ts:Blue))',
+            def2: '(ts:Definition/My-def2/#, (ts:Green, ts:Label/#))',
+          },
+        },
+      },
+    ],
   ]
+
   const hedColumnOnlyHeader = ['onset', 'duration', 'HED']
   const bidsTsvFiles = [
     // sub01 - Valid TSV-only data
@@ -457,7 +546,7 @@ describe('BIDS datasets', () => {
     [
       new BidsEventFile(
         '/sub05/sub05_task-test_run-1_events.tsv',
-        ['/sub04/sub04_task-test_run-1_events.json'],
+        ['/sub05/sub05_task-test_run-1_events.json'],
         sidecars[3][0],
         {
           headers: ['onset', 'duration', 'test', 'HED'],
@@ -472,35 +561,231 @@ describe('BIDS datasets', () => {
         },
       ),
     ],
+    // sub06 - Valid combined sidecar/TSV data with library
+    [
+      new BidsEventFile(
+        '/sub06/sub06_task-test_run-1_events.tsv',
+        ['/sub06/sub06_task-test_run-1_events.json'],
+        sidecars[4][0],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][1],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][2],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][3],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][4],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][5],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+      new BidsEventFile(
+        '/sub03/sub06_task-test_run-1_events.tsv',
+        ['/sub03/sub06_task-test_run-1_events.json'],
+        sidecars[4][6],
+        {
+          headers: ['onset', 'duration', 'event_type', 'size'],
+          rows: [
+            ['onset', 'duration', 'event_type', 'size'],
+            ['7', 'n/a', 'show_face', '6'],
+            ['7', 'n/a', 'left_press', '7'],
+          ],
+        },
+        {
+          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
+          path: '/sub06/sub06_task-test_run-1_events.tsv',
+        },
+      ),
+    ],
   ]
+
+  const datasetDescriptions = [
+    // Good datasetDescription.json files
+    [
+      { Name: 'OnlyBase', BIDSVersion: '1.7.0', HEDVersion: '8.1.0' },
+      { Name: 'BaseAndTest', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2'] },
+      { Name: 'OnlyTestAsLib', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2'] },
+      { Name: 'BaseAndTwoTests', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
+      { Name: 'TwoTests', BIDSVersion: '1.7.0', HEDVersion: ['ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
+      { Name: 'OnlyScoreAsBase', BIDSVersion: '1.7.0', HEDVersion: 'score_0.0.1' },
+      { Name: 'OnlyScoreAsLib', BIDSVersion: '1.7.0', HEDVersion: 'sc:score_0.0.1' },
+      { Name: 'OnlyTestAsBase', BIDSVersion: '1.7.0', HEDVersion: 'testlib_1.0.2' },
+    ],
+    [
+      { Name: 'NonExistentLibrary', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] },
+      { Name: 'LeadingColon', BIDSVersion: '1.7.0', HEDVersion: [':testlib_1.0.2', '8.1.0'] },
+      { Name: 'BadNickName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 't-s:testlib_1.0.2'] },
+      { Name: 'MultipleColons1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts::testlib_1.0.2'] },
+      { Name: 'MultipleColons2', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', ':ts:testlib_1.0.2'] },
+      { Name: 'NoLibraryName', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:_1.0.2'] },
+      { Name: 'BadVersion1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib1.0.2'] },
+      { Name: 'BadVersion2', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.a.2'] },
+      { Name: 'BadRemote1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.800.2'] },
+      { Name: 'BadRemote2', BIDSVersion: '1.7.0', HEDVersion: '8.828.0' },
+    ],
+  ]
+
   /**
-   * @type {object[][]}
+   * @type {BidsSidecar[][]}
    */
   let bidsSidecars
+  /**
+   * @type {BidsJsonFile[][]}
+   */
+  let bidsDatasetDescriptions
+
+  /**
+   * @type {SchemasSpec}
+   */
+  let specs
+  /**
+   * @type {SchemasSpec}
+   */
+  let specs2
 
   beforeAll(() => {
-    bidsSidecars = sidecars.map((sub_data, sub) => {
-      return sub_data.map((run_data, run) => {
+    const spec1 = new SchemaSpec('', '8.0.0')
+    specs = new SchemasSpec().addSchemaSpec(spec1)
+    const spec2 = new SchemaSpec('', '7.2.0')
+    specs2 = new SchemasSpec().addSchemaSpec(spec2)
+    bidsSidecars = sidecars.map((subData, sub) => {
+      return subData.map((runData, run) => {
         const name = `/sub0${sub + 1}/sub0${sub + 1}_task-test_run-${run + 1}_events.json`
-        return new BidsSidecar(name, run_data, {
+        return new BidsSidecar(name, runData, {
           relativePath: name,
           path: name,
         })
       })
     })
+    bidsDatasetDescriptions = recursiveMap((datasetDescriptionData) => {
+      return new BidsJsonFile('/dataset_description.json', datasetDescriptionData, {
+        relativePath: '/dataset_description.json',
+        path: '/dataset_description.json',
+      })
+    }, datasetDescriptions)
   })
 
   /**
    * Validate the test datasets.
-   * @param {object<string,BidsDataset>} testDatasets The datasets to test with.
-   * @param {object<string,BidsIssue[]>} expectedIssues The expected issues.
-   * @param {object} versionSpec The schema version to test with.
+   * @param {Object<string,BidsDataset>} testDatasets The datasets to test with.
+   * @param {Object<string,BidsIssue[]>} expectedIssues The expected issues.
+   * @param {SchemasSpec} versionSpec The schema version to test with.
    * @return {Promise}
    */
   const validator = (testDatasets, expectedIssues, versionSpec) => {
     return Promise.all(
       Object.entries(testDatasets).map(([datasetName, dataset]) => {
+        assert.property(expectedIssues, datasetName, datasetName + ' is not in expectedIssues')
         return validateBidsDataset(dataset, versionSpec).then((issues) => {
+          assert.sameDeepMembers(issues, expectedIssues[datasetName], datasetName)
+        })
+      }),
+    )
+  }
+
+  /**
+   * Validate the test datasets.
+   * @param {Object<string,BidsDataset>} testDatasets The datasets to test with.
+   * @param {Object<string,BidsIssue[]>} expectedIssues The expected issues.
+   * @param {SchemasSpec} versionSpecs The schema version to test with.
+   * @return {Promise}
+   */
+  const validatorWithSpecs = (testDatasets, expectedIssues, versionSpecs) => {
+    return Promise.all(
+      Object.entries(testDatasets).map(([datasetName, dataset]) => {
+        assert.property(expectedIssues, datasetName, datasetName + ' is not in expectedIssues')
+        let specs = versionSpecs
+        if (versionSpecs) {
+          assert.property(versionSpecs, datasetName, datasetName + ' is not in versionSpecs')
+          specs = versionSpecs[datasetName]
+        }
+        return validateBidsDataset(dataset, specs).then((issues) => {
           assert.sameDeepMembers(issues, expectedIssues[datasetName], datasetName)
         })
       }),
@@ -528,7 +813,7 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), bidsSidecars[1][1].file),
         ],
       }
-      return validator(testDatasets, expectedIssues, { version: '8.0.0' })
+      return validator(testDatasets, expectedIssues, specs)
     }, 10000)
 
     it('should validate placeholders in BIDS sidecars', () => {
@@ -562,7 +847,7 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' }), bidsSidecars[2][8].file),
         ],
       }
-      return validator(testDatasets, expectedIssues, { version: '8.0.0' })
+      return validator(testDatasets, expectedIssues, specs)
     }, 10000)
   })
 
@@ -595,7 +880,7 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(maglevWarning, badDatasets[4].file),
         ],
       }
-      return validator(testDatasets, expectedIssues, { version: '8.0.0' })
+      return validator(testDatasets, expectedIssues, specs)
     }, 10000)
   })
 
@@ -655,7 +940,7 @@ describe('BIDS datasets', () => {
           new BidsIssue(108, badDatasets[4].file, 'purple'),
         ],
       }
-      return validator(testDatasets, expectedIssues, { version: '8.0.0' })
+      return validator(testDatasets, expectedIssues, specs)
     }, 10000)
   })
 
@@ -668,7 +953,216 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         all_good: [],
       }
-      return validator(testDatasets, expectedIssues, { version: '7.2.0' })
+      return validator(testDatasets, expectedIssues, specs2)
     }, 10000)
+  })
+
+  describe('HED 3 library schema tests', () => {
+    let goodEvents
+    let goodDatasetDescriptions, badDatasetDescriptions
+
+    beforeAll(() => {
+      goodEvents = bidsTsvFiles[5]
+      goodDatasetDescriptions = bidsDatasetDescriptions[0]
+      badDatasetDescriptions = bidsDatasetDescriptions[1]
+    })
+
+    describe('HED 3 library schema good tests', () => {
+      it('should validate HED 3 in BIDS event with json and a dataset description and no version spec', () => {
+        const testDatasets = {
+          basestd_with_std_no_defs: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[0]),
+          basestd_with_std_and_libtestlib_nodefs: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[1]),
+          basestd_with_std_and_two_libtestlibs_nodefs: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[3]),
+          libtestlib_with_basestd_and_libtestlib_nodefs: new BidsDataset(
+            [goodEvents[1]],
+            [],
+            goodDatasetDescriptions[1],
+          ),
+          libtestlib_with_basestd_and_two_libtestlibs_nodefs: new BidsDataset(
+            [goodEvents[1]],
+            [],
+            goodDatasetDescriptions[3],
+          ),
+          libtestlib_with_two_libtestlibs_nodefs: new BidsDataset([goodEvents[1]], [], goodDatasetDescriptions[4]),
+          basestd_libtestlib_with_basestd_and_libtestlib_defs: new BidsDataset(
+            [goodEvents[0]],
+            [],
+            goodDatasetDescriptions[1],
+          ),
+          basestd_libtestlib_with_basestd_and_two_libtestlib_defs: new BidsDataset(
+            [goodEvents[0]],
+            [],
+            goodDatasetDescriptions[3],
+          ),
+          basescore_with_basescore_no_defs: new BidsDataset([goodEvents[3]], [], goodDatasetDescriptions[5]),
+          libscore_with_libscore_nodefs: new BidsDataset([goodEvents[4]], [], goodDatasetDescriptions[6]),
+          basetestlib_with_basetestlib_with_defs: new BidsDataset([goodEvents[5]], [], goodDatasetDescriptions[7]),
+          libtestlib_with_basestd_and_libtestlib_with_defs: new BidsDataset(
+            [goodEvents[6]],
+            [],
+            goodDatasetDescriptions[1],
+          ),
+          libtestlib_with_libtestlib_with_defs: new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[2]),
+          libtestlib_with_basestd_and_two_libtestlib_with_defs: new BidsDataset(
+            [goodEvents[6]],
+            [],
+            goodDatasetDescriptions[3],
+          ),
+          libtestlib_with_two_libtestlib_with_defs: new BidsDataset([goodEvents[6]], [], goodDatasetDescriptions[4]),
+        }
+        const expectedIssues = {
+          basestd_with_std_no_defs: [],
+          basestd_with_std_and_libtestlib_nodefs: [],
+          basestd_with_std_and_two_libtestlibs_nodefs: [],
+          libtestlib_with_basestd_and_libtestlib_nodefs: [],
+          libtestlib_with_basestd_and_two_libtestlibs_nodefs: [],
+          libtestlib_with_two_libtestlibs_nodefs: [],
+          basestd_libtestlib_with_basestd_and_libtestlib_defs: [],
+          basestd_libtestlib_with_basestd_and_two_libtestlib_defs: [],
+          basescore_with_basescore_no_defs: [],
+          libscore_with_libscore_nodefs: [],
+          basetestlib_with_basetestlib_with_defs: [],
+          libtestlib_with_basestd_and_libtestlib_with_defs: [],
+          libtestlib_with_libtestlib_with_defs: [],
+          libtestlib_with_basestd_and_two_libtestlib_with_defs: [],
+          libtestlib_with_two_libtestlib_with_defs: [],
+        }
+        return validator(testDatasets, expectedIssues, null)
+      }, 10000)
+    })
+
+    describe('HED 3 library schema bad tests', () => {
+      it('should not validate when library schema specifications are invalid', () => {
+        const testDatasets = {
+          unknown_library: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[0]),
+          leading_colon: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[1]),
+          bad_nickname: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[2]),
+          multipleColons1: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[3]),
+          multipleColons2: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[4]),
+          noLibraryName: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[5]),
+          badVersion1: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[6]),
+          badVersion2: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[7]),
+          badRemote1: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[8]),
+          badRemote2: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[9]),
+        }
+
+        const expectedIssues = {
+          unknown_library: [
+            new BidsHedIssue(
+              generateIssue('remoteSchemaLoadFailed', {
+                spec: JSON.stringify(new SchemaSpec('ts', '1.0.2', 'badlib')),
+                error:
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404:\n404: Not Found',
+              }),
+              badDatasetDescriptions[0].file,
+            ),
+          ],
+          leading_colon: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaNickname', { nickname: '', spec: ':testlib_1.0.2' }),
+              badDatasetDescriptions[1].file,
+            ),
+          ],
+          bad_nickname: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaNickname', { nickname: 't-s', spec: 't-s:testlib_1.0.2' }),
+              badDatasetDescriptions[2].file,
+            ),
+          ],
+          multipleColons1: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts::testlib_1.0.2' }),
+              badDatasetDescriptions[3].file,
+            ),
+          ],
+          multipleColons2: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: ':ts:testlib_1.0.2' }),
+              badDatasetDescriptions[4].file,
+            ),
+          ],
+          noLibraryName: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts:_1.0.2' }),
+              badDatasetDescriptions[5].file,
+            ),
+          ],
+          badVersion1: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts:testlib1.0.2' }),
+              badDatasetDescriptions[6].file,
+            ),
+          ],
+          badVersion2: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'ts:testlib_1.a.2' }),
+              badDatasetDescriptions[7].file,
+            ),
+          ],
+          badRemote1: [
+            new BidsHedIssue(
+              generateIssue('remoteSchemaLoadFailed', {
+                spec: JSON.stringify(new SchemaSpec('ts', '1.800.2', 'testlib')),
+                error:
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/testlib/hedxml/HED_testlib_1.800.2.xml with status code 404:\n404: Not Found',
+              }),
+              badDatasetDescriptions[8].file,
+            ),
+          ],
+          badRemote2: [
+            new BidsHedIssue(
+              generateIssue('remoteSchemaLoadFailed', {
+                spec: JSON.stringify(new SchemaSpec('', '8.828.0', '')),
+                error:
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/HED8.828.0.xml with status code 404:\n404: Not Found',
+              }),
+              badDatasetDescriptions[9].file,
+            ),
+          ],
+        }
+        return validator(testDatasets, expectedIssues, null)
+      }, 10000)
+    })
+
+    describe('HED 3 library schema with version spec', () => {
+      it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
+        const [specs0] = parseSchemasSpec(['8.1.0'])
+        const [specs1] = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2'])
+        const [specs2] = parseSchemasSpec(['ts:testlib_1.0.2'])
+        const [specs3] = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
+        const [specs4] = parseSchemasSpec(['ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
+        const testDatasets1 = {
+          library_and_defs_base_ignored: new BidsDataset([goodEvents[0]], [], goodDatasetDescriptions[1]),
+          library_and_defs_no_base: new BidsDataset([goodEvents[0]], [], goodDatasetDescriptions[3]),
+          library_only_with_extra_base: new BidsDataset([goodEvents[1]], [], goodDatasetDescriptions[1]),
+          library_only: new BidsDataset([goodEvents[1]], [], goodDatasetDescriptions[1]),
+          just_base2: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[0]),
+          library_not_needed1: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[1]),
+          library_not_needed2: new BidsDataset([goodEvents[2]], [], goodDatasetDescriptions[3]),
+          library_and_base_with_extra_schema: new BidsDataset([goodEvents[0]], [], goodDatasetDescriptions[1]),
+        }
+        const expectedIssues1 = {
+          library_and_defs_base_ignored: [],
+          library_and_defs_no_base: [],
+          library_only_with_extra_base: [],
+          library_only: [],
+          just_base2: [],
+          library_not_needed1: [],
+          library_not_needed2: [],
+          library_and_base_with_extra_schema: [],
+        }
+        const schemaSpecs = {
+          library_and_defs_base_ignored: specs1,
+          library_and_defs_no_base: specs3,
+          library_only_with_extra_base: specs1,
+          library_only: specs1,
+          just_base2: specs0,
+          library_not_needed1: specs1,
+          library_not_needed2: specs3,
+          library_and_base_with_extra_schema: specs1,
+        }
+        return validatorWithSpecs(testDatasets1, expectedIssues1, schemaSpecs)
+      }, 10000)
+    })
   })
 })

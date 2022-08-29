@@ -1,57 +1,26 @@
 const { validateHedDatasetWithContext } = require('../dataset')
 const { validateHedString } = require('../event')
-const { buildSchema } = require('../schema/init')
-const { sidecarValueHasHed } = require('../../utils/bids')
-const { generateIssue } = require('../../common/issues/issues')
-const { fallbackFilePath } = require('../../common/schema')
 const { BidsDataset, BidsHedIssue, BidsIssue } = require('./types')
-
-function generateInternalErrorBidsIssue(error) {
-  return Promise.resolve([new BidsIssue(107, null, error.message)])
-}
+const { buildBidsSchemas } = require('./schema')
 
 /**
  * Validate a BIDS dataset.
  *
  * @param {BidsDataset} dataset The BIDS dataset.
  * @param {object} schemaDefinition The version spec for the schema to be loaded.
- * @return {Promise<Array<BidsIssue>>} Any issues found.
+ * @return {Promise<BidsIssue[]>} Any issues found.
  */
 function validateBidsDataset(dataset, schemaDefinition) {
-  // loop through event data files
-  const schemaLoadIssues = []
-  return buildBidsSchema(dataset, schemaDefinition)
-    .catch((error) => {
-      schemaLoadIssues.push(
-        new BidsHedIssue(
-          generateIssue('requestedSchemaLoadFailed', {
-            schemaDefinition: JSON.stringify(schemaDefinition),
-            error: error.message,
-          }),
-          dataset.datasetDescription.file,
-        ),
-      )
-      return buildBidsSchema(dataset, { path: fallbackFilePath }).catch((error) => {
-        schemaLoadIssues.push(
-          new BidsHedIssue(
-            generateIssue('fallbackSchemaLoadFailed', {
-              error: error.message,
-            }),
-            dataset.datasetDescription.file,
-          ),
+  return buildBidsSchemas(dataset, schemaDefinition).then(
+    ([hedSchemas, schemaLoadIssues]) => {
+      return validateFullDataset(dataset, hedSchemas)
+        .catch(BidsIssue.generateInternalErrorPromise)
+        .then((issues) =>
+          issues.concat(convertHedIssuesToBidsIssues(schemaLoadIssues, dataset.datasetDescription.file)),
         )
-        return []
-      })
-    })
-    .then((datasetIssues) => {
-      return Promise.resolve(datasetIssues.concat(schemaLoadIssues))
-    })
-}
-
-function buildBidsSchema(dataset, schemaDefinition) {
-  return buildSchema(schemaDefinition, false).then((hedSchemas) => {
-    return validateFullDataset(dataset, hedSchemas).catch(generateInternalErrorBidsIssue)
-  })
+    },
+    (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file),
+  )
 }
 
 function validateFullDataset(dataset, hedSchemas) {
@@ -193,4 +162,4 @@ function convertHedIssuesToBidsIssues(hedIssues, file) {
   return hedIssues.map((hedIssue) => new BidsHedIssue(hedIssue, file))
 }
 
-module.exports = validateBidsDataset
+module.exports = { validateBidsDataset }

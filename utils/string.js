@@ -76,10 +76,10 @@ const isNumber = function (numericString) {
  */
 const stringTemplate = function (strings, ...keys) {
   return function (...values) {
-    let dict = values[values.length - 1] || {}
-    let result = [strings[0]]
-    keys.forEach(function (key, i) {
-      let value = Number.isInteger(key) ? values[key] : dict[key]
+    const dict = values[values.length - 1] || {}
+    const result = [strings[0]]
+    keys.forEach((key, i) => {
+      const value = Number.isInteger(key) ? values[key] : dict[key]
       result.push(value, strings[i + 1])
     })
     return result.join('')
@@ -87,11 +87,11 @@ const stringTemplate = function (strings, ...keys) {
 }
 
 module.exports = {
-  stringIsEmpty: stringIsEmpty,
-  getCharacterCount: getCharacterCount,
-  capitalizeString: capitalizeString,
-  isClockFaceTime: isClockFaceTime,
-  isDateTime: isDateTime,
-  isNumber: isNumber,
-  stringTemplate: stringTemplate,
+  stringIsEmpty,
+  getCharacterCount,
+  capitalizeString,
+  isClockFaceTime,
+  isDateTime,
+  isNumber,
+  stringTemplate,
 }

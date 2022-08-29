@@ -1,15 +1,17 @@
-const BIDS = require('./bids')
-const dataset = require('./dataset')
-const event = require('./event')
-const schema = require('./schema/init')
+const { BidsDataset, BidsEventFile, BidsJsonFile, BidsSidecar, validateBidsDataset } = require('./bids')
+const { validateHedDataset } = require('./dataset')
+const { validateHedEvent, validateHedString } = require('./event')
+const { buildSchema, buildSchemas } = require('./schema/init')
 
 module.exports = {
-  BidsDataset: BIDS.BidsDataset,
-  BidsEventFile: BIDS.BidsEventFile,
-  BidsSidecar: BIDS.BidsSidecar,
-  buildSchema: schema.buildSchema,
-  validateBidsDataset: BIDS.validateBidsDataset,
-  validateHedDataset: dataset.validateHedDataset,
-  validateHedEvent: event.validateHedEvent,
-  validateHedString: event.validateHedString,
+  BidsDataset,
+  BidsEventFile,
+  BidsJsonFile,
+  BidsSidecar,
+  buildSchema,
+  buildSchemas,
+  validateBidsDataset,
+  validateHedDataset,
+  validateHedEvent,
+  validateHedString,
 }

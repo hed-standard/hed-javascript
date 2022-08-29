@@ -1,80 +1,110 @@
 const assert = require('chai').assert
-const schema = require('../validator/schema/init')
-const schemaCommon = require('../common/schema')
-const fallbackHedSchemaPath = schemaCommon.config.fallbackFilePath
+const { generateIssue } = require('../common/issues/issues')
+const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
+const { parseSchemaSpec, parseSchemasSpec } = require('../validator/bids/schema')
+const { buildSchemas } = require('../validator/schema/init')
 
 describe('HED schemas', () => {
-  describe('Remote HED schemas', () => {
-    it('can be loaded from a central GitHub repository', () => {
-      const remoteHedSchemaVersion = '8.0.0'
-      return schema.buildSchema({ version: remoteHedSchemaVersion }).then((hedSchemas) => {
-        const hedSchemaVersion = hedSchemas.baseSchema.version
-        assert.strictEqual(hedSchemaVersion, remoteHedSchemaVersion)
+  describe('Schema loading', () => {
+    describe('Bundled HED schemas', () => {
+      it('a standard schema can be loaded from locally stored schema', () => {
+        const spec1 = new SchemaSpec('', '8.0.0', '', '')
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        return buildSchemas(specs).then(([hedSchemas, issues]) => {
+          assert.isEmpty(issues, 'Schema loading issues occurred')
+          assert.strictEqual(hedSchemas.baseSchema.version, spec1.version)
+          assert.strictEqual(hedSchemas.generation, 3)
+        })
+      })
+
+      it('a library schema can be loaded from locally stored schema', () => {
+        const spec1 = new SchemaSpec('', '1.0.2', 'testlib', '')
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        return buildSchemas(specs).then(([hedSchemas, issues]) => {
+          assert.isEmpty(issues, 'Schema loading issues occurred')
+          assert.strictEqual(hedSchemas.baseSchema.version, spec1.version)
+          assert.strictEqual(hedSchemas.baseSchema.library, spec1.library)
+          assert.strictEqual(hedSchemas.generation, 3)
+        })
+      })
+
+      it('a base schema with a nickname can be loaded from locally stored schema', () => {
+        const spec1 = new SchemaSpec('nk', '8.0.0', '', '')
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        return buildSchemas(specs).then(([hedSchemas, issues]) => {
+          assert.isEmpty(issues, 'Schema loading issues occurred')
+          const schema1 = hedSchemas.getSchema(spec1.nickname)
+          assert.strictEqual(schema1.version, spec1.version)
+          assert.strictEqual(schema1.library, spec1.library)
+          assert.strictEqual(hedSchemas.generation, 3)
+        })
+      })
+
+      it('multiple local schemas can be loaded', () => {
+        const spec1 = new SchemaSpec('nk', '8.0.0', '', '')
+        const spec2 = new SchemaSpec('ts', '1.0.2', 'testlib', '')
+        const spec3 = new SchemaSpec('', '1.0.2', 'testlib', '')
+        const specs = new SchemasSpec().addSchemaSpec(spec1).addSchemaSpec(spec2).addSchemaSpec(spec3)
+        return buildSchemas(specs).then(([hedSchemas, issues]) => {
+          assert.isEmpty(issues, 'Schema loading issues occurred')
+          const schema1 = hedSchemas.getSchema(spec1.nickname)
+          const schema2 = hedSchemas.getSchema(spec2.nickname)
+          const schema3 = hedSchemas.getSchema(spec3.nickname)
+          assert.strictEqual(schema1.version, spec1.version)
+          assert.strictEqual(schema1.library, spec1.library)
+          assert.strictEqual(schema2.version, spec2.version)
+          assert.strictEqual(schema2.library, spec2.library)
+          assert.strictEqual(schema3.version, spec3.version)
+          assert.strictEqual(schema3.library, spec3.library)
+          const schema4 = hedSchemas.getSchema('baloney')
+          assert.strictEqual(schema4, null)
+        })
       })
     })
-  })
 
-  describe('Local HED schemas', () => {
-    const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
-    const localHedSchemaVersion = '7.1.1'
-    it('can be loaded from a file', () => {
-      return schema.buildSchema({ path: localHedSchemaFile }).then((hedSchemas) => {
-        const hedSchemaVersion = hedSchemas.baseSchema.version
-        assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
+    describe('Remote HED schemas', () => {
+      it('a HED 2 schema can be loaded remotely', () => {
+        const spec1 = new SchemaSpec('', '7.2.0', '', '')
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
+        return buildSchemas(specs).then(([hedSchemas, issues]) => {
+          assert.isEmpty(issues, 'Schema loading issues occurred')
+          const schema1 = hedSchemas.getSchema(spec1.nickname)
+          assert.strictEqual(schema1.version, spec1.version)
+          assert.strictEqual(schema1.library, spec1.library)
+          assert.strictEqual(hedSchemas.generation, 2)
+        })
       })
     })
-  })
 
-  describe.skip('Remote HED library schemas', () => {
-    it('can be loaded from a central GitHub repository', () => {
-      const remoteHedSchemaLibrary = 'test'
-      const remoteHedSchemaVersion = '0.0.1'
-      return schema
-        .buildSchema({
-          library: remoteHedSchemaLibrary,
-          version: remoteHedSchemaVersion,
+    describe('Local HED schemas', () => {
+      it('a standard schema can be loaded from a path', () => {
+        const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
+        const localHedSchemaVersion = '7.1.1'
+        const schemaSpec = new SchemaSpec('', '', '', localHedSchemaFile)
+        const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
+        return buildSchemas(schemasSpec).then(([hedSchemas, issues]) => {
+          assert.isEmpty(issues, 'Schema loading issues occurred')
+          assert.strictEqual(hedSchemas.generation, 2)
+          const hedSchemaVersion = hedSchemas.baseSchema.version
+          assert.strictEqual(hedSchemaVersion, localHedSchemaVersion)
         })
-        .then((hedSchemas) => {
-          const hedSchema = hedSchemas.librarySchemas.get(remoteHedSchemaLibrary)
-          assert.strictEqual(hedSchema.library, remoteHedSchemaLibrary)
-          assert.strictEqual(hedSchema.version, remoteHedSchemaVersion)
-        })
-    })
-  })
+      })
 
-  describe('Fallback HED schemas', () => {
-    it('loads the fallback schema if a remote schema cannot be found', () => {
-      // Invalid base schema version
-      const remoteHedSchemaVersion = '0.0.1'
-      return schema
-        .buildSchema({ version: remoteHedSchemaVersion })
-        .then((hedSchemas) => {
-          return Promise.all([
-            Promise.resolve(hedSchemas.baseSchema.version),
-            schema.buildSchema({ path: fallbackHedSchemaPath }),
-          ])
+      it('a library schema can be loaded from a path', () => {
+        const localHedLibrarySchemaName = 'testlib'
+        const localHedLibrarySchemaVersion = '1.0.2'
+        const localHedLibrarySchemaFile = 'tests/data/HED_testlib_1.0.2.xml'
+        const schemaSpec = new SchemaSpec(localHedLibrarySchemaName, '', '', localHedLibrarySchemaFile)
+        const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
+        return buildSchemas(schemasSpec).then(([hedSchemas, issues]) => {
+          assert.isEmpty(issues, 'Schema loading issues occurred')
+          assert.strictEqual(hedSchemas.generation, 3)
+          const hedSchema = hedSchemas.getSchema(localHedLibrarySchemaName)
+          assert.strictEqual(hedSchema.generation, 3)
+          assert.strictEqual(hedSchema.library, localHedLibrarySchemaName)
+          assert.strictEqual(hedSchema.version, localHedLibrarySchemaVersion)
         })
-        .then(([loadedVersion, fallbackHedSchemas]) => {
-          const fallbackHedSchemaVersion = fallbackHedSchemas.baseSchema.version
-          assert.strictEqual(loadedVersion, fallbackHedSchemaVersion)
-        })
-    })
-
-    it('loads the fallback schema if a local schema cannot be found', () => {
-      // Invalid base schema path
-      const localHedSchemaFile = 'tests/data/HEDNotFound.xml'
-      return schema
-        .buildSchema({ path: localHedSchemaFile })
-        .then((hedSchemas) => {
-          return Promise.all([
-            Promise.resolve(hedSchemas.baseSchema.version),
-            schema.buildSchema({ path: fallbackHedSchemaPath }),
-          ])
-        })
-        .then(([loadedVersion, fallbackHedSchemas]) => {
-          const fallbackHedSchemaVersion = fallbackHedSchemas.baseSchema.version
-          assert.strictEqual(loadedVersion, fallbackHedSchemaVersion)
-        })
+      })
     })
   })
 
@@ -83,9 +113,9 @@ describe('HED schemas', () => {
     let hedSchemaPromise
 
     beforeAll(() => {
-      hedSchemaPromise = schema.buildSchema({
-        path: localHedSchemaFile,
-      })
+      const spec1 = new SchemaSpec('', '7.1.1', '', localHedSchemaFile)
+      const specs = new SchemasSpec().addSchemaSpec(spec1)
+      hedSchemaPromise = buildSchemas(specs)
     })
 
     it('should have tag dictionaries for all required tag attributes', () => {
@@ -101,7 +131,8 @@ describe('HED schemas', () => {
         'takesValue',
         'unique',
       ]
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
         assert.hasAllKeys(dictionaries, tagDictionaryKeys)
       })
@@ -109,14 +140,16 @@ describe('HED schemas', () => {
 
     it('should have unit dictionaries for all required unit attributes', () => {
       const unitDictionaryKeys = ['SIUnit', 'unitSymbol']
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const dictionaries = hedSchemas.baseSchema.attributes.unitAttributes
         assert.hasAllKeys(dictionaries, unitDictionaryKeys)
       })
     })
 
     it('should contain all of the required tags', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const requiredTags = ['event/category', 'event/description', 'event/label']
         const dictionariesRequiredTags = hedSchemas.baseSchema.attributes.tagAttributes['required']
         assert.hasAllKeys(dictionariesRequiredTags, requiredTags)
@@ -124,7 +157,8 @@ describe('HED schemas', () => {
     })
 
     it('should contain all of the positioned tags', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const positionedTags = ['event/category', 'event/description', 'event/label', 'event/long name']
         const dictionariesPositionedTags = hedSchemas.baseSchema.attributes.tagAttributes['position']
         assert.hasAllKeys(dictionariesPositionedTags, positionedTags)
@@ -132,7 +166,8 @@ describe('HED schemas', () => {
     })
 
     it('should contain all of the unique tags', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const uniqueTags = ['event/description', 'event/label', 'event/long name']
         const dictionariesUniqueTags = hedSchemas.baseSchema.attributes.tagAttributes['unique']
         assert.hasAllKeys(dictionariesUniqueTags, uniqueTags)
@@ -140,7 +175,8 @@ describe('HED schemas', () => {
     })
 
     it('should contain all of the tags with default units', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const defaultUnitTags = {
           'attribute/blink/time shut/#': 's',
           'attribute/blink/duration/#': 's',
@@ -153,7 +189,8 @@ describe('HED schemas', () => {
     })
 
     it('should contain all of the unit classes with their units and default units', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const defaultUnits = {
           acceleration: 'm-per-s^2',
           currency: '$',
@@ -193,8 +230,8 @@ describe('HED schemas', () => {
 
         const dictionariesUnitAttributes = hedSchemas.baseSchema.attributes.unitClassAttributes
         const dictionariesAllUnits = hedSchemas.baseSchema.attributes.unitClasses
-        for (const unitClass in dictionariesUnitAttributes) {
-          const defaultUnit = dictionariesUnitAttributes[unitClass].defaultUnits
+        for (const [unitClass, unitClassAttributes] of Object.entries(dictionariesUnitAttributes)) {
+          const defaultUnit = unitClassAttributes.defaultUnits
           assert.deepStrictEqual(defaultUnit[0], defaultUnits[unitClass], `Default unit for unit class ${unitClass}`)
         }
         assert.deepStrictEqual(dictionariesAllUnits, allUnits, 'All units')
@@ -202,7 +239,8 @@ describe('HED schemas', () => {
     })
 
     it('should contain the correct (large) numbers of tags with certain attributes', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const expectedAttributeTagCount = {
           isNumeric: 80,
           predicateType: 20,
@@ -212,12 +250,8 @@ describe('HED schemas', () => {
         }
 
         const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
-        for (const attribute in expectedAttributeTagCount) {
-          assert.lengthOf(
-            Object.keys(dictionaries[attribute]),
-            expectedAttributeTagCount[attribute],
-            'Mismatch on attribute ' + attribute,
-          )
+        for (const [attribute, count] of Object.entries(expectedAttributeTagCount)) {
+          assert.lengthOf(Object.keys(dictionaries[attribute]), count, 'Mismatch on attribute ' + attribute)
         }
 
         const expectedTagCount = 1116 - 119 + 2
@@ -236,7 +270,8 @@ describe('HED schemas', () => {
     })
 
     it('should identify if a tag has a certain attribute', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const testStrings = {
           value: 'Attribute/Location/Reference frame/Relative to participant/Azimuth/#',
           valueParent: 'Attribute/Location/Reference frame/Relative to participant/Azimuth',
@@ -287,26 +322,26 @@ describe('HED schemas', () => {
           },
         }
 
-        for (const testStringKey in testStrings) {
-          const testString = testStrings[testStringKey].toLowerCase()
+        for (const [testStringKey, testString] of Object.entries(testStrings)) {
+          const testStringLowercase = testString.toLowerCase()
           const expected = expectedResults[testStringKey]
-          for (const expectedKey in expected) {
+          for (const [expectedKey, expectedResult] of Object.entries(expected)) {
             if (expectedKey === 'tags') {
               assert.strictEqual(
-                hedSchemas.baseSchema.attributes.tags.includes(testString),
-                expected[expectedKey],
+                hedSchemas.baseSchema.attributes.tags.includes(testStringLowercase),
+                expectedResult,
                 `Test string: ${testString}. Attribute: ${expectedKey}`,
               )
             } else if (expectedKey === 'unitClass') {
               assert.strictEqual(
-                testString in hedSchemas.baseSchema.attributes.tagUnitClasses,
-                expected[expectedKey],
+                testStringLowercase in hedSchemas.baseSchema.attributes.tagUnitClasses,
+                expectedResult,
                 `Test string: ${testString}. Attribute: ${expectedKey}`,
               )
             } else {
               assert.strictEqual(
-                hedSchemas.baseSchema.attributes.tagHasAttribute(testString, expectedKey),
-                expected[expectedKey],
+                hedSchemas.baseSchema.attributes.tagHasAttribute(testStringLowercase, expectedKey),
+                expectedResult,
                 `Test string: ${testString}. Attribute: ${expectedKey}.`,
               )
             }
@@ -321,13 +356,14 @@ describe('HED schemas', () => {
     let hedSchemaPromise
 
     beforeAll(() => {
-      hedSchemaPromise = schema.buildSchema({
-        path: localHedSchemaFile,
-      })
+      const spec2 = new SchemaSpec('', '8.0.0', '', localHedSchemaFile)
+      const specs = new SchemasSpec().addSchemaSpec(spec2)
+      hedSchemaPromise = buildSchemas(specs)
     })
 
     it('should contain all of the tag group tags', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const tagGroupTags = ['property/organizational-property/def-expand']
         const schemaTagGroupTags = hedSchemas.baseSchema.entries.definitions
           .get('tags')
@@ -337,7 +373,8 @@ describe('HED schemas', () => {
     })
 
     it('should contain all of the top-level tag group tags', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const tagGroupTags = [
           'property/organizational-property/definition',
           'property/organizational-property/event-context',
@@ -352,7 +389,8 @@ describe('HED schemas', () => {
     })
 
     it('should contain all of the unit classes with their units and default units', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const defaultUnits = {
           accelerationUnits: 'm-per-s^2',
           angleUnits: 'radian',
@@ -402,17 +440,18 @@ describe('HED schemas', () => {
     })
 
     it('should contain the correct (large) numbers of tags with certain attributes', () => {
-      return hedSchemaPromise.then((hedSchemas) => {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
         const expectedAttributeTagCount = {
           requireChild: 7,
           takesValue: 88,
         }
 
         const schemaTags = hedSchemas.baseSchema.entries.definitions.get('tags')
-        for (const attribute of Object.keys(expectedAttributeTagCount)) {
+        for (const [attribute, count] of Object.entries(expectedAttributeTagCount)) {
           assert.lengthOf(
             schemaTags.getEntriesWithBooleanAttribute(attribute),
-            expectedAttributeTagCount[attribute],
+            count,
             'Mismatch on attribute ' + attribute,
           )
         }
@@ -424,6 +463,127 @@ describe('HED schemas', () => {
         const schemaTagsWithUnitClasses = schemaTags.filter(([, tag]) => tag.hasUnitClasses)
         assert.lengthOf(schemaTagsWithUnitClasses, expectedUnitClassCount, 'Mismatch on unit class tag count')
       })
+    })
+  })
+
+  const checkWithIssues = function (testStrings, expectedResults, expectedIssues, testFunction) {
+    for (const [testStringKey, testString] of Object.entries(testStrings)) {
+      assert.property(expectedResults, testStringKey, testStringKey + ' is not in expectedResults')
+      assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
+      const [testResult, testIssues] = testFunction(testString)
+      assert.deepStrictEqual(testResult, expectedResults[testStringKey], testString)
+      assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testString)
+    }
+  }
+
+  describe('HED 3 SchemaSpec tests', () => {
+    it('should be return a SchemaSpec and no issues when valid', () => {
+      const tests = {
+        just_version: '8.1.0',
+        just_library: 'score_0.1.0',
+        base_with_nick: 'bt:8.1.0',
+      }
+      const expectedResults = {
+        just_version: new SchemaSpec('', '8.1.0'),
+        just_library: new SchemaSpec('', '0.1.0', 'score'),
+        base_with_nick: new SchemaSpec('bt', '8.1.0'),
+      }
+      const expectedIssues = {
+        just_version: [],
+        just_library: [],
+        base_with_nick: [],
+      }
+
+      return checkWithIssues(
+        tests,
+        expectedResults,
+        expectedIssues,
+        (string) => {
+          const [sp, issues] = parseSchemaSpec(string)
+          return [sp, issues]
+        },
+        10000,
+      )
+    })
+
+    it('should return issues when invalid', () => {
+      const tests = {
+        bad_version: '3.1.a',
+      }
+      const expectedResults = {
+        bad_version: null,
+      }
+      const expectedIssues = {
+        bad_version: [generateIssue('invalidSchemaSpecification', { spec: '3.1.a' })],
+      }
+
+      return checkWithIssues(
+        tests,
+        expectedResults,
+        expectedIssues,
+        (string) => {
+          const [sp, issues] = parseSchemaSpec(string)
+          return [sp, issues]
+        },
+        10000,
+      )
+    })
+  })
+
+  describe('HED 3 SchemasSpec tests', () => {
+    it('should be return a SchemasSpec and no issues when valid', () => {
+      const schemas1 = new SchemasSpec()
+      schemas1.addSchemaSpec(new SchemaSpec('', '8.1.0', '', ''))
+
+      const tests = {
+        just_version: '8.1.0',
+      }
+      const expectedResults = {
+        just_version: schemas1,
+      }
+      const expectedIssues = {
+        just_version: [],
+      }
+
+      return checkWithIssues(
+        tests,
+        expectedResults,
+        expectedIssues,
+        (string) => {
+          const [sp, issues] = parseSchemasSpec(string)
+          return [sp, issues]
+        },
+        10000,
+      )
+    })
+
+    it('should return issues when invalid', () => {
+      const schemas1 = new SchemasSpec()
+      schemas1.addSchemaSpec(new SchemaSpec('', '8.1.0', '', ''))
+
+      const tests = {
+        // bad_version: '3.1.a',
+        duplicate_key: ['8.1.0', '8.0.0'],
+      }
+      const expectedResults = {
+        bad_version: new SchemasSpec(),
+        duplicate_key: schemas1,
+      }
+      const expectedIssues = {
+        bad_version: [generateIssue('invalidSchemaSpecification', { spec: '3.1.a' })],
+        duplicate_key: [generateIssue('invalidSchemaNickname', { spec: '8.0.0', nickname: '' })],
+      }
+
+      return checkWithIssues(
+        tests,
+        expectedResults,
+        expectedIssues,
+        (string) => {
+          const [sp, issues] = parseSchemasSpec(string)
+          return [sp, issues]
+        },
+        10000,
+      )
     })
   })
 })

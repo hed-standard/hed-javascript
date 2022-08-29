@@ -1,13 +1,8 @@
 const pluralize = require('pluralize')
 pluralize.addUncountableRule('hertz')
 
-const lt = require('semver/functions/lt')
-
 const { isNumber } = require('./string')
 
-const tagsDictionaryKey = 'tags'
-const unitClassType = 'unitClass'
-const unitClassUnitsType = 'units'
 const unitPrefixType = 'unitPrefix'
 const unitSymbolType = 'unitSymbol'
 const SIUnitKey = 'SIUnit'
@@ -213,30 +208,13 @@ const getAllUnits = function (hedSchemaAttributes) {
   return units
 }
 
-/**
- * Determine the HED generation for a base schema version number.
- *
- * @param {string} version A HED base schema version number.
- * @return {number} The HED generation the base schema belongs to.
- */
-const getGenerationForSchemaVersion = function (version) {
-  if (lt(version, '4.0.0')) {
-    return 1
-  } else if (lt(version, '8.0.0-alpha')) {
-    return 2
-  } else {
-    return 3
-  }
-}
-
 module.exports = {
-  replaceTagNameWithPound: replaceTagNameWithPound,
-  getTagSlashIndices: getTagSlashIndices,
-  getTagName: getTagName,
-  getParentTag: getParentTag,
-  hedStringIsAGroup: hedStringIsAGroup,
-  removeGroupParentheses: removeGroupParentheses,
-  validateValue: validateValue,
-  validateUnits: validateUnits,
-  getGenerationForSchemaVersion: getGenerationForSchemaVersion,
+  replaceTagNameWithPound,
+  getTagSlashIndices,
+  getTagName,
+  getParentTag,
+  hedStringIsAGroup,
+  removeGroupParentheses,
+  validateValue,
+  validateUnits,
 }

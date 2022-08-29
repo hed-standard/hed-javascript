@@ -50,6 +50,6 @@ class Mapping {
 }
 
 module.exports = {
-  TagEntry: TagEntry,
-  Mapping: Mapping,
+  TagEntry,
+  Mapping,
 }

@@ -26,6 +26,6 @@ const readHTTPSFile = function (url) {
 }
 
 module.exports = {
-  readFile: readFile,
-  readHTTPSFile: readHTTPSFile,
+  readFile,
+  readHTTPSFile,
 }

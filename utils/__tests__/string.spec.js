@@ -1,4 +1,4 @@
-const assert = require('assert')
+const assert = require('chai').assert
 const utils = require('../')
 
 describe('String utility functions', () => {
@@ -67,16 +67,18 @@ describe('String utility functions', () => {
   })
 
   describe('Simple string validation functions', () => {
-    const validate = function (fn, validStrings, invalidStrings) {
-      for (const key of Object.keys(validStrings)) {
-        const string = validStrings[key]
-        const result = fn(string)
-        assert.strictEqual(result, true, string)
+    /**
+     * Test a string validation function.
+     * @param {function (string): boolean} testFunction The validation function to test.
+     * @param {Object<string, string>} validStrings A set of valid strings.
+     * @param {Object<string, string>} invalidStrings A set of invalid strings.
+     */
+    const validate = function (testFunction, validStrings, invalidStrings) {
+      for (const [key, string] of Object.entries(validStrings)) {
+        assert.isTrue(testFunction(string), key)
       }
-      for (const key of Object.keys(invalidStrings)) {
-        const string = invalidStrings[key]
-        const result = fn(string)
-        assert.strictEqual(result, false, string)
+      for (const [key, string] of Object.entries(invalidStrings)) {
+        assert.isFalse(testFunction(string), key)
       }
     }
 

@@ -9,8 +9,7 @@ describe('HED string delimiter splitting', () => {
    * @param {Object<string, string[]>} expectedResults The expected results.
    */
   const validator = function (testStrings, expectedResults) {
-    for (const testStringKey of Object.keys(testStrings)) {
-      const testString = testStrings[testStringKey]
+    for (const [testStringKey, testString] of Object.entries(testStrings)) {
       const testResult = splitHedString(testString)
       const testResultParts = testResult.map(([, [startPosition, endPosition]]) => {
         return testString.slice(startPosition, endPosition)

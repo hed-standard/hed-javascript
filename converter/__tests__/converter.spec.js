@@ -1,14 +1,17 @@
 const assert = require('chai').assert
 const converter = require('../converter')
-const schema = require('../schema')
 const generateIssue = require('../issues')
+const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
+const { buildSchemas } = require('../../validator/schema/init')
 
 describe('HED string conversion', () => {
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'
-  let schemaPromise
+  let hedSchemaPromise
 
   beforeAll(() => {
-    schemaPromise = schema.buildSchema({ path: hedSchemaFile })
+    const spec1 = new SchemaSpec('', '8.0.0', '', hedSchemaFile)
+    const specs = new SchemasSpec().addSchemaSpec(spec1)
+    hedSchemaPromise = buildSchemas(specs)
   })
 
   describe('HED tags', () => {
@@ -18,15 +21,16 @@ describe('HED string conversion', () => {
      * @param {Object<string, string>} testStrings The test strings.
      * @param {Object<string, string>} expectedResults The expected results.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
-     * @param {function (Schemas, string, string, number): [string, Issue[]]} testFunction The test function.
-     * @return {Promise<void> | PromiseLike<any> | Promise<any>}
+     * @param {function (Schema, string, string, number): [string, Issue[]]} testFunction The test function.
+     * @return {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
-      return schemaPromise.then((schemas) => {
-        for (const testStringKey of Object.keys(testStrings)) {
-          const [testResult, issues] = testFunction(schemas, testStrings[testStringKey], testStrings[testStringKey], 0)
-          assert.strictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
-          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testStrings[testStringKey])
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
+        for (const [testStringKey, testString] of Object.entries(testStrings)) {
+          const [testResult, issues] = testFunction(hedSchemas.baseSchema, testString, testString, 0)
+          assert.strictEqual(testResult, expectedResults[testStringKey], testString)
+          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
         }
       })
     }
@@ -583,14 +587,15 @@ describe('HED string conversion', () => {
      * @param {Object<string, string>} expectedResults The expected results.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      * @param {function (Schemas, string): [string, Issue[]]} testFunction The test function.
-     * @return {Promise<void> | PromiseLike<any> | Promise<any>}
+     * @return {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
-      return schemaPromise.then((schemas) => {
-        for (const testStringKey of Object.keys(testStrings)) {
-          const [testResult, issues] = testFunction(schemas, testStrings[testStringKey])
-          assert.strictEqual(testResult, expectedResults[testStringKey], testStrings[testStringKey])
-          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testStrings[testStringKey])
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
+        for (const [testStringKey, testString] of Object.entries(testStrings)) {
+          const [testResult, issues] = testFunction(hedSchemas, testString)
+          assert.strictEqual(testResult, expectedResults[testStringKey], testString)
+          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
         }
       })
     }

@@ -1,5 +1,7 @@
 const utils = require('../../utils')
-const { ParsedHedGroup, ParsedHedTag } = require('../types/parsedHed')
+const { getParsedParentTags } = require('../../utils/hedData')
+const ParsedHedGroup = require('../parser/parsedHedGroup')
+const { ParsedHedTag } = require('../parser/parsedHedTag')
 
 const { HedValidator } = require('./validator')
 
@@ -12,7 +14,7 @@ class Hed3Validator extends HedValidator {
    * @param {ParsedHedString} parsedString
    * @param {Schemas} hedSchemas
    * @param {Map<string, ParsedHedGroup>} definitions
-   * @param {object<string, boolean>} options
+   * @param {Object<string, boolean>} options
    */
   constructor(parsedString, hedSchemas, definitions, options) {
     super(parsedString, hedSchemas, options)
@@ -59,9 +61,12 @@ class Hed3Validator extends HedValidator {
   }
 
   _checkForTagAttribute(attribute, fn) {
-    const tags = this.hedSchemas.baseSchema.entries.definitions.get('tags').getEntriesWithBooleanAttribute(attribute)
-    for (const tag of tags) {
-      fn(tag.name)
+    const schemas = this.hedSchemas.schemas.values()
+    for (const schema of schemas) {
+      const tags = schema.entries.definitions.get('tags').getEntriesWithBooleanAttribute(attribute)
+      for (const tag of tags) {
+        fn(tag.name)
+      }
     }
   }
 
@@ -95,6 +100,23 @@ class Hed3Validator extends HedValidator {
   }
 
   /**
+   * Check the syntax of tag values.
+   *
+   * @param {ParsedHed3Tag} tag A HED tag.
+   */
+  checkValueTagSyntax(tag) {
+    if (tag.takesValue && !tag.hasUnitClass) {
+      const isValidValue = this.validateValue(
+        tag.formattedTagName,
+        tag.takesValueTag.hasAttributeName('isNumeric'), // Always false
+      )
+      if (!isValidValue) {
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
+      }
+    }
+  }
+
+  /**
    * Validate a unit and strip it from the value.
    * @param {ParsedHed3Tag} tag A HED tag.
    * @return {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
@@ -102,7 +124,7 @@ class Hed3Validator extends HedValidator {
   validateUnits(tag) {
     const originalTagUnitValue = tag.originalTagName
     const tagUnitClassUnits = tag.validUnits
-    const validUnits = this.hedSchemas.baseSchema.entries.allUnits
+    const validUnits = tag.schema.entries.allUnits
     const unitStrings = Array.from(validUnits.keys())
     unitStrings.sort((first, second) => {
       return second.length - first.length
@@ -149,6 +171,9 @@ class Hed3Validator extends HedValidator {
 
   /**
    * Determine if a stripped value is valid.
+   *
+   * @param {string} value The stripped value.
+   * @param {boolean} isNumeric Whether the tag is numeric.
    */
   validateValue(value, isNumeric) {
     if (value === '#') {
@@ -171,9 +196,9 @@ class Hed3Validator extends HedValidator {
     const definitionShortTag = 'definition'
     const defExpandShortTag = 'def-expand'
     const defShortTag = 'def'
-    const definitionParentTag = this.getParsedParentTag(definitionShortTag)
-    const defExpandParentTag = this.getParsedParentTag(defExpandShortTag)
-    const defParentTag = this.getParsedParentTag(defShortTag)
+    const definitionParentTags = getParsedParentTags(this.hedSchemas, definitionShortTag)
+    const defExpandParentTags = getParsedParentTags(this.hedSchemas, defExpandShortTag)
+    const defParentTags = getParsedParentTags(this.hedSchemas, defShortTag)
     let definitionTagFound = false
     let defExpandTagFound = false
     let definitionName
@@ -181,11 +206,11 @@ class Hed3Validator extends HedValidator {
       if (tag instanceof ParsedHedGroup) {
         continue
       }
-      if (tag.isDescendantOf(definitionParentTag)) {
+      if (tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
         definitionTagFound = true
         definitionName = tag.originalTagName
         break
-      } else if (tag.isDescendantOf(defExpandParentTag)) {
+      } else if (tag.isDescendantOf(defExpandParentTags.get(tag.schema))) {
         defExpandTagFound = true
         definitionName = tag.originalTagName
         break
@@ -196,7 +221,6 @@ class Hed3Validator extends HedValidator {
     }
     let tagGroupValidated = false
     let tagGroupIssueGenerated = false
-    const nestedDefinitionParentTags = [definitionParentTag, defExpandParentTag, defParentTag]
     for (const tag of tagGroup.tags) {
       if (tag instanceof ParsedHedGroup) {
         if (tagGroupValidated && !tagGroupIssueGenerated) {
@@ -208,6 +232,11 @@ class Hed3Validator extends HedValidator {
         }
         tagGroupValidated = true
         for (const innerTag of tag.tagIterator()) {
+          const nestedDefinitionParentTags = [
+            definitionParentTags.get(innerTag.schema),
+            defExpandParentTags.get(innerTag.schema),
+            defParentTags.get(innerTag.schema),
+          ]
           if (
             nestedDefinitionParentTags.some((parentTag) => {
               return innerTag.isDescendantOf(parentTag)
@@ -219,8 +248,8 @@ class Hed3Validator extends HedValidator {
           }
         }
       } else if (
-        (definitionTagFound && !tag.isDescendantOf(definitionParentTag)) ||
-        (defExpandTagFound && !tag.isDescendantOf(defExpandParentTag))
+        (definitionTagFound && !tag.isDescendantOf(definitionParentTags.get(tag.schema))) ||
+        (defExpandTagFound && !tag.isDescendantOf(defExpandParentTags.get(tag.schema)))
       ) {
         this.pushIssue('illegalDefinitionGroupTag', {
           tag: tag.originalTag,
@@ -237,26 +266,14 @@ class Hed3Validator extends HedValidator {
    * @param {string} defShortTag The short tag to check for.
    */
   checkForMissingDefinitions(tag, defShortTag = 'Def') {
-    const defParentTag = this.getParsedParentTag(defShortTag)
-    if (!tag.isDescendantOf(defParentTag)) {
+    const defParentTags = getParsedParentTags(this.hedSchemas, defShortTag)
+    if (!tag.isDescendantOf(defParentTags.get(tag.schema))) {
       return
     }
     const defName = ParsedHedGroup.findDefinitionName(tag.canonicalTag, defShortTag)
     if (!this.definitions.has(defName)) {
       this.pushIssue('missingDefinition', { def: defName })
     }
-  }
-
-  /**
-   * Get the parent tag object for a given short tag.
-   *
-   * @param {string} shortTag A short-form HED 3 tag.
-   * @return {ParsedHedTag} A parsed HED tag object representing the full tag.
-   */
-  getParsedParentTag(shortTag) {
-    const parentTag = new ParsedHedTag(shortTag, shortTag, [0, shortTag.length - 1], this.hedSchemas)
-    this.issues = this.issues.concat(parentTag.conversionIssues)
-    return parentTag
   }
 
   /**
@@ -307,5 +324,5 @@ class Hed3Validator extends HedValidator {
 }
 
 module.exports = {
-  Hed3Validator: Hed3Validator,
+  Hed3Validator,
 }

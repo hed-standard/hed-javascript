@@ -32,5 +32,5 @@ const setParent = function (node, parent) {
 }
 
 module.exports = {
-  setParent: setParent,
+  setParent,
 }

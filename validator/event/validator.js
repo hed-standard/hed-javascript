@@ -1,5 +1,6 @@
 const utils = require('../../utils')
-const { ParsedHedString, ParsedHedTag } = require('../types/parsedHed')
+const { ParsedHedTag } = require('../parser/parsedHedTag')
+const ParsedHedString = require('../parser/parsedHedString')
 const { generateIssue } = require('../../common/issues/issues')
 const { Schemas } = require('../../common/schema')
 
@@ -18,7 +19,7 @@ class HedValidator {
    *
    * @param {ParsedHedString} parsedString
    * @param {Schemas} hedSchemas
-   * @param {object<String, boolean>} options
+   * @param {Object<String, boolean>} options
    */
   constructor(parsedString, hedSchemas, options) {
     this.parsedString = parsedString
@@ -56,7 +57,7 @@ class HedValidator {
    * Validate the individual HED tags in a parsed HED string object.
    */
   validateIndividualHedTags() {
-    let previousTag = new ParsedHedTag('', '', [0, 0], this.hedSchemas)
+    let previousTag = null
     for (const tag of this.parsedString.tags) {
       this.validateIndividualHedTag(tag, previousTag)
       previousTag = tag
@@ -85,7 +86,7 @@ class HedValidator {
    */
   validateHedTagLevels() {
     for (const tagGroup of this.parsedString.tagGroups) {
-      for (const subGroup of tagGroup.subGroupIterator()) {
+      for (const subGroup of tagGroup.subGroupArrayIterator()) {
         this.validateHedTagLevel(subGroup)
       }
     }
@@ -106,8 +107,10 @@ class HedValidator {
    * Validate the HED tag groups in a parsed HED string.
    */
   validateHedTagGroups() {
-    for (const parsedTagGroup of this.parsedString.tagGroups) {
-      this.validateHedTagGroup(parsedTagGroup)
+    for (const tagGroup of this.parsedString.tagGroups) {
+      for (const subGroup of tagGroup.subParsedGroupIterator()) {
+        this.validateHedTagGroup(subGroup)
+      }
     }
   }
 
@@ -220,18 +223,8 @@ class HedValidator {
    *
    * @param {ParsedHedTag} tag A HED tag.
    */
-  checkValueTagSyntax(tag) {
-    if (tag.takesValue && !tag.hasUnitClass) {
-      const isValidValue = utils.HED.validateValue(
-        tag.formattedTagName,
-        this.hedSchemas.baseSchema.tagHasAttribute(utils.HED.replaceTagNameWithPound(tag.formattedTag), 'isNumeric'),
-        this.hedSchemas.isHed3,
-      )
-      if (!isValidValue) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
-      }
-    }
-  }
+  // eslint-disable-next-line no-unused-vars
+  checkValueTagSyntax(tag) {}
 
   /**
    * Check if an individual HED tag is in the schema or is an allowed extension.
@@ -251,7 +244,7 @@ class HedValidator {
           tag: tag.originalTag,
         })
       }
-    } else if (!isExtensionAllowedTag && previousTag.takesValue) {
+    } else if (!isExtensionAllowedTag && previousTag && previousTag.takesValue) {
       // This tag isn't an allowed extension, but the previous tag takes a value.
       // This is likely caused by an extraneous comma.
       this.pushIssue('extraCommaOrInvalid', {
@@ -377,7 +370,7 @@ class HedValidator {
    * Generate a new issue object and push it to the end of the issues array.
    *
    * @param {string} internalCode The internal error code.
-   * @param {object<string, (string|number[])>} parameters The error string parameters.
+   * @param {Object<string, (string|number[])>} parameters The error string parameters.
    */
   pushIssue(internalCode, parameters) {
     this.issues.push(generateIssue(internalCode, parameters))
@@ -440,10 +433,9 @@ class Hed2Validator extends HedValidator {
       tagUnitClassUnits,
       this.hedSchemas.baseSchema.attributes,
     )
-    const validValue = utils.HED.validateValue(
+    const validValue = this.validateValue(
       value,
-      this.hedSchemas.baseSchema.tagHasAttribute(utils.HED.replaceTagNameWithPound(tag.formattedTag), 'isNumeric'),
-      this.hedSchemas.isHed3,
+      this.hedSchemas.baseSchema.tagHasAttribute(tag.takesValueFormattedTag, 'isNumeric'),
     )
     if (!foundUnit && this.options.checkForWarnings) {
       const defaultUnit = tag.defaultUnit
@@ -462,7 +454,27 @@ class Hed2Validator extends HedValidator {
   }
 
   /**
+   * Check the syntax of tag values.
+   *
+   * @param {ParsedHed2Tag} tag A HED tag.
+   */
+  checkValueTagSyntax(tag) {
+    if (tag.takesValue && !tag.hasUnitClass) {
+      const isValidValue = this.validateValue(
+        tag.formattedTagName,
+        this.hedSchemas.baseSchema.tagHasAttribute(tag.takesValueFormattedTag, 'isNumeric'),
+      )
+      if (!isValidValue) {
+        this.pushIssue('invalidValue', { tag: tag.originalTag })
+      }
+    }
+  }
+
+  /**
    * Determine if a stripped value is valid.
+   *
+   * @param {string} value The stripped value.
+   * @param {boolean} isNumeric Whether the tag is numeric.
    */
   validateValue(value, isNumeric) {
     if (value === '#') {
@@ -477,6 +489,6 @@ class Hed2Validator extends HedValidator {
 }
 
 module.exports = {
-  HedValidator: HedValidator,
-  Hed2Validator: Hed2Validator,
+  HedValidator,
+  Hed2Validator,
 }

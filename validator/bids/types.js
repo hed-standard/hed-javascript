@@ -1,4 +1,4 @@
-const { ParsedHedString, ParsedHedGroup } = require('../stringParser')
+const { ParsedHedString, ParsedHedGroup } = require('../parser/main')
 const { sidecarValueHasHed } = require('../../utils/bids')
 const { Issue } = require('../../common/issues/issues')
 
@@ -35,7 +35,16 @@ class BidsFile extends BidsData {
   }
 }
 
-class BidsJsonFile extends BidsFile {}
+class BidsJsonFile extends BidsFile {
+  constructor(name, jsonData, file) {
+    super(name, file)
+    /**
+     * This file's JSON data.
+     * @type {object}
+     */
+    this.jsonData = jsonData
+  }
+}
 
 class BidsTsvFile extends BidsFile {
   constructor(name, parsedTsv, file) {
@@ -77,19 +86,14 @@ class BidsEventFile extends BidsTsvFile {
 
 class BidsSidecar extends BidsJsonFile {
   constructor(name, sidecarData = {}, file) {
-    super(name, file)
-    /**
-     * The unparsed sidecar data.
-     * @type {object}
-     */
-    this.sidecarData = sidecarData
+    super(name, sidecarData, file)
 
     this.filterHedStrings()
     this.categorizeHedStrings()
   }
 
   filterHedStrings() {
-    const sidecarHedTags = Object.entries(this.sidecarData)
+    const sidecarHedTags = Object.entries(this.jsonData)
       .map(([sidecarKey, sidecarValue]) => {
         if (sidecarValueHasHed(sidecarValue)) {
           return [sidecarKey, sidecarValue.HED]
@@ -116,19 +120,26 @@ class BidsSidecar extends BidsJsonFile {
   get hedStrings() {
     return this.hedValueStrings.concat(this.hedCategoricalStrings)
   }
+
+  get sidecarData() {
+    return this.jsonData
+  }
 }
 
 // TODO: Remove in v4.0.0.
 const fallbackDatasetDescription = new BidsJsonFile('./dataset_description.json', null)
 
 class BidsDataset extends BidsData {
-  constructor(eventData, sidecarData, datasetDescription = fallbackDatasetDescription) {
+  constructor(eventData, sidecarData, datasetDescription = fallbackDatasetDescription, datasetRootDirectory = null) {
     super()
     this.eventData = eventData
     this.sidecarData = sidecarData
     this.datasetDescription = datasetDescription
+    this.datasetRootDirectory = datasetRootDirectory
   }
 }
+
+const bidsHedErrorCodes = new Set([104, 106, 107])
 
 class BidsIssue {
   constructor(issueCode, file, evidence) {
@@ -138,7 +149,11 @@ class BidsIssue {
   }
 
   isError() {
-    return this.code === 104 || this.code === 106
+    return bidsHedErrorCodes.has(this.code)
+  }
+
+  static generateInternalErrorPromise(error) {
+    return Promise.resolve([new BidsIssue(107, null, error.message)])
   }
 }
 
@@ -154,10 +169,10 @@ class BidsHedIssue extends BidsIssue {
 }
 
 module.exports = {
-  BidsDataset: BidsDataset,
-  BidsEventFile: BidsEventFile,
-  BidsHedIssue: BidsHedIssue,
-  BidsIssue: BidsIssue,
-  BidsJsonFile: BidsJsonFile,
-  BidsSidecar: BidsSidecar,
+  BidsDataset,
+  BidsEventFile,
+  BidsHedIssue,
+  BidsIssue,
+  BidsJsonFile,
+  BidsSidecar,
 }

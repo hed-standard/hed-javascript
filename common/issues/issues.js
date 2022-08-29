@@ -21,6 +21,7 @@ class Issue {
      * Also the internal error code.
      *
      * TODO: This is kept for backward compatibility until the next major version bump.
+     * @deprecated
      * @type {string}
      */
     this.code = internalCode
@@ -46,20 +47,23 @@ class Issue {
  * Generate a new issue object.
  *
  * @param {string} internalCode The internal error code.
- * @param {object<string, (string|number[])>} parameters The error string parameters.
+ * @param {Object<string, (string|number[])>} parameters The error string parameters.
  * @return {Issue} An object representing the issue.
  */
 const generateIssue = function (internalCode, parameters) {
   const issueCodeData = issueData[internalCode] || issueData.genericError
   const { hedCode, level, message } = issueCodeData
   const bounds = parameters.bounds || []
-  parameters.internalCode = internalCode
+  if (issueCodeData === issueData.genericError) {
+    parameters.internalCode = internalCode
+    parameters.parameters = 'Issue parameters: ' + JSON.stringify(parameters)
+  }
   const parsedMessage = message(...bounds, parameters)
 
   return new Issue(internalCode, hedCode, level, parsedMessage)
 }
 
 module.exports = {
-  generateIssue: generateIssue,
-  Issue: Issue,
+  generateIssue,
+  Issue,
 }
