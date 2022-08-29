@@ -61,13 +61,9 @@ A sample call can be found in the BIDS validator in
 ```javascript
 ...
 const dataset = new hedValidator.validator.BidsDataset(eventData, sidecarData, datasetDescriptionData, dir)
-const [schemaDefinition, schemaDefinitionIssues] = parseHedVersion(
- jsonContents,
- dir,
-)
 try {
  return hedValidator.validator
-   .validateBidsDataset(dataset, schemaDefinition)
+   .validateBidsDataset(dataset)
    .then(hedValidationIssues => {
      return schemaDefinitionIssues.concat(
        convertHedIssuesToBidsIssues(hedValidationIssues),
@@ -81,11 +77,10 @@ try {
 }
 ```
 
-The `eventData` `sidecarData` are objects created from lists of BIDS `events.tsv` files and,
-BIDS JSON sidecars, respectively. The `datasetDescriptionData` is the JSON representation
-of the dataset's `dataset_description.json` file, and `dir` is the path to the dataset's root directory.
-The `schemaDefinition` object follows a similar format as the BIDS `HEDVersion` object,
-but with local `path` values pre-parsed to use the fully qualified path name.
+`eventData` is an array of `BidsEventFile` objects created from BIDS `events.tsv` files,
+while `sidecarData` is an array of `BidsSidecar` objects created from BIDS JSON sidecars.
+`datasetDescriptionData` is a `BidsJsonFile` object representing the dataset's
+`dataset_description.json` file, and `dir` is the path to the dataset's root directory.
 
 The primary objects needed for HED validation can be found in
 [validator/bids/types.js](https://github.com/hed-standard/hed-javascript/blob/master/validator/bids/types.js).
