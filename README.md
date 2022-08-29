@@ -2,6 +2,8 @@
 
 This package contains a JavaScript validator for HED (hierarchical event descriptor) strings.
 
+**This is the first release of the HED validator that supports HED library schemas.**
+
 [HED](https://www.hedtags.org/) is a system for annotating events using comma-separated path strings.
 Any type of event can be annotated using HED-type syntax.
 The HED annotation strategy is very general and a standardized vocabulary in the form of a
@@ -58,7 +60,7 @@ A sample call can be found in the BIDS validator in
 
 ```javascript
 ...
-const dataset = new hedValidator.validator.BidsDataset(eventData, sidecarData)
+const dataset = new hedValidator.validator.BidsDataset(eventData, sidecarData, datasetDescriptionData, dir)
 const [schemaDefinition, schemaDefinitionIssues] = parseHedVersion(
  jsonContents,
  dir,
@@ -79,6 +81,9 @@ try {
 }
 ```
 
+The `eventData` `sidecarData` are objects created from lists of BIDS `events.tsv` files and,
+BIDS JSON sidecars, respectively. The `datasetDescriptionData` is the JSON representation
+of the dataset's `dataset_description.json` file, and `dir` is the path to the dataset's root directory.
 The `schemaDefinition` object follows a similar format as the BIDS `HEDVersion` object,
 but with local `path` values pre-parsed to use the fully qualified path name.
 
