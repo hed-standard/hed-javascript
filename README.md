@@ -2,7 +2,7 @@
 
 This package contains a JavaScript validator for HED (hierarchical event descriptor) strings.
 
-[HED](http://www.hedtags.org/) is a system for annotating events using comma-separated path strings.
+[HED](https://www.hedtags.org/) is a system for annotating events using comma-separated path strings.
 Any type of event can be annotated using HED-type syntax.
 The HED annotation strategy is very general and a standardized vocabulary in the form of a
 [HED schema](https://github.com/hed-standard/hed-specification) enables
@@ -36,7 +36,7 @@ at the dataset level.
 The current focus of the `hed-validator` package is to support full validation of HED in
 [BIDS datasets](https://bids-specification.readthedocs.io/en/stable/)
 
-HED validation is currently also supported in an [online version of the HED validator](http://hedtools.ucsd.edu/hed),
+HED validation is currently also supported in an [online version of the HED validator](https://hedtools.ucsd.edu/hed),
 which is implemented in Python and developed in a [public GitHub repository](https://github.com/hed-standard/hed-python/).
 Validation and other HED operations are also available through web-services and a docker module.
 
