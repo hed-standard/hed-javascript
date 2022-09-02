@@ -146,20 +146,16 @@ export class Schemas {
    * Return the schema with the given nickname.
    *
    * @param {string} schemaName A nickname in the schema set.
-   * @returns {Schema|null} The schema object corresponding to that nickname, or null if no schemas are defined.
+   * @returns {Schema} The schema object corresponding to that nickname.
    */
   getSchema(schemaName) {
-    if (this.schemas === null || !this.schemas.has(schemaName)) {
-      return null
-    } else {
-      return this.schemas.get(schemaName)
-    }
+    return this.schemas?.get(schemaName)
   }
 
   /**
    * The base schema, i.e. the schema with no nickname, if one is defined.
    *
-   * @returns {Schema|null}
+   * @returns {Schema}
    */
   get baseSchema() {
     return this.getSchema('')

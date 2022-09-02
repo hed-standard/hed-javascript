@@ -58,7 +58,7 @@ describe('HED schemas', () => {
           assert.strictEqual(schema3.version, spec3.version)
           assert.strictEqual(schema3.library, spec3.library)
           const schema4 = hedSchemas.getSchema('baloney')
-          assert.strictEqual(schema4, null)
+          assert.isUndefined(schema4, 'baloney schema exists')
         })
       })
     })
