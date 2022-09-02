@@ -1,8 +1,9 @@
-const assert = require('chai').assert
-const { generateIssue } = require('../common/issues/issues')
-const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
-const { parseSchemaSpec, parseSchemasSpec } = require('../validator/bids/schema')
-const { buildSchemas } = require('../validator/schema/init')
+import chai from 'chai'
+const assert = chai.assert
+import { generateIssue } from '../common/issues/issues'
+import { SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { parseSchemaSpec, parseSchemasSpec } from '../validator/bids/schema'
+import { buildSchemas } from '../validator/schema/init'
 
 describe('HED schemas', () => {
   describe('Schema loading', () => {

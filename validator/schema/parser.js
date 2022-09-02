@@ -1,11 +1,11 @@
-const flattenDeep = require('lodash/flattenDeep')
+import flattenDeep from 'lodash/flattenDeep'
 
 // TODO: Switch require once upstream bugs are fixed.
-// const xpath = require('xml2js-xpath')
+// import xpath from 'xml2js-xpath'
 // Temporary
-const xpath = require('../../utils/xpath')
+import * as xpath from '../../utils/xpath'
 
-class SchemaParser {
+export class SchemaParser {
   constructor(rootElement) {
     this.rootElement = rootElement
   }
@@ -80,8 +80,4 @@ class SchemaParser {
     }
     return lowercaseDictionary
   }
-}
-
-module.exports = {
-  SchemaParser,
 }

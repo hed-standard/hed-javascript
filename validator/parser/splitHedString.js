@@ -1,13 +1,13 @@
-const flattenDeep = require('lodash/flattenDeep')
+import flattenDeep from 'lodash/flattenDeep'
 
-const { ParsedHedTag, ParsedHed2Tag, ParsedHed3Tag } = require('./parsedHedTag')
-const ParsedHedGroup = require('./parsedHedGroup')
-const { Schema, Schemas } = require('../../common/schema/types')
-const { generateIssue } = require('../../common/issues/issues')
-const { recursiveMap } = require('../../utils/array')
-const { replaceTagNameWithPound } = require('../../utils/hedStrings')
-const { mergeParsingIssues } = require('../../utils/hedData')
-const { stringIsEmpty } = require('../../utils/string')
+import { ParsedHedTag, ParsedHed2Tag, ParsedHed3Tag } from './parsedHedTag'
+import ParsedHedGroup from './parsedHedGroup'
+import { Schema, Schemas } from '../../common/schema/types'
+import { generateIssue } from '../../common/issues/issues'
+import { recursiveMap } from '../../utils/array'
+import { replaceTagNameWithPound } from '../../utils/hedStrings'
+import { mergeParsingIssues } from '../../utils/hedData'
+import { stringIsEmpty } from '../../utils/string'
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -262,7 +262,7 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @return {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
  */
-const splitHedString = function (hedString, hedSchemas) {
+export default function splitHedString(hedString, hedSchemas) {
   const [tagSpecs, groupBounds, splitIssues] = tokenizeHedString(hedString)
   const characterIssues = checkForInvalidCharacters(hedString, tagSpecs)
   mergeParsingIssues(splitIssues, characterIssues)
@@ -273,5 +273,3 @@ const splitHedString = function (hedString, hedSchemas) {
   mergeParsingIssues(splitIssues, parsingIssues)
   return [parsedTags, splitIssues]
 }
-
-module.exports = splitHedString

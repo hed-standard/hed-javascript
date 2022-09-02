@@ -3,7 +3,7 @@
 /**
  * Mix-in/superclass for property memoization until we can get away with private fields.
  */
-const MemoizerMixin = (Base) => {
+export const MemoizerMixin = (Base) => {
   return class extends Base {
     constructor(...args) {
       super(...args)
@@ -33,9 +33,4 @@ const MemoizerMixin = (Base) => {
   }
 }
 
-class Memoizer extends MemoizerMixin(Object) {}
-
-module.exports = {
-  Memoizer,
-  MemoizerMixin,
-}
+export class Memoizer extends MemoizerMixin(Object) {}

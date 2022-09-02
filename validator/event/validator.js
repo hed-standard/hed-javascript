@@ -1,8 +1,9 @@
-const utils = require('../../utils')
-const { ParsedHedTag } = require('../parser/parsedHedTag')
-const ParsedHedString = require('../parser/parsedHedString')
-const { generateIssue } = require('../../common/issues/issues')
-const { Schemas } = require('../../common/schema')
+import { ParsedHedTag } from '../parser/parsedHedTag'
+import ParsedHedString from '../parser/parsedHedString'
+import { generateIssue } from '../../common/issues/issues'
+import { Schemas } from '../../common/schema/types'
+import { replaceTagNameWithPound, validateUnits } from '../../utils/hedStrings'
+import { getCharacterCount, isClockFaceTime, isDateTime, isNumber } from '../../utils/string'
 
 const uniqueType = 'unique'
 const requiredType = 'required'
@@ -13,7 +14,7 @@ const timeUnitClass = 'time'
 
 // Validation tests
 
-class HedValidator {
+export class HedValidator {
   /**
    * Constructor.
    *
@@ -236,7 +237,7 @@ class HedValidator {
     // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
     const isExtensionAllowedTag = tag.allowsExtensions
     if (this.options.expectValuePlaceholderString && tag.formattedTag.split('#').length === 2) {
-      const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
+      const valueTag = replaceTagNameWithPound(tag.formattedTag)
       if (valueTag.split('#').length !== 2) {
         // To avoid a redundant issue.
       } else {
@@ -266,10 +267,10 @@ class HedValidator {
    * @param {ParsedHedTag} tag A HED tag.
    */
   checkPlaceholderTagSyntax(tag) {
-    const placeholderCount = utils.string.getCharacterCount(tag.formattedTag, '#')
+    const placeholderCount = getCharacterCount(tag.formattedTag, '#')
     if (placeholderCount === 1) {
-      const valueTag = utils.HED.replaceTagNameWithPound(tag.formattedTag)
-      if (utils.string.getCharacterCount(valueTag, '#') !== 1) {
+      const valueTag = replaceTagNameWithPound(tag.formattedTag)
+      if (getCharacterCount(valueTag, '#') !== 1) {
         this.pushIssue('invalidPlaceholder', {
           tag: tag.originalTag,
         })
@@ -292,7 +293,7 @@ class HedValidator {
     let firstStandaloneTag = ''
     for (const tag of this.parsedString.topLevelTags) {
       const tagString = tag.formattedTag
-      const tagPlaceholders = utils.string.getCharacterCount(tagString, '#')
+      const tagPlaceholders = getCharacterCount(tagString, '#')
       standalonePlaceholders += tagPlaceholders
       if (!firstStandaloneTag && standalonePlaceholders >= 1) {
         firstStandaloneTag = tag.originalTag
@@ -322,7 +323,7 @@ class HedValidator {
             continue
           }
           const tagString = tag.formattedTag
-          definitionPlaceholders += utils.string.getCharacterCount(tagString, '#')
+          definitionPlaceholders += getCharacterCount(tagString, '#')
         }
         if (
           !(
@@ -337,7 +338,7 @@ class HedValidator {
       } else if (!standaloneIssueGenerated) {
         for (const tag of tagGroup.tagIterator()) {
           const tagString = tag.formattedTag
-          const tagPlaceholders = utils.string.getCharacterCount(tagString, '#')
+          const tagPlaceholders = getCharacterCount(tagString, '#')
           standalonePlaceholders += tagPlaceholders
           if (!firstStandaloneTag && standalonePlaceholders >= 1) {
             firstStandaloneTag = tag.originalTag
@@ -377,7 +378,7 @@ class HedValidator {
   }
 }
 
-class Hed2Validator extends HedValidator {
+export class Hed2Validator extends HedValidator {
   constructor(parsedString, hedSchemas, options) {
     super(parsedString, hedSchemas, options)
   }
@@ -406,7 +407,7 @@ class Hed2Validator extends HedValidator {
       dateTimeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
       tagUnitClasses.includes(dateTimeUnitClass)
     ) {
-      if (!utils.string.isDateTime(formattedTagUnitValue)) {
+      if (!isDateTime(formattedTagUnitValue)) {
         this.pushIssue('invalidValue', { tag: tag.originalTag })
       }
       return
@@ -414,7 +415,7 @@ class Hed2Validator extends HedValidator {
       clockTimeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
       tagUnitClasses.includes(clockTimeUnitClass)
     ) {
-      if (!utils.string.isClockFaceTime(formattedTagUnitValue)) {
+      if (!isClockFaceTime(formattedTagUnitValue)) {
         this.pushIssue('invalidValue', { tag: tag.originalTag })
       }
       return
@@ -423,12 +424,12 @@ class Hed2Validator extends HedValidator {
       tagUnitClasses.includes(timeUnitClass) &&
       tag.originalTag.includes(':')
     ) {
-      if (!utils.string.isClockFaceTime(formattedTagUnitValue)) {
+      if (!isClockFaceTime(formattedTagUnitValue)) {
         this.pushIssue('invalidValue', { tag: tag.originalTag })
       }
       return
     }
-    const [foundUnit, validUnit, value] = utils.HED.validateUnits(
+    const [foundUnit, validUnit, value] = validateUnits(
       originalTagUnitValue,
       tagUnitClassUnits,
       this.hedSchemas.baseSchema.attributes,
@@ -481,14 +482,9 @@ class Hed2Validator extends HedValidator {
       return true
     }
     if (isNumeric) {
-      return utils.string.isNumber(value)
+      return isNumber(value)
     }
     const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; :]+$/
     return hed2ValidValueCharacters.test(value)
   }
-}
-
-module.exports = {
-  HedValidator,
-  Hed2Validator,
 }

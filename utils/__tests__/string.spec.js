@@ -1,35 +1,36 @@
-const assert = require('chai').assert
-const utils = require('../')
+import chai from 'chai'
+const assert = chai.assert
+import * as stringUtils from '../string'
 
 describe('String utility functions', () => {
   describe('Blank strings', () => {
     it('may be empty', () => {
       const emptyString = ''
-      const result = utils.string.stringIsEmpty(emptyString)
+      const result = stringUtils.stringIsEmpty(emptyString)
       assert.strictEqual(result, true)
     })
 
     it('may have only whitespace', () => {
       const spaceString = ' \n  \t  '
-      const result = utils.string.stringIsEmpty(spaceString)
+      const result = stringUtils.stringIsEmpty(spaceString)
       assert.strictEqual(result, true)
     })
 
     it('may not contain letters', () => {
       const aString = 'a'
-      const result = utils.string.stringIsEmpty(aString)
+      const result = stringUtils.stringIsEmpty(aString)
       assert.strictEqual(result, false)
     })
 
     it('may not contain numbers', () => {
       const oneString = '1'
-      const result = utils.string.stringIsEmpty(oneString)
+      const result = stringUtils.stringIsEmpty(oneString)
       assert.strictEqual(result, false)
     })
 
     it('may not contain punctuation', () => {
       const slashString = '/'
-      const result = utils.string.stringIsEmpty(slashString)
+      const result = stringUtils.stringIsEmpty(slashString)
       assert.strictEqual(result, false)
     })
   })
@@ -37,13 +38,13 @@ describe('String utility functions', () => {
   describe('Capitalized strings', () => {
     it('must have a capitalized first letter', () => {
       const testString = 'to be'
-      const result = utils.string.capitalizeString(testString)
+      const result = stringUtils.capitalizeString(testString)
       assert.strictEqual(result, 'To be')
     })
 
     it('must not change letters after the first letter', () => {
       const testString = 'to BE or NOT to BE'
-      const result = utils.string.capitalizeString(testString)
+      const result = stringUtils.capitalizeString(testString)
       assert.strictEqual(result, 'To BE or NOT to BE')
     })
   })
@@ -51,12 +52,12 @@ describe('String utility functions', () => {
   describe('Character counts', () => {
     it('must be correct', () => {
       const testString = 'abcabcaaabccccdddfdddd'
-      const resultA = utils.string.getCharacterCount(testString, 'a')
-      const resultB = utils.string.getCharacterCount(testString, 'b')
-      const resultC = utils.string.getCharacterCount(testString, 'c')
-      const resultD = utils.string.getCharacterCount(testString, 'd')
-      const resultE = utils.string.getCharacterCount(testString, 'e')
-      const resultF = utils.string.getCharacterCount(testString, 'f')
+      const resultA = stringUtils.getCharacterCount(testString, 'a')
+      const resultB = stringUtils.getCharacterCount(testString, 'b')
+      const resultC = stringUtils.getCharacterCount(testString, 'c')
+      const resultD = stringUtils.getCharacterCount(testString, 'd')
+      const resultE = stringUtils.getCharacterCount(testString, 'e')
+      const resultF = stringUtils.getCharacterCount(testString, 'f')
       assert.strictEqual(resultA, 5)
       assert.strictEqual(resultB, 3)
       assert.strictEqual(resultC, 6)
@@ -103,7 +104,7 @@ describe('String utility functions', () => {
           invalidDateTime: '2000-01-01T00:55:00',
           invalidString: 'not a time',
         }
-        validate(utils.string.isClockFaceTime, validStrings, invalidStrings)
+        validate(stringUtils.isClockFaceTime, validStrings, invalidStrings)
       })
     })
 
@@ -128,7 +129,7 @@ describe('String utility functions', () => {
           invalidTimeZone: '2000-01-01T16:25:51+00:00',
           invalidString: 'not a time',
         }
-        validate(utils.string.isDateTime, validStrings, invalidStrings)
+        validate(stringUtils.isDateTime, validStrings, invalidStrings)
       })
     })
 
@@ -159,7 +160,7 @@ describe('String utility functions', () => {
           invalidEndingDecimalPoint: '851695.',
           invalidOtherCharacter: '81468g516',
         }
-        validate(utils.string.isNumber, validStrings, invalidStrings)
+        validate(stringUtils.isNumber, validStrings, invalidStrings)
       })
     })
   })

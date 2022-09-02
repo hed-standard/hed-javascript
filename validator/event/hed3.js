@@ -1,14 +1,15 @@
-const utils = require('../../utils')
-const { getParsedParentTags } = require('../../utils/hedData')
-const ParsedHedGroup = require('../parser/parsedHedGroup')
-const { ParsedHedTag } = require('../parser/parsedHedTag')
+import { getParsedParentTags } from '../../utils/hedData'
+import ParsedHedGroup from '../parser/parsedHedGroup'
+import { ParsedHedTag } from '../parser/parsedHedTag'
 
-const { HedValidator } = require('./validator')
+import { HedValidator } from './validator'
+import { getParentTag, getTagName, hedStringIsAGroup } from '../../utils/hedStrings'
+import { isNumber } from '../../utils/string'
 
 const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
 
-class Hed3Validator extends HedValidator {
+export class Hed3Validator extends HedValidator {
   /**
    * Constructor.
    * @param {ParsedHedString} parsedString
@@ -129,7 +130,7 @@ class Hed3Validator extends HedValidator {
     unitStrings.sort((first, second) => {
       return second.length - first.length
     })
-    let actualUnit = utils.HED.getTagName(originalTagUnitValue, ' ')
+    let actualUnit = getTagName(originalTagUnitValue, ' ')
     let noUnitFound = false
     if (actualUnit === originalTagUnitValue) {
       actualUnit = ''
@@ -148,14 +149,14 @@ class Hed3Validator extends HedValidator {
         }
         if (actualUnit === derivativeUnit) {
           foundUnit = true
-          strippedValue = utils.HED.getParentTag(originalTagUnitValue, ' ')
+          strippedValue = getParentTag(originalTagUnitValue, ' ')
         } else if (actualUnit.toLowerCase() === derivativeUnit.toLowerCase()) {
           if (isUnitSymbol) {
             foundWrongCaseUnit = true
           } else {
             foundUnit = true
           }
-          strippedValue = utils.HED.getParentTag(originalTagUnitValue, ' ')
+          strippedValue = getParentTag(originalTagUnitValue, ' ')
         }
         if (foundUnit) {
           const unitIsValid = tagUnitClassUnits.has(unit)
@@ -181,7 +182,7 @@ class Hed3Validator extends HedValidator {
     }
     // TODO: Replace with full value class-based implementation.
     if (isNumeric) {
-      return utils.string.isNumber(value)
+      return isNumber(value)
     }
     const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; ]+$/
     return hed3ValidValueCharacters.test(value)
@@ -282,7 +283,7 @@ class Hed3Validator extends HedValidator {
   checkForInvalidTopLevelTags() {
     for (const topLevelTag of this.parsedString.topLevelTags) {
       if (
-        !utils.HED.hedStringIsAGroup(topLevelTag.formattedTag) &&
+        !hedStringIsAGroup(topLevelTag.formattedTag) &&
         (topLevelTag.hasAttribute(tagGroupType) || topLevelTag.parentHasAttribute(tagGroupType))
       ) {
         this.pushIssue('invalidTopLevelTag', {
@@ -321,8 +322,4 @@ class Hed3Validator extends HedValidator {
       }
     }
   }
-}
-
-module.exports = {
-  Hed3Validator,
 }

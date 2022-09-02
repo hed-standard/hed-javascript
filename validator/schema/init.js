@@ -1,13 +1,13 @@
-const zip = require('lodash/zip')
+import zip from 'lodash/zip'
 
-const semver = require('semver')
-const { Schemas, Hed2Schema, Hed3Schema, SchemasSpec } = require('../../common/schema/types')
-const { loadSchema } = require('../../common/schema/loader')
-const { buildMappingObject } = require('../../converter/schema')
-const { setParent } = require('../../utils/xml2js')
+import semver from 'semver'
+import { Schemas, Hed2Schema, Hed3Schema, SchemasSpec } from '../../common/schema/types'
+import { loadSchema } from '../../common/schema/loader'
+import { buildMappingObject } from '../../converter/schema'
+import { setParent } from '../../utils/xml2js'
 
-const { Hed2SchemaParser } = require('./hed2')
-const { HedV8SchemaParser } = require('./hed3')
+import { Hed2SchemaParser } from './hed2'
+import { HedV8SchemaParser } from './hed3'
 
 /**
  * Determine whether a HED schema is based on the HED 3 spec.
@@ -25,7 +25,7 @@ const isHed3Schema = function (xmlData) {
  * @param {object} xmlData The schema XML data.
  * @return {SchemaAttributes|SchemaEntries} The schema attributes object.
  */
-const buildSchemaAttributesObject = function (xmlData) {
+export const buildSchemaAttributesObject = function (xmlData) {
   const rootElement = xmlData.HED
   setParent(rootElement, null)
   if (isHed3Schema(xmlData)) {
@@ -59,7 +59,7 @@ const buildSchemaObject = function (xmlData) {
  * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
  * @deprecated
  */
-const buildSchema = function (schemaDef = {}, useFallback = true) {
+export const buildSchema = function (schemaDef = {}, useFallback = true) {
   return loadSchema(schemaDef, useFallback).then(([xmlData, baseSchemaIssues]) => {
     const baseSchema = buildSchemaObject(xmlData)
     if (schemaDef.libraries === undefined) {
@@ -86,7 +86,7 @@ const buildSchema = function (schemaDef = {}, useFallback = true) {
  * @param {Map<string, SchemaSpec>|SchemasSpec} schemaSpecs The description of which schemas to use.
  * @return {Promise<never>|Promise<[Schemas, Issue[]]>} The schema container object and any issues found.
  */
-const buildSchemas = function (schemaSpecs) {
+export const buildSchemas = function (schemaSpecs) {
   if (schemaSpecs instanceof SchemasSpec) {
     schemaSpecs = schemaSpecs.data
   }
@@ -102,10 +102,4 @@ const buildSchemas = function (schemaSpecs) {
     const schemas = new Map(zip(schemaKeys, schemaObjects))
     return [new Schemas(schemas), schemaXmlIssues.flat()]
   })
-}
-
-module.exports = {
-  buildSchema,
-  buildSchemas,
-  buildSchemaAttributesObject,
 }

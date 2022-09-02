@@ -1,9 +1,9 @@
-const path = require('path')
-const esbuild = require('esbuild')
-const GlobalsPlugin = require('esbuild-plugin-globals')
+import path from 'path'
+import esbuild from 'esbuild'
+import GlobalsPlugin from 'esbuild-plugin-globals'
 
 // Node.js target build
-esbuild.build({
+await esbuild.build({
   entryPoints: [path.join(process.cwd(), 'index.js')],
   loader: { '.xml': 'text' },
   outdir: path.join(process.cwd(), 'dist', 'commonjs'),
@@ -14,7 +14,7 @@ esbuild.build({
 })
 
 // Browser target build
-esbuild.build({
+await esbuild.build({
   entryPoints: [path.join(process.cwd(), 'index.js')],
   loader: { '.xml': 'text' },
   outdir: path.join(process.cwd(), 'dist', 'esm'),

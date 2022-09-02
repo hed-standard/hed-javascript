@@ -1,9 +1,9 @@
-const { parseHedString } = require('../parser/main')
-const ParsedHedString = require('../parser/parsedHedString')
-const { Schemas } = require('../../common/schema')
+import { parseHedString } from '../parser/main'
+import ParsedHedString from '../parser/parsedHedString'
+import { Schemas } from '../../common/schema/types'
 
-const { HedValidator, Hed2Validator } = require('./validator')
-const { Hed3Validator } = require('./hed3')
+import { HedValidator, Hed2Validator } from './validator'
+import { Hed3Validator } from './hed3'
 
 /**
  * Perform initial validation on a HED string and parse it so further validation can be performed.
@@ -57,7 +57,7 @@ const initiallyValidateHedString = function (hedString, hedSchemas, options, def
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  * @deprecated
  */
-const validateHedString = function (
+export const validateHedString = function (
   hedString,
   hedSchemas,
   checkForWarnings = false,
@@ -86,7 +86,7 @@ const validateHedString = function (
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  * @deprecated
  */
-const validateHedEvent = function (hedString, hedSchemas, checkForWarnings = false) {
+export const validateHedEvent = function (hedString, hedSchemas, checkForWarnings = false) {
   const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, {
     checkForWarnings: checkForWarnings,
   })
@@ -109,7 +109,7 @@ const validateHedEvent = function (hedString, hedSchemas, checkForWarnings = fal
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  */
-const validateHedEventWithDefinitions = function (hedString, hedSchemas, definitions, checkForWarnings = false) {
+export const validateHedEventWithDefinitions = function (hedString, hedSchemas, definitions, checkForWarnings = false) {
   const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(
     hedString,
     hedSchemas,
@@ -124,10 +124,4 @@ const validateHedEventWithDefinitions = function (hedString, hedSchemas, definit
   const issues = [].concat(parsedStringIssues, hedValidator.issues)
 
   return [issues.length === 0, issues]
-}
-
-module.exports = {
-  validateHedString,
-  validateHedEvent,
-  validateHedEventWithDefinitions,
 }

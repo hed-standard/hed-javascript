@@ -1,10 +1,10 @@
-const { ParsedHedTag } = require('./parsedHedTag')
-const ParsedHedGroup = require('./parsedHedGroup')
+import { ParsedHedTag } from './parsedHedTag'
+import ParsedHedGroup from './parsedHedGroup'
 
 /**
  * A parsed HED string.
  */
-class ParsedHedString {
+export default class ParsedHedString {
   /**
    * Constructor.
    * @param {string} hedString The original HED string.
@@ -56,5 +56,3 @@ class ParsedHedString {
     })
   }
 }
-
-module.exports = ParsedHedString

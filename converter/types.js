@@ -1,7 +1,7 @@
 /**
  * A tag dictionary entry.
  */
-class TagEntry {
+export class TagEntry {
   /**
    * Constructor.
    * @param {string} shortTag The short version of the tag.
@@ -29,7 +29,7 @@ class TagEntry {
 /**
  * A short-to-long mapping.
  */
-class Mapping {
+export class Mapping {
   /**
    * Constructor.
    * @param {Map<string, (TagEntry|TagEntry[])>} mappingData A dictionary mapping forms to TagEntry instances.
@@ -47,9 +47,4 @@ class Mapping {
      */
     this.hasNoDuplicates = hasNoDuplicates
   }
-}
-
-module.exports = {
-  TagEntry,
-  Mapping,
 }

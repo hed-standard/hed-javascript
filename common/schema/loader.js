@@ -1,13 +1,12 @@
 /** HED schema loading functions. */
 
 /* Imports */
-const path = require('path')
-const xml2js = require('xml2js')
+import xml2js from 'xml2js'
 
-const files = require('../../utils/files')
-const { generateIssue } = require('../issues/issues')
+import * as files from '../../utils/files'
+import { generateIssue } from '../issues/issues'
 
-const { fallbackFilePath, localSchemaList } = require('./config')
+import { fallbackFilePath, localSchemaList } from './config'
 
 /**
  * Load schema XML data from a schema version or path description.
@@ -17,7 +16,7 @@ const { fallbackFilePath, localSchemaList } = require('./config')
  * @param {boolean} reportNoFallbackError Whether to report an error on a failed schema load when no fallback was used.
  * @return {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
  */
-const loadSchema = function (schemaDef = null, useFallback = true, reportNoFallbackError = true) {
+export const loadSchema = function (schemaDef = null, useFallback = true, reportNoFallbackError = true) {
   const schemaPromise = loadPromise(schemaDef)
   if (schemaPromise === null) {
     return Promise.reject([generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })])
@@ -50,7 +49,7 @@ const loadSchema = function (schemaDef = null, useFallback = true, reportNoFallb
  * @param {SchemaSpec} schemaDef The description of which schema to use.
  * @return {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
  */
-const loadSchemaFromSpec = function (schemaDef = null) {
+export const loadSchemaFromSpec = function (schemaDef = null) {
   const schemaPromise = loadPromise(schemaDef)
   if (schemaPromise === null) {
     return Promise.reject([generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })])
@@ -141,9 +140,4 @@ const loadSchemaFile = function (xmlDataPromise, issueCode, issueArgs) {
  */
 const parseSchemaXML = function (data) {
   return xml2js.parseStringPromise(data, { explicitCharkey: true })
-}
-
-module.exports = {
-  loadSchemaFromSpec,
-  loadSchema,
 }

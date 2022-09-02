@@ -1,4 +1,4 @@
-const tagDelimiters = [',', '(', ')', '~']
+const tagDelimiters = new Set([',', '(', ')', '~'])
 
 /**
  * Split a HED string into delimiters and tags.
@@ -7,7 +7,7 @@ const tagDelimiters = [',', '(', ')', '~']
  * @return {Array[]} A list of string parts. The boolean is true if the part is
  * a tag and false if it is a delimiter. The numbers are the bounds of the part.
  */
-const splitHedString = function (hedString) {
+export default function splitHedString(hedString) {
   const resultPositions = []
   let currentSpacing = 0
   let insideDelimiter = true
@@ -22,7 +22,7 @@ const splitHedString = function (hedString) {
       continue
     }
 
-    if (tagDelimiters.includes(character)) {
+    if (tagDelimiters.has(character)) {
       if (!insideDelimiter) {
         insideDelimiter = true
         if (startPosition >= 0) {
@@ -62,5 +62,3 @@ const splitHedString = function (hedString) {
 
   return resultPositions
 }
-
-module.exports = splitHedString

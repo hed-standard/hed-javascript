@@ -1,14 +1,14 @@
-const pluralize = require('pluralize')
+import pluralize from 'pluralize'
 pluralize.addUncountableRule('hertz')
 
 // Old-style types
 
-const { Memoizer } = require('../../utils/types')
+import { Memoizer } from '../../utils/types'
 
 /**
  * A description of a HED schema's attributes.
  */
-class SchemaAttributes {
+export class SchemaAttributes {
   /**
    * Constructor.
    * @param {SchemaParser} schemaParser A constructed schema parser.
@@ -76,7 +76,7 @@ class SchemaAttributes {
   }
 }
 
-class SchemaEntries extends Memoizer {
+export class SchemaEntries extends Memoizer {
   constructor(schemaParser) {
     super()
     /**
@@ -150,7 +150,7 @@ class SchemaEntries extends Memoizer {
 
 // New-style types
 
-class SchemaEntryManager extends Memoizer {
+export class SchemaEntryManager extends Memoizer {
   /**
    * Constructor.
    *
@@ -187,7 +187,7 @@ class SchemaEntryManager extends Memoizer {
   }
 }
 
-class SchemaEntry {
+export class SchemaEntry {
   constructor(name, booleanAttributes, valueAttributes) {
     /**
      * The name of this schema entry.
@@ -289,7 +289,7 @@ class SchemaEntry {
 const categoryProperty = 'categoryProperty'
 const typeProperty = 'typeProperty'
 
-class SchemaProperty extends SchemaEntry {
+export class SchemaProperty extends SchemaEntry {
   constructor(name, propertyType) {
     super(name, new Set(), new Map())
     this._propertyType = propertyType
@@ -315,11 +315,11 @@ class SchemaProperty extends SchemaEntry {
 // Pseudo-properties
 
 // TODO: Switch back to class constant once upstream bug is fixed.
-const nodeProperty = new SchemaProperty('nodeProperty', categoryProperty)
-const attributeProperty = new SchemaProperty('attributeProperty', categoryProperty)
+export const nodeProperty = new SchemaProperty('nodeProperty', categoryProperty)
+export const attributeProperty = new SchemaProperty('attributeProperty', categoryProperty)
 const stringProperty = new SchemaProperty('stringProperty', typeProperty)
 
-class SchemaAttribute extends SchemaEntry {
+export class SchemaAttribute extends SchemaEntry {
   constructor(name, properties) {
     super(name, new Set(), new Map())
 
@@ -339,7 +339,7 @@ class SchemaAttribute extends SchemaEntry {
   }
 }
 
-class SchemaUnit extends SchemaEntry {
+export class SchemaUnit extends SchemaEntry {
   constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
     super(name, booleanAttributes, valueAttributes)
 
@@ -382,7 +382,7 @@ class SchemaUnit extends SchemaEntry {
   }
 }
 
-class SchemaUnitClass extends SchemaEntry {
+export class SchemaUnitClass extends SchemaEntry {
   /**
    * Constructor.
    *
@@ -414,7 +414,7 @@ class SchemaUnitClass extends SchemaEntry {
   }
 }
 
-class SchemaUnitModifier extends SchemaEntry {
+export class SchemaUnitModifier extends SchemaEntry {
   constructor(name, booleanAttributes, valueAttributes) {
     super(name, booleanAttributes, valueAttributes)
   }
@@ -428,13 +428,13 @@ class SchemaUnitModifier extends SchemaEntry {
   }
 }
 
-class SchemaValueClass extends SchemaEntry {
+export class SchemaValueClass extends SchemaEntry {
   constructor(name, booleanAttributes, valueAttributes) {
     super(name, booleanAttributes, valueAttributes)
   }
 }
 
-class SchemaTag extends SchemaEntry {
+export class SchemaTag extends SchemaEntry {
   constructor(name, booleanAttributes, valueAttributes, unitClasses) {
     super(name, booleanAttributes, valueAttributes)
     this._unitClasses = unitClasses || []
@@ -447,19 +447,4 @@ class SchemaTag extends SchemaEntry {
   get hasUnitClasses() {
     return this._unitClasses.length !== 0
   }
-}
-
-module.exports = {
-  nodeProperty,
-  attributeProperty,
-  SchemaAttributes,
-  SchemaEntries,
-  SchemaEntryManager,
-  SchemaProperty,
-  SchemaAttribute,
-  SchemaTag,
-  SchemaUnit,
-  SchemaUnitClass,
-  SchemaUnitModifier,
-  SchemaValueClass,
 }

@@ -1,12 +1,14 @@
-const { BidsDataset, BidsEventFile, BidsHedIssue, BidsIssue, BidsJsonFile, BidsSidecar } = require('./types')
-const { validateBidsDataset } = require('./validate')
+import { BidsDataset, BidsEventFile, BidsHedIssue, BidsIssue, BidsJsonFile, BidsSidecar } from './types'
+import { validateBidsDataset } from './validate'
 
-module.exports = {
+export { BidsDataset, BidsEventFile, BidsJsonFile, BidsSidecar, BidsIssue, BidsHedIssue, validateBidsDataset }
+
+export default {
   BidsDataset,
   BidsEventFile,
-  BidsHedIssue,
-  BidsIssue,
   BidsJsonFile,
   BidsSidecar,
+  BidsIssue,
+  BidsHedIssue,
   validateBidsDataset,
 }

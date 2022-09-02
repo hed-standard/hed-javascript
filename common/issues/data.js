@@ -1,6 +1,6 @@
-const { stringTemplate } = require('../../utils/string')
+import { stringTemplate } from '../../utils/string'
 
-const issueData = {
+export default {
   // Syntax issues
   parentheses: {
     hedCode: 'HED_PARENTHESES_MISMATCH',
@@ -208,5 +208,3 @@ const issueData = {
     message: stringTemplate`Unknown HED error "${'internalCode'}" - parameters: "${'parameters'}".`,
   },
 }
-
-module.exports = issueData

@@ -1,6 +1,6 @@
-const date = require('date-and-time')
-const parseISO = require('date-fns/parseISO')
-const dateIsValid = require('date-fns/isValid')
+import date from 'date-and-time'
+import parseISO from 'date-fns/parseISO'
+import dateIsValid from 'date-fns/isValid'
 const rfc3339ish = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?$/
 const digitExpression = /^-?\d+(?:\.\d+)?(?:[Ee]-?\d+)?$/
 
@@ -10,7 +10,7 @@ const digitExpression = /^-?\d+(?:\.\d+)?(?:[Ee]-?\d+)?$/
  * @param {string} string The string to check.
  * @returns {boolean} Whether the string is empty.
  */
-const stringIsEmpty = function (string) {
+export const stringIsEmpty = function (string) {
   return !string.trim()
 }
 
@@ -21,7 +21,7 @@ const stringIsEmpty = function (string) {
  * @param {string} characterToCount The character to search for.
  * @returns {number} The number of instances of the character in the string.
  */
-const getCharacterCount = function (string, characterToCount) {
+export const getCharacterCount = function (string, characterToCount) {
   return string.split(characterToCount).length - 1
 }
 
@@ -31,7 +31,7 @@ const getCharacterCount = function (string, characterToCount) {
  * @param {string} string The string to capitalize.
  * @returns {string} The capitalized string.
  */
-const capitalizeString = function (string) {
+export const capitalizeString = function (string) {
   return string.charAt(0).toUpperCase() + string.substring(1)
 }
 
@@ -41,7 +41,7 @@ const capitalizeString = function (string) {
  * @param {string} timeString The string to check.
  * @return {boolean} Whether the string is a valid clock face time.
  */
-const isClockFaceTime = function (timeString) {
+export const isClockFaceTime = function (timeString) {
   return date.isValid(timeString, 'HH:mm') || date.isValid(timeString, 'HH:mm:ss')
 }
 
@@ -51,7 +51,7 @@ const isClockFaceTime = function (timeString) {
  * @param {string} dateTimeString The string to check.
  * @return {boolean} Whether the string is a valid date-time.
  */
-const isDateTime = function (dateTimeString) {
+export const isDateTime = function (dateTimeString) {
   return dateIsValid(parseISO(dateTimeString)) && rfc3339ish.test(dateTimeString)
 }
 
@@ -61,7 +61,7 @@ const isDateTime = function (dateTimeString) {
  * @param {string} numericString The string to check.
  * @return {boolean} Whether the string is a valid number.
  */
-const isNumber = function (numericString) {
+export const isNumber = function (numericString) {
   return digitExpression.test(numericString)
 }
 
@@ -74,7 +74,7 @@ const isNumber = function (numericString) {
  * @param {(number|string)} keys The keys of the closure arguments.
  * @return {function(...[*]): string} A closure to fill the string template.
  */
-const stringTemplate = function (strings, ...keys) {
+export const stringTemplate = function (strings, ...keys) {
   return function (...values) {
     const dict = values[values.length - 1] || {}
     const result = [strings[0]]
@@ -84,14 +84,4 @@ const stringTemplate = function (strings, ...keys) {
     })
     return result.join('')
   }
-}
-
-module.exports = {
-  stringIsEmpty,
-  getCharacterCount,
-  capitalizeString,
-  isClockFaceTime,
-  isDateTime,
-  isNumber,
-  stringTemplate,
 }

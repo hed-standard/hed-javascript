@@ -1,9 +1,9 @@
-const differenceWith = require('lodash/differenceWith')
+import differenceWith from 'lodash/differenceWith'
 
-const { getParsedParentTags } = require('../../utils/hedData')
-const { getTagName } = require('../../utils/hedStrings')
-const ParsedHedSubstring = require('./parsedHedSubstring')
-const { ParsedHedTag } = require('./parsedHedTag')
+import { getParsedParentTags } from '../../utils/hedData'
+import { getTagName } from '../../utils/hedStrings'
+import ParsedHedSubstring from './parsedHedSubstring'
+import { ParsedHedTag } from './parsedHedTag'
 
 /**
  * Determine a parsed HED tag group's Definition tags.
@@ -38,7 +38,7 @@ const groupDefinitionTag = function (group, hedSchemas) {
 /**
  * A parsed HED tag group.
  */
-class ParsedHedGroup extends ParsedHedSubstring {
+export default class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Constructor.
    * @param {(ParsedHedTag|ParsedHedGroup)[]} parsedHedTags The parsed HED tags in the HED tag group.
@@ -191,5 +191,3 @@ class ParsedHedGroup extends ParsedHedSubstring {
     }
   }
 }
-
-module.exports = ParsedHedGroup

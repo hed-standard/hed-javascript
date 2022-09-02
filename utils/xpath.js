@@ -17,7 +17,7 @@ const childToParent = {
  * @param {string} query An XPath query.
  * @return {object[]} An array of xml2js elements matching the query.
  */
-const find = function (element, query) {
+export const find = function (element, query) {
   const { elementName, attributeName } = parseXPath(query)
 
   const searchMap = (child) => {
@@ -84,8 +84,4 @@ const search = function (element, elementName, attributeName) {
     )
   }
   return result
-}
-
-module.exports = {
-  find,
 }

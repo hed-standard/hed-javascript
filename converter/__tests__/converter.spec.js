@@ -1,8 +1,9 @@
-const assert = require('chai').assert
-const converter = require('../converter')
-const generateIssue = require('../issues')
-const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
-const { buildSchemas } = require('../../validator/schema/init')
+import chai from 'chai'
+const assert = chai.assert
+import * as converter from '../converter'
+import generateIssue from '../issues'
+import { SchemaSpec, SchemasSpec } from '../../common/schema/types'
+import { buildSchemas } from '../../validator/schema/init'
 
 describe('HED string conversion', () => {
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'
