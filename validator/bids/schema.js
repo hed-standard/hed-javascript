@@ -1,12 +1,12 @@
-const semver = require('semver')
-const { buildSchemas } = require('../schema/init')
-const { generateIssue } = require('../../common/issues/issues')
-const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
-const { asArray } = require('../../utils/array')
+import semver from 'semver'
+import { buildSchemas } from '../schema/init'
+import { generateIssue } from '../../common/issues/issues'
+import { SchemaSpec, SchemasSpec } from '../../common/schema/types'
+import { asArray } from '../../utils/array'
 
 const alphanumericRegExp = new RegExp('^[a-zA-Z0-9]+$')
 
-function buildBidsSchemas(dataset, schemaDefinition) {
+export function buildBidsSchemas(dataset, schemaDefinition) {
   let schemasSpec
   let issues
   if (schemaDefinition) {
@@ -23,7 +23,7 @@ function buildBidsSchemas(dataset, schemaDefinition) {
   }
 }
 
-function validateSchemasSpec(schemasSpec) {
+export function validateSchemasSpec(schemasSpec) {
   // ToDO: implement
   if (schemasSpec instanceof SchemasSpec) {
     return [schemasSpec, []]
@@ -44,7 +44,7 @@ function convertOldSpecToSchemasSpec(oldSpec) {
   return newSpec
 }
 
-function parseSchemasSpec(hedVersion) {
+export function parseSchemasSpec(hedVersion) {
   const schemasSpec = new SchemasSpec()
   const processVersion = asArray(hedVersion)
   const issues = []
@@ -61,7 +61,7 @@ function parseSchemasSpec(hedVersion) {
   return [schemasSpec, issues]
 }
 
-function parseSchemaSpec(schemaVersion) {
+export function parseSchemaSpec(schemaVersion) {
   const nicknameSplit = schemaVersion.split(':')
   let nickname = ''
   let schema
@@ -97,18 +97,10 @@ function parseSchemaSpec(schemaVersion) {
   return [schemaSpec, []]
 }
 
-function validateSchemaSpec(schemaSpec) {
+export function validateSchemaSpec(schemaSpec) {
   // ToDO: implement
   if (!(schemaSpec instanceof SchemaSpec)) {
     return [null, [generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaSpec) })]]
   }
   return [schemaSpec, []]
-}
-
-module.exports = {
-  buildBidsSchemas,
-  validateSchemaSpec,
-  validateSchemasSpec,
-  parseSchemaSpec,
-  parseSchemasSpec,
 }

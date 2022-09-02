@@ -1,9 +1,7 @@
-const types = require('./types')
-const TagEntry = types.TagEntry
-
-const { asArray } = require('../utils/array')
-const generateIssue = require('./issues')
-const splitHedString = require('./splitHedString')
+import { TagEntry } from './types'
+import { asArray } from '../utils/array'
+import generateIssue from './issues'
+import splitHedString from './splitHedString'
 
 const doubleSlashPattern = /[\s/]*\/+[\s/]*/g
 
@@ -13,7 +11,7 @@ const doubleSlashPattern = /[\s/]*\/+[\s/]*/g
  * @param {string} hedString The HED string to clean.
  * @return {string} The cleaned HED string.
  */
-const removeSlashesAndSpaces = function (hedString) {
+export const removeSlashesAndSpaces = function (hedString) {
   return hedString.replace(doubleSlashPattern, '/')
 }
 
@@ -30,7 +28,7 @@ const removeSlashesAndSpaces = function (hedString) {
  * @param {number} offset The offset of this tag within the HED string.
  * @return {[string, Issue[]]} The long-form tag and any issues.
  */
-const convertTagToLong = function (schema, hedTag, hedString, offset) {
+export const convertTagToLong = function (schema, hedTag, hedString, offset) {
   const mapping = schema.mapping
 
   if (hedTag.startsWith('/')) {
@@ -131,7 +129,7 @@ const convertTagToLong = function (schema, hedTag, hedString, offset) {
  * @param {number} offset The offset of this tag within the HED string.
  * @return {[string, Issue[]]} The short-form tag and any issues.
  */
-const convertTagToShort = function (schema, hedTag, hedString, offset) {
+export const convertTagToShort = function (schema, hedTag, hedString, offset) {
   const mapping = schema.mapping
 
   if (hedTag.startsWith('/')) {
@@ -202,7 +200,7 @@ const convertTagToShort = function (schema, hedTag, hedString, offset) {
  * @param {number} offset The offset of the partial HED string within the full string.
  * @return {[string, Issue[]]} The converted string and any issues.
  */
-const convertPartialHedStringToLong = function (schema, partialHedString, fullHedString, offset) {
+export const convertPartialHedStringToLong = function (schema, partialHedString, fullHedString, offset) {
   let issues = []
 
   const hedString = removeSlashesAndSpaces(partialHedString)
@@ -277,7 +275,7 @@ const convertHedString = function (schema, hedString, conversionFn) {
  * @return {[string, Issue[]]} The long-form string and any issues.
  * @deprecated
  */
-const convertHedStringToLong = function (schemas, hedString) {
+export const convertHedStringToLong = function (schemas, hedString) {
   return convertHedString(schemas.baseSchema, hedString, convertTagToLong)
 }
 
@@ -289,15 +287,6 @@ const convertHedStringToLong = function (schemas, hedString) {
  * @return {[string, Issue[]]} The short-form string and any issues.
  * @deprecated
  */
-const convertHedStringToShort = function (schemas, hedString) {
+export const convertHedStringToShort = function (schemas, hedString) {
   return convertHedString(schemas.baseSchema, hedString, convertTagToShort)
-}
-
-module.exports = {
-  convertHedStringToShort,
-  convertHedStringToLong,
-  convertPartialHedStringToLong,
-  convertTagToShort,
-  convertTagToLong,
-  removeSlashesAndSpaces,
 }

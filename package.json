@@ -17,7 +17,7 @@
     "node": ">=12.12.0"
   },
   "scripts": {
-    "build": "node ./esbuild.cjs",
+    "build": "node esbuild.mjs",
     "prepublishOnly": "npm run build",
     "lint": "./node_modules/eslint/bin/eslint.js ./**/*.js",
     "test": "./node_modules/.bin/jest",
@@ -74,7 +74,6 @@
   "browser": {
     "fs": false
   },
-  "type": "commonjs",
   "files": [
     "dist/*"
   ]

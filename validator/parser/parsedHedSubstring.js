@@ -1,9 +1,9 @@
-const { Memoizer } = require('../../utils/types')
+import { Memoizer } from '../../utils/types'
 
 /**
  * A parsed HED substring.
  */
-class ParsedHedSubstring extends Memoizer {
+export default class ParsedHedSubstring extends Memoizer {
   /**
    * Constructor.
    * @param {string} originalTag The original HED tag.
@@ -23,5 +23,3 @@ class ParsedHedSubstring extends Memoizer {
     this.originalBounds = originalBounds
   }
 }
-
-module.exports = ParsedHedSubstring

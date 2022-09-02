@@ -1,10 +1,9 @@
-const utils = require('../../utils')
-const { mergeParsingIssues } = require('../../utils/hedData')
-const { generateIssue } = require('../../common/issues/issues')
+import { mergeParsingIssues } from '../../utils/hedData'
+import { generateIssue } from '../../common/issues/issues'
 
-const ParsedHedString = require('./parsedHedString')
-
-const splitHedString = require('./splitHedString')
+import ParsedHedString from './parsedHedString'
+import splitHedString from './splitHedString'
+import { getCharacterCount, stringIsEmpty } from '../../utils/string'
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -42,8 +41,8 @@ const substituteCharacters = function (hedString) {
  */
 const countTagGroupParentheses = function (hedString) {
   const issues = []
-  const numberOfOpeningParentheses = utils.string.getCharacterCount(hedString, openingGroupCharacter)
-  const numberOfClosingParentheses = utils.string.getCharacterCount(hedString, closingGroupCharacter)
+  const numberOfOpeningParentheses = getCharacterCount(hedString, openingGroupCharacter)
+  const numberOfClosingParentheses = getCharacterCount(hedString, closingGroupCharacter)
   if (numberOfOpeningParentheses !== numberOfClosingParentheses) {
     issues.push(
       generateIssue('parentheses', {
@@ -76,7 +75,7 @@ const findDelimiterIssuesInHedString = function (hedString) {
   for (let i = 0; i < hedString.length; i++) {
     const currentCharacter = hedString.charAt(i)
     currentTag += currentCharacter
-    if (utils.string.stringIsEmpty(currentCharacter)) {
+    if (stringIsEmpty(currentCharacter)) {
       continue
     }
     if (delimiters.has(currentCharacter)) {
@@ -147,7 +146,7 @@ const validateFullUnparsedHedString = function (hedString) {
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @returns {[ParsedHedString|null, Object<string, Issue[]>]} The parsed HED tag data and an object containing lists of parsing issues.
  */
-const parseHedString = function (hedString, hedSchemas) {
+export const parseHedString = function (hedString, hedSchemas) {
   const fullStringIssues = validateFullUnparsedHedString(hedString)
   if (fullStringIssues.delimiter.length > 0) {
     fullStringIssues.syntax = []
@@ -169,7 +168,7 @@ const parseHedString = function (hedString, hedSchemas) {
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @return {[ParsedHedString[], Object<string, Issue[]>]} The parsed HED strings and any issues found.
  */
-const parseHedStrings = function (hedStrings, hedSchemas) {
+export const parseHedStrings = function (hedStrings, hedSchemas) {
   return hedStrings
     .map((hedString) => {
       return parseHedString(hedString, hedSchemas)
@@ -182,10 +181,4 @@ const parseHedStrings = function (hedStrings, hedSchemas) {
       },
       [[], {}],
     )
-}
-
-module.exports = {
-  splitHedString,
-  parseHedString,
-  parseHedStrings,
 }

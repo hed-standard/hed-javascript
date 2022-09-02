@@ -22,15 +22,11 @@ const setNodeParent = function (node, parent) {
  * @param {object} node The child node.
  * @param {object} parent The parent node.
  */
-const setParent = function (node, parent) {
+export const setParent = function (node, parent) {
   if (node.schema) {
     node.$parent = null
     setNodeParent(node.schema[0], null)
   } else {
     setNodeParent(node, parent)
   }
-}
-
-module.exports = {
-  setParent,
 }

@@ -1,15 +1,14 @@
 // TODO: Switch require once upstream bugs are fixed.
-// const xpath = require('xml2js-xpath')
+// import xpath from 'xml2js-xpath'
 // Temporary
-const xpath = require('../utils/xpath')
+import * as xpath from '../utils/xpath'
 
-const schemaUtils = require('../common/schema')
-const { asArray } = require('../utils/array')
-const { setParent } = require('../utils/xml2js')
+import { loadSchema } from '../common/schema/loader'
+import { Schema, Schemas } from '../common/schema/types'
+import { asArray } from '../utils/array'
+import { setParent } from '../utils/xml2js'
 
-const types = require('./types')
-const TagEntry = types.TagEntry
-const Mapping = types.Mapping
+import { Mapping, TagEntry } from './types'
 
 /**
  * Build a short-long mapping object from schema XML data.
@@ -17,7 +16,7 @@ const Mapping = types.Mapping
  * @param {object} xmlData The schema XML data.
  * @return {Mapping} The mapping object.
  */
-const buildMappingObject = function (xmlData) {
+export const buildMappingObject = function (xmlData) {
   const nodeData = new Map()
   const tagElementData = new Map()
   let hasNoDuplicates = true
@@ -80,15 +79,10 @@ const getParentTagName = function (tagElement) {
  * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
  * @deprecated
  */
-const buildSchema = function (schemaDef = {}) {
-  return schemaUtils.loadSchema(schemaDef).then(([xmlData, issues]) => {
+export const buildSchema = function (schemaDef = {}) {
+  return loadSchema(schemaDef).then(([xmlData, issues]) => {
     const mapping = buildMappingObject(xmlData)
-    const baseSchema = new schemaUtils.Schema(xmlData, null, mapping)
-    return new schemaUtils.Schemas(baseSchema)
+    const baseSchema = new Schema(xmlData, null, mapping)
+    return new Schemas(baseSchema)
   })
-}
-
-module.exports = {
-  buildSchema,
-  buildMappingObject,
 }

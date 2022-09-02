@@ -1,7 +1,7 @@
-const { validateHedDatasetWithContext } = require('../dataset')
-const { validateHedString } = require('../event')
-const { BidsDataset, BidsHedIssue, BidsIssue } = require('./types')
-const { buildBidsSchemas } = require('./schema')
+import { validateHedDatasetWithContext } from '../dataset'
+import { validateHedString } from '../event'
+import { BidsDataset, BidsHedIssue, BidsIssue } from './types'
+import { buildBidsSchemas } from './schema'
 
 /**
  * Validate a BIDS dataset.
@@ -10,7 +10,7 @@ const { buildBidsSchemas } = require('./schema')
  * @param {object} schemaDefinition The version spec for the schema to be loaded.
  * @return {Promise<BidsIssue[]>} Any issues found.
  */
-function validateBidsDataset(dataset, schemaDefinition) {
+export function validateBidsDataset(dataset, schemaDefinition) {
   return buildBidsSchemas(dataset, schemaDefinition).then(
     ([hedSchemas, schemaLoadIssues]) => {
       return validateFullDataset(dataset, hedSchemas)
@@ -161,5 +161,3 @@ function validateStrings(hedStrings, hedSchema, fileObject, areValueStrings = fa
 function convertHedIssuesToBidsIssues(hedIssues, file) {
   return hedIssues.map((hedIssue) => new BidsHedIssue(hedIssue, file))
 }
-
-module.exports = { validateBidsDataset }

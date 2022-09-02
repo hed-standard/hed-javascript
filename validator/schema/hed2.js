@@ -1,11 +1,12 @@
-const flattenDeep = require('lodash/flattenDeep')
+import flattenDeep from 'lodash/flattenDeep'
 
 // TODO: Switch require once upstream bugs are fixed.
-// const xpath = require('xml2js-xpath')
+// import xpath from 'xml2js-xpath'
 // Temporary
-const xpath = require('../../utils/xpath')
+import * as xpath from '../../utils/xpath'
 
-const { SchemaAttributes } = require('./types')
+import { SchemaParser } from './parser'
+import { SchemaAttributes } from './types'
 
 const defaultUnitForTagAttribute = 'default'
 const defaultUnitForUnitClassAttribute = 'defaultUnits'
@@ -32,13 +33,12 @@ const tagUnitClassAttribute = 'unitClass'
 const unitClassElement = 'unitClass'
 const unitClassUnitElement = 'unit'
 const unitClassUnitsElement = 'units'
+
 const unitModifierElement = 'unitModifier'
 
 const lc = (str) => str.toLowerCase()
 
-const { SchemaParser } = require('./parser')
-
-class Hed2SchemaParser extends SchemaParser {
+export class Hed2SchemaParser extends SchemaParser {
   parse() {
     this.populateDictionaries()
     return new SchemaAttributes(this)
@@ -187,8 +187,4 @@ class Hed2SchemaParser extends SchemaParser {
     }
     return [tags, tagElements]
   }
-}
-
-module.exports = {
-  Hed2SchemaParser,
 }

@@ -1,8 +1,10 @@
-const { convertHedStringToLong, convertHedStringToShort } = require('./converter')
-const { buildSchema } = require('./schema')
+import { convertHedStringToLong, convertHedStringToShort } from './converter'
+import { buildSchema } from './schema'
 
-module.exports = {
-  buildSchema,
-  convertHedStringToShort,
+export { convertHedStringToLong, convertHedStringToShort, buildSchema }
+
+export default {
   convertHedStringToLong,
+  convertHedStringToShort,
+  buildSchema,
 }

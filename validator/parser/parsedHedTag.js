@@ -1,12 +1,12 @@
-const { generateIssue } = require('../../common/issues/issues')
-const { convertPartialHedStringToLong } = require('../../converter/converter')
-const { getTagSlashIndices, replaceTagNameWithPound } = require('../../utils/hedStrings')
-const ParsedHedSubstring = require('./parsedHedSubstring')
+import { generateIssue } from '../../common/issues/issues'
+import { convertPartialHedStringToLong } from '../../converter/converter'
+import { getTagSlashIndices, replaceTagNameWithPound } from '../../utils/hedStrings'
+import ParsedHedSubstring from './parsedHedSubstring'
 
 /**
  * A parsed HED tag.
  */
-class ParsedHedTag extends ParsedHedSubstring {
+export class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Constructor.
    * @param {string} originalTag The original HED tag.
@@ -220,7 +220,7 @@ class ParsedHedTag extends ParsedHedSubstring {
   }
 }
 
-class ParsedHed2Tag extends ParsedHedTag {
+export class ParsedHed2Tag extends ParsedHedTag {
   /**
    * Determine if this HED tag is in the schema.
    */
@@ -315,7 +315,7 @@ class ParsedHed2Tag extends ParsedHedTag {
   }
 }
 
-class ParsedHed3Tag extends ParsedHedTag {
+export class ParsedHed3Tag extends ParsedHedTag {
   /**
    * Determine if this HED tag is in the schema.
    */
@@ -428,10 +428,4 @@ class ParsedHed3Tag extends ParsedHedTag {
       }
     })
   }
-}
-
-module.exports = {
-  ParsedHedTag,
-  ParsedHed2Tag,
-  ParsedHed3Tag,
 }

@@ -1,7 +1,8 @@
-const assert = require('chai').assert
-const hed = require('../hedStrings')
-const { SchemaSpec, SchemasSpec } = require('../../common/schema/types')
-const { buildSchemas } = require('../../validator/schema/init')
+import chai from 'chai'
+const assert = chai.assert
+import * as hed from '../hedStrings'
+import { SchemaSpec, SchemasSpec } from '../../common/schema/types'
+import { buildSchemas } from '../../validator/schema/init'
 
 describe('HED tag string utility functions', () => {
   describe('Syntactic utility functions', () => {

@@ -1,7 +1,9 @@
-const converter = require('./converter')
-const validator = require('./validator')
+import converter from './converter'
+import validator from './validator'
 
-module.exports = {
+export { converter, validator }
+
+export default {
   converter,
   validator,
 }

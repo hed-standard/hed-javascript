@@ -1,11 +1,11 @@
 /** HED schema classes */
 
-const { getGenerationForSchemaVersion } = require('../../utils/hedData')
+import { getGenerationForSchemaVersion } from '../../utils/hedData'
 
 /**
  * An imported HED schema object.
  */
-class Schema {
+export class Schema {
   /**
    * Constructor.
    * @param {object} xmlData The schema XML data.
@@ -79,7 +79,7 @@ class Schema {
   tagHasAttribute(tag, tagAttribute) {}
 }
 
-class Hed2Schema extends Schema {
+export class Hed2Schema extends Schema {
   /**
    * Determine if a HED tag has a particular attribute in this schema.
    *
@@ -92,7 +92,7 @@ class Hed2Schema extends Schema {
   }
 }
 
-class Hed3Schema extends Schema {
+export class Hed3Schema extends Schema {
   constructor(xmlData, entries, mapping) {
     super(xmlData, null, mapping)
     /**
@@ -117,7 +117,7 @@ class Hed3Schema extends Schema {
 /**
  * The collection of active HED schemas.
  */
-class Schemas {
+export class Schemas {
   /**
    * Constructor.
    * @param {Schema|Map<string, Schema>|null} schemas The imported HED schemas.
@@ -226,7 +226,7 @@ class Schemas {
 /**
  * A schema version specification.
  */
-class SchemaSpec {
+export class SchemaSpec {
   /**
    * Constructor.
    *
@@ -270,7 +270,7 @@ class SchemaSpec {
 /**
  * A specification mapping schema nicknames to SchemaSpec objects.
  */
-class SchemasSpec {
+export class SchemasSpec {
   constructor() {
     this.data = new Map()
   }
@@ -295,13 +295,4 @@ class SchemasSpec {
   isDuplicate(schemaSpec) {
     return this.data.has(schemaSpec.nickname)
   }
-}
-
-module.exports = {
-  Schema,
-  Hed2Schema,
-  Hed3Schema,
-  Schemas,
-  SchemaSpec,
-  SchemasSpec,
 }

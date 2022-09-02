@@ -1,6 +1,5 @@
-const { ParsedHedString, ParsedHedGroup } = require('../parser/main')
-const { sidecarValueHasHed } = require('../../utils/bids')
-const { Issue } = require('../../common/issues/issues')
+import { sidecarValueHasHed } from '../../utils/bids'
+import { Issue } from '../../common/issues/issues'
 
 class BidsData {
   constructor() {
@@ -35,7 +34,7 @@ class BidsFile extends BidsData {
   }
 }
 
-class BidsJsonFile extends BidsFile {
+export class BidsJsonFile extends BidsFile {
   constructor(name, jsonData, file) {
     super(name, file)
     /**
@@ -46,7 +45,7 @@ class BidsJsonFile extends BidsFile {
   }
 }
 
-class BidsTsvFile extends BidsFile {
+export class BidsTsvFile extends BidsFile {
   constructor(name, parsedTsv, file) {
     super(name, file)
     /**
@@ -70,7 +69,7 @@ class BidsTsvFile extends BidsFile {
   }
 }
 
-class BidsEventFile extends BidsTsvFile {
+export class BidsEventFile extends BidsTsvFile {
   constructor(name, potentialSidecars, mergedDictionary, parsedTsv, file) {
     super(name, parsedTsv, file)
     /**
@@ -84,7 +83,7 @@ class BidsEventFile extends BidsTsvFile {
   }
 }
 
-class BidsSidecar extends BidsJsonFile {
+export class BidsSidecar extends BidsJsonFile {
   constructor(name, sidecarData = {}, file) {
     super(name, sidecarData, file)
 
@@ -129,7 +128,7 @@ class BidsSidecar extends BidsJsonFile {
 // TODO: Remove in v4.0.0.
 const fallbackDatasetDescription = new BidsJsonFile('./dataset_description.json', null)
 
-class BidsDataset extends BidsData {
+export class BidsDataset extends BidsData {
   constructor(eventData, sidecarData, datasetDescription = fallbackDatasetDescription, datasetRootDirectory = null) {
     super()
     this.eventData = eventData
@@ -141,7 +140,7 @@ class BidsDataset extends BidsData {
 
 const bidsHedErrorCodes = new Set([104, 106, 107])
 
-class BidsIssue {
+export class BidsIssue {
   constructor(issueCode, file, evidence) {
     this.code = issueCode
     this.file = file
@@ -157,7 +156,7 @@ class BidsIssue {
   }
 }
 
-class BidsHedIssue extends BidsIssue {
+export class BidsHedIssue extends BidsIssue {
   constructor(hedIssue, file) {
     super(hedIssue.level === 'warning' ? 105 : 104, file, hedIssue.message)
     /**
@@ -166,13 +165,4 @@ class BidsHedIssue extends BidsIssue {
      */
     this.hedIssue = hedIssue
   }
-}
-
-module.exports = {
-  BidsDataset,
-  BidsEventFile,
-  BidsHedIssue,
-  BidsIssue,
-  BidsJsonFile,
-  BidsSidecar,
 }

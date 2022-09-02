@@ -1,8 +1,8 @@
-const { validateHedEventWithDefinitions } = require('./event')
-const { parseHedStrings } = require('./parser/main')
+import { validateHedEventWithDefinitions } from './event'
+import { parseHedStrings } from './parser/main'
 
-const { generateIssue } = require('../common/issues/issues')
-const { filterNonEqualDuplicates } = require('../utils/map')
+import { generateIssue } from '../common/issues/issues'
+import { filterNonEqualDuplicates } from '../utils/map'
 
 /**
  * Parse the dataset's definitions and evaluate labels in the dataset.
@@ -10,7 +10,7 @@ const { filterNonEqualDuplicates } = require('../utils/map')
  * @param {ParsedHedString[]} parsedHedStrings The dataset's parsed HED strings.
  * @return {[Map, Issue[]]} The definition map and any issues found.
  */
-const parseDefinitions = function (parsedHedStrings) {
+export const parseDefinitions = function (parsedHedStrings) {
   const issues = []
   const parsedHedStringDefinitions = parsedHedStrings.flatMap((parsedHedString) => {
     return parsedHedString.definitions
@@ -40,7 +40,7 @@ const parseDefinitions = function (parsedHedStrings) {
  * @param {Schemas} hedSchemas The HED schema container object.
  * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
-const validateDataset = function (definitions, hedStrings, hedSchemas) {
+export const validateDataset = function (definitions, hedStrings, hedSchemas) {
   // TODO: Implement
   return [true, []]
 }
@@ -54,7 +54,7 @@ const validateDataset = function (definitions, hedStrings, hedSchemas) {
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED strings are valid and any issues found.
  */
-const validateHedEvents = function (parsedHedStrings, hedSchemas, definitions, checkForWarnings) {
+export const validateHedEvents = function (parsedHedStrings, hedSchemas, definitions, checkForWarnings) {
   let stringsValid = true
   let stringIssues = []
   for (const hedString of parsedHedStrings) {
@@ -73,7 +73,7 @@ const validateHedEvents = function (parsedHedStrings, hedSchemas, definitions, c
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
-const validateHedDataset = function (hedStrings, hedSchemas, checkForWarnings = false) {
+export const validateHedDataset = function (hedStrings, hedSchemas, checkForWarnings = false) {
   if (hedStrings.length === 0) {
     return [true, []]
   }
@@ -98,7 +98,12 @@ const validateHedDataset = function (hedStrings, hedSchemas, checkForWarnings = 
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
-const validateHedDatasetWithContext = function (hedStrings, contextHedStrings, hedSchemas, checkForWarnings = false) {
+export const validateHedDatasetWithContext = function (
+  hedStrings,
+  contextHedStrings,
+  hedSchemas,
+  checkForWarnings = false,
+) {
   if (hedStrings.length + contextHedStrings.length === 0) {
     return [true, []]
   }
@@ -114,12 +119,4 @@ const validateHedDatasetWithContext = function (hedStrings, contextHedStrings, h
 
   return [definitionIssues.length === 0, definitionIssues.concat(issues)]
   //return validateDataset(definitions, newHedStrings, hedSchemas)
-}
-
-module.exports = {
-  parseDefinitions,
-  validateDataset,
-  validateHedEvents,
-  validateHedDataset,
-  validateHedDatasetWithContext,
 }

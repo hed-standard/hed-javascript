@@ -1,4 +1,4 @@
-const isEqual = require('lodash/isEqual')
+import isEqual from 'lodash/isEqual'
 
 /**
  * Filter non-equal duplicates from a key-value list,
@@ -8,7 +8,7 @@ const isEqual = require('lodash/isEqual')
  * @param {function(V, V): boolean} equalityFunction An equality function for the value data.
  * @return {[Map<K, V>, [K,V][]]} A map and any non-equal duplicate keys found.
  */
-const filterNonEqualDuplicates = function (list, equalityFunction = isEqual) {
+export const filterNonEqualDuplicates = function (list, equalityFunction = isEqual) {
   const map = new Map()
   const duplicateKeySet = new Set()
   const duplicates = []
@@ -26,8 +26,4 @@ const filterNonEqualDuplicates = function (list, equalityFunction = isEqual) {
     duplicates.push([key, value])
   }
   return [map, duplicates]
-}
-
-module.exports = {
-  filterNonEqualDuplicates,
 }

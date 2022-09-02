@@ -1,4 +1,4 @@
-const issuesUtil = require('../common/issues/issues')
+import { generateIssue } from '../common/issues/issues'
 
 /**
  * Generate an issue object for tag conversion.
@@ -12,12 +12,10 @@ const issuesUtil = require('../common/issues/issues')
  * @param {number[]} bounds The bounds of the problem tag.
  * @return {Issue} The issue object.
  */
-const generateIssue = function (code, hedString, parameters = {}, bounds = []) {
+export default function (code, hedString, parameters = {}, bounds = []) {
   parameters.tag = hedString.slice(bounds[0], bounds[1])
   parameters.bounds = bounds
-  const issue = issuesUtil.generateIssue(code, parameters)
+  const issue = generateIssue(code, parameters)
   issue.sourceString = hedString
   return issue
 }
-
-module.exports = generateIssue

@@ -1,10 +1,10 @@
 // TODO: Switch require once upstream bugs are fixed.
-// const xpath = require('xml2js-xpath')
+// import xpath from 'xml2js-xpath'
 // Temporary
-const xpath = require('../../utils/xpath')
+import * as xpath from '../../utils/xpath'
 
-const { SchemaParser } = require('./parser')
-const {
+import { SchemaParser } from './parser'
+import {
   SchemaEntries,
   SchemaEntryManager,
   SchemaAttribute,
@@ -16,11 +16,11 @@ const {
   SchemaValueClass,
   nodeProperty,
   attributeProperty,
-} = require('./types')
+} from './types'
 
 const lc = (str) => str.toLowerCase()
 
-class Hed3SchemaParser extends SchemaParser {
+export class Hed3SchemaParser extends SchemaParser {
   constructor(rootElement) {
     super(rootElement)
     this._versionDefinitions = {}
@@ -262,7 +262,7 @@ class Hed3SchemaParser extends SchemaParser {
   }
 }
 
-class HedV8SchemaParser extends Hed3SchemaParser {
+export class HedV8SchemaParser extends Hed3SchemaParser {
   constructor(rootElement) {
     super(rootElement)
     this._versionDefinitions = {
@@ -281,9 +281,4 @@ class HedV8SchemaParser extends Hed3SchemaParser {
     extensionAllowedAttribute._booleanAttributes.add(recursiveAttribute)
     extensionAllowedAttribute._booleanAttributeNames.add('recursive')
   }
-}
-
-module.exports = {
-  Hed3SchemaParser,
-  HedV8SchemaParser,
 }

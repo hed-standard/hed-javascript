@@ -1,10 +1,11 @@
-const assert = require('chai').assert
-const converterGenerateIssue = require('../converter/issues')
-const { generateIssue } = require('../common/issues/issues')
-const { SchemaSpec, SchemasSpec } = require('../common/schema/types')
-const { recursiveMap } = require('../utils/array')
-const { parseSchemasSpec } = require('../validator/bids/schema')
-const {
+import chai from 'chai'
+const assert = chai.assert
+import converterGenerateIssue from '../converter/issues'
+import { generateIssue } from '../common/issues/issues'
+import { SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { recursiveMap } from '../utils/array'
+import { parseSchemasSpec } from '../validator/bids/schema'
+import {
   BidsDataset,
   BidsEventFile,
   BidsHedIssue,
@@ -12,7 +13,7 @@ const {
   BidsIssue,
   BidsSidecar,
   validateBidsDataset,
-} = require('../validator/bids')
+} from '../validator/bids'
 
 describe('BIDS datasets', () => {
   const sidecars = [

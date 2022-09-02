@@ -1,7 +1,7 @@
-const pluralize = require('pluralize')
+import pluralize from 'pluralize'
 pluralize.addUncountableRule('hertz')
 
-const { isNumber } = require('./string')
+import { isNumber } from './string'
 
 const unitPrefixType = 'unitPrefix'
 const unitSymbolType = 'unitSymbol'
@@ -12,7 +12,7 @@ const SIUnitSymbolModifierKey = 'SIUnitSymbolModifier'
 /**
  * Replace the end of a HED tag with a pound sign.
  */
-const replaceTagNameWithPound = function (formattedTag) {
+export const replaceTagNameWithPound = function (formattedTag) {
   const lastTagSlashIndex = formattedTag.lastIndexOf('/')
   if (lastTagSlashIndex !== -1) {
     return formattedTag.substring(0, lastTagSlashIndex) + '/#'
@@ -24,7 +24,7 @@ const replaceTagNameWithPound = function (formattedTag) {
 /**
  * Get the indices of all slashes in a HED tag.
  */
-const getTagSlashIndices = function (tag) {
+export const getTagSlashIndices = function (tag) {
   const indices = []
   let i = -1
   while ((i = tag.indexOf('/', i + 1)) >= 0) {
@@ -40,7 +40,7 @@ const getTagSlashIndices = function (tag) {
  * @param {string} character The character to use as a separator.
  * @return {string} The last part of the tag using the given separator.
  */
-const getTagName = function (tag, character = '/') {
+export const getTagName = function (tag, character = '/') {
   const lastSlashIndex = tag.lastIndexOf(character)
   if (lastSlashIndex === -1) {
     return tag
@@ -52,7 +52,7 @@ const getTagName = function (tag, character = '/') {
 /**
  * Get the HED tag prefix (up to the last slash).
  */
-const getParentTag = function (tag, character = '/') {
+export const getParentTag = function (tag, character = '/') {
   const lastSlashIndex = tag.lastIndexOf(character)
   if (lastSlashIndex === -1) {
     return tag
@@ -69,7 +69,7 @@ const closingGroupCharacter = ')'
  *
  * @param {string} hedString A HED string.
  */
-const hedStringIsAGroup = function (hedString) {
+export const hedStringIsAGroup = function (hedString) {
   const trimmedHedString = hedString.trim()
   return trimmedHedString.startsWith(openingGroupCharacter) && trimmedHedString.endsWith(closingGroupCharacter)
 }
@@ -79,7 +79,7 @@ const hedStringIsAGroup = function (hedString) {
  *
  * @param {string} tagGroup A tag group string.
  */
-const removeGroupParentheses = function (tagGroup) {
+export const removeGroupParentheses = function (tagGroup) {
   return tagGroup.slice(1, -1)
 }
 
@@ -88,7 +88,7 @@ const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; ]+$/
 /**
  * Determine if a stripped value is valid.
  */
-const validateValue = function (value, isNumeric, isHed3) {
+export const validateValue = function (value, isNumeric, isHed3) {
   if (value === '#') {
     return true
   }
@@ -152,7 +152,7 @@ const getValidDerivativeUnits = function (unit, hedSchemaAttributes) {
  * @param {SchemaAttributes} hedSchemaAttributes The collection of schema attributes.
  * @return {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
  */
-const validateUnits = function (originalTagUnitValue, tagUnitClassUnits, hedSchemaAttributes) {
+export const validateUnits = function (originalTagUnitValue, tagUnitClassUnits, hedSchemaAttributes) {
   const validUnits = getAllUnits(hedSchemaAttributes)
   validUnits.sort((first, second) => {
     return second.length - first.length
@@ -206,15 +206,4 @@ const getAllUnits = function (hedSchemaAttributes) {
     Array.prototype.push.apply(units, unitClassUnits)
   }
   return units
-}
-
-module.exports = {
-  replaceTagNameWithPound,
-  getTagSlashIndices,
-  getTagName,
-  getParentTag,
-  hedStringIsAGroup,
-  removeGroupParentheses,
-  validateValue,
-  validateUnits,
 }

@@ -1,5 +1,5 @@
-const fs = require('fs')
-const request = require('then-request')
+import fs from 'fs'
+import request from 'then-request'
 
 /**
  * Read a local file.
@@ -7,7 +7,7 @@ const request = require('then-request')
  * @param {string} fileName The file path.
  * @return {Promise<unknown>} A promise with the file contents.
  */
-const readFile = function (fileName) {
+export const readFile = function (fileName) {
   return new Promise((resolve) => {
     fs.readFile(fileName, 'utf8', (err, data) => {
       process.nextTick(() => resolve(data))
@@ -21,11 +21,6 @@ const readFile = function (fileName) {
  * @param {string} url The remote URL.
  * @return {Promise<string>} A promise with the file contents.
  */
-const readHTTPSFile = function (url) {
+export const readHTTPSFile = function (url) {
   return request('GET', url).then((res) => res.getBody())
-}
-
-module.exports = {
-  readFile,
-  readHTTPSFile,
 }
