@@ -1,18 +1,13 @@
 {
   "plugins": ["prettier"],
   "parserOptions": {
-    "ecmaVersion": 2017,
+    "ecmaVersion": "latest",
     "sourceType": "module"
   },
   "env": {
-    "es6": true,
-    "browser": true,
-    "commonjs": true,
+    "es2022": true,
     "node": true,
     "jest": true
-  },
-  "globals": {
-    "Uint8Array": false
   },
   "extends": ["eslint:recommended", "prettier"],
   "rules": {
@@ -25,10 +20,12 @@
     "array-callback-return": "error",
     "no-constant-binary-expression": "error",
     "no-constructor-return": "error",
+    "no-duplicate-imports": "error",
     "no-self-compare": "error",
-    "no-template-curly-in-string": "error",
-    "no-unmodified-loop-condition": "error",
-    "no-unreachable": "error",
+    "no-template-curly-in-string": "warn",
+    "no-unmodified-loop-condition": "warn",
+    "no-unreachable-loop": "error",
+    "no-unused-private-class-members": "error",
     "prefer-arrow-callback": ["error", { "allowUnboundThis": false }]
   }
 }
