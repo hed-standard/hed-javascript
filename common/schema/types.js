@@ -47,7 +47,7 @@ export class Schema {
     this.xmlData = xmlData
     const rootElement = xmlData.HED
     this.version = rootElement.$.version
-    this.library = rootElement.$.library || ''
+    this.library = rootElement.$.library ?? ''
 
     this.attributes = attributes
     this.mapping = mapping
