@@ -278,7 +278,7 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
     ])
     this.attributes.set('recursive', recursiveAttribute)
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
-    extensionAllowedAttribute._booleanAttributes.add(recursiveAttribute)
-    extensionAllowedAttribute._booleanAttributeNames.add('recursive')
+    extensionAllowedAttribute.booleanAttributes.add(recursiveAttribute)
+    extensionAllowedAttribute.booleanAttributeNames.add('recursive')
   }
 }

@@ -10,54 +10,64 @@ import { Memoizer } from '../../utils/types'
  */
 export class SchemaAttributes {
   /**
+   * The list of all (formatted) tags.
+   * @type {string[]}
+   */
+  tags
+  /**
+   * The mapping from attributes to tags to values.
+   * @type {Object<string, Object<string, boolean|string|string[]>>}
+   */
+  tagAttributes
+  /**
+   * The mapping from tags to their unit classes.
+   * @type {Object<string, string[]>}
+   */
+  tagUnitClasses
+  /**
+   * The mapping from unit classes to their units.
+   * @type {Object<string, string[]>}
+   */
+  unitClasses
+  /**
+   * The mapping from unit classes to their attributes.
+   * @type {Object<string, Object<string, boolean|string|string[]>>}
+   */
+  unitClassAttributes
+  /**
+   * The mapping from units to their attributes.
+   * @type {Object<string, Object<string, boolean|string|string[]>>}
+   */
+  unitAttributes
+  /**
+   * The mapping from unit modifier types to unit modifiers.
+   * @type {Object<string, string[]>}
+   */
+  unitModifiers
+  /**
+   * Whether the schema has unit classes.
+   * @type {boolean}
+   */
+  hasUnitClasses
+  /**
+   * Whether the schema has unit modifiers.
+   * @type {boolean}
+   */
+  hasUnitModifiers
+
+  /**
    * Constructor.
-   * @param {SchemaParser} schemaParser A constructed schema parser.
+   * @param {Hed2SchemaParser} schemaParser A constructed schema parser.
    */
   constructor(schemaParser) {
-    /**
-     * The list of all (formatted) tags.
-     * @type {string[]}
-     */
     this.tags = schemaParser.tags
-    /**
-     * The mapping from attributes to tags to values.
-     * @type {Object<string, Object<string, boolean|string|string[]>>}
-     */
     this.tagAttributes = schemaParser.tagAttributes
-    /**
-     * The mapping from tags to their unit classes.
-     * @type {Object<string, string[]>}
-     */
     this.tagUnitClasses = schemaParser.tagUnitClasses
-    /**
-     * The mapping from unit classes to their units.
-     * @type {Object<string, string[]>}
-     */
     this.unitClasses = schemaParser.unitClasses
-    /**
-     * The mapping from unit classes to their attributes.
-     * @type {Object<string, Object<string, boolean|string|string[]>>}
-     */
     this.unitClassAttributes = schemaParser.unitClassAttributes
-    /**
-     * The mapping from units to their attributes.
-     * @type {Object<string, Object<string, boolean|string|string[]>>}
-     */
     this.unitAttributes = schemaParser.unitAttributes
-    /**
-     * The mapping from unit modifier types to unit modifiers.
-     * @type {Object<string, string[]>}
-     */
     this.unitModifiers = schemaParser.unitModifiers
-    /**
-     * Whether the schema has unit classes.
-     * @type {boolean}
-     */
     this.hasUnitClasses = schemaParser.hasUnitClasses
-    /**
-     * Whether the schema has unit modifiers.
-     * @type {boolean}
-     */
     this.hasUnitModifiers = schemaParser.hasUnitModifiers
   }
 
@@ -77,28 +87,39 @@ export class SchemaAttributes {
 }
 
 export class SchemaEntries extends Memoizer {
+  /**
+   * The schema's properties.
+   * @type {SchemaEntryManager}
+   */
+  properties
+  /**
+   * The schema's attributes.
+   * @type {SchemaEntryManager}
+   */
+  attributes
+  /**
+   * The schema's definitions.
+   * @type {Map<string, SchemaEntryManager>}
+   */
+  definitions
+
+  /**
+   * Constructor.
+   * @param {Hed3SchemaParser} schemaParser A constructed schema parser.
+   */
   constructor(schemaParser) {
     super()
-    /**
-     * @type {SchemaEntryManager}
-     */
     this.properties = new SchemaEntryManager(schemaParser.properties)
-    /**
-     * @type {SchemaEntryManager}
-     */
     this.attributes = new SchemaEntryManager(schemaParser.attributes)
-    /**
-     * @type {Map<string, SchemaEntryManager>}
-     */
     this.definitions = schemaParser.definitions
   }
 
   /**
    * Get the schema's unit classes.
-   * @return {Map<string, SchemaUnitClass>}
+   * @return {SchemaEntryManager}
    */
   get unitClassMap() {
-    return this.definitions.get('unitClasses').definitions
+    return this.definitions.get('unitClasses')
   }
 
   /**
@@ -152,25 +173,35 @@ export class SchemaEntries extends Memoizer {
 
 export class SchemaEntryManager extends Memoizer {
   /**
+   * The definitions managed by this entry manager.
+   * @type {Map<string, SchemaEntry>}
+   */
+  #definitions
+
+  /**
    * Constructor.
    *
    * @param {Map<string, SchemaEntry>} definitions A map of schema entry definitions.
    */
   constructor(definitions) {
     super()
-    this.definitions = definitions
+    this.#definitions = definitions
   }
 
   [Symbol.iterator]() {
-    return this.definitions.entries()
+    return this.#definitions.entries()
+  }
+
+  values() {
+    return this.#definitions.values()
   }
 
   hasEntry(name) {
-    return this.definitions.has(name)
+    return this.#definitions.has(name)
   }
 
   getEntry(name) {
-    return this.definitions.get(name)
+    return this.#definitions.get(name)
   }
 
   getEntriesWithBooleanAttribute(booleanPropertyName) {
@@ -182,40 +213,55 @@ export class SchemaEntryManager extends Memoizer {
   }
 
   filter(fn) {
-    const pairArray = Array.from(this.definitions.entries())
+    const pairArray = Array.from(this.#definitions.entries())
     return new Map(pairArray.filter((entry) => fn(entry)))
+  }
+
+  get length() {
+    return this.#definitions.size
   }
 }
 
 export class SchemaEntry {
+  /**
+   * The name of this schema entry.
+   * @type {string}
+   */
+  #name
+  /**
+   * The set of boolean attributes this schema entry has.
+   * @type {Set<SchemaAttribute>}
+   */
+  booleanAttributes
+  /**
+   * The collection of value attributes this schema entry has.
+   * @type {Map<SchemaAttribute, *>}
+   */
+  valueAttributes
+  /**
+   * The set of boolean attribute names this schema entry has.
+   * @type {Set<string>}
+   */
+  booleanAttributeNames
+  /**
+   * The collection of value attribute names this schema entry has.
+   * @type {Map<string, *>}
+   */
+  valueAttributeNames
+
   constructor(name, booleanAttributes, valueAttributes) {
-    /**
-     * The name of this schema entry.
-     * @type {string}
-     * @private
-     */
-    this._name = name
-    /**
-     * The set of boolean attributes this schema entry has.
-     * @type {Set<SchemaAttribute>}
-     * @private
-     */
-    this._booleanAttributes = booleanAttributes
-    /**
-     * The collection of value attributes this schema entry has.
-     * @type {Map<SchemaAttribute, *>}
-     * @private
-     */
-    this._valueAttributes = valueAttributes
+    this.#name = name
+    this.booleanAttributes = booleanAttributes
+    this.valueAttributes = valueAttributes
 
     // String-mapped versions of the above objects.
-    this._booleanAttributeNames = new Set()
+    this.booleanAttributeNames = new Set()
     for (const attribute of booleanAttributes) {
-      this._booleanAttributeNames.add(attribute.name)
+      this.booleanAttributeNames.add(attribute.name)
     }
-    this._valueAttributeNames = new Map()
+    this.valueAttributeNames = new Map()
     for (const [attributeName, value] of valueAttributes) {
-      this._valueAttributeNames.set(attributeName.name, value)
+      this.valueAttributeNames.set(attributeName.name, value)
     }
   }
 
@@ -224,7 +270,7 @@ export class SchemaEntry {
    * @return {string}
    */
   get name() {
-    return this._name
+    return this.#name
   }
 
   /**
@@ -233,7 +279,7 @@ export class SchemaEntry {
    * @return {boolean} Whether this schema entry has this attribute.
    */
   hasAttribute(attribute) {
-    return this._booleanAttributes.has(attribute)
+    return this.booleanAttributes.has(attribute)
   }
 
   /**
@@ -243,7 +289,7 @@ export class SchemaEntry {
    * @return {*} The value of the attribute.
    */
   getAttributeValue(attribute, alwaysReturnArray = false) {
-    return SchemaEntry._getMapArrayValue(this._valueAttributes, attribute, alwaysReturnArray)
+    return SchemaEntry.#getMapArrayValue(this.valueAttributes, attribute, alwaysReturnArray)
   }
 
   /**
@@ -252,7 +298,7 @@ export class SchemaEntry {
    * @return {boolean} Whether this schema entry has this attribute.
    */
   hasAttributeName(attributeName) {
-    return this._booleanAttributeNames.has(attributeName)
+    return this.booleanAttributeNames.has(attributeName)
   }
 
   /**
@@ -262,7 +308,7 @@ export class SchemaEntry {
    * @return {*} The value of the attribute.
    */
   getNamedAttributeValue(attributeName, alwaysReturnArray = false) {
-    return SchemaEntry._getMapArrayValue(this._valueAttributeNames, attributeName, alwaysReturnArray)
+    return SchemaEntry.#getMapArrayValue(this.valueAttributeNames, attributeName, alwaysReturnArray)
   }
 
   /**
@@ -275,7 +321,7 @@ export class SchemaEntry {
    * @return {V|V[]} The value for the key in the passed map.
    * @private
    */
-  static _getMapArrayValue(map, key, alwaysReturnArray) {
+  static #getMapArrayValue(map, key, alwaysReturnArray) {
     const value = map.get(key)
     if (!alwaysReturnArray && Array.isArray(value) && value.length === 1) {
       return value[0]
@@ -290,9 +336,15 @@ const categoryProperty = 'categoryProperty'
 const typeProperty = 'typeProperty'
 
 export class SchemaProperty extends SchemaEntry {
+  /**
+   * The type of the property.
+   * @type {string}
+   */
+  #propertyType
+
   constructor(name, propertyType) {
     super(name, new Set(), new Map())
-    this._propertyType = propertyType
+    this.#propertyType = propertyType
   }
 
   /**
@@ -300,7 +352,7 @@ export class SchemaProperty extends SchemaEntry {
    * @return {boolean}
    */
   get isCategoryProperty() {
-    return this._propertyType === categoryProperty
+    return this.#propertyType === categoryProperty
   }
 
   /**
@@ -308,7 +360,7 @@ export class SchemaProperty extends SchemaEntry {
    * @return {boolean}
    */
   get isTypeProperty() {
-    return this._propertyType === typeProperty
+    return this.#propertyType === typeProperty
   }
 }
 
@@ -320,30 +372,47 @@ export const attributeProperty = new SchemaProperty('attributeProperty', categor
 const stringProperty = new SchemaProperty('stringProperty', typeProperty)
 
 export class SchemaAttribute extends SchemaEntry {
+  /**
+   * The category of elements this schema attribute applies to.
+   * @type {SchemaProperty}
+   */
+  #categoryProperty
+  /**
+   * The data type of this schema attribute.
+   * @type {SchemaProperty}
+   */
+  #typeProperty
+
   constructor(name, properties) {
     super(name, new Set(), new Map())
 
     // Parse properties
     const categoryProperties = properties.filter((property) => property.isCategoryProperty)
-    this._categoryProperty = categoryProperties.length === 0 ? nodeProperty : categoryProperties[0]
+    this.#categoryProperty = categoryProperties.length === 0 ? nodeProperty : categoryProperties[0]
     const typeProperties = properties.filter((property) => property.isTypeProperty)
-    this._typeProperty = typeProperties.length === 0 ? stringProperty : typeProperties[0]
+    this.#typeProperty = typeProperties.length === 0 ? stringProperty : typeProperties[0]
   }
 
   get categoryProperty() {
-    return this._categoryProperty
+    return this.#categoryProperty
   }
 
   get typeProperty() {
-    return this._typeProperty
+    return this.#typeProperty
   }
 }
 
 export class SchemaUnit extends SchemaEntry {
+  /**
+   * The legal derivatives of this unit.
+   * @type {string[]}
+   */
+  #derivativeUnits
+
   constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
     super(name, booleanAttributes, valueAttributes)
 
-    this._derivativeUnits = [name]
+    this.#derivativeUnits = [name]
     if (!this.isSIUnit) {
       return
     }
@@ -351,20 +420,20 @@ export class SchemaUnit extends SchemaEntry {
       return this.isUnitSymbol === unitModifier.isSIUnitSymbolModifier
     })
     for (const modifierName of matchingModifiers.keys()) {
-      this._derivativeUnits.push(modifierName + name)
+      this.#derivativeUnits.push(modifierName + name)
     }
     if (!this.isUnitSymbol) {
       const pluralUnit = pluralize.plural(name)
-      this._derivativeUnits.push(pluralUnit)
+      this.#derivativeUnits.push(pluralUnit)
       const SIUnitModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
       for (const modifierName of SIUnitModifiers.keys()) {
-        this._derivativeUnits.push(modifierName + pluralUnit)
+        this.#derivativeUnits.push(modifierName + pluralUnit)
       }
     }
   }
 
   *derivativeUnits() {
-    for (const unit of this._derivativeUnits) {
+    for (const unit of this.#derivativeUnits) {
       yield unit
     }
   }
@@ -384,6 +453,12 @@ export class SchemaUnit extends SchemaEntry {
 
 export class SchemaUnitClass extends SchemaEntry {
   /**
+   * The units for this unit class.
+   * @type {Map<string, SchemaUnit>}
+   */
+  #units
+
+  /**
    * Constructor.
    *
    * @param {string} name The name of this unit class.
@@ -394,7 +469,7 @@ export class SchemaUnitClass extends SchemaEntry {
    */
   constructor(name, booleanAttributes, valueAttributes, units) {
     super(name, booleanAttributes, valueAttributes)
-    this._units = units
+    this.#units = units
   }
 
   /**
@@ -402,7 +477,7 @@ export class SchemaUnitClass extends SchemaEntry {
    * @return {Map<string, SchemaUnit>}
    */
   get units() {
-    return this._units
+    return new Map(this.#units)
   }
 
   /**
@@ -410,7 +485,7 @@ export class SchemaUnitClass extends SchemaEntry {
    * @returns {SchemaUnit}
    */
   get defaultUnit() {
-    return this._units.get(this.getNamedAttributeValue('defaultUnits'))
+    return this.#units.get(this.getNamedAttributeValue('defaultUnits'))
   }
 }
 
@@ -435,16 +510,22 @@ export class SchemaValueClass extends SchemaEntry {
 }
 
 export class SchemaTag extends SchemaEntry {
+  /**
+   * This tag's unit classes.
+   * @type {SchemaUnitClass[]}
+   */
+  #unitClasses
+
   constructor(name, booleanAttributes, valueAttributes, unitClasses) {
     super(name, booleanAttributes, valueAttributes)
-    this._unitClasses = unitClasses ?? []
+    this.#unitClasses = unitClasses ?? []
   }
 
   get unitClasses() {
-    return this._unitClasses
+    return this.#unitClasses
   }
 
   get hasUnitClasses() {
-    return this._unitClasses.length !== 0
+    return this.#unitClasses.length !== 0
   }
 }

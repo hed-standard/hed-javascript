@@ -458,7 +458,7 @@ describe('HED schemas', () => {
         }
 
         const expectedTagCount = 1110
-        assert.lengthOf(schemaTags.definitions, expectedTagCount, 'Mismatch on overall tag count')
+        assert.lengthOf(schemaTags, expectedTagCount, 'Mismatch on overall tag count')
 
         const expectedUnitClassCount = 27
         const schemaTagsWithUnitClasses = schemaTags.filter(([, tag]) => tag.hasUnitClasses)
