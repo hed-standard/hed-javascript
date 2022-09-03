@@ -108,7 +108,7 @@ export class Hed3SchemaParser extends SchemaParser {
 
   parseValueClasses() {
     const valueClasses = new Map()
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this.#parseDefinitions('valueClass')
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('valueClass')
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes))
@@ -118,7 +118,7 @@ export class Hed3SchemaParser extends SchemaParser {
 
   parseUnitModifiers() {
     const unitModifiers = new Map()
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this.#parseDefinitions('unitModifier')
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('unitModifier')
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       unitModifiers.set(name, new SchemaUnitModifier(name, booleanAttributes, valueAttributes))
@@ -128,7 +128,7 @@ export class Hed3SchemaParser extends SchemaParser {
 
   parseUnitClasses() {
     const unitClasses = new Map()
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this.#parseDefinitions('unitClass')
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('unitClass')
     const unitClassUnits = this.parseUnits()
 
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
@@ -149,7 +149,7 @@ export class Hed3SchemaParser extends SchemaParser {
       if (element.unit === undefined) {
         continue
       }
-      const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] = this.#parseAttributeElements(
+      const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] = this._parseAttributeElements(
         element.unit,
         this.getElementTagName,
       )
@@ -165,7 +165,7 @@ export class Hed3SchemaParser extends SchemaParser {
     const [tags, tagElements] = this.getAllTags()
     const lowercaseTags = tags.map(lc)
     this.tags = new Set(lowercaseTags)
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this.#parseAttributeElements(
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseAttributeElements(
       tagElements,
       (element) => this.getTagPathFromTagElement(element),
     )
@@ -224,19 +224,19 @@ export class Hed3SchemaParser extends SchemaParser {
     this.definitions.set('tags', new SchemaEntryManager(tagEntries))
   }
 
-  #parseDefinitions(category) {
+  _parseDefinitions(category) {
     const categoryTagName = category + 'Definition'
     const definitionElements = this.getElementsByName(categoryTagName)
 
-    return this.#parseAttributeElements(definitionElements, this.getElementTagName)
+    return this._parseAttributeElements(definitionElements, this.getElementTagName)
   }
 
-  #parseAttributeElements(elements, namer) {
+  _parseAttributeElements(elements, namer) {
     const booleanAttributeDefinitions = new Map()
     const valueAttributeDefinitions = new Map()
 
     for (const element of elements) {
-      const [booleanAttributes, valueAttributes] = this.#parseAttributeElement(element)
+      const [booleanAttributes, valueAttributes] = this._parseAttributeElement(element)
 
       const elementName = namer(element)
       booleanAttributeDefinitions.set(elementName, booleanAttributes)
@@ -246,7 +246,7 @@ export class Hed3SchemaParser extends SchemaParser {
     return [booleanAttributeDefinitions, valueAttributeDefinitions]
   }
 
-  #parseAttributeElement(element) {
+  _parseAttributeElement(element) {
     const booleanAttributes = new Set()
     const valueAttributes = new Map()
 

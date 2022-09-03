@@ -68,10 +68,10 @@ export class BidsTsvFile extends BidsFile {
   constructor(name, parsedTsv, file) {
     super(name, file)
     this.parsedTsv = parsedTsv
-    this.#parseHedColumn()
+    this._parseHedColumn()
   }
 
-  #parseHedColumn() {
+  _parseHedColumn() {
     const hedColumnIndex = this.parsedTsv.headers.indexOf('HED')
     if (hedColumnIndex === -1) {
       this.hedColumnHedStrings = []
@@ -130,11 +130,11 @@ export class BidsSidecar extends BidsJsonFile {
   constructor(name, sidecarData = {}, file) {
     super(name, sidecarData, file)
 
-    this.#filterHedStrings()
-    this.#categorizeHedStrings()
+    this._filterHedStrings()
+    this._categorizeHedStrings()
   }
 
-  #filterHedStrings() {
+  _filterHedStrings() {
     const sidecarHedTags = Object.entries(this.jsonData)
       .map(([sidecarKey, sidecarValue]) => {
         if (sidecarValueHasHed(sidecarValue)) {
@@ -147,7 +147,7 @@ export class BidsSidecar extends BidsJsonFile {
     this.hedData = new Map(sidecarHedTags)
   }
 
-  #categorizeHedStrings() {
+  _categorizeHedStrings() {
     this.hedValueStrings = []
     this.hedCategoricalStrings = []
     for (const sidecarValue of this.hedData.values()) {

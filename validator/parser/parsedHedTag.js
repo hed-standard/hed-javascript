@@ -40,9 +40,9 @@ export class ParsedHedTag extends ParsedHedSubstring {
   constructor(originalTag, hedString, originalBounds, hedSchemas, schemaName = '') {
     super(originalTag, originalBounds)
 
-    this.#convertTag(hedString, hedSchemas, schemaName)
+    this._convertTag(hedString, hedSchemas, schemaName)
 
-    this.formattedTag = this.#formatTag()
+    this.formattedTag = this._formatTag()
   }
 
   /**
@@ -52,7 +52,7 @@ export class ParsedHedTag extends ParsedHedSubstring {
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
    */
-  #convertTag(hedString, hedSchemas, schemaName) {
+  _convertTag(hedString, hedSchemas, schemaName) {
     if (hedSchemas.isSyntaxOnly) {
       this.canonicalTag = this.originalTag
       this.conversionIssues = []
@@ -92,7 +92,7 @@ export class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Format this HED tag by removing newlines, double quotes, and slashes.
    */
-  #formatTag() {
+  _formatTag() {
     this.originalTag = this.originalTag.replace('\n', ' ')
     let hedTagString = this.canonicalTag.trim()
     if (hedTagString.startsWith('"')) {

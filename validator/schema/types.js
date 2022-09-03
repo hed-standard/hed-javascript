@@ -176,7 +176,7 @@ export class SchemaEntryManager extends Memoizer {
    * The definitions managed by this entry manager.
    * @type {Map<string, SchemaEntry>}
    */
-  #definitions
+  _definitions
 
   /**
    * Constructor.
@@ -185,23 +185,23 @@ export class SchemaEntryManager extends Memoizer {
    */
   constructor(definitions) {
     super()
-    this.#definitions = definitions
+    this._definitions = definitions
   }
 
   [Symbol.iterator]() {
-    return this.#definitions.entries()
+    return this._definitions.entries()
   }
 
   values() {
-    return this.#definitions.values()
+    return this._definitions.values()
   }
 
   hasEntry(name) {
-    return this.#definitions.has(name)
+    return this._definitions.has(name)
   }
 
   getEntry(name) {
-    return this.#definitions.get(name)
+    return this._definitions.get(name)
   }
 
   getEntriesWithBooleanAttribute(booleanPropertyName) {
@@ -213,12 +213,12 @@ export class SchemaEntryManager extends Memoizer {
   }
 
   filter(fn) {
-    const pairArray = Array.from(this.#definitions.entries())
+    const pairArray = Array.from(this._definitions.entries())
     return new Map(pairArray.filter((entry) => fn(entry)))
   }
 
   get length() {
-    return this.#definitions.size
+    return this._definitions.size
   }
 }
 
@@ -227,7 +227,7 @@ export class SchemaEntry {
    * The name of this schema entry.
    * @type {string}
    */
-  #name
+  _name
   /**
    * The set of boolean attributes this schema entry has.
    * @type {Set<SchemaAttribute>}
@@ -250,7 +250,7 @@ export class SchemaEntry {
   valueAttributeNames
 
   constructor(name, booleanAttributes, valueAttributes) {
-    this.#name = name
+    this._name = name
     this.booleanAttributes = booleanAttributes
     this.valueAttributes = valueAttributes
 
@@ -270,7 +270,7 @@ export class SchemaEntry {
    * @return {string}
    */
   get name() {
-    return this.#name
+    return this._name
   }
 
   /**
@@ -289,7 +289,7 @@ export class SchemaEntry {
    * @return {*} The value of the attribute.
    */
   getAttributeValue(attribute, alwaysReturnArray = false) {
-    return SchemaEntry.#getMapArrayValue(this.valueAttributes, attribute, alwaysReturnArray)
+    return SchemaEntry._getMapArrayValue(this.valueAttributes, attribute, alwaysReturnArray)
   }
 
   /**
@@ -308,7 +308,7 @@ export class SchemaEntry {
    * @return {*} The value of the attribute.
    */
   getNamedAttributeValue(attributeName, alwaysReturnArray = false) {
-    return SchemaEntry.#getMapArrayValue(this.valueAttributeNames, attributeName, alwaysReturnArray)
+    return SchemaEntry._getMapArrayValue(this.valueAttributeNames, attributeName, alwaysReturnArray)
   }
 
   /**
@@ -321,7 +321,7 @@ export class SchemaEntry {
    * @return {V|V[]} The value for the key in the passed map.
    * @private
    */
-  static #getMapArrayValue(map, key, alwaysReturnArray) {
+  static _getMapArrayValue(map, key, alwaysReturnArray) {
     const value = map.get(key)
     if (!alwaysReturnArray && Array.isArray(value) && value.length === 1) {
       return value[0]
@@ -340,11 +340,11 @@ export class SchemaProperty extends SchemaEntry {
    * The type of the property.
    * @type {string}
    */
-  #propertyType
+  _propertyType
 
   constructor(name, propertyType) {
     super(name, new Set(), new Map())
-    this.#propertyType = propertyType
+    this._propertyType = propertyType
   }
 
   /**
@@ -352,7 +352,7 @@ export class SchemaProperty extends SchemaEntry {
    * @return {boolean}
    */
   get isCategoryProperty() {
-    return this.#propertyType === categoryProperty
+    return this._propertyType === categoryProperty
   }
 
   /**
@@ -360,7 +360,7 @@ export class SchemaProperty extends SchemaEntry {
    * @return {boolean}
    */
   get isTypeProperty() {
-    return this.#propertyType === typeProperty
+    return this._propertyType === typeProperty
   }
 }
 
@@ -376,29 +376,29 @@ export class SchemaAttribute extends SchemaEntry {
    * The category of elements this schema attribute applies to.
    * @type {SchemaProperty}
    */
-  #categoryProperty
+  _categoryProperty
   /**
    * The data type of this schema attribute.
    * @type {SchemaProperty}
    */
-  #typeProperty
+  _typeProperty
 
   constructor(name, properties) {
     super(name, new Set(), new Map())
 
     // Parse properties
     const categoryProperties = properties.filter((property) => property.isCategoryProperty)
-    this.#categoryProperty = categoryProperties.length === 0 ? nodeProperty : categoryProperties[0]
+    this._categoryProperty = categoryProperties.length === 0 ? nodeProperty : categoryProperties[0]
     const typeProperties = properties.filter((property) => property.isTypeProperty)
-    this.#typeProperty = typeProperties.length === 0 ? stringProperty : typeProperties[0]
+    this._typeProperty = typeProperties.length === 0 ? stringProperty : typeProperties[0]
   }
 
   get categoryProperty() {
-    return this.#categoryProperty
+    return this._categoryProperty
   }
 
   get typeProperty() {
-    return this.#typeProperty
+    return this._typeProperty
   }
 }
 
@@ -407,12 +407,12 @@ export class SchemaUnit extends SchemaEntry {
    * The legal derivatives of this unit.
    * @type {string[]}
    */
-  #derivativeUnits
+  _derivativeUnits
 
   constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
     super(name, booleanAttributes, valueAttributes)
 
-    this.#derivativeUnits = [name]
+    this._derivativeUnits = [name]
     if (!this.isSIUnit) {
       return
     }
@@ -420,20 +420,20 @@ export class SchemaUnit extends SchemaEntry {
       return this.isUnitSymbol === unitModifier.isSIUnitSymbolModifier
     })
     for (const modifierName of matchingModifiers.keys()) {
-      this.#derivativeUnits.push(modifierName + name)
+      this._derivativeUnits.push(modifierName + name)
     }
     if (!this.isUnitSymbol) {
       const pluralUnit = pluralize.plural(name)
-      this.#derivativeUnits.push(pluralUnit)
+      this._derivativeUnits.push(pluralUnit)
       const SIUnitModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
       for (const modifierName of SIUnitModifiers.keys()) {
-        this.#derivativeUnits.push(modifierName + pluralUnit)
+        this._derivativeUnits.push(modifierName + pluralUnit)
       }
     }
   }
 
   *derivativeUnits() {
-    for (const unit of this.#derivativeUnits) {
+    for (const unit of this._derivativeUnits) {
       yield unit
     }
   }
@@ -456,7 +456,7 @@ export class SchemaUnitClass extends SchemaEntry {
    * The units for this unit class.
    * @type {Map<string, SchemaUnit>}
    */
-  #units
+  _units
 
   /**
    * Constructor.
@@ -469,7 +469,7 @@ export class SchemaUnitClass extends SchemaEntry {
    */
   constructor(name, booleanAttributes, valueAttributes, units) {
     super(name, booleanAttributes, valueAttributes)
-    this.#units = units
+    this._units = units
   }
 
   /**
@@ -477,7 +477,7 @@ export class SchemaUnitClass extends SchemaEntry {
    * @return {Map<string, SchemaUnit>}
    */
   get units() {
-    return new Map(this.#units)
+    return new Map(this._units)
   }
 
   /**
@@ -485,7 +485,7 @@ export class SchemaUnitClass extends SchemaEntry {
    * @returns {SchemaUnit}
    */
   get defaultUnit() {
-    return this.#units.get(this.getNamedAttributeValue('defaultUnits'))
+    return this._units.get(this.getNamedAttributeValue('defaultUnits'))
   }
 }
 
@@ -514,18 +514,18 @@ export class SchemaTag extends SchemaEntry {
    * This tag's unit classes.
    * @type {SchemaUnitClass[]}
    */
-  #unitClasses
+  _unitClasses
 
   constructor(name, booleanAttributes, valueAttributes, unitClasses) {
     super(name, booleanAttributes, valueAttributes)
-    this.#unitClasses = unitClasses ?? []
+    this._unitClasses = unitClasses ?? []
   }
 
   get unitClasses() {
-    return this.#unitClasses.slice()
+    return this._unitClasses.slice()
   }
 
   get hasUnitClasses() {
-    return this.#unitClasses.length !== 0
+    return this._unitClasses.length !== 0
   }
 }
