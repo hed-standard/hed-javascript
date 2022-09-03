@@ -5,6 +5,35 @@ import issueData from './data'
  */
 export class Issue {
   /**
+   * The internal error code.
+   * @type {string}
+   */
+  internalCode
+  /**
+   * Also the internal error code.
+   *
+   * TODO: This is kept for backward compatibility until the next major version bump.
+   * @deprecated
+   * @type {string}
+   */
+  code
+  /**
+   * The HED 3 error code.
+   * @type {string}
+   */
+  hedCode
+  /**
+   * The issue level (error or warning).
+   * @type {string}
+   */
+  level
+  /**
+   * The detailed error message.
+   * @type {string}
+   */
+  message
+
+  /**
    * Constructor.
    * @param {string} internalCode The internal error code.
    * @param {string} hedCode The HED 3 error code.
@@ -12,33 +41,10 @@ export class Issue {
    * @param {string} message The detailed error message.
    */
   constructor(internalCode, hedCode, level, message) {
-    /**
-     * The internal error code.
-     * @type {string}
-     */
     this.internalCode = internalCode
-    /**
-     * Also the internal error code.
-     *
-     * TODO: This is kept for backward compatibility until the next major version bump.
-     * @deprecated
-     * @type {string}
-     */
     this.code = internalCode
-    /**
-     * The HED 3 error code.
-     * @type {string}
-     */
     this.hedCode = hedCode
-    /**
-     * The issue level (error or warning).
-     * @type {string}
-     */
     this.level = level
-    /**
-     * The detailed error message.
-     * @type {string}
-     */
     this.message = `${level.toUpperCase()}: [${hedCode}] ${message}`
   }
 }
