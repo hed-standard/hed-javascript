@@ -191,7 +191,7 @@ export class Hed3SchemaParser extends SchemaParser {
         valueAttributes.delete(tagUnitClassAttribute)
       }
       for (const attribute of recursiveAttributes) {
-        const children = recursiveChildren.get(attribute) || []
+        const children = recursiveChildren.get(attribute) ?? []
         if (booleanAttributeDefinitions.get(tagName).has(attribute)) {
           children.push(...this.getAllChildTags(tagElement))
         }

@@ -53,7 +53,7 @@ export class Issue {
 export const generateIssue = function (internalCode, parameters) {
   const issueCodeData = issueData[internalCode] || issueData.genericError
   const { hedCode, level, message } = issueCodeData
-  const bounds = parameters.bounds || []
+  const bounds = parameters.bounds ?? []
   if (issueCodeData === issueData.genericError) {
     parameters.internalCode = internalCode
     parameters.parameters = 'Issue parameters: ' + JSON.stringify(parameters)

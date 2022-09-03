@@ -28,7 +28,7 @@ export const find = function (element, query) {
     return element[childToParent[elementName]][0][elementName]
   } else if (elementName === 'node') {
     const parentElement = element.schema ? element.schema[0] : element
-    const nodeList = parentElement.node || []
+    const nodeList = parentElement.node ?? []
     return nodeList.flatMap(searchMap)
   }
 

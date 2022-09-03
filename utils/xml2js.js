@@ -10,7 +10,7 @@ const setNodeParent = function (node, parent) {
     return
   }
   node.$parent = parent
-  const childNodes = node.node || []
+  const childNodes = node.node ?? []
   for (const child of childNodes) {
     setNodeParent(child, node)
   }

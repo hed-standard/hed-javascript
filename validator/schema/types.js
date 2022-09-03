@@ -437,7 +437,7 @@ export class SchemaValueClass extends SchemaEntry {
 export class SchemaTag extends SchemaEntry {
   constructor(name, booleanAttributes, valueAttributes, unitClasses) {
     super(name, booleanAttributes, valueAttributes)
-    this._unitClasses = unitClasses || []
+    this._unitClasses = unitClasses ?? []
   }
 
   get unitClasses() {
