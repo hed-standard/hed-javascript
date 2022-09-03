@@ -522,7 +522,7 @@ export class SchemaTag extends SchemaEntry {
   }
 
   get unitClasses() {
-    return this.#unitClasses
+    return this.#unitClasses.slice()
   }
 
   get hasUnitClasses() {
