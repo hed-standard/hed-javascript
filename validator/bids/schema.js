@@ -11,7 +11,7 @@ export function buildBidsSchemas(dataset, schemaDefinition) {
   let issues
   if (schemaDefinition) {
     ;[schemasSpec, issues] = validateSchemasSpec(schemaDefinition)
-  } else if (dataset.datasetDescription.jsonData && dataset.datasetDescription.jsonData.HEDVersion) {
+  } else if (dataset.datasetDescription.jsonData?.HEDVersion) {
     ;[schemasSpec, issues] = parseSchemasSpec(dataset.datasetDescription.jsonData.HEDVersion)
   } else {
     ;[schemasSpec, issues] = [null, [generateIssue('invalidSchemaSpecification', { spec: 'no schema available' })]]
@@ -62,39 +62,55 @@ export function parseSchemasSpec(hedVersion) {
 }
 
 export function parseSchemaSpec(schemaVersion) {
+  const [[nickname, schema], nicknameIssues] = splitNicknameAndSchema(schemaVersion)
+  if (nicknameIssues.length > 0) {
+    return [null, nicknameIssues]
+  }
+  const [[library, version], libraryIssues] = splitLibraryAndVersion(schema, schemaVersion)
+  if (libraryIssues.length > 0) {
+    return [null, libraryIssues]
+  }
+  const schemaSpec = new SchemaSpec(nickname, version, library)
+  return [schemaSpec, []]
+}
+
+function splitNicknameAndSchema(schemaVersion) {
   const nicknameSplit = schemaVersion.split(':')
   let nickname = ''
   let schema
   if (nicknameSplit.length > 2) {
-    return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
+    return [['', ''], [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
   }
   if (nicknameSplit.length > 1) {
     ;[nickname, schema] = nicknameSplit
     if (nickname === '' || !alphanumericRegExp.test(nickname)) {
-      return [null, [generateIssue('invalidSchemaNickname', { nickname: nickname, spec: schemaVersion })]]
+      return [['', ''], [generateIssue('invalidSchemaNickname', { nickname: nickname, spec: schemaVersion })]]
     }
   } else {
     schema = nicknameSplit[0]
   }
-  const versionSplit = schema.split('_')
+  return [[nickname, schema], []]
+}
+
+function splitLibraryAndVersion(schemaVersion, originalVersion) {
+  const versionSplit = schemaVersion.split('_')
   let library = ''
   let version
   if (versionSplit.length > 2) {
-    return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
+    return [['', ''], [generateIssue('invalidSchemaSpecification', { spec: originalVersion })]]
   }
   if (versionSplit.length > 1) {
     ;[library, version] = versionSplit
     if (library === '' || !alphanumericRegExp.test(library)) {
-      return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
+      return [['', ''], [generateIssue('invalidSchemaSpecification', { spec: originalVersion })]]
     }
   } else {
     version = versionSplit[0]
   }
   if (!semver.valid(version)) {
-    return [null, [generateIssue('invalidSchemaSpecification', { spec: schemaVersion })]]
+    return [['', ''], [generateIssue('invalidSchemaSpecification', { spec: originalVersion })]]
   }
-  const schemaSpec = new SchemaSpec(nickname, version, library)
-  return [schemaSpec, []]
+  return [[library, version], []]
 }
 
 export function validateSchemaSpec(schemaSpec) {
