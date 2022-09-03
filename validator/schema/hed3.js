@@ -191,7 +191,7 @@ export class Hed3SchemaParser extends SchemaParser {
         valueAttributes.delete(tagUnitClassAttribute)
       }
       for (const attribute of recursiveAttributes) {
-        const children = recursiveChildren.get(attribute) || []
+        const children = recursiveChildren.get(attribute) ?? []
         if (booleanAttributeDefinitions.get(tagName).has(attribute)) {
           children.push(...this.getAllChildTags(tagElement))
         }
@@ -236,29 +236,33 @@ export class Hed3SchemaParser extends SchemaParser {
     const valueAttributeDefinitions = new Map()
 
     for (const element of elements) {
-      const elementName = namer(element)
-      const booleanAttributes = new Set()
-      const valueAttributes = new Map()
+      const [booleanAttributes, valueAttributes] = this._parseAttributeElement(element)
 
+      const elementName = namer(element)
       booleanAttributeDefinitions.set(elementName, booleanAttributes)
       valueAttributeDefinitions.set(elementName, valueAttributes)
-
-      if (element.attribute === undefined) {
-        continue
-      }
-
-      for (const tagAttribute of element.attribute) {
-        const attributeName = tagAttribute.name[0]._
-        if (tagAttribute.value === undefined) {
-          booleanAttributes.add(this.attributes.get(attributeName))
-          continue
-        }
-        const values = tagAttribute.value.map((value) => value._)
-        valueAttributes.set(this.attributes.get(attributeName), values)
-      }
     }
 
     return [booleanAttributeDefinitions, valueAttributeDefinitions]
+  }
+
+  _parseAttributeElement(element) {
+    const booleanAttributes = new Set()
+    const valueAttributes = new Map()
+
+    const tagAttributes = element.attribute ?? []
+
+    for (const tagAttribute of tagAttributes) {
+      const attributeName = this.getElementTagName(tagAttribute)
+      if (tagAttribute.value === undefined) {
+        booleanAttributes.add(this.attributes.get(attributeName))
+        continue
+      }
+      const values = tagAttribute.value.map((value) => value._)
+      valueAttributes.set(this.attributes.get(attributeName), values)
+    }
+
+    return [booleanAttributes, valueAttributes]
   }
 }
 
@@ -278,7 +282,7 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
     ])
     this.attributes.set('recursive', recursiveAttribute)
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
-    extensionAllowedAttribute._booleanAttributes.add(recursiveAttribute)
-    extensionAllowedAttribute._booleanAttributeNames.add('recursive')
+    extensionAllowedAttribute.booleanAttributes.add(recursiveAttribute)
+    extensionAllowedAttribute.booleanAttributeNames.add('recursive')
   }
 }

@@ -6,45 +6,52 @@ import ParsedHedGroup from './parsedHedGroup'
  */
 export default class ParsedHedString {
   /**
+   * The original HED string.
+   * @type {string}
+   */
+  hedString
+  /**
+   * The tag groups in the string.
+   * @type ParsedHedGroup[]
+   */
+  tagGroups
+  /**
+   * All the top-level tags in the string.
+   * @type ParsedHedTag[]
+   */
+  topLevelTags
+  /**
+   * All the tags in the string.
+   * @type ParsedHedTag[]
+   */
+  tags
+  /**
+   * The top-level tag groups in the string, split into arrays.
+   * @type ParsedHedTag[][]
+   */
+  topLevelTagGroups
+  /**
+   * The definition tag groups in the string.
+   * @type ParsedHedGroup[]
+   */
+  definitionGroups
+
+  /**
    * Constructor.
    * @param {string} hedString The original HED string.
    * @param {ParsedHedSubstring[]} parsedTags The nested list of parsed HED tags and groups.
    */
   constructor(hedString, parsedTags) {
-    /**
-     * The original HED string.
-     * @type {string}
-     */
     this.hedString = hedString
-    /**
-     * The tag groups in the string.
-     * @type ParsedHedGroup[]
-     */
     this.tagGroups = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedGroup)
-    /**
-     * All of the top-level tags in the string.
-     * @type ParsedHedTag[]
-     */
     this.topLevelTags = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)
 
     const subgroupTags = this.tagGroups.flatMap((tagGroup) => Array.from(tagGroup.tagIterator()))
-    /**
-     * All of the tags in the string.
-     * @type ParsedHedTag[]
-     */
     this.tags = this.topLevelTags.concat(subgroupTags)
 
-    /**
-     * The top-level tag groups in the string, split into arrays.
-     * @type ParsedHedTag[][]
-     */
     this.topLevelTagGroups = this.tagGroups.map((tagGroup) =>
       tagGroup.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag),
     )
-    /**
-     * The definition tag groups in the string.
-     * @type ParsedHedGroup[]
-     */
     this.definitionGroups = this.tagGroups.filter((group) => {
       return group.isDefinitionGroup
     })

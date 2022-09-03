@@ -40,6 +40,27 @@ const groupDefinitionTag = function (group, hedSchemas) {
  */
 export default class ParsedHedGroup extends ParsedHedSubstring {
   /**
+   * The parsed HED tags in the HED tag group.
+   * @type {(ParsedHedTag|ParsedHedGroup)[]}
+   */
+  tags
+  /**
+   * The base of {@link definitionTag}.
+   * @type {string}
+   */
+  definitionBase
+  /**
+   * The Definition tag associated with this HED tag group.
+   * @type {ParsedHedTag|ParsedHedTag[]|null}
+   */
+  definitionTag
+  /**
+   * Whether this HED tag group is a definition group.
+   * @type {boolean}
+   */
+  isDefinitionGroup
+
+  /**
    * Constructor.
    * @param {(ParsedHedTag|ParsedHedGroup)[]} parsedHedTags The parsed HED tags in the HED tag group.
    * @param {Schemas} hedSchemas The collection of HED schemas.
@@ -49,22 +70,11 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   constructor(parsedHedTags, hedSchemas, hedString, originalBounds) {
     const originalTag = hedString.substring(...originalBounds)
     super(originalTag, originalBounds)
-    /**
-     * The parsed HED tags in the HED tag group.
-     * @type {(ParsedHedTag|ParsedHedGroup)[]}
-     */
+
     this.tags = parsedHedTags
     const [definitionBase, definitionTag] = groupDefinitionTag(this, hedSchemas)
     this.definitionBase = definitionBase
-    /**
-     * The Definition tag associated with this HED tag group.
-     * @type {ParsedHedTag|ParsedHedTag[]|null}
-     */
     this.definitionTag = definitionTag
-    /**
-     * Whether this HED tag group is a definition group.
-     * @type {boolean}
-     */
     this.isDefinitionGroup = definitionTag !== null
   }
 

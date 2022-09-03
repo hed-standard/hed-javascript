@@ -58,7 +58,7 @@ describe('HED schemas', () => {
           assert.strictEqual(schema3.version, spec3.version)
           assert.strictEqual(schema3.library, spec3.library)
           const schema4 = hedSchemas.getSchema('baloney')
-          assert.strictEqual(schema4, null)
+          assert.isUndefined(schema4, 'baloney schema exists')
         })
       })
     })
@@ -458,7 +458,7 @@ describe('HED schemas', () => {
         }
 
         const expectedTagCount = 1110
-        assert.lengthOf(schemaTags.definitions, expectedTagCount, 'Mismatch on overall tag count')
+        assert.lengthOf(schemaTags, expectedTagCount, 'Mismatch on overall tag count')
 
         const expectedUnitClassCount = 27
         const schemaTagsWithUnitClasses = schemaTags.filter(([, tag]) => tag.hasUnitClasses)

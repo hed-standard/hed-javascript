@@ -1,4 +1,5 @@
 import { generateIssue } from '../../common/issues/issues'
+import { Schema } from '../../common/schema/types'
 import { convertPartialHedStringToLong } from '../../converter/converter'
 import { getTagSlashIndices, replaceTagNameWithPound } from '../../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
@@ -7,6 +8,27 @@ import ParsedHedSubstring from './parsedHedSubstring'
  * A parsed HED tag.
  */
 export class ParsedHedTag extends ParsedHedSubstring {
+  /**
+   * The formatted canonical version of the HED tag.
+   * @type {string}
+   */
+  formattedTag
+  /**
+   * The canonical form of the HED tag.
+   * @type {string}
+   */
+  canonicalTag
+  /**
+   * Any issues encountered during tag conversion.
+   * @type {Issue[]}
+   */
+  conversionIssues
+  /**
+   * The HED schema this tag belongs to.
+   * @type {Schema}
+   */
+  schema
+
   /**
    * Constructor.
    * @param {string} originalTag The original HED tag.
@@ -18,12 +40,9 @@ export class ParsedHedTag extends ParsedHedSubstring {
   constructor(originalTag, hedString, originalBounds, hedSchemas, schemaName = '') {
     super(originalTag, originalBounds)
 
-    this.convertTag(hedString, hedSchemas, schemaName)
-    /**
-     * The formatted canonical version of the HED tag.
-     * @type {string}
-     */
-    this.formattedTag = this.formatTag()
+    this._convertTag(hedString, hedSchemas, schemaName)
+
+    this.formattedTag = this._formatTag()
   }
 
   /**
@@ -33,26 +52,13 @@ export class ParsedHedTag extends ParsedHedSubstring {
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
    */
-  convertTag(hedString, hedSchemas, schemaName) {
+  _convertTag(hedString, hedSchemas, schemaName) {
     if (hedSchemas.isSyntaxOnly) {
-      /**
-       * The canonical form of the HED tag.
-       * @type {string}
-       */
       this.canonicalTag = this.originalTag
-      /**
-       * Any issues encountered during tag conversion.
-       * @type {Issue[]}
-       */
       this.conversionIssues = []
-
       return
     }
 
-    /**
-     * The HED schema this tag belongs to.
-     * @type {Schema}
-     */
     this.schema = hedSchemas.getSchema(schemaName)
     if (this.schema === undefined) {
       if (schemaName !== '') {
@@ -86,7 +92,7 @@ export class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Format this HED tag by removing newlines, double quotes, and slashes.
    */
-  formatTag() {
+  _formatTag() {
     this.originalTag = this.originalTag.replace('\n', ' ')
     let hedTagString = this.canonicalTag.trim()
     if (hedTagString.startsWith('"')) {
@@ -405,7 +411,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
       const tagUnitClasses = this.unitClasses
       const units = new Set()
       for (const unitClass of tagUnitClasses) {
-        const unitClassUnits = this.schema.entries.unitClassMap.get(unitClass.name).units
+        const unitClassUnits = this.schema.entries.unitClassMap.getEntry(unitClass.name).units
         for (const unit of unitClassUnits.values()) {
           units.add(unit)
         }

@@ -7,43 +7,50 @@ import { getGenerationForSchemaVersion } from '../../utils/hedData'
  */
 export class Schema {
   /**
+   * The schema XML data.
+   * @type {Object}
+   */
+  xmlData
+  /**
+   * The HED schema version.
+   * @type {string}
+   */
+  version
+  /**
+   * The HED generation of this schema.
+   * @type {Number}
+   */
+  generation
+  /**
+   * The HED library schema name.
+   * @type {string}
+   */
+  library
+  /**
+   * The description of tag attributes.
+   * @type {SchemaAttributes}
+   */
+  attributes
+  /**
+   * The mapping between short and long tags.
+   * @type {Mapping}
+   */
+  mapping
+
+  /**
    * Constructor.
    * @param {object} xmlData The schema XML data.
    * @param {SchemaAttributes} attributes A description of tag attributes.
    * @param {Mapping} mapping A mapping between short and long tags.
    */
   constructor(xmlData, attributes, mapping) {
-    /**
-     * The schema XML data.
-     * @type {Object}
-     */
     this.xmlData = xmlData
     const rootElement = xmlData.HED
-    /**
-     * The HED schema version.
-     * @type {string}
-     */
     this.version = rootElement.$.version
-    /**
-     * The HED library schema name.
-     * @type {string}
-     */
-    this.library = rootElement.$.library || ''
+    this.library = rootElement.$.library ?? ''
 
-    /**
-     * The description of tag attributes.
-     * @type {SchemaAttributes}
-     */
     this.attributes = attributes
-    /**
-     * The mapping between short and long tags.
-     * @type {Mapping}
-     */
     this.mapping = mapping
-    /**
-     * The HED generation of this schema.
-     * @type {Number}
-     */
     if (this.library) {
       this.generation = 3
     } else {
@@ -93,12 +100,15 @@ export class Hed2Schema extends Schema {
 }
 
 export class Hed3Schema extends Schema {
+  /**
+   * The collection of schema entries.
+   * @type {SchemaEntries}
+   */
+  entries
+
   constructor(xmlData, entries, mapping) {
     super(xmlData, null, mapping)
-    /**
-     * The collection of schema entries.
-     * @type {SchemaEntries}
-     */
+
     this.entries = entries
   }
 
@@ -119,21 +129,23 @@ export class Hed3Schema extends Schema {
  */
 export class Schemas {
   /**
+   * The imported HED schemas.
+   *
+   * The empty string key ("") corresponds to the schema with no nickname,
+   * while other keys correspond to the respective nicknames.
+   *
+   * This field is null for syntax-only validation.
+   *
+   * @type {Map<string, Schema>|null}
+   */
+  schemas
+
+  /**
    * Constructor.
    * @param {Schema|Map<string, Schema>|null} schemas The imported HED schemas.
    */
   constructor(schemas) {
     if (schemas === null || schemas instanceof Map) {
-      /**
-       * The imported HED schemas.
-       *
-       * The empty string key ("") corresponds to the schema with no nickname,
-       * while other keys correspond to the respective nicknames.
-       *
-       * This field is null for syntax-only validation.
-       *
-       * @type {Map<string, Schema>|null}
-       */
       this.schemas = schemas
     } else if (schemas instanceof Schema) {
       this.schemas = new Map([['', schemas]])
@@ -146,20 +158,16 @@ export class Schemas {
    * Return the schema with the given nickname.
    *
    * @param {string} schemaName A nickname in the schema set.
-   * @returns {Schema|null} The schema object corresponding to that nickname, or null if no schemas are defined.
+   * @returns {Schema} The schema object corresponding to that nickname.
    */
   getSchema(schemaName) {
-    if (this.schemas === null || !this.schemas.has(schemaName)) {
-      return null
-    } else {
-      return this.schemas.get(schemaName)
-    }
+    return this.schemas?.get(schemaName)
   }
 
   /**
    * The base schema, i.e. the schema with no nickname, if one is defined.
    *
-   * @returns {Schema|null}
+   * @returns {Schema}
    */
   get baseSchema() {
     return this.getSchema('')
@@ -228,6 +236,27 @@ export class Schemas {
  */
 export class SchemaSpec {
   /**
+   * The nickname of this schema.
+   * @type {string}
+   */
+  nickname
+  /**
+   * The version of this schema.
+   * @type {string}
+   */
+  version
+  /**
+   * The library name of this schema.
+   * @type {string}
+   */
+  library
+  /**
+   * The local path for this schema.
+   * @type {string}
+   */
+  localPath
+
+  /**
    * Constructor.
    *
    * @param {string} nickname The nickname of this schema.
@@ -271,6 +300,15 @@ export class SchemaSpec {
  * A specification mapping schema nicknames to SchemaSpec objects.
  */
 export class SchemasSpec {
+  /**
+   * The specification mapping data.
+   * @type {Map<string, SchemaSpec>}
+   */
+  data
+
+  /**
+   * Constructor.
+   */
   constructor() {
     this.data = new Map()
   }

@@ -1,6 +1,6 @@
 import { ParsedHedTag } from '../parser/parsedHedTag'
 import ParsedHedString from '../parser/parsedHedString'
-import { generateIssue } from '../../common/issues/issues'
+import { generateIssue, Issue } from '../../common/issues/issues'
 import { Schemas } from '../../common/schema/types'
 import { replaceTagNameWithPound, validateUnits } from '../../utils/hedStrings'
 import { getCharacterCount, isClockFaceTime, isDateTime, isNumber } from '../../utils/string'
@@ -16,11 +16,32 @@ const timeUnitClass = 'time'
 
 export class HedValidator {
   /**
+   * The parsed HED string to be validated.
+   * @type {ParsedHedString}
+   */
+  parsedString
+  /**
+   * The collection of HED schemas.
+   * @type {Schemas}
+   */
+  hedSchemas
+  /**
+   * The validation options.
+   * @type {Object<string, boolean>}
+   */
+  options
+  /**
+   * The running issue list.
+   * @type {Issue[]}
+   */
+  issues
+
+  /**
    * Constructor.
    *
-   * @param {ParsedHedString} parsedString
-   * @param {Schemas} hedSchemas
-   * @param {Object<String, boolean>} options
+   * @param {ParsedHedString} parsedString The parsed HED string to be validated.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {Object<String, boolean>} options The validation options.
    */
   constructor(parsedString, hedSchemas, options) {
     this.parsedString = parsedString

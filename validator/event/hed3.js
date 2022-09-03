@@ -11,11 +11,17 @@ const topLevelTagGroupType = 'topLevelTagGroup'
 
 export class Hed3Validator extends HedValidator {
   /**
+   * The parsed definitions.
+   * @type {Map<string, ParsedHedGroup>}
+   */
+  definitions
+
+  /**
    * Constructor.
-   * @param {ParsedHedString} parsedString
-   * @param {Schemas} hedSchemas
-   * @param {Map<string, ParsedHedGroup>} definitions
-   * @param {Object<string, boolean>} options
+   * @param {ParsedHedString} parsedString The parsed HED string to be validated.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {Map<string, ParsedHedGroup>} definitions The parsed definitions.
+   * @param {Object<string, boolean>} options The validation options.
    */
   constructor(parsedString, hedSchemas, definitions, options) {
     super(parsedString, hedSchemas, options)
