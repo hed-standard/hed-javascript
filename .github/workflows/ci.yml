@@ -2,13 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   Build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -16,34 +15,33 @@ jobs:
         node-version: [12.x, 14.x, 16.x, 17.x, 18.x]
 
     steps:
-    - name: Check out the code
-      uses: actions/checkout@v3
-    - name: Set up with Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: Download dependencies
-      run: npm ci
-    - name: Test with Node.js ${{ matrix.node-version }}
-      run: npm test
+      - name: Check out the code
+        uses: actions/checkout@v3
+      - name: Set up with Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Download dependencies
+        run: npm ci
+      - name: Test with Node.js ${{ matrix.node-version }}
+        run: npm test
 
   Coverage:
-
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check out the code
-      uses: actions/checkout@v3
-    - name: Set up with Node.js LTS
-      uses: actions/setup-node@v3
-      with:
-        node-version: lts/*
-    - name: Download dependencies
-      run: npm ci
-    - name: Test & publish code coverage
-      uses: paambaati/codeclimate-action@v3.0.0
-      env:
-        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-      with:
-        coverageCommand: ./node_modules/.bin/jest --coverage
-        debug: true
+      - name: Check out the code
+        uses: actions/checkout@v3
+      - name: Set up with Node.js LTS
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+      - name: Download dependencies
+        run: npm ci
+      - name: Test & publish code coverage
+        uses: paambaati/codeclimate-action@v3.2.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: ./node_modules/.bin/jest --coverage
+          debug: true
