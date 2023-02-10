@@ -179,7 +179,7 @@ describe('BIDS datasets', () => {
         event_type: {
           HED: {
             show_face: 'Manual-eye-closure, Drowsiness',
-            left_press: 'Wicket-spikes, Frequency',
+            left_press: 'Wicket-spikes, Finding-frequency',
           },
         },
       },
@@ -188,7 +188,7 @@ describe('BIDS datasets', () => {
         event_type: {
           HED: {
             show_face: 'sc:Manual-eye-closure, sc:Drowsiness',
-            left_press: 'sc:Wicket-spikes, sc:Frequency',
+            left_press: 'sc:Wicket-spikes, sc:Finding-frequency',
           },
         },
       },
