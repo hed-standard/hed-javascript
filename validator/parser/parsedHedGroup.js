@@ -111,6 +111,23 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
+   * Determine the name of this group's definition.
+   * @return {string|null}
+   */
+  get definitionValue() {
+    return this._memoize('definitionValue', () => {
+      if (!this.isDefinitionGroup) {
+        return null
+      }
+      if (this.definitionName === getTagName(this.definitionTag.parentCanonicalTag)) {
+        return ''
+      } else {
+        return this.definitionTag.canonicalTagName
+      }
+    })
+  }
+
+  /**
    * Determine the value of this group's definition.
    * @return {ParsedHedGroup|null}
    */

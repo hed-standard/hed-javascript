@@ -133,6 +133,12 @@ export class ParsedHedTag extends ParsedHedSubstring {
     }
   }
 
+  get canonicalTagName() {
+    return this._memoize('canonicalTagName', () => {
+      return ParsedHedTag.getTagName(this.canonicalTag)
+    })
+  }
+
   get formattedTagName() {
     return this._memoize('formattedTagName', () => {
       return ParsedHedTag.getTagName(this.formattedTag)
