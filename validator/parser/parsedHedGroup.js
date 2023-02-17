@@ -21,7 +21,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   definitionBase
   /**
    * The Definition tag associated with this HED tag group.
-   * @type {ParsedHedTag|ParsedHedTag[]|null}
+   * @type {ParsedHedTag|null}
    */
   definitionTag
   /**
@@ -29,6 +29,16 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @type {boolean}
    */
   isDefinitionGroup
+  /**
+   * Whether this HED tag group is a onset group.
+   * @type {boolean}
+   */
+  isOnsetGroup
+  /**
+   * Whether this HED tag group is a offset group.
+   * @type {boolean}
+   */
+  isOffsetGroup
 
   /**
    * Constructor.
@@ -42,12 +52,29 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     super(originalTag, originalBounds)
 
     this.tags = parsedHedTags
+    this._findSpecialGroups(hedSchemas)
+  }
+
+  _findSpecialGroups(hedSchemas) {
     this.definitionTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Definition')
     this.isDefinitionGroup = Boolean(this.definitionTag)
+    if (this.isDefinitionGroup) {
+      this.definitionBase = 'Definition'
+      return
+    }
+    const defTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Def')
     const onsetTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Onset')
     this.isOnsetGroup = Boolean(onsetTag)
+    if (this.isOnsetGroup) {
+      this.definitionTag = defTag
+      this.definitionBase = 'Def'
+    }
     const offsetTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Offset')
     this.isOffsetGroup = Boolean(offsetTag)
+    if (this.isOffsetGroup) {
+      this.definitionTag = defTag
+      this.definitionBase = 'Def'
+    }
   }
 
   /**
@@ -86,10 +113,10 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get definitionName() {
     return this._memoize('definitionName', () => {
-      if (!this.isDefinitionGroup) {
+      if (this.definitionBase === undefined) {
         return null
       }
-      return ParsedHedGroup.findDefinitionName(this.definitionTag.canonicalTag, 'Definition')
+      return ParsedHedGroup.findDefinitionName(this.definitionTag.canonicalTag, this.definitionBase)
     })
   }
 
@@ -118,13 +145,13 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get definitionValue() {
     return this._memoize('definitionValue', () => {
-      if (!this.isDefinitionGroup) {
+      if (this.definitionBase === undefined) {
         return null
       }
-      if (this.definitionName === getTagName(this.definitionTag.parentCanonicalTag)) {
+      if (getTagName(this.definitionTag.parentCanonicalTag) === this.definitionBase) {
         return ''
       } else {
-        return this.definitionTag.canonicalTagName
+        return this.definitionTag.originalTagName
       }
     })
   }
@@ -135,7 +162,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get definitionGroup() {
     return this._memoize('definitionGroup', () => {
-      if (!this.isDefinitionGroup) {
+      if (this.definitionBase === undefined) {
         return null
       }
       for (const subgroup of this.tags) {

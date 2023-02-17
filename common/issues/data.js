@@ -119,6 +119,16 @@ export default {
     level: 'error',
     message: stringTemplate`Illegal tag "${'tag'}" in tag group for definition "${'definition'}"`,
   },
+  inactiveOnsetWithValue: {
+    hedCode: 'ONSET_OFFSET_ERROR',
+    level: 'error',
+    message: stringTemplate`Offset found for inactive onset with definition name "${'definitionName'}" and placeholder value "${'definitionValue'}"`,
+  },
+  inactiveOnsetNoValue: {
+    hedCode: 'ONSET_OFFSET_ERROR',
+    level: 'error',
+    message: stringTemplate`Offset found for inactive onset with definition name "${'definitionName'}" and no placeholder value`,
+  },
   invalidTopLevelTagGroupTag: {
     hedCode: 'HED_TAG_GROUP_ERROR',
     level: 'error',

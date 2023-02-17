@@ -33,16 +33,56 @@ export const parseDefinitions = function (parsedHedStrings) {
 }
 
 /**
+ * Validate onset and offset ordering.
+ *
+ * @param {ParsedHedString[]} hedStrings The dataset's HED strings.
+ * @param {Schemas} hedSchemas The HED schema container object.
+ * @return {Issue[]} Whether the HED dataset is valid and any issues found.
+ */
+export const validateOnsetOffsetOrder = function (hedStrings, hedSchemas) {
+  // TODO: Implement
+  const issues = []
+  const activeScopes = new Set()
+  for (const hedString of hedStrings) {
+    for (const parsedGroup of hedString.tagGroups) {
+      if (parsedGroup.isOnsetGroup) {
+        activeScopes.add(parsedGroup.definitionTag.canonicalTag)
+      }
+      if (parsedGroup.isOffsetGroup) {
+        if (!activeScopes.delete(parsedGroup.definitionTag.canonicalTag)) {
+          if (parsedGroup.definitionValue) {
+            issues.push(
+              generateIssue('inactiveOnsetWithValue', {
+                definitionName: parsedGroup.definitionName,
+                definitionValue: parsedGroup.definitionValue,
+              }),
+            )
+          } else {
+            issues.push(
+              generateIssue('inactiveOnsetNoValue', {
+                definitionName: parsedGroup.definitionName,
+              }),
+            )
+          }
+        }
+      }
+    }
+  }
+  return issues
+}
+
+/**
  * Perform dataset-level validation on a HED dataset.
  *
  * @param {Definitions} definitions The parsed dataset definitions.
- * @param {string[]} hedStrings The dataset's HED strings.
+ * @param {ParsedHedString[]} hedStrings The dataset's HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
- * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
+ * @return {Issue[]} Whether the HED dataset is valid and any issues found.
  */
 export const validateDataset = function (definitions, hedStrings, hedSchemas) {
   // TODO: Implement
-  return [true, []]
+  const onsetOffsetOrderIssues = validateOnsetOffsetOrder(hedStrings, hedSchemas)
+  return onsetOffsetOrderIssues
 }
 
 /**
@@ -80,13 +120,10 @@ export const validateHedDataset = function (hedStrings, hedSchemas, checkForWarn
   const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas)
   const [definitions, definitionIssues] = parseDefinitions(parsedHedStrings)
   const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, checkForWarnings)
-  const issues = stringIssues.concat(...Object.values(parsingIssues))
-  if (!stringsValid) {
-    return [false, issues]
-  }
+  const datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
+  const issues = stringIssues.concat(...Object.values(parsingIssues), definitionIssues, datasetIssues)
 
-  return [definitionIssues.length === 0, definitionIssues.concat(issues)]
-  //return validateDataset(definitions, newHedStrings, hedSchemas)
+  return [issues.length === 0, issues]
 }
 
 /**
@@ -112,11 +149,13 @@ export const validateHedDatasetWithContext = function (
   const combinedParsedHedStrings = parsedHedStrings.concat(parsedContextHedStrings)
   const [definitions, definitionIssues] = parseDefinitions(combinedParsedHedStrings)
   const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, checkForWarnings)
-  const issues = stringIssues.concat(...Object.values(parsingIssues), ...Object.values(contextParsingIssues))
-  if (!stringsValid) {
-    return [false, issues]
-  }
+  const datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
+  const issues = stringIssues.concat(
+    ...Object.values(parsingIssues),
+    ...Object.values(contextParsingIssues),
+    definitionIssues,
+    datasetIssues,
+  )
 
-  return [definitionIssues.length === 0, definitionIssues.concat(issues)]
-  //return validateDataset(definitions, newHedStrings, hedSchemas)
+  return [issues.length === 0, issues]
 }
