@@ -170,7 +170,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
           return subgroup
         }
       }
-      throw new Error('Definition group is missing a first-level subgroup.')
+      return null
     })
   }
 
