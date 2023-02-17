@@ -481,12 +481,12 @@ describe('HED schemas', () => {
     it('should be return a SchemaSpec and no issues when valid', () => {
       const tests = {
         just_version: '8.1.0',
-        just_library: 'score_0.1.0',
+        just_library: 'score_1.0.0',
         base_with_nick: 'bt:8.1.0',
       }
       const expectedResults = {
         just_version: new SchemaSpec('', '8.1.0'),
-        just_library: new SchemaSpec('', '0.1.0', 'score'),
+        just_library: new SchemaSpec('', '1.0.0', 'score'),
         base_with_nick: new SchemaSpec('bt', '8.1.0'),
       }
       const expectedIssues = {

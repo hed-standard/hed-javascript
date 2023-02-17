@@ -87,9 +87,9 @@ const loadPromise = function (schemaDef) {
 const loadRemoteSchema = function (schemaDef) {
   let url
   if (schemaDef.library) {
-    url = `https://raw.githubusercontent.com/hed-standard/hed-schema-library/main/library_schemas/${schemaDef.library}/hedxml/HED_${schemaDef.library}_${schemaDef.version}.xml`
+    url = `https://raw.githubusercontent.com/hed-standard/hed-schemas/main/library_schemas/${schemaDef.library}/hedxml/HED_${schemaDef.library}_${schemaDef.version}.xml`
   } else {
-    url = `https://raw.githubusercontent.com/hed-standard/hed-specification/master/hedxml/HED${schemaDef.version}.xml`
+    url = `https://raw.githubusercontent.com/hed-standard/hed-schemas/main/standard_schema/hedxml/HED${schemaDef.version}.xml`
   }
   return loadSchemaFile(files.readHTTPSFile(url), 'remoteSchemaLoadFailed', { spec: JSON.stringify(schemaDef) })
 }

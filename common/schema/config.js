@@ -3,6 +3,7 @@
 export const localSchemaList = new Map([
   ['HED8.0.0', require('../../data/HED8.0.0.xml')],
   ['HED8.1.0', require('../../data/HED8.1.0.xml')],
+  ['HED_score_1.0.0', require('../../data/HED_score_1.0.0.xml')],
   ['HED_testlib_1.0.2', require('../../data/HED_testlib_1.0.2.xml')],
 ])
 
