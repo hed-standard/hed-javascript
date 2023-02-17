@@ -6,36 +6,6 @@ import ParsedHedSubstring from './parsedHedSubstring'
 import { ParsedHedTag } from './parsedHedTag'
 
 /**
- * Determine a parsed HED tag group's Definition tags.
- *
- * @param {ParsedHedGroup} group The parsed HED tag group.
- * @param {Schemas} hedSchemas The collection of HED schemas.
- * @return {null|ParsedHedTag[]|ParsedHedTag} The Definition tag(s)
- */
-const groupDefinitionTag = function (group, hedSchemas) {
-  if (!hedSchemas.isHed3) {
-    return ['', null]
-  }
-  const definitionShortTag = 'Definition'
-  const parsedDefinitionTags = getParsedParentTags(hedSchemas, definitionShortTag)
-  const definitionTags = group.tags.filter((tag) => {
-    if (!(tag instanceof ParsedHedTag)) {
-      return false
-    }
-    const parsedDefinitionTag = parsedDefinitionTags.get(tag.schema)
-    return tag.isDescendantOf(parsedDefinitionTag)
-  })
-  switch (definitionTags.length) {
-    case 0:
-      return ['', null]
-    case 1:
-      return [definitionShortTag, definitionTags[0]]
-    default:
-      return [definitionShortTag, definitionTags]
-  }
-}
-
-/**
  * A parsed HED tag group.
  */
 export default class ParsedHedGroup extends ParsedHedSubstring {
@@ -72,10 +42,42 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     super(originalTag, originalBounds)
 
     this.tags = parsedHedTags
-    const [definitionBase, definitionTag] = groupDefinitionTag(this, hedSchemas)
-    this.definitionBase = definitionBase
-    this.definitionTag = definitionTag
-    this.isDefinitionGroup = definitionTag !== null
+    this.definitionTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Definition')
+    this.isDefinitionGroup = Boolean(this.definitionTag)
+    const onsetTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Onset')
+    this.isOnsetGroup = Boolean(onsetTag)
+    const offsetTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Offset')
+    this.isOffsetGroup = Boolean(offsetTag)
+  }
+
+  /**
+   * Determine a parsed HED tag group's special tags.
+   *
+   * @param {ParsedHedGroup} group The parsed HED tag group.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string} shortTag The short tag to search for.
+   * @return {null|ParsedHedTag[]|ParsedHedTag} The tag(s) matching the short tag.
+   */
+  static findGroupTags(group, hedSchemas, shortTag) {
+    if (!hedSchemas.isHed3) {
+      return undefined
+    }
+    const parsedTags = getParsedParentTags(hedSchemas, shortTag)
+    const tags = group.tags.filter((tag) => {
+      if (!(tag instanceof ParsedHedTag)) {
+        return false
+      }
+      const parsedTag = parsedTags.get(tag.schema)
+      return tag.isDescendantOf(parsedTag)
+    })
+    switch (tags.length) {
+      case 0:
+        return undefined
+      case 1:
+        return tags[0]
+      default:
+        return null
+    }
   }
 
   /**
@@ -87,7 +89,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
       if (!this.isDefinitionGroup) {
         return null
       }
-      return ParsedHedGroup.findDefinitionName(this.definitionTag.canonicalTag, this.definitionBase)
+      return ParsedHedGroup.findDefinitionName(this.definitionTag.canonicalTag, 'Definition')
     })
   }
 
