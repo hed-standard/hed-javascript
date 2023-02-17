@@ -30,6 +30,11 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   isDefinitionGroup
   /**
+   * Whether this HED tag group has a Def tag.
+   * @type {boolean}
+   */
+  isDefGroup
+  /**
    * Whether this HED tag group is a onset group.
    * @type {boolean}
    */
@@ -56,25 +61,23 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   _findSpecialGroups(hedSchemas) {
-    this.definitionTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Definition')
-    this.isDefinitionGroup = Boolean(this.definitionTag)
+    const definitionTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Definition')
+    this.isDefinitionGroup = Boolean(definitionTag)
     if (this.isDefinitionGroup) {
+      this.definitionTag = definitionTag
       this.definitionBase = 'Definition'
       return
     }
     const defTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Def')
+    this.isDefGroup = Boolean(defTag)
+    if (this.isDefGroup) {
+      this.definitionTag = defTag
+      this.definitionBase = 'Def'
+    }
     const onsetTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Onset')
     this.isOnsetGroup = Boolean(onsetTag)
-    if (this.isOnsetGroup) {
-      this.definitionTag = defTag
-      this.definitionBase = 'Def'
-    }
     const offsetTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Offset')
     this.isOffsetGroup = Boolean(offsetTag)
-    if (this.isOffsetGroup) {
-      this.definitionTag = defTag
-      this.definitionBase = 'Def'
-    }
   }
 
   /**

@@ -33,39 +33,43 @@ export const parseDefinitions = function (parsedHedStrings) {
 }
 
 /**
+ * Check a parsed HED group for its onset and offset ordering.
+ *
+ * @param {ParsedHedGroup} parsedGroup A parsed HED group.
+ * @param {Set<string>} activeScopes The active duration scopes, represented by the groups' canonical Def tags.
+ * @returns {Issue[]} Any issues found.
+ */
+const checkGroupForOnsetOffsetOrder = (parsedGroup, activeScopes) => {
+  if (parsedGroup.isOnsetGroup) {
+    activeScopes.add(parsedGroup.definitionTag.canonicalTag)
+  }
+  if (parsedGroup.isOffsetGroup && !activeScopes.delete(parsedGroup.definitionTag.canonicalTag)) {
+    const issueParameters = {
+      definitionName: parsedGroup.definitionName,
+      definitionValue: parsedGroup.definitionValue,
+    }
+    if (parsedGroup.definitionValue) {
+      return [generateIssue('inactiveOnsetWithValue', issueParameters)]
+    } else {
+      return [generateIssue('inactiveOnsetNoValue', issueParameters)]
+    }
+  }
+  return []
+}
+
+/**
  * Validate onset and offset ordering.
  *
  * @param {ParsedHedString[]} hedStrings The dataset's HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
- * @return {Issue[]} Whether the HED dataset is valid and any issues found.
+ * @return {Issue[]} Any issues found.
  */
 export const validateOnsetOffsetOrder = function (hedStrings, hedSchemas) {
-  // TODO: Implement
   const issues = []
   const activeScopes = new Set()
   for (const hedString of hedStrings) {
     for (const parsedGroup of hedString.tagGroups) {
-      if (parsedGroup.isOnsetGroup) {
-        activeScopes.add(parsedGroup.definitionTag.canonicalTag)
-      }
-      if (parsedGroup.isOffsetGroup) {
-        if (!activeScopes.delete(parsedGroup.definitionTag.canonicalTag)) {
-          if (parsedGroup.definitionValue) {
-            issues.push(
-              generateIssue('inactiveOnsetWithValue', {
-                definitionName: parsedGroup.definitionName,
-                definitionValue: parsedGroup.definitionValue,
-              }),
-            )
-          } else {
-            issues.push(
-              generateIssue('inactiveOnsetNoValue', {
-                definitionName: parsedGroup.definitionName,
-              }),
-            )
-          }
-        }
-      }
+      issues.push(...checkGroupForOnsetOffsetOrder(parsedGroup, activeScopes))
     }
   }
   return issues
