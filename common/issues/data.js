@@ -119,15 +119,30 @@ export default {
     level: 'error',
     message: stringTemplate`Illegal tag "${'tag'}" in tag group for definition "${'definition'}"`,
   },
-  inactiveOnsetWithValue: {
+  inactiveOnset: {
     hedCode: 'ONSET_OFFSET_ERROR',
     level: 'error',
-    message: stringTemplate`Offset found for inactive onset with definition name "${'definitionName'}" and placeholder value "${'definitionValue'}"`,
+    message: stringTemplate`Offset found for inactive onset with definition name and value "${'definition'}"`,
   },
-  inactiveOnsetNoValue: {
+  onsetOffsetWithoutInnerGroup: {
     hedCode: 'ONSET_OFFSET_ERROR',
     level: 'error',
-    message: stringTemplate`Offset found for inactive onset with definition name "${'definitionName'}" and no placeholder value`,
+    message: stringTemplate`Onset or offset found without an included inner top-level tag group. This instance's tag group is "${'tagGroup'}"`,
+  },
+  onsetOffsetWithMultipleDefinitions: {
+    hedCode: 'ONSET_OFFSET_ERROR',
+    level: 'error',
+    message: stringTemplate`Onset or offset found with multiple included definitions. This instance's tag group is "${'tagGroup'}"`,
+  },
+  onsetOffsetWithoutDefinition: {
+    hedCode: 'ONSET_OFFSET_ERROR',
+    level: 'error',
+    message: stringTemplate`Onset or offset found without an included definition. This instance's tag group is "${'tagGroup'}"`,
+  },
+  multipleTagsInOnset: {
+    hedCode: 'ONSET_OFFSET_ERROR',
+    level: 'error',
+    message: stringTemplate`Multiple non-definition top-level tags or tag groups found in onset group with definition "${'definition'}"`,
   },
   invalidTopLevelTagGroupTag: {
     hedCode: 'HED_TAG_GROUP_ERROR',

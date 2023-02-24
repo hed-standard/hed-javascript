@@ -44,12 +44,11 @@ const checkGroupForOnsetOffsetOrder = (parsedGroup, activeScopes) => {
     activeScopes.add(parsedGroup.definitionTag.canonicalTag)
   }
   if (parsedGroup.isOffsetGroup && !activeScopes.delete(parsedGroup.definitionTag.canonicalTag)) {
-    const issueCode = parsedGroup.definitionValue ? 'inactiveOnsetWithValue' : 'inactiveOnsetNoValue'
-    const issueParameters = {
-      definitionName: parsedGroup.definitionName,
-      definitionValue: parsedGroup.definitionValue,
-    }
-    return [generateIssue(issueCode, issueParameters)]
+    return [
+      generateIssue('inactiveOnset', {
+        definition: parsedGroup.definitionNameAndValue,
+      }),
+    ]
   }
   return []
 }

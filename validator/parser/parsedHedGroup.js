@@ -1,5 +1,6 @@
 import differenceWith from 'lodash/differenceWith'
 
+import { generateIssue, IssueError } from '../../common/issues/issues'
 import { getParsedParentTags } from '../../utils/hedData'
 import { getTagName } from '../../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
@@ -21,7 +22,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   definitionBase
   /**
    * The Definition tag associated with this HED tag group.
-   * @type {ParsedHedTag|null}
+   * @type {ParsedHedTag|ParsedHedTag[]}
    */
   definitionTag
   /**
@@ -34,6 +35,21 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @type {boolean}
    */
   isDefGroup
+  /**
+   * Whether this HED tag group has a Def-expand tag.
+   * @type {boolean}
+   */
+  isDefExpandGroup
+  /**
+   * Whether this HED tag group has child groups with a Def-expand tag.
+   * @type {boolean}
+   */
+  hasDefExpandChildren
+  /**
+   * The top-level child subgroups containing Def-expand tags.
+   * @type {ParsedHedGroup[]}
+   */
+  defExpandChildren
   /**
    * Whether this HED tag group is a onset group.
    * @type {boolean}
@@ -74,6 +90,14 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
       this.definitionTag = defTag
       this.definitionBase = 'Def'
     }
+    const defExpandTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Def-expand')
+    this.isDefExpandGroup = Boolean(defExpandTag)
+    if (this.isDefExpandGroup) {
+      this.definitionTag = defExpandTag
+      this.definitionBase = 'Def-expand'
+    }
+    this.defExpandChildren = Array.from(this.topLevelGroupIterator()).filter((subgroup) => subgroup.isDefExpandGroup)
+    this.hasDefExpandChildren = this.defExpandChildren.length !== 0
     const onsetTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Onset')
     this.isOnsetGroup = Boolean(onsetTag)
     const offsetTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Offset')
@@ -106,7 +130,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
       case 1:
         return tags[0]
       default:
-        return null
+        return tags
     }
   }
 
@@ -116,6 +140,17 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get definitionName() {
     return this._memoize('definitionName', () => {
+      if (this.isOnsetGroup || this.isOffsetGroup) {
+        if (this.hasDefExpandChildren) {
+          return this.defExpandChildren[0].definitionName
+        } else if (this.isDefGroup && Array.isArray(this.definitionTag)) {
+          throw new IssueError(
+            generateIssue('onsetOffsetWithMultipleDefinitions', {
+              tagGroup: this.originalTag,
+            }),
+          )
+        }
+      }
       if (this.definitionBase === undefined) {
         return null
       }
@@ -148,6 +183,17 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get definitionValue() {
     return this._memoize('definitionValue', () => {
+      if (this.isOnsetGroup || this.isOffsetGroup) {
+        if (this.hasDefExpandChildren) {
+          return this.defExpandChildren[0].definitionValue
+        } else if (this.isDefGroup && Array.isArray(this.definitionTag)) {
+          throw new IssueError(
+            generateIssue('onsetOffsetWithMultipleDefinitions', {
+              tagGroup: this.originalTag,
+            }),
+          )
+        }
+      }
       if (this.definitionBase === undefined) {
         return null
       }
@@ -155,6 +201,23 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
         return ''
       } else {
         return this.definitionTag.originalTagName
+      }
+    })
+  }
+
+  /**
+   * Determine the name and value of this group's definition.
+   * @return {string|null}
+   */
+  get definitionNameAndValue() {
+    return this._memoize('definitionNameAndValue', () => {
+      if (!(this.isDefGroup | this.isDefinitionGroup | this.hasDefExpandChildren)) {
+        return null
+      }
+      if (this.definitionValue) {
+        return this.definitionName + '/' + this.definitionValue
+      } else {
+        return this.definitionName
       }
     })
   }
@@ -246,6 +309,19 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
         yield innerTag
       } else if (innerTag instanceof ParsedHedGroup) {
         yield* innerTag.tagIterator()
+      }
+    }
+  }
+
+  /**
+   * Iterator over the top-level parsed HED groups in this HED tag group.
+   *
+   * @yield {ParsedHedTag} This tag group's top-level HED groups.
+   */
+  *topLevelGroupIterator() {
+    for (const innerTag of this.tags) {
+      if (innerTag instanceof ParsedHedGroup) {
+        yield innerTag
       }
     }
   }
