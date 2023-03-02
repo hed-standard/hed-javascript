@@ -1,0 +1,4 @@
+[submodule "tests/hed-specification"]
+	path = tests/hed-specification
+	url = https://github.com/hed-standard/hed-specification.git
+	branch = develop
