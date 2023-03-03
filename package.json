@@ -5,8 +5,8 @@
   "main": "./dist/commonjs/index.js",
   "exports": {
     ".": {
-      "browser": "./dist/esm/index.js",
-      "node": "./dist/commonjs/index.js"
+      "import": "./dist/esm/index.js",
+      "require": "./dist/commonjs/index.js"
     }
   },
   "repository": {
