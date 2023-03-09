@@ -207,27 +207,26 @@ export class Hed3Validator extends HedValidator {
     const definitionShortTag = 'definition'
     const defExpandShortTag = 'def-expand'
     const defShortTag = 'def'
-    const definitionParentTags = getParsedParentTags(this.hedSchemas, definitionShortTag)
-    const defExpandParentTags = getParsedParentTags(this.hedSchemas, defExpandShortTag)
-    const defParentTags = getParsedParentTags(this.hedSchemas, defShortTag)
+    const definitionParentTag = getParsedParentTags(this.hedSchemas, definitionShortTag).get(
+      this.hedSchemas.standardSchema,
+    )
+    const defExpandParentTag = getParsedParentTags(this.hedSchemas, defExpandShortTag).get(
+      this.hedSchemas.standardSchema,
+    )
+    const defParentTag = getParsedParentTags(this.hedSchemas, defShortTag).get(this.hedSchemas.standardSchema)
     let definitionTagFound = false
-    let defExpandTagFound = false
     let definitionName
     for (const tag of tagGroup.tags) {
       if (tag instanceof ParsedHedGroup) {
         continue
       }
-      if (tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
+      if (tag.isDescendantOf(definitionParentTag)) {
         definitionTagFound = true
-        definitionName = tag.originalTagName
-        break
-      } else if (tag.isDescendantOf(defExpandParentTags.get(tag.schema))) {
-        defExpandTagFound = true
         definitionName = tag.originalTagName
         break
       }
     }
-    if (!(definitionTagFound || defExpandTagFound)) {
+    if (!definitionTagFound) {
       return
     }
     let tagGroupValidated = false
@@ -243,11 +242,7 @@ export class Hed3Validator extends HedValidator {
         }
         tagGroupValidated = true
         for (const innerTag of tag.tagIterator()) {
-          const nestedDefinitionParentTags = [
-            definitionParentTags.get(innerTag.schema),
-            defExpandParentTags.get(innerTag.schema),
-            defParentTags.get(innerTag.schema),
-          ]
+          const nestedDefinitionParentTags = [definitionParentTag, defExpandParentTag, defParentTag]
           if (
             nestedDefinitionParentTags.some((parentTag) => {
               return innerTag.isDescendantOf(parentTag)
@@ -258,11 +253,7 @@ export class Hed3Validator extends HedValidator {
             })
           }
         }
-      } else if (
-        definitionTagFound &&
-        !tag.isDescendantOf(definitionParentTags.get(tag.schema)) /* ||
-        (defExpandTagFound && !tag.isDescendantOf(defExpandParentTags.get(tag.schema)))*/
-      ) {
+      } else if (definitionTagFound && !tag.isDescendantOf(definitionParentTag)) {
         this.pushIssue('illegalDefinitionGroupTag', {
           tag: tag.originalTag,
           definition: definitionName,
