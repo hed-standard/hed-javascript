@@ -601,7 +601,7 @@ describe('HED string and event validation', () => {
          * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
          */
         const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-          validatorSemanticBase(
+          return validatorSemanticBase(
             testStrings,
             expectedIssues,
             (validator) => {
@@ -1039,6 +1039,30 @@ describe('HED string and event validation', () => {
         // eslint-disable-next-line no-unused-vars
         return validatorSemantic(testStrings, expectedIssues, (validator) => {})
       })
+
+      it('should not have overlapping onsets and offsets in the same string', () => {
+        const testStrings = {
+          onsetAndOffsetWithDifferentValues: '(Def/Acc/5.4, Offset), (Def/Acc/4.3, Onset)',
+          sameOffsetAndOnset: '(Def/MyColor, Offset), (Def/MyColor, Onset)',
+          sameOnsetAndOffset: '(Def/MyColor, Onset), (Def/MyColor, Offset)',
+          duplicateOnset: '(Def/MyColor, Red, Onset), (Def/MyColor, Onset)',
+        }
+        const expectedIssues = {
+          onsetAndOffsetWithDifferentValues: [],
+          sameOffsetAndOnset: [
+            generateIssue('duplicateOnsetOffset', { string: testStrings.sameOffsetAndOnset, definition: 'MyColor' }),
+          ],
+          sameOnsetAndOffset: [
+            generateIssue('duplicateOnsetOffset', { string: testStrings.sameOnsetAndOffset, definition: 'MyColor' }),
+          ],
+          duplicateOnset: [
+            generateIssue('duplicateOnsetOffset', { string: testStrings.duplicateOnset, definition: 'MyColor' }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues, (validator) => {
+          validator.validateEventLevel()
+        })
+      })
     })
 
     describe('Individual HED Tags', () => {
@@ -1279,7 +1303,7 @@ describe('HED string and event validation', () => {
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-        validatorSemanticBase(
+        return validatorSemanticBase(
           testStrings,
           expectedIssues,
           (validator) => {
@@ -1300,15 +1324,7 @@ describe('HED string and event validation', () => {
           illegalSiblingDefinition: '(Definition/IllegalSiblingDefinition, Train, (Rectangle))',
           nestedDefinition: '(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))',
           multipleTagGroupDefinition: '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
-          defExpandOnly: '(Def-expand/SimpleDefExpand)',
-          tagGroupDefExpand: '(Def-expand/TagGroupDefExpand, (Square, RGB-blue))',
-          illegalSiblingDefExpand: '(Def-expand/IllegalSiblingDefExpand, Train, (Rectangle))',
-          nestedDefExpand: '(Def-expand/NestedDefExpand, (Touchscreen, (Def-expand/InnerDefExpand, (Square))))',
-          multipleTagGroupDefExpand: '(Def-expand/MultipleTagGroupDefExpand, (Touchscreen), (Square))',
-          mixedDefinitionFirst: '(Definition/DefinitionFirst, Def-expand/DefExpandSecond, (Square))',
-          mixedDefExpandFirst: '(Def-expand/DefExpandFirst, Definition/DefinitionSecond, (Square))',
           defNestedInDefinition: '(Definition/DefNestedInDefinition, (Def/Nested, Triangle))',
-          defNestedInDefExpand: '(Def-expand/DefNestedInDefExpand, (Def/Nested, Triangle))',
         }
         const expectedIssues = {
           nonDefinition: [],
@@ -1331,49 +1347,45 @@ describe('HED string and event validation', () => {
               definition: 'MultipleTagGroupDefinition',
             }),
           ],
-          defExpandOnly: [],
-          tagGroupDefExpand: [],
-          illegalSiblingDefExpand: [
-            generateIssue('illegalDefinitionGroupTag', {
-              tag: 'Train',
-              definition: 'IllegalSiblingDefExpand',
-            }),
-          ],
-          nestedDefExpand: [
-            generateIssue('nestedDefinition', {
-              definition: 'NestedDefExpand',
-            }),
-          ],
-          multipleTagGroupDefExpand: [
-            generateIssue('multipleTagGroupsInDefinition', {
-              definition: 'MultipleTagGroupDefExpand',
-            }),
-          ],
-          mixedDefinitionFirst: [
-            generateIssue('illegalDefinitionGroupTag', {
-              tag: 'Def-expand/DefExpandSecond',
-              definition: 'DefinitionFirst',
-            }),
-          ],
-          mixedDefExpandFirst: [
-            generateIssue('illegalDefinitionGroupTag', {
-              tag: 'Definition/DefinitionSecond',
-              definition: 'DefExpandFirst',
-            }),
-          ],
           defNestedInDefinition: [
             generateIssue('nestedDefinition', {
               definition: 'DefNestedInDefinition',
             }),
           ],
-          defNestedInDefExpand: [
-            generateIssue('nestedDefinition', {
-              definition: 'DefNestedInDefExpand',
-            }),
-          ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
           validator.checkDefinitionSyntax(tagGroup)
+        })
+      })
+
+      it('should have syntactically valid onsets and offsets', () => {
+        const testStrings = {
+          simpleOnset: '(Onset, Def/Acc/5.4)',
+          onsetWithDefAndOneGroup: '(Def/MyColor, (Blue), Onset)',
+          onsetWithDefAndTwoGroups: '(Def/MyColor, (Blue), (Green), Onset)',
+          onsetWithoutDefinition: '(Onset, Red)',
+          onsetWithDefAndTag: '(Onset, Def/MyColor, Red)',
+          onsetWithMultipleDefs: '(Onset, Def/MyColor, Def/Acc/5.4)',
+          onsetWithDefAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Onset)',
+        }
+        const expectedIssues = {
+          simpleOnset: [],
+          onsetWithDefAndOneGroup: [],
+          onsetWithDefAndTwoGroups: [generateIssue('multipleTagsInOnset', { definition: 'MyColor' })],
+          onsetWithoutDefinition: [
+            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.onsetWithoutDefinition }),
+            generateIssue('multipleTagsInOnset', { definition: '' }),
+          ],
+          onsetWithDefAndTag: [generateIssue('multipleTagsInOnset', { definition: 'MyColor' })],
+          onsetWithMultipleDefs: [
+            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.onsetWithMultipleDefs }),
+          ],
+          onsetWithDefAndDefExpand: [
+            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.onsetWithDefAndDefExpand }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
+          validator.checkOnsetOffsetSyntax(tagGroup)
         })
       })
     })
@@ -1405,25 +1417,59 @@ describe('HED string and event validation', () => {
     describe('Top-level Group Tags', () => {
       const validatorSemantic = validatorSemanticBase
 
-      it('should not have definitions at the top level', () => {
+      it('should only have definitions, onsets, or offsets in top-level tag groups', () => {
         const testStrings = {
           validDefinition: '(Definition/SimpleDefinition)',
           validDef: 'Def/TopLevelDefReference',
-          invalidDefinition: 'Definition/TopLevelDefinition',
-          invalidDouble: '(Definition/DoubleDefinition, Onset)',
+          validOnset: '(Onset, Def/Acc/5.4)',
+          validOffset: '(Offset, Def/Acc/5.4)',
+          multipleTopLevel: '(Definition/DoubleDefinition, Onset)',
+          topLevelDefinition: 'Definition/TopLevelDefinition',
+          topLevelOnset: 'Onset, Red',
+          topLevelOffset: 'Offset, Def/Acc/5.4',
+          nestedDefinition: '((Definition/SimpleDefinition), Red)',
+          nestedOnset: '((Onset, Def/MyColor), Red)',
+          nestedOffset: '((Offset, Def/MyColor), Red)',
         }
         const expectedIssues = {
           validDefinition: [],
           validDef: [],
-          invalidDefinition: [
-            generateIssue('invalidTopLevelTagGroupTag', {
-              tag: testStrings.invalidDefinition,
-            }),
-          ],
-          invalidDouble: [
+          validOnset: [],
+          validOffset: [],
+          multipleTopLevel: [
             generateIssue('multipleTopLevelTagGroupTags', {
               tag: 'Onset',
               otherTag: 'Definition/DoubleDefinition',
+            }),
+          ],
+          topLevelDefinition: [
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: testStrings.topLevelDefinition,
+            }),
+          ],
+          topLevelOnset: [
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Onset',
+            }),
+          ],
+          topLevelOffset: [
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Offset',
+            }),
+          ],
+          nestedDefinition: [
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Definition/SimpleDefinition',
+            }),
+          ],
+          nestedOnset: [
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Onset',
+            }),
+          ],
+          nestedOffset: [
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Offset',
             }),
           ],
         }
