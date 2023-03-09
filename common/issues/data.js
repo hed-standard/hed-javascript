@@ -144,6 +144,11 @@ export default {
     level: 'error',
     message: stringTemplate`Multiple non-definition top-level tags or tag groups found in onset group with definition "${'definition'}"`,
   },
+  duplicateOnsetOffset: {
+    hedCode: 'ONSET_OFFSET_ERROR',
+    level: 'error',
+    message: stringTemplate`HED event string "${'string'}" has duplicated definition "${'definition'}"`,
+  },
   invalidTopLevelTagGroupTag: {
     hedCode: 'HED_TAG_GROUP_ERROR',
     level: 'error',
