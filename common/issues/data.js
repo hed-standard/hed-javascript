@@ -139,10 +139,10 @@ export default {
     level: 'error',
     message: stringTemplate`Onset or offset found without an included definition. This instance's tag group is "${'tagGroup'}"`,
   },
-  multipleTagsInOnset: {
+  extraTagsInOnsetOffset: {
     hedCode: 'ONSET_OFFSET_ERROR',
     level: 'error',
-    message: stringTemplate`Multiple non-definition top-level tags or tag groups found in onset group with definition "${'definition'}"`,
+    message: stringTemplate`Extra non-definition top-level tags or tag groups found in onset or offset group with definition "${'definition'}"`,
   },
   duplicateOnsetOffset: {
     hedCode: 'ONSET_OFFSET_ERROR',

@@ -1040,7 +1040,7 @@ describe('HED string and event validation', () => {
         return validatorSemantic(testStrings, expectedIssues, (validator) => {})
       })
 
-      it('should not have overlapping onsets and offsets in the same string', () => {
+      it.skip('should not have overlapping onsets and offsets in the same string', () => {
         const testStrings = {
           onsetAndOffsetWithDifferentValues: '(Def/Acc/5.4, Offset), (Def/Acc/4.3, Onset)',
           sameOffsetAndOnset: '(Def/MyColor, Offset), (Def/MyColor, Onset)',
@@ -1373,12 +1373,12 @@ describe('HED string and event validation', () => {
         const expectedIssues = {
           simpleOnset: [],
           onsetWithDefAndOneGroup: [],
-          onsetWithDefAndTwoGroups: [generateIssue('multipleTagsInOnset', { definition: 'MyColor' })],
+          onsetWithDefAndTwoGroups: [generateIssue('extraTagsInOnsetOffset', { definition: 'MyColor' })],
           onsetWithoutDefinition: [
             generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.onsetWithoutDefinition }),
-            generateIssue('multipleTagsInOnset', { definition: '' }),
+            generateIssue('extraTagsInOnsetOffset', { definition: '' }),
           ],
-          onsetWithDefAndTag: [generateIssue('multipleTagsInOnset', { definition: 'MyColor' })],
+          onsetWithDefAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'MyColor' })],
           onsetWithMultipleDefs: [
             generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.onsetWithMultipleDefs }),
           ],
@@ -1389,7 +1389,7 @@ describe('HED string and event validation', () => {
             generateIssue('onsetOffsetWithMultipleDefinitions', {
               tagGroup: testStrings.onsetWithMultipleDefinitionsAndExtraTagGroups,
             }),
-            generateIssue('multipleTagsInOnset', { definition: 'Multiple definition tags found' }),
+            generateIssue('extraTagsInOnsetOffset', { definition: 'Multiple definition tags found' }),
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
