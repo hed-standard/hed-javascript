@@ -304,7 +304,11 @@ export class Hed3Validator extends HedValidator {
         tagGroup: tagGroup.originalTag,
       })
     }
-    const allowedTags = [getParsedParentTags(this.hedSchemas, 'Onset').get(this.hedSchemas.standardSchema)]
+    const allowedTags = [
+      getParsedParentTags(this.hedSchemas, tagGroup.isOnsetGroup ? 'Onset' : 'Offset').get(
+        this.hedSchemas.standardSchema,
+      ),
+    ]
     allowedTags.push(...defExpandChildren)
     allowedTags.push(...defTags)
     const remainingTags = differenceWith(tagGroup.tags, allowedTags, (ours, theirs) => ours.equivalent(theirs))
