@@ -1367,6 +1367,8 @@ describe('HED string and event validation', () => {
           onsetWithDefAndTag: '(Onset, Def/MyColor, Red)',
           onsetWithMultipleDefs: '(Onset, Def/MyColor, Def/Acc/5.4)',
           onsetWithDefAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Onset)',
+          onsetWithMultipleDefinitionsAndExtraTagGroups:
+            '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Onset, (Blue), (Green))',
         }
         const expectedIssues = {
           simpleOnset: [],
@@ -1382,6 +1384,12 @@ describe('HED string and event validation', () => {
           ],
           onsetWithDefAndDefExpand: [
             generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.onsetWithDefAndDefExpand }),
+          ],
+          onsetWithMultipleDefinitionsAndExtraTagGroups: [
+            generateIssue('onsetOffsetWithMultipleDefinitions', {
+              tagGroup: testStrings.onsetWithMultipleDefinitionsAndExtraTagGroups,
+            }),
+            generateIssue('multipleTagsInOnset', { definition: 'Multiple definition tags found' }),
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
