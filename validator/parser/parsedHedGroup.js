@@ -5,6 +5,7 @@ import { getParsedParentTags } from '../../utils/hedData'
 import { getTagName } from '../../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { ParsedHedTag } from './parsedHedTag'
+import { asArray } from '../../utils/array'
 
 /**
  * A parsed HED tag group.
@@ -141,14 +142,15 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   get definitionName() {
     return this._memoize('definitionName', () => {
       if (this.isOnsetGroup || this.isOffsetGroup) {
-        if (this.hasDefExpandChildren) {
-          return this.defExpandChildren[0].definitionName
-        } else if (this.isDefGroup && Array.isArray(this.definitionTag)) {
+        if (this.definitionCount > 1) {
           throw new IssueError(
             generateIssue('onsetOffsetWithMultipleDefinitions', {
               tagGroup: this.originalTag,
             }),
           )
+        }
+        if (this.hasDefExpandChildren) {
+          return this.defExpandChildren[0].definitionName
         }
       }
       if (this.definitionBase === undefined) {
@@ -184,7 +186,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   get definitionValue() {
     return this._memoize('definitionValue', () => {
       if (this.isOnsetGroup || this.isOffsetGroup) {
-        if (this.isDefGroup && (Array.isArray(this.definitionTag) || this.hasDefExpandChildren)) {
+        if (this.definitionCount > 1) {
           throw new IssueError(
             generateIssue('onsetOffsetWithMultipleDefinitions', {
               tagGroup: this.originalTag,
@@ -229,7 +231,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get definitionGroup() {
     return this._memoize('definitionGroup', () => {
-      if (this.definitionBase === undefined) {
+      if (!this.isDefinitionGroup) {
         return null
       }
       for (const subgroup of this.tags) {
@@ -241,15 +243,25 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     })
   }
 
+  /**
+   * Determine the number of definitions included in this group.
+   * @returns {number} The number of first-level definition tags and tag groups in this group.
+   */
+  get definitionCount() {
+    return this._memoize('definitionCount', () => {
+      if (this.definitionTag) {
+        return asArray(this.definitionTag).length + this.defExpandChildren.length
+      } else {
+        return this.defExpandChildren.length
+      }
+    })
+  }
+
   equivalent(other) {
     if (!(other instanceof ParsedHedGroup)) {
       return false
     }
-    return (
-      differenceWith(this.tags, other.tags, (ours, theirs) => {
-        return ours.equivalent(theirs)
-      }).length === 0
-    )
+    return differenceWith(this.tags, other.tags, (ours, theirs) => ours.equivalent(theirs)).length === 0
   }
 
   /**
