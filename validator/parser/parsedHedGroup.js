@@ -184,14 +184,15 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   get definitionValue() {
     return this._memoize('definitionValue', () => {
       if (this.isOnsetGroup || this.isOffsetGroup) {
-        if (this.hasDefExpandChildren) {
-          return this.defExpandChildren[0].definitionValue
-        } else if (this.isDefGroup && Array.isArray(this.definitionTag)) {
+        if (this.isDefGroup && (Array.isArray(this.definitionTag) || this.hasDefExpandChildren)) {
           throw new IssueError(
             generateIssue('onsetOffsetWithMultipleDefinitions', {
               tagGroup: this.originalTag,
             }),
           )
+        }
+        if (this.hasDefExpandChildren) {
+          return this.defExpandChildren[0].definitionValue
         }
       }
       if (this.definitionBase === undefined) {
