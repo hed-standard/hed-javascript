@@ -173,4 +173,65 @@ describe('HED dataset validation', () => {
       return validator(testDatasets, expectedIssues)
     })
   })
+
+  describe('Full HED datasets with context', () => {
+    /**
+     * Test-validate a dataset.
+     *
+     * @param {Object<string, string[]>} testDatasets The datasets to test.
+     * @param {Object<string, Issue[]>} expectedIssues The expected issues.
+     */
+    const validator = function (testDatasets, testContext, expectedIssues) {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
+        for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
+          assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
+          const [, testIssues] = hed.validateHedDatasetWithContext(testDataset, testContext, hedSchemas, true)
+          assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
+        }
+      })
+    }
+
+    it('should properly validate onset and offset ordering', () => {
+      const testContext = ['(Definition/Acc/#, (Acceleration/#, Red))', '(Definition/MyColor, (Label/Pie))']
+      const testDatasets = {
+        singleOnsetOffset: ['(Def/MyColor, Onset)', '(Def/MyColor, Offset)', 'Red'],
+        offsetForSameValue: ['(Def/Acc/4.2, Onset)', '(Def/Acc/4.2, Offset)', 'Red'],
+        repeatedOnsetForNoValue: ['(Def/MyColor, Onset)', '(Def/MyColor, Onset)', 'Red', '(Def/MyColor, Offset)'],
+        repeatedOnsetForSameValue: ['(Def/Acc/4.2, Onset)', 'Red', '(Def/Acc/4.2, Onset)', '(Def/Acc/4.2, Offset)'],
+        onsetOffsetForDifferentValues: [
+          '(Def/Acc/4.2, Onset)',
+          '(Def/Acc/5.3, Onset)',
+          '(Def/Acc/4.2, Offset)',
+          '(Def/Acc/5.3, Offset)',
+        ],
+        repeatedOffset: ['(Def/MyColor, Onset)', '(Def/MyColor, Offset)', 'Red', '(Def/MyColor, Offset)'],
+        offsetFirst: ['(Def/MyColor, Offset)', '(Def/MyColor, Onset)', 'Red', '(Def/MyColor, Offset)'],
+        offsetForDifferentValue: ['(Def/Acc/4.2, Onset)', '(Def/Acc/5.3, Offset)', 'Red'],
+      }
+      const expectedIssues = {
+        singleOnsetOffset: [],
+        offsetForSameValue: [],
+        repeatedOnsetForNoValue: [],
+        repeatedOnsetForSameValue: [],
+        onsetOffsetForDifferentValues: [],
+        repeatedOffset: [
+          generateValidationIssue('inactiveOnset', {
+            definition: 'MyColor',
+          }),
+        ],
+        offsetFirst: [
+          generateValidationIssue('inactiveOnset', {
+            definition: 'MyColor',
+          }),
+        ],
+        offsetForDifferentValue: [
+          generateValidationIssue('inactiveOnset', {
+            definition: 'Acc/5.3',
+          }),
+        ],
+      }
+      return validator(testDatasets, testContext, expectedIssues)
+    })
+  })
 })
