@@ -1358,13 +1358,16 @@ describe('HED string and event validation', () => {
         })
       })
 
-      it('should have syntactically valid onsets and offsets', () => {
+      it('should have syntactically valid onsets', () => {
         const testStrings = {
           simpleOnset: '(Onset, Def/Acc/5.4)',
-          onsetWithDefAndOneGroup: '(Def/MyColor, (Blue), Onset)',
-          onsetWithDefAndTwoGroups: '(Def/MyColor, (Blue), (Green), Onset)',
-          onsetWithoutDefinition: '(Onset, Red)',
-          onsetWithDefAndTag: '(Onset, Def/MyColor, Red)',
+          onsetWithDefAndOneGroup: '(Onset, Def/MyColor, (Red))',
+          onsetWithDefExpandAndOneGroup: '(Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
+          onsetWithDefAndTwoGroups: '(Def/DefAndTwoGroups, (Blue), (Green), Onset)',
+          onsetWithDefExpandAndTwoGroups: '((Def-expand/DefExpandAndTwoGroups, (Label/Pie)), (Green), (Red), Onset)',
+          onsetWithTagAndNoDef: '(Onset, Red)',
+          onsetWithTagGroupAndNoDef: '(Onset, (Red))',
+          onsetWithDefAndTag: '(Onset, Def/DefAndTag, Red)',
           onsetWithMultipleDefs: '(Onset, Def/MyColor, Def/Acc/5.4)',
           onsetWithDefAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Onset)',
           onsetWithMultipleDefinitionsAndExtraTagGroups:
@@ -1373,12 +1376,19 @@ describe('HED string and event validation', () => {
         const expectedIssues = {
           simpleOnset: [],
           onsetWithDefAndOneGroup: [],
-          onsetWithDefAndTwoGroups: [generateIssue('extraTagsInOnsetOffset', { definition: 'MyColor' })],
-          onsetWithoutDefinition: [
-            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.onsetWithoutDefinition }),
+          onsetWithDefExpandAndOneGroup: [],
+          onsetWithDefAndTwoGroups: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTwoGroups' })],
+          onsetWithDefExpandAndTwoGroups: [
+            generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTwoGroups' }),
+          ],
+          onsetWithTagAndNoDef: [
+            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.onsetWithTagAndNoDef }),
             generateIssue('extraTagsInOnsetOffset', { definition: '' }),
           ],
-          onsetWithDefAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'MyColor' })],
+          onsetWithTagGroupAndNoDef: [
+            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.onsetWithTagGroupAndNoDef }),
+          ],
+          onsetWithDefAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTag' })],
           onsetWithMultipleDefs: [
             generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.onsetWithMultipleDefs }),
           ],
@@ -1388,6 +1398,52 @@ describe('HED string and event validation', () => {
           onsetWithMultipleDefinitionsAndExtraTagGroups: [
             generateIssue('onsetOffsetWithMultipleDefinitions', {
               tagGroup: testStrings.onsetWithMultipleDefinitionsAndExtraTagGroups,
+            }),
+            generateIssue('extraTagsInOnsetOffset', { definition: 'Multiple definition tags found' }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
+          validator.checkOnsetOffsetSyntax(tagGroup)
+        })
+      })
+
+      it('should have syntactically valid offsets', () => {
+        const testStrings = {
+          simpleOffset: '(Offset, Def/Acc/5.4)',
+          offsetWithTagAndNoDef: '(Offset, Red)',
+          offsetWithTagGroupAndNoDef: '(Offset, (Red))',
+          offsetWithDefAndTag: '(Offset, Def/DefAndTag, Red)',
+          offsetWithDefExpandAndTag: '((Def-expand/DefExpandAndTag, (Label/Pie)), Offset, Red)',
+          offsetWithDefAndTagGroup: '(Offset, Def/DefAndTagGroup, (Red))',
+          offsetWithDefExpandAndTagGroup: '((Def-expand/DefExpandAndTagGroup, (Label/Pie)), Offset, (Red))',
+          offsetWithMultipleDefs: '(Offset, Def/MyColor, Def/Acc/5.4)',
+          offsetWithDefAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Offset)',
+        }
+        const expectedIssues = {
+          simpleOffset: [],
+          offsetWithTagAndNoDef: [
+            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.offsetWithTagAndNoDef }),
+            generateIssue('extraTagsInOnsetOffset', { definition: '' }),
+          ],
+          offsetWithTagGroupAndNoDef: [
+            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.offsetWithTagGroupAndNoDef }),
+            generateIssue('extraTagsInOnsetOffset', { definition: '' }),
+          ],
+          offsetWithDefAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTag' })],
+          offsetWithDefExpandAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTag' })],
+          offsetWithDefAndTagGroup: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTagGroup' })],
+          offsetWithDefExpandAndTagGroup: [
+            generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTagGroup' }),
+          ],
+          offsetWithMultipleDefs: [
+            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.offsetWithMultipleDefs }),
+          ],
+          offsetWithDefAndDefExpand: [
+            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.offsetWithDefAndDefExpand }),
+          ],
+          offsetWithMultipleDefinitionsAndExtraTagGroups: [
+            generateIssue('onsetOffsetWithMultipleDefinitions', {
+              tagGroup: testStrings.offsetWithMultipleDefinitionsAndExtraTagGroups,
             }),
             generateIssue('extraTagsInOnsetOffset', { definition: 'Multiple definition tags found' }),
           ],
@@ -1429,12 +1485,12 @@ describe('HED string and event validation', () => {
         const testStrings = {
           validDefinition: '(Definition/SimpleDefinition)',
           validDef: 'Def/TopLevelDefReference',
-          validOnset: '(Onset, Def/Acc/5.4)',
-          validOffset: '(Offset, Def/Acc/5.4)',
+          validOnset: '(Onset, Def/Acc/5.4 m-per-s^2)',
+          validOffset: '(Offset, Def/Acc/5.4 m-per-s^2)',
           multipleTopLevel: '(Definition/DoubleDefinition, Onset)',
           topLevelDefinition: 'Definition/TopLevelDefinition',
           topLevelOnset: 'Onset, Red',
-          topLevelOffset: 'Offset, Def/Acc/5.4',
+          topLevelOffset: 'Offset, Def/Acc/5.4 m-per-s^2',
           nestedDefinition: '((Definition/SimpleDefinition), Red)',
           nestedOnset: '((Onset, Def/MyColor), Red)',
           nestedOffset: '((Offset, Def/MyColor), Red)',

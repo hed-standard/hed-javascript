@@ -196,18 +196,23 @@ describe('HED dataset validation', () => {
       const testContext = ['(Definition/Acc/#, (Acceleration/#, Red))', '(Definition/MyColor, (Label/Pie))']
       const testDatasets = {
         singleOnsetOffset: ['(Def/MyColor, Onset)', '(Def/MyColor, Offset)', 'Red'],
-        offsetForSameValue: ['(Def/Acc/4.2, Onset)', '(Def/Acc/4.2, Offset)', 'Red'],
+        offsetForSameValue: ['(Def/Acc/4.2 m-per-s^2, Onset)', '(Def/Acc/4.2 m-per-s^2, Offset)', 'Red'],
         repeatedOnsetForNoValue: ['(Def/MyColor, Onset)', '(Def/MyColor, Onset)', 'Red', '(Def/MyColor, Offset)'],
-        repeatedOnsetForSameValue: ['(Def/Acc/4.2, Onset)', 'Red', '(Def/Acc/4.2, Onset)', '(Def/Acc/4.2, Offset)'],
+        repeatedOnsetForSameValue: [
+          '(Def/Acc/4.2 m-per-s^2, Onset)',
+          'Red',
+          '(Def/Acc/4.2 m-per-s^2, Onset)',
+          '(Def/Acc/4.2 m-per-s^2, Offset)',
+        ],
         onsetOffsetForDifferentValues: [
-          '(Def/Acc/4.2, Onset)',
-          '(Def/Acc/5.3, Onset)',
-          '(Def/Acc/4.2, Offset)',
-          '(Def/Acc/5.3, Offset)',
+          '(Def/Acc/4.2 m-per-s^2, Onset)',
+          '(Def/Acc/5.3 m-per-s^2, Onset)',
+          '(Def/Acc/4.2 m-per-s^2, Offset)',
+          '(Def/Acc/5.3 m-per-s^2, Offset)',
         ],
         repeatedOffset: ['(Def/MyColor, Onset)', '(Def/MyColor, Offset)', 'Red', '(Def/MyColor, Offset)'],
         offsetFirst: ['(Def/MyColor, Offset)', '(Def/MyColor, Onset)', 'Red', '(Def/MyColor, Offset)'],
-        offsetForDifferentValue: ['(Def/Acc/4.2, Onset)', '(Def/Acc/5.3, Offset)', 'Red'],
+        offsetForDifferentValue: ['(Def/Acc/4.2 m-per-s^2, Onset)', '(Def/Acc/5.3 m-per-s^2, Offset)', 'Red'],
       }
       const expectedIssues = {
         singleOnsetOffset: [],
@@ -227,7 +232,7 @@ describe('HED dataset validation', () => {
         ],
         offsetForDifferentValue: [
           generateValidationIssue('inactiveOnset', {
-            definition: 'Acc/5.3',
+            definition: 'Acc/5.3 m-per-s^2',
           }),
         ],
       }
