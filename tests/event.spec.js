@@ -1360,44 +1360,40 @@ describe('HED string and event validation', () => {
 
       it('should have syntactically valid onsets', () => {
         const testStrings = {
-          simpleOnset: '(Onset, Def/Acc/5.4)',
-          onsetWithDefAndOneGroup: '(Onset, Def/MyColor, (Red))',
-          onsetWithDefExpandAndOneGroup: '(Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
-          onsetWithDefAndTwoGroups: '(Def/DefAndTwoGroups, (Blue), (Green), Onset)',
-          onsetWithDefExpandAndTwoGroups: '((Def-expand/DefExpandAndTwoGroups, (Label/Pie)), (Green), (Red), Onset)',
-          onsetWithTagAndNoDef: '(Onset, Red)',
-          onsetWithTagGroupAndNoDef: '(Onset, (Red))',
-          onsetWithDefAndTag: '(Onset, Def/DefAndTag, Red)',
-          onsetWithMultipleDefs: '(Onset, Def/MyColor, Def/Acc/5.4)',
-          onsetWithDefAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Onset)',
-          onsetWithMultipleDefinitionsAndExtraTagGroups:
+          simple: '(Onset, Def/Acc/5.4)',
+          defAndOneGroup: '(Onset, Def/MyColor, (Red))',
+          defExpandAndOneGroup: '(Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
+          noTag: '(Onset)',
+          defAndTwoGroups: '(Def/DefAndTwoGroups, (Blue), (Green), Onset)',
+          defExpandAndTwoGroups: '((Def-expand/DefExpandAndTwoGroups, (Label/Pie)), (Green), (Red), Onset)',
+          tagAndNoDef: '(Onset, Red)',
+          tagGroupAndNoDef: '(Onset, (Red))',
+          defAndTag: '(Onset, Def/DefAndTag, Red)',
+          multipleDefs: '(Onset, Def/MyColor, Def/Acc/5.4)',
+          defAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Onset)',
+          multipleDefinitionsAndExtraTagGroups:
             '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Onset, (Blue), (Green))',
         }
         const expectedIssues = {
-          simpleOnset: [],
-          onsetWithDefAndOneGroup: [],
-          onsetWithDefExpandAndOneGroup: [],
-          onsetWithDefAndTwoGroups: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTwoGroups' })],
-          onsetWithDefExpandAndTwoGroups: [
-            generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTwoGroups' }),
-          ],
-          onsetWithTagAndNoDef: [
-            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.onsetWithTagAndNoDef }),
+          simple: [],
+          defAndOneGroup: [],
+          defExpandAndOneGroup: [],
+          noTag: [generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.noTag })],
+          defAndTwoGroups: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTwoGroups' })],
+          defExpandAndTwoGroups: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTwoGroups' })],
+          tagAndNoDef: [
+            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.tagAndNoDef }),
             generateIssue('extraTagsInOnsetOffset', { definition: '' }),
           ],
-          onsetWithTagGroupAndNoDef: [
-            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.onsetWithTagGroupAndNoDef }),
+          tagGroupAndNoDef: [generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef })],
+          defAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTag' })],
+          multipleDefs: [generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.multipleDefs })],
+          defAndDefExpand: [
+            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.defAndDefExpand }),
           ],
-          onsetWithDefAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTag' })],
-          onsetWithMultipleDefs: [
-            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.onsetWithMultipleDefs }),
-          ],
-          onsetWithDefAndDefExpand: [
-            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.onsetWithDefAndDefExpand }),
-          ],
-          onsetWithMultipleDefinitionsAndExtraTagGroups: [
+          multipleDefinitionsAndExtraTagGroups: [
             generateIssue('onsetOffsetWithMultipleDefinitions', {
-              tagGroup: testStrings.onsetWithMultipleDefinitionsAndExtraTagGroups,
+              tagGroup: testStrings.multipleDefinitionsAndExtraTagGroups,
             }),
             generateIssue('extraTagsInOnsetOffset', { definition: 'Multiple definition tags found' }),
           ],
@@ -1409,41 +1405,39 @@ describe('HED string and event validation', () => {
 
       it('should have syntactically valid offsets', () => {
         const testStrings = {
-          simpleOffset: '(Offset, Def/Acc/5.4)',
-          offsetWithTagAndNoDef: '(Offset, Red)',
-          offsetWithTagGroupAndNoDef: '(Offset, (Red))',
-          offsetWithDefAndTag: '(Offset, Def/DefAndTag, Red)',
-          offsetWithDefExpandAndTag: '((Def-expand/DefExpandAndTag, (Label/Pie)), Offset, Red)',
-          offsetWithDefAndTagGroup: '(Offset, Def/DefAndTagGroup, (Red))',
-          offsetWithDefExpandAndTagGroup: '((Def-expand/DefExpandAndTagGroup, (Label/Pie)), Offset, (Red))',
-          offsetWithMultipleDefs: '(Offset, Def/MyColor, Def/Acc/5.4)',
-          offsetWithDefAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Offset)',
+          simple: '(Offset, Def/Acc/5.4)',
+          noTag: '(Offset)',
+          tagAndNoDef: '(Offset, Red)',
+          tagGroupAndNoDef: '(Offset, (Red))',
+          defAndTag: '(Offset, Def/DefAndTag, Red)',
+          defExpandAndTag: '((Def-expand/DefExpandAndTag, (Label/Pie)), Offset, Red)',
+          defAndTagGroup: '(Offset, Def/DefAndTagGroup, (Red))',
+          defExpandAndTagGroup: '((Def-expand/DefExpandAndTagGroup, (Label/Pie)), Offset, (Red))',
+          multipleDefs: '(Offset, Def/MyColor, Def/Acc/5.4)',
+          defAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Offset)',
         }
         const expectedIssues = {
-          simpleOffset: [],
-          offsetWithTagAndNoDef: [
-            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.offsetWithTagAndNoDef }),
+          simple: [],
+          noTag: [generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.noTag })],
+          tagAndNoDef: [
+            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.tagAndNoDef }),
             generateIssue('extraTagsInOnsetOffset', { definition: '' }),
           ],
-          offsetWithTagGroupAndNoDef: [
-            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.offsetWithTagGroupAndNoDef }),
+          tagGroupAndNoDef: [
+            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef }),
             generateIssue('extraTagsInOnsetOffset', { definition: '' }),
           ],
-          offsetWithDefAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTag' })],
-          offsetWithDefExpandAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTag' })],
-          offsetWithDefAndTagGroup: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTagGroup' })],
-          offsetWithDefExpandAndTagGroup: [
-            generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTagGroup' }),
+          defAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTag' })],
+          defExpandAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTag' })],
+          defAndTagGroup: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTagGroup' })],
+          defExpandAndTagGroup: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTagGroup' })],
+          multipleDefs: [generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.multipleDefs })],
+          defAndDefExpand: [
+            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.defAndDefExpand }),
           ],
-          offsetWithMultipleDefs: [
-            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.offsetWithMultipleDefs }),
-          ],
-          offsetWithDefAndDefExpand: [
-            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.offsetWithDefAndDefExpand }),
-          ],
-          offsetWithMultipleDefinitionsAndExtraTagGroups: [
+          multipleDefinitionsAndExtraTagGroups: [
             generateIssue('onsetOffsetWithMultipleDefinitions', {
-              tagGroup: testStrings.offsetWithMultipleDefinitionsAndExtraTagGroups,
+              tagGroup: testStrings.multipleDefinitionsAndExtraTagGroups,
             }),
             generateIssue('extraTagsInOnsetOffset', { definition: 'Multiple definition tags found' }),
           ],
