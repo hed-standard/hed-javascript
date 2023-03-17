@@ -1364,6 +1364,7 @@ describe('HED string and event validation', () => {
           defAndOneGroup: '(Onset, Def/MyColor, (Red))',
           defExpandAndOneGroup: '(Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
           noTag: '(Onset)',
+          definition: '(Onset, Definition/MyColor, (Label/Pie))',
           defAndTwoGroups: '(Def/DefAndTwoGroups, (Blue), (Green), Onset)',
           defExpandAndTwoGroups: '((Def-expand/DefExpandAndTwoGroups, (Label/Pie)), (Green), (Red), Onset)',
           tagAndNoDef: '(Onset, Red)',
@@ -1379,6 +1380,10 @@ describe('HED string and event validation', () => {
           defAndOneGroup: [],
           defExpandAndOneGroup: [],
           noTag: [generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.noTag })],
+          definition: [
+            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.definition }),
+            generateIssue('extraTagsInOnsetOffset', { definition: '' }),
+          ],
           defAndTwoGroups: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTwoGroups' })],
           defExpandAndTwoGroups: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTwoGroups' })],
           tagAndNoDef: [

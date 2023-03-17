@@ -41,12 +41,12 @@ export const parseDefinitions = function (parsedHedStrings) {
  */
 const checkGroupForOnsetOffsetOrder = (parsedGroup, activeScopes) => {
   if (parsedGroup.isOnsetGroup) {
-    activeScopes.add(parsedGroup.definitionTag.canonicalTag)
+    activeScopes.add(parsedGroup.defNameAndValue)
   }
-  if (parsedGroup.isOffsetGroup && !activeScopes.delete(parsedGroup.definitionTag.canonicalTag)) {
+  if (parsedGroup.isOffsetGroup && !activeScopes.delete(parsedGroup.defNameAndValue)) {
     return [
       generateIssue('inactiveOnset', {
-        definition: parsedGroup.definitionNameAndValue,
+        definition: parsedGroup.defNameAndValue,
       }),
     ]
   }

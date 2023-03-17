@@ -11,36 +11,18 @@ import { asArray } from '../../utils/array'
  * A parsed HED tag group.
  */
 export default class ParsedHedGroup extends ParsedHedSubstring {
+  static SPECIAL_SHORT_TAGS = new Set(['Definition', 'Def', 'Def-expand', 'Onset', 'Offset'])
+
   /**
    * The parsed HED tags in the HED tag group.
    * @type {(ParsedHedTag|ParsedHedGroup)[]}
    */
   tags
   /**
-   * The base of {@link definitionTag}.
-   * @type {string}
+   * Any HED tags with special handling.
+   * @type {Map<string, ParsedHedTag[]>}
    */
-  definitionBase
-  /**
-   * The Definition tag associated with this HED tag group.
-   * @type {ParsedHedTag|ParsedHedTag[]}
-   */
-  definitionTag
-  /**
-   * Whether this HED tag group is a definition group.
-   * @type {boolean}
-   */
-  isDefinitionGroup
-  /**
-   * Whether this HED tag group has a Def tag.
-   * @type {boolean}
-   */
-  isDefGroup
-  /**
-   * Whether this HED tag group has a Def-expand tag.
-   * @type {boolean}
-   */
-  isDefExpandGroup
+  specialTags
   /**
    * Whether this HED tag group has child groups with a Def-expand tag.
    * @type {boolean}
@@ -51,16 +33,6 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @type {ParsedHedGroup[]}
    */
   defExpandChildren
-  /**
-   * Whether this HED tag group is a onset group.
-   * @type {boolean}
-   */
-  isOnsetGroup
-  /**
-   * Whether this HED tag group is a offset group.
-   * @type {boolean}
-   */
-  isOffsetGroup
 
   /**
    * Constructor.
@@ -78,31 +50,15 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   _findSpecialGroups(hedSchemas) {
-    const definitionTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Definition')
-    this.isDefinitionGroup = Boolean(definitionTag)
-    if (this.isDefinitionGroup) {
-      this.definitionTag = definitionTag
-      this.definitionBase = 'Definition'
-      return
-    }
-    const defTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Def')
-    this.isDefGroup = Boolean(defTag)
-    if (this.isDefGroup) {
-      this.definitionTag = defTag
-      this.definitionBase = 'Def'
-    }
-    const defExpandTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Def-expand')
-    this.isDefExpandGroup = Boolean(defExpandTag)
-    if (this.isDefExpandGroup) {
-      this.definitionTag = defExpandTag
-      this.definitionBase = 'Def-expand'
+    this.specialTags = new Map()
+    for (const shortTag of ParsedHedGroup.SPECIAL_SHORT_TAGS) {
+      const tags = ParsedHedGroup.findGroupTags(this, hedSchemas, shortTag)
+      if (tags !== undefined) {
+        this.specialTags.set(shortTag, tags)
+      }
     }
     this.defExpandChildren = Array.from(this.topLevelGroupIterator()).filter((subgroup) => subgroup.isDefExpandGroup)
     this.hasDefExpandChildren = this.defExpandChildren.length !== 0
-    const onsetTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Onset')
-    this.isOnsetGroup = Boolean(onsetTag)
-    const offsetTag = ParsedHedGroup.findGroupTags(this, hedSchemas, 'Offset')
-    this.isOffsetGroup = Boolean(offsetTag)
   }
 
   /**
@@ -111,7 +67,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @param {ParsedHedGroup} group The parsed HED tag group.
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} shortTag The short tag to search for.
-   * @return {null|ParsedHedTag[]|ParsedHedTag} The tag(s) matching the short tag.
+   * @return {null|ParsedHedTag[]} The tag(s) matching the short tag.
    */
   static findGroupTags(group, hedSchemas, shortTag) {
     if (!hedSchemas.isHed3) {
@@ -128,35 +84,108 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     switch (tags.length) {
       case 0:
         return undefined
-      case 1:
-        return tags[0]
       default:
         return tags
     }
   }
 
   /**
-   * Determine the name of this group's definition.
-   * @return {string|null}
+   * The {@code Definition} tags associated with this HED tag group.
+   * @return {ParsedHedTag[]}
    */
-  get definitionName() {
-    return this._memoize('definitionName', () => {
-      if (this.isOnsetGroup || this.isOffsetGroup) {
-        if (this.definitionCount > 1) {
-          throw new IssueError(
-            generateIssue('onsetOffsetWithMultipleDefinitions', {
-              tagGroup: this.originalTag,
-            }),
-          )
-        }
-        if (this.hasDefExpandChildren) {
-          return this.defExpandChildren[0].definitionName
-        }
+  get definitionTags() {
+    return this.specialTags.get('Definition')
+  }
+
+  /**
+   * The {@code Def} tags associated with this HED tag group.
+   * @return {ParsedHedTag[]}
+   */
+  get defTags() {
+    return this.specialTags.get('Def')
+  }
+
+  /**
+   * The {@code Def-expand} tags associated with this HED tag group.
+   * @return {ParsedHedTag[]}
+   */
+  get defExpandTags() {
+    return this.specialTags.get('Def-expand')
+  }
+
+  /**
+   * Whether this HED tag group is a definition group.
+   * @return {boolean}
+   */
+  get isDefinitionGroup() {
+    return this.specialTags.has('Definition')
+  }
+
+  /**
+   * Whether this HED tag group has a {@code Def} tag.
+   * @return {boolean}
+   */
+  get isDefGroup() {
+    return this.specialTags.has('Def')
+  }
+
+  /**
+   * Whether this HED tag group has a {@code Def-expand} tag.
+   * @return {boolean}
+   */
+  get isDefExpandGroup() {
+    return this.specialTags.has('Def-expand')
+  }
+
+  /**
+   * Whether this HED tag group is an onset group.
+   * @return {boolean}
+   */
+  get isOnsetGroup() {
+    return this.specialTags.has('Onset')
+  }
+
+  /**
+   * Whether this HED tag group is an offset group.
+   * @return {boolean}
+   */
+  get isOffsetGroup() {
+    return this.specialTags.has('Offset')
+  }
+
+  /**
+   * Find what should be the sole definition tag, or throw an error if more than one is found.
+   *
+   * @return {ParsedHedTag} This group's definition tag.
+   */
+  get definitionTag() {
+    return this._memoize('definitionTag', () => {
+      switch (this.definitionTags.length) {
+        case 0:
+          return undefined
+        case 1:
+          return this.definitionTags[0]
+        default:
+          throw new Error('Single definition tag asserted, but multiple definition tags found.')
       }
-      if (this.definitionBase === undefined) {
-        return null
+    })
+  }
+
+  /**
+   * Find what should be the sole {@code Def-expand} tag, or throw an error if more than one is found.
+   *
+   * @return {ParsedHedTag} This group's {@code Def-expand} tag.
+   */
+  get defExpandTag() {
+    return this._memoize('defExpandTag', () => {
+      switch (this.defExpandTags.length) {
+        case 0:
+          return undefined
+        case 1:
+          return this.defExpandTags[0]
+        default:
+          throw new Error('Single Def-expand tag asserted, but multiple Def-expand tags found.')
       }
-      return ParsedHedGroup.findDefinitionName(this.definitionTag.canonicalTag, this.definitionBase)
     })
   }
 
@@ -183,24 +212,25 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * Determine the name of this group's definition.
    * @return {string|null}
    */
-  get definitionValue() {
-    return this._memoize('definitionValue', () => {
-      if (this.isOnsetGroup || this.isOffsetGroup) {
-        if (this.definitionCount > 1) {
-          throw new IssueError(
-            generateIssue('onsetOffsetWithMultipleDefinitions', {
-              tagGroup: this.originalTag,
-            }),
-          )
-        }
-        if (this.hasDefExpandChildren) {
-          return this.defExpandChildren[0].definitionValue
-        }
-      }
-      if (this.definitionBase === undefined) {
+  get definitionName() {
+    return this._memoize('definitionName', () => {
+      if (!this.isDefinitionGroup) {
         return null
       }
-      if (getTagName(this.definitionTag.parentCanonicalTag) === this.definitionBase) {
+      return ParsedHedGroup.findDefinitionName(this.definitionTag.canonicalTag, 'Definition')
+    })
+  }
+
+  /**
+   * Determine the name of this group's definition.
+   * @return {string|null}
+   */
+  get definitionValue() {
+    return this._memoize('definitionValue', () => {
+      if (!this.isDefinitionGroup) {
+        return null
+      }
+      if (getTagName(this.definitionTag.parentCanonicalTag) === 'Definition') {
         return ''
       } else {
         return this.definitionTag.originalTagName
@@ -214,13 +244,147 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get definitionNameAndValue() {
     return this._memoize('definitionNameAndValue', () => {
-      if (!(this.isDefGroup | this.isDefinitionGroup | this.hasDefExpandChildren)) {
+      if (!this.isDefinitionGroup) {
         return null
       }
       if (this.definitionValue) {
         return this.definitionName + '/' + this.definitionValue
       } else {
         return this.definitionName
+      }
+    })
+  }
+
+  /**
+   * Determine the name of this group's definition.
+   * @return {string|null}
+   */
+  get defExpandName() {
+    return this._memoize('defExpandName', () => {
+      if (!this.isDefExpandGroup) {
+        return null
+      }
+      return ParsedHedGroup.findDefinitionName(this.defExpandTag.canonicalTag, 'Def-expand')
+    })
+  }
+
+  /**
+   * Determine the name of this group's definition.
+   * @return {string|null}
+   */
+  get defExpandValue() {
+    return this._memoize('defExpandValue', () => {
+      if (!this.isDefExpandGroup) {
+        return null
+      }
+      if (getTagName(this.defExpandTag.parentCanonicalTag) === 'Def-expand') {
+        return ''
+      } else {
+        return this.defExpandTag.originalTagName
+      }
+    })
+  }
+
+  /**
+   * Determine the name and value of this group's definition.
+   * @return {string|null}
+   */
+  get defExpandNameAndValue() {
+    return this._memoize('defExpandNameAndValue', () => {
+      if (!this.isDefExpandGroup) {
+        return null
+      }
+      if (this.defExpandValue) {
+        return this.defExpandName + '/' + this.defExpandValue
+      } else {
+        return this.defExpandName
+      }
+    })
+  }
+
+  /**
+   * Determine the name(s) of this group's definition.
+   * @return {string|string[]|null}
+   */
+  get defName() {
+    return this._memoize('defName', () => {
+      if (!(this.isDefGroup || this.hasDefExpandChildren)) {
+        return null
+      }
+      if (this.isOnsetGroup || this.isOffsetGroup) {
+        if (this.defCount > 1) {
+          throw new IssueError(
+            generateIssue('onsetOffsetWithMultipleDefinitions', {
+              tagGroup: this.originalTag,
+            }),
+          )
+        }
+        if (this.hasDefExpandChildren) {
+          return this.defExpandChildren[0].defExpandName
+        }
+        return ParsedHedGroup.findDefinitionName(this.defTags[0].canonicalTag, 'Def')
+      } else {
+        return [].concat(
+          this.defExpandChildren.map((defExpandChild) => defExpandChild.defExpandName),
+          this.defTags.map((defTag) => ParsedHedGroup.findDefinitionName(defTag.canonicalTag, 'Def')),
+        )
+      }
+    })
+  }
+
+  /**
+   * Determine the name of this group's definition.
+   * @return {string|null}
+   */
+  get defValue() {
+    return this._memoize('defValue', () => {
+      if (!(this.isDefGroup || this.hasDefExpandChildren)) {
+        return null
+      }
+      if (this.isOnsetGroup || this.isOffsetGroup) {
+        if (this.defCount > 1) {
+          throw new IssueError(
+            generateIssue('onsetOffsetWithMultipleDefinitions', {
+              tagGroup: this.originalTag,
+            }),
+          )
+        }
+        if (this.hasDefExpandChildren) {
+          return this.defExpandChildren[0].defExpandValue
+        }
+        if (getTagName(this.defTags[0].parentCanonicalTag) === 'Def') {
+          return ''
+        } else {
+          return this.defTags[0].originalTagName
+        }
+      } else {
+        return [].concat(
+          this.defExpandChildren.map((defExpandChild) => defExpandChild.defExpandValue),
+          this.defTags.map((defTag) => {
+            if (getTagName(defTag.parentCanonicalTag) === 'Def') {
+              return ''
+            } else {
+              return defTag.originalTagName
+            }
+          }),
+        )
+      }
+    })
+  }
+
+  /**
+   * Determine the name and value of this group's {@code Def} or {@code Def-expand}.
+   * @return {string|null}
+   */
+  get defNameAndValue() {
+    return this._memoize('defNameAndValue', () => {
+      if (!(this.isDefGroup || this.hasDefExpandChildren)) {
+        return null
+      }
+      if (this.defValue) {
+        return this.defName + '/' + this.defValue
+      } else {
+        return this.defName
       }
     })
   }
@@ -244,13 +408,13 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
-   * Determine the number of definitions included in this group.
-   * @returns {number} The number of first-level definition tags and tag groups in this group.
+   * Determine the number of {@code Def} and {@code Def-expand} tag/tag groups included in this group.
+   * @return {number} The number of first-level definition reference tags and tag groups in this group.
    */
-  get definitionCount() {
-    return this._memoize('definitionCount', () => {
-      if (this.definitionTag) {
-        return asArray(this.definitionTag).length + this.defExpandChildren.length
+  get defCount() {
+    return this._memoize('defCount', () => {
+      if (this.isDefGroup) {
+        return this.defTags.length + this.defExpandChildren.length
       } else {
         return this.defExpandChildren.length
       }

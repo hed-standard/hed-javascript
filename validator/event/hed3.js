@@ -207,13 +207,9 @@ export class Hed3Validator extends HedValidator {
     const definitionShortTag = 'definition'
     const defExpandShortTag = 'def-expand'
     const defShortTag = 'def'
-    const definitionParentTag = getParsedParentTags(this.hedSchemas, definitionShortTag).get(
-      this.hedSchemas.standardSchema,
-    )
-    const defExpandParentTag = getParsedParentTags(this.hedSchemas, defExpandShortTag).get(
-      this.hedSchemas.standardSchema,
-    )
-    const defParentTag = getParsedParentTags(this.hedSchemas, defShortTag).get(this.hedSchemas.standardSchema)
+    const definitionParentTag = this.getStandardSchemaParsedTag(definitionShortTag)
+    const defExpandParentTag = this.getStandardSchemaParsedTag(defExpandShortTag)
+    const defParentTag = this.getStandardSchemaParsedTag(defShortTag)
     let definitionTagFound = false
     let definitionName
     for (const tag of tagGroup.tags) {
@@ -288,27 +284,20 @@ export class Hed3Validator extends HedValidator {
     if (!(tagGroup.isOnsetGroup || tagGroup.isOffsetGroup)) {
       return
     }
-    let definitionName
-    try {
-      definitionName = tagGroup.definitionNameAndValue
-    } catch (e) {
-      if (e instanceof IssueError) {
-        this.issues.push(e.issue)
-        definitionName = 'Multiple definition tags found'
-      }
-    }
-    const defExpandChildren = tagGroup.hasDefExpandChildren ? tagGroup.defExpandChildren : []
-    const defTags = tagGroup.isDefGroup ? asArray(tagGroup.definitionTag) : []
-    if (!(tagGroup.hasDefExpandChildren || tagGroup.isDefGroup)) {
+    const definitionName = this._getOnsetOffsetDefinitionName(tagGroup)
+
+    const defExpandChildren = tagGroup.defExpandChildren
+    const defTags = tagGroup.defTags ?? []
+    if (tagGroup.defCount === 0) {
       this.pushIssue('onsetOffsetWithoutDefinition', {
         tagGroup: tagGroup.originalTag,
       })
     }
-    const allowedTags = [
-      getParsedParentTags(this.hedSchemas, tagGroup.isOnsetGroup ? 'Onset' : 'Offset').get(
-        this.hedSchemas.standardSchema,
-      ),
-    ]
+    /**
+     * The Onset/Offset tag plus the definition tag/tag group.
+     * @type {(ParsedHedTag|ParsedHedGroup)[]}
+     */
+    const allowedTags = [this.getStandardSchemaParsedTag(tagGroup.isOnsetGroup ? 'Onset' : 'Offset')]
     allowedTags.push(...defExpandChildren)
     allowedTags.push(...defTags)
     const remainingTags = differenceWith(tagGroup.tags, allowedTags, (ours, theirs) => ours.equivalent(theirs))
@@ -320,6 +309,34 @@ export class Hed3Validator extends HedValidator {
       this.pushIssue('extraTagsInOnsetOffset', {
         definition: definitionName,
       })
+    }
+  }
+
+  /**
+   * Determine the definition name for an Onset- or Offset-type tag group.
+   *
+   * Normally, this simply returns the tag group's {@link ParsedHedGroup.defNameAndValue} return value. However,
+   * if this throws an {@link IssueError}, we add the embedded {@link Issue} to our issue list and return a string
+   * stating that multiple definitions were found.
+   *
+   * @param {ParsedHedGroup} tagGroup The onset or offset group.
+   * @returns {string} The group's definition name and (optional) value, if any, or a string noting that multiple definitions were found.
+   * @throws {Error} If passed a {@link ParsedHedGroup} that is not an Onset- or Offset-type group.
+   * @private
+   */
+  _getOnsetOffsetDefinitionName(tagGroup) {
+    if (!(tagGroup.isOnsetGroup || tagGroup.isOffsetGroup)) {
+      throw new Error(
+        'Internal validator function "Hed3Validator._getOnsetOffsetDefinitionName()" called outside of its intended context',
+      )
+    }
+    try {
+      return tagGroup.defNameAndValue
+    } catch (e) {
+      if (e instanceof IssueError) {
+        this.issues.push(e.issue)
+        return 'Multiple definition tags found'
+      }
     }
   }
 
@@ -367,5 +384,15 @@ export class Hed3Validator extends HedValidator {
         }
       }
     }
+  }
+
+  /**
+   * Generate a parsed HED tag object corresponding to the given short tag in the standard schema being validated against.
+   *
+   * @param {string} shortTag The short tag to parse.
+   * @returns {ParsedHedTag} The parsed tag corresponding to the short tag in the standard schema being validated against.
+   */
+  getStandardSchemaParsedTag(shortTag) {
+    return getParsedParentTags(this.hedSchemas, shortTag).get(this.hedSchemas.standardSchema)
   }
 }
