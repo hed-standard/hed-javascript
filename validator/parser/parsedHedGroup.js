@@ -5,7 +5,6 @@ import { getParsedParentTags } from '../../utils/hedData'
 import { getTagName } from '../../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { ParsedHedTag } from './parsedHedTag'
-import { asArray } from '../../utils/array'
 
 /**
  * A parsed HED tag group.
@@ -159,16 +158,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @return {ParsedHedTag} This group's definition tag.
    */
   get definitionTag() {
-    return this._memoize('definitionTag', () => {
-      switch (this.definitionTags.length) {
-        case 0:
-          return undefined
-        case 1:
-          return this.definitionTags[0]
-        default:
-          throw new Error('Single definition tag asserted, but multiple definition tags found.')
-      }
-    })
+    return this.getSingleDefinitionTag('definitionTag', 'Definition')
   }
 
   /**
@@ -177,14 +167,18 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @return {ParsedHedTag} This group's {@code Def-expand} tag.
    */
   get defExpandTag() {
-    return this._memoize('defExpandTag', () => {
-      switch (this.defExpandTags.length) {
+    return this.getSingleDefinitionTag('defExpandTag', 'Def-expand')
+  }
+
+  getSingleDefinitionTag(fieldName, parentTag) {
+    return this._memoize(fieldName, () => {
+      switch (this.specialTags.get(parentTag).length) {
         case 0:
           return undefined
         case 1:
-          return this.defExpandTags[0]
+          return this.specialTags.get(parentTag)[0]
         default:
-          throw new Error('Single Def-expand tag asserted, but multiple Def-expand tags found.')
+          throw new Error(`Single ${parentTag} tag asserted, but multiple ${parentTag} tags found.`)
       }
     })
   }
@@ -213,28 +207,51 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @return {string|null}
    */
   get definitionName() {
-    return this._memoize('definitionName', () => {
-      if (!this.isDefinitionGroup) {
-        return null
-      }
-      return ParsedHedGroup.findDefinitionName(this.definitionTag.canonicalTag, 'Definition')
-    })
+    return this.getSingleDefinitionName('definitionName', 'Definition')
   }
 
   /**
    * Determine the name of this group's definition.
    * @return {string|null}
    */
-  get definitionValue() {
-    return this._memoize('definitionValue', () => {
-      if (!this.isDefinitionGroup) {
+  get defExpandName() {
+    return this.getSingleDefinitionName('defExpandName', 'Def-expand')
+  }
+
+  getSingleDefinitionName(fieldName, parentTag) {
+    return this._memoize(fieldName, () => {
+      if (!this.specialTags.has(parentTag)) {
         return null
       }
-      if (getTagName(this.definitionTag.parentCanonicalTag) === 'Definition') {
-        return ''
-      } else {
-        return this.definitionTag.originalTagName
+      return ParsedHedGroup.findDefinitionName(
+        this.getSingleDefinitionTag(fieldName, parentTag).canonicalTag,
+        parentTag,
+      )
+    })
+  }
+
+  /**
+   * Determine the value of this group's definition.
+   * @return {string|null}
+   */
+  get definitionValue() {
+    return this.getSingleDefinitionValue('definitionValue', 'Definition')
+  }
+
+  /**
+   * Determine the value of this group's definition.
+   * @return {string|null}
+   */
+  get defExpandValue() {
+    return this.getSingleDefinitionValue('defExpandValue', 'Def-expand')
+  }
+
+  getSingleDefinitionValue(fieldName, parentTag) {
+    return this._memoize(fieldName, () => {
+      if (!this.specialTags.has(parentTag)) {
+        return null
       }
+      return ParsedHedGroup.getDefinitionTagValue(this.getSingleDefinitionTag(fieldName, parentTag), parentTag)
     })
   }
 
@@ -243,46 +260,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @return {string|null}
    */
   get definitionNameAndValue() {
-    return this._memoize('definitionNameAndValue', () => {
-      if (!this.isDefinitionGroup) {
-        return null
-      }
-      if (this.definitionValue) {
-        return this.definitionName + '/' + this.definitionValue
-      } else {
-        return this.definitionName
-      }
-    })
-  }
-
-  /**
-   * Determine the name of this group's definition.
-   * @return {string|null}
-   */
-  get defExpandName() {
-    return this._memoize('defExpandName', () => {
-      if (!this.isDefExpandGroup) {
-        return null
-      }
-      return ParsedHedGroup.findDefinitionName(this.defExpandTag.canonicalTag, 'Def-expand')
-    })
-  }
-
-  /**
-   * Determine the name of this group's definition.
-   * @return {string|null}
-   */
-  get defExpandValue() {
-    return this._memoize('defExpandValue', () => {
-      if (!this.isDefExpandGroup) {
-        return null
-      }
-      if (getTagName(this.defExpandTag.parentCanonicalTag) === 'Def-expand') {
-        return ''
-      } else {
-        return this.defExpandTag.originalTagName
-      }
-    })
+    return this.getSingleDefinitionNameAndValue('definitionNameAndValue', 'Definition')
   }
 
   /**
@@ -290,14 +268,19 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @return {string|null}
    */
   get defExpandNameAndValue() {
-    return this._memoize('defExpandNameAndValue', () => {
-      if (!this.isDefExpandGroup) {
+    return this.getSingleDefinitionNameAndValue('defExpandNameAndValue', 'Def-expand')
+  }
+
+  getSingleDefinitionNameAndValue(fieldName, parentTag) {
+    return this._memoize(fieldName, () => {
+      if (!this.specialTags.has(parentTag)) {
         return null
-      }
-      if (this.defExpandValue) {
-        return this.defExpandName + '/' + this.defExpandValue
+      } else if (this.getSingleDefinitionValue(fieldName, parentTag)) {
+        return (
+          this.getSingleDefinitionName(fieldName, parentTag) + '/' + this.getSingleDefinitionValue(fieldName, parentTag)
+        )
       } else {
-        return this.defExpandName
+        return this.getSingleDefinitionName(fieldName, parentTag)
       }
     })
   }
@@ -308,27 +291,23 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get defName() {
     return this._memoize('defName', () => {
-      if (!(this.isDefGroup || this.hasDefExpandChildren)) {
+      if (!this.isDefGroup && !this.hasDefExpandChildren) {
         return null
-      }
-      if (this.isOnsetGroup || this.isOffsetGroup) {
-        if (this.defCount > 1) {
-          throw new IssueError(
-            generateIssue('onsetOffsetWithMultipleDefinitions', {
-              tagGroup: this.originalTag,
-            }),
-          )
-        }
-        if (this.hasDefExpandChildren) {
-          return this.defExpandChildren[0].defExpandName
-        }
-        return ParsedHedGroup.findDefinitionName(this.defTags[0].canonicalTag, 'Def')
-      } else {
+      } else if (!this.isOnsetGroup && !this.isOffsetGroup) {
         return [].concat(
           this.defExpandChildren.map((defExpandChild) => defExpandChild.defExpandName),
           this.defTags.map((defTag) => ParsedHedGroup.findDefinitionName(defTag.canonicalTag, 'Def')),
         )
+      } else if (this.defCount > 1) {
+        throw new IssueError(
+          generateIssue('onsetOffsetWithMultipleDefinitions', {
+            tagGroup: this.originalTag,
+          }),
+        )
+      } else if (this.hasDefExpandChildren) {
+        return this.defExpandChildren[0].defExpandName
       }
+      return ParsedHedGroup.findDefinitionName(this.defTags[0].canonicalTag, 'Def')
     })
   }
 
@@ -338,37 +317,23 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get defValue() {
     return this._memoize('defValue', () => {
-      if (!(this.isDefGroup || this.hasDefExpandChildren)) {
+      if (!this.isDefGroup && !this.hasDefExpandChildren) {
         return null
-      }
-      if (this.isOnsetGroup || this.isOffsetGroup) {
-        if (this.defCount > 1) {
-          throw new IssueError(
-            generateIssue('onsetOffsetWithMultipleDefinitions', {
-              tagGroup: this.originalTag,
-            }),
-          )
-        }
-        if (this.hasDefExpandChildren) {
-          return this.defExpandChildren[0].defExpandValue
-        }
-        if (getTagName(this.defTags[0].parentCanonicalTag) === 'Def') {
-          return ''
-        } else {
-          return this.defTags[0].originalTagName
-        }
-      } else {
+      } else if (!this.isOnsetGroup && !this.isOffsetGroup) {
         return [].concat(
           this.defExpandChildren.map((defExpandChild) => defExpandChild.defExpandValue),
-          this.defTags.map((defTag) => {
-            if (getTagName(defTag.parentCanonicalTag) === 'Def') {
-              return ''
-            } else {
-              return defTag.originalTagName
-            }
+          this.defTags.map((defTag) => ParsedHedGroup.getDefinitionTagValue(defTag, 'Def')),
+        )
+      } else if (this.defCount > 1) {
+        throw new IssueError(
+          generateIssue('onsetOffsetWithMultipleDefinitions', {
+            tagGroup: this.originalTag,
           }),
         )
+      } else if (this.hasDefExpandChildren) {
+        return this.defExpandChildren[0].defExpandValue
       }
+      return ParsedHedGroup.getDefinitionTagValue(this.defTags[0], 'Def')
     })
   }
 
@@ -378,15 +343,29 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get defNameAndValue() {
     return this._memoize('defNameAndValue', () => {
-      if (!(this.isDefGroup || this.hasDefExpandChildren)) {
+      if (!this.isDefGroup && !this.hasDefExpandChildren) {
         return null
-      }
-      if (this.defValue) {
+      } else if (this.defValue) {
         return this.defName + '/' + this.defValue
       } else {
         return this.defName
       }
     })
+  }
+
+  /**
+   * Extract the value from a definition tag.
+   *
+   * @param {ParsedHedTag} tag A definition-type tag.
+   * @param {string} parentTag The expected parent of the tag.
+   * @return {string} The parameterized value of the definition, or an empty string if no value was found.
+   */
+  static getDefinitionTagValue(tag, parentTag) {
+    if (getTagName(tag.parentCanonicalTag) === parentTag) {
+      return ''
+    } else {
+      return tag.originalTagName
+    }
   }
 
   /**
