@@ -1050,13 +1050,13 @@ describe('HED string and event validation', () => {
         const expectedIssues = {
           onsetAndOffsetWithDifferentValues: [],
           sameOffsetAndOnset: [
-            generateIssue('duplicateOnsetOffset', { string: testStrings.sameOffsetAndOnset, definition: 'MyColor' }),
+            generateIssue('duplicateTemporal', { string: testStrings.sameOffsetAndOnset, definition: 'MyColor' }),
           ],
           sameOnsetAndOffset: [
-            generateIssue('duplicateOnsetOffset', { string: testStrings.sameOnsetAndOffset, definition: 'MyColor' }),
+            generateIssue('duplicateTemporal', { string: testStrings.sameOnsetAndOffset, definition: 'MyColor' }),
           ],
           duplicateOnset: [
-            generateIssue('duplicateOnsetOffset', { string: testStrings.duplicateOnset, definition: 'MyColor' }),
+            generateIssue('duplicateTemporal', { string: testStrings.duplicateOnset, definition: 'MyColor' }),
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator) => {
@@ -1370,6 +1370,7 @@ describe('HED string and event validation', () => {
           tagAndNoDef: '(Onset, Red)',
           tagGroupAndNoDef: '(Onset, (Red))',
           defAndTag: '(Onset, Def/DefAndTag, Red)',
+          defTagAndTagGroup: '(Onset, Def/DefTagAndTagGroup, (Red), Blue)',
           multipleDefs: '(Onset, Def/MyColor, Def/Acc/5.4)',
           defAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Onset)',
           multipleDefinitionsAndExtraTagGroups:
@@ -1379,32 +1380,33 @@ describe('HED string and event validation', () => {
           simple: [],
           defAndOneGroup: [],
           defExpandAndOneGroup: [],
-          noTag: [generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.noTag })],
+          noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag })],
           definition: [
-            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.definition }),
-            generateIssue('extraTagsInOnsetOffset', { definition: '' }),
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.definition }),
+            generateIssue('extraTagsInTemporal', { definition: '' }),
           ],
-          defAndTwoGroups: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTwoGroups' })],
-          defExpandAndTwoGroups: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTwoGroups' })],
+          defAndTwoGroups: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTwoGroups' })],
+          defExpandAndTwoGroups: [generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTwoGroups' })],
           tagAndNoDef: [
-            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.tagAndNoDef }),
-            generateIssue('extraTagsInOnsetOffset', { definition: '' }),
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef }),
+            generateIssue('extraTagsInTemporal', { definition: '' }),
           ],
-          tagGroupAndNoDef: [generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef })],
-          defAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTag' })],
-          multipleDefs: [generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.multipleDefs })],
+          tagGroupAndNoDef: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef })],
+          defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag' })],
+          defTagAndTagGroup: [generateIssue('extraTagsInTemporal', { definition: 'DefTagAndTagGroup' })],
+          multipleDefs: [generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.multipleDefs })],
           defAndDefExpand: [
-            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.defAndDefExpand }),
+            generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.defAndDefExpand }),
           ],
           multipleDefinitionsAndExtraTagGroups: [
-            generateIssue('onsetOffsetWithMultipleDefinitions', {
+            generateIssue('temporalWithMultipleDefinitions', {
               tagGroup: testStrings.multipleDefinitionsAndExtraTagGroups,
             }),
-            generateIssue('extraTagsInOnsetOffset', { definition: 'Multiple definition tags found' }),
+            generateIssue('extraTagsInTemporal', { definition: 'Multiple definition tags found' }),
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
-          validator.checkOnsetOffsetSyntax(tagGroup)
+          validator.checkTemporalSyntax(tagGroup)
         })
       })
 
@@ -1417,38 +1419,42 @@ describe('HED string and event validation', () => {
           defAndTag: '(Offset, Def/DefAndTag, Red)',
           defExpandAndTag: '((Def-expand/DefExpandAndTag, (Label/Pie)), Offset, Red)',
           defAndTagGroup: '(Offset, Def/DefAndTagGroup, (Red))',
+          defTagAndTagGroup: '(Offset, Def/DefTagAndTagGroup, (Red), Blue)',
           defExpandAndTagGroup: '((Def-expand/DefExpandAndTagGroup, (Label/Pie)), Offset, (Red))',
           multipleDefs: '(Offset, Def/MyColor, Def/Acc/5.4)',
           defAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Offset)',
+          multipleDefinitionsAndExtraTagGroups:
+            '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Offset, (Blue), (Green))',
         }
         const expectedIssues = {
           simple: [],
-          noTag: [generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.noTag })],
+          noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag })],
           tagAndNoDef: [
-            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.tagAndNoDef }),
-            generateIssue('extraTagsInOnsetOffset', { definition: '' }),
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef }),
+            generateIssue('extraTagsInTemporal', { definition: '' }),
           ],
           tagGroupAndNoDef: [
-            generateIssue('onsetOffsetWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef }),
-            generateIssue('extraTagsInOnsetOffset', { definition: '' }),
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef }),
+            generateIssue('extraTagsInTemporal', { definition: '' }),
           ],
-          defAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTag' })],
-          defExpandAndTag: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTag' })],
-          defAndTagGroup: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefAndTagGroup' })],
-          defExpandAndTagGroup: [generateIssue('extraTagsInOnsetOffset', { definition: 'DefExpandAndTagGroup' })],
-          multipleDefs: [generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.multipleDefs })],
+          defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag' })],
+          defExpandAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTag' })],
+          defAndTagGroup: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTagGroup' })],
+          defTagAndTagGroup: [generateIssue('extraTagsInTemporal', { definition: 'DefTagAndTagGroup' })],
+          defExpandAndTagGroup: [generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTagGroup' })],
+          multipleDefs: [generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.multipleDefs })],
           defAndDefExpand: [
-            generateIssue('onsetOffsetWithMultipleDefinitions', { tagGroup: testStrings.defAndDefExpand }),
+            generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.defAndDefExpand }),
           ],
           multipleDefinitionsAndExtraTagGroups: [
-            generateIssue('onsetOffsetWithMultipleDefinitions', {
+            generateIssue('temporalWithMultipleDefinitions', {
               tagGroup: testStrings.multipleDefinitionsAndExtraTagGroups,
             }),
-            generateIssue('extraTagsInOnsetOffset', { definition: 'Multiple definition tags found' }),
+            generateIssue('extraTagsInTemporal', { definition: 'Multiple definition tags found' }),
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
-          validator.checkOnsetOffsetSyntax(tagGroup)
+          validator.checkTemporalSyntax(tagGroup)
         })
       })
     })
@@ -1483,7 +1489,7 @@ describe('HED string and event validation', () => {
       it('should only have definitions, onsets, or offsets in top-level tag groups', () => {
         const testStrings = {
           validDefinition: '(Definition/SimpleDefinition)',
-          validDef: 'Def/TopLevelDefReference',
+          multipleDefinitions: '(Definition/FirstDefinition), (Definition/SecondDefinition)',
           validOnset: '(Onset, Def/Acc/5.4 m-per-s^2)',
           validOffset: '(Offset, Def/Acc/5.4 m-per-s^2)',
           multipleTopLevel: '(Definition/DoubleDefinition, Onset)',
@@ -1496,7 +1502,7 @@ describe('HED string and event validation', () => {
         }
         const expectedIssues = {
           validDefinition: [],
-          validDef: [],
+          multipleDefinitions: [],
           validOnset: [],
           validOffset: [],
           multipleTopLevel: [

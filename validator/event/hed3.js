@@ -53,7 +53,7 @@ export class Hed3Validator extends HedValidator {
   validateHedTagGroup(parsedTagGroup) {
     super.validateHedTagGroup(parsedTagGroup)
     this.checkDefinitionSyntax(parsedTagGroup)
-    this.checkOnsetOffsetSyntax(parsedTagGroup)
+    this.checkTemporalSyntax(parsedTagGroup)
   }
 
   /**
@@ -280,16 +280,16 @@ export class Hed3Validator extends HedValidator {
    *
    * @param {ParsedHedGroup} tagGroup The tag group.
    */
-  checkOnsetOffsetSyntax(tagGroup) {
+  checkTemporalSyntax(tagGroup) {
     if (!(tagGroup.isOnsetGroup || tagGroup.isOffsetGroup)) {
       return
     }
-    const definitionName = this._getOnsetOffsetDefinitionName(tagGroup)
+    const definitionName = this._getTemporalDefinitionName(tagGroup)
 
     const defExpandChildren = tagGroup.defExpandChildren
     const defTags = tagGroup.defTags ?? []
     if (tagGroup.defCount === 0) {
-      this.pushIssue('onsetOffsetWithoutDefinition', {
+      this.pushIssue('temporalWithoutDefinition', {
         tagGroup: tagGroup.originalTag,
       })
     }
@@ -306,7 +306,7 @@ export class Hed3Validator extends HedValidator {
       remainingTags.length > allowedRemainingTags ||
       remainingTags.filter((tag) => tag instanceof ParsedHedTag).length > 0
     ) {
-      this.pushIssue('extraTagsInOnsetOffset', {
+      this.pushIssue('extraTagsInTemporal', {
         definition: definitionName,
       })
     }
@@ -324,10 +324,10 @@ export class Hed3Validator extends HedValidator {
    * @throws {Error} If passed a {@link ParsedHedGroup} that is not an Onset- or Offset-type group.
    * @private
    */
-  _getOnsetOffsetDefinitionName(tagGroup) {
+  _getTemporalDefinitionName(tagGroup) {
     if (!(tagGroup.isOnsetGroup || tagGroup.isOffsetGroup)) {
       throw new Error(
-        'Internal validator function "Hed3Validator._getOnsetOffsetDefinitionName()" called outside of its intended context',
+        'Internal validator function "Hed3Validator._getTemporalDefinitionName()" called outside of its intended context',
       )
     }
     try {

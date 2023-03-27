@@ -153,6 +153,14 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
+   * Whether this HED tag group is an onset or offset group.
+   * @return {boolean}
+   */
+  get isTemporalGroup() {
+    return this.isOnsetGroup || this.isOffsetGroup
+  }
+
+  /**
    * Find what should be the sole definition tag, or throw an error if more than one is found.
    *
    * @return {ParsedHedTag} This group's definition tag.
@@ -300,7 +308,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
         )
       } else if (this.defCount > 1) {
         throw new IssueError(
-          generateIssue('onsetOffsetWithMultipleDefinitions', {
+          generateIssue('temporalWithMultipleDefinitions', {
             tagGroup: this.originalTag,
           }),
         )
@@ -326,7 +334,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
         )
       } else if (this.defCount > 1) {
         throw new IssueError(
-          generateIssue('onsetOffsetWithMultipleDefinitions', {
+          generateIssue('temporalWithMultipleDefinitions', {
             tagGroup: this.originalTag,
           }),
         )

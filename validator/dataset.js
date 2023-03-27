@@ -1,7 +1,8 @@
-import { validateHedEventWithDefinitions } from './event'
-import { parseHedStrings } from './parser/main'
+import zip from 'lodash/zip'
 
 import { generateIssue } from '../common/issues/issues'
+import { validateHedEventWithDefinitions } from './event'
+import { parseHedStrings } from './parser/main'
 import { filterNonEqualDuplicates } from '../utils/map'
 
 /**
@@ -39,7 +40,7 @@ export const parseDefinitions = function (parsedHedStrings) {
  * @param {Set<string>} activeScopes The active duration scopes, represented by the groups' canonical Def tags.
  * @returns {Issue[]} Any issues found.
  */
-const checkGroupForOnsetOffsetOrder = (parsedGroup, activeScopes) => {
+const checkGroupForTemporalOrder = (parsedGroup, activeScopes) => {
   if (parsedGroup.isOnsetGroup) {
     activeScopes.add(parsedGroup.defNameAndValue)
   }
@@ -60,12 +61,23 @@ const checkGroupForOnsetOffsetOrder = (parsedGroup, activeScopes) => {
  * @param {Schemas} hedSchemas The HED schema container object.
  * @return {Issue[]} Any issues found.
  */
-export const validateOnsetOffsetOrder = function (hedStrings, hedSchemas) {
+export const validateTemporalOrder = function (hedStrings, hedSchemas) {
   const issues = []
   const activeScopes = new Set()
   for (const hedString of hedStrings) {
-    for (const parsedGroup of hedString.tagGroups) {
-      issues.push(...checkGroupForOnsetOffsetOrder(parsedGroup, activeScopes))
+    const temporalGroups = hedString.tagGroups.filter((tagGroup) => tagGroup.isTemporalGroup)
+    const defNames = temporalGroups.map((tagGroup) => tagGroup.defNameAndValue)
+    const [defToGroup, duplicates] = filterNonEqualDuplicates(zip(defNames, temporalGroups))
+    for (const duplicate of duplicates) {
+      issues.push(
+        generateIssue('duplicateTemporal', {
+          string: hedString.hedString,
+          definition: duplicate[0],
+        }),
+      )
+    }
+    for (const parsedGroup of defToGroup.values()) {
+      issues.push(...checkGroupForTemporalOrder(parsedGroup, activeScopes))
     }
   }
   return issues
@@ -81,8 +93,8 @@ export const validateOnsetOffsetOrder = function (hedStrings, hedSchemas) {
  */
 export const validateDataset = function (definitions, hedStrings, hedSchemas) {
   // TODO: Implement
-  const onsetOffsetOrderIssues = validateOnsetOffsetOrder(hedStrings, hedSchemas)
-  return onsetOffsetOrderIssues
+  const temporalOrderIssues = validateTemporalOrder(hedStrings, hedSchemas)
+  return temporalOrderIssues
 }
 
 /**
