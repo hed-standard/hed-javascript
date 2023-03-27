@@ -95,27 +95,32 @@ export default {
   },
   // HED 3-specific validation issues
   invalidPlaceholderInDefinition: {
-    hedCode: 'HED_PLACEHOLDER_INVALID',
+    hedCode: 'DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Invalid placeholder in definition - "${'definition'}"`,
   },
   nestedDefinition: {
-    hedCode: 'HED_DEFINITION_INVALID',
+    hedCode: 'DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Illegal nested definition in tag group for definition "${'definition'}"`,
   },
+  missingDefinition: {
+    hedCode: 'DEF_INVALID',
+    level: 'error',
+    message: stringTemplate`Def tag found for definition name "${'definition'}" does not correspond to an existing definition`,
+  },
   duplicateDefinition: {
-    hedCode: 'HED_DEFINITION_INVALID',
+    hedCode: 'DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Definition "${'definition'}" is declared multiple times. This instance's tag group is "${'tagGroup'}"`,
   },
   multipleTagGroupsInDefinition: {
-    hedCode: 'HED_DEFINITION_INVALID',
+    hedCode: 'DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Multiple inner tag groups found in definition "${'definition'}"`,
   },
   illegalDefinitionGroupTag: {
-    hedCode: 'HED_DEFINITION_INVALID',
+    hedCode: 'DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Illegal tag "${'tag'}" in tag group for definition "${'definition'}"`,
   },
@@ -150,17 +155,17 @@ export default {
     message: stringTemplate`HED event string "${'string'}" has onset/offset tags with duplicated definition "${'definition'}"`,
   },
   invalidTopLevelTagGroupTag: {
-    hedCode: 'HED_TAG_GROUP_ERROR',
+    hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is only allowed inside of a top-level tag group.`,
   },
   multipleTopLevelTagGroupTags: {
-    hedCode: 'HED_TAG_GROUP_ERROR',
+    hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" found in top-level tag group where "${'otherTag'}" was already defined.`,
   },
   invalidTopLevelTag: {
-    hedCode: 'HED_TAG_GROUP_ERROR',
+    hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is only allowed inside of a tag group.`,
   },

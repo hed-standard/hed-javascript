@@ -271,7 +271,7 @@ export class Hed3Validator extends HedValidator {
     }
     const defName = ParsedHedGroup.findDefinitionName(tag.canonicalTag, defShortTag)
     if (!this.definitions.has(defName)) {
-      this.pushIssue('missingDefinition', { def: defName })
+      this.pushIssue('missingDefinition', { definition: defName })
     }
   }
 
