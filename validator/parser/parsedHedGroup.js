@@ -301,7 +301,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     return this._memoize('defName', () => {
       if (!this.isDefGroup && !this.hasDefExpandChildren) {
         return null
-      } else if (!this.isOnsetGroup && !this.isOffsetGroup) {
+      } else if (!this.isTemporalGroup) {
         return [].concat(
           this.defExpandChildren.map((defExpandChild) => defExpandChild.defExpandName),
           this.defTags.map((defTag) => ParsedHedGroup.findDefinitionName(defTag.canonicalTag, 'Def')),
@@ -327,7 +327,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     return this._memoize('defValue', () => {
       if (!this.isDefGroup && !this.hasDefExpandChildren) {
         return null
-      } else if (!this.isOnsetGroup && !this.isOffsetGroup) {
+      } else if (!this.isTemporalGroup) {
         return [].concat(
           this.defExpandChildren.map((defExpandChild) => defExpandChild.defExpandValue),
           this.defTags.map((defTag) => ParsedHedGroup.getDefinitionTagValue(defTag, 'Def')),

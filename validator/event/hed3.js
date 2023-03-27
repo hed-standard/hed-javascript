@@ -281,7 +281,7 @@ export class Hed3Validator extends HedValidator {
    * @param {ParsedHedGroup} tagGroup The tag group.
    */
   checkTemporalSyntax(tagGroup) {
-    if (!(tagGroup.isOnsetGroup || tagGroup.isOffsetGroup)) {
+    if (!tagGroup.isTemporalGroup) {
       return
     }
     const definitionName = this._getTemporalDefinitionName(tagGroup)
@@ -297,9 +297,11 @@ export class Hed3Validator extends HedValidator {
      * The Onset/Offset tag plus the definition tag/tag group.
      * @type {(ParsedHedTag|ParsedHedGroup)[]}
      */
-    const allowedTags = [this.getStandardSchemaParsedTag(tagGroup.isOnsetGroup ? 'Onset' : 'Offset')]
-    allowedTags.push(...defExpandChildren)
-    allowedTags.push(...defTags)
+    const allowedTags = [
+      this.getStandardSchemaParsedTag(tagGroup.isOnsetGroup ? 'Onset' : 'Offset'),
+      ...defExpandChildren,
+      ...defTags,
+    ]
     const remainingTags = differenceWith(tagGroup.tags, allowedTags, (ours, theirs) => ours.equivalent(theirs))
     const allowedRemainingTags = tagGroup.isOnsetGroup ? 1 : 0
     if (
@@ -325,7 +327,7 @@ export class Hed3Validator extends HedValidator {
    * @private
    */
   _getTemporalDefinitionName(tagGroup) {
-    if (!(tagGroup.isOnsetGroup || tagGroup.isOffsetGroup)) {
+    if (!tagGroup.isTemporalGroup) {
       throw new Error(
         'Internal validator function "Hed3Validator._getTemporalDefinitionName()" called outside of its intended context',
       )
