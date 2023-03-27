@@ -67,7 +67,9 @@ export const validateTemporalOrder = function (hedStrings, hedSchemas) {
   for (const hedString of hedStrings) {
     const temporalGroups = hedString.tagGroups.filter((tagGroup) => tagGroup.isTemporalGroup)
     const defNames = temporalGroups.map((tagGroup) => tagGroup.defNameAndValue)
-    const [defToGroup, duplicates] = filterNonEqualDuplicates(zip(defNames, temporalGroups))
+    const [defToGroup, duplicates] = filterNonEqualDuplicates(zip(defNames, temporalGroups), (tagGroup, other) =>
+      tagGroup.equivalent(other),
+    )
     for (const duplicate of duplicates) {
       issues.push(
         generateIssue('duplicateTemporal', {
