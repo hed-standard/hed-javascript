@@ -213,6 +213,7 @@ describe('HED dataset validation', () => {
         repeatedOffset: ['(Def/MyColor, Onset)', '(Def/MyColor, Offset)', 'Red', '(Def/MyColor, Offset)'],
         offsetFirst: ['(Def/MyColor, Offset)', '(Def/MyColor, Onset)', 'Red', '(Def/MyColor, Offset)'],
         offsetForDifferentValue: ['(Def/Acc/4.2 m-per-s^2, Onset)', '(Def/Acc/5.3 m-per-s^2, Offset)', 'Red'],
+        duplicateTemporal: ['(Def/MyColor, Onset), (Def/MyColor, Offset)', '(Def/MyColor, Offset)', 'Red'],
       }
       const expectedIssues = {
         singleOnsetOffset: [],
@@ -233,6 +234,15 @@ describe('HED dataset validation', () => {
         offsetForDifferentValue: [
           generateValidationIssue('inactiveOnset', {
             definition: 'Acc/5.3 m-per-s^2',
+          }),
+        ],
+        duplicateTemporal: [
+          generateValidationIssue('duplicateTemporal', {
+            string: testDatasets.duplicateTemporal[0],
+            definition: 'MyColor',
+          }),
+          generateValidationIssue('inactiveOnset', {
+            definition: 'MyColor',
           }),
         ],
       }
