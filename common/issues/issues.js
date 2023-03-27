@@ -1,5 +1,23 @@
 import issueData from './data'
 
+export class IssueError extends Error {
+  constructor(issue, ...params) {
+    // Pass remaining arguments (including vendor specific ones) to parent constructor
+    super(...params)
+
+    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, IssueError)
+    }
+
+    this.name = 'IssueError'
+    this.issue = issue
+    this.message = issue.message
+
+    Object.setPrototypeOf(this, IssueError.prototype)
+  }
+}
+
 /**
  * A HED validation error or warning.
  */

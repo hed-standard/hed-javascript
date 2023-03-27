@@ -1,10 +1,13 @@
-import { getParsedParentTags } from '../../utils/hedData'
+import differenceWith from 'lodash/differenceWith'
+
+import { IssueError } from '../../common/issues/issues'
 import ParsedHedGroup from '../parser/parsedHedGroup'
 import { ParsedHedTag } from '../parser/parsedHedTag'
-
-import { HedValidator } from './validator'
+import { asArray } from '../../utils/array'
+import { getParsedParentTags } from '../../utils/hedData'
 import { getParentTag, getTagName, hedStringIsAGroup } from '../../utils/hedStrings'
 import { isNumber } from '../../utils/string'
+import { HedValidator } from './validator'
 
 const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
@@ -50,6 +53,7 @@ export class Hed3Validator extends HedValidator {
   validateHedTagGroup(parsedTagGroup) {
     super.validateHedTagGroup(parsedTagGroup)
     this.checkDefinitionSyntax(parsedTagGroup)
+    this.checkTemporalSyntax(parsedTagGroup)
   }
 
   /**
@@ -203,27 +207,22 @@ export class Hed3Validator extends HedValidator {
     const definitionShortTag = 'definition'
     const defExpandShortTag = 'def-expand'
     const defShortTag = 'def'
-    const definitionParentTags = getParsedParentTags(this.hedSchemas, definitionShortTag)
-    const defExpandParentTags = getParsedParentTags(this.hedSchemas, defExpandShortTag)
-    const defParentTags = getParsedParentTags(this.hedSchemas, defShortTag)
+    const definitionParentTag = this.getStandardSchemaParsedTag(definitionShortTag)
+    const defExpandParentTag = this.getStandardSchemaParsedTag(defExpandShortTag)
+    const defParentTag = this.getStandardSchemaParsedTag(defShortTag)
     let definitionTagFound = false
-    let defExpandTagFound = false
     let definitionName
     for (const tag of tagGroup.tags) {
       if (tag instanceof ParsedHedGroup) {
         continue
       }
-      if (tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
+      if (tag.isDescendantOf(definitionParentTag)) {
         definitionTagFound = true
-        definitionName = tag.originalTagName
-        break
-      } else if (tag.isDescendantOf(defExpandParentTags.get(tag.schema))) {
-        defExpandTagFound = true
         definitionName = tag.originalTagName
         break
       }
     }
-    if (!(definitionTagFound || defExpandTagFound)) {
+    if (!definitionTagFound) {
       return
     }
     let tagGroupValidated = false
@@ -239,11 +238,7 @@ export class Hed3Validator extends HedValidator {
         }
         tagGroupValidated = true
         for (const innerTag of tag.tagIterator()) {
-          const nestedDefinitionParentTags = [
-            definitionParentTags.get(innerTag.schema),
-            defExpandParentTags.get(innerTag.schema),
-            defParentTags.get(innerTag.schema),
-          ]
+          const nestedDefinitionParentTags = [definitionParentTag, defExpandParentTag, defParentTag]
           if (
             nestedDefinitionParentTags.some((parentTag) => {
               return innerTag.isDescendantOf(parentTag)
@@ -254,10 +249,7 @@ export class Hed3Validator extends HedValidator {
             })
           }
         }
-      } else if (
-        (definitionTagFound && !tag.isDescendantOf(definitionParentTags.get(tag.schema))) ||
-        (defExpandTagFound && !tag.isDescendantOf(defExpandParentTags.get(tag.schema)))
-      ) {
+      } else if (definitionTagFound && !tag.isDescendantOf(definitionParentTag)) {
         this.pushIssue('illegalDefinitionGroupTag', {
           tag: tag.originalTag,
           definition: definitionName,
@@ -279,7 +271,74 @@ export class Hed3Validator extends HedValidator {
     }
     const defName = ParsedHedGroup.findDefinitionName(tag.canonicalTag, defShortTag)
     if (!this.definitions.has(defName)) {
-      this.pushIssue('missingDefinition', { def: defName })
+      this.pushIssue('missingDefinition', { definition: defName })
+    }
+  }
+
+  /**
+   * Check the syntax of HED 3 onsets and offsets.
+   *
+   * @param {ParsedHedGroup} tagGroup The tag group.
+   */
+  checkTemporalSyntax(tagGroup) {
+    if (!tagGroup.isTemporalGroup) {
+      return
+    }
+    const definitionName = this._getTemporalDefinitionName(tagGroup)
+
+    const defExpandChildren = tagGroup.defExpandChildren
+    const defTags = tagGroup.defTags ?? []
+    if (tagGroup.defCount === 0) {
+      this.pushIssue('temporalWithoutDefinition', {
+        tagGroup: tagGroup.originalTag,
+      })
+    }
+    /**
+     * The Onset/Offset tag plus the definition tag/tag group.
+     * @type {(ParsedHedTag|ParsedHedGroup)[]}
+     */
+    const allowedTags = [
+      this.getStandardSchemaParsedTag(tagGroup.isOnsetGroup ? 'Onset' : 'Offset'),
+      ...defExpandChildren,
+      ...defTags,
+    ]
+    const remainingTags = differenceWith(tagGroup.tags, allowedTags, (ours, theirs) => ours.equivalent(theirs))
+    const allowedRemainingTags = tagGroup.isOnsetGroup ? 1 : 0
+    if (
+      remainingTags.length > allowedRemainingTags ||
+      remainingTags.filter((tag) => tag instanceof ParsedHedTag).length > 0
+    ) {
+      this.pushIssue('extraTagsInTemporal', {
+        definition: definitionName,
+      })
+    }
+  }
+
+  /**
+   * Determine the definition name for an Onset- or Offset-type tag group.
+   *
+   * Normally, this simply returns the tag group's {@link ParsedHedGroup.defNameAndValue} return value. However,
+   * if this throws an {@link IssueError}, we add the embedded {@link Issue} to our issue list and return a string
+   * stating that multiple definitions were found.
+   *
+   * @param {ParsedHedGroup} tagGroup The onset or offset group.
+   * @returns {string} The group's definition name and (optional) value, if any, or a string noting that multiple definitions were found.
+   * @throws {Error} If passed a {@link ParsedHedGroup} that is not an Onset- or Offset-type group.
+   * @private
+   */
+  _getTemporalDefinitionName(tagGroup) {
+    if (!tagGroup.isTemporalGroup) {
+      throw new Error(
+        'Internal validator function "Hed3Validator._getTemporalDefinitionName()" called outside of its intended context',
+      )
+    }
+    try {
+      return tagGroup.defNameAndValue
+    } catch (e) {
+      if (e instanceof IssueError) {
+        this.issues.push(e.issue)
+        return 'Multiple definition tags found'
+      }
     }
   }
 
@@ -327,5 +386,15 @@ export class Hed3Validator extends HedValidator {
         }
       }
     }
+  }
+
+  /**
+   * Generate a parsed HED tag object corresponding to the given short tag in the standard schema being validated against.
+   *
+   * @param {string} shortTag The short tag to parse.
+   * @returns {ParsedHedTag} The parsed tag corresponding to the short tag in the standard schema being validated against.
+   */
+  getStandardSchemaParsedTag(shortTag) {
+    return getParsedParentTags(this.hedSchemas, shortTag).get(this.hedSchemas.standardSchema)
   }
 }

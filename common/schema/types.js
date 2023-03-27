@@ -174,6 +174,20 @@ export class Schemas {
   }
 
   /**
+   * The standard schema, i.e. primary schema implementing the HED standard, if one is defined.
+   *
+   * @returns {Schema}
+   */
+  get standardSchema() {
+    for (const schema of this.schemas.values()) {
+      if (schema.library === '') {
+        return schema
+      }
+    }
+    return undefined
+  }
+
+  /**
    * The library schemas, i.e. the schema with nicknames, if any are defined.
    *
    * @returns {Map<string, Schema>|null}
