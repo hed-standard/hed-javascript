@@ -1283,8 +1283,8 @@ describe('HED string and event validation', () => {
           greenTriangleDef: [],
           trainDefExpand: [],
           yellowCubeDef: [],
-          invalidDef: [generateIssue('missingDefinition', { def: 'InvalidDefinition' })],
-          invalidDefExpand: [generateIssue('missingDefinition', { def: 'InvalidDefExpand' })],
+          invalidDef: [generateIssue('missingDefinition', { definition: 'InvalidDefinition' })],
+          invalidDefExpand: [generateIssue('missingDefinition', { definition: 'InvalidDefExpand' })],
         }
         return validatorSemanticWithDefinitions(testStrings, testDefinitions, expectedIssues, (validator, tag) => {
           validator.checkForMissingDefinitions(tag, 'Def')
