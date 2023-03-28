@@ -3,10 +3,10 @@
 // Temporary
 import * as xpath from '../utils/xpath'
 
-import { loadSchema } from '../common/schema/loader'
-import { Schema, Schemas } from '../common/schema/types'
+import { Schemas } from '../common/schema/types'
 import { asArray } from '../utils/array'
 import { setParent } from '../utils/xml2js'
+import { buildSchema as validatorBuildSchema } from '../validator/schema/init'
 
 import { Mapping, TagEntry } from './types'
 
@@ -79,10 +79,4 @@ const getParentTagName = function (tagElement) {
  * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
  * @deprecated
  */
-export const buildSchema = function (schemaDef = {}) {
-  return loadSchema(schemaDef).then(([xmlData, issues]) => {
-    const mapping = buildMappingObject(xmlData)
-    const baseSchema = new Schema(xmlData, null, mapping)
-    return new Schemas(baseSchema)
-  })
-}
+export const buildSchema = (schemaDef) => validatorBuildSchema(schemaDef)

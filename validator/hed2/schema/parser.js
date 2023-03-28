@@ -3,10 +3,10 @@ import flattenDeep from 'lodash/flattenDeep'
 // TODO: Switch require once upstream bugs are fixed.
 // import xpath from 'xml2js-xpath'
 // Temporary
-import * as xpath from '../../utils/xpath'
+import * as xpath from '../../../utils/xpath'
 
-import { SchemaParser } from './parser'
-import { SchemaAttributes } from './types'
+import { SchemaParser } from '../../schema/parser'
+import { SchemaAttributes } from './schemaAttributes'
 
 const defaultUnitForTagAttribute = 'default'
 const defaultUnitForUnitClassAttribute = 'defaultUnits'
