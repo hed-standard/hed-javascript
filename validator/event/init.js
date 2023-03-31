@@ -2,7 +2,8 @@ import { parseHedString } from '../parser/main'
 import ParsedHedString from '../parser/parsedHedString'
 import { Schemas } from '../../common/schema/types'
 
-import { HedValidator, Hed2Validator } from './validator'
+import { HedValidator } from './validator'
+import { Hed2Validator } from '../hed2/event/hed2Validator'
 import { Hed3Validator } from './hed3'
 
 /**

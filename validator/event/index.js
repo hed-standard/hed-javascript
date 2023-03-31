@@ -1,7 +1,8 @@
 import { validateHedString, validateHedEvent, validateHedEventWithDefinitions } from './init'
 
-import { HedValidator, Hed2Validator } from './validator'
+import { HedValidator } from './validator'
 import { Hed3Validator } from './hed3'
+import { Hed2Validator } from '../hed2/event/hed2Validator'
 
 export {
   validateHedString,
