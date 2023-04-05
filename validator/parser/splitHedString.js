@@ -67,6 +67,11 @@ class HedStringTokenizer {
     this.hedString = hedString
   }
 
+  /**
+   * Split the HED string into delimiters and tags.
+   *
+   * @return {[TagSpec[], GroupSpec, Object<string, Issue[]>]} The tag specifications, group bounds, and any issues found.
+   */
   tokenize() {
     this.initializeTokenizer()
 
@@ -194,13 +199,6 @@ class HedStringTokenizer {
     this.groupDepth--
   }
 }
-
-/**
- * Split a HED string into delimiters and tags.
- *
- * @param {string} hedString The HED string to be split.
- * @return {[TagSpec[], GroupSpec, Object<string, Issue[]>]} The tag specifications, group bounds, and any issues found.
- */
 
 /**
  * Check the split HED tags for invalid characters

@@ -253,16 +253,17 @@ export class HedValidator {
     }
     // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
     const isExtensionAllowedTag = tag.allowsExtensions
-    if (this.options.expectValuePlaceholderString && tag.formattedTag.split('#').length === 2) {
+    if (this.options.expectValuePlaceholderString && getCharacterCount(tag.formattedTag, '#') === 1) {
       const valueTag = replaceTagNameWithPound(tag.formattedTag)
-      if (valueTag.split('#').length !== 2) {
-        // To avoid a redundant issue.
-      } else {
+      if (getCharacterCount(valueTag, '#') === 1) {
+        // Ending placeholder was replaced with itself.
         this.pushIssue('invalidPlaceholder', {
           tag: tag.originalTag,
         })
-      }
-    } else if (!isExtensionAllowedTag && previousTag && previousTag.takesValue) {
+      } /* else {
+        Handled in checkPlaceholderTagSyntax().
+      } */
+    } else if (!isExtensionAllowedTag && previousTag?.takesValue) {
       // This tag isn't an allowed extension, but the previous tag takes a value.
       // This is likely caused by an extraneous comma.
       this.pushIssue('extraCommaOrInvalid', {

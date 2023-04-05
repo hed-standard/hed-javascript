@@ -1,6 +1,5 @@
 import pluralize from 'pluralize'
 
-import { isNumber } from '../../../utils/string'
 import { getParentTag, getTagName } from '../../../utils/hedStrings'
 
 const unitPrefixType = 'unitPrefix'
