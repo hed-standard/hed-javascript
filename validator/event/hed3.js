@@ -361,29 +361,35 @@ export class Hed3Validator extends HedValidator {
    * Check for invalid top-level tag group tags.
    */
   checkForInvalidTopLevelTagGroupTags() {
-    const topLevelTagGroupTagsFound = {}
+    const topLevelTagGroupTagsFound = new Map()
     for (const tag of this.parsedString.tags) {
-      if (tag.hasAttribute(topLevelTagGroupType) || tag.parentHasAttribute(topLevelTagGroupType)) {
-        let tagFound = false
-        this.parsedString.topLevelTagGroups.forEach((tagGroup, index) => {
-          if (tagGroup.includes(tag)) {
-            tagFound = true
-            if (topLevelTagGroupTagsFound[index]) {
-              this.pushIssue('multipleTopLevelTagGroupTags', {
-                tag: tag.originalTag,
-                otherTag: topLevelTagGroupTagsFound[index],
-              })
-            } else {
-              topLevelTagGroupTagsFound[index] = tag.originalTag
-            }
-          }
-        })
-        if (!tagFound) {
-          this.pushIssue('invalidTopLevelTagGroupTag', {
-            tag: tag.originalTag,
-          })
-        }
+      if (!tag.hasAttribute(topLevelTagGroupType) && !tag.parentHasAttribute(topLevelTagGroupType)) {
+        continue
       }
+      this._checkTagGroupForInvalidTopLevelTagGroupTags(tag, topLevelTagGroupTagsFound)
+    }
+  }
+
+  _checkTagGroupForInvalidTopLevelTagGroupTags(tag, topLevelTagGroupTagsFound) {
+    let tagFound = false
+    for (const topLevelTagGroup of this.parsedString.topLevelTagGroups) {
+      if (!topLevelTagGroup.includes(tag)) {
+        continue
+      }
+      tagFound = true
+      if (topLevelTagGroupTagsFound.has(topLevelTagGroup)) {
+        this.pushIssue('multipleTopLevelTagGroupTags', {
+          tag: tag.originalTag,
+          otherTag: topLevelTagGroupTagsFound.get(topLevelTagGroup),
+        })
+      } else {
+        topLevelTagGroupTagsFound.set(topLevelTagGroup, tag.originalTag)
+      }
+    }
+    if (!tagFound) {
+      this.pushIssue('invalidTopLevelTagGroupTag', {
+        tag: tag.originalTag,
+      })
     }
   }
 
