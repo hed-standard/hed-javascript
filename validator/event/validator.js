@@ -171,6 +171,8 @@ export class HedValidator {
     for (const firstTag of tagList) {
       for (const secondTag of tagList) {
         if (firstTag !== secondTag && firstTag.equivalent(secondTag)) {
+          // firstTag and secondTag are not the same object (i.e. comparing a tag with itself),
+          // but they are equivalent tags or tag groups (i.e. have the same members up to order).
           addIssue(firstTag)
           addIssue(secondTag)
         }
@@ -223,6 +225,7 @@ export class HedValidator {
   checkIfTagRequiresChild(tag) {
     const invalid = tag.hasAttribute(requireChildType)
     if (invalid) {
+      // If this tag has the "requireChild" attribute, then by virtue of even being in the dataset it is missing a required child.
       this.pushIssue('childRequired', { tag: tag.originalTag })
     }
   }
