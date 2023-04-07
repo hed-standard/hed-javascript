@@ -717,6 +717,7 @@ describe('HED string and event validation', () => {
             child: 'Attribute/Object side/#',
             extensionAllowed: 'Item/Object/Person/Driver/#',
             invalidParent: 'Event/Nonsense/#',
+            extensionParent: 'Item/TestDef1/#',
             missingRequiredUnit: 'Event/Duration/#',
             wrongLocation: 'Item/#/Person',
           }
@@ -732,6 +733,11 @@ describe('HED string and event validation', () => {
             invalidParent: [
               generateIssue('invalidPlaceholder', {
                 tag: testStrings.invalidParent,
+              }),
+            ],
+            extensionParent: [
+              generateIssue('invalidPlaceholder', {
+                tag: testStrings.extensionParent,
               }),
             ],
             missingRequiredUnit: [
