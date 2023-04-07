@@ -358,38 +358,18 @@ export class Hed3Validator extends HedValidator {
   }
 
   /**
-   * Check for invalid top-level tag group tags.
+   * Check for tags tagged with the topLevelTagGroup attribute not in top-level tag groups.
    */
   checkForInvalidTopLevelTagGroupTags() {
-    const topLevelTagGroupTagsFound = new Map()
     for (const tag of this.parsedString.tags) {
       if (!tag.hasAttribute(topLevelTagGroupType) && !tag.parentHasAttribute(topLevelTagGroupType)) {
         continue
       }
-      this._checkTagGroupForInvalidTopLevelTagGroupTags(tag, topLevelTagGroupTagsFound)
-    }
-  }
-
-  _checkTagGroupForInvalidTopLevelTagGroupTags(tag, topLevelTagGroupTagsFound) {
-    let tagFound = false
-    for (const topLevelTagGroup of this.parsedString.topLevelTagGroups) {
-      if (!topLevelTagGroup.includes(tag)) {
-        continue
-      }
-      tagFound = true
-      if (topLevelTagGroupTagsFound.has(topLevelTagGroup)) {
-        this.pushIssue('multipleTopLevelTagGroupTags', {
+      if (!this.parsedString.topLevelTagGroups.some((topLevelTagGroup) => topLevelTagGroup.includes(tag))) {
+        this.pushIssue('invalidTopLevelTagGroupTag', {
           tag: tag.originalTag,
-          otherTag: topLevelTagGroupTagsFound.get(topLevelTagGroup),
         })
-      } else {
-        topLevelTagGroupTagsFound.set(topLevelTagGroup, tag.originalTag)
       }
-    }
-    if (!tagFound) {
-      this.pushIssue('invalidTopLevelTagGroupTag', {
-        tag: tag.originalTag,
-      })
     }
   }
 

@@ -1498,8 +1498,8 @@ describe('HED string and event validation', () => {
           multipleDefinitions: '(Definition/FirstDefinition), (Definition/SecondDefinition)',
           validOnset: '(Onset, Def/Acc/5.4 m-per-s^2)',
           validOffset: '(Offset, Def/Acc/5.4 m-per-s^2)',
-          multipleTopLevel: '(Definition/DoubleDefinition, Onset)',
           topLevelDefinition: 'Definition/TopLevelDefinition',
+          //topLevelPlaceholderDefinition: 'Definition/TopLevelPlaceholderDefinition/#',
           topLevelOnset: 'Onset, Red',
           topLevelOffset: 'Offset, Def/Acc/5.4 m-per-s^2',
           nestedDefinition: '((Definition/SimpleDefinition), Red)',
@@ -1511,15 +1511,14 @@ describe('HED string and event validation', () => {
           multipleDefinitions: [],
           validOnset: [],
           validOffset: [],
-          multipleTopLevel: [
-            generateIssue('multipleTopLevelTagGroupTags', {
-              tag: 'Onset',
-              otherTag: 'Definition/DoubleDefinition',
-            }),
-          ],
           topLevelDefinition: [
             generateIssue('invalidTopLevelTagGroupTag', {
               tag: testStrings.topLevelDefinition,
+            }),
+          ],
+          topLevelPlaceholderDefinition: [
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: testStrings.topLevelPlaceholderDefinition,
             }),
           ],
           topLevelOnset: [
