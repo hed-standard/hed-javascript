@@ -439,6 +439,7 @@ describe('HED string and event validation', () => {
             leafExtension: 'Event/Category/Initial context/Something',
             nonExtensionAllowed: 'Event/Nonsense',
             illegalComma: 'Event/Label/This is a label,This/Is/A/Tag',
+            placeholder: 'Item/Object/#',
           }
           const expectedIssues = {
             takesValue: [],
@@ -455,6 +456,11 @@ describe('HED string and event validation', () => {
               generateIssue('extraCommaOrInvalid', {
                 previousTag: 'Event/Label/This is a label',
                 tag: 'This/Is/A/Tag',
+              }),
+            ],
+            placeholder: [
+              generateIssue('invalidTag', {
+                tag: testStrings.placeholder,
               }),
             ],
           }
