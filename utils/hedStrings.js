@@ -16,13 +16,24 @@ export const replaceTagNameWithPound = function (formattedTag) {
 /**
  * Get the indices of all slashes in a HED tag.
  */
-export const getTagSlashIndices = function (tag) {
+const getTagSlashIndices = function (tag) {
   const indices = []
   let i = -1
   while ((i = tag.indexOf('/', i + 1)) >= 0) {
     indices.push(i)
   }
   return indices
+}
+
+/**
+ * Get the levels of a tag.
+ *
+ * @param {string} tag A HED tag string.
+ * @return {string[]} The levels of this tag.
+ */
+export const getTagLevels = function (tag) {
+  const tagSlashIndices = getTagSlashIndices(tag)
+  return tagSlashIndices.map((tagSlashIndex) => tag.slice(0, tagSlashIndex))
 }
 
 /**

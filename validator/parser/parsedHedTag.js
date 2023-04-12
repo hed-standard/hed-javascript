@@ -1,7 +1,7 @@
 import { generateIssue } from '../../common/issues/issues'
 import { Schema } from '../../common/schema/types'
 import { convertPartialHedStringToLong } from '../../converter/converter'
-import { getTagSlashIndices, replaceTagNameWithPound } from '../../utils/hedStrings'
+import { getTagLevels, replaceTagNameWithPound } from '../../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 
 /**
@@ -212,18 +212,16 @@ export class ParsedHedTag extends ParsedHedSubstring {
    */
   get allowsExtensions() {
     return this._memoize('allowsExtensions', () => {
+      if (this.originalTagName === '#') {
+        return false
+      }
       const extensionAllowedAttribute = 'extensionAllowed'
       if (this.hasAttribute(extensionAllowedAttribute)) {
         return true
       }
-      const tagSlashIndices = getTagSlashIndices(this.formattedTag)
-      for (const tagSlashIndex of tagSlashIndices) {
-        const tagSubstring = this.formattedTag.slice(0, tagSlashIndex)
-        if (this.schema.tagHasAttribute(tagSubstring, extensionAllowedAttribute)) {
-          return true
-        }
-      }
-      return false
+      return getTagLevels(this.formattedTag).some((tagSubstring) =>
+        this.schema.tagHasAttribute(tagSubstring, extensionAllowedAttribute),
+      )
     })
   }
 

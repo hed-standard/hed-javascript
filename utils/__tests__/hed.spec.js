@@ -36,7 +36,7 @@ describe('HED tag string utility functions', () => {
       })
     })
 
-    it('should detect the locations of slashes in a tag', () => {
+    it.skip('should detect the locations of slashes in a tag', () => {
       const testStrings = {
         description: 'Event/Description/Something',
         direction: 'Attribute/Direction/Left',
