@@ -6,7 +6,7 @@ import { loadSchema } from '../../common/schema/loader'
 import { buildMappingObject } from '../../converter/schema'
 import { setParent } from '../../utils/xml2js'
 
-import { Hed2SchemaParser } from './hed2'
+import { Hed2SchemaParser } from '../hed2/schema/hed2SchemaParser'
 import { HedV8SchemaParser } from './hed3'
 
 /**

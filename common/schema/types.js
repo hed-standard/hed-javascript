@@ -27,11 +27,6 @@ export class Schema {
    */
   library
   /**
-   * The description of tag attributes.
-   * @type {SchemaAttributes}
-   */
-  attributes
-  /**
    * The mapping between short and long tags.
    * @type {Mapping}
    */
@@ -40,38 +35,20 @@ export class Schema {
   /**
    * Constructor.
    * @param {object} xmlData The schema XML data.
-   * @param {SchemaAttributes} attributes A description of tag attributes.
    * @param {Mapping} mapping A mapping between short and long tags.
    */
-  constructor(xmlData, attributes, mapping) {
+  constructor(xmlData, mapping) {
     this.xmlData = xmlData
     const rootElement = xmlData.HED
     this.version = rootElement.$.version
     this.library = rootElement.$.library ?? ''
 
-    this.attributes = attributes
     this.mapping = mapping
     if (this.library) {
       this.generation = 3
     } else {
       this.generation = getGenerationForSchemaVersion(this.version)
     }
-  }
-
-  /**
-   * Whether this schema is a HED 2 schema.
-   * @return {boolean}
-   */
-  get isHed2() {
-    return this.generation === 2
-  }
-
-  /**
-   * Whether this schema is a HED 3 schema.
-   * @return {boolean}
-   */
-  get isHed3() {
-    return this.generation === 3
   }
 
   /**
@@ -87,6 +64,18 @@ export class Schema {
 }
 
 export class Hed2Schema extends Schema {
+  /**
+   * The description of tag attributes.
+   * @type {SchemaAttributes}
+   */
+  attributes
+
+  constructor(xmlData, attributes, mapping) {
+    super(xmlData, mapping)
+
+    this.attributes = attributes
+  }
+
   /**
    * Determine if a HED tag has a particular attribute in this schema.
    *
@@ -107,7 +96,7 @@ export class Hed3Schema extends Schema {
   entries
 
   constructor(xmlData, entries, mapping) {
-    super(xmlData, null, mapping)
+    super(xmlData, mapping)
 
     this.entries = entries
   }
@@ -226,14 +215,6 @@ export class Schemas {
    */
   get isSyntaxOnly() {
     return this.generation === 0
-  }
-
-  /**
-   * Whether this schema collection comprises HED 2 schemas.
-   * @return {boolean}
-   */
-  get isHed2() {
-    return this.generation === 2
   }
 
   /**

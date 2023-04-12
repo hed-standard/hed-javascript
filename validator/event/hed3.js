@@ -3,7 +3,6 @@ import differenceWith from 'lodash/differenceWith'
 import { IssueError } from '../../common/issues/issues'
 import ParsedHedGroup from '../parser/parsedHedGroup'
 import { ParsedHedTag } from '../parser/parsedHedTag'
-import { asArray } from '../../utils/array'
 import { getParsedParentTags } from '../../utils/hedData'
 import { getParentTag, getTagName, hedStringIsAGroup } from '../../utils/hedStrings'
 import { isNumber } from '../../utils/string'
@@ -359,31 +358,17 @@ export class Hed3Validator extends HedValidator {
   }
 
   /**
-   * Check for invalid top-level tag group tags.
+   * Check for tags tagged with the topLevelTagGroup attribute not in top-level tag groups.
    */
   checkForInvalidTopLevelTagGroupTags() {
-    const topLevelTagGroupTagsFound = {}
     for (const tag of this.parsedString.tags) {
-      if (tag.hasAttribute(topLevelTagGroupType) || tag.parentHasAttribute(topLevelTagGroupType)) {
-        let tagFound = false
-        this.parsedString.topLevelTagGroups.forEach((tagGroup, index) => {
-          if (tagGroup.includes(tag)) {
-            tagFound = true
-            if (topLevelTagGroupTagsFound[index]) {
-              this.pushIssue('multipleTopLevelTagGroupTags', {
-                tag: tag.originalTag,
-                otherTag: topLevelTagGroupTagsFound[index],
-              })
-            } else {
-              topLevelTagGroupTagsFound[index] = tag.originalTag
-            }
-          }
+      if (!tag.hasAttribute(topLevelTagGroupType) && !tag.parentHasAttribute(topLevelTagGroupType)) {
+        continue
+      }
+      if (!this.parsedString.topLevelTagGroups.some((topLevelTagGroup) => topLevelTagGroup.includes(tag))) {
+        this.pushIssue('invalidTopLevelTagGroupTag', {
+          tag: tag.originalTag,
         })
-        if (!tagFound) {
-          this.pushIssue('invalidTopLevelTagGroupTag', {
-            tag: tag.originalTag,
-          })
-        }
       }
     }
   }

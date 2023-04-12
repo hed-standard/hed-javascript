@@ -63,7 +63,9 @@ export class Issue {
     this.code = internalCode
     this.hedCode = hedCode
     this.level = level
-    this.message = `${level.toUpperCase()}: [${hedCode}] ${message}`
+    const hedCodeAnchor = hedCode.toLowerCase().replace(/_/g, '-')
+    const hedSpecLink = `for more information on this HED ${level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
+    this.message = `${level.toUpperCase()}: [${hedCode}] ${message} (${hedSpecLink})`
   }
 }
 
@@ -75,7 +77,7 @@ export class Issue {
  * @return {Issue} An object representing the issue.
  */
 export const generateIssue = function (internalCode, parameters) {
-  const issueCodeData = issueData[internalCode] || issueData.genericError
+  const issueCodeData = issueData[internalCode] ?? issueData.genericError
   const { hedCode, level, message } = issueCodeData
   const bounds = parameters.bounds ?? []
   if (issueCodeData === issueData.genericError) {

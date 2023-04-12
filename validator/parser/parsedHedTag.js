@@ -1,7 +1,7 @@
 import { generateIssue } from '../../common/issues/issues'
 import { Schema } from '../../common/schema/types'
 import { convertPartialHedStringToLong } from '../../converter/converter'
-import { getTagSlashIndices, replaceTagNameWithPound } from '../../utils/hedStrings'
+import { getTagLevels, replaceTagNameWithPound } from '../../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 
 /**
@@ -212,118 +212,21 @@ export class ParsedHedTag extends ParsedHedSubstring {
    */
   get allowsExtensions() {
     return this._memoize('allowsExtensions', () => {
+      if (this.originalTagName === '#') {
+        return false
+      }
       const extensionAllowedAttribute = 'extensionAllowed'
       if (this.hasAttribute(extensionAllowedAttribute)) {
         return true
       }
-      const tagSlashIndices = getTagSlashIndices(this.formattedTag)
-      for (const tagSlashIndex of tagSlashIndices) {
-        const tagSubstring = this.formattedTag.slice(0, tagSlashIndex)
-        if (this.schema.tagHasAttribute(tagSubstring, extensionAllowedAttribute)) {
-          return true
-        }
-      }
-      return false
+      return getTagLevels(this.formattedTag).some((tagSubstring) =>
+        this.schema.tagHasAttribute(tagSubstring, extensionAllowedAttribute),
+      )
     })
   }
 
   equivalent(other) {
     return other instanceof ParsedHedTag && this.formattedTag === other.formattedTag && this.schema === other.schema
-  }
-}
-
-export class ParsedHed2Tag extends ParsedHedTag {
-  /**
-   * Determine if this HED tag is in the schema.
-   */
-  get existsInSchema() {
-    return this._memoize('existsInSchema', () => {
-      return this.schema.attributes.tags.includes(this.formattedTag)
-    })
-  }
-
-  /**
-   * Determine value-taking form of this tag.
-   */
-  get takesValueFormattedTag() {
-    return this._memoize('takesValueFormattedTag', () => {
-      return replaceTagNameWithPound(this.formattedTag)
-    })
-  }
-
-  /**
-   * Checks if this HED tag has the 'takesValue' attribute.
-   */
-  get takesValue() {
-    return this._memoize('takesValue', () => {
-      return this.schema.tagHasAttribute(this.takesValueFormattedTag, 'takesValue')
-    })
-  }
-
-  /**
-   * Checks if this HED tag has the 'unitClass' attribute.
-   */
-  get hasUnitClass() {
-    return this._memoize('hasUnitClass', () => {
-      if (!this.schema.attributes.hasUnitClasses) {
-        return false
-      }
-      return this.takesValueFormattedTag in this.schema.attributes.tagUnitClasses
-    })
-  }
-
-  /**
-   * Get the unit classes for this HED tag.
-   */
-  get unitClasses() {
-    return this._memoize('unitClasses', () => {
-      if (this.hasUnitClass) {
-        return this.schema.attributes.tagUnitClasses[this.takesValueFormattedTag]
-      } else {
-        return []
-      }
-    })
-  }
-
-  /**
-   * Get the default unit for this HED tag.
-   */
-  get defaultUnit() {
-    return this._memoize('defaultUnit', () => {
-      const defaultUnitForTagAttribute = 'default'
-      const defaultUnitsForUnitClassAttribute = 'defaultUnits'
-      if (!this.hasUnitClass) {
-        return ''
-      }
-      const takesValueTag = this.takesValueFormattedTag
-      let hasDefaultAttribute = this.schema.tagHasAttribute(takesValueTag, defaultUnitForTagAttribute)
-      if (hasDefaultAttribute) {
-        return this.schema.attributes.tagAttributes[defaultUnitForTagAttribute][takesValueTag]
-      }
-      hasDefaultAttribute = this.schema.tagHasAttribute(takesValueTag, defaultUnitsForUnitClassAttribute)
-      if (hasDefaultAttribute) {
-        return this.schema.attributes.tagAttributes[defaultUnitsForUnitClassAttribute][takesValueTag]
-      }
-      const unitClasses = this.schema.attributes.tagUnitClasses[takesValueTag]
-      const firstUnitClass = unitClasses[0]
-      return this.schema.attributes.unitClassAttributes[firstUnitClass][defaultUnitsForUnitClassAttribute][0]
-    })
-  }
-
-  /**
-   * Get the legal units for a particular HED tag.
-   * @return {string[]}
-   */
-  get validUnits() {
-    return this._memoize('validUnits', () => {
-      const tagUnitClasses = this.unitClasses
-      const units = []
-      for (const unitClass of tagUnitClasses) {
-        const unitClassUnits = this.schema.attributes.unitClasses[unitClass]
-        units.push(...unitClassUnits)
-      }
-      return units
-    })
   }
 }
 

@@ -1,16 +1,12 @@
 import { ParsedHedTag } from '../parser/parsedHedTag'
-import ParsedHedString from '../parser/parsedHedString'
 import { generateIssue, Issue } from '../../common/issues/issues'
 import { Schemas } from '../../common/schema/types'
-import { replaceTagNameWithPound, validateUnits } from '../../utils/hedStrings'
-import { getCharacterCount, isClockFaceTime, isDateTime, isNumber } from '../../utils/string'
+import { replaceTagNameWithPound } from '../../utils/hedStrings'
+import { getCharacterCount } from '../../utils/string'
 
 const uniqueType = 'unique'
 const requiredType = 'required'
 const requireChildType = 'requireChild'
-const clockTimeUnitClass = 'clockTime'
-const dateTimeUnitClass = 'dateTime'
-const timeUnitClass = 'time'
 
 // Validation tests
 
@@ -175,6 +171,8 @@ export class HedValidator {
     for (const firstTag of tagList) {
       for (const secondTag of tagList) {
         if (firstTag !== secondTag && firstTag.equivalent(secondTag)) {
+          // firstTag and secondTag are not the same object (i.e. comparing a tag with itself),
+          // but they are equivalent tags or tag groups (i.e. have the same members up to order).
           addIssue(firstTag)
           addIssue(secondTag)
         }
@@ -227,6 +225,7 @@ export class HedValidator {
   checkIfTagRequiresChild(tag) {
     const invalid = tag.hasAttribute(requireChildType)
     if (invalid) {
+      // If this tag has the "requireChild" attribute, then by virtue of even being in the dataset it is missing a required child.
       this.pushIssue('childRequired', { tag: tag.originalTag })
     }
   }
@@ -257,16 +256,17 @@ export class HedValidator {
     }
     // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
     const isExtensionAllowedTag = tag.allowsExtensions
-    if (this.options.expectValuePlaceholderString && tag.formattedTag.split('#').length === 2) {
+    if (this.options.expectValuePlaceholderString && getCharacterCount(tag.formattedTag, '#') === 1) {
       const valueTag = replaceTagNameWithPound(tag.formattedTag)
-      if (valueTag.split('#').length !== 2) {
-        // To avoid a redundant issue.
-      } else {
+      if (getCharacterCount(valueTag, '#') === 1) {
+        // Ending placeholder was replaced with itself.
         this.pushIssue('invalidPlaceholder', {
           tag: tag.originalTag,
         })
-      }
-    } else if (!isExtensionAllowedTag && previousTag && previousTag.takesValue) {
+      } /* else {
+        Handled in checkPlaceholderTagSyntax().
+      } */
+    } else if (!isExtensionAllowedTag && previousTag?.takesValue) {
       // This tag isn't an allowed extension, but the previous tag takes a value.
       // This is likely caused by an extraneous comma.
       this.pushIssue('extraCommaOrInvalid', {
@@ -396,116 +396,5 @@ export class HedValidator {
    */
   pushIssue(internalCode, parameters) {
     this.issues.push(generateIssue(internalCode, parameters))
-  }
-}
-
-export class Hed2Validator extends HedValidator {
-  constructor(parsedString, hedSchemas, options) {
-    super(parsedString, hedSchemas, options)
-  }
-
-  _checkForTagAttribute(attribute, fn) {
-    const tags = this.hedSchemas.baseSchema.attributes.tagAttributes[attribute]
-    for (const tag of Object.keys(tags)) {
-      fn(tag)
-    }
-  }
-
-  /**
-   * Check that the unit is valid for the tag's unit class.
-   *
-   * @param {ParsedHedTag} tag A HED tag.
-   */
-  checkIfTagUnitClassUnitsAreValid(tag) {
-    if (tag.existsInSchema || !tag.hasUnitClass) {
-      return
-    }
-    const tagUnitClasses = tag.unitClasses
-    const originalTagUnitValue = tag.originalTagName
-    const formattedTagUnitValue = tag.formattedTagName
-    const tagUnitClassUnits = tag.validUnits
-    if (
-      dateTimeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
-      tagUnitClasses.includes(dateTimeUnitClass)
-    ) {
-      if (!isDateTime(formattedTagUnitValue)) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
-      }
-      return
-    } else if (
-      clockTimeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
-      tagUnitClasses.includes(clockTimeUnitClass)
-    ) {
-      if (!isClockFaceTime(formattedTagUnitValue)) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
-      }
-      return
-    } else if (
-      timeUnitClass in this.hedSchemas.baseSchema.attributes.unitClasses &&
-      tagUnitClasses.includes(timeUnitClass) &&
-      tag.originalTag.includes(':')
-    ) {
-      if (!isClockFaceTime(formattedTagUnitValue)) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
-      }
-      return
-    }
-    const [foundUnit, validUnit, value] = validateUnits(
-      originalTagUnitValue,
-      tagUnitClassUnits,
-      this.hedSchemas.baseSchema.attributes,
-    )
-    const validValue = this.validateValue(
-      value,
-      this.hedSchemas.baseSchema.tagHasAttribute(tag.takesValueFormattedTag, 'isNumeric'),
-    )
-    if (!foundUnit && this.options.checkForWarnings) {
-      const defaultUnit = tag.defaultUnit
-      this.pushIssue('unitClassDefaultUsed', {
-        tag: tag.originalTag,
-        defaultUnit: defaultUnit,
-      })
-    } else if (!validUnit) {
-      this.pushIssue('unitClassInvalidUnit', {
-        tag: tag.originalTag,
-        unitClassUnits: tagUnitClassUnits.sort().join(','),
-      })
-    } else if (!validValue) {
-      this.pushIssue('invalidValue', { tag: tag.originalTag })
-    }
-  }
-
-  /**
-   * Check the syntax of tag values.
-   *
-   * @param {ParsedHed2Tag} tag A HED tag.
-   */
-  checkValueTagSyntax(tag) {
-    if (tag.takesValue && !tag.hasUnitClass) {
-      const isValidValue = this.validateValue(
-        tag.formattedTagName,
-        this.hedSchemas.baseSchema.tagHasAttribute(tag.takesValueFormattedTag, 'isNumeric'),
-      )
-      if (!isValidValue) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
-      }
-    }
-  }
-
-  /**
-   * Determine if a stripped value is valid.
-   *
-   * @param {string} value The stripped value.
-   * @param {boolean} isNumeric Whether the tag is numeric.
-   */
-  validateValue(value, isNumeric) {
-    if (value === '#') {
-      return true
-    }
-    if (isNumeric) {
-      return isNumber(value)
-    }
-    const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; :]+$/
-    return hed2ValidValueCharacters.test(value)
   }
 }

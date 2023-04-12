@@ -28,3 +28,4 @@ export default {
   buildSchema,
   buildSchemas,
 }
+export { Hed2Validator } from './hed2/event/hed2Validator'

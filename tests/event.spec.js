@@ -439,6 +439,7 @@ describe('HED string and event validation', () => {
             leafExtension: 'Event/Category/Initial context/Something',
             nonExtensionAllowed: 'Event/Nonsense',
             illegalComma: 'Event/Label/This is a label,This/Is/A/Tag',
+            placeholder: 'Item/Object/#',
           }
           const expectedIssues = {
             takesValue: [],
@@ -455,6 +456,11 @@ describe('HED string and event validation', () => {
               generateIssue('extraCommaOrInvalid', {
                 previousTag: 'Event/Label/This is a label',
                 tag: 'This/Is/A/Tag',
+              }),
+            ],
+            placeholder: [
+              generateIssue('invalidTag', {
+                tag: testStrings.placeholder,
               }),
             ],
           }
@@ -717,6 +723,7 @@ describe('HED string and event validation', () => {
             child: 'Attribute/Object side/#',
             extensionAllowed: 'Item/Object/Person/Driver/#',
             invalidParent: 'Event/Nonsense/#',
+            extensionParent: 'Item/TestDef1/#',
             missingRequiredUnit: 'Event/Duration/#',
             wrongLocation: 'Item/#/Person',
           }
@@ -732,6 +739,11 @@ describe('HED string and event validation', () => {
             invalidParent: [
               generateIssue('invalidPlaceholder', {
                 tag: testStrings.invalidParent,
+              }),
+            ],
+            extensionParent: [
+              generateIssue('invalidPlaceholder', {
+                tag: testStrings.extensionParent,
               }),
             ],
             missingRequiredUnit: [
@@ -1492,8 +1504,8 @@ describe('HED string and event validation', () => {
           multipleDefinitions: '(Definition/FirstDefinition), (Definition/SecondDefinition)',
           validOnset: '(Onset, Def/Acc/5.4 m-per-s^2)',
           validOffset: '(Offset, Def/Acc/5.4 m-per-s^2)',
-          multipleTopLevel: '(Definition/DoubleDefinition, Onset)',
           topLevelDefinition: 'Definition/TopLevelDefinition',
+          //topLevelPlaceholderDefinition: 'Definition/TopLevelPlaceholderDefinition/#',
           topLevelOnset: 'Onset, Red',
           topLevelOffset: 'Offset, Def/Acc/5.4 m-per-s^2',
           nestedDefinition: '((Definition/SimpleDefinition), Red)',
@@ -1505,15 +1517,14 @@ describe('HED string and event validation', () => {
           multipleDefinitions: [],
           validOnset: [],
           validOffset: [],
-          multipleTopLevel: [
-            generateIssue('multipleTopLevelTagGroupTags', {
-              tag: 'Onset',
-              otherTag: 'Definition/DoubleDefinition',
-            }),
-          ],
           topLevelDefinition: [
             generateIssue('invalidTopLevelTagGroupTag', {
               tag: testStrings.topLevelDefinition,
+            }),
+          ],
+          topLevelPlaceholderDefinition: [
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: testStrings.topLevelPlaceholderDefinition,
             }),
           ],
           topLevelOnset: [
