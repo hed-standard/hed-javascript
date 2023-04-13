@@ -52,41 +52,10 @@ export class ParsedHedTag extends ParsedHedSubstring {
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
    */
+  // eslint-disable-next-line no-unused-vars
   _convertTag(hedString, hedSchemas, schemaName) {
-    if (hedSchemas.isSyntaxOnly) {
-      this.canonicalTag = this.originalTag
-      this.conversionIssues = []
-      return
-    }
-
-    this.schema = hedSchemas.getSchema(schemaName)
-    if (this.schema === undefined) {
-      if (schemaName !== '') {
-        this.conversionIssues = [
-          generateIssue('unmatchedLibrarySchema', {
-            tag: this.originalTag,
-            library: schemaName,
-          }),
-        ]
-      } else {
-        this.conversionIssues = [
-          generateIssue('unmatchedBaseSchema', {
-            tag: this.originalTag,
-          }),
-        ]
-      }
-      this.canonicalTag = this.originalTag
-      return
-    }
-
-    const [canonicalTag, conversionIssues] = convertPartialHedStringToLong(
-      this.schema,
-      this.originalTag,
-      hedString,
-      this.originalBounds[0],
-    )
-    this.canonicalTag = canonicalTag
-    this.conversionIssues = conversionIssues
+    this.canonicalTag = this.originalTag
+    this.conversionIssues = []
   }
 
   /**
@@ -231,6 +200,50 @@ export class ParsedHedTag extends ParsedHedSubstring {
 }
 
 export class ParsedHed3Tag extends ParsedHedTag {
+  /**
+   * Convert this tag to long form.
+   *
+   * @param {string} hedString The original HED string.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
+   */
+  _convertTag(hedString, hedSchemas, schemaName) {
+    if (hedSchemas.isSyntaxOnly) {
+      this.canonicalTag = this.originalTag
+      this.conversionIssues = []
+      return
+    }
+
+    this.schema = hedSchemas.getSchema(schemaName)
+    if (this.schema === undefined) {
+      if (schemaName !== '') {
+        this.conversionIssues = [
+          generateIssue('unmatchedLibrarySchema', {
+            tag: this.originalTag,
+            library: schemaName,
+          }),
+        ]
+      } else {
+        this.conversionIssues = [
+          generateIssue('unmatchedBaseSchema', {
+            tag: this.originalTag,
+          }),
+        ]
+      }
+      this.canonicalTag = this.originalTag
+      return
+    }
+
+    const [canonicalTag, conversionIssues] = convertPartialHedStringToLong(
+      this.schema,
+      this.originalTag,
+      hedString,
+      this.originalBounds[0],
+    )
+    this.canonicalTag = canonicalTag
+    this.conversionIssues = conversionIssues
+  }
+
   /**
    * Determine if this HED tag is in the schema.
    */

@@ -3,6 +3,20 @@ import { ParsedHedTag } from '../../parser/parsedHedTag'
 
 export class ParsedHed2Tag extends ParsedHedTag {
   /**
+   * Convert this tag to long form.
+   *
+   * @param {string} hedString The original HED string.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
+   */
+  // eslint-disable-next-line no-unused-vars
+  _convertTag(hedString, hedSchemas, schemaName) {
+    this.canonicalTag = this.originalTag
+    this.conversionIssues = []
+    this.schema = hedSchemas.standardSchema
+  }
+
+  /**
    * Determine if this HED tag is in the schema.
    */
   get existsInSchema() {

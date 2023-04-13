@@ -1,6 +1,6 @@
 import lt from 'semver/functions/lt'
 
-import { ParsedHedTag } from '../validator/parser/parsedHedTag'
+import { ParsedHed3Tag } from '../validator/parser/parsedHedTag'
 
 /**
  * Determine the HED generation for a base schema version number.
@@ -35,7 +35,7 @@ export const mergeParsingIssues = function (previousIssues, currentIssues) {
 export const getParsedParentTags = function (hedSchemas, shortTag) {
   const parentTags = new Map()
   for (const [schemaNickname, schema] of hedSchemas.schemas) {
-    const parentTag = new ParsedHedTag(shortTag, shortTag, [0, shortTag.length - 1], hedSchemas, schemaNickname)
+    const parentTag = new ParsedHed3Tag(shortTag, shortTag, [0, shortTag.length - 1], hedSchemas, schemaNickname)
     parentTags.set(schema, parentTag)
     parentTag.conversionIssues = parentTag.conversionIssues.filter((issue) => issue.internalCode !== 'invalidTag')
   }
