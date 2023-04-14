@@ -215,7 +215,7 @@ export class Hed3SchemaParser extends SchemaParser {
 
     for (const tagElement of tagElements) {
       const tagName = this.getTagPathFromTagElement(tagElement)
-      const parentTagName = this.getParentTagName(tagElement)
+      const parentTagName = this.getParentTagPath(tagElement)
       if (parentTagName) {
         tagEntries.get(lc(tagName))._parent = tagEntries.get(lc(parentTagName))
       }

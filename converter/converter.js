@@ -238,11 +238,6 @@ export const convertPartialHedStringToLong = function (schema, partialHedString,
 const convertHedString = function (schema, hedString, conversionFn) {
   let issues = []
 
-  if (!schema.mapping.hasNoDuplicates) {
-    issues.push(generateIssue('duplicateTagsInSchema', ''))
-    return [hedString, issues]
-  }
-
   hedString = removeSlashesAndSpaces(hedString)
 
   if (hedString === '') {

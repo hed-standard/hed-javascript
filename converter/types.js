@@ -17,6 +17,11 @@ export class TagEntry {
    * @type {string}
    */
   longFormattedTag
+  /**
+   * Whether this tag takes a value.
+   * @type {boolean}
+   */
+  takesValue
 
   /**
    * Constructor.
@@ -36,22 +41,15 @@ export class TagEntry {
 export class Mapping {
   /**
    * A dictionary mapping forms to TagEntry instances.
-   * @type {Map<string, TagEntry|TagEntry[]>}
+   * @type {Map<string, TagEntry>}
    */
   mappingData
-  /**
-   * Whether the mapping has no duplicates.
-   * @type {boolean}
-   */
-  hasNoDuplicates
 
   /**
    * Constructor.
-   * @param {Map<string, (TagEntry|TagEntry[])>} mappingData A dictionary mapping forms to TagEntry instances.
-   * @param {boolean} hasNoDuplicates Whether the mapping has no duplicates.
+   * @param {Map<string, TagEntry>} mappingData A dictionary mapping forms to TagEntry instances.
    */
-  constructor(mappingData, hasNoDuplicates) {
+  constructor(mappingData) {
     this.mappingData = mappingData
-    this.hasNoDuplicates = hasNoDuplicates
   }
 }

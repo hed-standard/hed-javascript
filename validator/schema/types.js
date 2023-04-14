@@ -90,27 +90,51 @@ export class SchemaEntries extends Memoizer {
 
 // New-style types
 
+/**
+ * A manager of {@link SchemaEntry} objects.
+ *
+ * @template T
+ */
 export class SchemaEntryManager extends Memoizer {
   /**
    * The definitions managed by this entry manager.
-   * @type {Map<string, SchemaEntry>}
+   * @type {Map<string, T>}
    */
   _definitions
 
   /**
    * Constructor.
    *
-   * @param {Map<string, SchemaEntry>} definitions A map of schema entry definitions.
+   * @param {Map<string, T>} definitions A map of schema entry definitions.
    */
   constructor(definitions) {
     super()
     this._definitions = definitions
   }
 
+  /**
+   * Iterator over the entry manager's entries.
+   *
+   * @return {IterableIterator<[string, T]>}
+   */
   [Symbol.iterator]() {
     return this._definitions.entries()
   }
 
+  /**
+   * Iterator over the entry manager's keys.
+   *
+   * @return {IterableIterator<string>}
+   */
+  keys() {
+    return this._definitions.keys()
+  }
+
+  /**
+   * Iterator over the entry manager's keys.
+   *
+   * @return {IterableIterator<T>}
+   */
   values() {
     return this._definitions.values()
   }
@@ -434,6 +458,11 @@ export class SchemaTag extends SchemaEntry {
    * @type {SchemaUnitClass[]}
    */
   _unitClasses
+  /**
+   * This tag's parent tag.
+   * @type {SchemaTag}
+   */
+  _parent
 
   constructor(name, booleanAttributes, valueAttributes, unitClasses) {
     super(name, booleanAttributes, valueAttributes)

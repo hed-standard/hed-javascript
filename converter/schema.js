@@ -1,75 +1,41 @@
-// TODO: Switch require once upstream bugs are fixed.
-// import xpath from 'xml2js-xpath'
-// Temporary
-import * as xpath from '../utils/xpath'
-
 import { Schemas } from '../common/schema/types'
-import { asArray } from '../utils/array'
-import { setParent } from '../utils/xml2js'
 import { buildSchema as validatorBuildSchema } from '../validator/schema/init'
 
 import { Mapping, TagEntry } from './types'
+import { getTagName } from '../utils/hedStrings'
+import { generateIssue, IssueError } from '../common/issues/issues'
 
 /**
  * Build a short-long mapping object from schema XML data.
  *
- * @param {object} xmlData The schema XML data.
+ * @param {SchemaEntries} entries The schema XML data.
  * @return {Mapping} The mapping object.
  */
-export const buildMappingObject = function (xmlData) {
+export const buildMappingObject = function (entries) {
   const nodeData = new Map()
-  const tagElementData = new Map()
-  let hasNoDuplicates = true
-  const rootElement = xmlData.HED
-  setParent(rootElement, null)
-  const tagElements = xpath.find(rootElement, '//node')
-  for (const tagElement of tagElements) {
-    if (getElementTagValue(tagElement) === '#') {
-      tagElementData.get(tagElement.$parent).takesValue = true
+  const takesValueTags = new Set()
+  /**
+   * @type {SchemaEntryManager<SchemaTag>}
+   */
+  const schemaTags = entries.definitions.get('tags')
+  for (const tag of schemaTags.values()) {
+    const shortTag = getTagName(tag.name)
+    const cleanedShortTag = shortTag.toLowerCase()
+    if (shortTag === '#') {
+      takesValueTags.add(getTagName(tag._parent.name).toLowerCase())
       continue
     }
-    const tagPath = getTagPathFromTagElement(tagElement)
-    const shortPath = tagPath[0]
-    const cleanedShortPath = shortPath.toLowerCase()
-    tagPath.reverse()
-    const longPath = tagPath.join('/')
-    const tagObject = new TagEntry(shortPath, longPath)
-    tagElementData.set(tagElement, tagObject)
-    if (!nodeData.has(cleanedShortPath)) {
-      nodeData.set(cleanedShortPath, tagObject)
+    const tagObject = new TagEntry(shortTag, tag.name)
+    if (!nodeData.has(shortTag)) {
+      nodeData.set(cleanedShortTag, tagObject)
     } else {
-      hasNoDuplicates = false
-      const duplicateArray = asArray(nodeData.get(cleanedShortPath))
-      duplicateArray.push(tagObject)
-      nodeData.set(cleanedShortPath, duplicateArray)
+      throw new IssueError(generateIssue('duplicateTagsInSchema', {}))
     }
   }
-  return new Mapping(nodeData, hasNoDuplicates)
-}
-
-const getTagPathFromTagElement = function (tagElement) {
-  const ancestorTags = [getElementTagValue(tagElement)]
-  let parentTagName = getParentTagName(tagElement)
-  let parentElement = tagElement.$parent
-  while (parentTagName) {
-    ancestorTags.push(parentTagName)
-    parentTagName = getParentTagName(parentElement)
-    parentElement = parentElement.$parent
+  for (const tag of takesValueTags) {
+    nodeData.get(tag).takesValue = true
   }
-  return ancestorTags
-}
-
-const getElementTagValue = function (element, tagName = 'name') {
-  return element[tagName][0]._
-}
-
-const getParentTagName = function (tagElement) {
-  const parentTagElement = tagElement.$parent
-  if (parentTagElement && 'name' in parentTagElement) {
-    return parentTagElement.name[0]._
-  } else {
-    return ''
-  }
+  return new Mapping(nodeData)
 }
 
 /**

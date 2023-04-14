@@ -65,6 +65,14 @@ export class SchemaParser {
     }
   }
 
+  getParentTagPath(tagElement) {
+    const ancestorTagNames = this.getAncestorTagNames(tagElement)
+    ancestorTagNames.unshift(this.getElementTagName(tagElement))
+    ancestorTagNames.reverse()
+    ancestorTagNames.pop()
+    return ancestorTagNames.join('/')
+  }
+
   /**
    * Extract the name of an XML element.
    *

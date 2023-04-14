@@ -26,24 +26,17 @@ export class Schema {
    * @type {string}
    */
   library
-  /**
-   * The mapping between short and long tags.
-   * @type {Mapping}
-   */
-  mapping
 
   /**
    * Constructor.
    * @param {object} xmlData The schema XML data.
-   * @param {Mapping} mapping A mapping between short and long tags.
    */
-  constructor(xmlData, mapping) {
+  constructor(xmlData) {
     this.xmlData = xmlData
     const rootElement = xmlData.HED
     this.version = rootElement.$.version
     this.library = rootElement.$.library ?? ''
 
-    this.mapping = mapping
     if (this.library) {
       this.generation = 3
     } else {
@@ -70,8 +63,13 @@ export class Hed2Schema extends Schema {
    */
   attributes
 
-  constructor(xmlData, attributes, mapping) {
-    super(xmlData, mapping)
+  /**
+   * Constructor.
+   * @param {object} xmlData The schema XML data.
+   * @param {SchemaAttributes} attributes A description of tag attributes.
+   */
+  constructor(xmlData, attributes) {
+    super(xmlData)
 
     this.attributes = attributes
   }
@@ -94,11 +92,23 @@ export class Hed3Schema extends Schema {
    * @type {SchemaEntries}
    */
   entries
+  /**
+   * The mapping between short and long tags.
+   * @type {Mapping}
+   */
+  mapping
 
+  /**
+   * Constructor.
+   * @param {object} xmlData The schema XML data.
+   * @param {SchemaEntries} entries A collection of schema entries.
+   * @param {Mapping} mapping A mapping between short and long tags.
+   */
   constructor(xmlData, entries, mapping) {
-    super(xmlData, mapping)
+    super(xmlData)
 
     this.entries = entries
+    this.mapping = mapping
   }
 
   /**
