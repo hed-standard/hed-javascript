@@ -361,7 +361,8 @@ describe('HED string and event validation', () => {
       describe('Full HED Strings', () => {
         const validatorSemantic = validatorSemanticBase
 
-        it('should not validate strings with extensions that are valid node names', () => {
+        // TODO: Rewrite as HED 3 test
+        it.skip('should not validate strings with extensions that are valid node names', () => {
           const testStrings = {
             // Event/Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
             red: 'Attribute/Red, Event/Duration/20 cm',
@@ -452,7 +453,6 @@ describe('HED string and event validation', () => {
               }),
             ],
             illegalComma: [
-              converterGenerateIssue('invalidTag', testStrings.illegalComma, {}, [28, 32]),
               generateIssue('extraCommaOrInvalid', {
                 previousTag: 'Event/Label/This is a label',
                 tag: 'This/Is/A/Tag',
@@ -716,7 +716,8 @@ describe('HED string and event validation', () => {
           return validator(testStrings, expectedIssues)
         })
 
-        it('should properly handle strings with placeholders', () => {
+        // TODO: Rewrite as HED 3 test
+        it.skip('should properly handle strings with placeholders', () => {
           const testStrings = {
             takesValue: 'Attribute/Visual/Color/Red/#',
             withUnit: 'Event/Duration/# ms',

@@ -1,7 +1,7 @@
 import zip from 'lodash/zip'
 
 import semver from 'semver'
-import { Schemas, Hed2Schema, Hed3Schema, SchemasSpec } from '../../common/schema/types'
+import { Schema, Schemas, Hed2Schema, Hed3Schema, SchemasSpec } from '../../common/schema/types'
 import { loadSchema } from '../../common/schema/loader'
 import { buildMappingObject } from '../../converter/schema'
 import { setParent } from '../../utils/xml2js'
@@ -43,11 +43,11 @@ export const buildSchemaAttributesObject = function (xmlData) {
  */
 const buildSchemaObject = function (xmlData) {
   const schemaAttributes = buildSchemaAttributesObject(xmlData)
-  const mapping = buildMappingObject(xmlData)
   if (isHed3Schema(xmlData)) {
+    const mapping = buildMappingObject(schemaAttributes)
     return new Hed3Schema(xmlData, schemaAttributes, mapping)
   } else {
-    return new Hed2Schema(xmlData, schemaAttributes, mapping)
+    return new Hed2Schema(xmlData, schemaAttributes)
   }
 }
 

@@ -90,27 +90,51 @@ export class SchemaEntries extends Memoizer {
 
 // New-style types
 
+/**
+ * A manager of {@link SchemaEntry} objects.
+ *
+ * @template T
+ */
 export class SchemaEntryManager extends Memoizer {
   /**
    * The definitions managed by this entry manager.
-   * @type {Map<string, SchemaEntry>}
+   * @type {Map<string, T>}
    */
   _definitions
 
   /**
    * Constructor.
    *
-   * @param {Map<string, SchemaEntry>} definitions A map of schema entry definitions.
+   * @param {Map<string, T>} definitions A map of schema entry definitions.
    */
   constructor(definitions) {
     super()
     this._definitions = definitions
   }
 
+  /**
+   * Iterator over the entry manager's entries.
+   *
+   * @return {IterableIterator<[string, T]>}
+   */
   [Symbol.iterator]() {
     return this._definitions.entries()
   }
 
+  /**
+   * Iterator over the entry manager's keys.
+   *
+   * @return {IterableIterator<string>}
+   */
+  keys() {
+    return this._definitions.keys()
+  }
+
+  /**
+   * Iterator over the entry manager's keys.
+   *
+   * @return {IterableIterator<T>}
+   */
   values() {
     return this._definitions.values()
   }
@@ -428,23 +452,56 @@ export class SchemaValueClass extends SchemaEntry {
   }
 }
 
+/**
+ * A tag in a HED schema.
+ */
 export class SchemaTag extends SchemaEntry {
   /**
    * This tag's unit classes.
    * @type {SchemaUnitClass[]}
    */
   _unitClasses
+  /**
+   * This tag's parent tag.
+   * @type {SchemaTag}
+   */
+  _parent
 
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this tag.
+   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this tag.
+   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this tag.
+   * @param {Map<string, SchemaUnit>} unitClasses The unit classes for this tag.
+   * @constructor
+   */
   constructor(name, booleanAttributes, valueAttributes, unitClasses) {
     super(name, booleanAttributes, valueAttributes)
     this._unitClasses = unitClasses ?? []
   }
 
+  /**
+   * This tag's unit classes.
+   * @type {SchemaUnitClass[]}
+   */
   get unitClasses() {
     return this._unitClasses.slice()
   }
 
+  /**
+   * Whether this tag has any unit classes.
+   * @return {boolean}
+   */
   get hasUnitClasses() {
     return this._unitClasses.length !== 0
+  }
+
+  /**
+   * This tag's parent tag.
+   * @type {SchemaTag}
+   */
+  get parent() {
+    return this._parent
   }
 }
