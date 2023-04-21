@@ -235,6 +235,10 @@ export class BidsIssue {
     this.evidence = evidence
   }
 
+  /**
+   * Whether this issue is an error.
+   * @return {boolean}
+   */
   isError() {
     return bidsHedErrorCodes.has(this.code)
   }
