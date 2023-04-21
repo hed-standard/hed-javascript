@@ -24,6 +24,13 @@ export function validateBidsDataset(dataset, schemaDefinition) {
   )
 }
 
+/**
+ * Validate a full BIDS dataset using a HED schema collection.
+ *
+ * @param {BidsDataset} dataset A BIDS dataset.
+ * @param {Schemas} hedSchemas A HED schema collection
+ * @return {Promise<BidsIssue[]>|Promise<never>} Any issues found.
+ */
 function validateFullDataset(dataset, hedSchemas) {
   try {
     const [sidecarErrorsFound, sidecarIssues] = validateSidecars(dataset.sidecarData, hedSchemas)
@@ -131,17 +138,13 @@ function parseTsvHed(eventFileData) {
 }
 
 function validateCombinedDataset(hedStrings, hedSchema, eventFileData) {
-  const [isHedDatasetValid, hedIssues] = validateHedDatasetWithContext(
+  const [, hedIssues] = validateHedDatasetWithContext(
     hedStrings,
     eventFileData.mergedSidecar.hedStrings,
     hedSchema,
     true,
   )
-  if (!isHedDatasetValid) {
-    return convertHedIssuesToBidsIssues(hedIssues, eventFileData.file)
-  } else {
-    return []
-  }
+  return convertHedIssuesToBidsIssues(hedIssues, eventFileData.file)
 }
 
 function validateStrings(hedStrings, hedSchema, fileObject, areValueStrings = false) {
@@ -150,11 +153,9 @@ function validateStrings(hedStrings, hedSchema, fileObject, areValueStrings = fa
     if (!hedString) {
       continue
     }
-    const [isHedStringValid, hedIssues] = validateHedString(hedString, hedSchema, true, areValueStrings)
-    if (!isHedStringValid) {
-      const convertedIssues = convertHedIssuesToBidsIssues(hedIssues, fileObject)
-      issues.push(...convertedIssues)
-    }
+    const [, hedIssues] = validateHedString(hedString, hedSchema, true, areValueStrings)
+    const convertedIssues = convertHedIssuesToBidsIssues(hedIssues, fileObject)
+    issues.push(...convertedIssues)
   }
   return issues
 }

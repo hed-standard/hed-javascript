@@ -5,6 +5,7 @@ import { Schemas } from '../../common/schema/types'
 import { HedValidator } from './validator'
 import { Hed2Validator } from '../hed2/event/hed2Validator'
 import { Hed3Validator } from './hed3'
+import { Issue } from '../../common/issues/issues'
 
 /**
  * Perform initial validation on a HED string and parse it so further validation can be performed.
@@ -75,7 +76,7 @@ export const validateHedString = function (
   hedValidator.validateStringLevel()
   const issues = [].concat(parsedStringIssues, hedValidator.issues)
 
-  return [issues.length === 0, issues]
+  return Issue.issueListWithValidStatus(issues)
 }
 
 /**
@@ -98,7 +99,7 @@ export const validateHedEvent = function (hedString, hedSchemas, checkForWarning
   hedValidator.validateEventLevel()
   const issues = [].concat(parsedStringIssues, hedValidator.issues)
 
-  return [issues.length === 0, issues]
+  return Issue.issueListWithValidStatus(issues)
 }
 
 /**
@@ -124,5 +125,5 @@ export const validateHedEventWithDefinitions = function (hedString, hedSchemas, 
   hedValidator.validateEventLevel()
   const issues = [].concat(parsedStringIssues, hedValidator.issues)
 
-  return [issues.length === 0, issues]
+  return Issue.issueListWithValidStatus(issues)
 }

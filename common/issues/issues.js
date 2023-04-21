@@ -67,6 +67,10 @@ export class Issue {
     const hedSpecLink = `for more information on this HED ${level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
     this.message = `${level.toUpperCase()}: [${hedCode}] ${message} (${hedSpecLink})`
   }
+
+  static issueListWithValidStatus(issues) {
+    return [!issues.some((issue) => issue.level === 'error'), issues]
+  }
 }
 
 /**

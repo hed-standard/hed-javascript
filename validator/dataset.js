@@ -1,6 +1,6 @@
 import zip from 'lodash/zip'
 
-import { generateIssue } from '../common/issues/issues'
+import { generateIssue, Issue } from '../common/issues/issues'
 import { validateHedEventWithDefinitions } from './event'
 import { parseHedStrings } from './parser/main'
 import { filterNonEqualDuplicates } from '../utils/map'
@@ -135,10 +135,13 @@ export const validateHedDataset = function (hedStrings, hedSchemas, checkForWarn
   const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas)
   const [definitions, definitionIssues] = parseDefinitions(parsedHedStrings)
   const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, checkForWarnings)
-  const datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
+  let datasetIssues = []
+  if (stringsValid) {
+    datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
+  }
   const issues = stringIssues.concat(...Object.values(parsingIssues), definitionIssues, datasetIssues)
 
-  return [issues.length === 0, issues]
+  return Issue.issueListWithValidStatus(issues)
 }
 
 /**
@@ -164,7 +167,10 @@ export const validateHedDatasetWithContext = function (
   const combinedParsedHedStrings = parsedHedStrings.concat(parsedContextHedStrings)
   const [definitions, definitionIssues] = parseDefinitions(combinedParsedHedStrings)
   const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, checkForWarnings)
-  const datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
+  let datasetIssues = []
+  if (stringsValid) {
+    datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
+  }
   const issues = stringIssues.concat(
     ...Object.values(parsingIssues),
     ...Object.values(contextParsingIssues),
@@ -172,5 +178,5 @@ export const validateHedDatasetWithContext = function (
     datasetIssues,
   )
 
-  return [issues.length === 0, issues]
+  return Issue.issueListWithValidStatus(issues)
 }
