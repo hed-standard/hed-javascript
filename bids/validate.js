@@ -2,7 +2,7 @@ import { validateHedDatasetWithContext } from '../validator/dataset'
 import { validateHedString } from '../validator/event'
 import { BidsDataset, BidsHedIssue, BidsIssue } from './types'
 import { buildBidsSchemas } from './schema'
-import { IssueError } from '../common/issues/issues'
+import { generateIssue, Issue, IssueError } from '../common/issues/issues'
 
 /**
  * Validate a BIDS dataset.
@@ -149,7 +149,16 @@ function parseTsvHed(eventFileData) {
         if (sidecarHedString !== undefined) {
           hedStringParts.push(sidecarHedString)
         } else {
-          issues.push(new BidsIssue(108, eventFileData.file, rowCell))
+          issues.push(
+            new BidsHedIssue(
+              generateIssue('sidecarKeyMissing', {
+                key: rowCell,
+                column: sidecarHedColumn,
+                file: eventFileData.file.relativePath,
+              }),
+              eventFileData.file,
+            ),
+          )
         }
       }
     }
