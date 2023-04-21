@@ -1,8 +1,8 @@
-import { validateHedDatasetWithContext } from '../dataset'
-import { validateHedString } from '../event'
+import { validateHedDatasetWithContext } from '../validator/dataset'
+import { validateHedString } from '../validator/event'
 import { BidsDataset, BidsHedIssue, BidsIssue } from './types'
 import { buildBidsSchemas } from './schema'
-import { IssueError } from '../../common/issues/issues'
+import { IssueError } from '../common/issues/issues'
 
 /**
  * Validate a BIDS dataset.

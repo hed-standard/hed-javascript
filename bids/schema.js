@@ -1,8 +1,9 @@
 import semver from 'semver'
-import { buildSchemas } from '../schema/init'
-import { generateIssue } from '../../common/issues/issues'
-import { SchemaSpec, SchemasSpec } from '../../common/schema/types'
-import { asArray } from '../../utils/array'
+
+import { buildSchemas } from '../validator/schema/init'
+import { generateIssue } from '../common/issues/issues'
+import { SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { asArray } from '../utils/array'
 
 const alphanumericRegExp = new RegExp('^[a-zA-Z0-9]+$')
 

@@ -4,7 +4,7 @@ import converterGenerateIssue from '../converter/issues'
 import { generateIssue } from '../common/issues/issues'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { recursiveMap } from '../utils/array'
-import { parseSchemasSpec } from '../validator/bids/schema'
+import { parseSchemasSpec } from '../bids/schema'
 import {
   BidsDataset,
   BidsEventFile,
@@ -13,7 +13,7 @@ import {
   BidsIssue,
   BidsSidecar,
   validateBidsDataset,
-} from '../validator/bids'
+} from '../bids'
 
 describe('BIDS datasets', () => {
   const sidecars = [

@@ -1,5 +1,5 @@
-import { sidecarValueHasHed } from '../../utils/bids'
-import { Issue } from '../../common/issues/issues'
+import { sidecarValueHasHed } from './utils'
+import { Issue } from '../common/issues/issues'
 
 class BidsData {
   /**
