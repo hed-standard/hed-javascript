@@ -17,7 +17,7 @@ export const buildMappingObject = function (entries) {
    */
   const nodeData = new Map()
   /**
-   * @type {Set<TagEntry>}
+   * @type {Set<string>}
    */
   const takesValueTags = new Set()
   /**
