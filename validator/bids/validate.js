@@ -2,6 +2,7 @@ import { validateHedDatasetWithContext } from '../dataset'
 import { validateHedString } from '../event'
 import { BidsDataset, BidsHedIssue, BidsIssue } from './types'
 import { buildBidsSchemas } from './schema'
+import { IssueError } from '../../common/issues/issues'
 
 /**
  * Validate a BIDS dataset.
@@ -159,5 +160,9 @@ function validateStrings(hedStrings, hedSchema, fileObject, areValueStrings = fa
 }
 
 function convertHedIssuesToBidsIssues(hedIssues, file) {
-  return hedIssues.map((hedIssue) => new BidsHedIssue(hedIssue, file))
+  if (hedIssues instanceof IssueError) {
+    return [new BidsHedIssue(hedIssues.issue, file)]
+  } else {
+    return hedIssues.map((hedIssue) => new BidsHedIssue(hedIssue, file))
+  }
 }

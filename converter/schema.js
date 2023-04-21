@@ -26,13 +26,14 @@ export const buildMappingObject = function (entries) {
   const schemaTags = entries.definitions.get('tags')
   for (const tag of schemaTags.values()) {
     const shortTag = getTagName(tag.name)
+    const lowercaseShortTag = shortTag.toLowerCase()
     if (shortTag === '#') {
       takesValueTags.add(getTagName(tag.parent.name).toLowerCase())
       continue
     }
     const tagObject = new TagEntry(shortTag, tag.name)
-    if (!nodeData.has(shortTag)) {
-      nodeData.set(shortTag.toLowerCase(), tagObject)
+    if (!nodeData.has(lowercaseShortTag)) {
+      nodeData.set(lowercaseShortTag, tagObject)
     } else {
       throw new IssueError(generateIssue('duplicateTagsInSchema', {}))
     }
