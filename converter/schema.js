@@ -12,7 +12,13 @@ import { generateIssue, IssueError } from '../common/issues/issues'
  * @return {Mapping} The mapping object.
  */
 export const buildMappingObject = function (entries) {
+  /**
+   * @type {Map<string, TagEntry>}
+   */
   const nodeData = new Map()
+  /**
+   * @type {Set<TagEntry>}
+   */
   const takesValueTags = new Set()
   /**
    * @type {SchemaEntryManager<SchemaTag>}
@@ -20,14 +26,13 @@ export const buildMappingObject = function (entries) {
   const schemaTags = entries.definitions.get('tags')
   for (const tag of schemaTags.values()) {
     const shortTag = getTagName(tag.name)
-    const cleanedShortTag = shortTag.toLowerCase()
     if (shortTag === '#') {
-      takesValueTags.add(getTagName(tag._parent.name).toLowerCase())
+      takesValueTags.add(getTagName(tag.parent.name).toLowerCase())
       continue
     }
     const tagObject = new TagEntry(shortTag, tag.name)
     if (!nodeData.has(shortTag)) {
-      nodeData.set(cleanedShortTag, tagObject)
+      nodeData.set(shortTag.toLowerCase(), tagObject)
     } else {
       throw new IssueError(generateIssue('duplicateTagsInSchema', {}))
     }

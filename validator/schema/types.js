@@ -452,6 +452,9 @@ export class SchemaValueClass extends SchemaEntry {
   }
 }
 
+/**
+ * A tag in a HED schema.
+ */
 export class SchemaTag extends SchemaEntry {
   /**
    * This tag's unit classes.
@@ -464,16 +467,41 @@ export class SchemaTag extends SchemaEntry {
    */
   _parent
 
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this tag.
+   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this tag.
+   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this tag.
+   * @param {Map<string, SchemaUnit>} unitClasses The unit classes for this tag.
+   * @constructor
+   */
   constructor(name, booleanAttributes, valueAttributes, unitClasses) {
     super(name, booleanAttributes, valueAttributes)
     this._unitClasses = unitClasses ?? []
   }
 
+  /**
+   * This tag's unit classes.
+   * @type {SchemaUnitClass[]}
+   */
   get unitClasses() {
     return this._unitClasses.slice()
   }
 
+  /**
+   * Whether this tag has any unit classes.
+   * @return {boolean}
+   */
   get hasUnitClasses() {
     return this._unitClasses.length !== 0
+  }
+
+  /**
+   * This tag's parent tag.
+   * @type {SchemaTag}
+   */
+  get parent() {
+    return this._parent
   }
 }
