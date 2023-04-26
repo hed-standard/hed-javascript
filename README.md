@@ -1,3 +1,7 @@
+[![Maintainability](https://api.codeclimate.com/v1/badges/f570007079eed004a81b/maintainability)](https://codeclimate.com/github/hed-standard/hed-javascript/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/f570007079eed004a81b/test_coverage)](https://codeclimate.com/github/hed-standard/hed-javascript/test_coverage)
+![npm](https://img.shields.io/npm/v/hed-validator)
+
 # hed-validator
 
 This package contains a JavaScript validator for HED (hierarchical event descriptor) strings.
