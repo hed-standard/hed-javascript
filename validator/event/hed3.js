@@ -92,19 +92,19 @@ export class Hed3Validator extends HedValidator {
     if (!foundUnit && this.options.checkForWarnings) {
       const defaultUnit = tag.defaultUnit
       this.pushIssue('unitClassDefaultUsed', {
-        tag: tag.originalTag,
+        tag: tag,
         defaultUnit: defaultUnit,
       })
     } else if (!validUnit) {
       const tagUnitClassUnits = Array.from(tag.validUnits).map((unit) => unit.name)
       this.pushIssue('unitClassInvalidUnit', {
-        tag: tag.originalTag,
+        tag: tag,
         unitClassUnits: tagUnitClassUnits.sort().join(','),
       })
     } else {
       const validValue = this.validateValue(value, true)
       if (!validValue) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
+        this.pushIssue('invalidValue', { tag: tag })
       }
     }
   }
@@ -121,7 +121,7 @@ export class Hed3Validator extends HedValidator {
         tag.takesValueTag.hasAttributeName('isNumeric'), // Always false
       )
       if (!isValidValue) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
+        this.pushIssue('invalidValue', { tag: tag })
       }
     }
   }
@@ -203,27 +203,19 @@ export class Hed3Validator extends HedValidator {
    * @param {ParsedHedGroup} tagGroup The tag group.
    */
   checkDefinitionSyntax(tagGroup) {
+    if (!tagGroup.isDefinitionGroup) {
+      return
+    }
+
     const definitionShortTag = 'Definition'
     const defExpandShortTag = 'Def-expand'
     const defShortTag = 'Def'
     const definitionParentTags = getParsedParentTags(this.hedSchemas, definitionShortTag)
     const defExpandParentTags = getParsedParentTags(this.hedSchemas, defExpandShortTag)
     const defParentTags = getParsedParentTags(this.hedSchemas, defShortTag)
-    let definitionTagFound = false
-    let definitionName
-    for (const tag of tagGroup.tags) {
-      if (tag instanceof ParsedHedGroup) {
-        continue
-      }
-      if (tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
-        definitionTagFound = true
-        definitionName = tag.originalTagName
-        break
-      }
-    }
-    if (!definitionTagFound) {
-      return
-    }
+
+    const definitionName = tagGroup.definitionNameAndValue
+
     let tagGroupValidated = false
     let tagGroupIssueGenerated = false
     for (const tag of tagGroup.tags) {
@@ -252,9 +244,9 @@ export class Hed3Validator extends HedValidator {
             })
           }
         }
-      } else if (definitionTagFound && !tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
+      } else if (!tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
         this.pushIssue('illegalDefinitionGroupTag', {
-          tag: tag.originalTag,
+          tag: tag,
           definition: definitionName,
         })
       }
@@ -293,7 +285,7 @@ export class Hed3Validator extends HedValidator {
     const defTags = tagGroup.defTags ?? []
     if (tagGroup.defCount === 0) {
       this.pushIssue('temporalWithoutDefinition', {
-        tagGroup: tagGroup.originalTag,
+        tagGroup: tagGroup,
       })
     }
     /**
@@ -355,7 +347,7 @@ export class Hed3Validator extends HedValidator {
         (topLevelTag.hasAttribute(tagGroupType) || topLevelTag.parentHasAttribute(tagGroupType))
       ) {
         this.pushIssue('invalidTopLevelTag', {
-          tag: topLevelTag.originalTag,
+          tag: topLevelTag,
         })
       }
     }
@@ -371,7 +363,7 @@ export class Hed3Validator extends HedValidator {
       }
       if (!this.parsedString.topLevelTagGroups.some((topLevelTagGroup) => topLevelTagGroup.includes(tag))) {
         this.pushIssue('invalidTopLevelTagGroupTag', {
-          tag: tag.originalTag,
+          tag: tag,
         })
       }
     }

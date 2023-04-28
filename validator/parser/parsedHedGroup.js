@@ -268,7 +268,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @return {string|null}
    */
   get definitionNameAndValue() {
-    return this.getSingleDefinitionNameAndValue('definitionNameAndValue', 'Definition')
+    return this.getSingleDefinitionNameAndValue('definition', 'Definition')
   }
 
   /**
@@ -276,19 +276,21 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @return {string|null}
    */
   get defExpandNameAndValue() {
-    return this.getSingleDefinitionNameAndValue('defExpandNameAndValue', 'Def-expand')
+    return this.getSingleDefinitionNameAndValue('defExpand', 'Def-expand')
   }
 
   getSingleDefinitionNameAndValue(fieldName, parentTag) {
-    return this._memoize(fieldName, () => {
+    return this._memoize(fieldName + 'NameAndValue', () => {
       if (!this.specialTags.has(parentTag)) {
         return null
-      } else if (this.getSingleDefinitionValue(fieldName, parentTag)) {
+      } else if (this.getSingleDefinitionValue(fieldName + 'Value', parentTag)) {
         return (
-          this.getSingleDefinitionName(fieldName, parentTag) + '/' + this.getSingleDefinitionValue(fieldName, parentTag)
+          this.getSingleDefinitionName(fieldName + 'Name', parentTag) +
+          '/' +
+          this.getSingleDefinitionValue(fieldName + 'Value', parentTag)
         )
       } else {
-        return this.getSingleDefinitionName(fieldName, parentTag)
+        return this.getSingleDefinitionName(fieldName + 'Name', parentTag)
       }
     })
   }
