@@ -203,19 +203,19 @@ export class Hed3Validator extends HedValidator {
    * @param {ParsedHedGroup} tagGroup The tag group.
    */
   checkDefinitionSyntax(tagGroup) {
-    const definitionShortTag = 'definition'
-    const defExpandShortTag = 'def-expand'
-    const defShortTag = 'def'
-    const definitionParentTag = this.getStandardSchemaParsedTag(definitionShortTag)
-    const defExpandParentTag = this.getStandardSchemaParsedTag(defExpandShortTag)
-    const defParentTag = this.getStandardSchemaParsedTag(defShortTag)
+    const definitionShortTag = 'Definition'
+    const defExpandShortTag = 'Def-expand'
+    const defShortTag = 'Def'
+    const definitionParentTags = getParsedParentTags(this.hedSchemas, definitionShortTag)
+    const defExpandParentTags = getParsedParentTags(this.hedSchemas, defExpandShortTag)
+    const defParentTags = getParsedParentTags(this.hedSchemas, defShortTag)
     let definitionTagFound = false
     let definitionName
     for (const tag of tagGroup.tags) {
       if (tag instanceof ParsedHedGroup) {
         continue
       }
-      if (tag.isDescendantOf(definitionParentTag)) {
+      if (tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
         definitionTagFound = true
         definitionName = tag.originalTagName
         break
@@ -237,7 +237,11 @@ export class Hed3Validator extends HedValidator {
         }
         tagGroupValidated = true
         for (const innerTag of tag.tagIterator()) {
-          const nestedDefinitionParentTags = [definitionParentTag, defExpandParentTag, defParentTag]
+          const nestedDefinitionParentTags = [
+            ...definitionParentTags.values(),
+            ...defExpandParentTags.values(),
+            ...defParentTags.values(),
+          ]
           if (
             nestedDefinitionParentTags.some((parentTag) => {
               return innerTag.isDescendantOf(parentTag)
@@ -248,7 +252,7 @@ export class Hed3Validator extends HedValidator {
             })
           }
         }
-      } else if (definitionTagFound && !tag.isDescendantOf(definitionParentTag)) {
+      } else if (definitionTagFound && !tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
         this.pushIssue('illegalDefinitionGroupTag', {
           tag: tag.originalTag,
           definition: definitionName,
@@ -297,7 +301,7 @@ export class Hed3Validator extends HedValidator {
      * @type {(ParsedHedTag|ParsedHedGroup)[]}
      */
     const allowedTags = [
-      this.getStandardSchemaParsedTag(tagGroup.isOnsetGroup ? 'Onset' : 'Offset'),
+      ...getParsedParentTags(this.hedSchemas, tagGroup.isOnsetGroup ? 'Onset' : 'Offset').values(),
       ...defExpandChildren,
       ...defTags,
     ]
@@ -371,15 +375,5 @@ export class Hed3Validator extends HedValidator {
         })
       }
     }
-  }
-
-  /**
-   * Generate a parsed HED tag object corresponding to the given short tag in the standard schema being validated against.
-   *
-   * @param {string} shortTag The short tag to parse.
-   * @returns {ParsedHedTag} The parsed tag corresponding to the short tag in the standard schema being validated against.
-   */
-  getStandardSchemaParsedTag(shortTag) {
-    return getParsedParentTags(this.hedSchemas, shortTag).get(this.hedSchemas.standardSchema)
   }
 }

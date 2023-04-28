@@ -166,6 +166,9 @@ export class ParsedHedTag extends ParsedHedSubstring {
 
   isDescendantOf(parent) {
     if (parent instanceof ParsedHedTag) {
+      if (this.schema !== parent.schema) {
+        return false
+      }
       parent = parent.formattedTag
     }
     for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
