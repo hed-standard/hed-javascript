@@ -36,7 +36,7 @@ export class Hed2Validator extends HedValidator {
       tagUnitClasses.includes(dateTimeUnitClass)
     ) {
       if (!isDateTime(formattedTagUnitValue)) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
+        this.pushIssue('invalidValue', { tag: tag })
       }
       return
     } else if (
@@ -44,7 +44,7 @@ export class Hed2Validator extends HedValidator {
       tagUnitClasses.includes(clockTimeUnitClass)
     ) {
       if (!isClockFaceTime(formattedTagUnitValue)) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
+        this.pushIssue('invalidValue', { tag: tag })
       }
       return
     } else if (
@@ -53,7 +53,7 @@ export class Hed2Validator extends HedValidator {
       tag.originalTag.includes(':')
     ) {
       if (!isClockFaceTime(formattedTagUnitValue)) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
+        this.pushIssue('invalidValue', { tag: tag })
       }
       return
     }
@@ -69,16 +69,16 @@ export class Hed2Validator extends HedValidator {
     if (!foundUnit && this.options.checkForWarnings) {
       const defaultUnit = tag.defaultUnit
       this.pushIssue('unitClassDefaultUsed', {
-        tag: tag.originalTag,
+        tag: tag,
         defaultUnit: defaultUnit,
       })
     } else if (!validUnit) {
       this.pushIssue('unitClassInvalidUnit', {
-        tag: tag.originalTag,
+        tag: tag,
         unitClassUnits: tagUnitClassUnits.sort().join(','),
       })
     } else if (!validValue) {
-      this.pushIssue('invalidValue', { tag: tag.originalTag })
+      this.pushIssue('invalidValue', { tag: tag })
     }
   }
 
@@ -94,7 +94,7 @@ export class Hed2Validator extends HedValidator {
         this.hedSchemas.baseSchema.tagHasAttribute(tag.takesValueFormattedTag, 'isNumeric'),
       )
       if (!isValidValue) {
-        this.pushIssue('invalidValue', { tag: tag.originalTag })
+        this.pushIssue('invalidValue', { tag: tag })
       }
     }
   }

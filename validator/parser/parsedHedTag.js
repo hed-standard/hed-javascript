@@ -46,6 +46,19 @@ export class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
+   * Override of {@link Object.prototype.toString}.
+   *
+   * @return {string} The original form of this HED tag.
+   */
+  toString() {
+    if (this.schema?.prefix) {
+      return this.schema.prefix + ':' + this.originalTag
+    } else {
+      return this.originalTag
+    }
+  }
+
+  /**
    * Convert this tag to long form.
    *
    * @param {string} hedString The original HED string.

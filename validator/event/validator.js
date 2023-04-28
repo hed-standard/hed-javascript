@@ -162,7 +162,7 @@ export class HedValidator {
         return
       }
       this.pushIssue('duplicateTag', {
-        tag: tag.originalTag,
+        tag: tag,
         bounds: tag.originalBounds,
       })
       duplicateTags.add(tag)
@@ -226,7 +226,7 @@ export class HedValidator {
     const invalid = tag.hasAttribute(requireChildType)
     if (invalid) {
       // If this tag has the "requireChild" attribute, then by virtue of even being in the dataset it is missing a required child.
-      this.pushIssue('childRequired', { tag: tag.originalTag })
+      this.pushIssue('childRequired', { tag: tag })
     }
   }
 
@@ -261,7 +261,7 @@ export class HedValidator {
       if (getCharacterCount(valueTag, '#') === 1) {
         // Ending placeholder was replaced with itself.
         this.pushIssue('invalidPlaceholder', {
-          tag: tag.originalTag,
+          tag: tag,
         })
       } /* else {
         Handled in checkPlaceholderTagSyntax().
@@ -270,15 +270,15 @@ export class HedValidator {
       // This tag isn't an allowed extension, but the previous tag takes a value.
       // This is likely caused by an extraneous comma.
       this.pushIssue('extraCommaOrInvalid', {
-        tag: tag.originalTag,
-        previousTag: previousTag.originalTag,
+        tag: tag,
+        previousTag: previousTag,
       })
     } else if (!isExtensionAllowedTag) {
       // This is not a valid tag.
-      this.pushIssue('invalidTag', { tag: tag.originalTag })
+      this.pushIssue('invalidTag', { tag: tag })
     } else if (!this.options.isEventLevel && this.options.checkForWarnings) {
       // This is an allowed extension.
-      this.pushIssue('extension', { tag: tag.originalTag })
+      this.pushIssue('extension', { tag: tag })
     }
   }
 
@@ -293,13 +293,13 @@ export class HedValidator {
       const valueTag = replaceTagNameWithPound(tag.formattedTag)
       if (getCharacterCount(valueTag, '#') !== 1) {
         this.pushIssue('invalidPlaceholder', {
-          tag: tag.originalTag,
+          tag: tag,
         })
       }
     } else if (placeholderCount > 1) {
       // More than one placeholder.
       this.pushIssue('invalidPlaceholder', {
-        tag: tag.originalTag,
+        tag: tag,
       })
     }
   }
@@ -317,7 +317,7 @@ export class HedValidator {
       const tagPlaceholders = getCharacterCount(tagString, '#')
       standalonePlaceholders += tagPlaceholders
       if (!firstStandaloneTag && standalonePlaceholders >= 1) {
-        firstStandaloneTag = tag.originalTag
+        firstStandaloneTag = tag
       }
       if (
         tagPlaceholders &&
@@ -329,7 +329,7 @@ export class HedValidator {
           })
         }
         this.pushIssue('invalidPlaceholder', {
-          tag: tag.originalTag,
+          tag: tag,
         })
         standaloneIssueGenerated = true
       }
@@ -362,7 +362,7 @@ export class HedValidator {
           const tagPlaceholders = getCharacterCount(tagString, '#')
           standalonePlaceholders += tagPlaceholders
           if (!firstStandaloneTag && standalonePlaceholders >= 1) {
-            firstStandaloneTag = tag.originalTag
+            firstStandaloneTag = tag
           }
           if (
             tagPlaceholders &&
@@ -374,7 +374,7 @@ export class HedValidator {
               })
             }
             this.pushIssue('invalidPlaceholder', {
-              tag: tag.originalTag,
+              tag: tag,
             })
             standaloneIssueGenerated = true
           }

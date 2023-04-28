@@ -26,4 +26,13 @@ export default class ParsedHedSubstring extends Memoizer {
     this.originalTag = originalTag
     this.originalBounds = originalBounds
   }
+
+  /**
+   * Override of {@link Object.prototype.toString}.
+   *
+   * @return {string} The original form of this HED substring.
+   */
+  toString() {
+    return this.originalTag
+  }
 }
