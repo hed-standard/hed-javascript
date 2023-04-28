@@ -15,7 +15,7 @@ import {
   SchemaUnitModifier,
   SchemaValueClass,
   nodeProperty,
-  attributeProperty,
+  schemaAttributeProperty,
 } from './types'
 
 const lc = (str) => str.toLowerCase()
@@ -82,6 +82,12 @@ export class Hed3SchemaParser extends SchemaParser {
           propertyName,
           // TODO: Switch back to class constant once upstream bug is fixed.
           new SchemaProperty(propertyName, 'typeProperty'),
+        )
+      } else if (this._versionDefinitions.roleProperties && this._versionDefinitions.roleProperties.has(propertyName)) {
+        this.properties.set(
+          propertyName,
+          // TODO: Switch back to class constant once upstream bug is fixed.
+          new SchemaProperty(propertyName, 'roleProperty'),
         )
       }
     }
@@ -171,7 +177,7 @@ export class Hed3SchemaParser extends SchemaParser {
     )
 
     const recursiveAttributes = Array.from(this.attributes.values()).filter((attribute) =>
-      attribute.hasAttributeName('recursive'),
+      attribute.roleProperties.has(this.properties.get('recursiveProperty')),
     )
     const unitClasses = this.definitions.get('unitClasses')
     const tagUnitClassAttribute = this.attributes.get('unitClass')
@@ -271,18 +277,24 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
     super(rootElement)
     this._versionDefinitions = {
       typeProperties: new Set(['boolProperty']),
-      categoryProperties: new Set(['unitProperty', 'unitClassProperty', 'unitModifierProperty', 'valueClassProperty']),
+      categoryProperties: new Set([
+        'elementProperty',
+        'nodeProperty',
+        'schemaAttributeProperty',
+        'unitProperty',
+        'unitClassProperty',
+        'unitModifierProperty',
+        'valueClassProperty',
+      ]),
+      // TODO: Replace 'isInherited' with 'isInheritedProperty'.
+      roleProperties: new Set(['recursiveProperty', 'isInherited']),
     }
   }
 
   _addAttributes() {
-    const recursiveAttribute = new SchemaAttribute('recursive', [
-      this.properties.get('boolProperty'),
-      attributeProperty,
-    ])
-    this.attributes.set('recursive', recursiveAttribute)
+    const recursiveProperty = new SchemaProperty('recursiveProperty', 'roleProperty')
+    this.properties.set('recursiveProperty', recursiveProperty)
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
-    extensionAllowedAttribute.booleanAttributes.add(recursiveAttribute)
-    extensionAllowedAttribute.booleanAttributeNames.add('recursive')
+    extensionAllowedAttribute._roleProperties.add(recursiveProperty)
   }
 }

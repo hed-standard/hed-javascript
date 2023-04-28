@@ -1728,4 +1728,226 @@ describe('HED string and event validation', () => {
       })
     })
   })
+
+  describe('HED-3G library and partner schema validation', () => {
+    const hedLibrarySchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
+    let hedSchemaPromise
+
+    beforeAll(() => {
+      const spec4 = new SchemaSpec('testlib', '2.0.0', 'testlib', hedLibrarySchemaFile)
+      const specs = new SchemasSpec().addSchemaSpec(spec4)
+      hedSchemaPromise = buildSchemas(specs)
+    })
+
+    /**
+     * Validation base function.
+     *
+     * This override is required due to incompatible constructor signatures between Hed3Validator and the other two classes.
+     *
+     * @param {Schemas} hedSchemas The HED schema collection used for testing.
+     * @param {Object<string, string>} testStrings A mapping of test strings.
+     * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
+     * @param {function(HedValidator): void} testFunction A test-specific function that executes the required validation check.
+     * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
+     */
+    const validatorBase = function (hedSchemas, testStrings, expectedIssues, testFunction, testOptions = {}) {
+      for (const [testStringKey, testString] of Object.entries(testStrings)) {
+        assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
+        const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
+        const validator = new Hed3Validator(parsedTestString, hedSchemas, null, testOptions)
+        testFunction(validator)
+        const issues = [].concat(...Object.values(parsingIssues), validator.issues)
+        assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
+      }
+    }
+
+    /**
+     * HED 3 semantic validation base function.
+     *
+     * This base function uses the HED 3-specific {@link Hed3Validator} validator class.
+     *
+     * @param {Object<string, string>} testStrings A mapping of test strings.
+     * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
+     * @param {function(Hed3Validator): void} testFunction A test-specific function that executes the required validation check.
+     * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
+     */
+    const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
+      return hedSchemaPromise.then(([hedSchemas, issues]) => {
+        assert.isEmpty(issues, 'Schema loading issues occurred')
+        validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
+      })
+    }
+
+    describe('HED Tag Groups', () => {
+      /**
+       * HED 3 tag group semantic validation base function.
+       *
+       * @param {Object<string, string>} testStrings A mapping of test strings.
+       * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
+       * @param {function(Hed3Validator, ParsedHedGroup): void} testFunction A test-specific function that executes the required validation check.
+       * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
+       */
+      const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
+        return validatorSemanticBase(
+          testStrings,
+          expectedIssues,
+          (validator) => {
+            for (const parsedTagGroup of validator.parsedString.tagGroups) {
+              testFunction(validator, parsedTagGroup)
+            }
+          },
+          testOptions,
+        )
+      }
+
+      it('should have syntactically valid definitions', () => {
+        const testStrings = {
+          nonDefinition: 'testlib:Car',
+          nonDefinitionGroup: '(testlib:Manual-eye-closure, testlib:Drowsiness)',
+          definitionOnly: '(testlib:Definition/SimpleDefinition)',
+          tagGroupDefinition:
+            '(testlib:Definition/TagGroupDefinition, (testlib:Wicket-spikes, testlib:Finding-frequency))',
+          illegalSiblingDefinition: '(testlib:Definition/IllegalSiblingDefinition, testlib:Train, (testlib:Rectangle))',
+          nestedDefinition:
+            '(testlib:Definition/NestedDefinition, (testlib:Touchscreen, (testlib:Definition/InnerDefinition, (testlib:Square))))',
+          multipleTagGroupDefinition:
+            '(testlib:Definition/MultipleTagGroupDefinition, (testlib:Touchscreen), (testlib:Square))',
+          defNestedInDefinition: '(testlib:Definition/DefNestedInDefinition, (testlib:Def/Nested, testlib:Triangle))',
+        }
+        const expectedIssues = {
+          nonDefinition: [],
+          nonDefinitionGroup: [],
+          definitionOnly: [],
+          tagGroupDefinition: [],
+          illegalSiblingDefinition: [
+            generateIssue('illegalDefinitionGroupTag', {
+              tag: 'testlib:Train',
+              definition: 'IllegalSiblingDefinition',
+            }),
+          ],
+          nestedDefinition: [
+            generateIssue('nestedDefinition', {
+              definition: 'NestedDefinition',
+            }),
+          ],
+          multipleTagGroupDefinition: [
+            generateIssue('multipleTagGroupsInDefinition', {
+              definition: 'MultipleTagGroupDefinition',
+            }),
+          ],
+          defNestedInDefinition: [
+            generateIssue('nestedDefinition', {
+              definition: 'DefNestedInDefinition',
+            }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
+          validator.checkDefinitionSyntax(tagGroup)
+        })
+      })
+
+      it('should have syntactically valid onsets', () => {
+        const testStrings = {
+          simple: '(testlib:Onset, testlib:Def/Acc/5.4)',
+          defAndOneGroup: '(testlib:Onset, testlib:Def/ShowFace, (testlib:Manual-eye-closure, testlib:Drowsiness))',
+          defExpandAndOneGroup:
+            '(testlib:Onset, (testlib:Def-expand/ShowFace, (testlib:Label/Pie)), (testlib:Manual-eye-closure, testlib:Drowsiness))',
+          noTag: '(testlib:Onset)',
+          definition: '(testlib:Onset, testlib:Definition/ShowFace, (testlib:Label/Pie))',
+          defAndTwoGroups: '(testlib:Def/DefAndTwoGroups, (testlib:Blue), (testlib:Green), testlib:Onset)',
+          defExpandAndTwoGroups:
+            '((testlib:Def-expand/DefExpandAndTwoGroups, (testlib:Label/Pie)), (testlib:Green), (testlib:Red), testlib:Onset)',
+          tagAndNoDef: '(testlib:Onset, testlib:Red)',
+          tagGroupAndNoDef: '(testlib:Onset, (testlib:Red))',
+          defAndTag: '(testlib:Onset, testlib:Def/DefAndTag, testlib:Red)',
+          defTagAndTagGroup: '(testlib:Onset, testlib:Def/DefTagAndTagGroup, (testlib:Red), testlib:Blue)',
+          multipleDefs: '(testlib:Onset, testlib:Def/ShowFace, testlib:Def/Acc/5.4)',
+          defAndDefExpand: '((testlib:Def-expand/ShowFace, (testlib:Label/Pie)), testlib:Def/Acc/5.4, testlib:Onset)',
+          multipleDefinitionsAndExtraTagGroups:
+            '((testlib:Def-expand/ShowFace, (testlib:Label/Pie)), testlib:Def/Acc/5.4, testlib:Onset, (testlib:Blue), (testlib:Green))',
+        }
+        const expectedIssues = {
+          simple: [],
+          defAndOneGroup: [],
+          defExpandAndOneGroup: [],
+          noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag })],
+          definition: [
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.definition }),
+            generateIssue('extraTagsInTemporal', { definition: '' }),
+          ],
+          defAndTwoGroups: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTwoGroups' })],
+          defExpandAndTwoGroups: [generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTwoGroups' })],
+          tagAndNoDef: [
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef }),
+            generateIssue('extraTagsInTemporal', { definition: '' }),
+          ],
+          tagGroupAndNoDef: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef })],
+          defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag' })],
+          defTagAndTagGroup: [generateIssue('extraTagsInTemporal', { definition: 'DefTagAndTagGroup' })],
+          multipleDefs: [generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.multipleDefs })],
+          defAndDefExpand: [
+            generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.defAndDefExpand }),
+          ],
+          multipleDefinitionsAndExtraTagGroups: [
+            generateIssue('temporalWithMultipleDefinitions', {
+              tagGroup: testStrings.multipleDefinitionsAndExtraTagGroups,
+            }),
+            generateIssue('extraTagsInTemporal', { definition: 'Multiple definition tags found' }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
+          validator.checkTemporalSyntax(tagGroup)
+        })
+      })
+
+      it('should have syntactically valid offsets', () => {
+        const testStrings = {
+          simple: '(testlib:Offset, testlib:Def/Acc/5.4)',
+          noTag: '(testlib:Offset)',
+          tagAndNoDef: '(testlib:Offset, testlib:Red)',
+          tagGroupAndNoDef: '(testlib:Offset, (testlib:Red))',
+          defAndTag: '(testlib:Offset, testlib:Def/DefAndTag, testlib:Red)',
+          defExpandAndTag: '((testlib:Def-expand/DefExpandAndTag, (testlib:Label/Pie)), testlib:Offset, testlib:Red)',
+          defAndTagGroup: '(testlib:Offset, testlib:Def/DefAndTagGroup, (testlib:Red))',
+          defTagAndTagGroup: '(testlib:Offset, testlib:Def/DefTagAndTagGroup, (testlib:Red), testlib:Blue)',
+          defExpandAndTagGroup:
+            '((testlib:Def-expand/DefExpandAndTagGroup, (testlib:Label/Pie)), testlib:Offset, (testlib:Red))',
+          multipleDefs: '(testlib:Offset, testlib:Def/MyColor, testlib:Def/Acc/5.4)',
+          defAndDefExpand: '((testlib:Def-expand/MyColor, (testlib:Label/Pie)), testlib:Def/Acc/5.4, testlib:Offset)',
+          multipleDefinitionsAndExtraTagGroups:
+            '((testlib:Def-expand/MyColor, (testlib:Label/Pie)), testlib:Def/Acc/5.4, testlib:Offset, (testlib:Blue), (testlib:Green))',
+        }
+        const expectedIssues = {
+          simple: [],
+          noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag })],
+          tagAndNoDef: [
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef }),
+            generateIssue('extraTagsInTemporal', { definition: '' }),
+          ],
+          tagGroupAndNoDef: [
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef }),
+            generateIssue('extraTagsInTemporal', { definition: '' }),
+          ],
+          defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag' })],
+          defExpandAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTag' })],
+          defAndTagGroup: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTagGroup' })],
+          defTagAndTagGroup: [generateIssue('extraTagsInTemporal', { definition: 'DefTagAndTagGroup' })],
+          defExpandAndTagGroup: [generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTagGroup' })],
+          multipleDefs: [generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.multipleDefs })],
+          defAndDefExpand: [
+            generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.defAndDefExpand }),
+          ],
+          multipleDefinitionsAndExtraTagGroups: [
+            generateIssue('temporalWithMultipleDefinitions', {
+              tagGroup: testStrings.multipleDefinitionsAndExtraTagGroups,
+            }),
+            generateIssue('extraTagsInTemporal', { definition: 'Multiple definition tags found' }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
+          validator.checkTemporalSyntax(tagGroup)
+        })
+      })
+    })
+  })
 })
