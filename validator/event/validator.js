@@ -311,33 +311,17 @@ export class HedValidator {
     let standalonePlaceholders = 0
     let definitionPlaceholders
     let standaloneIssueGenerated = false
-    let firstStandaloneTag = ''
-    for (const tag of this.parsedString.topLevelTags) {
-      const tagString = tag.formattedTag
-      const tagPlaceholders = getCharacterCount(tagString, '#')
-      standalonePlaceholders += tagPlaceholders
-      if (!firstStandaloneTag && standalonePlaceholders >= 1) {
-        firstStandaloneTag = tag
-      }
-      if (
-        tagPlaceholders &&
-        ((!this.options.expectValuePlaceholderString && standalonePlaceholders) || standalonePlaceholders > 1)
-      ) {
-        if (this.options.expectValuePlaceholderString && !standaloneIssueGenerated) {
-          this.pushIssue('invalidPlaceholder', {
-            tag: firstStandaloneTag,
-          })
-        }
-        this.pushIssue('invalidPlaceholder', {
-          tag: tag,
-        })
-        standaloneIssueGenerated = true
-      }
-    }
+    const __ret = this._checkStandalonePlaceholderStringSyntaxInGroup(
+      this.parsedString.topLevelTags,
+      standalonePlaceholders,
+      standaloneIssueGenerated,
+    )
+    standalonePlaceholders = __ret.standalonePlaceholders
+    standaloneIssueGenerated = __ret.standaloneIssueGenerated
     for (const tagGroup of this.parsedString.tagGroups) {
       if (tagGroup.isDefinitionGroup) {
         definitionPlaceholders = 0
-        const isDefinitionPlaceholder = tagGroup.definitionTag.formattedTagName === '#'
+        const isDefinitionPlaceholder = tagGroup.definitionValue === '#'
         const definitionName = tagGroup.definitionName
         for (const tag of tagGroup.tagIterator()) {
           if (isDefinitionPlaceholder && tag === tagGroup.definitionTag) {
@@ -357,28 +341,13 @@ export class HedValidator {
           })
         }
       } else if (!standaloneIssueGenerated) {
-        for (const tag of tagGroup.tagIterator()) {
-          const tagString = tag.formattedTag
-          const tagPlaceholders = getCharacterCount(tagString, '#')
-          standalonePlaceholders += tagPlaceholders
-          if (!firstStandaloneTag && standalonePlaceholders >= 1) {
-            firstStandaloneTag = tag
-          }
-          if (
-            tagPlaceholders &&
-            ((!this.options.expectValuePlaceholderString && standalonePlaceholders) || standalonePlaceholders > 1)
-          ) {
-            if (this.options.expectValuePlaceholderString && !standaloneIssueGenerated) {
-              this.pushIssue('invalidPlaceholder', {
-                tag: firstStandaloneTag,
-              })
-            }
-            this.pushIssue('invalidPlaceholder', {
-              tag: tag,
-            })
-            standaloneIssueGenerated = true
-          }
-        }
+        const __ret = this._checkStandalonePlaceholderStringSyntaxInGroup(
+          tagGroup.tagIterator(),
+          standalonePlaceholders,
+          standaloneIssueGenerated,
+        )
+        standalonePlaceholders = __ret.standalonePlaceholders
+        standaloneIssueGenerated = __ret.standaloneIssueGenerated
       }
     }
     if (this.options.expectValuePlaceholderString && standalonePlaceholders === 0) {
@@ -386,6 +355,33 @@ export class HedValidator {
         string: this.parsedString.hedString,
       })
     }
+  }
+
+  _checkStandalonePlaceholderStringSyntaxInGroup(tags, standalonePlaceholders, standaloneIssueGenerated) {
+    let firstStandaloneTag
+    for (const tag of tags) {
+      const tagString = tag.formattedTag
+      const tagPlaceholders = getCharacterCount(tagString, '#')
+      standalonePlaceholders += tagPlaceholders
+      if (!firstStandaloneTag && tagPlaceholders > 0) {
+        firstStandaloneTag = tag
+      }
+      if (
+        tagPlaceholders &&
+        ((!this.options.expectValuePlaceholderString && standalonePlaceholders) || standalonePlaceholders > 1)
+      ) {
+        if (this.options.expectValuePlaceholderString && !standaloneIssueGenerated) {
+          this.pushIssue('invalidPlaceholder', {
+            tag: firstStandaloneTag,
+          })
+        }
+        this.pushIssue('invalidPlaceholder', {
+          tag: tag,
+        })
+        standaloneIssueGenerated = true
+      }
+    }
+    return { standalonePlaceholders, standaloneIssueGenerated }
   }
 
   /**
