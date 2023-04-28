@@ -938,7 +938,14 @@ describe('BIDS datasets', () => {
             }),
             badDatasets[3].file,
           ),
-          new BidsIssue(108, badDatasets[4].file, 'purple'),
+          new BidsHedIssue(
+            generateIssue('sidecarKeyMissing', {
+              key: 'purple',
+              column: 'color',
+              file: '/sub04/sub04_task-test_run-5_events.tsv',
+            }),
+            badDatasets[4].file,
+          ),
         ],
       }
       return validator(testDatasets, expectedIssues, specs)
