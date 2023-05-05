@@ -277,11 +277,11 @@ export class SchemaAttribute extends SchemaEntry {
     super(name, new Set(), new Map())
 
     // Parse properties
-    const categoryProperties = properties.filter((property) => property.isCategoryProperty)
+    const categoryProperties = properties.filter((property) => property?.isCategoryProperty)
     this._categoryProperties = categoryProperties.length === 0 ? new Set([nodeProperty]) : new Set(categoryProperties)
-    const typeProperties = properties.filter((property) => property.isTypeProperty)
+    const typeProperties = properties.filter((property) => property?.isTypeProperty)
     this._typeProperty = typeProperties.length === 0 ? stringProperty : typeProperties[0]
-    this._roleProperties = new Set(properties.filter((property) => property.isRoleProperty))
+    this._roleProperties = new Set(properties.filter((property) => property?.isRoleProperty))
   }
 
   /**
