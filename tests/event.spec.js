@@ -911,11 +911,11 @@ describe('HED string and event validation', () => {
   })
 
   describe('HED-3G validation', () => {
-    const hedSchemaFile = 'tests/data/HED8.0.0.xml'
+    const hedSchemaFile = 'tests/data/HED8.2.0.xml'
     let hedSchemaPromise
 
     beforeAll(() => {
-      const spec3 = new SchemaSpec('', '8.0.0', '', hedSchemaFile)
+      const spec3 = new SchemaSpec('', '8.2.0', '', hedSchemaFile)
       const specs = new SchemasSpec().addSchemaSpec(spec3)
       hedSchemaPromise = buildSchemas(specs)
     })
@@ -966,7 +966,7 @@ describe('HED string and event validation', () => {
         const testStrings = {
           simple: 'Car',
           groupAndValues: '(Train/Maglev,Age/15,RGB-red/0.5),Operate',
-          invalidUnit: 'Duration/20 cm',
+          invalidUnit: 'Time-value/20 cm',
           duplicateSame: 'Train,Train',
           duplicateSimilar: 'Train,Vehicle/Train',
           missingChild: 'Label',
@@ -977,7 +977,7 @@ describe('HED string and event validation', () => {
           groupAndValues: [],
           invalidUnit: [
             generateIssue('unitClassInvalidUnit', {
-              tag: 'Duration/20 cm',
+              tag: 'Time-value/20 cm',
               unitClassUnits: legalTimeUnits.sort().join(','),
             }),
           ],
@@ -1142,7 +1142,7 @@ describe('HED string and event validation', () => {
 
       it('should exist in the schema or be an allowed extension', () => {
         const testStrings = {
-          takesValue: 'Duration/3 ms',
+          takesValue: 'Time-value/3 ms',
           full: 'Left-side-of',
           extensionAllowed: 'Human/Driver',
           leafExtension: 'Sensory-event/Something',
@@ -1179,20 +1179,20 @@ describe('HED string and event validation', () => {
 
       it('should have a proper unit when required', () => {
         const testStrings = {
-          correctUnit: 'Duration/3 ms',
-          correctUnitScientific: 'Duration/3.5e1 ms',
-          correctSingularUnit: 'Duration/1 millisecond',
-          correctPluralUnit: 'Duration/3 milliseconds',
+          correctUnit: 'Time-value/3 ms',
+          correctUnitScientific: 'Time-value/3.5e1 ms',
+          correctSingularUnit: 'Time-value/1 millisecond',
+          correctPluralUnit: 'Time-value/3 milliseconds',
           correctNoPluralUnit: 'Frequency/3 hertz',
-          correctNonSymbolCapitalizedUnit: 'Duration/3 MilliSeconds',
+          correctNonSymbolCapitalizedUnit: 'Time-value/3 MilliSeconds',
           correctSymbolCapitalizedUnit: 'Frequency/3 kHz',
-          missingRequiredUnit: 'Duration/3',
-          incorrectUnit: 'Duration/3 cm',
-          incorrectNonNumericValue: 'Duration/A ms',
+          missingRequiredUnit: 'Time-value/3',
+          incorrectUnit: 'Time-value/3 cm',
+          incorrectNonNumericValue: 'Time-value/A ms',
           incorrectPluralUnit: 'Frequency/3 hertzs',
           incorrectSymbolCapitalizedUnit: 'Frequency/3 hz',
           incorrectSymbolCapitalizedUnitModifier: 'Frequency/3 KHz',
-          incorrectNonSIUnitModifier: 'Duration/1 millihour',
+          incorrectNonSIUnitModifier: 'Time-value/1 millihour',
           incorrectNonSIUnitSymbolModifier: 'Speed/100 Mkph',
           notRequiredNumber: 'RGB-red/0.5',
           notRequiredScientific: 'RGB-red/5e-1',
@@ -1582,7 +1582,7 @@ describe('HED string and event validation', () => {
           definitionPlaceholder: '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
           definitionPlaceholderWithTag: 'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
           singlePlaceholderWithValidDefinitionPlaceholder:
-            'Duration/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
+            'Time-value/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
           nestedDefinitionPlaceholder:
             '(Definition/NestedPlaceholderDefinition/#, (Touchscreen, (Square, RGB-blue/#)))',
           threePlaceholderDefinition: '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
@@ -1592,7 +1592,7 @@ describe('HED string and event validation', () => {
           multiPlaceholderWithValidDefinition:
             'RGB-red/#, Circle, (Definition/MultiPlaceholderWithValidDefinition/#, (RGB-green/#)), RGB-blue/#',
           multiPlaceholderWithThreePlaceholderDefinition:
-            'RGB-red/#, Circle, (Definition/MultiPlaceholderWithThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#)), Duration/#',
+            'RGB-red/#, Circle, (Definition/MultiPlaceholderWithThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#)), Time-value/#',
         }
         const noExpectedPlaceholdersTestStrings = {
           noPlaceholders: 'Car',
@@ -1603,7 +1603,7 @@ describe('HED string and event validation', () => {
           definitionPlaceholder: '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
           definitionPlaceholderWithTag: 'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
           singlePlaceholderWithValidDefinitionPlaceholder:
-            'Duration/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
+            'Time-value/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
           nestedDefinitionPlaceholder:
             '(Definition/NestedPlaceholderDefinition/#, (Touchscreen, (Square, RGB-blue/#)))',
           threePlaceholderDefinition: '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
@@ -1613,7 +1613,7 @@ describe('HED string and event validation', () => {
           multiPlaceholderWithValidDefinition:
             'RGB-red/#, Circle, (Definition/MultiPlaceholderWithValidDefinition/#, (RGB-green/#)), RGB-blue/#',
           multiPlaceholderWithThreePlaceholderDefinition:
-            'RGB-red/#, Circle, (Definition/MultiPlaceholderWithThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#)), Duration/#',
+            'RGB-red/#, Circle, (Definition/MultiPlaceholderWithThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#)), Time-value/#',
         }
         const expectedPlaceholdersIssues = {
           noPlaceholders: [
@@ -1682,7 +1682,7 @@ describe('HED string and event validation', () => {
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'MultiPlaceholderWithThreePlaceholderDefinition',
             }),
-            generateIssue('invalidPlaceholder', { tag: 'Duration/#' }),
+            generateIssue('invalidPlaceholder', { tag: 'Time-value/#' }),
           ],
         }
         const noExpectedPlaceholdersIssues = {
@@ -1693,7 +1693,9 @@ describe('HED string and event validation', () => {
           singlePlaceholder: [generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' })],
           definitionPlaceholder: [],
           definitionPlaceholderWithTag: [],
-          singlePlaceholderWithValidDefinitionPlaceholder: [generateIssue('invalidPlaceholder', { tag: 'Duration/#' })],
+          singlePlaceholderWithValidDefinitionPlaceholder: [
+            generateIssue('invalidPlaceholder', { tag: 'Time-value/#' }),
+          ],
           nestedDefinitionPlaceholder: [],
           threePlaceholderDefinition: [
             generateIssue('invalidPlaceholderInDefinition', {
@@ -1718,7 +1720,7 @@ describe('HED string and event validation', () => {
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'MultiPlaceholderWithThreePlaceholderDefinition',
             }),
-            generateIssue('invalidPlaceholder', { tag: 'Duration/#' }),
+            generateIssue('invalidPlaceholder', { tag: 'Time-value/#' }),
           ],
         }
         return Promise.all([

@@ -287,7 +287,7 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
         'valueClassProperty',
       ]),
       // TODO: Replace 'isInherited' with 'isInheritedProperty'.
-      roleProperties: new Set(['recursiveProperty', 'isInherited']),
+      roleProperties: new Set(['recursiveProperty', 'isInherited', 'isInheritedProperty']),
     }
   }
 
