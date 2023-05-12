@@ -342,11 +342,9 @@ export class HedValidator {
     const definitionHasPlaceholder = tagGroup.definitionValue === '#'
     const definitionName = tagGroup.definitionName
     for (const tag of tagGroup.tagIterator()) {
-      if (definitionHasPlaceholder && tag === tagGroup.definitionTag) {
-        continue
+      if (!definitionHasPlaceholder || tag !== tagGroup.definitionTag) {
+        definitionPlaceholders += getCharacterCount(tag.formattedTag, '#')
       }
-      const tagString = tag.formattedTag
-      definitionPlaceholders += getCharacterCount(tagString, '#')
     }
     const isValid =
       (!definitionHasPlaceholder && definitionPlaceholders === 0) ||
