@@ -308,80 +308,91 @@ export class HedValidator {
    * Check full-string placeholder syntax.
    */
   checkPlaceholderStringSyntax() {
-    let standalonePlaceholders = 0
-    let definitionPlaceholders
-    let standaloneIssueGenerated = false
-    const __ret = this._checkStandalonePlaceholderStringSyntaxInGroup(
-      this.parsedString.topLevelTags,
-      standalonePlaceholders,
-      standaloneIssueGenerated,
-    )
-    standalonePlaceholders = __ret.standalonePlaceholders
-    standaloneIssueGenerated = __ret.standaloneIssueGenerated
+    const standalonePlaceholders = {
+      // Count of placeholders not in Definition groups.
+      placeholders: 0,
+      // Whether an Issue has already been generated for an excess placeholder outside a Definition group.
+      issueGenerated: false,
+    }
+    this._checkStandalonePlaceholderStringSyntaxInGroup(this.parsedString.topLevelTags, standalonePlaceholders)
+    // Loop over the top-level tag groups.
     for (const tagGroup of this.parsedString.tagGroups) {
       if (tagGroup.isDefinitionGroup) {
-        definitionPlaceholders = 0
-        const isDefinitionPlaceholder = tagGroup.definitionValue === '#'
-        const definitionName = tagGroup.definitionName
-        for (const tag of tagGroup.tagIterator()) {
-          if (isDefinitionPlaceholder && tag === tagGroup.definitionTag) {
-            continue
-          }
-          const tagString = tag.formattedTag
-          definitionPlaceholders += getCharacterCount(tagString, '#')
-        }
-        if (
-          !(
-            (!isDefinitionPlaceholder && definitionPlaceholders === 0) ||
-            (isDefinitionPlaceholder && definitionPlaceholders === 1)
-          )
-        ) {
-          this.pushIssue('invalidPlaceholderInDefinition', {
-            definition: definitionName,
-          })
-        }
-      } else if (!standaloneIssueGenerated) {
-        const __ret = this._checkStandalonePlaceholderStringSyntaxInGroup(
-          tagGroup.tagIterator(),
-          standalonePlaceholders,
-          standaloneIssueGenerated,
-        )
-        standalonePlaceholders = __ret.standalonePlaceholders
-        standaloneIssueGenerated = __ret.standaloneIssueGenerated
+        this._checkDefinitionPlaceholderStringSyntaxInGroup(tagGroup)
+      } else if (!standalonePlaceholders.issueGenerated) {
+        this._checkStandalonePlaceholderStringSyntaxInGroup(tagGroup.tagIterator(), standalonePlaceholders)
       }
     }
-    if (this.options.expectValuePlaceholderString && standalonePlaceholders === 0) {
+    if (this.options.expectValuePlaceholderString && standalonePlaceholders.placeholders === 0) {
       this.pushIssue('missingPlaceholder', {
         string: this.parsedString.hedString,
       })
     }
   }
 
-  _checkStandalonePlaceholderStringSyntaxInGroup(tags, standalonePlaceholders, standaloneIssueGenerated) {
+  /**
+   * Check Definition-related placeholder syntax in a tag group.
+   *
+   * @param {ParsedHedGroup} tagGroup A HED tag group.
+   * @private
+   */
+  _checkDefinitionPlaceholderStringSyntaxInGroup(tagGroup) {
+    // Count of placeholders within this Definition group.
+    let definitionPlaceholders = 0
+    const isDefinitionPlaceholder = tagGroup.definitionValue === '#'
+    const definitionName = tagGroup.definitionName
+    for (const tag of tagGroup.tagIterator()) {
+      if (isDefinitionPlaceholder && tag === tagGroup.definitionTag) {
+        continue
+      }
+      const tagString = tag.formattedTag
+      definitionPlaceholders += getCharacterCount(tagString, '#')
+    }
+    if (
+      !(
+        (!isDefinitionPlaceholder && definitionPlaceholders === 0) ||
+        (isDefinitionPlaceholder && definitionPlaceholders === 1)
+      )
+    ) {
+      this.pushIssue('invalidPlaceholderInDefinition', {
+        definition: definitionName,
+      })
+    }
+  }
+
+  /**
+   * Check non-Definition-related placeholder syntax in a tag group.
+   *
+   * @param {ParsedHedTag[]|Generator<ParsedHedTag>} tags A HED tag iterator.
+   * @param {{placeholders: number, issueGenerated: boolean}} standalonePlaceholders The validator's standalone placeholder context.
+   * @private
+   */
+  _checkStandalonePlaceholderStringSyntaxInGroup(tags, standalonePlaceholders) {
     let firstStandaloneTag
     for (const tag of tags) {
       const tagString = tag.formattedTag
       const tagPlaceholders = getCharacterCount(tagString, '#')
-      standalonePlaceholders += tagPlaceholders
+      standalonePlaceholders.placeholders += tagPlaceholders
       if (!firstStandaloneTag && tagPlaceholders > 0) {
         firstStandaloneTag = tag
       }
       if (
-        tagPlaceholders &&
-        ((!this.options.expectValuePlaceholderString && standalonePlaceholders) || standalonePlaceholders > 1)
+        tagPlaceholders === 0 ||
+        (standalonePlaceholders.placeholders <= 1 &&
+          (this.options.expectValuePlaceholderString || standalonePlaceholders.placeholders === 0))
       ) {
-        if (this.options.expectValuePlaceholderString && !standaloneIssueGenerated) {
-          this.pushIssue('invalidPlaceholder', {
-            tag: firstStandaloneTag,
-          })
-        }
-        this.pushIssue('invalidPlaceholder', {
-          tag: tag,
-        })
-        standaloneIssueGenerated = true
+        continue
       }
+      if (this.options.expectValuePlaceholderString && !standalonePlaceholders.issueGenerated) {
+        this.pushIssue('invalidPlaceholder', {
+          tag: firstStandaloneTag,
+        })
+      }
+      this.pushIssue('invalidPlaceholder', {
+        tag: tag,
+      })
+      standalonePlaceholders.issueGenerated = true
     }
-    return { standalonePlaceholders, standaloneIssueGenerated }
   }
 
   /**
