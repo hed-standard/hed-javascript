@@ -17333,7 +17333,7 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
             <name>nodeProperty</name>
          </property>
          <property>
-            <name>isInherited</name>
+            <name>isInheritedProperty</name>
          </property>
       </schemaAttributeDefinition>
       <schemaAttributeDefinition>
@@ -17360,7 +17360,7 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
             <name>nodeProperty</name>
          </property>
          <property>
-            <name>isInherited</name>
+            <name>isInheritedProperty</name>
          </property>
       </schemaAttributeDefinition>
       <schemaAttributeDefinition>
@@ -17437,7 +17437,7 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
             <name>nodeProperty</name>
          </property>
          <property>
-            <name>isInherited</name>
+            <name>isInheritedProperty</name>
          </property>
       </schemaAttributeDefinition>
       <schemaAttributeDefinition>
@@ -17525,7 +17525,7 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
          <description>Indicates this schema attribute can apply to any type of element(tag term, unit class, etc).</description>
       </propertyDefinition>
       <propertyDefinition>
-         <name>isInherited</name>
+         <name>isInheritedProperty</name>
          <description>Indicates that this attribute is inherited by child nodes. This property only applies to schema attributes for nodes.</description>
       </propertyDefinition>
       <propertyDefinition>

@@ -1731,7 +1731,7 @@ describe('HED string and event validation', () => {
     })
   })
 
-  describe('HED-3G library and partner schema validation', () => {
+  describe('HED-3G library and partnered schema validation', () => {
     const hedLibrarySchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
     let hedSchemaPromise
 

@@ -91,6 +91,7 @@ export class Hed3SchemaParser extends SchemaParser {
         )
       }
     }
+    this._addCustomProperties()
   }
 
   parseAttributes() {
@@ -107,9 +108,7 @@ export class Hed3SchemaParser extends SchemaParser {
       }
       this.attributes.set(attributeName, new SchemaAttribute(attributeName, properties))
     }
-    if (this._addAttributes) {
-      this._addAttributes()
-    }
+    this._addCustomAttributes()
   }
 
   parseValueClasses() {
@@ -270,6 +269,14 @@ export class Hed3SchemaParser extends SchemaParser {
 
     return [booleanAttributes, valueAttributes]
   }
+
+  _addCustomAttributes() {
+    // No-op
+  }
+
+  _addCustomProperties() {
+    // No-op
+  }
 }
 
 export class HedV8SchemaParser extends Hed3SchemaParser {
@@ -286,14 +293,18 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
         'unitModifierProperty',
         'valueClassProperty',
       ]),
-      roleProperties: new Set(['recursiveProperty', 'isInherited', 'isInheritedProperty']),
+      roleProperties: new Set(['recursiveProperty', 'isInheritedProperty']),
     }
   }
 
-  _addAttributes() {
-    const recursiveProperty = new SchemaProperty('recursiveProperty', 'roleProperty')
-    this.properties.set('recursiveProperty', recursiveProperty)
+  _addCustomAttributes() {
+    const recursiveProperty = this.properties.get('recursiveProperty')
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
     extensionAllowedAttribute._roleProperties.add(recursiveProperty)
+  }
+
+  _addCustomProperties() {
+    const recursiveProperty = new SchemaProperty('recursiveProperty', 'roleProperty')
+    this.properties.set('recursiveProperty', recursiveProperty)
   }
 }
