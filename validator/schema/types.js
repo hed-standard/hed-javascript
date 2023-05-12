@@ -171,41 +171,9 @@ export class SchemaEntry {
    * @type {string}
    */
   _name
-  /**
-   * The set of boolean attributes this schema entry has.
-   * @type {Set<SchemaAttribute>}
-   */
-  booleanAttributes
-  /**
-   * The collection of value attributes this schema entry has.
-   * @type {Map<SchemaAttribute, *>}
-   */
-  valueAttributes
-  /**
-   * The set of boolean attribute names this schema entry has.
-   * @type {Set<string>}
-   */
-  booleanAttributeNames
-  /**
-   * The collection of value attribute names this schema entry has.
-   * @type {Map<string, *>}
-   */
-  valueAttributeNames
 
-  constructor(name, booleanAttributes, valueAttributes) {
+  constructor(name) {
     this._name = name
-    this.booleanAttributes = booleanAttributes
-    this.valueAttributes = valueAttributes
-
-    // String-mapped versions of the above objects.
-    this.booleanAttributeNames = new Set()
-    for (const attribute of booleanAttributes) {
-      this.booleanAttributeNames.add(attribute.name)
-    }
-    this.valueAttributeNames = new Map()
-    for (const [attributeName, value] of valueAttributes) {
-      this.valueAttributeNames.set(attributeName.name, value)
-    }
   }
 
   /**
@@ -217,66 +185,23 @@ export class SchemaEntry {
   }
 
   /**
-   * Whether this schema entry has this attribute.
-   * @param {SchemaAttribute} attribute The attribute to check for.
-   * @return {boolean} Whether this schema entry has this attribute.
-   */
-  hasAttribute(attribute) {
-    return this.booleanAttributes.has(attribute)
-  }
-
-  /**
-   * Retrieve the value of an attribute on this schema entry.
-   * @param {SchemaAttribute} attribute The attribute whose value should be returned.
-   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
-   * @return {*} The value of the attribute.
-   */
-  getAttributeValue(attribute, alwaysReturnArray = false) {
-    return SchemaEntry._getMapArrayValue(this.valueAttributes, attribute, alwaysReturnArray)
-  }
-
-  /**
    * Whether this schema entry has this attribute (by name).
+   *
+   * This method is a stub to be overridden in {@link SchemaEntryWithAttributes}.
+   *
    * @param {string} attributeName The attribute to check for.
    * @return {boolean} Whether this schema entry has this attribute.
    */
+  // eslint-disable-next-line no-unused-vars
   hasAttributeName(attributeName) {
-    return this.booleanAttributeNames.has(attributeName)
-  }
-
-  /**
-   * Retrieve the value of an attribute (by name) on this schema entry.
-   * @param {string} attributeName The attribute whose value should be returned.
-   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
-   * @return {*} The value of the attribute.
-   */
-  getNamedAttributeValue(attributeName, alwaysReturnArray = false) {
-    return SchemaEntry._getMapArrayValue(this.valueAttributeNames, attributeName, alwaysReturnArray)
-  }
-
-  /**
-   * Return a map value, with a scalar being returned in lieu of a singleton array if alwaysReturnArray is false.
-   *
-   * @template K,V
-   * @param {Map<K,V>} map The map to search.
-   * @param {K} key A key in the map.
-   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
-   * @return {V|V[]} The value for the key in the passed map.
-   * @private
-   */
-  static _getMapArrayValue(map, key, alwaysReturnArray) {
-    const value = map.get(key)
-    if (!alwaysReturnArray && Array.isArray(value) && value.length === 1) {
-      return value[0]
-    } else {
-      return value
-    }
+    return false
   }
 }
 
 // TODO: Switch back to class constant once upstream bug is fixed.
 const categoryProperty = 'categoryProperty'
 const typeProperty = 'typeProperty'
+const roleProperty = 'roleProperty'
 
 export class SchemaProperty extends SchemaEntry {
   /**
@@ -305,47 +230,189 @@ export class SchemaProperty extends SchemaEntry {
   get isTypeProperty() {
     return this._propertyType === typeProperty
   }
+
+  /**
+   * Whether this property describes a role.
+   * @return {boolean}
+   */
+  get isRoleProperty() {
+    return this._propertyType === roleProperty
+  }
 }
 
 // Pseudo-properties
 
 // TODO: Switch back to class constant once upstream bug is fixed.
 export const nodeProperty = new SchemaProperty('nodeProperty', categoryProperty)
-export const attributeProperty = new SchemaProperty('attributeProperty', categoryProperty)
+export const schemaAttributeProperty = new SchemaProperty('schemaAttributeProperty', categoryProperty)
 const stringProperty = new SchemaProperty('stringProperty', typeProperty)
 
+/**
+ * A schema attribute.
+ */
 export class SchemaAttribute extends SchemaEntry {
   /**
-   * The category of elements this schema attribute applies to.
-   * @type {SchemaProperty}
+   * The categories of elements this schema attribute applies to.
+   * @type {Set<SchemaProperty>}
    */
-  _categoryProperty
+  _categoryProperties
   /**
    * The data type of this schema attribute.
    * @type {SchemaProperty}
    */
   _typeProperty
+  /**
+   * The set of role properties for this schema attribute.
+   * @type {Set<SchemaProperty>}
+   */
+  _roleProperties
 
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of the schema attribute.
+   * @param {SchemaProperty[]} properties The properties assigned to this schema attribute.
+   */
   constructor(name, properties) {
     super(name, new Set(), new Map())
 
     // Parse properties
-    const categoryProperties = properties.filter((property) => property.isCategoryProperty)
-    this._categoryProperty = categoryProperties.length === 0 ? nodeProperty : categoryProperties[0]
-    const typeProperties = properties.filter((property) => property.isTypeProperty)
+    const categoryProperties = properties.filter((property) => property?.isCategoryProperty)
+    this._categoryProperties = categoryProperties.length === 0 ? new Set([nodeProperty]) : new Set(categoryProperties)
+    const typeProperties = properties.filter((property) => property?.isTypeProperty)
     this._typeProperty = typeProperties.length === 0 ? stringProperty : typeProperties[0]
+    this._roleProperties = new Set(properties.filter((property) => property?.isRoleProperty))
   }
 
+  /**
+   * The categories of elements this schema attribute applies to.
+   * @return {Set<SchemaProperty>|SchemaProperty|undefined}
+   */
   get categoryProperty() {
-    return this._categoryProperty
+    switch (this._categoryProperties.size) {
+      case 0:
+        return undefined
+      case 1:
+        return Array.from(this._categoryProperties)[0]
+      default:
+        return this._categoryProperties
+    }
   }
 
+  /**
+   * The data type property of this schema attribute.
+   * @return {SchemaProperty}
+   */
   get typeProperty() {
     return this._typeProperty
   }
+
+  /**
+   * The set of role properties for this schema attribute.
+   * @return {Set<SchemaProperty>}
+   */
+  get roleProperties() {
+    return new Set(this._roleProperties)
+  }
 }
 
-export class SchemaUnit extends SchemaEntry {
+class SchemaEntryWithAttributes extends SchemaEntry {
+  /**
+   * The set of boolean attributes this schema entry has.
+   * @type {Set<SchemaAttribute>}
+   */
+  booleanAttributes
+  /**
+   * The collection of value attributes this schema entry has.
+   * @type {Map<SchemaAttribute, *>}
+   */
+  valueAttributes
+  /**
+   * The set of boolean attribute names this schema entry has.
+   * @type {Set<string>}
+   */
+  booleanAttributeNames
+  /**
+   * The collection of value attribute names this schema entry has.
+   * @type {Map<string, *>}
+   */
+  valueAttributeNames
+
+  constructor(name, booleanAttributes, valueAttributes) {
+    super(name)
+    this.booleanAttributes = booleanAttributes
+    this.valueAttributes = valueAttributes
+
+    // String-mapped versions of the above objects.
+    this.booleanAttributeNames = new Set()
+    for (const attribute of booleanAttributes) {
+      this.booleanAttributeNames.add(attribute.name)
+    }
+    this.valueAttributeNames = new Map()
+    for (const [attributeName, value] of valueAttributes) {
+      this.valueAttributeNames.set(attributeName.name, value)
+    }
+  }
+
+  /**
+   * Whether this schema entry has this attribute.
+   * @param {SchemaAttribute} attribute The attribute to check for.
+   * @return {boolean} Whether this schema entry has this attribute.
+   */
+  hasAttribute(attribute) {
+    return this.booleanAttributes.has(attribute)
+  }
+
+  /**
+   * Retrieve the value of an attribute on this schema entry.
+   * @param {SchemaAttribute} attribute The attribute whose value should be returned.
+   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
+   * @return {*} The value of the attribute.
+   */
+  getAttributeValue(attribute, alwaysReturnArray = false) {
+    return SchemaEntryWithAttributes._getMapArrayValue(this.valueAttributes, attribute, alwaysReturnArray)
+  }
+
+  /**
+   * Whether this schema entry has this attribute (by name).
+   * @param {string} attributeName The attribute to check for.
+   * @return {boolean} Whether this schema entry has this attribute.
+   */
+  hasAttributeName(attributeName) {
+    return this.booleanAttributeNames.has(attributeName)
+  }
+
+  /**
+   * Retrieve the value of an attribute (by name) on this schema entry.
+   * @param {string} attributeName The attribute whose value should be returned.
+   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
+   * @return {*} The value of the attribute.
+   */
+  getNamedAttributeValue(attributeName, alwaysReturnArray = false) {
+    return SchemaEntryWithAttributes._getMapArrayValue(this.valueAttributeNames, attributeName, alwaysReturnArray)
+  }
+
+  /**
+   * Return a map value, with a scalar being returned in lieu of a singleton array if alwaysReturnArray is false.
+   *
+   * @template K,V
+   * @param {Map<K,V>} map The map to search.
+   * @param {K} key A key in the map.
+   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
+   * @return {V|V[]} The value for the key in the passed map.
+   * @private
+   */
+  static _getMapArrayValue(map, key, alwaysReturnArray) {
+    const value = map.get(key)
+    if (!alwaysReturnArray && Array.isArray(value) && value.length === 1) {
+      return value[0]
+    } else {
+      return value
+    }
+  }
+}
+
+export class SchemaUnit extends SchemaEntryWithAttributes {
   /**
    * The legal derivatives of this unit.
    * @type {string[]}
@@ -394,7 +461,7 @@ export class SchemaUnit extends SchemaEntry {
   }
 }
 
-export class SchemaUnitClass extends SchemaEntry {
+export class SchemaUnitClass extends SchemaEntryWithAttributes {
   /**
    * The units for this unit class.
    * @type {Map<string, SchemaUnit>}
@@ -432,7 +499,7 @@ export class SchemaUnitClass extends SchemaEntry {
   }
 }
 
-export class SchemaUnitModifier extends SchemaEntry {
+export class SchemaUnitModifier extends SchemaEntryWithAttributes {
   constructor(name, booleanAttributes, valueAttributes) {
     super(name, booleanAttributes, valueAttributes)
   }
@@ -446,7 +513,7 @@ export class SchemaUnitModifier extends SchemaEntry {
   }
 }
 
-export class SchemaValueClass extends SchemaEntry {
+export class SchemaValueClass extends SchemaEntryWithAttributes {
   constructor(name, booleanAttributes, valueAttributes) {
     super(name, booleanAttributes, valueAttributes)
   }
@@ -455,7 +522,7 @@ export class SchemaValueClass extends SchemaEntry {
 /**
  * A tag in a HED schema.
  */
-export class SchemaTag extends SchemaEntry {
+export class SchemaTag extends SchemaEntryWithAttributes {
   /**
    * This tag's unit classes.
    * @type {SchemaUnitClass[]}

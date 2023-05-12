@@ -8,11 +8,13 @@ import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 
 describe('HED dataset validation', () => {
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'
+  const hedLibrarySchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
     const spec1 = new SchemaSpec('', '8.0.0', '', hedSchemaFile)
-    const specs = new SchemasSpec().addSchemaSpec(spec1)
+    const spec2 = new SchemaSpec('testlib', '2.0.0', 'testlib', hedLibrarySchemaFile)
+    const specs = new SchemasSpec().addSchemaSpec(spec1).addSchemaSpec(spec2)
     hedSchemaPromise = buildSchemas(specs)
   })
 

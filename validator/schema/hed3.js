@@ -15,7 +15,7 @@ import {
   SchemaUnitModifier,
   SchemaValueClass,
   nodeProperty,
-  attributeProperty,
+  schemaAttributeProperty,
 } from './types'
 
 const lc = (str) => str.toLowerCase()
@@ -83,8 +83,15 @@ export class Hed3SchemaParser extends SchemaParser {
           // TODO: Switch back to class constant once upstream bug is fixed.
           new SchemaProperty(propertyName, 'typeProperty'),
         )
+      } else if (this._versionDefinitions.roleProperties && this._versionDefinitions.roleProperties.has(propertyName)) {
+        this.properties.set(
+          propertyName,
+          // TODO: Switch back to class constant once upstream bug is fixed.
+          new SchemaProperty(propertyName, 'roleProperty'),
+        )
       }
     }
+    this._addCustomProperties()
   }
 
   parseAttributes() {
@@ -101,9 +108,7 @@ export class Hed3SchemaParser extends SchemaParser {
       }
       this.attributes.set(attributeName, new SchemaAttribute(attributeName, properties))
     }
-    if (this._addAttributes) {
-      this._addAttributes()
-    }
+    this._addCustomAttributes()
   }
 
   parseValueClasses() {
@@ -171,7 +176,7 @@ export class Hed3SchemaParser extends SchemaParser {
     )
 
     const recursiveAttributes = Array.from(this.attributes.values()).filter((attribute) =>
-      attribute.hasAttributeName('recursive'),
+      attribute.roleProperties.has(this.properties.get('recursiveProperty')),
     )
     const unitClasses = this.definitions.get('unitClasses')
     const tagUnitClassAttribute = this.attributes.get('unitClass')
@@ -264,6 +269,14 @@ export class Hed3SchemaParser extends SchemaParser {
 
     return [booleanAttributes, valueAttributes]
   }
+
+  _addCustomAttributes() {
+    // No-op
+  }
+
+  _addCustomProperties() {
+    // No-op
+  }
 }
 
 export class HedV8SchemaParser extends Hed3SchemaParser {
@@ -271,18 +284,27 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
     super(rootElement)
     this._versionDefinitions = {
       typeProperties: new Set(['boolProperty']),
-      categoryProperties: new Set(['unitProperty', 'unitClassProperty', 'unitModifierProperty', 'valueClassProperty']),
+      categoryProperties: new Set([
+        'elementProperty',
+        'nodeProperty',
+        'schemaAttributeProperty',
+        'unitProperty',
+        'unitClassProperty',
+        'unitModifierProperty',
+        'valueClassProperty',
+      ]),
+      roleProperties: new Set(['recursiveProperty', 'isInheritedProperty']),
     }
   }
 
-  _addAttributes() {
-    const recursiveAttribute = new SchemaAttribute('recursive', [
-      this.properties.get('boolProperty'),
-      attributeProperty,
-    ])
-    this.attributes.set('recursive', recursiveAttribute)
+  _addCustomAttributes() {
+    const recursiveProperty = this.properties.get('recursiveProperty')
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
-    extensionAllowedAttribute.booleanAttributes.add(recursiveAttribute)
-    extensionAllowedAttribute.booleanAttributeNames.add('recursive')
+    extensionAllowedAttribute._roleProperties.add(recursiveProperty)
+  }
+
+  _addCustomProperties() {
+    const recursiveProperty = new SchemaProperty('recursiveProperty', 'roleProperty')
+    this.properties.set('recursiveProperty', recursiveProperty)
   }
 }

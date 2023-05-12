@@ -68,6 +68,15 @@ export class Issue {
     this.message = `${level.toUpperCase()}: [${hedCode}] ${message} (${hedSpecLink}.)`
   }
 
+  /**
+   * Override of {@link Object.prototype.toString}.
+   *
+   * @return {string} This issue's message.
+   */
+  toString() {
+    return this.message
+  }
+
   static issueListWithValidStatus(issues) {
     return [!issues.some((issue) => issue.level === 'error'), issues]
   }

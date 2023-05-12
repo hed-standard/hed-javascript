@@ -26,6 +26,11 @@ export class Schema {
    * @type {string}
    */
   library
+  /**
+   * This schema's prefix in the active schema set.
+   * @type {string}
+   */
+  prefix
 
   /**
    * Constructor.
@@ -150,6 +155,15 @@ export class Schemas {
       this.schemas = new Map([['', schemas]])
     } else {
       throw new Error('Invalid type passed to Schemas constructor')
+    }
+    if (this.schemas) {
+      this._addNicknamesToSchemas()
+    }
+  }
+
+  _addNicknamesToSchemas() {
+    for (const [nickname, schema] of this.schemas) {
+      schema.prefix = nickname
     }
   }
 
