@@ -339,21 +339,19 @@ export class HedValidator {
   _checkDefinitionPlaceholderStringSyntaxInGroup(tagGroup) {
     // Count of placeholders within this Definition group.
     let definitionPlaceholders = 0
-    const isDefinitionPlaceholder = tagGroup.definitionValue === '#'
+    const definitionHasPlaceholder = tagGroup.definitionValue === '#'
     const definitionName = tagGroup.definitionName
     for (const tag of tagGroup.tagIterator()) {
-      if (isDefinitionPlaceholder && tag === tagGroup.definitionTag) {
+      if (definitionHasPlaceholder && tag === tagGroup.definitionTag) {
         continue
       }
       const tagString = tag.formattedTag
       definitionPlaceholders += getCharacterCount(tagString, '#')
     }
-    if (
-      !(
-        (!isDefinitionPlaceholder && definitionPlaceholders === 0) ||
-        (isDefinitionPlaceholder && definitionPlaceholders === 1)
-      )
-    ) {
+    const isValid =
+      (!definitionHasPlaceholder && definitionPlaceholders === 0) ||
+      (definitionHasPlaceholder && definitionPlaceholders === 1)
+    if (!isValid) {
       this.pushIssue('invalidPlaceholderInDefinition', {
         definition: definitionName,
       })
