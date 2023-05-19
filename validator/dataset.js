@@ -18,12 +18,7 @@ export const parseDefinitions = function (parsedHedStrings) {
   })
   const [definitionMap, definitionDuplicates] = filterNonEqualDuplicates(
     parsedHedStringDefinitions,
-    (definition, other) => {
-      return (
-        definition.definitionNameAndValue === other.definitionNameAndValue &&
-        definition.definitionGroup.equivalent(other.definitionGroup)
-      )
-    },
+    (definition, other) => definition.definitionGroup.equivalent(other.definitionGroup),
   )
   for (const [duplicateKey, duplicateValue] of definitionDuplicates) {
     issues.push(

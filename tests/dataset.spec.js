@@ -137,9 +137,19 @@ describe('HED dataset validation', () => {
           '(Definition/BlueSquare,(Blue,Square))',
           '(Definition/RedCircle,(Red,Circle))',
         ],
+        equalPartneredDuplicateDefinition: [
+          '(Definition/BlueSquare,(Blue,Square))',
+          '(testlib:Definition/BlueSquare,(Blue,Square))',
+          '(Definition/RedCircle,(Red,Circle))',
+        ],
         nonEqualDuplicateDefinition: [
           '(Definition/BlueSquare,(Blue,Square))',
           '(Definition/BlueSquare,(RGB-blue/1.0,Square))',
+          '(Definition/RedCircle,(Red,Circle))',
+        ],
+        nonEqualPartneredDuplicateDefinition: [
+          '(Definition/BlueSquare,(Blue,Square))',
+          '(testlib:Definition/BlueSquare,(RGB-blue/1.0,Square))',
           '(Definition/RedCircle,(Red,Circle))',
         ],
         valueDuplicateDefinition: [
@@ -147,10 +157,16 @@ describe('HED dataset validation', () => {
           '(Definition/BlueSquare/#,(RGB-blue/#,Square))',
           '(Definition/RedCircle,(Red,Circle))',
         ],
+        valuePartneredDuplicateDefinition: [
+          '(Definition/BlueSquare,(Blue,Square))',
+          '(testlib:Definition/BlueSquare/#,(RGB-blue/#,Square))',
+          '(Definition/RedCircle,(Red,Circle))',
+        ],
       }
       const expectedIssues = {
         valid: [],
         equalDuplicateDefinition: [],
+        equalPartneredDuplicateDefinition: [],
         nonEqualDuplicateDefinition: [
           generateValidationIssue('duplicateDefinition', {
             definition: 'BlueSquare',
@@ -161,6 +177,16 @@ describe('HED dataset validation', () => {
             tagGroup: '(Definition/BlueSquare,(RGB-blue/1.0,Square))',
           }),
         ],
+        nonEqualPartneredDuplicateDefinition: [
+          generateValidationIssue('duplicateDefinition', {
+            definition: 'BlueSquare',
+            tagGroup: '(Definition/BlueSquare,(Blue,Square))',
+          }),
+          generateValidationIssue('duplicateDefinition', {
+            definition: 'BlueSquare',
+            tagGroup: '(testlib:Definition/BlueSquare,(RGB-blue/1.0,Square))',
+          }),
+        ],
         valueDuplicateDefinition: [
           generateValidationIssue('duplicateDefinition', {
             definition: 'BlueSquare',
@@ -169,6 +195,16 @@ describe('HED dataset validation', () => {
           generateValidationIssue('duplicateDefinition', {
             definition: 'BlueSquare',
             tagGroup: '(Definition/BlueSquare/#,(RGB-blue/#,Square))',
+          }),
+        ],
+        valuePartneredDuplicateDefinition: [
+          generateValidationIssue('duplicateDefinition', {
+            definition: 'BlueSquare',
+            tagGroup: '(Definition/BlueSquare,(Blue,Square))',
+          }),
+          generateValidationIssue('duplicateDefinition', {
+            definition: 'BlueSquare',
+            tagGroup: '(testlib:Definition/BlueSquare/#,(RGB-blue/#,Square))',
           }),
         ],
       }
