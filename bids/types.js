@@ -28,6 +28,11 @@ class BidsData {
 
 class BidsFile extends BidsData {
   /**
+   * The name of this file.
+   * @type {string}
+   */
+  name
+  /**
    * The file object representing this file data.
    * This is used to generate BidsIssue objects.
    * @type {object}
@@ -36,6 +41,7 @@ class BidsFile extends BidsData {
 
   constructor(name, file) {
     super()
+    this.name = name
     this.file = file
   }
 }
