@@ -42,6 +42,13 @@ const checkGroupForTemporalOrder = (parsedGroup, activeScopes) => {
   if (parsedGroup.isOnsetGroup) {
     activeScopes.add(parsedGroup.defNameAndValue)
   }
+  if (parsedGroup.isInsetGroup && !activeScopes.has(parsedGroup.defNameAndValue)) {
+    return [
+      generateIssue('inactiveOnset', {
+        definition: parsedGroup.defNameAndValue,
+      }),
+    ]
+  }
   if (parsedGroup.isOffsetGroup && !activeScopes.delete(parsedGroup.defNameAndValue)) {
     return [
       generateIssue('inactiveOnset', {

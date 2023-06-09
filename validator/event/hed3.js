@@ -293,14 +293,14 @@ export class Hed3Validator extends HedValidator {
      * @type {(ParsedHedTag|ParsedHedGroup)[]}
      */
     const allowedTags = [
-      ...getParsedParentTags(this.hedSchemas, tagGroup.isOnsetGroup ? 'Onset' : 'Offset').values(),
+      ...getParsedParentTags(this.hedSchemas, tagGroup.temporalGroupName).values(),
       ...defExpandChildren,
       ...defTags,
     ]
     const remainingTags = differenceWith(tagGroup.tags, allowedTags, (ours, theirs) => ours.equivalent(theirs))
-    const allowedRemainingTags = tagGroup.isOnsetGroup ? 1 : 0
+    const allowedTagGroups = tagGroup.isOnsetGroup || tagGroup.isInsetGroup ? 1 : 0
     if (
-      remainingTags.length > allowedRemainingTags ||
+      remainingTags.length > allowedTagGroups ||
       remainingTags.filter((tag) => tag instanceof ParsedHedTag).length > 0
     ) {
       this.pushIssue('extraTagsInTemporal', {
