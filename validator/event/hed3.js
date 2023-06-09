@@ -1,4 +1,5 @@
 import differenceWith from 'lodash/differenceWith'
+import isEqual from 'lodash/isEqual'
 
 import { IssueError } from '../../common/issues/issues'
 import ParsedHedGroup from '../parser/parsedHedGroup'
@@ -45,6 +46,7 @@ export class Hed3Validator extends HedValidator {
    */
   validateFullParsedHedString() {
     this.checkPlaceholderStringSyntax()
+    this.checkDefinitionStringSyntax()
   }
 
   /**
@@ -66,7 +68,7 @@ export class Hed3Validator extends HedValidator {
    */
   validateHedTagGroup(parsedTagGroup) {
     super.validateHedTagGroup(parsedTagGroup)
-    this.checkDefinitionSyntax(parsedTagGroup)
+    this.checkDefinitionGroupSyntax(parsedTagGroup)
     this.checkTemporalSyntax(parsedTagGroup)
   }
 
@@ -345,11 +347,34 @@ export class Hed3Validator extends HedValidator {
   }
 
   /**
+   * Check full-string Definition syntax.
+   */
+  checkDefinitionStringSyntax() {
+    if (this.parsedString.definitionGroups.length === 0) {
+      return
+    }
+    switch (this.options.definitionsAllowed) {
+      case 'no':
+        this.pushIssue('illegalDefinitionContext', {
+          string: this.parsedString.hedString,
+        })
+        break
+      case 'exclusive':
+        if (!isEqual(this.parsedString.definitionGroups, this.parsedString.tagGroups)) {
+          this.pushIssue('illegalDefinitionInExclusiveContext', {
+            string: this.parsedString.hedString,
+          })
+        }
+        break
+    }
+  }
+
+  /**
    * Check the syntax of HED 3 definitions.
    *
    * @param {ParsedHedGroup} tagGroup The tag group.
    */
-  checkDefinitionSyntax(tagGroup) {
+  checkDefinitionGroupSyntax(tagGroup) {
     if (!tagGroup.isDefinitionGroup) {
       return
     }

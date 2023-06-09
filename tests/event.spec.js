@@ -1321,7 +1321,7 @@ describe('HED string and event validation', () => {
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
-          validator.checkDefinitionSyntax(tagGroup)
+          validator.checkDefinitionGroupSyntax(tagGroup)
         })
       })
 
@@ -1870,7 +1870,7 @@ describe('HED string and event validation', () => {
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
-          validator.checkDefinitionSyntax(tagGroup)
+          validator.checkDefinitionGroupSyntax(tagGroup)
         })
       })
 

@@ -36,7 +36,7 @@ function validateFullDataset(dataset, hedSchemas) {
     const [sidecarErrorsFound, sidecarIssues] = validateSidecars(dataset.sidecarData, hedSchemas)
     const [hedColumnErrorsFound, hedColumnIssues] = validateHedColumn(dataset.eventData, hedSchemas)
     if (sidecarErrorsFound || hedColumnErrorsFound) {
-      return Promise.resolve([].concat(sidecarIssues, hedColumnIssues))
+      return Promise.resolve([...sidecarIssues, ...hedColumnIssues])
     }
     const eventFileIssues = dataset.eventData.map((eventFileData) => {
       return validateBidsEventFile(eventFileData, hedSchemas)
@@ -60,7 +60,7 @@ function validateBidsEventFile(eventFileData, hedSchemas) {
     return []
   } else {
     const datasetIssues = validateCombinedDataset(hedStrings, hedSchemas, eventFileData)
-    return [].concat(tsvIssues, datasetIssues)
+    return [...tsvIssues, ...datasetIssues]
   }
 }
 
@@ -73,19 +73,21 @@ function validateBidsEventFile(eventFileData, hedSchemas) {
  */
 function validateSidecars(sidecarData, hedSchemas) {
   const issues = []
-  let sidecarErrorsFound = false
   // validate the HED strings in the json sidecars
   for (const sidecar of sidecarData) {
-    const valueStringIssues = validateStrings(sidecar.hedValueStrings, hedSchemas, sidecar.file, true)
-    const categoricalStringIssues = validateStrings(sidecar.hedCategoricalStrings, hedSchemas, sidecar.file, false)
-    const fileIssues = [].concat(valueStringIssues, categoricalStringIssues)
-    sidecarErrorsFound =
-      sidecarErrorsFound ||
-      fileIssues.some((fileIssue) => {
-        return fileIssue.isError()
-      })
-    issues.push(...fileIssues)
+    const valueStringIssues = validateStrings(sidecar.hedValueStrings, hedSchemas, sidecar.file, {
+      expectValuePlaceholderString: true,
+      definitionsAllowed: 'no',
+    })
+    const categoricalStringIssues = validateStrings(sidecar.hedCategoricalStrings, hedSchemas, sidecar.file, {
+      expectValuePlaceholderString: false,
+      definitionsAllowed: 'exclusive',
+    })
+    issues.push(...valueStringIssues, ...categoricalStringIssues)
   }
+  const sidecarErrorsFound = issues.some((issue) => {
+    return issue.isError()
+  })
   return [sidecarErrorsFound, issues]
 }
 
@@ -98,7 +100,10 @@ function validateSidecars(sidecarData, hedSchemas) {
  */
 function validateHedColumn(eventData, hedSchemas) {
   const issues = eventData.flatMap((eventFileData) => {
-    return validateStrings(eventFileData.hedColumnHedStrings, hedSchemas, eventFileData.file, false)
+    return validateStrings(eventFileData.hedColumnHedStrings, hedSchemas, eventFileData.file, {
+      expectValuePlaceholderString: false,
+      definitionsAllowed: 'no',
+    })
   })
   const errorsFound = issues.some((issue) => {
     return issue.isError()
@@ -194,16 +199,20 @@ function validateCombinedDataset(hedStrings, hedSchemas, eventFileData) {
  * @param {string[]} hedStrings The HED strings to validate.
  * @param {Schemas} hedSchemas The HED schema collection to validate against.
  * @param {Object} fileObject A BIDS-format file object used to generate {@link BidsHedIssue} objects.
- * @param {boolean?} areValueStrings Whether the strings are expected to contain a placeholder value.
+ * @param {Object} settings Options to pass to {@link validateHedString}.
  * @return {BidsHedIssue[]} Any issues found.
  */
-function validateStrings(hedStrings, hedSchemas, fileObject, areValueStrings = false) {
+function validateStrings(hedStrings, hedSchemas, fileObject, settings) {
   const issues = []
   for (const hedString of hedStrings) {
     if (!hedString) {
       continue
     }
-    const [, hedIssues] = validateHedString(hedString, hedSchemas, true, areValueStrings)
+    const options = {
+      checkForWarnings: true,
+      ...settings,
+    }
+    const [, hedIssues] = validateHedString(hedString, hedSchemas, options)
     const convertedIssues = convertHedIssuesToBidsIssues(hedIssues, fileObject)
     issues.push(...convertedIssues)
   }

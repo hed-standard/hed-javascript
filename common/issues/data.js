@@ -124,6 +124,16 @@ export default {
     level: 'error',
     message: stringTemplate`Illegal tag "${'tag'}" in tag group for definition "${'definition'}".`,
   },
+  illegalDefinitionContext: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Definitions were found in string "${'string'}" in a context where definitions are not allowed.`,
+  },
+  illegalDefinitionInExclusiveContext: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Mixed definition and non-definition groups were found in string "${'string'}" in a context where only one type is allowed.`,
+  },
   inactiveOnset: {
     hedCode: 'ONSET_OFFSET_INSET_ERROR',
     level: 'error',
