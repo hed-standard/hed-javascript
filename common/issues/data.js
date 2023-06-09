@@ -132,7 +132,7 @@ export default {
   illegalDefinitionInExclusiveContext: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Mixed definition and non-definition groups were found in string "${'string'}" in a context where only one type is allowed.`,
+    message: stringTemplate`Mixed definition and non-definition tags or tag groups were found in string "${'string'}" in a context where only one type is allowed.`,
   },
   inactiveOnset: {
     hedCode: 'ONSET_OFFSET_INSET_ERROR',

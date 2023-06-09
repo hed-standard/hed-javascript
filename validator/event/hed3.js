@@ -360,7 +360,10 @@ export class Hed3Validator extends HedValidator {
         })
         break
       case 'exclusive':
-        if (!isEqual(this.parsedString.definitionGroups, this.parsedString.tagGroups)) {
+        if (
+          !isEqual(this.parsedString.definitionGroups, this.parsedString.tagGroups) ||
+          this.parsedString.topLevelTags.length > 0
+        ) {
           this.pushIssue('illegalDefinitionInExclusiveContext', {
             string: this.parsedString.hedString,
           })
