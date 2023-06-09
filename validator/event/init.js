@@ -61,11 +61,12 @@ const initiallyValidateHedString = function (hedString, hedSchemas, options, def
  */
 export const validateHedString = function (hedString, hedSchemas, ...args) {
   let settings
-  if (args[0] && args[0] === Object(args[0])) {
+  const settingsArg = args[0]
+  if (settingsArg === Object(settingsArg)) {
     settings = {
-      checkForWarnings: args[0].checkForWarnings ?? false,
-      expectValuePlaceholderString: args[0].expectValuePlaceholderString ?? false,
-      definitionsAllowed: args[0].definitionsAllowed ?? 'yes',
+      checkForWarnings: settingsArg.checkForWarnings ?? false,
+      expectValuePlaceholderString: settingsArg.expectValuePlaceholderString ?? false,
+      definitionsAllowed: settingsArg.definitionsAllowed ?? 'yes',
     }
   } else {
     settings = {
@@ -95,7 +96,7 @@ export const validateHedString = function (hedString, hedSchemas, ...args) {
  */
 export const validateHedEvent = function (hedString, hedSchemas, ...args) {
   let settings
-  if (args[0] && args[0] === Object(args[0])) {
+  if (args[0] === Object(args[0])) {
     settings = {
       checkForWarnings: args[0].checkForWarnings ?? false,
     }
@@ -126,7 +127,7 @@ export const validateHedEvent = function (hedString, hedSchemas, ...args) {
  */
 export const validateHedEventWithDefinitions = function (hedString, hedSchemas, definitions, ...args) {
   let settings
-  if (args[0] && args[0] === Object(args[0])) {
+  if (args[0] === Object(args[0])) {
     settings = {
       checkForWarnings: args[0].checkForWarnings ?? false,
     }
