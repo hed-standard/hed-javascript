@@ -275,6 +275,7 @@ describe('HED dataset validation', () => {
         offsetFirst: ['(Def/MyColor, Offset)', '(Def/MyColor, Onset)', 'Red', '(Def/MyColor, Offset)'],
         insetFirst: ['(Def/MyColor, Inset)', '(Def/MyColor, Onset)', 'Red', '(Def/MyColor, Inset)'],
         offsetForDifferentValue: ['(Def/Acc/4.2 m-per-s^2, Onset)', '(Def/Acc/5.3 m-per-s^2, Offset)', 'Red'],
+        insetForDifferentValue: ['(Def/Acc/4.2 m-per-s^2, Onset)', '(Def/Acc/5.3 m-per-s^2, Inset)', 'Red'],
         duplicateTemporal: ['(Def/MyColor, Onset), (Def/MyColor, Offset)', '(Def/MyColor, Offset)', 'Red'],
       }
       const expectedIssues = {
@@ -311,6 +312,12 @@ describe('HED dataset validation', () => {
           generateValidationIssue('inactiveOnset', {
             definition: 'Acc/5.3 m-per-s^2',
             tag: 'Offset',
+          }),
+        ],
+        insetForDifferentValue: [
+          generateValidationIssue('inactiveOnset', {
+            definition: 'Acc/5.3 m-per-s^2',
+            tag: 'Inset',
           }),
         ],
         duplicateTemporal: [
