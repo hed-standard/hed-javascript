@@ -286,6 +286,7 @@ export class Hed3Validator extends HedValidator {
     if (tagGroup.defCount === 0) {
       this.pushIssue('temporalWithoutDefinition', {
         tagGroup: tagGroup,
+        tag: tagGroup.temporalGroupName,
       })
     }
     /**
@@ -305,6 +306,7 @@ export class Hed3Validator extends HedValidator {
     ) {
       this.pushIssue('extraTagsInTemporal', {
         definition: definitionName,
+        tag: tagGroup.temporalGroupName,
       })
     }
   }

@@ -336,6 +336,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
         throw new IssueError(
           generateIssue('temporalWithMultipleDefinitions', {
             tagGroup: this.originalTag,
+            tag: this.temporalGroupName,
           }),
         )
       } else if (this.hasDefExpandChildren) {
@@ -362,6 +363,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
         throw new IssueError(
           generateIssue('temporalWithMultipleDefinitions', {
             tagGroup: this.originalTag,
+            tag: this.temporalGroupName,
           }),
         )
       } else if (this.hasDefExpandChildren) {
