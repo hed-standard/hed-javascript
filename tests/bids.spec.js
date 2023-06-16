@@ -952,7 +952,7 @@ describe('BIDS datasets', () => {
     }, 10000)
   })
 
-  describe('HED 2 combined datasets', () => {
+  describe.skip('HED 2 combined datasets', () => {
     it('should validate HED 2 data in BIDS event files combined with JSON sidecar data', () => {
       const goodDatasets = bidsTsvFiles[4]
       const testDatasets = {

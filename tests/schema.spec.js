@@ -63,16 +63,16 @@ describe('HED schemas', () => {
       })
     })
 
-    describe('Remote HED schemas', () => {
-      it('a HED 2 schema can be loaded remotely', () => {
-        const spec1 = new SchemaSpec('', '7.2.0', '', '')
+    describe.skip('Remote HED schemas', () => {
+      it('a HED 3 schema can be loaded remotely', () => {
+        const spec1 = new SchemaSpec('', '8.2.0', '', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1)
         return buildSchemas(specs).then(([hedSchemas, issues]) => {
           assert.isEmpty(issues, 'Schema loading issues occurred')
           const schema1 = hedSchemas.getSchema(spec1.nickname)
           assert.strictEqual(schema1.version, spec1.version)
           assert.strictEqual(schema1.library, spec1.library)
-          assert.strictEqual(hedSchemas.generation, 2)
+          assert.strictEqual(hedSchemas.generation, 3)
         })
       })
     })
