@@ -125,32 +125,32 @@ export default {
     message: stringTemplate`Illegal tag "${'tag'}" in tag group for definition "${'definition'}".`,
   },
   inactiveOnset: {
-    hedCode: 'ONSET_OFFSET_ERROR',
+    hedCode: 'ONSET_OFFSET_INSET_ERROR',
     level: 'error',
     message: stringTemplate`${'tag'} found for inactive onset with definition name and value "${'definition'}".`,
   },
   temporalWithoutInnerGroup: {
-    hedCode: 'ONSET_OFFSET_ERROR',
+    hedCode: 'ONSET_OFFSET_INSET_ERROR',
     level: 'error',
     message: stringTemplate`${'tag'} found without an included inner top-level tag group. This instance's tag group is "${'tagGroup'}".`,
   },
   temporalWithMultipleDefinitions: {
-    hedCode: 'ONSET_OFFSET_ERROR',
+    hedCode: 'ONSET_OFFSET_INSET_ERROR',
     level: 'error',
     message: stringTemplate`${'tag'} found with multiple included definitions. This instance's tag group is "${'tagGroup'}".`,
   },
   temporalWithoutDefinition: {
-    hedCode: 'ONSET_OFFSET_ERROR',
+    hedCode: 'ONSET_OFFSET_INSET_ERROR',
     level: 'error',
     message: stringTemplate`${'tag'} found without an included definition. This instance's tag group is "${'tagGroup'}".`,
   },
   extraTagsInTemporal: {
-    hedCode: 'ONSET_OFFSET_ERROR',
+    hedCode: 'ONSET_OFFSET_INSET_ERROR',
     level: 'error',
     message: stringTemplate`Extra non-definition top-level tags or tag groups found in onset or offset group with definition "${'definition'}".`,
   },
   duplicateTemporal: {
-    hedCode: 'ONSET_OFFSET_ERROR',
+    hedCode: 'ONSET_OFFSET_INSET_ERROR',
     level: 'error',
     message: stringTemplate`HED event string "${'string'}" has onset/offset tags with duplicated definition "${'definition'}".`,
   },

@@ -46,6 +46,7 @@ const checkGroupForTemporalOrder = (parsedGroup, activeScopes) => {
     return [
       generateIssue('inactiveOnset', {
         definition: parsedGroup.defNameAndValue,
+        tag: 'Inset',
       }),
     ]
   }
@@ -53,6 +54,7 @@ const checkGroupForTemporalOrder = (parsedGroup, activeScopes) => {
     return [
       generateIssue('inactiveOnset', {
         definition: parsedGroup.defNameAndValue,
+        tag: 'Offset',
       }),
     ]
   }
