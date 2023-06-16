@@ -1371,58 +1371,73 @@ describe('HED string and event validation', () => {
         })
       })
 
-      it('should have syntactically valid onsets', () => {
+      it.each(['Onset', 'Inset'])('should have syntactically valid %s tags', (temporalTagName) => {
         const testStrings = {
-          simple: '(Onset, Def/Acc/5.4)',
-          defAndOneGroup: '(Onset, Def/MyColor, (Red))',
-          defExpandAndOneGroup: '(Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
-          noTag: '(Onset)',
-          definition: '(Onset, Definition/MyColor, (Label/Pie))',
-          defAndTwoGroups: '(Def/DefAndTwoGroups, (Blue), (Green), Onset)',
-          defExpandAndTwoGroups: '((Def-expand/DefExpandAndTwoGroups, (Label/Pie)), (Green), (Red), Onset)',
-          tagAndNoDef: '(Onset, Red)',
-          tagGroupAndNoDef: '(Onset, (Red))',
-          defAndTag: '(Onset, Def/DefAndTag, Red)',
-          defTagAndTagGroup: '(Onset, Def/DefTagAndTagGroup, (Red), Blue)',
-          multipleDefs: '(Onset, Def/MyColor, Def/Acc/5.4)',
-          defAndDefExpand: '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Onset)',
-          multipleDefinitionsAndExtraTagGroups:
-            '((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, Onset, (Blue), (Green))',
+          simple: `(${temporalTagName}, Def/Acc/5.4)`,
+          defAndOneGroup: `(${temporalTagName}, Def/MyColor, (Red))`,
+          defExpandAndOneGroup: `(${temporalTagName}, (Def-expand/MyColor, (Label/Pie)), (Red))`,
+          noTag: `(${temporalTagName})`,
+          definition: `(${temporalTagName}, Definition/MyColor, (Label/Pie))`,
+          defAndTwoGroups: `(Def/DefAndTwoGroups, (Blue), (Green), ${temporalTagName})`,
+          defExpandAndTwoGroups: `((Def-expand/DefExpandAndTwoGroups, (Label/Pie)), (Green), (Red), ${temporalTagName})`,
+          tagAndNoDef: `(${temporalTagName}, Red)`,
+          tagGroupAndNoDef: `(${temporalTagName}, (Red))`,
+          defAndTag: `(${temporalTagName}, Def/DefAndTag, Red)`,
+          defTagAndTagGroup: `(${temporalTagName}, Def/DefTagAndTagGroup, (Red), Blue)`,
+          multipleDefs: `(${temporalTagName}, Def/MyColor, Def/Acc/5.4)`,
+          defAndDefExpand: `((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, ${temporalTagName})`,
+          multipleDefinitionsAndExtraTagGroups: `((Def-expand/MyColor, (Label/Pie)), Def/Acc/5.4, ${temporalTagName}, (Blue), (Green))`,
         }
         const expectedIssues = {
           simple: [],
           defAndOneGroup: [],
           defExpandAndOneGroup: [],
-          noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: 'Onset' })],
+          noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: temporalTagName })],
           definition: [
-            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.definition, tag: 'Onset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Onset' }),
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.definition, tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
           ],
-          defAndTwoGroups: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTwoGroups', tag: 'Onset' })],
+          defAndTwoGroups: [
+            generateIssue('extraTagsInTemporal', { definition: 'DefAndTwoGroups', tag: temporalTagName }),
+          ],
           defExpandAndTwoGroups: [
-            generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTwoGroups', tag: 'Onset' }),
+            generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTwoGroups', tag: temporalTagName }),
           ],
           tagAndNoDef: [
-            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: 'Onset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Onset' }),
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
           ],
           tagGroupAndNoDef: [
-            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef, tag: 'Onset' }),
+            generateIssue('temporalWithoutDefinition', {
+              tagGroup: testStrings.tagGroupAndNoDef,
+              tag: temporalTagName,
+            }),
           ],
-          defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag', tag: 'Onset' })],
-          defTagAndTagGroup: [generateIssue('extraTagsInTemporal', { definition: 'DefTagAndTagGroup', tag: 'Onset' })],
+          defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag', tag: temporalTagName })],
+          defTagAndTagGroup: [
+            generateIssue('extraTagsInTemporal', { definition: 'DefTagAndTagGroup', tag: temporalTagName }),
+          ],
           multipleDefs: [
-            generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.multipleDefs, tag: 'Onset' }),
+            generateIssue('temporalWithMultipleDefinitions', {
+              tagGroup: testStrings.multipleDefs,
+              tag: temporalTagName,
+            }),
           ],
           defAndDefExpand: [
-            generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.defAndDefExpand, tag: 'Onset' }),
+            generateIssue('temporalWithMultipleDefinitions', {
+              tagGroup: testStrings.defAndDefExpand,
+              tag: temporalTagName,
+            }),
           ],
           multipleDefinitionsAndExtraTagGroups: [
             generateIssue('temporalWithMultipleDefinitions', {
               tagGroup: testStrings.multipleDefinitionsAndExtraTagGroups,
-              tag: 'Onset',
+              tag: temporalTagName,
             }),
-            generateIssue('extraTagsInTemporal', { definition: 'Multiple definition tags found', tag: 'Onset' }),
+            generateIssue('extraTagsInTemporal', {
+              definition: 'Multiple definition tags found',
+              tag: temporalTagName,
+            }),
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
@@ -1860,60 +1875,73 @@ describe('HED string and event validation', () => {
         })
       })
 
-      it('should have syntactically valid onsets', () => {
+      it.each(['Onset', 'Inset'])('should have syntactically valid %s tags', (temporalTagName) => {
         const testStrings = {
-          simple: '(testlib:Onset, testlib:Def/Acc/5.4)',
-          defAndOneGroup: '(testlib:Onset, testlib:Def/ShowFace, (testlib:Manual-eye-closure, testlib:Drowsiness))',
-          defExpandAndOneGroup:
-            '(testlib:Onset, (testlib:Def-expand/ShowFace, (testlib:Label/Pie)), (testlib:Manual-eye-closure, testlib:Drowsiness))',
-          noTag: '(testlib:Onset)',
-          definition: '(testlib:Onset, testlib:Definition/ShowFace, (testlib:Label/Pie))',
-          defAndTwoGroups: '(testlib:Def/DefAndTwoGroups, (testlib:Blue), (testlib:Green), testlib:Onset)',
-          defExpandAndTwoGroups:
-            '((testlib:Def-expand/DefExpandAndTwoGroups, (testlib:Label/Pie)), (testlib:Green), (testlib:Red), testlib:Onset)',
-          tagAndNoDef: '(testlib:Onset, testlib:Red)',
-          tagGroupAndNoDef: '(testlib:Onset, (testlib:Red))',
-          defAndTag: '(testlib:Onset, testlib:Def/DefAndTag, testlib:Red)',
-          defTagAndTagGroup: '(testlib:Onset, testlib:Def/DefTagAndTagGroup, (testlib:Red), testlib:Blue)',
-          multipleDefs: '(testlib:Onset, testlib:Def/ShowFace, testlib:Def/Acc/5.4)',
-          defAndDefExpand: '((testlib:Def-expand/ShowFace, (testlib:Label/Pie)), testlib:Def/Acc/5.4, testlib:Onset)',
-          multipleDefinitionsAndExtraTagGroups:
-            '((testlib:Def-expand/ShowFace, (testlib:Label/Pie)), testlib:Def/Acc/5.4, testlib:Onset, (testlib:Blue), (testlib:Green))',
+          simple: `(testlib:${temporalTagName}, testlib:Def/Acc/5.4)`,
+          defAndOneGroup: `(testlib:${temporalTagName}, testlib:Def/ShowFace, (testlib:Manual-eye-closure, testlib:Drowsiness))`,
+          defExpandAndOneGroup: `(testlib:${temporalTagName}, (testlib:Def-expand/ShowFace, (testlib:Label/Pie)), (testlib:Manual-eye-closure, testlib:Drowsiness))`,
+          noTag: `(testlib:${temporalTagName})`,
+          definition: `(testlib:${temporalTagName}, testlib:Definition/ShowFace, (testlib:Label/Pie))`,
+          defAndTwoGroups: `(testlib:Def/DefAndTwoGroups, (testlib:Blue), (testlib:Green), testlib:${temporalTagName})`,
+          defExpandAndTwoGroups: `((testlib:Def-expand/DefExpandAndTwoGroups, (testlib:Label/Pie)), (testlib:Green), (testlib:Red), testlib:${temporalTagName})`,
+          tagAndNoDef: `(testlib:${temporalTagName}, testlib:Red)`,
+          tagGroupAndNoDef: `(testlib:${temporalTagName}, (testlib:Red))`,
+          defAndTag: `(testlib:${temporalTagName}, testlib:Def/DefAndTag, testlib:Red)`,
+          defTagAndTagGroup: `(testlib:${temporalTagName}, testlib:Def/DefTagAndTagGroup, (testlib:Red), testlib:Blue)`,
+          multipleDefs: `(testlib:${temporalTagName}, testlib:Def/ShowFace, testlib:Def/Acc/5.4)`,
+          defAndDefExpand: `((testlib:Def-expand/ShowFace, (testlib:Label/Pie)), testlib:Def/Acc/5.4, testlib:${temporalTagName})`,
+          multipleDefinitionsAndExtraTagGroups: `((testlib:Def-expand/ShowFace, (testlib:Label/Pie)), testlib:Def/Acc/5.4, testlib:${temporalTagName}, (testlib:Blue), (testlib:Green))`,
         }
         const expectedIssues = {
           simple: [],
           defAndOneGroup: [],
           defExpandAndOneGroup: [],
-          noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: 'Onset' })],
+          noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: temporalTagName })],
           definition: [
-            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.definition, tag: 'Onset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Onset' }),
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.definition, tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
           ],
-          defAndTwoGroups: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTwoGroups', tag: 'Onset' })],
+          defAndTwoGroups: [
+            generateIssue('extraTagsInTemporal', { definition: 'DefAndTwoGroups', tag: temporalTagName }),
+          ],
           defExpandAndTwoGroups: [
-            generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTwoGroups', tag: 'Onset' }),
+            generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTwoGroups', tag: temporalTagName }),
           ],
           tagAndNoDef: [
-            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: 'Onset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Onset' }),
+            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
           ],
           tagGroupAndNoDef: [
-            generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef, tag: 'Onset' }),
+            generateIssue('temporalWithoutDefinition', {
+              tagGroup: testStrings.tagGroupAndNoDef,
+              tag: temporalTagName,
+            }),
           ],
-          defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag', tag: 'Onset' })],
-          defTagAndTagGroup: [generateIssue('extraTagsInTemporal', { definition: 'DefTagAndTagGroup', tag: 'Onset' })],
+          defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag', tag: temporalTagName })],
+          defTagAndTagGroup: [
+            generateIssue('extraTagsInTemporal', { definition: 'DefTagAndTagGroup', tag: temporalTagName }),
+          ],
           multipleDefs: [
-            generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.multipleDefs, tag: 'Onset' }),
+            generateIssue('temporalWithMultipleDefinitions', {
+              tagGroup: testStrings.multipleDefs,
+              tag: temporalTagName,
+            }),
           ],
           defAndDefExpand: [
-            generateIssue('temporalWithMultipleDefinitions', { tagGroup: testStrings.defAndDefExpand, tag: 'Onset' }),
+            generateIssue('temporalWithMultipleDefinitions', {
+              tagGroup: testStrings.defAndDefExpand,
+              tag: temporalTagName,
+            }),
           ],
           multipleDefinitionsAndExtraTagGroups: [
             generateIssue('temporalWithMultipleDefinitions', {
               tagGroup: testStrings.multipleDefinitionsAndExtraTagGroups,
-              tag: 'Onset',
+              tag: temporalTagName,
             }),
-            generateIssue('extraTagsInTemporal', { definition: 'Multiple definition tags found', tag: 'Onset' }),
+            generateIssue('extraTagsInTemporal', {
+              definition: 'Multiple definition tags found',
+              tag: temporalTagName,
+            }),
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator, tagGroup) => {
