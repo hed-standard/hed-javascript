@@ -211,6 +211,11 @@ export default {
     level: 'error',
     message: stringTemplate`The fallback schema bundled with this validator failed to load. No HED validation was performed.`,
   },
+  noFallbackSchemaForLibrary: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`No fallback schema was found for library "${'library'}". No HED validation was performed.`,
+  },
   bundledSchemaLoadFailed: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',

@@ -10,4 +10,8 @@ export const localSchemaList = new Map([
 ])
 
 // TODO: Delete in 4.0.0.
-export const fallbackFilePath = 'data/HED8.2.0.xml'
+export const fallbackFilePath = new Map([
+  ['', 'data/HED8.2.0.xml'],
+  ['score', 'data/HED_score_1.0.0.xml'],
+  ['testlib', 'data/HED_testlib_2.0.0.xml'],
+])

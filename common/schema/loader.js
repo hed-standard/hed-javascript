@@ -26,7 +26,12 @@ export const loadSchema = function (schemaDef = null, useFallback = true, report
     .catch((issues) => {
       if (useFallback) {
         issues.push(generateIssue('requestedSchemaLoadFailedFallbackUsed', { spec: JSON.stringify(schemaDef) }))
-        return loadLocalSchema(fallbackFilePath)
+        const fallbackSchemaPath = fallbackFilePath.get(schemaDef.library)
+        if (fallbackSchemaPath === undefined) {
+          issues.push(generateIssue('noFallbackSchemaForLibrary', { library: schemaDef.library }))
+          return Promise.reject(issues)
+        }
+        return loadLocalSchema(fallbackSchemaPath)
           .then((xmlData) => [xmlData, issues])
           .catch((fallbackIssues) => {
             fallbackIssues.push(generateIssue('fallbackSchemaLoadFailed', {}))
