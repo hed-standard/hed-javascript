@@ -1832,10 +1832,9 @@ describe('HED string and event validation', () => {
       it('should have syntactically valid definitions', () => {
         const testStrings = {
           nonDefinition: 'testlib:Car',
-          nonDefinitionGroup: '(testlib:Manual-eye-closure, testlib:Drowsiness)',
+          nonDefinitionGroup: '(testlib:Hold-breath, testlib:Sit-down)',
           definitionOnly: '(testlib:Definition/SimpleDefinition)',
-          tagGroupDefinition:
-            '(testlib:Definition/TagGroupDefinition, (testlib:Wicket-spikes, testlib:Finding-frequency))',
+          tagGroupDefinition: '(testlib:Definition/TagGroupDefinition, (testlib:Hold-breath, testlib:Sit-down))',
           illegalSiblingDefinition: '(testlib:Definition/IllegalSiblingDefinition, testlib:Train, (testlib:Rectangle))',
           nestedDefinition:
             '(testlib:Definition/NestedDefinition, (testlib:Touchscreen, (testlib:Definition/InnerDefinition, (testlib:Square))))',
@@ -1878,8 +1877,8 @@ describe('HED string and event validation', () => {
       it.each(['Onset', 'Inset'])('should have syntactically valid %s tags', (temporalTagName) => {
         const testStrings = {
           simple: `(testlib:${temporalTagName}, testlib:Def/Acc/5.4)`,
-          defAndOneGroup: `(testlib:${temporalTagName}, testlib:Def/ShowFace, (testlib:Manual-eye-closure, testlib:Drowsiness))`,
-          defExpandAndOneGroup: `(testlib:${temporalTagName}, (testlib:Def-expand/ShowFace, (testlib:Label/Pie)), (testlib:Manual-eye-closure, testlib:Drowsiness))`,
+          defAndOneGroup: `(testlib:${temporalTagName}, testlib:Def/ShowFace, (testlib:Hold-breath, testlib:Sit-down))`,
+          defExpandAndOneGroup: `(testlib:${temporalTagName}, (testlib:Def-expand/ShowFace, (testlib:Label/Pie)), (testlib:Hold-breath, testlib:Sit-down))`,
           noTag: `(testlib:${temporalTagName})`,
           definition: `(testlib:${temporalTagName}, testlib:Definition/ShowFace, (testlib:Label/Pie))`,
           defAndTwoGroups: `(testlib:Def/DefAndTwoGroups, (testlib:Blue), (testlib:Green), testlib:${temporalTagName})`,
