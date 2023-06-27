@@ -715,58 +715,6 @@ describe('HED string and event validation', () => {
           }
           return validator(testStrings, expectedIssues)
         })
-
-        // TODO: Rewrite as HED 3 test
-        it.skip('should properly handle strings with placeholders', () => {
-          const testStrings = {
-            takesValue: 'Attribute/Visual/Color/Red/#',
-            withUnit: 'Event/Duration/# ms',
-            child: 'Attribute/Object side/#',
-            extensionAllowed: 'Item/Object/Person/Driver/#',
-            invalidParent: 'Event/Nonsense/#',
-            extensionParent: 'Item/TestDef1/#',
-            missingRequiredUnit: 'Event/Duration/#',
-            wrongLocation: 'Item/#/Person',
-          }
-          const expectedIssues = {
-            takesValue: [],
-            withUnit: [],
-            child: [generateIssue('invalidPlaceholder', { tag: testStrings.child })],
-            extensionAllowed: [
-              generateIssue('invalidPlaceholder', {
-                tag: testStrings.extensionAllowed,
-              }),
-            ],
-            invalidParent: [
-              generateIssue('invalidPlaceholder', {
-                tag: testStrings.invalidParent,
-              }),
-            ],
-            extensionParent: [
-              generateIssue('invalidPlaceholder', {
-                tag: testStrings.extensionParent,
-              }),
-            ],
-            missingRequiredUnit: [
-              generateIssue('unitClassDefaultUsed', {
-                defaultUnit: 's',
-                tag: testStrings.missingRequiredUnit,
-              }),
-            ],
-            wrongLocation: [
-              converterGenerateIssue(
-                'invalidParentNode',
-                testStrings.wrongLocation,
-                { parentTag: 'Item/Object/Person' },
-                [7, 13],
-              ),
-              generateIssue('invalidPlaceholder', {
-                tag: testStrings.wrongLocation,
-              }),
-            ],
-          }
-          return validator(testStrings, expectedIssues, true)
-        })
       })
     })
 
@@ -1148,6 +1096,7 @@ describe('HED string and event validation', () => {
           leafExtension: 'Sensory-event/Something',
           nonExtensionAllowed: 'Event/Nonsense',
           illegalComma: 'Label/This_is_a_label,This/Is/A/Tag',
+          placeholder: 'Train/#',
         }
         const expectedIssues = {
           takesValue: [],
@@ -1164,6 +1113,11 @@ describe('HED string and event validation', () => {
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',
               tag: 'This/Is/A/Tag',
+            }),
+          ],
+          placeholder: [
+            generateIssue('invalidTag', {
+              tag: testStrings.placeholder,
             }),
           ],
         }
@@ -1599,7 +1553,53 @@ describe('HED string and event validation', () => {
         )
       }
 
-      it('should have valid placeholders', () => {
+      it('should properly handle strings with placeholders', () => {
+        const testStrings = {
+          takesValue: 'RGB-red/#',
+          withUnit: 'Time-value/# ms',
+          child: 'Left-side-of/#',
+          extensionAllowed: 'Human/Driver/#',
+          invalidParent: 'Event/Nonsense/#',
+          extensionParent: 'Item/TestDef1/#',
+          missingRequiredUnit: 'Time-value/#',
+          wrongLocation: 'Item/#/Organism',
+        }
+        const expectedIssues = {
+          takesValue: [],
+          withUnit: [],
+          child: [generateIssue('invalidPlaceholder', { tag: testStrings.child })],
+          extensionAllowed: [
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.extensionAllowed,
+            }),
+          ],
+          invalidParent: [
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.invalidParent,
+            }),
+          ],
+          extensionParent: [
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.extensionParent,
+            }),
+          ],
+          missingRequiredUnit: [],
+          wrongLocation: [
+            converterGenerateIssue(
+              'invalidParentNode',
+              testStrings.wrongLocation,
+              { parentTag: 'Item/Biological-item/Organism' },
+              [7, 15],
+            ),
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.wrongLocation,
+            }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues, true)
+      })
+
+      it('should have valid placeholders in definitions', () => {
         const expectedPlaceholdersTestStrings = {
           noPlaceholders: 'Car',
           noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',

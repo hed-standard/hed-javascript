@@ -49,7 +49,6 @@ export class HedValidator {
   // Phases
   validateStringLevel() {
     this.options.isEventLevel = false
-    this.validateFullParsedHedString()
     this.validateIndividualHedTags()
     this.validateHedTagGroups()
   }
@@ -63,13 +62,6 @@ export class HedValidator {
   }
 
   // Categories
-
-  /**
-   * Validate the full parsed HED string.
-   */
-  validateFullParsedHedString() {
-    this.checkPlaceholderStringSyntax()
-  }
 
   /**
    * Validate the individual HED tags in a parsed HED string object.
@@ -93,9 +85,6 @@ export class HedValidator {
       if (!this.options.isEventLevel) {
         this.checkValueTagSyntax(tag)
       }
-    }
-    if (this.options.expectValuePlaceholderString) {
-      this.checkPlaceholderTagSyntax(tag)
     }
   }
 
@@ -256,17 +245,7 @@ export class HedValidator {
     }
     // Whether this tag has an ancestor with the 'extensionAllowed' attribute.
     const isExtensionAllowedTag = tag.allowsExtensions
-    if (this.options.expectValuePlaceholderString && getCharacterCount(tag.formattedTag, '#') === 1) {
-      const valueTag = replaceTagNameWithPound(tag.formattedTag)
-      if (getCharacterCount(valueTag, '#') === 1) {
-        // Ending placeholder was replaced with itself.
-        this.pushIssue('invalidPlaceholder', {
-          tag: tag,
-        })
-      } /* else {
-        Handled in checkPlaceholderTagSyntax().
-      } */
-    } else if (!isExtensionAllowedTag && previousTag?.takesValue) {
+    if (!isExtensionAllowedTag && previousTag?.takesValue) {
       // This tag isn't an allowed extension, but the previous tag takes a value.
       // This is likely caused by an extraneous comma.
       this.pushIssue('extraCommaOrInvalid', {
@@ -279,115 +258,6 @@ export class HedValidator {
     } else if (!this.options.isEventLevel && this.options.checkForWarnings) {
       // This is an allowed extension.
       this.pushIssue('extension', { tag: tag })
-    }
-  }
-
-  /**
-   * Check basic placeholder tag syntax.
-   *
-   * @param {ParsedHedTag} tag A HED tag.
-   */
-  checkPlaceholderTagSyntax(tag) {
-    const placeholderCount = getCharacterCount(tag.formattedTag, '#')
-    if (placeholderCount === 1) {
-      const valueTag = replaceTagNameWithPound(tag.formattedTag)
-      if (getCharacterCount(valueTag, '#') !== 1) {
-        this.pushIssue('invalidPlaceholder', {
-          tag: tag,
-        })
-      }
-    } else if (placeholderCount > 1) {
-      // More than one placeholder.
-      this.pushIssue('invalidPlaceholder', {
-        tag: tag,
-      })
-    }
-  }
-
-  /**
-   * Check full-string placeholder syntax.
-   */
-  checkPlaceholderStringSyntax() {
-    const standalonePlaceholders = {
-      // Count of placeholders not in Definition groups.
-      placeholders: 0,
-      // Whether an Issue has already been generated for an excess placeholder outside a Definition group.
-      issueGenerated: false,
-    }
-    this._checkStandalonePlaceholderStringSyntaxInGroup(this.parsedString.topLevelTags, standalonePlaceholders)
-    // Loop over the top-level tag groups.
-    for (const tagGroup of this.parsedString.tagGroups) {
-      if (tagGroup.isDefinitionGroup) {
-        this._checkDefinitionPlaceholderStringSyntaxInGroup(tagGroup)
-      } else if (!standalonePlaceholders.issueGenerated) {
-        this._checkStandalonePlaceholderStringSyntaxInGroup(tagGroup.tagIterator(), standalonePlaceholders)
-      }
-    }
-    if (this.options.expectValuePlaceholderString && standalonePlaceholders.placeholders === 0) {
-      this.pushIssue('missingPlaceholder', {
-        string: this.parsedString.hedString,
-      })
-    }
-  }
-
-  /**
-   * Check Definition-related placeholder syntax in a tag group.
-   *
-   * @param {ParsedHedGroup} tagGroup A HED tag group.
-   * @private
-   */
-  _checkDefinitionPlaceholderStringSyntaxInGroup(tagGroup) {
-    // Count of placeholders within this Definition group.
-    let definitionPlaceholders = 0
-    const definitionHasPlaceholder = tagGroup.definitionValue === '#'
-    const definitionName = tagGroup.definitionName
-    for (const tag of tagGroup.tagIterator()) {
-      if (!definitionHasPlaceholder || tag !== tagGroup.definitionTag) {
-        definitionPlaceholders += getCharacterCount(tag.formattedTag, '#')
-      }
-    }
-    const isValid =
-      (!definitionHasPlaceholder && definitionPlaceholders === 0) ||
-      (definitionHasPlaceholder && definitionPlaceholders === 1)
-    if (!isValid) {
-      this.pushIssue('invalidPlaceholderInDefinition', {
-        definition: definitionName,
-      })
-    }
-  }
-
-  /**
-   * Check non-Definition-related placeholder syntax in a tag group.
-   *
-   * @param {ParsedHedTag[]|Generator<ParsedHedTag>} tags A HED tag iterator.
-   * @param {{placeholders: number, issueGenerated: boolean}} standalonePlaceholders The validator's standalone placeholder context.
-   * @private
-   */
-  _checkStandalonePlaceholderStringSyntaxInGroup(tags, standalonePlaceholders) {
-    let firstStandaloneTag
-    for (const tag of tags) {
-      const tagString = tag.formattedTag
-      const tagPlaceholders = getCharacterCount(tagString, '#')
-      standalonePlaceholders.placeholders += tagPlaceholders
-      if (!firstStandaloneTag && tagPlaceholders > 0) {
-        firstStandaloneTag = tag
-      }
-      if (
-        tagPlaceholders === 0 ||
-        (standalonePlaceholders.placeholders <= 1 &&
-          (this.options.expectValuePlaceholderString || standalonePlaceholders.placeholders === 0))
-      ) {
-        continue
-      }
-      if (this.options.expectValuePlaceholderString && !standalonePlaceholders.issueGenerated) {
-        this.pushIssue('invalidPlaceholder', {
-          tag: firstStandaloneTag,
-        })
-      }
-      this.pushIssue('invalidPlaceholder', {
-        tag: tag,
-      })
-      standalonePlaceholders.issueGenerated = true
     }
   }
 
