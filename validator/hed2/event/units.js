@@ -106,5 +106,5 @@ const getValidDerivativeUnits = function (unit, hedSchemaAttributes) {
  * Get the legal units for a particular HED tag.
  */
 const getAllUnits = function (hedSchemaAttributes) {
-  return [].concat(...Object.values(hedSchemaAttributes.unitClasses))
+  return Object.values(hedSchemaAttributes.unitClasses).flat()
 }
