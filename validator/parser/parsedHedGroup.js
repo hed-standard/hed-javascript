@@ -10,7 +10,7 @@ import { ParsedHedTag } from './parsedHedTag'
  * A parsed HED tag group.
  */
 export default class ParsedHedGroup extends ParsedHedSubstring {
-  static SPECIAL_SHORT_TAGS = new Set(['Definition', 'Def', 'Def-expand', 'Onset', 'Offset'])
+  static SPECIAL_SHORT_TAGS = new Set(['Definition', 'Def', 'Def-expand', 'Onset', 'Offset', 'Inset'])
 
   /**
    * The parsed HED tags in the HED tag group.
@@ -153,11 +153,35 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
-   * Whether this HED tag group is an onset or offset group.
+   * Whether this HED tag group is an inset group.
+   * @return {boolean}
+   */
+  get isInsetGroup() {
+    return this.specialTags.has('Inset')
+  }
+
+  /**
+   * Whether this HED tag group is an onset, offset, or inset group.
    * @return {boolean}
    */
   get isTemporalGroup() {
-    return this.isOnsetGroup || this.isOffsetGroup
+    return this.isOnsetGroup || this.isOffsetGroup || this.isInsetGroup
+  }
+
+  /**
+   * Whether this HED tag group is an onset, offset, or inset group.
+   * @return {string}
+   */
+  get temporalGroupName() {
+    if (this.isOnsetGroup) {
+      return 'Onset'
+    } else if (this.isOffsetGroup) {
+      return 'Offset'
+    } else if (this.isInsetGroup) {
+      return 'Inset'
+    } else {
+      return undefined
+    }
   }
 
   /**
@@ -312,6 +336,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
         throw new IssueError(
           generateIssue('temporalWithMultipleDefinitions', {
             tagGroup: this.originalTag,
+            tag: this.temporalGroupName,
           }),
         )
       } else if (this.hasDefExpandChildren) {
@@ -338,6 +363,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
         throw new IssueError(
           generateIssue('temporalWithMultipleDefinitions', {
             tagGroup: this.originalTag,
+            tag: this.temporalGroupName,
           }),
         )
       } else if (this.hasDefExpandChildren) {

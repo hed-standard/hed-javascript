@@ -345,8 +345,7 @@ describe('HED string parsing', () => {
 
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
         assert.isEmpty(issues, 'Schema loading issues occurred')
-        for (const testStringKey of Object.keys(testStrings)) {
-          const testString = testStrings[testStringKey]
+        for (const [testStringKey, testString] of Object.entries(testStrings)) {
           const [parsedString, issues] = parseHedString(testString, hedSchemas)
           assert.deepStrictEqual(Object.values(issues).flat(), [])
           assert.sameDeepMembers(parsedString.tags.map(originalMap), expectedTags[testStringKey], testString)

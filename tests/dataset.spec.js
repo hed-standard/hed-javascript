@@ -7,12 +7,12 @@ import generateConverterIssue from '../converter/issues'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 
 describe('HED dataset validation', () => {
-  const hedSchemaFile = 'tests/data/HED8.0.0.xml'
+  const hedSchemaFile = 'tests/data/HED8.2.0.xml'
   const hedLibrarySchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
   let hedSchemaPromise
 
   beforeAll(() => {
-    const spec1 = new SchemaSpec('', '8.0.0', '', hedSchemaFile)
+    const spec1 = new SchemaSpec('', '8.2.0', '', hedSchemaFile)
     const spec2 = new SchemaSpec('testlib', '2.0.0', 'testlib', hedLibrarySchemaFile)
     const specs = new SchemasSpec().addSchemaSpec(spec1).addSchemaSpec(spec2)
     hedSchemaPromise = buildSchemas(specs)
@@ -48,7 +48,7 @@ describe('HED dataset validation', () => {
         ],
         multipleValidShort: ['Sensory-event', 'Train', 'RGB-red/0.5'],
         multipleValidMixed: ['Event/Sensory-event', 'Train', 'RGB-red/0.5'],
-        multipleInvalid: ['Duration/0.5 cm', 'InvalidEvent'],
+        multipleInvalid: ['Time-value/0.5 cm', 'InvalidEvent'],
       }
       const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
       const expectedIssues = {
@@ -104,7 +104,7 @@ describe('HED dataset validation', () => {
         ],
         multipleValidShort: ['Sensory-event', 'Train', 'RGB-red/0.5'],
         multipleValidMixed: ['Event/Sensory-event', 'Train', 'RGB-red/0.5'],
-        multipleInvalid: ['Duration/0.5 cm', 'InvalidEvent'],
+        multipleInvalid: ['Time-value/0.5 cm', 'InvalidEvent'],
       }
       const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
       const expectedIssues = {
@@ -234,7 +234,16 @@ describe('HED dataset validation', () => {
       const testContext = ['(Definition/Acc/#, (Acceleration/#, Red))', '(Definition/MyColor, (Label/Pie))']
       const testDatasets = {
         singleOnsetOffset: ['(Def/MyColor, Onset)', '(Def/MyColor, Offset)', 'Red'],
+        singleOnsetInset: ['(Def/MyColor, Onset)', '(Def/MyColor, Inset)', 'Red'],
+        singleOnsetInsetOffset: ['(Def/MyColor, Onset)', '(Def/MyColor, Inset)', '(Def/MyColor, Offset)', 'Red'],
         offsetForSameValue: ['(Def/Acc/4.2 m-per-s^2, Onset)', '(Def/Acc/4.2 m-per-s^2, Offset)', 'Red'],
+        insetForSameValue: ['(Def/Acc/4.2 m-per-s^2, Onset)', '(Def/Acc/4.2 m-per-s^2, Inset)', 'Red'],
+        insetOffsetForSameValue: [
+          '(Def/Acc/4.2 m-per-s^2, Onset)',
+          '(Def/Acc/4.2 m-per-s^2, Inset)',
+          '(Def/Acc/4.2 m-per-s^2, Offset)',
+          'Red',
+        ],
         repeatedOnsetForNoValue: ['(Def/MyColor, Onset)', '(Def/MyColor, Onset)', 'Red', '(Def/MyColor, Offset)'],
         repeatedOnsetForSameValue: [
           '(Def/Acc/4.2 m-per-s^2, Onset)',
@@ -248,30 +257,67 @@ describe('HED dataset validation', () => {
           '(Def/Acc/4.2 m-per-s^2, Offset)',
           '(Def/Acc/5.3 m-per-s^2, Offset)',
         ],
+        onsetOffsetMixedInsetForDifferentValues: [
+          '(Def/Acc/4.2 m-per-s^2, Onset)',
+          '(Def/Acc/5.3 m-per-s^2, Onset)',
+          '(Def/Acc/4.2 m-per-s^2, Offset)',
+          '(Def/Acc/5.3 m-per-s^2, Inset)',
+          '(Def/Acc/5.3 m-per-s^2, Offset)',
+        ],
+        repeatedInset: [
+          '(Def/MyColor, Onset)',
+          '(Def/MyColor, Inset)',
+          '(Def/MyColor, Inset)',
+          '(Def/MyColor, Offset)',
+          'Red',
+        ],
         repeatedOffset: ['(Def/MyColor, Onset)', '(Def/MyColor, Offset)', 'Red', '(Def/MyColor, Offset)'],
         offsetFirst: ['(Def/MyColor, Offset)', '(Def/MyColor, Onset)', 'Red', '(Def/MyColor, Offset)'],
+        insetFirst: ['(Def/MyColor, Inset)', '(Def/MyColor, Onset)', 'Red', '(Def/MyColor, Inset)'],
         offsetForDifferentValue: ['(Def/Acc/4.2 m-per-s^2, Onset)', '(Def/Acc/5.3 m-per-s^2, Offset)', 'Red'],
+        insetForDifferentValue: ['(Def/Acc/4.2 m-per-s^2, Onset)', '(Def/Acc/5.3 m-per-s^2, Inset)', 'Red'],
         duplicateTemporal: ['(Def/MyColor, Onset), (Def/MyColor, Offset)', '(Def/MyColor, Offset)', 'Red'],
       }
       const expectedIssues = {
         singleOnsetOffset: [],
+        singleOnsetInset: [],
+        singleOnsetInsetOffset: [],
         offsetForSameValue: [],
+        insetForSameValue: [],
+        insetOffsetForSameValue: [],
         repeatedOnsetForNoValue: [],
         repeatedOnsetForSameValue: [],
         onsetOffsetForDifferentValues: [],
+        onsetOffsetMixedInsetForDifferentValues: [],
+        repeatedInset: [],
         repeatedOffset: [
           generateValidationIssue('inactiveOnset', {
             definition: 'MyColor',
+            tag: 'Offset',
           }),
         ],
         offsetFirst: [
           generateValidationIssue('inactiveOnset', {
             definition: 'MyColor',
+            tag: 'Offset',
+          }),
+        ],
+        insetFirst: [
+          generateValidationIssue('inactiveOnset', {
+            definition: 'MyColor',
+            tag: 'Inset',
           }),
         ],
         offsetForDifferentValue: [
           generateValidationIssue('inactiveOnset', {
             definition: 'Acc/5.3 m-per-s^2',
+            tag: 'Offset',
+          }),
+        ],
+        insetForDifferentValue: [
+          generateValidationIssue('inactiveOnset', {
+            definition: 'Acc/5.3 m-per-s^2',
+            tag: 'Inset',
           }),
         ],
         duplicateTemporal: [
@@ -281,6 +327,7 @@ describe('HED dataset validation', () => {
           }),
           generateValidationIssue('inactiveOnset', {
             definition: 'MyColor',
+            tag: 'Offset',
           }),
         ],
       }
