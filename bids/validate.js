@@ -132,8 +132,7 @@ function parseTsvHed(eventFileData) {
     if (eventFileData.hedColumnHedStrings[rowIndex]) {
       hedStringParts.push(eventFileData.hedColumnHedStrings[rowIndex])
     }
-    for (const sidecarHedColumn of Object.keys(sidecarHedColumnIndices)) {
-      const sidecarHedIndex = sidecarHedColumnIndices[sidecarHedColumn]
+    for (const [sidecarHedColumn, sidecarHedIndex] of Object.entries(sidecarHedColumnIndices)) {
       const sidecarHedData = eventFileData.sidecarHedData.get(sidecarHedColumn)
       const rowCell = rowCells[sidecarHedIndex]
       if (rowCell && rowCell !== 'n/a') {

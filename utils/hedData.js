@@ -19,9 +19,8 @@ export const getGenerationForSchemaVersion = function (version) {
 }
 
 export const mergeParsingIssues = function (previousIssues, currentIssues) {
-  for (const key of Object.keys(currentIssues)) {
-    previousIssues[key] =
-      previousIssues[key] !== undefined ? previousIssues[key].concat(currentIssues[key]) : currentIssues[key]
+  for (const [key, currentIssue] of Object.entries(currentIssues)) {
+    previousIssues[key] = previousIssues[key] !== undefined ? previousIssues[key].concat(currentIssue) : currentIssue
   }
 }
 
