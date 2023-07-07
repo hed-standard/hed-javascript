@@ -1,0 +1,50 @@
+.. _introduction:
+
+=====================================================
+Introduction to HED
+=====================================================
+
+.. contents:: **Contents**
+    :local:
+    :depth: 1
+
+Why HED?
+========
+
+.. topic:: Why use HED?
+
+   HED (Hierarchical Event Descriptors) is an infrastructure and
+   a controlled vocabulary that allows researchers to annotate
+   their experimental data, especially events,
+   so that tools can automatically use this information in analysis.
+
+For more information on using Hierarchical Event Descriptors (HED)
+visit `HED examples <https://hed-examples.readthedocs.io/en/latest/index.html>`_:
+
+
+Installing hed-javascript
+=========================
+The hed-javascript tools are available on npm and can be installed using
+using the following command:
+
+>>> npm install hed-validator
+
+
+Finding help
+============
+
+:Documentation:
+
+    See `HED resources <https://www.hed-resources.org>`_ for user documentation and tutorials.
+
+
+:Mailing lists and forums:
+
+    * Don't hesitate to ask questions about the python hedtools on `NeuroStars
+      <https://neurostars.org/tags/hedtools>`_.
+
+:Issues and problems:
+    * If you notice a bug in the python hedtools code or encounter other problems using the tools, please `open an issue`_ in the
+      hed-javascript repository on github.
+
+.. _open an issue: https://github.com/hed-standard/hed-javascript/issues
