@@ -46,8 +46,14 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinx.ext.napoleon",
-    "sphinx.ext.extlinks"
+    "sphinx.ext.extlinks",
+    "sphinx_js"
 ]
+
+js_language='typescript'
+js_source_path = '../../'
+
+primary_domain = 'js'
 
 autosummary_generate = True
 autodoc_default_flags = ['members', 'inherited-members']

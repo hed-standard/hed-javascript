@@ -26,7 +26,7 @@
   },
   "contributors": [
     "Alexander Jones",
-    "Kay Robbins (http://www.cs.utsa.edu/~krobbins/)"
+    "Kay Robbins"
   ],
   "license": "MIT",
   "bugs": {
@@ -43,6 +43,7 @@
     "pluralize": "^8.0.0",
     "semver": "^7.3.4",
     "then-request": "^6.0.2",
+    "typedoc": "^0.24.8",
     "xml2js": "^0.5.0"
   },
   "devDependencies": {
