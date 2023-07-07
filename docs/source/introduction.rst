@@ -27,7 +27,7 @@ Installing hed-javascript
 The hed-javascript tools are available on npm and can be installed using
 using the following command:
 
->>> pip install git+https://github.com/hed-standard/hed-python.git
+>>> npm install hed-validator
 
 
 Finding help
