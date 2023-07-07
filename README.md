@@ -63,21 +63,14 @@ A sample call can be found in the BIDS validator in
 [hed.js](https://github.com/bids-standard/bids-validator/blob/94ee5225fdc965afc45f0841ec8013f148048084/bids-validator/validators/events/hed.js#L17)
 
 ```javascript
-...
 const dataset = new hedValidator.validator.BidsDataset(eventData, sidecarData, datasetDescriptionData, dir)
 try {
- return hedValidator.validator
-   .validateBidsDataset(dataset)
-   .then(hedValidationIssues => {
-     return schemaDefinitionIssues.concat(
-       convertHedIssuesToBidsIssues(hedValidationIssues),
-     )
-   })
+  return hedValidator.validator.validateBidsDataset(dataset).then((hedValidationIssues) => {
+    return schemaDefinitionIssues.concat(convertHedIssuesToBidsIssues(hedValidationIssues))
+  })
 } catch (error) {
- const issues = schemaDefinitionIssues.concat(
-   internalHedValidatorIssue(error),
- )
- return Promise.resolve(issues)
+  const issues = schemaDefinitionIssues.concat(internalHedValidatorIssue(error))
+  return Promise.resolve(issues)
 }
 ```
 
