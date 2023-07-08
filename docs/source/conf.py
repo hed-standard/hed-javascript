@@ -23,6 +23,11 @@ project = 'HED JavaScript'
 copyright = '2017-{}, HED Working Group'.format(date.today().year)
 author = 'HED Working Group'
 
+# Add the Node.js dependency
+install_requires = [
+    'nodejs>=16.13.2'
+]
+
 # The full version, including alpha/beta/rc tags
 version = '3.10.0'
 release = '3.10.0'
@@ -50,7 +55,7 @@ extensions = [
     "sphinx_js"
 ]
 
-js_language='typescript'
+js_language = 'typescript'
 js_source_path = '../../'
 
 primary_domain = 'js'
