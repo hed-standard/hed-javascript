@@ -6,7 +6,6 @@ formats:
 
 build:
   os: ubuntu-22.04
-  image: latest
   tools:
     python: '3.8'
     nodejs: '18'
@@ -21,4 +20,5 @@ python:
   version: 3.8
   install:
     - requirements: docs/requirements.txt
+    - method: pip
   system_packages: true
