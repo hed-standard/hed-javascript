@@ -1,5 +1,9 @@
 Hierarchical Event Descriptor (HED) JavaScript Tools
-================================================
+====================================================
+
+.. image:: _static/images/croppedWideLogo.png
+  :width: 220
+  :alt: HedLogo
 
 .. sidebar:: **Links**
 
