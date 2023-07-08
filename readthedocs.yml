@@ -9,7 +9,7 @@ build:
   image: latest
   tools:
     python: '3.8'
-    nodejs: '18.0.0'
+    nodejs: '18'
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
