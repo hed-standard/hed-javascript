@@ -85,9 +85,7 @@ function validateSidecars(sidecarData, hedSchemas) {
     })
     issues.push(...valueStringIssues, ...categoricalStringIssues)
   }
-  const sidecarErrorsFound = issues.some((issue) => {
-    return issue.isError()
-  })
+  const sidecarErrorsFound = issues.some((issue) => issue.isError())
   return [sidecarErrorsFound, issues]
 }
 
@@ -105,9 +103,7 @@ function validateHedColumn(eventData, hedSchemas) {
       definitionsAllowed: 'no',
     })
   })
-  const errorsFound = issues.some((issue) => {
-    return issue.isError()
-  })
+  const errorsFound = issues.some((issue) => issue.isError())
   return [errorsFound, issues]
 }
 
