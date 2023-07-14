@@ -531,7 +531,7 @@ export class Hed3Validator extends HedValidator {
   }
 
   /**
-   * Check for tags tagged with the topLevelTagGroup attribute not in top-level tag groups.
+   * Check for tags marked with the topLevelTagGroup attribute that are not in top-level tag groups.
    */
   checkForInvalidTopLevelTagGroupTags() {
     for (const tag of this.parsedString.tags) {
