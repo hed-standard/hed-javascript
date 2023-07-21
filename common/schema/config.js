@@ -1,17 +1,17 @@
-/** Path to the fallback HED schema. */
+/** Bundled HED schema configuration. */
 
 export const localSchemaList = new Map([
   ['HED8.0.0', require('../../data/HED8.0.0.xml')],
   ['HED8.1.0', require('../../data/HED8.1.0.xml')],
   ['HED8.2.0', require('../../data/HED8.2.0.xml')],
   ['HED_score_1.0.0', require('../../data/HED_score_1.0.0.xml')],
+  ['HED_score_1.1.0', require('../../data/HED_score_1.1.0.xml')],
   ['HED_testlib_1.0.2', require('../../data/HED_testlib_1.0.2.xml')],
   ['HED_testlib_2.0.0', require('../../data/HED_testlib_2.0.0.xml')],
 ])
 
-// TODO: Delete in 4.0.0.
 export const fallbackFilePath = new Map([
   ['', 'data/HED8.2.0.xml'],
-  ['score', 'data/HED_score_1.0.0.xml'],
+  ['score', 'data/HED_score_1.1.0.xml'],
   ['testlib', 'data/HED_testlib_2.0.0.xml'],
 ])
