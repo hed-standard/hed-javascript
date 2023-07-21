@@ -54,21 +54,27 @@ const initiallyValidateHedString = function (hedString, hedSchemas, options, def
  *
  * @param {string|ParsedHedString} hedString The HED string to validate.
  * @param {Schemas} hedSchemas The HED schemas to validate against.
- * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
- * @param {boolean} expectValuePlaceholderString Whether this string is expected to have a '#' placeholder representing a value.
+ * @param {boolean?} checkForWarnings Whether to check for warnings or only errors.
+ * @param {boolean?} expectValuePlaceholderString Whether this string is expected to have a '#' placeholder representing a value.
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  * @deprecated
  */
-export const validateHedString = function (
-  hedString,
-  hedSchemas,
-  checkForWarnings = false,
-  expectValuePlaceholderString = false,
-) {
-  const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, {
-    checkForWarnings: checkForWarnings,
-    expectValuePlaceholderString: expectValuePlaceholderString,
-  })
+export const validateHedString = function (hedString, hedSchemas, ...args) {
+  let settings
+  const settingsArg = args[0]
+  if (settingsArg === Object(settingsArg)) {
+    settings = {
+      checkForWarnings: settingsArg.checkForWarnings ?? false,
+      expectValuePlaceholderString: settingsArg.expectValuePlaceholderString ?? false,
+      definitionsAllowed: settingsArg.definitionsAllowed ?? 'yes',
+    }
+  } else {
+    settings = {
+      checkForWarnings: args[0] ?? false,
+      expectValuePlaceholderString: args[1] ?? false,
+    }
+  }
+  const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, settings)
   if (parsedString === null) {
     return [false, parsedStringIssues]
   }
@@ -88,10 +94,18 @@ export const validateHedString = function (
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  * @deprecated
  */
-export const validateHedEvent = function (hedString, hedSchemas, checkForWarnings = false) {
-  const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, {
-    checkForWarnings: checkForWarnings,
-  })
+export const validateHedEvent = function (hedString, hedSchemas, ...args) {
+  let settings
+  if (args[0] === Object(args[0])) {
+    settings = {
+      checkForWarnings: args[0].checkForWarnings ?? false,
+    }
+  } else {
+    settings = {
+      checkForWarnings: args[0] ?? false,
+    }
+  }
+  const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, settings)
   if (parsedString === null) {
     return [false, parsedStringIssues]
   }
@@ -111,11 +125,21 @@ export const validateHedEvent = function (hedString, hedSchemas, checkForWarning
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  */
-export const validateHedEventWithDefinitions = function (hedString, hedSchemas, definitions, checkForWarnings = false) {
+export const validateHedEventWithDefinitions = function (hedString, hedSchemas, definitions, ...args) {
+  let settings
+  if (args[0] === Object(args[0])) {
+    settings = {
+      checkForWarnings: args[0].checkForWarnings ?? false,
+    }
+  } else {
+    settings = {
+      checkForWarnings: args[0] ?? false,
+    }
+  }
   const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(
     hedString,
     hedSchemas,
-    { checkForWarnings: checkForWarnings },
+    settings,
     definitions,
   )
   if (parsedString === null) {

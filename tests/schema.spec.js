@@ -19,7 +19,7 @@ describe('HED schemas', () => {
       })
 
       it('a library schema can be loaded from locally stored schema', () => {
-        const spec1 = new SchemaSpec('', '1.0.2', 'testlib', '')
+        const spec1 = new SchemaSpec('', '2.0.0', 'testlib', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1)
         return buildSchemas(specs).then(([hedSchemas, issues]) => {
           assert.isEmpty(issues, 'Schema loading issues occurred')
@@ -43,8 +43,8 @@ describe('HED schemas', () => {
 
       it('multiple local schemas can be loaded', () => {
         const spec1 = new SchemaSpec('nk', '8.0.0', '', '')
-        const spec2 = new SchemaSpec('ts', '1.0.2', 'testlib', '')
-        const spec3 = new SchemaSpec('', '1.0.2', 'testlib', '')
+        const spec2 = new SchemaSpec('ts', '2.0.0', 'testlib', '')
+        const spec3 = new SchemaSpec('', '2.0.0', 'testlib', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1).addSchemaSpec(spec2).addSchemaSpec(spec3)
         return buildSchemas(specs).then(([hedSchemas, issues]) => {
           assert.isEmpty(issues, 'Schema loading issues occurred')
@@ -93,8 +93,8 @@ describe('HED schemas', () => {
 
       it('a library schema can be loaded from a path', () => {
         const localHedLibrarySchemaName = 'testlib'
-        const localHedLibrarySchemaVersion = '1.0.2'
-        const localHedLibrarySchemaFile = 'tests/data/HED_testlib_1.0.2.xml'
+        const localHedLibrarySchemaVersion = '2.0.0'
+        const localHedLibrarySchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
         const schemaSpec = new SchemaSpec(localHedLibrarySchemaName, '', '', localHedLibrarySchemaFile)
         const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
         return buildSchemas(schemasSpec).then(([hedSchemas, issues]) => {

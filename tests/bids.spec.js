@@ -87,11 +87,6 @@ describe('BIDS datasets', () => {
         },
       },
       {
-        valid_value_and_definition: {
-          HED: 'Duration/# ms, (Definition/ValidValueAndDefinition/#, (Age/#))',
-        },
-      },
-      {
         invalid_definition_group: {
           HED: { definition: '(Definition/InvalidDefinitionGroup, (Age/#))' },
         },
@@ -219,6 +214,51 @@ describe('BIDS datasets', () => {
           HED: {
             def1: '(ts:Definition/My-def1, (ts:Red, ts:Blue))',
             def2: '(ts:Definition/My-def2/#, (ts:Green, ts:Label/#))',
+          },
+        },
+      },
+    ],
+    // sub06 - HED definitions
+    [
+      {
+        // Valid
+        defs: {
+          HED: {
+            face: '(Definition/myDef, (Label/Red, Blue)), (Definition/myDef2, (Label/Red, Blue))',
+            ball: '(Definition/myDef1, (Label/Red, Blue))',
+          },
+        },
+      },
+      {
+        // Valid
+        defs: {
+          HED: {
+            def1: '(Definition/Apple/#, (Label/#))',
+            def2: '(Definition/Blech/#, (Red, Label/#))',
+          },
+        },
+      },
+      {
+        // Invalid "value" column with definition
+        event_code: {
+          HED: '(Definition/myDef, (Label/Red, Blue))',
+        },
+      },
+      {
+        // Invalid mix of definitions and non-definitions in categorical column
+        event_code: {
+          HED: {
+            face: 'Red, Blue, (Definition/myDef, (Label/Red, Blue))',
+            ball: 'Def/Acc/5.4 m-per-s^2',
+          },
+        },
+      },
+      {
+        // Invalid mix of definitions and non-definitions in categorical column
+        event_code: {
+          HED: {
+            face: '(Definition/myDef, (Label/Red, Blue))',
+            ball: 'Def/Acc/4.5 m-per-s^2',
           },
         },
       },
@@ -547,7 +587,7 @@ describe('BIDS datasets', () => {
     [
       new BidsEventFile(
         '/sub05/sub05_task-test_run-1_events.tsv',
-        ['/sub05/sub05_task-test_run-1_events.json'],
+        ['/sub04/sub04_task-test_run-1_events.json'],
         sidecars[3][0],
         {
           headers: ['onset', 'duration', 'test', 'HED'],
@@ -566,7 +606,7 @@ describe('BIDS datasets', () => {
     [
       new BidsEventFile(
         '/sub06/sub06_task-test_run-1_events.tsv',
-        ['/sub06/sub06_task-test_run-1_events.json'],
+        ['/sub05/sub05_task-test_run-1_events.json'],
         sidecars[4][0],
         {
           headers: ['onset', 'duration', 'event_type', 'size'],
@@ -582,8 +622,8 @@ describe('BIDS datasets', () => {
         },
       ),
       new BidsEventFile(
-        '/sub03/sub06_task-test_run-1_events.tsv',
-        ['/sub03/sub06_task-test_run-1_events.json'],
+        '/sub06/sub06_task-test_run-2_events.tsv',
+        ['/sub05/sub05_task-test_run-2_events.json'],
         sidecars[4][1],
         {
           headers: ['onset', 'duration', 'event_type', 'size'],
@@ -594,13 +634,13 @@ describe('BIDS datasets', () => {
           ],
         },
         {
-          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
-          path: '/sub06/sub06_task-test_run-1_events.tsv',
+          relativePath: '/sub06/sub06_task-test_run-2_events.tsv',
+          path: '/sub06/sub06_task-test_run-2_events.tsv',
         },
       ),
       new BidsEventFile(
-        '/sub03/sub06_task-test_run-1_events.tsv',
-        ['/sub03/sub06_task-test_run-1_events.json'],
+        '/sub06/sub06_task-test_run-3_events.tsv',
+        ['/sub05/sub05_task-test_run-3_events.json'],
         sidecars[4][2],
         {
           headers: ['onset', 'duration', 'event_type', 'size'],
@@ -611,13 +651,13 @@ describe('BIDS datasets', () => {
           ],
         },
         {
-          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
-          path: '/sub06/sub06_task-test_run-1_events.tsv',
+          relativePath: '/sub06/sub06_task-test_run-3_events.tsv',
+          path: '/sub06/sub06_task-test_run-3_events.tsv',
         },
       ),
       new BidsEventFile(
-        '/sub03/sub06_task-test_run-1_events.tsv',
-        ['/sub03/sub06_task-test_run-1_events.json'],
+        '/sub06/sub06_task-test_run-4_events.tsv',
+        ['/sub05/sub05_task-test_run-4_events.json'],
         sidecars[4][3],
         {
           headers: ['onset', 'duration', 'event_type', 'size'],
@@ -628,13 +668,13 @@ describe('BIDS datasets', () => {
           ],
         },
         {
-          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
-          path: '/sub06/sub06_task-test_run-1_events.tsv',
+          relativePath: '/sub06/sub06_task-test_run-4_events.tsv',
+          path: '/sub06/sub06_task-test_run-4_events.tsv',
         },
       ),
       new BidsEventFile(
-        '/sub03/sub06_task-test_run-1_events.tsv',
-        ['/sub03/sub06_task-test_run-1_events.json'],
+        '/sub06/sub06_task-test_run-5_events.tsv',
+        ['/sub05/sub06_task-test_run-5_events.json'],
         sidecars[4][4],
         {
           headers: ['onset', 'duration', 'event_type', 'size'],
@@ -645,13 +685,13 @@ describe('BIDS datasets', () => {
           ],
         },
         {
-          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
-          path: '/sub06/sub06_task-test_run-1_events.tsv',
+          relativePath: '/sub06/sub06_task-test_run-5_events.tsv',
+          path: '/sub06/sub06_task-test_run-5_events.tsv',
         },
       ),
       new BidsEventFile(
-        '/sub03/sub06_task-test_run-1_events.tsv',
-        ['/sub03/sub06_task-test_run-1_events.json'],
+        '/sub06/sub06_task-test_run-6_events.tsv',
+        ['/sub05/sub06_task-test_run-6_events.json'],
         sidecars[4][5],
         {
           headers: ['onset', 'duration', 'event_type', 'size'],
@@ -662,13 +702,13 @@ describe('BIDS datasets', () => {
           ],
         },
         {
-          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
-          path: '/sub06/sub06_task-test_run-1_events.tsv',
+          relativePath: '/sub06/sub06_task-test_run-6_events.tsv',
+          path: '/sub06/sub06_task-test_run-6_events.tsv',
         },
       ),
       new BidsEventFile(
-        '/sub03/sub06_task-test_run-1_events.tsv',
-        ['/sub03/sub06_task-test_run-1_events.json'],
+        '/sub06/sub06_task-test_run-7_events.tsv',
+        ['/sub05/sub06_task-test_run-7_events.json'],
         sidecars[4][6],
         {
           headers: ['onset', 'duration', 'event_type', 'size'],
@@ -679,8 +719,27 @@ describe('BIDS datasets', () => {
           ],
         },
         {
-          relativePath: '/sub06/sub06_task-test_run-1_events.tsv',
-          path: '/sub06/sub06_task-test_run-1_events.tsv',
+          relativePath: '/sub06/sub06_task-test_run-7_events.tsv',
+          path: '/sub06/sub06_task-test_run-7_events.tsv',
+        },
+      ),
+    ],
+    // sub07 - Definitions
+    [
+      new BidsEventFile(
+        '/sub07/sub07_task-test_run-1_events.tsv',
+        ['/sub06/sub06_task-test_run-1_events.json'],
+        sidecars[5][0],
+        {
+          headers: ['onset', 'duration', 'HED'],
+          rows: [
+            ['onset', 'duration', 'HED'],
+            ['7', 'something', '(Definition/myDef, (Label/Red, Green))'],
+          ],
+        },
+        {
+          relativePath: '/sub07/sub07_task-test_run-1_events.tsv',
+          path: '/sub07/sub07_task-test_run-1_events.tsv',
         },
       ),
     ],
@@ -828,24 +887,24 @@ describe('BIDS datasets', () => {
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'InvalidDefinitionGroup',
             }),
-            bidsSidecars[2][3].file,
+            placeholderDatasets[2].file,
           ),
           new BidsHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'InvalidDefinitionTag',
             }),
-            bidsSidecars[2][4].file,
+            placeholderDatasets[3].file,
           ),
           new BidsHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'MultiplePlaceholdersInGroupDefinition',
             }),
-            bidsSidecars[2][5].file,
+            placeholderDatasets[4].file,
           ),
-          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'Duration/# s' }), bidsSidecars[2][6].file),
-          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#' }), bidsSidecars[2][6].file),
-          new BidsHedIssue(generateIssue('missingPlaceholder', { string: 'Sad' }), bidsSidecars[2][7].file),
-          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' }), bidsSidecars[2][8].file),
+          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'Duration/# s' }), placeholderDatasets[5].file),
+          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#' }), placeholderDatasets[5].file),
+          new BidsHedIssue(generateIssue('missingPlaceholder', { string: 'Sad' }), placeholderDatasets[6].file),
+          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' }), placeholderDatasets[7].file),
         ],
       }
       return validator(testDatasets, expectedIssues, specs)
@@ -1172,5 +1231,54 @@ describe('BIDS datasets', () => {
         return validatorWithSpecs(testDatasets1, expectedIssues1, schemaSpecs)
       }, 10000)
     })
+  })
+
+  describe('Definition context', () => {
+    it('should validate the BIDS context of HED definitions', () => {
+      const badTsvDatasets = bidsTsvFiles[6]
+      const defSidecars = bidsSidecars[5]
+      const testDatasets = {
+        bad_tsv: new BidsDataset(badTsvDatasets, []),
+        sidecars: new BidsDataset([], defSidecars),
+      }
+      const expectedIssues = {
+        bad_tsv: [
+          new BidsHedIssue(
+            generateIssue('illegalDefinitionContext', { string: '(Definition/myDef, (Label/Red, Green))' }),
+            badTsvDatasets[0].file,
+          ),
+        ],
+        sidecars: [
+          new BidsHedIssue(
+            generateIssue('illegalDefinitionContext', {
+              string: sidecars[5][2].event_code.HED,
+            }),
+            defSidecars[2].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('missingPlaceholder', {
+              string: sidecars[5][2].event_code.HED,
+            }),
+            defSidecars[2].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('illegalDefinitionInExclusiveContext', {
+              string: 'Red, Blue, (Definition/myDef, (Label/Red, Blue))',
+            }),
+            defSidecars[3].file,
+          ),
+          /* TODO: Fix cross-string exclusive context tests.
+           new BidsHedIssue(
+            generateIssue('illegalDefinitionInExclusiveContext', { string: 'Def/Acc/5.4 m-per-s^2' }),
+            defSidecars[3].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('illegalDefinitionInExclusiveContext', { string: 'Def/Acc/4.5 m-per-s^2' }),
+            defSidecars[4].file,
+          ), */
+        ],
+      }
+      return validator(testDatasets, expectedIssues, specs)
+    }, 10000)
   })
 })

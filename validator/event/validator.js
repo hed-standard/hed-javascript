@@ -126,7 +126,7 @@ export class HedValidator {
    */
   // eslint-disable-next-line no-unused-vars
   validateHedTagGroup(parsedTagGroup) {
-    // No-op in HED 2, checks definition syntax in HED 3,
+    // No-op in HED 2, checks definition syntax in HED 3.
   }
 
   /**
