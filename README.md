@@ -6,8 +6,6 @@
 
 This package contains a JavaScript validator for HED (hierarchical event descriptor) strings.
 
-**This is the first release of the HED validator that supports HED library schemas.**
-
 [HED](https://www.hedtags.org/) is a system for annotating events using comma-separated path strings.
 Any type of event can be annotated using HED-type syntax.
 The HED annotation strategy is very general and a standardized vocabulary in the form of a
