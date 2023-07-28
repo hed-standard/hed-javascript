@@ -1,6 +1,6 @@
 import { validateHedDatasetWithContext } from '../validator/dataset'
 import { validateHedString } from '../validator/event'
-import { BidsDataset, BidsHedIssue, BidsIssue } from './types'
+import { BidsDataset, BidsEventFile, BidsHedIssue, BidsIssue } from './types'
 import { buildBidsSchemas } from './schema'
 import { generateIssue, Issue, IssueError } from '../common/issues/issues'
 
@@ -39,7 +39,7 @@ function validateFullDataset(dataset, hedSchemas) {
       return Promise.resolve([...sidecarIssues, ...hedColumnIssues])
     }
     const eventFileIssues = dataset.eventData.map((eventFileData) => {
-      return validateBidsEventFile(eventFileData, hedSchemas)
+      return validateBidsTsvFile(eventFileData, hedSchemas)
     })
     return Promise.resolve([].concat(sidecarIssues, hedColumnIssues, ...eventFileIssues))
   } catch (e) {
@@ -48,18 +48,18 @@ function validateFullDataset(dataset, hedSchemas) {
 }
 
 /**
- * Validate a BIDS event TSV file.
+ * Validate a BIDS TSV file.
  *
- * @param {BidsEventFile} eventFileData A BIDS event TSV file.
+ * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
  * @param {Schemas} hedSchemas A HED schema collection.
  * @return {BidsIssue[]} Any issues found.
  */
-function validateBidsEventFile(eventFileData, hedSchemas) {
-  const [hedStrings, tsvIssues] = parseTsvHed(eventFileData)
+function validateBidsTsvFile(tsvFileData, hedSchemas) {
+  const [hedStrings, tsvIssues] = parseTsvHed(tsvFileData)
   if (!hedStrings) {
     return []
   } else {
-    const datasetIssues = validateCombinedDataset(hedStrings, hedSchemas, eventFileData)
+    const datasetIssues = validateCombinedDataset(hedStrings, hedSchemas, tsvFileData)
     return [...tsvIssues, ...datasetIssues]
   }
 }
@@ -108,33 +108,33 @@ function validateHedColumn(eventData, hedSchemas) {
 }
 
 /**
- * Combine the BIDS sidecar HED data into a BIDS event TSV file's HED data.
+ * Combine the BIDS sidecar HED data into a BIDS TSV file's HED data.
  *
- * @param {BidsEventFile} eventFileData A BIDS event TSV file.
- * @return {[string[], BidsIssue[]]} The combined HED strings for this BIDS event TSV file, and all issues found during the combination.
+ * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
+ * @return {[string[], BidsIssue[]]} The combined HED strings for this BIDS TSV file, and all issues found during the combination.
  */
-function parseTsvHed(eventFileData) {
+function parseTsvHed(tsvFileData) {
   const hedStrings = []
   const issues = []
   const sidecarHedColumnIndices = {}
-  for (const sidecarHedColumn of eventFileData.sidecarHedData.keys()) {
-    const sidecarHedColumnHeader = eventFileData.parsedTsv.headers.indexOf(sidecarHedColumn)
+  for (const sidecarHedColumn of tsvFileData.sidecarHedData.keys()) {
+    const sidecarHedColumnHeader = tsvFileData.parsedTsv.headers.indexOf(sidecarHedColumn)
     if (sidecarHedColumnHeader > -1) {
       sidecarHedColumnIndices[sidecarHedColumn] = sidecarHedColumnHeader
     }
   }
-  if (eventFileData.hedColumnHedStrings.length + sidecarHedColumnIndices.length === 0) {
+  if (tsvFileData.hedColumnHedStrings.length + sidecarHedColumnIndices.length === 0) {
     return [[], []]
   }
 
-  eventFileData.parsedTsv.rows.slice(1).forEach((rowCells, rowIndex) => {
+  tsvFileData.parsedTsv.rows.slice(1).forEach((rowCells, rowIndex) => {
     // get the 'HED' field
     const hedStringParts = []
-    if (eventFileData.hedColumnHedStrings[rowIndex]) {
-      hedStringParts.push(eventFileData.hedColumnHedStrings[rowIndex])
+    if (tsvFileData.hedColumnHedStrings[rowIndex]) {
+      hedStringParts.push(tsvFileData.hedColumnHedStrings[rowIndex])
     }
     for (const [sidecarHedColumn, sidecarHedIndex] of Object.entries(sidecarHedColumnIndices)) {
-      const sidecarHedData = eventFileData.sidecarHedData.get(sidecarHedColumn)
+      const sidecarHedData = tsvFileData.sidecarHedData.get(sidecarHedColumn)
       const rowCell = rowCells[sidecarHedIndex]
       if (rowCell && rowCell !== 'n/a') {
         let sidecarHedString
@@ -154,9 +154,9 @@ function parseTsvHed(eventFileData) {
               generateIssue('sidecarKeyMissing', {
                 key: rowCell,
                 column: sidecarHedColumn,
-                file: eventFileData.file.relativePath,
+                file: tsvFileData.file.relativePath,
               }),
-              eventFileData.file,
+              tsvFileData.file,
             ),
           )
         }
@@ -176,17 +176,15 @@ function parseTsvHed(eventFileData) {
  *
  * @param {string[]} hedStrings The HED strings in the data collection.
  * @param {Schemas} hedSchemas The HED schema collection to validate against.
- * @param {BidsEventFile} eventFileData The BIDS event TSV file being validated.
+ * @param {BidsTsvFile} tsvFileData The BIDS event TSV file being validated.
  * @return {BidsHedIssue[]} Any issues found.
  */
-function validateCombinedDataset(hedStrings, hedSchemas, eventFileData) {
-  const [, hedIssues] = validateHedDatasetWithContext(
-    hedStrings,
-    eventFileData.mergedSidecar.hedStrings,
-    hedSchemas,
-    true,
-  )
-  return convertHedIssuesToBidsIssues(hedIssues, eventFileData.file)
+function validateCombinedDataset(hedStrings, hedSchemas, tsvFileData) {
+  const [, hedIssues] = validateHedDatasetWithContext(hedStrings, tsvFileData.mergedSidecar.hedStrings, hedSchemas, {
+    checkForWarnings: true,
+    validateDatasetLevel: tsvFileData instanceof BidsEventFile,
+  })
+  return convertHedIssuesToBidsIssues(hedIssues, tsvFileData.file)
 }
 
 /**
