@@ -383,13 +383,7 @@ describe('BIDS datasets', () => {
         '/sub03/sub03_task-test_run-1_events.tsv',
         ['/sub03/sub03_task-test_run-1_events.json'],
         sidecars[2][0],
-        {
-          headers: ['onset', 'duration'],
-          rows: [
-            ['onset', 'duration'],
-            ['7', 'something'],
-          ],
-        },
+        'onset\tduration\n' + '7\tsomething',
         {
           relativePath: '/sub03/sub03_task-test_run-1_events.tsv',
           path: '/sub03/sub03_task-test_run-1_events.tsv',
@@ -399,13 +393,7 @@ describe('BIDS datasets', () => {
         '/sub03/sub03_task-test_run-2_events.tsv',
         ['/sub01/sub01_task-test_run-1_events.json'],
         sidecars[0][0],
-        {
-          headers: ['onset', 'duration', 'color'],
-          rows: [
-            ['onset', 'duration', 'color'],
-            ['7', 'something', 'red'],
-          ],
-        },
+        'onset\tduration\tcolor\n' + '7\tsomething\tred',
         {
           relativePath: '/sub03/sub03_task-test_run-2_events.tsv',
           path: '/sub03/sub03_task-test_run-2_events.tsv',
@@ -415,13 +403,7 @@ describe('BIDS datasets', () => {
         '/sub03/sub03_task-test_run-3_events.tsv',
         ['/sub01/sub01_task-test_run-2_events.json'],
         sidecars[0][1],
-        {
-          headers: ['onset', 'duration', 'speed'],
-          rows: [
-            ['onset', 'duration', 'speed'],
-            ['7', 'something', '60'],
-          ],
-        },
+        'onset\tduration\tspeed\n' + '7\tsomething\t60',
         {
           relativePath: '/sub03/sub03_task-test_run-3_events.tsv',
           path: '/sub03/sub03_task-test_run-3_events.tsv',
@@ -444,13 +426,7 @@ describe('BIDS datasets', () => {
         '/sub03/sub03_task-test_run-5_events.tsv',
         ['/sub01/sub01_task-test_run-1_events.json'],
         sidecars[0][0],
-        {
-          headers: ['onset', 'duration', 'color', 'HED'],
-          rows: [
-            ['onset', 'duration', 'color', 'HED'],
-            ['7', 'something', 'green', 'Laptop-computer'],
-          ],
-        },
+        'onset\tduration\tcolor\tHED\n' + '7\tsomething\tgreen\tLaptop-computer',
         {
           relativePath: '/sub03/sub03_task-test_run-5_events.tsv',
           path: '/sub03/sub03_task-test_run-5_events.tsv',
@@ -460,13 +436,7 @@ describe('BIDS datasets', () => {
         '/sub03/sub03_task-test_run-6_events.tsv',
         ['/sub01/sub01_task-test_run-1_events.json', '/sub01/sub01_task-test_run-2_events.json'],
         Object.assign({}, sidecars[0][0], sidecars[0][1]),
-        {
-          headers: ['onset', 'duration', 'color', 'vehicle', 'speed'],
-          rows: [
-            ['onset', 'duration', 'color', 'vehicle', 'speed'],
-            ['7', 'something', 'blue', 'train', '150'],
-          ],
-        },
+        'onset\tduration\tcolor\tvehicle\tspeed\n' + '7\tsomething\tblue\ttrain\t150',
         {
           relativePath: '/sub03/sub03_task-test_run-6_events.tsv',
           path: '/sub03/sub03_task-test_run-6_events.tsv',
@@ -476,15 +446,10 @@ describe('BIDS datasets', () => {
         '/sub03/sub03_task-test_run-7_events.tsv',
         ['/sub01/sub01_task-test_run-1_events.json', '/sub01/sub01_task-test_run-2_events.json'],
         Object.assign({}, sidecars[0][0], sidecars[0][1]),
-        {
-          headers: ['onset', 'duration', 'color', 'vehicle', 'speed'],
-          rows: [
-            ['onset', 'duration', 'color', 'vehicle', 'speed'],
-            ['7', 'something', 'red', 'train', '150'],
-            ['11', 'else', 'blue', 'boat', '15'],
-            ['15', 'another', 'green', 'car', '70'],
-          ],
-        },
+        'onset\tduration\tcolor\tvehicle\tspeed\n' +
+          '7\tsomething\tred\ttrain\t150\n' +
+          '11\telse\tblue\tboat\t15\n' +
+          '15\tanother\tgreen\tcar\t70',
         {
           relativePath: '/sub03/sub03_task-test_run-7_events.tsv',
           path: '/sub03/sub03_task-test_run-7_events.tsv',
@@ -497,16 +462,11 @@ describe('BIDS datasets', () => {
         '/sub04/sub04_task-test_run-1_events.tsv',
         ['/sub02/sub02_task-test_run-2_events.json'],
         sidecars[1][1],
-        {
-          headers: ['onset', 'duration', 'emotion', 'HED'],
-          rows: [
-            ['onset', 'duration', 'emotion', 'HED'],
-            ['7', 'high', 'happy', 'Yellow'],
-            ['11', 'low', 'sad', 'Blue'],
-            ['15', 'mad', 'angry', 'Red'],
-            ['19', 'huh', 'confused', 'Gray'],
-          ],
-        },
+        'onset\tduration\temotion\tHED\n' +
+          '7\thigh\thappy\tYellow\n' +
+          '11\tlow\tsad\tBlue\n' +
+          '15\tmad\tangry\tRed\n' +
+          '19\thuh\tconfused\tGray',
         {
           relativePath: '/sub04/sub04_task-test_run-1_events.tsv',
           path: '/sub04/sub04_task-test_run-1_events.tsv',
@@ -516,16 +476,11 @@ describe('BIDS datasets', () => {
         '/sub04/sub04_task-test_run-2_events.tsv',
         ['/sub02/sub02_task-test_run-1_events.json'],
         sidecars[1][0],
-        {
-          headers: ['onset', 'duration', 'transport'],
-          rows: [
-            ['onset', 'duration', 'transport'],
-            ['7', 'wet', 'boat'],
-            ['11', 'steam', 'train'],
-            ['15', 'tires', 'car'],
-            ['19', 'speedy', 'maglev'],
-          ],
-        },
+        'onset\tduration\ttransport\n' +
+          '7\twet\tboat\n' +
+          '11\tsteam\ttrain\n' +
+          '15\ttires\tcar\n' +
+          '19\tspeedy\tmaglev',
         {
           relativePath: '/sub04/sub04_task-test_run-2_events.tsv',
           path: '/sub04/sub04_task-test_run-2_events.tsv',
@@ -535,16 +490,11 @@ describe('BIDS datasets', () => {
         '/sub04/sub04_task-test_run-3_events.tsv',
         ['/sub01/sub01_task-test_run-2_events.json', '/sub02/sub02_task-test_run-1_events.json'],
         Object.assign({}, sidecars[0][1], sidecars[1][0]),
-        {
-          headers: ['onset', 'duration', 'vehicle', 'transport', 'speed'],
-          rows: [
-            ['onset', 'duration', 'vehicle', 'transport', 'speed'],
-            ['7', 'ferry', 'train', 'boat', '20'],
-            ['11', 'autotrain', 'car', 'train', '79'],
-            ['15', 'towing', 'boat', 'car', '30'],
-            ['19', 'tugboat', 'boat', 'boat', '5'],
-          ],
-        },
+        'onset\tduration\tvehicle\ttransport\tspeed\n' +
+          '7\tferry\ttrain\tboat\t20\n' +
+          '11\tautotrain\tcar\ttrain\t79\n' +
+          '15\ttowing\tboat\tcar\t30\n' +
+          '19\ttugboat\tboat\tboat\t5',
         {
           relativePath: '/sub04/sub04_task-test_run-3_events.tsv',
           path: '/sub04/sub04_task-test_run-3_events.tsv',
@@ -554,13 +504,7 @@ describe('BIDS datasets', () => {
         '/sub04/sub04_task-test_run-4_events.tsv',
         ['/sub01/sub01_task-test_run-3_events.json'],
         sidecars[0][2],
-        {
-          headers: ['onset', 'duration', 'age', 'HED'],
-          rows: [
-            ['onset', 'duration', 'age', 'HED'],
-            ['7', 'ferry', '30', 'Age/30'],
-          ],
-        },
+        'onset\tduration\tage\tHED\n' + '7\tferry\t30\tAge/30',
         {
           relativePath: '/sub04/sub04_task-test_run-4_events.tsv',
           path: '/sub04/sub04_task-test_run-4_events.tsv',
@@ -570,13 +514,7 @@ describe('BIDS datasets', () => {
         '/sub04/sub04_task-test_run-5_events.tsv',
         ['/sub01/sub01_task-test_run-1_events.json'],
         sidecars[0][0],
-        {
-          headers: ['onset', 'duration', 'color'],
-          rows: [
-            ['onset', 'duration', 'color'],
-            ['7', 'royal', 'purple'],
-          ],
-        },
+        'onset\tduration\tcolor\n' + '7\troyal\tpurple',
         {
           relativePath: '/sub04/sub04_task-test_run-5_events.tsv',
           path: '/sub04/sub04_task-test_run-5_events.tsv',
@@ -589,13 +527,7 @@ describe('BIDS datasets', () => {
         '/sub05/sub05_task-test_run-1_events.tsv',
         ['/sub04/sub04_task-test_run-1_events.json'],
         sidecars[3][0],
-        {
-          headers: ['onset', 'duration', 'test', 'HED'],
-          rows: [
-            ['onset', 'duration', 'test', 'HED'],
-            ['7', 'something', 'first', 'Event/Duration/55 ms'],
-          ],
-        },
+        'onset\tduration\ttest\tHED\n' + '7\tsomething\tfirst\tEvent/Duration/55 ms',
         {
           relativePath: '/sub05/sub05_task-test_run-1_events.tsv',
           path: '/sub05/sub05_task-test_run-1_events.tsv',
