@@ -1,5 +1,6 @@
 import { sidecarValueHasHed } from './utils'
 import { Issue } from '../common/issues/issues'
+import parseTSV from './tsvParser'
 
 /**
  * Base class for BIDS data.
@@ -78,7 +79,7 @@ export class BidsJsonFile extends BidsFile {
 export class BidsTsvFile extends BidsFile {
   /**
    * This file's parsed TSV data.
-   * @type {object}
+   * @type {{headers: string[], rows: string[][]}}
    */
   parsedTsv
   /**
@@ -108,14 +109,17 @@ export class BidsTsvFile extends BidsFile {
    * @todo This interface is provisional and subject to modification in version 4.0.0.
    *
    * @param {string} name The name of the TSV file.
-   * @param {object} parsedTsv This file's parsed TSV data.
+   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
    * @param {object} file The file object representing this file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
    * @param {object} mergedDictionary The merged sidecar data.
    */
-  constructor(name, parsedTsv, file, potentialSidecars = [], mergedDictionary = {}) {
+  constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}) {
     super(name, file)
-    this.parsedTsv = parsedTsv
+    if (typeof tsvData === 'string') {
+      tsvData = parseTSV(tsvData)
+    }
+    this.parsedTsv = tsvData
     this.potentialSidecars = potentialSidecars
 
     this.mergedSidecar = new BidsSidecar(name, mergedDictionary, null)
@@ -148,11 +152,11 @@ export class BidsEventFile extends BidsTsvFile {
    * @param {string} name The name of the event TSV file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
    * @param {object} mergedDictionary The merged sidecar data.
-   * @param {object} parsedTsv This file's parsed TSV data.
+   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
    * @param {object} file The file object representing this file.
    */
-  constructor(name, potentialSidecars, mergedDictionary, parsedTsv, file) {
-    super(name, parsedTsv, file, potentialSidecars, mergedDictionary)
+  constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
+    super(name, tsvData, file, potentialSidecars, mergedDictionary)
   }
 }
 
@@ -168,11 +172,11 @@ export class BidsTabularFile extends BidsTsvFile {
    * @param {string} name The name of the TSV file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
    * @param {object} mergedDictionary The merged sidecar data.
-   * @param {object} parsedTsv This file's parsed TSV data.
+   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
    * @param {object} file The file object representing this file.
    */
-  constructor(name, potentialSidecars, mergedDictionary, parsedTsv, file) {
-    super(name, parsedTsv, file, potentialSidecars, mergedDictionary)
+  constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
+    super(name, tsvData, file, potentialSidecars, mergedDictionary)
   }
 }
 
