@@ -113,14 +113,14 @@ export const validateDataset = function (definitions, hedStrings, hedSchemas) {
  * @param {(string|ParsedHedString)[]} parsedHedStrings The dataset's parsed HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
  * @param {Map<string, ParsedHedGroup>} definitions The dataset's parsed definitions.
- * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
+ * @param {Object} settings The configuration settings for validation.
  * @return {[boolean, Issue[]]} Whether the HED strings are valid and any issues found.
  */
-export const validateHedEvents = function (parsedHedStrings, hedSchemas, definitions, checkForWarnings) {
+export const validateHedEvents = function (parsedHedStrings, hedSchemas, definitions, settings) {
   let stringsValid = true
   let stringIssues = []
   for (const hedString of parsedHedStrings) {
-    const [valid, issues] = validateHedEventWithDefinitions(hedString, hedSchemas, definitions, checkForWarnings)
+    const [valid, issues] = validateHedEventWithDefinitions(hedString, hedSchemas, definitions, settings)
     stringsValid = stringsValid && valid
     stringIssues = stringIssues.concat(issues)
   }
@@ -135,15 +135,27 @@ export const validateHedEvents = function (parsedHedStrings, hedSchemas, definit
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
-export const validateHedDataset = function (hedStrings, hedSchemas, checkForWarnings = false) {
+export const validateHedDataset = function (hedStrings, hedSchemas, ...args) {
+  let settings
+  if (args[0] === Object(args[0])) {
+    settings = {
+      checkForWarnings: args[0].checkForWarnings ?? false,
+      validateDatasetLevel: args[0].validateDatasetLevel ?? true,
+    }
+  } else {
+    settings = {
+      checkForWarnings: args[0] ?? false,
+      validateDatasetLevel: true,
+    }
+  }
   if (hedStrings.length === 0) {
     return [true, []]
   }
   const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas)
   const [definitions, definitionIssues] = parseDefinitions(parsedHedStrings)
-  const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, checkForWarnings)
+  const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, settings)
   let datasetIssues = []
-  if (stringsValid) {
+  if (stringsValid && settings.validateDatasetLevel) {
     datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
   }
   const issues = stringIssues.concat(...Object.values(parsingIssues), definitionIssues, datasetIssues)
@@ -160,12 +172,19 @@ export const validateHedDataset = function (hedStrings, hedSchemas, checkForWarn
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
-export const validateHedDatasetWithContext = function (
-  hedStrings,
-  contextHedStrings,
-  hedSchemas,
-  checkForWarnings = false,
-) {
+export const validateHedDatasetWithContext = function (hedStrings, contextHedStrings, hedSchemas, ...args) {
+  let settings
+  if (args[0] === Object(args[0])) {
+    settings = {
+      checkForWarnings: args[0].checkForWarnings ?? false,
+      validateDatasetLevel: args[0].validateDatasetLevel ?? true,
+    }
+  } else {
+    settings = {
+      checkForWarnings: args[0] ?? false,
+      validateDatasetLevel: true,
+    }
+  }
   if (hedStrings.length + contextHedStrings.length === 0) {
     return [true, []]
   }
@@ -173,9 +192,9 @@ export const validateHedDatasetWithContext = function (
   const [parsedContextHedStrings, contextParsingIssues] = parseHedStrings(contextHedStrings, hedSchemas)
   const combinedParsedHedStrings = parsedHedStrings.concat(parsedContextHedStrings)
   const [definitions, definitionIssues] = parseDefinitions(combinedParsedHedStrings)
-  const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, checkForWarnings)
+  const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, settings)
   let datasetIssues = []
-  if (stringsValid) {
+  if (stringsValid && settings.validateDatasetLevel) {
     datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
   }
   const issues = stringIssues.concat(

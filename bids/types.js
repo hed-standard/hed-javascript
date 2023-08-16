@@ -1,20 +1,28 @@
 import { sidecarValueHasHed } from './utils'
 import { Issue } from '../common/issues/issues'
+import parseTSV from './tsvParser'
 
+/**
+ * Base class for BIDS data.
+ * @deprecated Will be removed in v4.0.0.
+ */
 class BidsData {
   /**
    * A mapping from unparsed HED strings to ParsedHedString objects.
+   * @deprecated Will be removed in v4.0.0.
    * @type {Map<string, ParsedHedString>}
    */
   parsedStringMapping
   /**
    * A Mapping from definition names to their associated ParsedHedGroup objects.
+   * @deprecated Will be removed in v4.0.0.
    * @type {Map<string, ParsedHedGroup>}
    */
   definitions
   /**
    * A list of HED validation issues.
    * This will be converted to BidsIssue objects later on.
+   * @deprecated Will be removed in v4.0.0.
    * @type {Issue[]}
    */
   hedIssues
@@ -26,6 +34,9 @@ class BidsData {
   }
 }
 
+/**
+ * A BIDS file.
+ */
 class BidsFile extends BidsData {
   /**
    * The name of this file.
@@ -46,6 +57,9 @@ class BidsFile extends BidsData {
   }
 }
 
+/**
+ * A BIDS JSON file.
+ */
 export class BidsJsonFile extends BidsFile {
   /**
    * This file's JSON data.
@@ -59,10 +73,13 @@ export class BidsJsonFile extends BidsFile {
   }
 }
 
+/**
+ * A BIDS TSV file.
+ */
 export class BidsTsvFile extends BidsFile {
   /**
    * This file's parsed TSV data.
-   * @type {object}
+   * @type {{headers: string[], rows: string[][]}}
    */
   parsedTsv
   /**
@@ -70,10 +87,43 @@ export class BidsTsvFile extends BidsFile {
    * @type {string[]}
    */
   hedColumnHedStrings
+  /**
+   * The list of potential JSON sidecars.
+   * @type {string[]}
+   */
+  potentialSidecars
+  /**
+   * The pseudo-sidecar object representing the merged sidecar data.
+   * @type {BidsSidecar}
+   */
+  mergedSidecar
+  /**
+   * The extracted HED data for the merged pseudo-sidecar.
+   * @type {Map<string, string|Object<string, string>>}
+   */
+  sidecarHedData
 
-  constructor(name, parsedTsv, file) {
+  /**
+   * Constructor.
+   *
+   * @todo This interface is provisional and subject to modification in version 4.0.0.
+   *
+   * @param {string} name The name of the TSV file.
+   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
+   * @param {object} file The file object representing this file.
+   * @param {string[]} potentialSidecars The list of potential JSON sidecars.
+   * @param {object} mergedDictionary The merged sidecar data.
+   */
+  constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}) {
     super(name, file)
-    this.parsedTsv = parsedTsv
+    if (typeof tsvData === 'string') {
+      tsvData = parseTSV(tsvData)
+    }
+    this.parsedTsv = tsvData
+    this.potentialSidecars = potentialSidecars
+
+    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, null)
+    this.sidecarHedData = this.mergedSidecar.hedData
     this._parseHedColumn()
   }
 
@@ -90,29 +140,43 @@ export class BidsTsvFile extends BidsFile {
   }
 }
 
+/**
+ * A BIDS events.tsv file.
+ */
 export class BidsEventFile extends BidsTsvFile {
   /**
-   * The potential JSON sidecar data.
-   * @type {string[]}
+   * Constructor.
+   *
+   * @todo This interface is subject to modification in version 4.0.0.
+   *
+   * @param {string} name The name of the event TSV file.
+   * @param {string[]} potentialSidecars The list of potential JSON sidecars.
+   * @param {object} mergedDictionary The merged sidecar data.
+   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
+   * @param {object} file The file object representing this file.
    */
-  potentialSidecars
-  /**
-   * The pseudo-sidecar object representing the merged sidecar data.
-   * @type {BidsSidecar}
-   */
-  mergedSidecar
-  /**
-   * The extracted HED data for the merged pseudo-sidecar.
-   * @type {Map<string, string|Object<string, string>>}
-   */
-  sidecarHedData
+  constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
+    super(name, tsvData, file, potentialSidecars, mergedDictionary)
+  }
+}
 
-  constructor(name, potentialSidecars, mergedDictionary, parsedTsv, file) {
-    super(name, parsedTsv, file)
-    this.potentialSidecars = potentialSidecars
-
-    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, null)
-    this.sidecarHedData = this.mergedSidecar.hedData
+/**
+ * A BIDS TSV file other than an events.tsv file.
+ */
+export class BidsTabularFile extends BidsTsvFile {
+  /**
+   * Constructor.
+   *
+   * @todo This interface is subject to modification in version 4.0.0.
+   *
+   * @param {string} name The name of the TSV file.
+   * @param {string[]} potentialSidecars The list of potential JSON sidecars.
+   * @param {object} mergedDictionary The merged sidecar data.
+   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
+   * @param {object} file The file object representing this file.
+   */
+  constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
+    super(name, tsvData, file, potentialSidecars, mergedDictionary)
   }
 }
 
@@ -133,6 +197,13 @@ export class BidsSidecar extends BidsJsonFile {
    */
   hedCategoricalStrings
 
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of the sidecar file.
+   * @param {Object} sidecarData The raw JSON data.
+   * @param {Object} file The file object representing this file.
+   */
   constructor(name, sidecarData = {}, file) {
     super(name, sidecarData, file)
 
@@ -182,7 +253,11 @@ export class BidsSidecar extends BidsJsonFile {
   }
 }
 
-// TODO: Remove in v4.0.0.
+/**
+ * Fallback default dataset_description.json file.
+ * @deprecated Will be removed in v4.0.0.
+ * @type {BidsJsonFile}
+ */
 const fallbackDatasetDescription = new BidsJsonFile('./dataset_description.json', null)
 
 export class BidsDataset extends BidsData {

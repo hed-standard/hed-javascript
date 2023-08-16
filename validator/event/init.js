@@ -72,6 +72,7 @@ export const validateHedString = function (hedString, hedSchemas, ...args) {
     settings = {
       checkForWarnings: args[0] ?? false,
       expectValuePlaceholderString: args[1] ?? false,
+      definitionsAllowed: 'yes',
     }
   }
   const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, settings)
