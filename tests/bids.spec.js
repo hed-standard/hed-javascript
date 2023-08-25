@@ -700,6 +700,7 @@ describe('BIDS datasets', () => {
       { Name: 'BadVersion2', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.a.2'] },
       { Name: 'BadRemote1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.800.2'] },
       { Name: 'BadRemote2', BIDSVersion: '1.7.0', HEDVersion: '8.828.0' },
+      { Name: 'NoHedVersion', BIDSVersion: '1.7.0' },
     ],
   ]
 
@@ -1043,6 +1044,7 @@ describe('BIDS datasets', () => {
           badVersion2: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[7]),
           badRemote1: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[8]),
           badRemote2: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[9]),
+          noHedVersion: new BidsDataset([goodEvents[2]], [], badDatasetDescriptions[10]),
         }
 
         const expectedIssues = {
@@ -1116,6 +1118,12 @@ describe('BIDS datasets', () => {
                   'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schemas/main/standard_schema/hedxml/HED8.828.0.xml with status code 404:\n404: Not Found',
               }),
               badDatasetDescriptions[9].file,
+            ),
+          ],
+          noHedVersion: [
+            new BidsHedIssue(
+              generateIssue('invalidSchemaSpecification', { spec: 'no schema available' }),
+              badDatasetDescriptions[10].file,
             ),
           ],
         }
