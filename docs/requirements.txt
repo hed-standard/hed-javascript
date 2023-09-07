@@ -1,7 +1,6 @@
 portalocker>=2.7.0
 semantic_version>=2.10.0
-myst-parser>=1.0.0
-Sphinx==5.2.2
+myst-parser>=0.18.1
+Sphinx>=5.2.2
 sphinx_rtd_theme>=1.0.0
 sphinx-js>=3.2.1
-typescript>=0.0.12
