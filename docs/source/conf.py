@@ -14,7 +14,7 @@ import os
 import sys
 import sphinx_rtd_theme
 from datetime import date
-
+import subprocess
 
 sys.path.insert(0, os.path.abspath('../../../'))
 
@@ -25,7 +25,8 @@ author = 'HED Working Group'
 
 # Add the Node.js dependency
 install_requires = [
-    'nodejs>=16.13.2'
+    'nodejs>=16.13.2',
+    'python>=3.7'
 ]
 
 # The full version, including alpha/beta/rc tags
@@ -55,7 +56,6 @@ extensions = [
     "sphinx_js"
 ]
 
-js_language = 'typescript'
 js_source_path = '../../'
 
 primary_domain = 'js'
@@ -98,7 +98,7 @@ html_theme_options = {
     'vcs_pageview_mode': '',
     'style_nav_header_background': 'LightSlateGray',
     # Toc options
-    'collapse_navigation': True,
+    'collapse_navigation': False,
     'sticky_navigation': True,
     'navigation_depth': 4,
     'includehidden': True,
@@ -108,3 +108,21 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+def run_jsdoc(app):
+    source_dir = app.builder.srcdir
+    jsdoc_output_dir = os.path.join(source_dir, 'jsdoc_output')
+    jsdoc_command = [
+        'npx',  # Use npx to run locally installed npm packages
+        'jsdoc',
+        '-c', os.path.join(source_dir, 'path/to/jsdoc/config.json'),  # Adjust the path to your JSDoc config
+        '-d', jsdoc_output_dir,
+        'path/to/javascript/files',  # Adjust the path to your JavaScript files
+    ]
+    subprocess.call(jsdoc_command)
+
+
+def setup(app):
+    app.connect('builder-inited', run_jsdoc)
+

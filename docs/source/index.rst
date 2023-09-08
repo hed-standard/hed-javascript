@@ -14,14 +14,14 @@ Hierarchical Event Descriptor (HED) JavaScript Tools
 Note:  this is a work in progress. More information is coming.
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 5
    :caption: Contents:
 
    introduction.md
    user_guide.rst
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 5
    :caption: HED JavaScript API:
 
    api2.rst
