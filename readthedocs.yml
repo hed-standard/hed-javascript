@@ -19,3 +19,11 @@ sphinx:
 python:
   install:
     - requirements: docs/requirements.txt
+
+jobs:
+  post_install:
+    # Install dependencies defined in your ``package.json``
+    - npm ci
+    # Install any other extra dependencies to build the docs
+    - npm install -g jsdoc
+    - npm run generate-docs
