@@ -10,7 +10,7 @@ import { generateIssue } from '../common/issues/issues'
  * @param {string} hedString The source HED string.
  * @param {object} parameters The parameters to the format string.
  * @param {number[]} bounds The bounds of the problem tag.
- * @return {Issue} The issue object.
+ * @returns {Issue} The issue object.
  */
 export default function (code, hedString, parameters = {}, bounds = []) {
   parameters.tag = hedString.slice(bounds[0], bounds[1])

@@ -23,7 +23,7 @@ const isHed3Schema = function (xmlData) {
  * Build a schema attributes object from schema XML data.
  *
  * @param {object} xmlData The schema XML data.
- * @return {SchemaAttributes|SchemaEntries} The schema attributes object.
+ * @returns {SchemaAttributes|SchemaEntries} The schema attributes object.
  */
 export const buildSchemaAttributesObject = function (xmlData) {
   const rootElement = xmlData.HED
@@ -56,7 +56,7 @@ const buildSchemaObject = function (xmlData) {
  *
  * @param {{path: string?, version: string?, libraries: Object<string, {path: string?, version: string?, library: string?}>?}} schemaDef The description of which schemas to use.
  * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
- * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
+ * @returns {Promise<never>|Promise<Schemas>} The schema container object or an error.
  * @deprecated
  */
 export const buildSchema = function (schemaDef = {}, useFallback = true) {
@@ -84,7 +84,7 @@ export const buildSchema = function (schemaDef = {}, useFallback = true) {
  * Build a schema collection object from a schema specification.
  *
  * @param {Map<string, SchemaSpec>|SchemasSpec} schemaSpecs The description of which schemas to use.
- * @return {Promise<never>|Promise<[Schemas, Issue[]]>} The schema container object and any issues found.
+ * @returns {Promise<never>|Promise<[Schemas, Issue[]]>} The schema container object and any issues found.
  */
 export const buildSchemas = function (schemaSpecs) {
   if (schemaSpecs instanceof SchemasSpec) {

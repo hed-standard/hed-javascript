@@ -54,7 +54,7 @@ export class Schema {
    *
    * @param {string} tag The HED tag to check.
    * @param {string} tagAttribute The attribute to check for.
-   * @return {boolean} Whether this tag has this attribute.
+   * @returns {boolean} Whether this tag has this attribute.
    * @abstract
    */
   // eslint-disable-next-line no-unused-vars
@@ -84,7 +84,7 @@ export class Hed2Schema extends Schema {
    *
    * @param {string} tag The HED tag to check.
    * @param {string} tagAttribute The attribute to check for.
-   * @return {boolean} Whether this tag has this attribute.
+   * @returns {boolean} Whether this tag has this attribute.
    */
   tagHasAttribute(tag, tagAttribute) {
     return this.attributes.tagHasAttribute(tag, tagAttribute)
@@ -121,7 +121,7 @@ export class Hed3Schema extends Schema {
    *
    * @param {string} tag The HED tag to check.
    * @param {string} tagAttribute The attribute to check for.
-   * @return {boolean} Whether this tag has this attribute.
+   * @returns {boolean} Whether this tag has this attribute.
    */
   tagHasAttribute(tag, tagAttribute) {
     return this.entries.tagHasAttribute(tag, tagAttribute)
@@ -235,7 +235,7 @@ export class Schemas {
 
   /**
    * Whether this schema collection is for syntactic validation only.
-   * @return {boolean}
+   * @returns {boolean}
    */
   get isSyntaxOnly() {
     return this.generation === 0
@@ -243,7 +243,7 @@ export class Schemas {
 
   /**
    * Whether this schema collection comprises HED 3 schemas.
-   * @return {boolean}
+   * @returns {boolean}
    */
   get isHed3() {
     return this.generation === 3

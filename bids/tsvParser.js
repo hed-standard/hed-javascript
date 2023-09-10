@@ -12,7 +12,7 @@ const isContentfulRow = (row) => row && !/^\s*$/.test(row)
  * Parse a TSV file.
  *
  * @param {string} contents The contents of a TSV file.
- * @return {{headers: string[], rows: string[][]}} The parsed contents of the TSV file.
+ * @returns {{headers: string[], rows: string[][]}} The parsed contents of the TSV file.
  */
 function parseTSV(contents) {
   const content = {

@@ -18,7 +18,7 @@ const childToParent = {
  *
  * @param {object} element An xml2js element.
  * @param {string} query An XPath query.
- * @return {object[]} An array of xml2js elements matching the query.
+ * @returns {object[]} An array of xml2js elements matching the query.
  */
 export const find = function (element, query) {
   const { elementName, attributeName } = parseXPath(query)
@@ -38,7 +38,7 @@ export const find = function (element, query) {
  * This is a minimal parser only suitable for this package.
  *
  * @param {string} query An XPath query.
- * @return {object} The parsed search parameters.
+ * @returns {object} The parsed search parameters.
  */
 const parseXPath = function (query) {
   const nodeQuery = /^\/\/(\w+)$/
@@ -66,7 +66,7 @@ const parseXPath = function (query) {
  * @param {object} element An xml2js element.
  * @param {string} elementName The element name.
  * @param {string} attributeName The attribute name.
- * @return {object[]} An array of xml2js elements with the given name and attribute.
+ * @returns {object[]} An array of xml2js elements with the given name and attribute.
  */
 const search = function (element, elementName, attributeName) {
   let result = []

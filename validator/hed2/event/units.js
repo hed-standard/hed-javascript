@@ -13,7 +13,7 @@ const SIUnitSymbolModifierKey = 'SIUnitSymbolModifier'
  * @param {string} originalTagUnitValue The unformatted version of the value.
  * @param {string[]} tagUnitClassUnits The list of valid units for this tag.
  * @param {SchemaAttributes} hedSchemaAttributes The collection of schema attributes.
- * @return {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
+ * @returns {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
  */
 export const validateUnits = function (originalTagUnitValue, tagUnitClassUnits, hedSchemaAttributes) {
   const validUnits = getAllUnits(hedSchemaAttributes)
@@ -64,7 +64,7 @@ export const validateUnits = function (originalTagUnitValue, tagUnitClassUnits, 
  *
  * @param {string} unit A unit string.
  * @param {SchemaAttributes} hedSchemaAttributes The collection of schema attributes.
- * @return {boolean} Whether the unit is a valid prefix unit.
+ * @returns {boolean} Whether the unit is a valid prefix unit.
  */
 const isPrefixUnit = function (unit, hedSchemaAttributes) {
   if (unitPrefixType in hedSchemaAttributes.unitAttributes) {
@@ -79,7 +79,7 @@ const isPrefixUnit = function (unit, hedSchemaAttributes) {
  *
  * @param {string} unit A unit string.
  * @param {SchemaAttributes} hedSchemaAttributes The collection of schema attributes.
- * @return {string[]} The list of valid derivative units.
+ * @returns {string[]} The list of valid derivative units.
  */
 const getValidDerivativeUnits = function (unit, hedSchemaAttributes) {
   const pluralUnits = [unit]

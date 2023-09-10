@@ -39,7 +39,7 @@ export const capitalizeString = function (string) {
  * Determine if a string is a valid clock face time.
  *
  * @param {string} timeString The string to check.
- * @return {boolean} Whether the string is a valid clock face time.
+ * @returns {boolean} Whether the string is a valid clock face time.
  */
 export const isClockFaceTime = function (timeString) {
   return date.isValid(timeString, 'HH:mm') || date.isValid(timeString, 'HH:mm:ss')
@@ -49,7 +49,7 @@ export const isClockFaceTime = function (timeString) {
  * Determine if a string is a valid date-time.
  *
  * @param {string} dateTimeString The string to check.
- * @return {boolean} Whether the string is a valid date-time.
+ * @returns {boolean} Whether the string is a valid date-time.
  */
 export const isDateTime = function (dateTimeString) {
   return dateIsValid(parseISO(dateTimeString)) && rfc3339ish.test(dateTimeString)
@@ -59,7 +59,7 @@ export const isDateTime = function (dateTimeString) {
  * Determine if a string is a valid number.
  *
  * @param {string} numericString The string to check.
- * @return {boolean} Whether the string is a valid number.
+ * @returns {boolean} Whether the string is a valid number.
  */
 export const isNumber = function (numericString) {
   return digitExpression.test(numericString)
@@ -72,7 +72,7 @@ export const isNumber = function (numericString) {
  *
  * @param {string[]} strings The literal parts of the template string.
  * @param {(number|string)} keys The keys of the closure arguments.
- * @return {function(...[*]): string} A closure to fill the string template.
+ * @returns {function(...[*]): string} A closure to fill the string template.
  */
 export const stringTemplate = function (strings, ...keys) {
   return function (...values) {

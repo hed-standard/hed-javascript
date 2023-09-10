@@ -66,7 +66,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @param {ParsedHedGroup} group The parsed HED tag group.
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} shortTag The short tag to search for.
-   * @return {null|ParsedHedTag[]} The tag(s) matching the short tag.
+   * @returns {null|ParsedHedTag[]} The tag(s) matching the short tag.
    */
   static findGroupTags(group, hedSchemas, shortTag) {
     if (!hedSchemas.isHed3) {
@@ -90,7 +90,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * The {@code Definition} tags associated with this HED tag group.
-   * @return {ParsedHedTag[]}
+   * @returns {ParsedHedTag[]}
    */
   get definitionTags() {
     return this.specialTags.get('Definition')
@@ -98,7 +98,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * The {@code Def} tags associated with this HED tag group.
-   * @return {ParsedHedTag[]}
+   * @returns {ParsedHedTag[]}
    */
   get defTags() {
     return this.specialTags.get('Def')
@@ -106,7 +106,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * The {@code Def-expand} tags associated with this HED tag group.
-   * @return {ParsedHedTag[]}
+   * @returns {ParsedHedTag[]}
    */
   get defExpandTags() {
     return this.specialTags.get('Def-expand')
@@ -114,7 +114,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Whether this HED tag group is a definition group.
-   * @return {boolean}
+   * @returns {boolean}
    */
   get isDefinitionGroup() {
     return this.specialTags.has('Definition')
@@ -122,7 +122,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Whether this HED tag group has a {@code Def} tag.
-   * @return {boolean}
+   * @returns {boolean}
    */
   get isDefGroup() {
     return this.specialTags.has('Def')
@@ -130,7 +130,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Whether this HED tag group has a {@code Def-expand} tag.
-   * @return {boolean}
+   * @returns {boolean}
    */
   get isDefExpandGroup() {
     return this.specialTags.has('Def-expand')
@@ -138,7 +138,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Whether this HED tag group is an onset group.
-   * @return {boolean}
+   * @returns {boolean}
    */
   get isOnsetGroup() {
     return this.specialTags.has('Onset')
@@ -146,7 +146,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Whether this HED tag group is an offset group.
-   * @return {boolean}
+   * @returns {boolean}
    */
   get isOffsetGroup() {
     return this.specialTags.has('Offset')

@@ -6,7 +6,7 @@ import { ParsedHed3Tag } from '../validator/parser/parsedHedTag'
  * Determine the HED generation for a base schema version number.
  *
  * @param {string} version A HED base schema version number.
- * @return {number} The HED generation the base schema belongs to.
+ * @returns {number} The HED generation the base schema belongs to.
  */
 export const getGenerationForSchemaVersion = function (version) {
   if (lt(version, '4.0.0')) {
@@ -29,7 +29,7 @@ export const mergeParsingIssues = function (previousIssues, currentIssues) {
  *
  * @param {Schemas} hedSchemas The HED schema collection.
  * @param {string} shortTag A short-form HED 3 tag.
- * @return {Map<Schema, ParsedHedTag>} A Map mapping a {@link Schema} to a {@link ParsedHedTag} object representing the full tag.
+ * @returns {Map<Schema, ParsedHedTag>} A Map mapping a {@link Schema} to a {@link ParsedHedTag} object representing the full tag.
  */
 export const getParsedParentTags = function (hedSchemas, shortTag) {
   const parentTags = new Map()

@@ -95,7 +95,7 @@ export class ParsedHed2Tag extends ParsedHedTag {
 
   /**
    * Get the legal units for a particular HED tag.
-   * @return {string[]}
+   * @returns {string[]}
    */
   get validUnits() {
     return this._memoize('validUnits', () => {
