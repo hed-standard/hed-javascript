@@ -405,11 +405,6 @@ export class Hed3Validator extends HedValidator {
         }
         tagGroupValidated = true
         for (const innerTag of tag.tagIterator()) {
-          const nestedDefinitionParentTags = [
-            ...definitionParentTags.values(),
-            ...defExpandParentTags.values(),
-            ...defParentTags.values(),
-          ]
           if (innerTag instanceof ParsedHedColumnSplice) {
             this.pushIssue('curlyBracesInDefinition', {
               definition: definitionName,
@@ -418,6 +413,11 @@ export class Hed3Validator extends HedValidator {
             })
             continue
           }
+          const nestedDefinitionParentTags = [
+            ...definitionParentTags.values(),
+            ...defExpandParentTags.values(),
+            ...defParentTags.values(),
+          ]
           if (
             nestedDefinitionParentTags.some((parentTag) => {
               return innerTag.isDescendantOf(parentTag)
