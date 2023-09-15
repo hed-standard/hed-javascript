@@ -1,6 +1,7 @@
 import flattenDeep from 'lodash/flattenDeep'
 
 import { ParsedHedTag, ParsedHed3Tag } from './parsedHedTag'
+import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
 import { Schema, Schemas } from '../../common/schema/types'
 import { generateIssue } from '../../common/issues/issues'
@@ -12,10 +13,12 @@ import { ParsedHed2Tag } from '../hed2/parser/parsedHed2Tag'
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
+const openingColumnCharacter = '{'
+const closingColumnCharacter = '}'
 const commaCharacter = ','
 const colonCharacter = ':'
 const slashCharacter = '/'
-const invalidCharacters = new Set(['{', '}', '[', ']', '~', '"'])
+const invalidCharacters = new Set(['[', ']', '~', '"'])
 const invalidCharactersOutsideOfValues = new Set([':'])
 
 const generationToClass = [
@@ -48,6 +51,13 @@ class GroupSpec {
 
   get bounds() {
     return [this.start, this.finish]
+  }
+}
+
+class ColumnSpliceSpec {
+  constructor(name, start, end) {
+    this.tag = name.trim()
+    this.bounds = [start, end]
   }
 }
 
@@ -86,6 +96,15 @@ class HedStringTokenizer {
     }
     this.pushTag(this.hedString.length)
 
+    if (this.columnSpliceIndex >= 0) {
+      this.syntaxIssues.push(
+        generateIssue('unclosedCurlyBrace', {
+          index: this.columnSpliceIndex,
+          string: this.hedString,
+        }),
+      )
+    }
+
     this.unwindGroupStack()
 
     const tagSpecs = this.currentGroupStack.pop()
@@ -106,6 +125,7 @@ class HedStringTokenizer {
     this.resetStartingIndex = false
     this.slashFound = false
     this.librarySchema = ''
+    this.columnSpliceIndex = -1
     this.currentGroupStack = [[]]
     this.parenthesesStack = [new GroupSpec(0, this.hedString.length)]
   }
@@ -114,6 +134,8 @@ class HedStringTokenizer {
     const dispatchTable = {
       [openingGroupCharacter]: (i, character) => this.openingGroupCharacter(i),
       [closingGroupCharacter]: (i, character) => this.closingGroupCharacter(i),
+      [openingColumnCharacter]: (i, character) => this.openingColumnCharacter(i),
+      [closingColumnCharacter]: (i, character) => this.closingColumnCharacter(i),
       [commaCharacter]: (i, character) => this.pushTag(i),
       [colonCharacter]: (i, character) => this.colonCharacter(character),
       [slashCharacter]: (i, character) => this.slashCharacter(character),
@@ -145,6 +167,44 @@ class HedStringTokenizer {
       return
     }
     this.closeGroup(i)
+  }
+
+  openingColumnCharacter(i) {
+    if (this.columnSpliceIndex >= 0) {
+      this.syntaxIssues.push(
+        generateIssue('nestedCurlyBrace', {
+          index: i,
+          string: this.hedString,
+        }),
+      )
+      return
+    }
+    this.columnSpliceIndex = i
+  }
+
+  closingColumnCharacter(i) {
+    if (this.columnSpliceIndex < 0) {
+      this.syntaxIssues.push(
+        generateIssue('unopenedCurlyBrace', {
+          index: i,
+          string: this.hedString,
+        }),
+      )
+      return
+    }
+    if (!stringIsEmpty(this.currentTag)) {
+      this.currentGroupStack[this.groupDepth].push(new ColumnSpliceSpec(this.currentTag, this.startingIndex, i))
+    } else {
+      this.syntaxIssues.push(
+        generateIssue('emptyCurlyBrace', {
+          bounds: [this.startingIndex, i],
+          string: this.hedString,
+        }),
+      )
+    }
+    this.columnSpliceIndex = -1
+    this.resetStartingIndex = true
+    this.slashFound = false
   }
 
   colonCharacter(character) {
@@ -267,10 +327,15 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
   const syntaxIssues = []
   const ParsedHedTagClass = generationToClass[hedSchemas.generation]
 
-  const createParsedTag = ({ library: librarySchema, tag: originalTag, bounds: originalBounds }) => {
-    const parsedTag = new ParsedHedTagClass(originalTag, hedString, originalBounds, hedSchemas, librarySchema)
-    conversionIssues.push(...parsedTag.conversionIssues)
-    return parsedTag
+  const createParsedTag = (tagSpec) => {
+    if (tagSpec instanceof TagSpec) {
+      const parsedTag = new ParsedHedTagClass(tagSpec.tag, hedString, tagSpec.bounds, hedSchemas, tagSpec.library)
+      conversionIssues.push(...parsedTag.conversionIssues)
+      return parsedTag
+    } else if (tagSpec instanceof ColumnSpliceSpec) {
+      const parsedTag = new ParsedHedColumnSplice(tagSpec.tag, tagSpec.bounds)
+      return parsedTag
+    }
   }
   const createParsedGroups = (tags, groupSpecs) => {
     const tagGroups = []

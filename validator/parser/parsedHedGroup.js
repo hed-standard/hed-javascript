@@ -5,6 +5,7 @@ import { getParsedParentTags } from '../../utils/hedData'
 import { getTagName } from '../../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { ParsedHedTag } from './parsedHedTag'
+import ParsedHedColumnSplice from './parsedHedColumnSplice'
 
 /**
  * A parsed HED tag group.
@@ -497,7 +498,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   *tagIterator() {
     for (const innerTag of this.tags) {
-      if (innerTag instanceof ParsedHedTag) {
+      if (innerTag instanceof ParsedHedTag || innerTag instanceof ParsedHedColumnSplice) {
         yield innerTag
       } else if (innerTag instanceof ParsedHedGroup) {
         yield* innerTag.tagIterator()

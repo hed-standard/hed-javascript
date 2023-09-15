@@ -7,12 +7,12 @@ export default {
     level: 'error',
     message: stringTemplate`Number of opening and closing parentheses are unequal. ${'opening'} opening parentheses. ${'closing'} closing parentheses.`,
   },
-  unopenedParentheses: {
+  unopenedParenthesis: {
     hedCode: 'PARENTHESES_MISMATCH',
     level: 'error',
     message: stringTemplate`Closing parenthesis at index ${'index'} of string "${'string'}" does not have a corresponding opening parenthesis.`,
   },
-  unclosedParentheses: {
+  unclosedParenthesis: {
     hedCode: 'PARENTHESES_MISMATCH',
     level: 'error',
     message: stringTemplate`Opening parenthesis at index ${'index'} of string "${'string'}" does not have a corresponding closing parenthesis.`,
@@ -194,6 +194,32 @@ export default {
     hedCode: 'SCHEMA_DUPLICATE_NODE',
     level: 'error',
     message: stringTemplate`Source HED schema is invalid as it contains duplicate tags.`,
+  },
+  // Curly brace issues
+  unopenedCurlyBrace: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Closing curly brace at index ${'index'} of string "${'string'}" does not have a corresponding opening curly brace.`,
+  },
+  unclosedCurlyBrace: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Opening curly brace at index ${'index'} of string "${'string'}" does not have a corresponding closing curly brace.`,
+  },
+  nestedCurlyBrace: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Opening curly brace at index ${'index'} of string "${'string'}" when curly brace expression is already open.`,
+  },
+  emptyCurlyBrace: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Curly brace expression at indices (${0}, ${1}) is empty.`,
+  },
+  curlyBracesInDefinition: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Curly brace expression "${'column'}" found in definition "${'definition'}". Indices (${0}, ${1}).`,
   },
   // Schema issues
   invalidSchemaNickname: {

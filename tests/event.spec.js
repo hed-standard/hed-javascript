@@ -183,15 +183,13 @@ describe('HED string and event validation', () => {
         }
         const expectedIssues = {
           openingBrace: [
-            generateIssue('invalidCharacter', {
-              character: '{',
+            generateIssue('unclosedCurlyBrace', {
               index: 47,
               string: testStrings.openingBrace,
             }),
           ],
           closingBrace: [
-            generateIssue('invalidCharacter', {
-              character: '}',
+            generateIssue('unopenedCurlyBrace', {
               index: 47,
               string: testStrings.closingBrace,
             }),

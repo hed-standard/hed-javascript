@@ -8,6 +8,7 @@ import { getParsedParentTags } from '../../utils/hedData'
 import { getParentTag, getTagName, hedStringIsAGroup, replaceTagNameWithPound } from '../../utils/hedStrings'
 import { getCharacterCount, isNumber } from '../../utils/string'
 import { HedValidator } from './validator'
+import ParsedHedColumnSplice from '../parser/parsedHedColumnSplice'
 
 const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
@@ -409,6 +410,14 @@ export class Hed3Validator extends HedValidator {
             ...defExpandParentTags.values(),
             ...defParentTags.values(),
           ]
+          if (innerTag instanceof ParsedHedColumnSplice) {
+            this.pushIssue('curlyBracesInDefinition', {
+              definition: definitionName,
+              bounds: innerTag.originalBounds,
+              column: innerTag.originalTag,
+            })
+            continue
+          }
           if (
             nestedDefinitionParentTags.some((parentTag) => {
               return innerTag.isDescendantOf(parentTag)
