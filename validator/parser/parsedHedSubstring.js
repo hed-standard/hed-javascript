@@ -30,7 +30,7 @@ export default class ParsedHedSubstring extends Memoizer {
   /**
    * Override of {@link Object.prototype.toString}.
    *
-   * @return {string} The original form of this HED substring.
+   * @returns {string} The original form of this HED substring.
    */
   toString() {
     return this.originalTag

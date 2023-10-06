@@ -749,7 +749,7 @@ describe('BIDS datasets', () => {
    * @param {Object<string,BidsDataset>} testDatasets The datasets to test with.
    * @param {Object<string,BidsIssue[]>} expectedIssues The expected issues.
    * @param {SchemasSpec} versionSpec The schema version to test with.
-   * @return {Promise}
+   * @returns {Promise}
    */
   const validator = (testDatasets, expectedIssues, versionSpec) => {
     return Promise.all(

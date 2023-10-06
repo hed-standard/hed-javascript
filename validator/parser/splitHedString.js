@@ -70,7 +70,7 @@ class HedStringTokenizer {
   /**
    * Split the HED string into delimiters and tags.
    *
-   * @return {[TagSpec[], GroupSpec, Object<string, Issue[]>]} The tag specifications, group bounds, and any issues found.
+   * @returns {[TagSpec[], GroupSpec, Object<string, Issue[]>]} The tag specifications, group bounds, and any issues found.
    */
   tokenize() {
     this.initializeTokenizer()
@@ -205,7 +205,7 @@ class HedStringTokenizer {
  *
  * @param {string} hedString The HED string to be split.
  * @param {TagSpec[]} tagSpecs The tag specifications.
- * @return {Object<string, Issue[]>} Any issues found.
+ * @returns {Object<string, Issue[]>} Any issues found.
  */
 const checkForInvalidCharacters = function (hedString, tagSpecs) {
   const syntaxIssues = []
@@ -260,7 +260,7 @@ const checkTagForInvalidCharacters = function (hedString, tagSpec, tag, invalidS
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @param {TagSpec[]} tagSpecs The tag specifications.
  * @param {GroupSpec} groupSpecs The bounds of the tag groups.
- * @return {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
+ * @returns {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
  */
 const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) {
   const conversionIssues = []
@@ -304,7 +304,7 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
  *
  * @param {string} hedString The HED string to be split.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @return {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
+ * @returns {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
  */
 export default function splitHedString(hedString, hedSchemas) {
   const [tagSpecs, groupBounds, splitIssues] = new HedStringTokenizer(hedString).tokenize()

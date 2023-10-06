@@ -29,7 +29,7 @@ const getTagSlashIndices = function (tag) {
  * Get the levels of a tag.
  *
  * @param {string} tag A HED tag string.
- * @return {string[]} The levels of this tag.
+ * @returns {string[]} The levels of this tag.
  */
 export const getTagLevels = function (tag) {
   const tagSlashIndices = getTagSlashIndices(tag)
@@ -41,7 +41,7 @@ export const getTagLevels = function (tag) {
  *
  * @param {string} tag A HED tag
  * @param {string} character The character to use as a separator.
- * @return {string} The last part of the tag using the given separator.
+ * @returns {string} The last part of the tag using the given separator.
  */
 export const getTagName = function (tag, character = '/') {
   const lastSlashIndex = tag.lastIndexOf(character)

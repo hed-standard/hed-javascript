@@ -14,7 +14,7 @@ import { Issue } from '../../common/issues/issues'
  * @param {Schemas} hedSchemas The HED schemas to validate against.
  * @param {Object<string, boolean>} options Any validation options passed in.
  * @param {Map<string, ParsedHedGroup>?} definitions The definitions for this HED dataset.
- * @return {[ParsedHedString, Issue[], HedValidator]} The parsed HED string, the actual HED schema collection to use, any issues found, and whether to perform semantic validation.
+ * @returns {[ParsedHedString, Issue[], HedValidator]} The parsed HED string, the actual HED schema collection to use, any issues found, and whether to perform semantic validation.
  */
 const initiallyValidateHedString = function (hedString, hedSchemas, options, definitions = null) {
   const doSemanticValidation = hedSchemas instanceof Schemas

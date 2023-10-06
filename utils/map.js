@@ -6,7 +6,7 @@ import isEqual from 'lodash/isEqual'
  * @template K,V
  * @param {[K,V][]} list A list of key-value pairs.
  * @param {function(V, V): boolean} equalityFunction An equality function for the value data.
- * @return {[Map<K, V>, [K,V][]]} A map and any non-equal duplicate keys found.
+ * @returns {[Map<K, V>, [K,V][]]} A map and any non-equal duplicate keys found.
  */
 export const filterNonEqualDuplicates = function (list, equalityFunction = isEqual) {
   const map = new Map()
