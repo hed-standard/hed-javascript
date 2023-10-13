@@ -498,7 +498,22 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   *tagIterator() {
     for (const innerTag of this.tags) {
-      if (innerTag instanceof ParsedHedTag || innerTag instanceof ParsedHedColumnSplice) {
+      if (innerTag instanceof ParsedHedTag) {
+        yield innerTag
+      } else if (innerTag instanceof ParsedHedGroup) {
+        yield* innerTag.tagIterator()
+      }
+    }
+  }
+
+  /**
+   * Iterator over the parsed HED column splices in this HED tag group.
+   *
+   * @yield {ParsedHedColumnSplice} This tag group's HED column splices.
+   */
+  *columnSpliceIterator() {
+    for (const innerTag of this.tags) {
+      if (innerTag instanceof ParsedHedColumnSplice) {
         yield innerTag
       } else if (innerTag instanceof ParsedHedGroup) {
         yield* innerTag.tagIterator()

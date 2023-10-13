@@ -1,5 +1,6 @@
 import { ParsedHedTag } from './parsedHedTag'
 import ParsedHedGroup from './parsedHedGroup'
+import ParsedHedColumnSplice from './parsedHedColumnSplice'
 
 /**
  * A parsed HED string.
@@ -26,6 +27,11 @@ export default class ParsedHedString {
    */
   tags
   /**
+   * All the column splices in the string.
+   * @type ParsedHedColumnSplice[]
+   */
+  columnSplices
+  /**
    * The top-level tag groups in the string, split into arrays.
    * @type ParsedHedTag[][]
    */
@@ -45,9 +51,16 @@ export default class ParsedHedString {
     this.hedString = hedString
     this.tagGroups = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedGroup)
     this.topLevelTags = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)
+    /**
+     * @type {ParsedHedColumnSplice[]}
+     */
+    const topLevelColumnSplices = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedColumnSplice)
 
     const subgroupTags = this.tagGroups.flatMap((tagGroup) => Array.from(tagGroup.tagIterator()))
     this.tags = this.topLevelTags.concat(subgroupTags)
+
+    const subgroupColumnSplices = this.tagGroups.flatMap((tagGroup) => Array.from(tagGroup.columnSpliceIterator()))
+    this.columnSplices = topLevelColumnSplices.concat(subgroupColumnSplices)
 
     this.topLevelTagGroups = this.tagGroups.map((tagGroup) =>
       tagGroup.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag),
