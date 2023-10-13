@@ -404,15 +404,14 @@ export class Hed3Validator extends HedValidator {
           continue
         }
         tagGroupValidated = true
+        for (const columnSplice of tag.columnSpliceIterator()) {
+          this.pushIssue('curlyBracesInDefinition', {
+            definition: definitionName,
+            bounds: columnSplice.originalBounds,
+            column: columnSplice.originalTag,
+          })
+        }
         for (const innerTag of tag.tagIterator()) {
-          if (innerTag instanceof ParsedHedColumnSplice) {
-            this.pushIssue('curlyBracesInDefinition', {
-              definition: definitionName,
-              bounds: innerTag.originalBounds,
-              column: innerTag.originalTag,
-            })
-            continue
-          }
           const nestedDefinitionParentTags = [
             ...definitionParentTags.values(),
             ...defExpandParentTags.values(),

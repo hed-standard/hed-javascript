@@ -516,7 +516,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
       if (innerTag instanceof ParsedHedColumnSplice) {
         yield innerTag
       } else if (innerTag instanceof ParsedHedGroup) {
-        yield* innerTag.tagIterator()
+        yield* innerTag.columnSpliceIterator()
       }
     }
   }
