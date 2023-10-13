@@ -283,6 +283,11 @@ export default {
     level: 'warning',
     message: stringTemplate`Key "${'key'}" was referenced in column "${'column'}" of file "${'file'}", but it was not found in any associated sidecar.`,
   },
+  illegalSidecarHedType: {
+    hedCode: 'SIDECAR_INVALID',
+    level: 'error',
+    message: stringTemplate`The HED data for sidecar key "${'key'}" of file "${'file'}" is not either a key-value dictionary or a string.`,
+  },
   // Generic errors
   genericError: {
     hedCode: 'GENERIC_ERROR',

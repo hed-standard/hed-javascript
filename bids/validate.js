@@ -3,6 +3,7 @@ import { validateHedString } from '../validator/event'
 import { BidsDataset, BidsEventFile, BidsHedIssue, BidsIssue } from './types'
 import { buildBidsSchemas } from './schema'
 import { generateIssue, Issue, IssueError } from '../common/issues/issues'
+import ParsedHedString from '../validator/parser/parsedHedString'
 
 /**
  * Validate a BIDS dataset.
@@ -75,18 +76,43 @@ function validateSidecars(sidecarData, hedSchemas) {
   const issues = []
   // validate the HED strings in the json sidecars
   for (const sidecar of sidecarData) {
-    const valueStringIssues = validateStrings(sidecar.hedValueStrings, hedSchemas, sidecar.file, {
-      expectValuePlaceholderString: true,
-      definitionsAllowed: 'no',
-    })
-    const categoricalStringIssues = validateStrings(sidecar.hedCategoricalStrings, hedSchemas, sidecar.file, {
-      expectValuePlaceholderString: false,
-      definitionsAllowed: 'exclusive',
-    })
-    issues.push(...valueStringIssues, ...categoricalStringIssues)
+    issues.push(...convertHedIssuesToBidsIssues(sidecar.parseHedStrings(hedSchemas), sidecar.file))
+    const sidecarIssues = validateSidecar(sidecar, hedSchemas)
+    issues.push(...sidecarIssues)
   }
   const sidecarErrorsFound = issues.some((issue) => issue.isError())
   return [sidecarErrorsFound, issues]
+}
+
+function validateSidecar(sidecar, hedSchemas) {
+  const issues = []
+  for (const hedData of sidecar.parsedHedData.values()) {
+    if (hedData instanceof ParsedHedString) {
+      const options = {
+        checkForWarnings: true,
+        expectValuePlaceholderString: true,
+        definitionsAllowed: 'no',
+      }
+      issues.push(...validateSidecarString(hedData, sidecar, options, hedSchemas))
+    } else if (hedData instanceof Map) {
+      for (const valueString of hedData.values()) {
+        const options = {
+          checkForWarnings: true,
+          expectValuePlaceholderString: false,
+          definitionsAllowed: 'exclusive',
+        }
+        issues.push(...validateSidecarString(valueString, sidecar, options, hedSchemas))
+      }
+    } else {
+      throw new Error('Unexpected type found in sidecar parsedHedData map.')
+    }
+  }
+  return issues
+}
+
+function validateSidecarString(sidecarString, sidecar, options, hedSchemas) {
+  const [, hedIssues] = validateHedString(sidecarString, hedSchemas, options)
+  return convertHedIssuesToBidsIssues(hedIssues, sidecar.file)
 }
 
 /**

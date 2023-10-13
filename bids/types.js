@@ -1,6 +1,7 @@
 import { sidecarValueHasHed } from './utils'
-import { Issue } from '../common/issues/issues'
+import { generateIssue, Issue } from '../common/issues/issues'
 import parseTSV from './tsvParser'
+import { parseHedString } from '../validator/parser/main'
 
 /**
  * Base class for BIDS data.
@@ -187,6 +188,11 @@ export class BidsSidecar extends BidsJsonFile {
    */
   hedData
   /**
+   * The parsed HED data for this sidecar.
+   * @type {Map<string, ParsedHedString|Map<string, ParsedHedString>>}
+   */
+  parsedHedData
+  /**
    * The extracted HED value strings.
    * @type {string[]}
    */
@@ -234,6 +240,37 @@ export class BidsSidecar extends BidsJsonFile {
         this.hedCategoricalStrings.push(...Object.values(sidecarValue))
       }
     }
+  }
+
+  /**
+   * Parse this sidecar's HED strings within the sidecar structure.
+   *
+   * The parsed strings are placed into {@link parsedHedData}.
+   *
+   * @param {Schemas} hedSchemas The HED schema collection.
+   * @return {Issue[]} Any issues found.
+   */
+  parseHedStrings(hedSchemas) {
+    this.parsedHedData = new Map()
+    let issues = []
+    for (const [key, strings] of this.hedData) {
+      if (typeof strings === 'string') {
+        const [parsedString, parsingIssues] = parseHedString(strings, hedSchemas)
+        this.parsedHedData.set(key, parsedString)
+        issues = issues.concat(...Object.values(parsingIssues))
+      } else if (strings === Object(strings)) {
+        const keyMap = new Map()
+        for (const [value, string] of Object.entries(strings)) {
+          const [parsedString, parsingIssues] = parseHedString(string, hedSchemas)
+          keyMap.set(value, parsedString)
+          issues = issues.concat(...Object.values(parsingIssues))
+        }
+        this.parsedHedData.set(key, keyMap)
+      } else {
+        issues.push(generateIssue('illegalSidecarHedType', { key: key, file: this.name }))
+      }
+    }
+    return issues
   }
 
   /**
