@@ -32,8 +32,11 @@ describe('HED string and event validation', () => {
       assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
       const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
       const validator = new ValidatorClass(parsedTestString, hedSchemas, testOptions)
-      testFunction(validator)
-      const issues = [].concat(...Object.values(parsingIssues), validator.issues)
+      const flattenedParsingIssues = Object.values(parsingIssues).flat()
+      if (flattenedParsingIssues.length === 0) {
+        testFunction(validator)
+      }
+      const issues = [].concat(flattenedParsingIssues, validator.issues)
       assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
     }
   }
@@ -882,8 +885,11 @@ describe('HED string and event validation', () => {
         assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
         const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
         const validator = new Hed3Validator(parsedTestString, hedSchemas, null, testOptions)
-        testFunction(validator)
-        const issues = [].concat(...Object.values(parsingIssues), validator.issues)
+        const flattenedParsingIssues = Object.values(parsingIssues).flat()
+        if (flattenedParsingIssues.length === 0) {
+          testFunction(validator)
+        }
+        const issues = [].concat(flattenedParsingIssues, validator.issues)
         assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
       }
     }
@@ -1782,8 +1788,11 @@ describe('HED string and event validation', () => {
         assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
         const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
         const validator = new Hed3Validator(parsedTestString, hedSchemas, null, testOptions)
-        testFunction(validator)
-        const issues = [].concat(...Object.values(parsingIssues), validator.issues)
+        const flattenedParsingIssues = Object.values(parsingIssues).flat()
+        if (flattenedParsingIssues.length === 0) {
+          testFunction(validator)
+        }
+        const issues = [].concat(flattenedParsingIssues, validator.issues)
         assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
       }
     }
