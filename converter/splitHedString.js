@@ -7,7 +7,7 @@ const tagDelimiters = new Set([',', '(', ')', '~'])
  * @returns {Array[]} A list of string parts. The boolean is true if the part is
  * a tag and false if it is a delimiter. The numbers are the bounds of the part.
  */
-export default function splitHedString(hedString) {
+export function splitHedString(hedString) {
   const resultPositions = []
   let currentSpacing = 0
   let insideDelimiter = true
@@ -62,3 +62,5 @@ export default function splitHedString(hedString) {
 
   return resultPositions
 }
+
+export default splitHedString

@@ -1,3 +1,4 @@
-HED API reference (Auto style)
+Schema
 ==============================
 
+Intentionally Blank

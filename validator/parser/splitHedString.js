@@ -51,6 +51,9 @@ class GroupSpec {
   }
 }
 
+/**
+ * Class for tokenizing hed strings
+ */
 class HedStringTokenizer {
   hedString
   syntaxIssues

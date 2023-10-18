@@ -1,0 +1,3 @@
+
+.. js:autoclass:: ParsedHedGroup
+    :members:

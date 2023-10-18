@@ -5,6 +5,9 @@ import flattenDeep from 'lodash/flattenDeep'
 // Temporary
 import * as xpath from '../../utils/xpath'
 
+/**
+ * SchemaParser class
+ */
 export class SchemaParser {
   constructor(rootElement) {
     this.rootElement = rootElement

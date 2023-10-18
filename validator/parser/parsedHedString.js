@@ -4,7 +4,7 @@ import ParsedHedGroup from './parsedHedGroup'
 /**
  * A parsed HED string.
  */
-export default class ParsedHedString {
+export class ParsedHedString {
   /**
    * The original HED string.
    * @type {string}
@@ -63,3 +63,5 @@ export default class ParsedHedString {
     })
   }
 }
+
+export default ParsedHedString

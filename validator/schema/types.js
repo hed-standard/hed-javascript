@@ -5,6 +5,9 @@ pluralize.addUncountableRule('hertz')
 
 // Old-style types
 
+/**
+ * SchemaEntries class
+ */
 export class SchemaEntries extends Memoizer {
   /**
    * The schema's properties.
@@ -165,6 +168,9 @@ export class SchemaEntryManager extends Memoizer {
   }
 }
 
+/**
+ * SchemaEntry class
+ */
 export class SchemaEntry {
   /**
    * The name of this schema entry.
@@ -203,6 +209,9 @@ const categoryProperty = 'categoryProperty'
 const typeProperty = 'typeProperty'
 const roleProperty = 'roleProperty'
 
+/**
+ * A schema property.
+ */
 export class SchemaProperty extends SchemaEntry {
   /**
    * The type of the property.
@@ -316,6 +325,9 @@ export class SchemaAttribute extends SchemaEntry {
   }
 }
 
+/**
+ * SchemaEntryWithAttributes class
+ */
 class SchemaEntryWithAttributes extends SchemaEntry {
   /**
    * The set of boolean attributes this schema entry has.
@@ -412,6 +424,9 @@ class SchemaEntryWithAttributes extends SchemaEntry {
   }
 }
 
+/**
+ * SchemaUnit class
+ */
 export class SchemaUnit extends SchemaEntryWithAttributes {
   /**
    * The legal derivatives of this unit.
@@ -461,6 +476,9 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
   }
 }
 
+/**
+ * SchemaUnitClass class
+ */
 export class SchemaUnitClass extends SchemaEntryWithAttributes {
   /**
    * The units for this unit class.
@@ -499,6 +517,9 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
   }
 }
 
+/**
+ * SchemaUnitModifier class
+ */
 export class SchemaUnitModifier extends SchemaEntryWithAttributes {
   constructor(name, booleanAttributes, valueAttributes) {
     super(name, booleanAttributes, valueAttributes)
@@ -513,6 +534,9 @@ export class SchemaUnitModifier extends SchemaEntryWithAttributes {
   }
 }
 
+/**
+ * SchemaValueClass class
+ */
 export class SchemaValueClass extends SchemaEntryWithAttributes {
   constructor(name, booleanAttributes, valueAttributes) {
     super(name, booleanAttributes, valueAttributes)

@@ -21,10 +21,14 @@ Note:  this is a work in progress. More information is coming.
    user_guide.rst
 
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 8
    :caption: HED JavaScript API:
 
-   api2.rst
+   bids.rst
+   common.rst
+   converter.rst
+   utils.rst
+   validator.rst
 
 
 Indices and tables
