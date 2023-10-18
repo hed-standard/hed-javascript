@@ -3,7 +3,7 @@ import { Memoizer } from '../../utils/types'
 /**
  * A parsed HED substring.
  */
-export default class ParsedHedSubstring extends Memoizer {
+export class ParsedHedSubstring extends Memoizer {
   /**
    * The original pre-parsed version of the HED tag.
    * @type {string}
@@ -36,3 +36,5 @@ export default class ParsedHedSubstring extends Memoizer {
     return this.originalTag
   }
 }
+
+export default ParsedHedSubstring

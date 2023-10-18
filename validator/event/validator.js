@@ -9,7 +9,9 @@ const requiredType = 'required'
 const requireChildType = 'requireChild'
 
 // Validation tests
-
+/**
+ * HedValidator class
+ */
 export class HedValidator {
   /**
    * The parsed HED string to be validated.

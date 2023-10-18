@@ -61,6 +61,9 @@ export class Schema {
   tagHasAttribute(tag, tagAttribute) {}
 }
 
+/**
+ * Hed2Schema class
+ */
 export class Hed2Schema extends Schema {
   /**
    * The description of tag attributes.
@@ -91,6 +94,9 @@ export class Hed2Schema extends Schema {
   }
 }
 
+/**
+ * Hed3Schema class
+ */
 export class Hed3Schema extends Schema {
   /**
    * The collection of schema entries.

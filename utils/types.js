@@ -33,4 +33,7 @@ export const MemoizerMixin = (Base) => {
   }
 }
 
+/**
+ * Memoizer class
+ */
 export class Memoizer extends MemoizerMixin(Object) {}

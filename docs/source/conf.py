@@ -14,7 +14,7 @@ import os
 import sys
 import sphinx_rtd_theme
 from datetime import date
-import subprocess
+
 
 sys.path.insert(0, os.path.abspath('../../../'))
 
@@ -42,30 +42,29 @@ currentdir = os.path.realpath(os.path.dirname(__file__))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "myst_parser",
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
-    "sphinx.ext.autosectionlabel",
-    "sphinx.ext.intersphinx",
-    "sphinx.ext.coverage",
-    "sphinx.ext.mathjax",
-    "sphinx.ext.viewcode",
-    "sphinx.ext.githubpages",
-    "sphinx.ext.napoleon",
-    "sphinx.ext.extlinks",
-    "sphinx_js"
+    #     'sphinx.ext.autodoc',
+    #     'sphinx.ext.viewcode',
+    # 'sphinx_click.ext',
+    'sphinx_js'
 ]
 
-js_source_path = '../../'
+root_for_relative_js_paths = "../../"
+base_folders = ["../../bids", "../../validator", "../../converter", "../../common", "../../utils"]
 
+def find_all_folders(directory):
+    all_folders = [directory]
+
+    for root, dirs, _ in os.walk(directory):
+        for d in dirs:
+            all_folders.append(os.path.join(root, d))
+
+    return all_folders
+
+js_source_path = []
+for folder in base_folders:
+    js_source_path += find_all_folders(folder)
+print(js_source_path)
 primary_domain = 'js'
-
-autosummary_generate = True
-autodoc_default_flags = ['members', 'inherited-members']
-add_module_names = False
-myst_all_links_external = False
-myst_heading_anchors = 2
-myst_enable_extensions = ["deflist"]
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -76,7 +75,7 @@ master_doc = 'index'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', '_templates', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', '_templates', 'Thumbs.db', '.DS_Store', 'venv']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -100,29 +99,14 @@ html_theme_options = {
     # Toc options
     'collapse_navigation': False,
     'sticky_navigation': True,
-    'navigation_depth': 4,
+    'navigation_depth': 6,
     'includehidden': True,
     'titles_only': False
 }
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+import sphinx_rtd_theme
+html_static_path = [os.path.join(sphinx_rtd_theme.get_html_theme_path(), 'sphinx_rtd_theme', 'static')]
 
-
-def run_jsdoc(app):
-    source_dir = app.builder.srcdir
-    jsdoc_output_dir = os.path.join(source_dir, 'jsdoc_output')
-    jsdoc_command = [
-        'npx',  # Use npx to run locally installed npm packages
-        'jsdoc',
-        '-c', os.path.join(source_dir, 'path/to/jsdoc/config.json'),  # Adjust the path to your JSDoc config
-        '-d', jsdoc_output_dir,
-        'path/to/javascript/files',  # Adjust the path to your JavaScript files
-    ]
-    subprocess.call(jsdoc_command)
-
-
-def setup(app):
-    app.connect('builder-inited', run_jsdoc)
 

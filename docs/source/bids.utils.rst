@@ -1,0 +1,5 @@
+utils
+==============================
+
+.. js:autofunction:: sidecarValueHasHed
+

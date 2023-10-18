@@ -9,7 +9,7 @@ import { ParsedHedTag } from './parsedHedTag'
 /**
  * A parsed HED tag group.
  */
-export default class ParsedHedGroup extends ParsedHedSubstring {
+export class ParsedHedGroup extends ParsedHedSubstring {
   static SPECIAL_SHORT_TAGS = new Set(['Definition', 'Def', 'Def-expand', 'Onset', 'Offset', 'Inset'])
 
   /**
@@ -518,3 +518,5 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     }
   }
 }
+
+export default ParsedHedGroup

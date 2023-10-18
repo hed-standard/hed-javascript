@@ -12,6 +12,9 @@ import { HedValidator } from './validator'
 const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
 
+/**
+ * Hed3Validator class
+ */
 export class Hed3Validator extends HedValidator {
   /**
    * The parsed definitions.

@@ -6,6 +6,9 @@ const clockTimeUnitClass = 'clockTime'
 const dateTimeUnitClass = 'dateTime'
 const timeUnitClass = 'time'
 
+/**
+ * Hed2Validator class
+ */
 export class Hed2Validator extends HedValidator {
   constructor(parsedString, hedSchemas, options) {
     super(parsedString, hedSchemas, options)

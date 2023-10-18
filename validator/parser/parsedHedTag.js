@@ -215,6 +215,9 @@ export class ParsedHedTag extends ParsedHedSubstring {
   }
 }
 
+/**
+ * A parsed HED3 tag.
+ */
 export class ParsedHed3Tag extends ParsedHedTag {
   /**
    * Convert this tag to long form.
