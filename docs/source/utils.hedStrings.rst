@@ -1,5 +1,8 @@
+hedStrings
+=========
 .. js:autofunction:: replaceTagNameWithPound
 
+.. no documentation yet
 # .. js:autofunction:: getTagSlashIndices
 
 .. js:autofunction:: getTagLevels

@@ -1,3 +1,6 @@
+init
+=========
+
 .. js:autofunction:: initiallyValidateHedString
 
 .. js:autofunction:: validateHedString

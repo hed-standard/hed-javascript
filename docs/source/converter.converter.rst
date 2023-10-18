@@ -1,3 +1,6 @@
+converter
+=========
+
 .. js:autofunction:: removeSlashesAndSpaces
 
 .. js:autofunction:: convertTagToLong
@@ -6,8 +9,8 @@
 
 .. js:autofunction:: convertPartialHedStringToLong
 
-# This one is not marked for export
-# .. js:autofunction:: convertHedString
+.. This one is not marked for export
+ .. js:autofunction:: convertHedString
 
 .. js:autofunction:: convertHedStringToLong
 

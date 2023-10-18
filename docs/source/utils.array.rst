@@ -1,3 +1,6 @@
+array
+=========
+
 .. js:autofunction:: getElementCount
 
 .. js:autofunction:: asArray

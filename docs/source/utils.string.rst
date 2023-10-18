@@ -1,3 +1,6 @@
+string
+======
+
 .. js:autofunction:: stringIsEmpty
 
 .. js:autofunction:: getCharacterCount

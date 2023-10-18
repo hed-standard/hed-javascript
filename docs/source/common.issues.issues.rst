@@ -1,3 +1,6 @@
+issues
+======
+
 .. js:autoclass:: Issue
     :members:
 

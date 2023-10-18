@@ -1,3 +1,6 @@
+types
+=========
+
 .. js:autoclass:: TagEntry
     :members:
 

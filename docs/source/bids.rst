@@ -4,7 +4,7 @@ bids
 Bids functionality
 
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 8
 
    bids.schema.rst
    bids.tsvParser.rst

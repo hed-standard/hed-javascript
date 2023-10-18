@@ -1,3 +1,6 @@
+splitHedString
+===============
+
 .. js:autoclass:: HedStringTokenizer
     :members:
 

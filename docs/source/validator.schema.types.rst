@@ -1,3 +1,6 @@
+types
+===============
+
 .. js:autoclass:: SchemaEntries
     :members:
 

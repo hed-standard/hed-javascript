@@ -1,3 +1,6 @@
+init
+===============
+
 .. js:autofunction:: isHed3Schema
 
 .. js:autofunction:: buildSchemaAttributesObject
