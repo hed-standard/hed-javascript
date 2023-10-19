@@ -9,7 +9,7 @@ import { filterNonEqualDuplicates } from '../utils/map'
  * Parse the dataset's definitions and evaluate labels in the dataset.
  *
  * @param {ParsedHedString[]} parsedHedStrings The dataset's parsed HED strings.
- * @return {[Map, Issue[]]} The definition map and any issues found.
+ * @returns {[Map, Issue[]]} The definition map and any issues found.
  */
 export const parseDefinitions = function (parsedHedStrings) {
   const issues = []
@@ -66,7 +66,7 @@ const checkGroupForTemporalOrder = (parsedGroup, activeScopes) => {
  *
  * @param {ParsedHedString[]} hedStrings The dataset's HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
- * @return {Issue[]} Any issues found.
+ * @returns {Issue[]} Any issues found.
  */
 export const validateTemporalOrder = function (hedStrings, hedSchemas) {
   const issues = []
@@ -99,7 +99,7 @@ export const validateTemporalOrder = function (hedStrings, hedSchemas) {
  * @param {Definitions} definitions The parsed dataset definitions.
  * @param {ParsedHedString[]} hedStrings The dataset's HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
- * @return {Issue[]} Whether the HED dataset is valid and any issues found.
+ * @returns {Issue[]} Whether the HED dataset is valid and any issues found.
  */
 export const validateDataset = function (definitions, hedStrings, hedSchemas) {
   // TODO: Implement
@@ -110,7 +110,7 @@ export const validateDataset = function (definitions, hedStrings, hedSchemas) {
 /**
  * Validate a group of HED strings.
  *
- * @param {(string|ParsedHedString)[]} parsedHedStrings The dataset's parsed HED strings.
+ * @param {(string[]|ParsedHedString[])} parsedHedStrings The dataset's parsed HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
  * @param {Map<string, ParsedHedGroup>} definitions The dataset's parsed definitions.
  * @param {Object} settings The configuration settings for validation.

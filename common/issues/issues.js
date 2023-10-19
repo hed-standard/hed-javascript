@@ -84,7 +84,7 @@ export class Issue {
   /**
    * Override of {@link Object.prototype.toString}.
    *
-   * @return {string} This issue's message.
+   * @returns {string} This issue's message.
    */
   toString() {
     return this.message
@@ -115,7 +115,7 @@ export class Issue {
  *
  * @param {string} internalCode The internal error code.
  * @param {Object<string, (string|number[])>} parameters The error string parameters.
- * @return {Issue} An object representing the issue.
+ * @returns {Issue} An object representing the issue.
  */
 export const generateIssue = function (internalCode, parameters) {
   const issueCodeData = issueData[internalCode] ?? issueData.genericError

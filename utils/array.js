@@ -20,7 +20,7 @@ export const getElementCount = function (array, elementToCount) {
  *
  * @template T
  * @param {T|T[]} array An array or scalar.
- * @return {T[]} The original array or a singleton array of the scalar.
+ * @returns {T[]} The original array or a singleton array of the scalar.
  */
 export const asArray = function (array) {
   return Array.isArray(array) ? array : [array]

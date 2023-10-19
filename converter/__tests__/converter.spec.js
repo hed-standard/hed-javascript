@@ -23,7 +23,7 @@ describe('HED string conversion', () => {
      * @param {Object<string, string>} expectedResults The expected results.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      * @param {function (Schema, string, string, number): [string, Issue[]]} testFunction The test function.
-     * @return {Promise<void>}
+     * @returns {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
       return hedSchemaPromise.then(([hedSchemas, issues]) => {
@@ -588,7 +588,7 @@ describe('HED string conversion', () => {
      * @param {Object<string, string>} expectedResults The expected results.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      * @param {function (Schemas, string): [string, Issue[]]} testFunction The test function.
-     * @return {Promise<void>}
+     * @returns {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
       return hedSchemaPromise.then(([hedSchemas, issues]) => {

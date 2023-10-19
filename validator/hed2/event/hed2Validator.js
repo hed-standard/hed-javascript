@@ -6,6 +6,9 @@ const clockTimeUnitClass = 'clockTime'
 const dateTimeUnitClass = 'dateTime'
 const timeUnitClass = 'time'
 
+/**
+ * Hed2Validator class
+ */
 export class Hed2Validator extends HedValidator {
   constructor(parsedString, hedSchemas, options) {
     super(parsedString, hedSchemas, options)
@@ -104,7 +107,7 @@ export class Hed2Validator extends HedValidator {
    *
    * @param {string} value The stripped value.
    * @param {boolean} isNumeric Whether the tag is numeric.
-   * @return {boolean} Whether the stripped value is valid.
+   * @returns {boolean} Whether the stripped value is valid.
    */
   validateValue(value, isNumeric) {
     if (value === '#') {

@@ -124,7 +124,7 @@ const findDelimiterIssuesInHedString = function (hedString) {
  * Validate the full unparsed HED string.
  *
  * @param {string} hedString The unparsed HED string.
- * @return {Object<string, Issue[]>} String substitution issues and other issues.
+ * @returns {Object<string, Issue[]>} String substitution issues and other issues.
  */
 const validateFullUnparsedHedString = function (hedString) {
   const [fixedHedString, substitutionIssues] = substituteCharacters(hedString)
@@ -166,7 +166,7 @@ export const parseHedString = function (hedString, hedSchemas) {
  *
  * @param {string[]} hedStrings A set of HED strings.
  * @param {Schemas} hedSchemas The collection of HED schemas.
- * @return {[ParsedHedString[], Object<string, Issue[]>]} The parsed HED strings and any issues found.
+ * @returns {[ParsedHedString[], Object<string, Issue[]>]} The parsed HED strings and any issues found.
  */
 export const parseHedStrings = function (hedStrings, hedSchemas) {
   return hedStrings

@@ -16,7 +16,7 @@ export const MemoizerMixin = (Base) => {
      * @template T
      * @param {string} propertyName The property name
      * @param {function() : T} valueComputer A function to compute the value.
-     * @return {T} The computed value.
+     * @returns {T} The computed value.
      * @protected
      */
     _memoize(propertyName, valueComputer) {
@@ -33,4 +33,7 @@ export const MemoizerMixin = (Base) => {
   }
 }
 
+/**
+ * Memoizer class
+ */
 export class Memoizer extends MemoizerMixin(Object) {}

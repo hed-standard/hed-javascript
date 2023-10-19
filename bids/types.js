@@ -355,7 +355,7 @@ export class BidsIssue {
 
   /**
    * Whether this issue is an error.
-   * @return {boolean}
+   * @returns {boolean}
    */
   isError() {
     return bidsHedErrorCodes.has(this.code)

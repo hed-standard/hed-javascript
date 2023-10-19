@@ -13,6 +13,9 @@ import ParsedHedColumnSplice from '../parser/parsedHedColumnSplice'
 const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
 
+/**
+ * Hed3Validator class
+ */
 export class Hed3Validator extends HedValidator {
   /**
    * The parsed definitions.
@@ -279,7 +282,7 @@ export class Hed3Validator extends HedValidator {
   /**
    * Validate a unit and strip it from the value.
    * @param {ParsedHed3Tag} tag A HED tag.
-   * @return {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
+   * @returns {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
    */
   validateUnits(tag) {
     const originalTagUnitValue = tag.originalTagName

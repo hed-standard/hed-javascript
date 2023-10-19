@@ -9,7 +9,7 @@ import { generateIssue, IssueError } from '../common/issues/issues'
  * Build a short-long mapping object from schema XML data.
  *
  * @param {SchemaEntries} entries The schema XML data.
- * @return {Mapping} The mapping object.
+ * @returns {Mapping} The mapping object.
  */
 export const buildMappingObject = function (entries) {
   /**
@@ -48,7 +48,7 @@ export const buildMappingObject = function (entries) {
  * Build a schema container object containing a short-long mapping from a base schema version or path description.
  *
  * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
- * @return {Promise<never>|Promise<Schemas>} The schema container object or an error.
+ * @returns {Promise<never>|Promise<Schemas>} The schema container object or an error.
  * @deprecated
  */
 export const buildSchema = (schemaDef) => validatorBuildSchema(schemaDef)

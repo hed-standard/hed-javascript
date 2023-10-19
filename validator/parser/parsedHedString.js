@@ -5,7 +5,7 @@ import ParsedHedColumnSplice from './parsedHedColumnSplice'
 /**
  * A parsed HED string.
  */
-export default class ParsedHedString {
+export class ParsedHedString {
   /**
    * The original HED string.
    * @type {string}
@@ -76,3 +76,5 @@ export default class ParsedHedString {
     })
   }
 }
+
+export default ParsedHedString

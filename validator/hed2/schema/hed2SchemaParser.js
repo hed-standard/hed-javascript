@@ -38,6 +38,9 @@ const unitModifierElement = 'unitModifier'
 
 const lc = (str) => str.toLowerCase()
 
+/**
+ * Hed2SchemaParser class
+ */
 export class Hed2SchemaParser extends SchemaParser {
   parse() {
     this.populateDictionaries()

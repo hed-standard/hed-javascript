@@ -14,7 +14,7 @@ import { fallbackFilePath, localSchemaList } from './config'
  * @param {SchemaSpec} schemaDef The description of which schema to use.
  * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
  * @param {boolean} reportNoFallbackError Whether to report an error on a failed schema load when no fallback was used.
- * @return {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
+ * @returns {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
  */
 export const loadSchema = function (schemaDef = null, useFallback = true, reportNoFallbackError = true) {
   const schemaPromise = loadPromise(schemaDef)
@@ -52,7 +52,7 @@ export const loadSchema = function (schemaDef = null, useFallback = true, report
  * @todo Rename to {@link loadSchema} in 4.0.0.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @return {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
+ * @returns {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
  */
 export const loadSchemaFromSpec = function (schemaDef = null) {
   const schemaPromise = loadPromise(schemaDef)
@@ -66,7 +66,7 @@ export const loadSchemaFromSpec = function (schemaDef = null) {
  * Choose the schema Promise from a schema version or path description.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @return {Promise<object>} The schema XML data or an error.
+ * @returns {Promise<object>} The schema XML data or an error.
  */
 const loadPromise = function (schemaDef) {
   if (schemaDef === null) {
@@ -87,7 +87,7 @@ const loadPromise = function (schemaDef) {
  * Load schema XML data from the HED GitHub repository.
  *
  * @param {SchemaSpec} schemaDef The standard schema version to load.
- * @return {Promise<object>} The schema XML data.
+ * @returns {Promise<object>} The schema XML data.
  */
 const loadRemoteSchema = function (schemaDef) {
   let url
@@ -103,7 +103,7 @@ const loadRemoteSchema = function (schemaDef) {
  * Load schema XML data from a local file.
  *
  * @param {string} path The path to the schema XML data.
- * @return {Promise<object>} The schema XML data.
+ * @returns {Promise<object>} The schema XML data.
  */
 const loadLocalSchema = function (path) {
   return loadSchemaFile(files.readFile(path), 'localSchemaLoadFailed', { path: path })
@@ -113,7 +113,7 @@ const loadLocalSchema = function (path) {
  * Load schema XML data from a bundled file.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @return {Promise<object>} The schema XML data.
+ * @returns {Promise<object>} The schema XML data.
  */
 const loadBundledSchema = function (schemaDef) {
   return parseSchemaXML(localSchemaList.get(schemaDef.localName)).catch((error) => {
@@ -128,7 +128,7 @@ const loadBundledSchema = function (schemaDef) {
  * @param {Promise<string>} xmlDataPromise The Promise containing the unparsed XML data.
  * @param {string} issueCode The issue code.
  * @param {Object<string, string>} issueArgs The issue arguments passed from the calling function.
- * @return {Promise<object>} The parsed schema XML data.
+ * @returns {Promise<object>} The parsed schema XML data.
  */
 const loadSchemaFile = function (xmlDataPromise, issueCode, issueArgs) {
   return xmlDataPromise.then(parseSchemaXML).catch((error) => {
@@ -141,7 +141,7 @@ const loadSchemaFile = function (xmlDataPromise, issueCode, issueArgs) {
  * Parse the schema XML data.
  *
  * @param {string} data The XML data.
- * @return {Promise<object>} The schema XML data.
+ * @returns {Promise<object>} The schema XML data.
  */
 const parseSchemaXML = function (data) {
   return xml2js.parseStringPromise(data, { explicitCharkey: true })

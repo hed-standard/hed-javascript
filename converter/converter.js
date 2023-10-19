@@ -9,7 +9,7 @@ const doubleSlashPattern = /[\s/]*\/+[\s/]*/g
  * Remove extra slashes and spaces from a HED string.
  *
  * @param {string} hedString The HED string to clean.
- * @return {string} The cleaned HED string.
+ * @returns {string} The cleaned HED string.
  */
 export const removeSlashesAndSpaces = function (hedString) {
   return hedString.replace(doubleSlashPattern, '/')
@@ -26,7 +26,7 @@ export const removeSlashesAndSpaces = function (hedString) {
  * @param {string} hedTag The HED tag to convert.
  * @param {string} hedString The full HED string (for error messages).
  * @param {number} offset The offset of this tag within the HED string.
- * @return {[string, Issue[]]} The long-form tag and any issues.
+ * @returns {[string, Issue[]]} The long-form tag and any issues.
  */
 export const convertTagToLong = function (schema, hedTag, hedString, offset) {
   const mapping = schema.mapping
@@ -128,7 +128,7 @@ export const convertTagToLong = function (schema, hedTag, hedString, offset) {
  * @param {string} hedTag The HED tag to convert.
  * @param {string} hedString The full HED string (for error messages).
  * @param {number} offset The offset of this tag within the HED string.
- * @return {[string, Issue[]]} The short-form tag and any issues.
+ * @returns {[string, Issue[]]} The short-form tag and any issues.
  */
 export const convertTagToShort = function (schema, hedTag, hedString, offset) {
   const mapping = schema.mapping
@@ -199,7 +199,7 @@ export const convertTagToShort = function (schema, hedTag, hedString, offset) {
  * @param {string} partialHedString The partial HED string to convert to long form.
  * @param {string} fullHedString The full HED string.
  * @param {number} offset The offset of the partial HED string within the full string.
- * @return {[string, Issue[]]} The converted string and any issues.
+ * @returns {[string, Issue[]]} The converted string and any issues.
  */
 export const convertPartialHedStringToLong = function (schema, partialHedString, fullHedString, offset) {
   let issues = []
@@ -234,7 +234,7 @@ export const convertPartialHedStringToLong = function (schema, partialHedString,
  * @param {Schema} schema The schema object containing a short-to-long mapping.
  * @param {string} hedString The HED tag to convert.
  * @param {function (Schema, string, string, number): [string, Issue[]]} conversionFn The conversion function for a tag.
- * @return {[string, Issue[]]} The converted string and any issues.
+ * @returns {[string, Issue[]]} The converted string and any issues.
  */
 const convertHedString = function (schema, hedString, conversionFn) {
   let issues = []
@@ -268,7 +268,7 @@ const convertHedString = function (schema, hedString, conversionFn) {
  *
  * @param {Schemas} schemas The schema container object containing short-to-long mappings.
  * @param {string} hedString The HED tag to convert.
- * @return {[string, Issue[]]} The long-form string and any issues.
+ * @returns {[string, Issue[]]} The long-form string and any issues.
  * @deprecated
  */
 export const convertHedStringToLong = function (schemas, hedString) {
@@ -280,7 +280,7 @@ export const convertHedStringToLong = function (schemas, hedString) {
  *
  * @param {Schemas} schemas The schema container object containing short-to-long mappings.
  * @param {string} hedString The HED tag to convert.
- * @return {[string, Issue[]]} The short-form string and any issues.
+ * @returns {[string, Issue[]]} The short-form string and any issues.
  * @deprecated
  */
 export const convertHedStringToShort = function (schemas, hedString) {

@@ -1,6 +1,9 @@
 import { replaceTagNameWithPound } from '../../../utils/hedStrings'
 import { ParsedHedTag } from '../../parser/parsedHedTag'
 
+/**
+ * ParsedHedTag class
+ */
 export class ParsedHed2Tag extends ParsedHedTag {
   /**
    * Convert this tag to long form.
@@ -95,7 +98,7 @@ export class ParsedHed2Tag extends ParsedHedTag {
 
   /**
    * Get the legal units for a particular HED tag.
-   * @return {string[]}
+   * @returns {string[]}
    */
   get validUnits() {
     return this._memoize('validUnits', () => {

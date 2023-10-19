@@ -48,7 +48,7 @@ export class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Override of {@link Object.prototype.toString}.
    *
-   * @return {string} The original form of this HED tag.
+   * @returns {string} The original form of this HED tag.
    */
   toString() {
     if (this.schema?.prefix) {
@@ -104,7 +104,7 @@ export class ParsedHedTag extends ParsedHedSubstring {
    * Get the last part of a HED tag.
    *
    * @param {string} tagString A HED tag.
-   * @return {string} The last part of the tag using the given separator.
+   * @returns {string} The last part of the tag using the given separator.
    */
   static getTagName(tagString) {
     const lastSlashIndex = tagString.lastIndexOf('/')
@@ -215,6 +215,9 @@ export class ParsedHedTag extends ParsedHedSubstring {
   }
 }
 
+/**
+ * A parsed HED3 tag.
+ */
 export class ParsedHed3Tag extends ParsedHedTag {
   /**
    * Convert this tag to long form.
@@ -342,7 +345,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
 
   /**
    * Get the legal units for a particular HED tag.
-   * @return {Set<SchemaUnit>}
+   * @returns {Set<SchemaUnit>}
    */
   get validUnits() {
     return this._memoize('validUnits', () => {
@@ -361,7 +364,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
   /**
    * Get the schema tag object for this tag's value-taking form.
    *
-   * @return {SchemaTag}
+   * @returns {SchemaTag}
    */
   get takesValueTag() {
     return this._memoize('takesValueTag', () => {

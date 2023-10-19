@@ -10,7 +10,7 @@ import ParsedHedString from '../validator/parser/parsedHedString'
  *
  * @param {BidsDataset} dataset The BIDS dataset.
  * @param {object} schemaDefinition The version spec for the schema to be loaded.
- * @return {Promise<BidsIssue[]>} Any issues found.
+ * @returns {Promise<BidsIssue[]>} Any issues found.
  */
 export function validateBidsDataset(dataset, schemaDefinition) {
   return buildBidsSchemas(dataset, schemaDefinition).then(
@@ -30,7 +30,7 @@ export function validateBidsDataset(dataset, schemaDefinition) {
  *
  * @param {BidsDataset} dataset A BIDS dataset.
  * @param {Schemas} hedSchemas A HED schema collection.
- * @return {Promise<BidsIssue[]>|Promise<never>} Any issues found.
+ * @returns {Promise<BidsIssue[]>|Promise<never>} Any issues found.
  */
 function validateFullDataset(dataset, hedSchemas) {
   try {
@@ -53,7 +53,7 @@ function validateFullDataset(dataset, hedSchemas) {
  *
  * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
  * @param {Schemas} hedSchemas A HED schema collection.
- * @return {BidsIssue[]} Any issues found.
+ * @returns {BidsIssue[]} Any issues found.
  */
 function validateBidsTsvFile(tsvFileData, hedSchemas) {
   const [hedStrings, tsvIssues] = parseTsvHed(tsvFileData)
@@ -70,7 +70,7 @@ function validateBidsTsvFile(tsvFileData, hedSchemas) {
  *
  * @param {BidsSidecar[]} sidecarData A collection of BIDS sidecars.
  * @param {Schemas} hedSchemas A HED schema collection.
- * @return {[boolean, BidsHedIssue[]]} Whether errors (as opposed to warnings) were founds, and all issues found.
+ * @returns {[boolean, BidsHedIssue[]]} Whether errors (as opposed to warnings) were founds, and all issues found.
  */
 function validateSidecars(sidecarData, hedSchemas) {
   const issues = []
@@ -120,7 +120,7 @@ function validateSidecarString(sidecarKey, sidecarString, sidecar, options, hedS
  *
  * @param {BidsEventFile[]} eventData A collection of BIDS event TSV files.
  * @param {Schemas} hedSchemas A HED schema collection.
- * @return {[boolean, BidsHedIssue[]]} Whether errors (as opposed to warnings) were founds, and all issues found.
+ * @returns {[boolean, BidsHedIssue[]]} Whether errors (as opposed to warnings) were founds, and all issues found.
  */
 function validateHedColumn(eventData, hedSchemas) {
   const issues = eventData.flatMap((eventFileData) => {
@@ -137,7 +137,7 @@ function validateHedColumn(eventData, hedSchemas) {
  * Combine the BIDS sidecar HED data into a BIDS TSV file's HED data.
  *
  * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
- * @return {[string[], BidsIssue[]]} The combined HED strings for this BIDS TSV file, and all issues found during the combination.
+ * @returns {[string[], BidsIssue[]]} The combined HED strings for this BIDS TSV file, and all issues found during the combination.
  */
 function parseTsvHed(tsvFileData) {
   const hedStrings = []
@@ -203,7 +203,7 @@ function parseTsvHed(tsvFileData) {
  * @param {string[]} hedStrings The HED strings in the data collection.
  * @param {Schemas} hedSchemas The HED schema collection to validate against.
  * @param {BidsTsvFile} tsvFileData The BIDS event TSV file being validated.
- * @return {BidsHedIssue[]} Any issues found.
+ * @returns {BidsHedIssue[]} Any issues found.
  */
 function validateCombinedDataset(hedStrings, hedSchemas, tsvFileData) {
   const [, hedIssues] = validateHedDatasetWithContext(hedStrings, tsvFileData.mergedSidecar.hedStrings, hedSchemas, {
@@ -220,7 +220,7 @@ function validateCombinedDataset(hedStrings, hedSchemas, tsvFileData) {
  * @param {Schemas} hedSchemas The HED schema collection to validate against.
  * @param {Object} fileObject A BIDS-format file object used to generate {@link BidsHedIssue} objects.
  * @param {Object} settings Options to pass to {@link validateHedString}.
- * @return {BidsHedIssue[]} Any issues found.
+ * @returns {BidsHedIssue[]} Any issues found.
  */
 function validateStrings(hedStrings, hedSchemas, fileObject, settings) {
   const issues = []
@@ -245,7 +245,7 @@ function validateStrings(hedStrings, hedSchemas, fileObject, settings) {
  * @param {IssueError|Issue[]} hedIssues One or more HED-format issues.
  * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
  * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} objects.
- * @return {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
+ * @returns {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
  */
 function convertHedIssuesToBidsIssues(hedIssues, file, extraParameters) {
   if (hedIssues instanceof IssueError) {

@@ -3,7 +3,7 @@ import { Memoizer } from '../../utils/types'
 /**
  * A parsed HED substring.
  */
-export default class ParsedHedSubstring extends Memoizer {
+export class ParsedHedSubstring extends Memoizer {
   /**
    * The original pre-parsed version of the HED tag.
    * @type {string}
@@ -30,9 +30,11 @@ export default class ParsedHedSubstring extends Memoizer {
   /**
    * Override of {@link Object.prototype.toString}.
    *
-   * @return {string} The original form of this HED substring.
+   * @returns {string} The original form of this HED substring.
    */
   toString() {
     return this.originalTag
   }
 }
+
+export default ParsedHedSubstring

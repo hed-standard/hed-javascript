@@ -69,7 +69,7 @@ export class SchemaAttributes {
    *
    * @param {string} tag The HED tag to check.
    * @param {string} tagAttribute The attribute to check for.
-   * @return {boolean|null} Whether this tag has this attribute, or null if the attribute doesn't exist.
+   * @returns {boolean|null} Whether this tag has this attribute, or null if the attribute doesn't exist.
    */
   tagHasAttribute(tag, tagAttribute) {
     if (!(tagAttribute in this.tagAttributes)) {
