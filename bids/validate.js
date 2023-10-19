@@ -86,14 +86,14 @@ function validateSidecars(sidecarData, hedSchemas) {
 
 function validateSidecar(sidecar, hedSchemas) {
   const issues = []
-  for (const hedData of sidecar.parsedHedData.values()) {
+  for (const [sidecarKey, hedData] of sidecar.parsedHedData) {
     if (hedData instanceof ParsedHedString) {
       const options = {
         checkForWarnings: true,
         expectValuePlaceholderString: true,
         definitionsAllowed: 'no',
       }
-      issues.push(...validateSidecarString(hedData, sidecar, options, hedSchemas))
+      issues.push(...validateSidecarString(sidecarKey, hedData, sidecar, options, hedSchemas))
     } else if (hedData instanceof Map) {
       for (const valueString of hedData.values()) {
         const options = {
@@ -101,7 +101,7 @@ function validateSidecar(sidecar, hedSchemas) {
           expectValuePlaceholderString: false,
           definitionsAllowed: 'exclusive',
         }
-        issues.push(...validateSidecarString(valueString, sidecar, options, hedSchemas))
+        issues.push(...validateSidecarString(sidecarKey, valueString, sidecar, options, hedSchemas))
       }
     } else {
       throw new Error('Unexpected type found in sidecar parsedHedData map.')
@@ -110,9 +110,9 @@ function validateSidecar(sidecar, hedSchemas) {
   return issues
 }
 
-function validateSidecarString(sidecarString, sidecar, options, hedSchemas) {
+function validateSidecarString(sidecarKey, sidecarString, sidecar, options, hedSchemas) {
   const [, hedIssues] = validateHedString(sidecarString, hedSchemas, options)
-  return convertHedIssuesToBidsIssues(hedIssues, sidecar.file)
+  return convertHedIssuesToBidsIssues(hedIssues, sidecar.file, { sidecarKey })
 }
 
 /**
@@ -244,12 +244,23 @@ function validateStrings(hedStrings, hedSchemas, fileObject, settings) {
  *
  * @param {IssueError|Issue[]} hedIssues One or more HED-format issues.
  * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
+ * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} objects.
  * @return {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
  */
-function convertHedIssuesToBidsIssues(hedIssues, file) {
+function convertHedIssuesToBidsIssues(hedIssues, file, extraParameters) {
   if (hedIssues instanceof IssueError) {
+    if (extraParameters) {
+      Object.assign(hedIssues.issue.parameters, extraParameters)
+      hedIssues.issue.generateMessage()
+    }
     return [new BidsHedIssue(hedIssues.issue, file)]
   } else {
-    return hedIssues.map((hedIssue) => new BidsHedIssue(hedIssue, file))
+    return hedIssues.map((hedIssue) => {
+      if (extraParameters) {
+        Object.assign(hedIssue.parameters, extraParameters)
+        hedIssue.generateMessage()
+      }
+      return new BidsHedIssue(hedIssue, file)
+    })
   }
 }

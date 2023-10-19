@@ -1114,10 +1114,12 @@ describe('HED string and event validation', () => {
           ],
           illegalComma: [
             converterGenerateIssue('invalidTag', testStrings.illegalComma, { tag: 'This' }, [22, 26]),
+            /* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',
               tag: 'This/Is/A/Tag',
             }),
+           */
           ],
           placeholder: [
             generateIssue('invalidTag', {
@@ -1155,7 +1157,7 @@ describe('HED string and event validation', () => {
           notRequiredNumber: 'RGB-red/0.5',
           notRequiredScientific: 'RGB-red/5e-1',
           /*properTime: 'Clockface/08:30',
-          invalidTime: 'Clockface/54:54',*/
+        invalidTime: 'Clockface/54:54',*/
         }
         const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
         // const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
@@ -1218,13 +1220,15 @@ describe('HED string and event validation', () => {
           ],
           notRequiredNumber: [],
           notRequiredScientific: [],
-          /*properTime: [],
+          /*
+          properTime: [],
           invalidTime: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.invalidTime,
               unitClassUnits: legalClockTimeUnits.sort().join(','),
             }),
-          ],*/
+          ],
+          */
         }
         return validatorSemantic(
           testStrings,
@@ -1353,7 +1357,7 @@ describe('HED string and event validation', () => {
           noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: temporalTagName })],
           definition: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.definition, tag: temporalTagName }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: temporalTagName }),
           ],
           defAndTwoGroups: [
             generateIssue('extraTagsInTemporal', { definition: 'DefAndTwoGroups', tag: temporalTagName }),
@@ -1363,7 +1367,7 @@ describe('HED string and event validation', () => {
           ],
           tagAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: temporalTagName }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: temporalTagName }),
           ],
           tagGroupAndNoDef: [
             generateIssue('temporalWithoutDefinition', {
@@ -1424,11 +1428,11 @@ describe('HED string and event validation', () => {
           noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: 'Offset' })],
           tagAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: 'Offset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Offset' }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: 'Offset' }),
           ],
           tagGroupAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef, tag: 'Offset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Offset' }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: 'Offset' }),
           ],
           defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag', tag: 'Offset' })],
           defExpandAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTag', tag: 'Offset' })],
@@ -1595,9 +1599,10 @@ describe('HED string and event validation', () => {
               { parentTag: 'Item/Biological-item/Organism' },
               [7, 15],
             ),
+            /* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('invalidPlaceholder', {
               tag: testStrings.wrongLocation,
-            }),
+            }), */
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, true)
@@ -1905,7 +1910,7 @@ describe('HED string and event validation', () => {
           noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: temporalTagName })],
           definition: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.definition, tag: temporalTagName }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: temporalTagName }),
           ],
           defAndTwoGroups: [
             generateIssue('extraTagsInTemporal', { definition: 'DefAndTwoGroups', tag: temporalTagName }),
@@ -1915,7 +1920,7 @@ describe('HED string and event validation', () => {
           ],
           tagAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: temporalTagName }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: temporalTagName }),
           ],
           tagGroupAndNoDef: [
             generateIssue('temporalWithoutDefinition', {
@@ -1977,11 +1982,11 @@ describe('HED string and event validation', () => {
           noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: 'Offset' })],
           tagAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: 'Offset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Offset' }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: 'Offset' }),
           ],
           tagGroupAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef, tag: 'Offset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Offset' }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: 'Offset' }),
           ],
           defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag', tag: 'Offset' })],
           defExpandAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTag', tag: 'Offset' })],

@@ -798,12 +798,18 @@ describe('BIDS datasets', () => {
         single: [],
         all_good: [],
         warning_and_good: [
-          new BidsHedIssue(generateIssue('extension', { tag: 'Train/Maglev' }), bidsSidecars[1][0].file),
+          new BidsHedIssue(
+            generateIssue('extension', { tag: 'Train/Maglev', sidecarKey: 'transport' }),
+            bidsSidecars[1][0].file,
+          ),
         ],
         error_and_good: [
           // TODO: Duplication temporary
           new BidsHedIssue(converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]), bidsSidecars[1][1].file),
-          new BidsHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), bidsSidecars[1][1].file),
+          new BidsHedIssue(
+            generateIssue('invalidTag', { tag: 'Confused', sidecarKey: 'emotion' }),
+            bidsSidecars[1][1].file,
+          ),
         ],
       }
       return validator(testDatasets, expectedIssues, specs)
@@ -819,25 +825,40 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'InvalidDefinitionGroup',
+              sidecarKey: 'invalid_definition_group',
             }),
             placeholderDatasets[2].file,
           ),
           new BidsHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'InvalidDefinitionTag',
+              sidecarKey: 'invalid_definition_tag',
             }),
             placeholderDatasets[3].file,
           ),
           new BidsHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'MultiplePlaceholdersInGroupDefinition',
+              sidecarKey: 'multiple_placeholders_in_group',
             }),
             placeholderDatasets[4].file,
           ),
-          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'Duration/# s' }), placeholderDatasets[5].file),
-          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#' }), placeholderDatasets[5].file),
-          new BidsHedIssue(generateIssue('missingPlaceholder', { string: 'Sad' }), placeholderDatasets[6].file),
-          new BidsHedIssue(generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' }), placeholderDatasets[7].file),
+          new BidsHedIssue(
+            generateIssue('invalidPlaceholder', { tag: 'Duration/# s', sidecarKey: 'multiple_value_tags' }),
+            placeholderDatasets[5].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#', sidecarKey: 'multiple_value_tags' }),
+            placeholderDatasets[5].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('missingPlaceholder', { string: 'Sad', sidecarKey: 'no_value_tags' }),
+            placeholderDatasets[6].file,
+          ),
+          new BidsHedIssue(
+            generateIssue('invalidPlaceholder', { tag: 'RGB-green/#', sidecarKey: 'value_in_categorical' }),
+            placeholderDatasets[7].file,
+          ),
         ],
       }
       return validator(testDatasets, expectedIssues, specs)
@@ -1192,18 +1213,21 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(
             generateIssue('illegalDefinitionContext', {
               string: sidecars[5][2].event_code.HED,
+              sidecarKey: 'event_code',
             }),
             defSidecars[2].file,
           ),
           new BidsHedIssue(
             generateIssue('missingPlaceholder', {
               string: sidecars[5][2].event_code.HED,
+              sidecarKey: 'event_code',
             }),
             defSidecars[2].file,
           ),
           new BidsHedIssue(
             generateIssue('illegalDefinitionInExclusiveContext', {
               string: 'Red, Blue, (Definition/myDef, (Label/Red, Blue))',
+              sidecarKey: 'event_code',
             }),
             defSidecars[3].file,
           ),
