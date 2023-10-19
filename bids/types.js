@@ -252,25 +252,32 @@ export class BidsSidecar extends BidsJsonFile {
    */
   parseHedStrings(hedSchemas) {
     this.parsedHedData = new Map()
-    let issues = []
-    for (const [key, strings] of this.hedData) {
-      if (typeof strings === 'string') {
-        const [parsedString, parsingIssues] = parseHedString(strings, hedSchemas)
-        this.parsedHedData.set(key, parsedString)
-        issues = issues.concat(...Object.values(parsingIssues))
-      } else if (strings === Object(strings)) {
-        const keyMap = new Map()
-        for (const [value, string] of Object.entries(strings)) {
-          const [parsedString, parsingIssues] = parseHedString(string, hedSchemas)
-          keyMap.set(value, parsedString)
-          issues = issues.concat(...Object.values(parsingIssues))
-        }
-        this.parsedHedData.set(key, keyMap)
-      } else {
-        issues.push(generateIssue('illegalSidecarHedType', { key: key, file: this.name }))
-      }
+    const issues = []
+    for (const [key, value] of this.hedData) {
+      issues.push(...this._parseSidecarKey(key, value, hedSchemas))
     }
     return issues
+  }
+
+  _parseSidecarKey(key, data, hedSchemas) {
+    if (typeof data === 'string') {
+      return this._parseHedString(this.parsedHedData, key, data, hedSchemas)
+    } else if (data !== Object(data)) {
+      return [generateIssue('illegalSidecarHedType', { key: key, file: this.name })]
+    }
+    const issues = []
+    const keyMap = new Map()
+    for (const [value, string] of Object.entries(data)) {
+      issues.push(...this._parseHedString(keyMap, value, string, hedSchemas))
+    }
+    this.parsedHedData.set(key, keyMap)
+    return issues
+  }
+
+  _parseHedString(map, key, string, hedSchemas) {
+    const [parsedString, parsingIssues] = parseHedString(string, hedSchemas)
+    map.set(key, parsedString)
+    return Object.values(parsingIssues).flat()
   }
 
   /**
