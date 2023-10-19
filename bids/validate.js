@@ -84,6 +84,13 @@ function validateSidecars(sidecarData, hedSchemas) {
   return [sidecarErrorsFound, issues]
 }
 
+/**
+ * Validate an individual BIDS sidecar.
+ *
+ * @param {BidsSidecar} sidecar A BIDS sidecar.
+ * @param {Schemas} hedSchemas A HED schema collection.
+ * @returns {BidsHedIssue[]} All issues found.
+ */
 function validateSidecar(sidecar, hedSchemas) {
   const issues = []
   for (const [sidecarKey, hedData] of sidecar.parsedHedData) {
@@ -110,6 +117,16 @@ function validateSidecar(sidecar, hedSchemas) {
   return issues
 }
 
+/**
+ * Validate an individual BIDS sidecar string.
+ *
+ * @param {string} sidecarKey The sidecar key this string belongs to.
+ * @param {ParsedHedString} sidecarString The parsed sidecar HED string.
+ * @param {BidsSidecar} sidecar The BIDS sidecar.
+ * @param {Object} options Options specific to this validation run to pass to {@link validateHedString}.
+ * @param {Schemas} hedSchemas The HED schema collection to validate against.
+ * @returns {BidsHedIssue[]} All issues found.
+ */
 function validateSidecarString(sidecarKey, sidecarString, sidecar, options, hedSchemas) {
   const [, hedIssues] = validateHedString(sidecarString, hedSchemas, options)
   return convertHedIssuesToBidsIssues(hedIssues, sidecar.file, { sidecarKey })
