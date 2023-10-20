@@ -26,6 +26,9 @@ export function validateBidsDataset(dataset, schemaDefinition) {
   )
 }
 
+/**
+ * A validator for HED content in a BIDS dataset.
+ */
 class BidsHedValidator {
   /**
    * The BIDS dataset being validated.
@@ -43,6 +46,12 @@ class BidsHedValidator {
    */
   issues
 
+  /**
+   * Constructor.
+   *
+   * @param {BidsDataset} dataset The BIDS dataset being validated.
+   * @param {Schemas} hedSchemas The HED schema collection being validated against.
+   */
   constructor(dataset, hedSchemas) {
     this.dataset = dataset
     this.hedSchemas = hedSchemas
