@@ -281,18 +281,24 @@ class BidsHedValidator {
  */
 function convertHedIssuesToBidsIssues(hedIssues, file, extraParameters) {
   if (hedIssues instanceof IssueError) {
-    if (extraParameters) {
-      Object.assign(hedIssues.issue.parameters, extraParameters)
-      hedIssues.issue.generateMessage()
-    }
-    return [new BidsHedIssue(hedIssues.issue, file)]
+    return [convertHedIssueToBidsIssue(hedIssues.issue, file, extraParameters)]
   } else {
-    return hedIssues.map((hedIssue) => {
-      if (extraParameters) {
-        Object.assign(hedIssue.parameters, extraParameters)
-        hedIssue.generateMessage()
-      }
-      return new BidsHedIssue(hedIssue, file)
-    })
+    return hedIssues.map((hedIssue) => convertHedIssueToBidsIssue(hedIssue, file, extraParameters))
   }
+}
+
+/**
+ * Convert a single HED issue into a BIDS-compatible issue.
+ *
+ * @param {Issue} hedIssue One HED-format issue.
+ * @param {Object} file A BIDS-format file object used to generate a {@link BidsHedIssue} object.
+ * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} object.
+ * @returns {BidsHedIssue} The passed issue in BIDS-compatible format.
+ */
+function convertHedIssueToBidsIssue(hedIssue, file, extraParameters) {
+  if (extraParameters) {
+    Object.assign(hedIssue.parameters, extraParameters)
+    hedIssue.generateMessage()
+  }
+  return new BidsHedIssue(hedIssue, file)
 }
