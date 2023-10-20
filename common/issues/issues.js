@@ -1,3 +1,5 @@
+import mapValues from 'lodash/mapValues'
+
 import issueData from './data'
 
 export class IssueError extends Error {
@@ -75,9 +77,7 @@ export class Issue {
     this.hedCode = hedCode
     this.level = level
     // Pre-convert all parameters except the substring bounds (an integer array) to their string forms.
-    this.parameters = Object.fromEntries(
-      Object.entries(parameters).map(([key, value]) => (key === 'bounds' ? [key, value] : [key, String(value)])),
-    )
+    this.parameters = mapValues(parameters, (value, key) => (key === 'bounds' ? value : String(value)))
     this.generateMessage()
   }
 
