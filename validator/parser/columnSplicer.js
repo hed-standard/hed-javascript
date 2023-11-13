@@ -1,5 +1,5 @@
 import ParsedHedString from './parsedHedString'
-import { ParsedHedColumnSubstitution, ParsedHedColumnTemplate } from './parsedHedColumnSplice'
+import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
 import { generateIssue } from '../../common/issues/issues'
 
@@ -30,7 +30,7 @@ function spliceSubstrings(parsedString, substrings, columnReplacements, hedSchem
   const newData = []
   const issues = []
   for (const substring of substrings) {
-    if (substring instanceof ParsedHedColumnTemplate) {
+    if (substring instanceof ParsedHedColumnSplice) {
       const [substitution, subIssues] = spliceTemplate(substring, columnReplacements)
       newData.push(...substitution)
       if (substitution.length === 0) {
@@ -51,7 +51,7 @@ function spliceSubstrings(parsedString, substrings, columnReplacements, hedSchem
 /**
  * Splice a replacement string in place of a column template.
  *
- * @param {ParsedHedColumnTemplate} columnTemplate The parsed HED column splice template in which to make the column splice.
+ * @param {ParsedHedColumnSplice} columnTemplate The parsed HED column splice template in which to make the column splice.
  * @param {Map<string, ParsedHedString>} columnReplacements A mapping from column names to their replacement strings.
  * @returns {[ParsedHedSubstring[]|null, Issue[]]} The spliced column substitution, and any issues found.
  */

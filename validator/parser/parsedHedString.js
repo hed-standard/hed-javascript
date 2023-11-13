@@ -1,7 +1,6 @@
 import { ParsedHedTag } from './parsedHedTag'
 import ParsedHedGroup from './parsedHedGroup'
-import { ParsedHedColumnSplice, ParsedHedColumnSubstitution } from './parsedHedColumnSplice'
-import { generateIssue, IssueError } from '../../common/issues/issues'
+import ParsedHedColumnSplice from './parsedHedColumnSplice'
 
 /**
  * A parsed HED string.
@@ -81,38 +80,6 @@ export class ParsedHedString {
     return this.definitionGroups.map((group) => {
       return [group.definitionName, group]
     })
-  }
-
-  /**
-   * Iterator over the parsed HED tags in this HED tag group.
-   *
-   * @yields {ParsedHedTag} This tag group's HED tags.
-   */
-  *tagIterator() {
-    yield* this._innerTagIterator(this.parseTree, false)
-  }
-
-  /**
-   * Implementation of {@link tagIterator}.
-   *
-   * @param {ParsedHedSubstring[]} tagList A list of HED substrings.
-   * @param {boolean} inColumn Whether this was called within a {@link ParsedHedColumnSubstitution} context (only one level of recursion is allowed).
-   * @yields {ParsedHedTag}
-   * @private
-   */
-  *_innerTagIterator(tagList, inColumn) {
-    for (const innerTag of tagList) {
-      if (innerTag instanceof ParsedHedTag) {
-        yield innerTag
-      } else if (innerTag instanceof ParsedHedGroup) {
-        yield* innerTag.tagIterator()
-      } else if (innerTag instanceof ParsedHedColumnSubstitution) {
-        if (inColumn) {
-          throw new IssueError(generateIssue('recursiveCurlyBraces', { column: innerTag }))
-        }
-        yield* this._innerTagIterator(innerTag.data, true)
-      }
-    }
   }
 }
 
