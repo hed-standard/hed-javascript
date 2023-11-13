@@ -1,7 +1,7 @@
 import flattenDeep from 'lodash/flattenDeep'
 
 import { ParsedHedTag, ParsedHed3Tag } from './parsedHedTag'
-import ParsedHedColumnSplice from './parsedHedColumnSplice'
+import { ParsedHedColumnTemplate } from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
 import { Schema, Schemas } from '../../common/schema/types'
 import { generateIssue } from '../../common/issues/issues'
@@ -336,7 +336,7 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
       conversionIssues.push(...parsedTag.conversionIssues)
       return parsedTag
     } else if (tagSpec instanceof ColumnSpliceSpec) {
-      const parsedTag = new ParsedHedColumnSplice(tagSpec.tag, tagSpec.bounds)
+      const parsedTag = new ParsedHedColumnTemplate(tagSpec.tag, tagSpec.bounds)
       return parsedTag
     }
   }

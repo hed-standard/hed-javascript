@@ -8,7 +8,6 @@ import { getParsedParentTags } from '../../utils/hedData'
 import { getParentTag, getTagName, hedStringIsAGroup, replaceTagNameWithPound } from '../../utils/hedStrings'
 import { getCharacterCount, isNumber } from '../../utils/string'
 import { HedValidator } from './validator'
-import ParsedHedColumnSplice from '../parser/parsedHedColumnSplice'
 
 const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'

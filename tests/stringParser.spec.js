@@ -10,6 +10,7 @@ import ParsedHedSubstring from '../validator/parser/parsedHedSubstring'
 import { ParsedHedTag } from '../validator/parser/parsedHedTag'
 import splitHedString from '../validator/parser/splitHedString'
 import { buildSchemas } from '../validator/schema/init'
+import { spliceColumns } from '../validator/parser/columnSplicer'
 
 describe('HED string parsing', () => {
   const nullSchema = new Schemas(null)
@@ -407,6 +408,40 @@ describe('HED string parsing', () => {
           })
           return [canonicalTags, issues]
         })
+      })
+    })
+  })
+
+  describe('HED column splicing', () => {
+    it('must properly splice columns', () => {
+      const hedStrings = [
+        'Sensory-event, Visual-presentation, {stim_file}, (Face, {stim_file})',
+        '(Image, Face, Pathname/#)',
+        'Sensory-event, Visual-presentation, (Image, Face, Pathname/#), (Face, (Image, Face, Pathname/#))',
+      ]
+      const issues = []
+      const parsedStrings = []
+      return hedSchemaPromise.then(([hedSchemas, schemaIssues]) => {
+        assert.isEmpty(schemaIssues)
+        for (const hedString of hedStrings) {
+          const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
+          parsedStrings.push(parsedString)
+          issues.push(...Object.values(parsingIssues).flat())
+        }
+        const [baseString, refString, correctString] = parsedStrings
+        const replacementMap = new Map([['stim_file', refString]])
+        const [splicedString, splicingIssues] = spliceColumns(baseString, replacementMap, hedSchemas)
+        issues.push(...splicingIssues)
+        const tagToString = (parsedTag) => {
+          return parsedTag.originalTag
+        }
+        assert.deepStrictEqual(splicedString.tags.map(tagToString), correctString.tags.map(tagToString), 'Tags')
+        assert.deepStrictEqual(
+          splicedString.tagGroups.map(tagToString),
+          correctString.tagGroups.map(tagToString),
+          'Tag groups',
+        )
+        assert.isEmpty(issues, 'Issues')
       })
     })
   })

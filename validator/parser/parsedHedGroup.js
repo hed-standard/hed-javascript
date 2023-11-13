@@ -5,7 +5,7 @@ import { getParsedParentTags } from '../../utils/hedData'
 import { getTagName } from '../../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { ParsedHedTag } from './parsedHedTag'
-import ParsedHedColumnSplice from './parsedHedColumnSplice'
+import { ParsedHedColumnSplice, ParsedHedColumnSubstitution } from './parsedHedColumnSplice'
 
 /**
  * A parsed HED tag group.
@@ -15,7 +15,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * The parsed HED tags in the HED tag group.
-   * @type {(ParsedHedTag|ParsedHedGroup)[]}
+   * @type {ParsedHedSubstring[]}
    */
   tags
   /**
@@ -36,7 +36,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Constructor.
-   * @param {(ParsedHedTag|ParsedHedGroup)[]} parsedHedTags The parsed HED tags in the HED tag group.
+   * @param {ParsedHedSubstring[]} parsedHedTags The parsed HED tags in the HED tag group.
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} hedString The original HED string.
    * @param {number[]} originalBounds The bounds of the HED tag in the original HED string.
@@ -467,14 +467,32 @@ export class ParsedHedGroup extends ParsedHedSubstring {
    */
   *subGroupArrayIterator() {
     const currentGroup = []
-    for (const innerTag of this.tags) {
+    yield* this._subGroupArrayTagIterator(this.tags, currentGroup, false)
+    yield currentGroup
+  }
+
+  /**
+   * Implementation of {@link subGroupArrayIterator}.
+   *
+   * @param {ParsedHedSubstring[]} tagList A list of HED substrings.
+   * @param {ParsedHedTag[]} currentGroup A reference to the current group.
+   * @param {boolean} inColumn Whether this was called within a {@link ParsedHedColumnSubstitution} context (only one level of recursion is allowed).
+   * @yields {ParsedHedTag}
+   * @private
+   */
+  *_subGroupArrayTagIterator(tagList, currentGroup, inColumn) {
+    for (const innerTag of tagList) {
       if (innerTag instanceof ParsedHedTag) {
         currentGroup.push(innerTag)
       } else if (innerTag instanceof ParsedHedGroup) {
         yield* innerTag.subGroupArrayIterator()
+      } else if (innerTag instanceof ParsedHedColumnSubstitution) {
+        if (inColumn) {
+          throw new IssueError(generateIssue('recursiveCurlyBraces', { column: innerTag }))
+        }
+        yield* this._subGroupArrayTagIterator(innerTag.data, currentGroup, true)
       }
     }
-    yield currentGroup
   }
 
   /**
@@ -497,7 +515,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
    * @yields {ParsedHedTag} This tag group's HED tags.
    */
   *tagIterator() {
-    yield* this._innerTagIterator(ParsedHedTag)
+    yield* this._innerTagIterator(this.tags, false)
   }
 
   /**
@@ -506,22 +524,34 @@ export class ParsedHedGroup extends ParsedHedSubstring {
    * @yields {ParsedHedColumnSplice} This tag group's HED column splices.
    */
   *columnSpliceIterator() {
-    yield* this._innerTagIterator(ParsedHedColumnSplice)
+    for (const innerTag of this.tags) {
+      if (innerTag instanceof ParsedHedColumnSplice) {
+        yield innerTag
+      } else if (innerTag instanceof ParsedHedGroup) {
+        yield* innerTag.columnSpliceIterator()
+      }
+    }
   }
 
   /**
-   * Implementation of {@link tagIterator} and {@link columnSpliceIterator}.
+   * Implementation of {@link tagIterator}.
    *
-   * @param {typeof ParsedHedSubstring} InnerTagClass Type of inner tag to return.
-   * @yields {ParsedHedSubstring}
+   * @param {ParsedHedSubstring[]} tagList A list of HED substrings.
+   * @param {boolean} inColumn Whether this was called within a {@link ParsedHedColumnSubstitution} context (only one level of recursion is allowed).
+   * @yields {ParsedHedTag}
    * @private
    */
-  *_innerTagIterator(InnerTagClass) {
-    for (const innerTag of this.tags) {
-      if (innerTag instanceof InnerTagClass) {
+  *_innerTagIterator(tagList, inColumn) {
+    for (const innerTag of tagList) {
+      if (innerTag instanceof ParsedHedTag) {
         yield innerTag
       } else if (innerTag instanceof ParsedHedGroup) {
-        yield* innerTag._innerTagIterator(InnerTagClass)
+        yield* innerTag.tagIterator()
+      } else if (innerTag instanceof ParsedHedColumnSubstitution) {
+        if (inColumn) {
+          throw new IssueError(generateIssue('recursiveCurlyBraces', { column: innerTag }))
+        }
+        yield* this._innerTagIterator(innerTag.data, true)
       }
     }
   }
