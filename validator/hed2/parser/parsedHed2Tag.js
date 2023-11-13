@@ -1,5 +1,5 @@
 import { replaceTagNameWithPound } from '../../../utils/hedStrings'
-import { ParsedHedTag } from '../../parser/parsedHedTag'
+import { ParsedHedTag } from '../../../parser/parsedHedTag'
 
 /**
  * ParsedHedTag class

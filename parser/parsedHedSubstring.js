@@ -1,4 +1,4 @@
-import { Memoizer } from '../../utils/types'
+import { Memoizer } from '../utils/types'
 
 /**
  * A parsed HED substring.

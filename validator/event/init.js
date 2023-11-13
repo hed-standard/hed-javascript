@@ -1,5 +1,5 @@
-import { parseHedString } from '../parser/main'
-import ParsedHedString from '../parser/parsedHedString'
+import { parseHedString } from '../../parser/main'
+import ParsedHedString from '../../parser/parsedHedString'
 import { Schemas } from '../../common/schema/types'
 
 import { HedValidator } from './validator'

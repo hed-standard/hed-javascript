@@ -3,7 +3,7 @@ import { validateHedString } from '../validator/event'
 import { BidsDataset, BidsEventFile, BidsHedIssue, BidsIssue } from './types'
 import { buildBidsSchemas } from './schema'
 import { generateIssue, Issue, IssueError } from '../common/issues/issues'
-import ParsedHedString from '../validator/parser/parsedHedString'
+import ParsedHedString from '../parser/parsedHedString'
 
 /**
  * Validate a BIDS dataset.

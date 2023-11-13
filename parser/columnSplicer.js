@@ -1,7 +1,7 @@
 import ParsedHedString from './parsedHedString'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
-import { generateIssue } from '../../common/issues/issues'
+import { generateIssue } from '../common/issues/issues'
 
 /**
  * Substitute replacement strings for column splice templates.

@@ -1,4 +1,4 @@
-import { ParsedHedTag } from '../parser/parsedHedTag'
+import { ParsedHedTag } from '../../parser/parsedHedTag'
 import { generateIssue, Issue } from '../../common/issues/issues'
 import { Schemas } from '../../common/schema/types'
 import { replaceTagNameWithPound } from '../../utils/hedStrings'

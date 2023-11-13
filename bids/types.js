@@ -1,7 +1,7 @@
 import { sidecarValueHasHed } from './utils'
 import { generateIssue, Issue } from '../common/issues/issues'
 import parseTSV from './tsvParser'
-import { parseHedString } from '../validator/parser/main'
+import { parseHedString } from '../parser/main'
 
 /**
  * Base class for BIDS data.

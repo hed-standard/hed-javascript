@@ -2,7 +2,7 @@ import zip from 'lodash/zip'
 
 import { generateIssue, Issue } from '../common/issues/issues'
 import { validateHedEventWithDefinitions } from './event'
-import { parseHedStrings } from './parser/main'
+import { parseHedStrings } from '../parser/main'
 import { filterNonEqualDuplicates } from '../utils/map'
 
 /**

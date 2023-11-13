@@ -1,6 +1,6 @@
 import lt from 'semver/functions/lt'
 
-import { ParsedHed3Tag } from '../validator/parser/parsedHedTag'
+import { ParsedHed3Tag } from '../parser/parsedHedTag'
 
 /**
  * Determine the HED generation for a base schema version number.

@@ -5,12 +5,12 @@ import { generateIssue } from '../common/issues/issues'
 import { Schemas, SchemaSpec, SchemasSpec } from '../common/schema/types'
 import converterGenerateIssue from '../converter/issues'
 import { recursiveMap } from '../utils/array'
-import { parseHedString } from '../validator/parser/main'
-import ParsedHedSubstring from '../validator/parser/parsedHedSubstring'
-import { ParsedHedTag } from '../validator/parser/parsedHedTag'
-import splitHedString from '../validator/parser/splitHedString'
+import { parseHedString } from '../parser/main'
+import ParsedHedSubstring from '../parser/parsedHedSubstring'
+import { ParsedHedTag } from '../parser/parsedHedTag'
+import splitHedString from '../parser/splitHedString'
 import { buildSchemas } from '../validator/schema/init'
-import { spliceColumns } from '../validator/parser/columnSplicer'
+import { spliceColumns } from '../parser/columnSplicer'
 
 describe('HED string parsing', () => {
   const nullSchema = new Schemas(null)

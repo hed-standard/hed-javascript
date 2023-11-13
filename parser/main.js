@@ -1,9 +1,9 @@
-import { mergeParsingIssues } from '../../utils/hedData'
-import { generateIssue } from '../../common/issues/issues'
+import { mergeParsingIssues } from '../utils/hedData'
+import { generateIssue } from '../common/issues/issues'
 
 import ParsedHedString from './parsedHedString'
 import splitHedString from './splitHedString'
-import { getCharacterCount, stringIsEmpty } from '../../utils/string'
+import { getCharacterCount, stringIsEmpty } from '../utils/string'
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'

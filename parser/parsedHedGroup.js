@@ -1,8 +1,8 @@
 import differenceWith from 'lodash/differenceWith'
 
-import { generateIssue, IssueError } from '../../common/issues/issues'
-import { getParsedParentTags } from '../../utils/hedData'
-import { getTagName } from '../../utils/hedStrings'
+import { generateIssue, IssueError } from '../common/issues/issues'
+import { getParsedParentTags } from '../utils/hedData'
+import { getTagName } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { ParsedHedTag } from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'

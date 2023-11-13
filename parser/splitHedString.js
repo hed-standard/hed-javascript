@@ -1,15 +1,15 @@
 import flattenDeep from 'lodash/flattenDeep'
 
-import { ParsedHedTag, ParsedHed3Tag } from './parsedHedTag'
+import { ParsedHed3Tag, ParsedHedTag } from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
-import { Schema, Schemas } from '../../common/schema/types'
-import { generateIssue } from '../../common/issues/issues'
-import { recursiveMap } from '../../utils/array'
-import { replaceTagNameWithPound } from '../../utils/hedStrings'
-import { mergeParsingIssues } from '../../utils/hedData'
-import { stringIsEmpty } from '../../utils/string'
-import { ParsedHed2Tag } from '../hed2/parser/parsedHed2Tag'
+import { Schemas } from '../common/schema/types'
+import { generateIssue } from '../common/issues/issues'
+import { recursiveMap } from '../utils/array'
+import { replaceTagNameWithPound } from '../utils/hedStrings'
+import { mergeParsingIssues } from '../utils/hedData'
+import { stringIsEmpty } from '../utils/string'
+import { ParsedHed2Tag } from '../validator/hed2/parser/parsedHed2Tag'
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -28,36 +28,75 @@ const generationToClass = [
   ParsedHed3Tag,
 ]
 
-class TagSpec {
-  constructor(tag, start, end, librarySchema) {
-    this.tag = tag.trim()
+/**
+ * A specification for a tokenized substring.
+ */
+class SubstringSpec {
+  /**
+   * The starting and ending bounds of the substring.
+   * @type {number[]}
+   */
+  bounds
+
+  constructor(start, end) {
     this.bounds = [start, end]
-    /**
-     * @type {string}
-     */
+  }
+}
+
+/**
+ * A specification for a tokenized tag.
+ */
+class TagSpec extends SubstringSpec {
+  /**
+   * The tag this spec represents.
+   * @type {string}
+   */
+  tag
+  /**
+   * The schema prefix for this tag, if any.
+   * @type {string}
+   */
+  library
+
+  constructor(tag, start, end, librarySchema) {
+    super(start, end)
+
+    this.tag = tag.trim()
     this.library = librarySchema
   }
 }
 
-class GroupSpec {
-  constructor(start, finish) {
-    this.start = start
-    this.finish = finish
-    /**
-     * @type {GroupSpec[]}
-     */
-    this.children = []
-  }
+/**
+ * A specification for a tokenized tag group.
+ */
+class GroupSpec extends SubstringSpec {
+  /**
+   * The child group specifications.
+   * @type {GroupSpec[]}
+   */
+  children
 
-  get bounds() {
-    return [this.start, this.finish]
+  constructor(start, end) {
+    super(start, end)
+
+    this.children = []
   }
 }
 
-class ColumnSpliceSpec {
+/**
+ * A specification for a tokenized column splice template.
+ */
+class ColumnSpliceSpec extends SubstringSpec {
+  /**
+   * The column name this spec refers to.
+   * @type {string}
+   */
+  columnName
+
   constructor(name, start, end) {
-    this.tag = name.trim()
-    this.bounds = [start, end]
+    super(start, end)
+
+    this.columnName = name.trim()
   }
 }
 
@@ -235,7 +274,7 @@ class HedStringTokenizer {
     while (this.groupDepth > 0) {
       this.syntaxIssues.push(
         generateIssue('unclosedParenthesis', {
-          index: this.parenthesesStack[this.parenthesesStack.length - 1].start,
+          index: this.parenthesesStack[this.parenthesesStack.length - 1].bounds[0],
           string: this.hedString,
         }),
       )
@@ -267,7 +306,7 @@ class HedStringTokenizer {
  * Check the split HED tags for invalid characters
  *
  * @param {string} hedString The HED string to be split.
- * @param {TagSpec[]} tagSpecs The tag specifications.
+ * @param {SubstringSpec[]} tagSpecs The tag specifications.
  * @returns {Object<string, Issue[]>} Any issues found.
  */
 const checkForInvalidCharacters = function (hedString, tagSpecs) {
@@ -275,6 +314,9 @@ const checkForInvalidCharacters = function (hedString, tagSpecs) {
   const flatTagSpecs = flattenDeep(tagSpecs)
 
   for (const tagSpec of flatTagSpecs) {
+    if (tagSpec instanceof ColumnSpliceSpec) {
+      continue
+    }
     const alwaysInvalidIssues = checkTagForInvalidCharacters(hedString, tagSpec, tagSpec.tag, invalidCharacters)
     const valueTag = replaceTagNameWithPound(tagSpec.tag)
     const outsideValueIssues = checkTagForInvalidCharacters(
@@ -336,8 +378,7 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
       conversionIssues.push(...parsedTag.conversionIssues)
       return parsedTag
     } else if (tagSpec instanceof ColumnSpliceSpec) {
-      const parsedTag = new ParsedHedColumnSplice(tagSpec.tag, tagSpec.bounds)
-      return parsedTag
+      return new ParsedHedColumnSplice(tagSpec.columnName, tagSpec.bounds)
     }
   }
   const createParsedGroups = (tags, groupSpecs) => {

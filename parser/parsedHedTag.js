@@ -1,7 +1,7 @@
-import { generateIssue } from '../../common/issues/issues'
-import { Schema } from '../../common/schema/types'
-import { convertPartialHedStringToLong } from '../../converter/converter'
-import { getTagLevels, replaceTagNameWithPound } from '../../utils/hedStrings'
+import { generateIssue } from '../common/issues/issues'
+import { Schema } from '../common/schema/types'
+import { convertPartialHedStringToLong } from '../converter/converter'
+import { getTagLevels, replaceTagNameWithPound } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 
 /**
