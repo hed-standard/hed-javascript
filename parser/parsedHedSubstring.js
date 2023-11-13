@@ -28,6 +28,16 @@ export class ParsedHedSubstring extends Memoizer {
   }
 
   /**
+   * Nicely format this substring.
+   *
+   * This is left blank for the subclasses to override.
+   *
+   * @return {string}
+   * @abstract
+   */
+  format() {}
+
+  /**
    * Override of {@link Object.prototype.toString}.
    *
    * @returns {string} The original form of this HED substring.

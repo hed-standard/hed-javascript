@@ -90,6 +90,15 @@ export class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
+   * Nicely format this tag group.
+   *
+   * @return {string}
+   */
+  format() {
+    return '(' + this.tags.map((substring) => substring.format()).join(', ') + ')'
+  }
+
+  /**
    * The {@code Definition} tags associated with this HED tag group.
    * @returns {ParsedHedTag[]}
    */

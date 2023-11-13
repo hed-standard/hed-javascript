@@ -76,6 +76,15 @@ export class ParsedHedString {
     })
   }
 
+  /**
+   * Nicely format this HED string.
+   *
+   * @return {string}
+   */
+  format() {
+    return this.parseTree.map((substring) => substring.format()).join(', ')
+  }
+
   get definitions() {
     return this.definitionGroups.map((group) => {
       return [group.definitionName, group]

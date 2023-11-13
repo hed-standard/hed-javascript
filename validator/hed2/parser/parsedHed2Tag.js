@@ -20,6 +20,18 @@ export class ParsedHed2Tag extends ParsedHedTag {
   }
 
   /**
+   * Nicely format this tag.
+   *
+   * Unfortunately, we don't actually have the properly capitalized version of the tag name available, so we just return
+   * {@link originalTag}, which we assume is properly capitalized.
+   *
+   * @return {string}
+   */
+  format() {
+    return this.originalTag
+  }
+
+  /**
    * Determine if this HED tag is in the schema.
    */
   get existsInSchema() {

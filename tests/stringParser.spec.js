@@ -432,15 +432,7 @@ describe('HED string parsing', () => {
         const replacementMap = new Map([['stim_file', refString]])
         const [splicedString, splicingIssues] = spliceColumns(baseString, replacementMap, hedSchemas)
         issues.push(...splicingIssues)
-        const tagToString = (parsedTag) => {
-          return parsedTag.originalTag
-        }
-        assert.deepStrictEqual(splicedString.tags.map(tagToString), correctString.tags.map(tagToString), 'Tags')
-        assert.deepStrictEqual(
-          splicedString.tagGroups.map(tagToString),
-          correctString.tagGroups.map(tagToString),
-          'Tag groups',
-        )
+        assert.strictEqual(splicedString.format(), correctString.format(), 'Full string')
         assert.isEmpty(issues, 'Issues')
       })
     })

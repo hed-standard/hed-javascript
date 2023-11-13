@@ -264,6 +264,23 @@ export class ParsedHed3Tag extends ParsedHedTag {
   }
 
   /**
+   * Nicely format this tag.
+   *
+   * @return {string}
+   */
+  format() {
+    let tagName = this.schema.entries.definitions.get('tags').getEntry(this.formattedTag)?.name
+    if (tagName === undefined) {
+      tagName = this.originalTag
+    }
+    if (this.schema?.prefix) {
+      return this.schema.prefix + ':' + tagName
+    } else {
+      return tagName
+    }
+  }
+
+  /**
    * Determine if this HED tag is in the schema.
    */
   get existsInSchema() {
