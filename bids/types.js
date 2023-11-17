@@ -369,7 +369,7 @@ export class BidsIssue {
   }
 
   static generateInternalErrorPromise(error) {
-    return Promise.resolve([new BidsIssue(107, null, error.message)])
+    return Promise.resolve([new BidsIssue(106, null, error.message)])
   }
 }
 
