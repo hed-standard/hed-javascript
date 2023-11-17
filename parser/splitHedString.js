@@ -219,7 +219,6 @@ class HedStringTokenizer {
           string: this.hedString,
         }),
       )
-      return
     }
     this.columnSpliceIndex = i
   }
@@ -283,7 +282,7 @@ class HedStringTokenizer {
   }
 
   pushTag(i) {
-    if (!stringIsEmpty(this.currentTag)) {
+    if (!stringIsEmpty(this.currentTag) && this.columnSpliceIndex < 0) {
       this.currentGroupStack[this.groupDepth].push(
         new TagSpec(this.currentTag, this.startingIndex, i, this.librarySchema),
       )

@@ -4,6 +4,7 @@ import { BidsDataset, BidsEventFile, BidsHedIssue, BidsIssue } from './types'
 import { buildBidsSchemas } from './schema'
 import { generateIssue, Issue, IssueError } from '../common/issues/issues'
 import ParsedHedString from '../parser/parsedHedString'
+import { parseHedString } from '../parser/main'
 
 /**
  * Validate a BIDS dataset.
@@ -103,6 +104,16 @@ class BidsHedValidator {
    * @returns {BidsHedIssue[]} All issues found.
    */
   validateSidecar(sidecar) {
+    return [...this._validateSidecarStrings(sidecar), ...this._validateSidecarCurlyBraces(sidecar)]
+  }
+
+  /**
+   * Validate an individual BIDS sidecar's HED strings.
+   *
+   * @param {BidsSidecar} sidecar A BIDS sidecar.
+   * @returns {BidsHedIssue[]} All issues found.
+   */
+  _validateSidecarStrings(sidecar) {
     const issues = []
     for (const [sidecarKey, hedData] of sidecar.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
@@ -139,8 +150,66 @@ class BidsHedValidator {
    * @private
    */
   _validateSidecarString(sidecarKey, sidecarString, sidecar, options) {
+    // Parsing issues already pushed in validateSidecars()
+    if (sidecarString === null) {
+      return []
+    }
     const [, hedIssues] = validateHedString(sidecarString, this.hedSchemas, options)
     return convertHedIssuesToBidsIssues(hedIssues, sidecar.file, { sidecarKey })
+  }
+
+  /**
+   * Validate an individual BIDS sidecar's curly braces.
+   *
+   * @param {BidsSidecar} sidecar A BIDS sidecar.
+   * @returns {BidsHedIssue[]} All issues found.
+   */
+  _validateSidecarCurlyBraces(sidecar) {
+    const issues = []
+    const references = new Map()
+    for (const [sidecarKey, hedData] of sidecar.parsedHedData) {
+      if (hedData === null) {
+        // Skipped
+      } else if (hedData instanceof ParsedHedString) {
+        if (hedData.columnSplices.length === 0) {
+          continue
+        }
+        const keyReferences = new Set()
+        for (const columnSplice of hedData.columnSplices) {
+          keyReferences.add(columnSplice.originalTag)
+        }
+        references.set(sidecarKey, keyReferences)
+      } else if (hedData instanceof Map) {
+        let keyReferences = null
+        for (const valueString of hedData.values()) {
+          if (valueString === null || valueString.columnSplices.length === 0) {
+            continue
+          }
+          keyReferences ??= new Set()
+          for (const columnSplice of valueString.columnSplices) {
+            keyReferences.add(columnSplice.originalTag)
+          }
+        }
+        if (keyReferences instanceof Set) {
+          references.set(sidecarKey, keyReferences)
+        }
+      } else {
+        throw new Error('Unexpected type found in sidecar parsedHedData map.')
+      }
+    }
+    for (const [key, referredKeys] of references) {
+      for (const referredKey of referredKeys) {
+        if (references.has(referredKey)) {
+          issues.push(
+            convertHedIssueToBidsIssue(
+              generateIssue('recursiveCurlyBracesWithKey', { column: referredKey, referrer: key }),
+              sidecar.file,
+            ),
+          )
+        }
+      }
+    }
+    return issues
   }
 
   /**
@@ -149,14 +218,48 @@ class BidsHedValidator {
    * @returns {boolean} Whether errors (as opposed to warnings) were founds.
    */
   validateHedColumn() {
-    const issues = this.dataset.eventData.flatMap((eventFileData) => {
-      return this._validateStrings(eventFileData.hedColumnHedStrings, eventFileData.file, {
-        expectValuePlaceholderString: false,
-        definitionsAllowed: 'no',
-      })
-    })
+    const issues = this.dataset.eventData.flatMap((eventFileData) => this._validateFileHedColumn(eventFileData))
     this.issues.push(...issues)
     return issues.some((issue) => issue.isError())
+  }
+
+  /**
+   * Validate an individual BIDS event file's HED column.
+   *
+   * @param {BidsEventFile} eventFileData The BIDS event file whose HED column is to be validated.
+   * @returns {BidsHedIssue[]} All issues found.
+   * @private
+   */
+  _validateFileHedColumn(eventFileData) {
+    const issues = []
+    for (const hedString of eventFileData.hedColumnHedStrings) {
+      if (!hedString) {
+        continue
+      }
+      const options = {
+        checkForWarnings: true,
+        expectValuePlaceholderString: false,
+        definitionsAllowed: 'no',
+      }
+      const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
+      issues.push(...convertHedIssuesToBidsIssues(Object.values(parsingIssues).flat(), eventFileData.file))
+      if (parsedString === null) {
+        continue
+      }
+      if (parsedString.columnSplices.length > 0) {
+        issues.push(
+          convertHedIssueToBidsIssue(
+            generateIssue('curlyBracesInHedColumn', { column: parsedString.columnSplices[0].format() }),
+            eventFileData.file,
+          ),
+        )
+        continue
+      }
+      const [, hedIssues] = validateHedString(parsedString, this.hedSchemas, options)
+      const convertedIssues = convertHedIssuesToBidsIssues(hedIssues, eventFileData.file)
+      issues.push(...convertedIssues)
+    }
+    return issues
   }
 
   /**
@@ -251,32 +354,6 @@ class BidsHedValidator {
       },
     )
     this.issues.push(...convertHedIssuesToBidsIssues(hedIssues, tsvFileData.file))
-  }
-
-  /**
-   * Validate a set of HED strings.
-   *
-   * @param {string[]} hedStrings The HED strings to validate.
-   * @param {Object} fileObject A BIDS-format file object used to generate {@link BidsHedIssue} objects.
-   * @param {Object} settings Options to pass to {@link validateHedString}.
-   * @returns {BidsHedIssue[]} Any issues found.
-   * @private
-   */
-  _validateStrings(hedStrings, fileObject, settings) {
-    const issues = []
-    for (const hedString of hedStrings) {
-      if (!hedString) {
-        continue
-      }
-      const options = {
-        checkForWarnings: true,
-        ...settings,
-      }
-      const [, hedIssues] = validateHedString(hedString, this.hedSchemas, options)
-      const convertedIssues = convertHedIssuesToBidsIssues(hedIssues, fileObject)
-      issues.push(...convertedIssues)
-    }
-    return issues
   }
 }
 

@@ -221,10 +221,20 @@ export default {
     level: 'error',
     message: stringTemplate`Curly brace expression "${'column'}" found in definition "${'definition'}". Indices (${0}, ${1}).`,
   },
+  curlyBracesInHedColumn: {
+    hedCode: 'CHARACTER_INVALID',
+    level: 'error',
+    message: stringTemplate`Curly brace expression "${'column'}" found in the HED column of a TSV file.`,
+  },
   recursiveCurlyBraces: {
     hedCode: 'SIDECAR_BRACES_INVALID',
     level: 'error',
     message: stringTemplate`Column name "${'column'}", which has curly braces, is illegally referred to by a string using curly braces.`,
+  },
+  recursiveCurlyBracesWithKey: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Column name "${'column'}", which has curly braces, is referred to by column "${'referrer'}", which also has curly braces.`,
   },
   undefinedCurlyBraces: {
     hedCode: 'SIDECAR_BRACES_INVALID',
