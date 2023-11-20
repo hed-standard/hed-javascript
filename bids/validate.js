@@ -362,7 +362,7 @@ class BidsHedValidator {
    */
   _generateTsvSidecarRows(sidecarHedColumns) {
     const sidecarHedRows = []
-    for (const [header, data] of sidecarHedColumns.parsedTsv.entries()) {
+    for (const [header, data] of sidecarHedColumns.entries()) {
       data.forEach((value, index) => {
         if (sidecarHedRows[index] === undefined) {
           sidecarHedRows[index] = new Map()

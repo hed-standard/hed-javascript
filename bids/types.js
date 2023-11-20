@@ -1,6 +1,6 @@
 import { sidecarValueHasHed } from './utils'
 import { generateIssue, Issue } from '../common/issues/issues'
-import parseTSV from './tsvParser'
+import { parseTSV, convertParsedTSVData } from './tsvParser'
 import { parseHedString } from '../parser/main'
 
 /**
@@ -110,17 +110,22 @@ export class BidsTsvFile extends BidsFile {
    * @todo This interface is provisional and subject to modification in version 4.0.0.
    *
    * @param {string} name The name of the TSV file.
-   * @param {Map<string, string[]>|string} tsvData This file's TSV data.
+   * @param {{headers: string[], rows: string[][]}|Map<string, string[]>|string} tsvData This file's TSV data.
    * @param {object} file The file object representing this file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
    * @param {object} mergedDictionary The merged sidecar data.
    */
   constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}) {
     super(name, file)
+    let parsedTsvData
     if (typeof tsvData === 'string') {
-      tsvData = parseTSV(tsvData)
+      parsedTsvData = parseTSV(tsvData)
+    } else if (tsvData === Object(tsvData)) {
+      parsedTsvData = convertParsedTSVData(tsvData)
+    } else {
+      parsedTsvData = tsvData
     }
-    this.parsedTsv = tsvData
+    this.parsedTsv = parsedTsvData
     this.potentialSidecars = potentialSidecars
 
     this.mergedSidecar = new BidsSidecar(name, mergedDictionary, null)
