@@ -80,7 +80,7 @@ export class BidsJsonFile extends BidsFile {
 export class BidsTsvFile extends BidsFile {
   /**
    * This file's parsed TSV data.
-   * @type {{headers: string[], rows: string[][]}}
+   * @type {Map<string, string[]>}
    */
   parsedTsv
   /**
@@ -110,7 +110,7 @@ export class BidsTsvFile extends BidsFile {
    * @todo This interface is provisional and subject to modification in version 4.0.0.
    *
    * @param {string} name The name of the TSV file.
-   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
+   * @param {Map<string, string[]>|string} tsvData This file's TSV data.
    * @param {object} file The file object representing this file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
    * @param {object} mergedDictionary The merged sidecar data.
@@ -129,14 +129,11 @@ export class BidsTsvFile extends BidsFile {
   }
 
   _parseHedColumn() {
-    const hedColumnIndex = this.parsedTsv.headers.indexOf('HED')
-    if (hedColumnIndex === -1) {
+    const hedColumn = this.parsedTsv.get('HED')
+    if (hedColumn === undefined) {
       this.hedColumnHedStrings = []
     } else {
-      this.hedColumnHedStrings = this.parsedTsv.rows
-        .slice(1)
-        .map((rowCells) => rowCells[hedColumnIndex])
-        .map((hedCell) => (hedCell && hedCell !== 'n/a' ? hedCell : ''))
+      this.hedColumnHedStrings = hedColumn.map((hedCell) => (hedCell && hedCell !== 'n/a' ? hedCell : ''))
     }
   }
 }

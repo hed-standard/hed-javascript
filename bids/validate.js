@@ -306,45 +306,25 @@ class BidsHedValidator {
    * @returns {string[]} The combined HED string collection for this BIDS TSV file.
    */
   parseTsvHed(tsvFileData) {
-    const sidecarHedColumnIndices = this._generateTsvColumnIndexMapping(tsvFileData)
-    if (tsvFileData.hedColumnHedStrings.length + sidecarHedColumnIndices.size === 0) {
+    const sidecarHedColumns = this._generateTsvSidecarColumns(tsvFileData)
+    if (tsvFileData.hedColumnHedStrings.length + sidecarHedColumns.size === 0) {
       // There is no HED data.
       return []
     }
+    const sidecarHedRows = this._generateTsvSidecarRows(sidecarHedColumns)
 
     const hedStrings = []
 
-    tsvFileData.parsedTsv.rows.slice(1).forEach((rowCells, rowIndex) => {
-      // get the 'HED' field
+    sidecarHedRows.forEach((rowCells, rowIndex) => {
       const hedStringParts = []
+      // get the 'HED' field
       if (tsvFileData.hedColumnHedStrings[rowIndex]) {
         hedStringParts.push(tsvFileData.hedColumnHedStrings[rowIndex])
       }
-      for (const [sidecarHedIndex, sidecarHedColumnName] of sidecarHedColumnIndices.entries()) {
-        const sidecarHedData = tsvFileData.sidecarHedData.get(sidecarHedColumnName)
-        const rowCell = rowCells[sidecarHedIndex]
-        if (!sidecarHedData || !rowCell || rowCell === 'n/a') {
-          continue
-        }
-        let sidecarHedString
-        if (typeof sidecarHedData === 'string') {
-          sidecarHedString = sidecarHedData.replace('#', rowCell)
-        } else {
-          sidecarHedString = sidecarHedData[rowCell]
-        }
-        if (sidecarHedString !== undefined) {
-          hedStringParts.push(sidecarHedString)
-        } else {
-          this.issues.push(
-            new BidsHedIssue(
-              generateIssue('sidecarKeyMissing', {
-                key: rowCell,
-                column: sidecarHedColumnName,
-                file: tsvFileData.file.relativePath,
-              }),
-              tsvFileData.file,
-            ),
-          )
+      for (const [columnName, columnValue] of rowCells.entries()) {
+        const hedStringPart = this._parseTsvSidecarColumnValue(tsvFileData, columnName, columnValue)
+        if (hedStringPart !== null) {
+          hedStringParts.push(hedStringPart)
         }
       }
 
@@ -357,20 +337,75 @@ class BidsHedValidator {
   }
 
   /**
-   * Generate a mapping from a TSV file column index to its corresponding sidecar key.
+   * Generate a map with the subset of TSV columns actually in the TSV file's merged sidecar.
    *
    * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
-   * @returns {Map<number, string>} The mapping from column index to column/sidecar key name
+   * @returns {Map<string, string[]>} The subset of TSV columns in the merged sidecar.
    * @private
    */
-  _generateTsvColumnIndexMapping(tsvFileData) {
-    const sidecarHedColumnIndices = new Map()
-    tsvFileData.parsedTsv.headers.forEach((header, headerIndex) => {
+  _generateTsvSidecarColumns(tsvFileData) {
+    const sidecarHedColumns = new Map()
+    for (const [header, data] of tsvFileData.parsedTsv.entries()) {
       if (tsvFileData.sidecarHedData.has(header)) {
-        sidecarHedColumnIndices.set(headerIndex, header)
+        sidecarHedColumns.set(header, data)
       }
-    })
-    return sidecarHedColumnIndices
+    }
+    return sidecarHedColumns
+  }
+
+  /**
+   * Generate a map with the subset of TSV columns actually in the TSV file's merged sidecar.
+   *
+   * @param {Map<string, string[]>} sidecarHedColumns The subset of TSV columns in the merged sidecar.
+   * @returns {Map<string, string>[]} A list of single-row column-to-value mappings.
+   * @private
+   */
+  _generateTsvSidecarRows(sidecarHedColumns) {
+    const sidecarHedRows = []
+    for (const [header, data] of sidecarHedColumns.parsedTsv.entries()) {
+      data.forEach((value, index) => {
+        if (sidecarHedRows[index] === undefined) {
+          sidecarHedRows[index] = new Map()
+        }
+        sidecarHedRows[index].set(header, value)
+      })
+    }
+    return sidecarHedRows
+  }
+
+  /**
+   * Parse a sidecar column cell in a TSV file.
+   *
+   * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
+   * @param {string} columnName The name of the column/sidecar key.
+   * @param {string} columnValue The value of the column.
+   * @return {string|null} A HED substring, or null if none was found.
+   * @private
+   */
+  _parseTsvSidecarColumnValue(tsvFileData, columnName, columnValue) {
+    const sidecarHedData = tsvFileData.sidecarHedData.get(columnName)
+    if (!sidecarHedData || !columnValue || columnValue === 'n/a') {
+      return null
+    }
+    if (typeof sidecarHedData === 'string') {
+      return sidecarHedData.replace('#', columnValue)
+    } else {
+      const sidecarHedString = sidecarHedData[columnValue]
+      if (sidecarHedString !== undefined) {
+        return sidecarHedString
+      }
+    }
+    this.issues.push(
+      new BidsHedIssue(
+        generateIssue('sidecarKeyMissing', {
+          key: columnValue,
+          column: columnName,
+          file: tsvFileData.file.relativePath,
+        }),
+        tsvFileData.file,
+      ),
+    )
+    return null
   }
 
   /**
