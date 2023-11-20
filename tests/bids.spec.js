@@ -767,7 +767,7 @@ describe('BIDS datasets', () => {
    * @param {Object<string,BidsDataset>} testDatasets The datasets to test with.
    * @param {Object<string,BidsIssue[]>} expectedIssues The expected issues.
    * @param {SchemasSpec} versionSpecs The schema version to test with.
-   * @return {Promise}
+   * @returns {Promise}
    */
   const validatorWithSpecs = (testDatasets, expectedIssues, versionSpecs) => {
     return Promise.all(
@@ -927,7 +927,7 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Boat',
-              bounds: [17, 21],
+              bounds: [5, 9],
             }),
             badDatasets[2].file,
           ),

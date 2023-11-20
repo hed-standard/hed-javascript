@@ -411,7 +411,7 @@ class SchemaEntryWithAttributes extends SchemaEntry {
    * @param {Map<K,V>} map The map to search.
    * @param {K} key A key in the map.
    * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
-   * @return {V|V[]} The value for the key in the passed map.
+   * @returns {V|V[]} The value for the key in the passed map.
    * @private
    */
   static _getMapArrayValue(map, key, alwaysReturnArray) {
@@ -502,7 +502,7 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
 
   /**
    * Get the units for this unit class.
-   * @return {Map<string, SchemaUnit>}
+   * @returns {Map<string, SchemaUnit>}
    */
   get units() {
     return new Map(this._units)
@@ -582,7 +582,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
 
   /**
    * Whether this tag has any unit classes.
-   * @return {boolean}
+   * @returns {boolean}
    */
   get hasUnitClasses() {
     return this._unitClasses.length !== 0

@@ -7,7 +7,7 @@ export class ParsedHedColumnSplice extends ParsedHedSubstring {
   /**
    * Nicely format this column splice template.
    *
-   * @return {string}
+   * @returns {string}
    */
   format() {
     return '{' + this.originalTag + '}'

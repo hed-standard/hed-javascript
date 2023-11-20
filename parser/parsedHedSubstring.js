@@ -32,7 +32,7 @@ export class ParsedHedSubstring extends Memoizer {
    *
    * This is left blank for the subclasses to override.
    *
-   * @return {string}
+   * @returns {string}
    * @abstract
    */
   format() {}

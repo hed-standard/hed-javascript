@@ -79,7 +79,7 @@ export class ParsedHedString {
   /**
    * Nicely format this HED string.
    *
-   * @return {string}
+   * @returns {string}
    */
   format() {
     return this.parseTree.map((substring) => substring.format()).join(', ')

@@ -154,6 +154,7 @@ class BidsHedValidator {
     if (sidecarString === null) {
       return []
     }
+
     const [, hedIssues] = validateHedString(sidecarString, this.hedSchemas, options)
     return convertHedIssuesToBidsIssues(hedIssues, sidecar.file, { sidecarKey })
   }
@@ -163,40 +164,12 @@ class BidsHedValidator {
    *
    * @param {BidsSidecar} sidecar A BIDS sidecar.
    * @returns {BidsHedIssue[]} All issues found.
+   * @private
    */
   _validateSidecarCurlyBraces(sidecar) {
     const issues = []
-    const references = new Map()
-    for (const [sidecarKey, hedData] of sidecar.parsedHedData) {
-      if (hedData === null) {
-        // Skipped
-      } else if (hedData instanceof ParsedHedString) {
-        if (hedData.columnSplices.length === 0) {
-          continue
-        }
-        const keyReferences = new Set()
-        for (const columnSplice of hedData.columnSplices) {
-          keyReferences.add(columnSplice.originalTag)
-        }
-        references.set(sidecarKey, keyReferences)
-      } else if (hedData instanceof Map) {
-        let keyReferences = null
-        for (const valueString of hedData.values()) {
-          if (valueString === null || valueString.columnSplices.length === 0) {
-            continue
-          }
-          keyReferences ??= new Set()
-          for (const columnSplice of valueString.columnSplices) {
-            keyReferences.add(columnSplice.originalTag)
-          }
-        }
-        if (keyReferences instanceof Set) {
-          references.set(sidecarKey, keyReferences)
-        }
-      } else {
-        throw new Error('Unexpected type found in sidecar parsedHedData map.')
-      }
-    }
+    const references = this._generateSidecarCurlyBraceMap(sidecar)
+
     for (const [key, referredKeys] of references) {
       for (const referredKey of referredKeys) {
         if (references.has(referredKey)) {
@@ -209,7 +182,59 @@ class BidsHedValidator {
         }
       }
     }
+
     return issues
+  }
+
+  /**
+   * Generate a mapping of an individual BIDS sidecar's curly brace references.
+   *
+   * @param {BidsSidecar} sidecar A BIDS sidecar.
+   * @returns {Map<string, Set<string>>} The mapping of curly brace references in the sidecar.
+   * @private
+   */
+  _generateSidecarCurlyBraceMap(sidecar) {
+    const references = new Map()
+
+    for (const [sidecarKey, hedData] of sidecar.parsedHedData) {
+      if (hedData === null) {
+        // Skipped
+      } else if (hedData instanceof ParsedHedString) {
+        if (hedData.columnSplices.length === 0) {
+          continue
+        }
+
+        const keyReferences = new Set()
+
+        for (const columnSplice of hedData.columnSplices) {
+          keyReferences.add(columnSplice.originalTag)
+        }
+
+        references.set(sidecarKey, keyReferences)
+      } else if (hedData instanceof Map) {
+        let keyReferences = null
+
+        for (const valueString of hedData.values()) {
+          if (valueString === null || valueString.columnSplices.length === 0) {
+            continue
+          }
+
+          keyReferences ??= new Set()
+
+          for (const columnSplice of valueString.columnSplices) {
+            keyReferences.add(columnSplice.originalTag)
+          }
+        }
+
+        if (keyReferences instanceof Set) {
+          references.set(sidecarKey, keyReferences)
+        }
+      } else {
+        throw new Error('Unexpected type found in sidecar parsedHedData map.')
+      }
+    }
+
+    return references
   }
 
   /**
@@ -281,17 +306,13 @@ class BidsHedValidator {
    * @returns {string[]} The combined HED string collection for this BIDS TSV file.
    */
   parseTsvHed(tsvFileData) {
-    const hedStrings = []
-    const sidecarHedColumnIndices = {}
-    for (const sidecarHedColumn of tsvFileData.sidecarHedData.keys()) {
-      const sidecarHedColumnHeader = tsvFileData.parsedTsv.headers.indexOf(sidecarHedColumn)
-      if (sidecarHedColumnHeader > -1) {
-        sidecarHedColumnIndices[sidecarHedColumn] = sidecarHedColumnHeader
-      }
-    }
-    if (tsvFileData.hedColumnHedStrings.length + sidecarHedColumnIndices.length === 0) {
+    const sidecarHedColumnIndices = this._generateTsvColumnIndexMapping(tsvFileData)
+    if (tsvFileData.hedColumnHedStrings.length + sidecarHedColumnIndices.size === 0) {
+      // There is no HED data.
       return []
     }
+
+    const hedStrings = []
 
     tsvFileData.parsedTsv.rows.slice(1).forEach((rowCells, rowIndex) => {
       // get the 'HED' field
@@ -299,33 +320,31 @@ class BidsHedValidator {
       if (tsvFileData.hedColumnHedStrings[rowIndex]) {
         hedStringParts.push(tsvFileData.hedColumnHedStrings[rowIndex])
       }
-      for (const [sidecarHedColumn, sidecarHedIndex] of Object.entries(sidecarHedColumnIndices)) {
-        const sidecarHedData = tsvFileData.sidecarHedData.get(sidecarHedColumn)
+      for (const [sidecarHedIndex, sidecarHedColumnName] of sidecarHedColumnIndices.entries()) {
+        const sidecarHedData = tsvFileData.sidecarHedData.get(sidecarHedColumnName)
         const rowCell = rowCells[sidecarHedIndex]
-        if (rowCell && rowCell !== 'n/a') {
-          let sidecarHedString
-          if (!sidecarHedData) {
-            continue
-          }
-          if (typeof sidecarHedData === 'string') {
-            sidecarHedString = sidecarHedData.replace('#', rowCell)
-          } else {
-            sidecarHedString = sidecarHedData[rowCell]
-          }
-          if (sidecarHedString !== undefined) {
-            hedStringParts.push(sidecarHedString)
-          } else {
-            this.issues.push(
-              new BidsHedIssue(
-                generateIssue('sidecarKeyMissing', {
-                  key: rowCell,
-                  column: sidecarHedColumn,
-                  file: tsvFileData.file.relativePath,
-                }),
-                tsvFileData.file,
-              ),
-            )
-          }
+        if (!sidecarHedData || !rowCell || rowCell === 'n/a') {
+          continue
+        }
+        let sidecarHedString
+        if (typeof sidecarHedData === 'string') {
+          sidecarHedString = sidecarHedData.replace('#', rowCell)
+        } else {
+          sidecarHedString = sidecarHedData[rowCell]
+        }
+        if (sidecarHedString !== undefined) {
+          hedStringParts.push(sidecarHedString)
+        } else {
+          this.issues.push(
+            new BidsHedIssue(
+              generateIssue('sidecarKeyMissing', {
+                key: rowCell,
+                column: sidecarHedColumnName,
+                file: tsvFileData.file.relativePath,
+              }),
+              tsvFileData.file,
+            ),
+          )
         }
       }
 
@@ -335,6 +354,23 @@ class BidsHedValidator {
     })
 
     return hedStrings
+  }
+
+  /**
+   * Generate a mapping from a TSV file column index to its corresponding sidecar key.
+   *
+   * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
+   * @returns {Map<number, string>} The mapping from column index to column/sidecar key name
+   * @private
+   */
+  _generateTsvColumnIndexMapping(tsvFileData) {
+    const sidecarHedColumnIndices = new Map()
+    tsvFileData.parsedTsv.headers.forEach((header, headerIndex) => {
+      if (tsvFileData.sidecarHedData.has(header)) {
+        sidecarHedColumnIndices.set(headerIndex, header)
+      }
+    })
+    return sidecarHedColumnIndices
   }
 
   /**

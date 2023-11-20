@@ -30,7 +30,7 @@ const initiallyValidateHedString = function (hedString, hedSchemas, options, def
     ;[parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
   }
   if (parsedString === null) {
-    return [null, [].concat(Object.values(parsingIssues)), null]
+    return [null, [].concat(...Object.values(parsingIssues)), null]
   } else if (parsingIssues.syntax.length + parsingIssues.delimiter.length > 0) {
     hedSchemas = new Schemas(null)
   }

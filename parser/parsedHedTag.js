@@ -266,7 +266,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
   /**
    * Nicely format this tag.
    *
-   * @return {string}
+   * @returns {string}
    */
   format() {
     let tagName = this.schema.entries.definitions.get('tags').getEntry(this.formattedTag)?.name

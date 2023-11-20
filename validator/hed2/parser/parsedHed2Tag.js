@@ -25,7 +25,7 @@ export class ParsedHed2Tag extends ParsedHedTag {
    * Unfortunately, we don't actually have the properly capitalized version of the tag name available, so we just return
    * {@link originalTag}, which we assume is properly capitalized.
    *
-   * @return {string}
+   * @returns {string}
    */
   format() {
     return this.originalTag

@@ -92,7 +92,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Nicely format this tag group.
    *
-   * @return {string}
+   * @returns {string}
    */
   format() {
     return '(' + this.tags.map((substring) => substring.format()).join(', ') + ')'

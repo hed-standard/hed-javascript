@@ -248,7 +248,7 @@ export class BidsSidecar extends BidsJsonFile {
    * The parsed strings are placed into {@link parsedHedData}.
    *
    * @param {Schemas} hedSchemas The HED schema collection.
-   * @return {Issue[]} Any issues found.
+   * @returns {Issue[]} Any issues found.
    */
   parseHedStrings(hedSchemas) {
     this.parsedHedData = new Map()
