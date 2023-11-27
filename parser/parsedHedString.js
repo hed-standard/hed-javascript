@@ -46,6 +46,11 @@ export class ParsedHedString {
    * @type {ParsedHedGroup[]}
    */
   definitionGroups
+  /**
+   * The context in which this string was defined.
+   * @type {Map<string, *>}
+   */
+  context
 
   /**
    * Constructor.

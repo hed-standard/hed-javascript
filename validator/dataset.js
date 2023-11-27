@@ -166,8 +166,8 @@ export const validateHedDataset = function (hedStrings, hedSchemas, ...args) {
 /**
  * Validate a HED dataset with additional context.
  *
- * @param {string[]} hedStrings The dataset's HED strings.
- * @param {string[]} contextHedStrings The dataset's context HED strings.
+ * @param {string[]|ParsedHedString[]} hedStrings The dataset's HED strings.
+ * @param {string[]|ParsedHedString[]} contextHedStrings The dataset's context HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @returns {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.

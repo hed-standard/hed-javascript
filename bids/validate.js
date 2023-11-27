@@ -5,6 +5,7 @@ import { buildBidsSchemas } from './schema'
 import { generateIssue, Issue, IssueError } from '../common/issues/issues'
 import ParsedHedString from '../parser/parsedHedString'
 import { parseHedString } from '../parser/main'
+import { spliceColumns } from '../parser/columnSplicer'
 
 /**
  * Validate a BIDS dataset.
@@ -16,12 +17,14 @@ import { parseHedString } from '../parser/main'
 export function validateBidsDataset(dataset, schemaDefinition) {
   return buildBidsSchemas(dataset, schemaDefinition).then(
     ([hedSchemas, schemaLoadIssues]) => {
-      return new BidsHedValidator(dataset, hedSchemas)
-        .validateFullDataset()
-        .catch(BidsIssue.generateInternalErrorPromise)
-        .then((issues) =>
-          issues.concat(convertHedIssuesToBidsIssues(schemaLoadIssues, dataset.datasetDescription.file)),
-        )
+      return (
+        new BidsHedValidator(dataset, hedSchemas)
+          .validateFullDataset()
+          /*.catch(BidsIssue.generateInternalErrorPromise)*/
+          .then((issues) =>
+            issues.concat(convertHedIssuesToBidsIssues(schemaLoadIssues, dataset.datasetDescription.file)),
+          )
+      )
     },
     (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file),
   )
@@ -293,6 +296,17 @@ class BidsHedValidator {
    * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
    */
   validateBidsTsvFile(tsvFileData) {
+    const parsingIssues = convertHedIssuesToBidsIssues(
+      tsvFileData.mergedSidecar.parseHedStrings(this.hedSchemas),
+      tsvFileData.file,
+    )
+    const curlyBraceIssues = this._validateSidecarCurlyBraces(tsvFileData.mergedSidecar)
+    const syntaxIssues = [...parsingIssues, ...curlyBraceIssues]
+    this.issues.push(...syntaxIssues)
+    if (syntaxIssues.length > 0) {
+      return
+    }
+
     const hedStrings = this.parseTsvHed(tsvFileData)
     if (hedStrings.length > 0) {
       this.validateCombinedDataset(hedStrings, tsvFileData)
@@ -303,33 +317,22 @@ class BidsHedValidator {
    * Combine the BIDS sidecar HED data into a BIDS TSV file's HED data.
    *
    * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
-   * @returns {string[]} The combined HED string collection for this BIDS TSV file.
+   * @returns {ParsedHedString[]} The combined HED string collection for this BIDS TSV file.
    */
   parseTsvHed(tsvFileData) {
-    const sidecarHedColumns = this._generateTsvSidecarColumns(tsvFileData)
-    if (tsvFileData.hedColumnHedStrings.length + sidecarHedColumns.size === 0) {
+    const tsvHedColumns = this._generateTsvHedColumns(tsvFileData)
+    if (tsvHedColumns.size === 0) {
       // There is no HED data.
       return []
     }
-    const sidecarHedRows = this._generateTsvSidecarRows(sidecarHedColumns)
+    const tsvHedRows = this._generateTsvHedRows(tsvHedColumns)
 
     const hedStrings = []
 
-    sidecarHedRows.forEach((rowCells, rowIndex) => {
-      const hedStringParts = []
-      // get the 'HED' field
-      if (tsvFileData.hedColumnHedStrings[rowIndex]) {
-        hedStringParts.push(tsvFileData.hedColumnHedStrings[rowIndex])
-      }
-      for (const [columnName, columnValue] of rowCells.entries()) {
-        const hedStringPart = this._parseTsvSidecarColumnValue(tsvFileData, columnName, columnValue)
-        if (hedStringPart !== null) {
-          hedStringParts.push(hedStringPart)
-        }
-      }
-
-      if (hedStringParts.length > 0) {
-        hedStrings.push(hedStringParts.join(','))
+    tsvHedRows.forEach((row, index) => {
+      const hedString = this._parseTsvHedRow(tsvFileData, row, index + 1)
+      if (hedString !== null) {
+        hedStrings.push(hedString)
       }
     })
 
@@ -337,40 +340,78 @@ class BidsHedValidator {
   }
 
   /**
-   * Generate a map with the subset of TSV columns actually in the TSV file's merged sidecar.
+   * Generate a map with the subset of TSV columns actually containing HED data.
    *
    * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
-   * @returns {Map<string, string[]>} The subset of TSV columns in the merged sidecar.
+   * @returns {Map<string, string[]>} The subset of TSV columns containing HED data.
    * @private
    */
-  _generateTsvSidecarColumns(tsvFileData) {
-    const sidecarHedColumns = new Map()
+  _generateTsvHedColumns(tsvFileData) {
+    const tsvHedColumns = new Map()
     for (const [header, data] of tsvFileData.parsedTsv.entries()) {
-      if (tsvFileData.sidecarHedData.has(header)) {
-        sidecarHedColumns.set(header, data)
+      if (tsvFileData.sidecarHedData.has(header) || header === 'HED') {
+        tsvHedColumns.set(header, data)
       }
     }
-    return sidecarHedColumns
+    return tsvHedColumns
   }
 
   /**
-   * Generate a map with the subset of TSV columns actually in the TSV file's merged sidecar.
+   * Generate a list of rows with column-to-value mappings.
    *
-   * @param {Map<string, string[]>} sidecarHedColumns The subset of TSV columns in the merged sidecar.
+   * @param {Map<string, string[]>} tsvHedColumns The subset of TSV columns containing HED data.
    * @returns {Map<string, string>[]} A list of single-row column-to-value mappings.
    * @private
    */
-  _generateTsvSidecarRows(sidecarHedColumns) {
-    const sidecarHedRows = []
-    for (const [header, data] of sidecarHedColumns.entries()) {
+  _generateTsvHedRows(tsvHedColumns) {
+    const tsvHedRows = []
+    for (const [header, data] of tsvHedColumns.entries()) {
       data.forEach((value, index) => {
-        if (sidecarHedRows[index] === undefined) {
-          sidecarHedRows[index] = new Map()
+        if (tsvHedRows[index] === undefined) {
+          tsvHedRows[index] = new Map()
         }
-        sidecarHedRows[index].set(header, value)
+        tsvHedRows[index].set(header, value)
       })
     }
-    return sidecarHedRows
+    return tsvHedRows
+  }
+
+  /**
+   * Parse a sidecar column cell in a TSV file.
+   *
+   * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
+   * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
+   * @param {number} tsvLine The index of this row in the TSV file.
+   * @return {ParsedHedString} A parsed HED string.
+   * @private
+   */
+  _parseTsvHedRow(tsvFileData, rowCells, tsvLine) {
+    const hedStringParts = []
+    for (const [columnName, columnValue] of rowCells.entries()) {
+      const hedStringPart = this._parseTsvRowCell(tsvFileData, columnName, columnValue, tsvLine)
+      if (hedStringPart !== null) {
+        hedStringParts.push(hedStringPart)
+      }
+    }
+
+    const hedString = hedStringParts.join(',')
+
+    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
+    const flatParsingIssues = Object.values(parsingIssues).flat()
+    if (flatParsingIssues.length > 0) {
+      this.issues.push(...convertHedIssuesToBidsIssues(...flatParsingIssues, tsvFileData.file, { tsvLine }))
+      return null
+    }
+
+    const columnSpliceMapping = this._generateColumnSpliceMapping(tsvFileData, rowCells)
+    const [splicedParsedString, splicingIssues] = spliceColumns(parsedString, columnSpliceMapping, this.hedSchemas)
+    if (splicingIssues.length > 0) {
+      this.issues.push(...convertHedIssuesToBidsIssues(splicingIssues, tsvFileData.file, { tsvLine }))
+      return null
+    }
+    splicedParsedString.context.set('tsvLine', tsvLine)
+
+    return splicedParsedString
   }
 
   /**
@@ -378,40 +419,72 @@ class BidsHedValidator {
    *
    * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
    * @param {string} columnName The name of the column/sidecar key.
-   * @param {string} columnValue The value of the column.
+   * @param {string} cellValue The value of the cell.
+   * @param {number} tsvLine The index of this row in the TSV file.
    * @return {string|null} A HED substring, or null if none was found.
    * @private
    */
-  _parseTsvSidecarColumnValue(tsvFileData, columnName, columnValue) {
+  _parseTsvRowCell(tsvFileData, columnName, cellValue, tsvLine) {
+    if (!cellValue || cellValue === 'n/a') {
+      return null
+    }
+    if (columnName === 'HED') {
+      return cellValue
+    }
     const sidecarHedData = tsvFileData.sidecarHedData.get(columnName)
-    if (!sidecarHedData || !columnValue || columnValue === 'n/a') {
+    if (!sidecarHedData) {
       return null
     }
     if (typeof sidecarHedData === 'string') {
-      return sidecarHedData.replace('#', columnValue)
+      return sidecarHedData.replace('#', cellValue)
     } else {
-      const sidecarHedString = sidecarHedData[columnValue]
+      const sidecarHedString = sidecarHedData[cellValue]
       if (sidecarHedString !== undefined) {
         return sidecarHedString
       }
     }
     this.issues.push(
-      new BidsHedIssue(
+      convertHedIssueToBidsIssue(
         generateIssue('sidecarKeyMissing', {
-          key: columnValue,
+          key: cellValue,
           column: columnName,
           file: tsvFileData.file.relativePath,
         }),
         tsvFileData.file,
+        { tsvLine },
       ),
     )
     return null
   }
 
   /**
+   * Generate the column splice mapping for a BIDS TSV file row.
+   *
+   * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
+   * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
+   * @return {Map<string, ParsedHedString>} A mapping of column names to their corresponding parsed sidecar strings.
+   * @private
+   */
+  _generateColumnSpliceMapping(tsvFileData, rowCells) {
+    const columnSpliceMapping = new Map()
+
+    for (const [columnName, columnValue] of rowCells.entries()) {
+      const sidecarEntry = tsvFileData.mergedSidecar.parsedHedData.get(columnName)
+
+      if (sidecarEntry instanceof ParsedHedString) {
+        columnSpliceMapping.set(columnName, sidecarEntry)
+      } else if (sidecarEntry instanceof Map) {
+        columnSpliceMapping.set(columnName, sidecarEntry.get(columnValue))
+      }
+    }
+
+    return columnSpliceMapping
+  }
+
+  /**
    * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
    *
-   * @param {string[]} hedStrings The HED strings in the data collection.
+   * @param {ParsedHedString[]} hedStrings The HED strings in the data collection.
    * @param {BidsTsvFile} tsvFileData The BIDS event TSV file being validated.
    */
   validateCombinedDataset(hedStrings, tsvFileData) {

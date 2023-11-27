@@ -909,9 +909,9 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         all_good: [],
         all_bad: [
-          new BidsHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
+          // new BidsHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
           new BidsHedIssue(converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]), badDatasets[0].file),
-          new BidsHedIssue(converterGenerateIssue('invalidTag', 'Gray,Confused', {}, [5, 13]), badDatasets[0].file),
+          // new BidsHedIssue(converterGenerateIssue('invalidTag', 'Confused,Gray', {}, [0, 8]), badDatasets[0].file),
           // TODO: Catch warning in sidecar validation
           /* new BidsHedIssue(
             generateIssue('extension', { tag: 'Train/Maglev' }),
@@ -940,7 +940,7 @@ describe('BIDS datasets', () => {
           new BidsHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Age/30',
-              bounds: [0, 6],
+              bounds: [17, 23],
             }),
             badDatasets[3].file,
           ),

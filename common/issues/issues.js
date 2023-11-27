@@ -100,6 +100,9 @@ export class Issue {
     if (this.parameters.sidecarKey) {
       message += ` Sidecar key: "${this.parameters.sidecarKey}".`
     }
+    if (this.parameters.tsvLine) {
+      message += ` TSV line: ${this.parameters.tsvLine}.`
+    }
     const hedCodeAnchor = this.hedCode.toLowerCase().replace(/_/g, '-')
     const hedSpecLink = `For more information on this HED ${this.level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
     this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${message} (${hedSpecLink}.)`

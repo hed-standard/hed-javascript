@@ -12,6 +12,10 @@ export class ParsedHedColumnSplice extends ParsedHedSubstring {
   format() {
     return '{' + this.originalTag + '}'
   }
+
+  equivalent(other) {
+    return other instanceof ParsedHedColumnSplice && this.originalTag === other.originalTag
+  }
 }
 
 export default ParsedHedColumnSplice
