@@ -22,11 +22,11 @@ export function validateBidsDataset(dataset, schemaDefinition) {
           .validateFullDataset()
           /*.catch(BidsIssue.generateInternalErrorPromise)*/
           .then((issues) =>
-            issues.concat(convertHedIssuesToBidsIssues(schemaLoadIssues, dataset.datasetDescription.file)),
+            issues.concat(BidsHedIssue.fromHedIssues(schemaLoadIssues, dataset.datasetDescription.file)),
           )
       )
     },
-    (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file),
+    (issues) => BidsHedIssue.fromHedIssues(issues, dataset.datasetDescription.file),
   )
 }
 
@@ -92,7 +92,7 @@ class BidsHedValidator {
     const issues = []
     // validate the HED strings in the json sidecars
     for (const sidecar of this.dataset.sidecarData) {
-      issues.push(...convertHedIssuesToBidsIssues(sidecar.parseHedStrings(this.hedSchemas), sidecar.file))
+      issues.push(...BidsHedIssue.fromHedIssues(sidecar.parseHedStrings(this.hedSchemas), sidecar.file))
       const sidecarIssues = this.validateSidecar(sidecar)
       issues.push(...sidecarIssues)
     }
@@ -159,7 +159,7 @@ class BidsHedValidator {
     }
 
     const [, hedIssues] = validateHedString(sidecarString, this.hedSchemas, options)
-    return convertHedIssuesToBidsIssues(hedIssues, sidecar.file, { sidecarKey })
+    return BidsHedIssue.fromHedIssues(hedIssues, sidecar.file, { sidecarKey })
   }
 
   /**
@@ -177,7 +177,7 @@ class BidsHedValidator {
       for (const referredKey of referredKeys) {
         if (references.has(referredKey)) {
           issues.push(
-            convertHedIssueToBidsIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('recursiveCurlyBracesWithKey', { column: referredKey, referrer: key }),
               sidecar.file,
             ),
@@ -270,13 +270,13 @@ class BidsHedValidator {
         definitionsAllowed: 'no',
       }
       const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
-      issues.push(...convertHedIssuesToBidsIssues(Object.values(parsingIssues).flat(), eventFileData.file))
+      issues.push(...BidsHedIssue.fromHedIssues(Object.values(parsingIssues).flat(), eventFileData.file))
       if (parsedString === null) {
         continue
       }
       if (parsedString.columnSplices.length > 0) {
         issues.push(
-          convertHedIssueToBidsIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('curlyBracesInHedColumn', { column: parsedString.columnSplices[0].format() }),
             eventFileData.file,
           ),
@@ -284,7 +284,7 @@ class BidsHedValidator {
         continue
       }
       const [, hedIssues] = validateHedString(parsedString, this.hedSchemas, options)
-      const convertedIssues = convertHedIssuesToBidsIssues(hedIssues, eventFileData.file)
+      const convertedIssues = BidsHedIssue.fromHedIssues(hedIssues, eventFileData.file)
       issues.push(...convertedIssues)
     }
     return issues
@@ -296,7 +296,7 @@ class BidsHedValidator {
    * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
    */
   validateBidsTsvFile(tsvFileData) {
-    const parsingIssues = convertHedIssuesToBidsIssues(
+    const parsingIssues = BidsHedIssue.fromHedIssues(
       tsvFileData.mergedSidecar.parseHedStrings(this.hedSchemas),
       tsvFileData.file,
     )
@@ -399,14 +399,14 @@ class BidsHedValidator {
     const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
     const flatParsingIssues = Object.values(parsingIssues).flat()
     if (flatParsingIssues.length > 0) {
-      this.issues.push(...convertHedIssuesToBidsIssues(...flatParsingIssues, tsvFileData.file, { tsvLine }))
+      this.issues.push(...BidsHedIssue.fromHedIssues(...flatParsingIssues, tsvFileData.file, { tsvLine }))
       return null
     }
 
     const columnSpliceMapping = this._generateColumnSpliceMapping(tsvFileData, rowCells)
     const [splicedParsedString, splicingIssues] = spliceColumns(parsedString, columnSpliceMapping, this.hedSchemas)
     if (splicingIssues.length > 0) {
-      this.issues.push(...convertHedIssuesToBidsIssues(splicingIssues, tsvFileData.file, { tsvLine }))
+      this.issues.push(...BidsHedIssue.fromHedIssues(splicingIssues, tsvFileData.file, { tsvLine }))
       return null
     }
     splicedParsedString.context.set('tsvLine', tsvLine)
@@ -444,7 +444,7 @@ class BidsHedValidator {
       }
     }
     this.issues.push(
-      convertHedIssueToBidsIssue(
+      BidsHedIssue.fromHedIssue(
         generateIssue('sidecarKeyMissing', {
           key: cellValue,
           column: columnName,
@@ -497,38 +497,6 @@ class BidsHedValidator {
         validateDatasetLevel: tsvFileData instanceof BidsEventFile,
       },
     )
-    this.issues.push(...convertHedIssuesToBidsIssues(hedIssues, tsvFileData.file))
+    this.issues.push(...BidsHedIssue.fromHedIssues(hedIssues, tsvFileData.file))
   }
-}
-
-/**
- * Convert one or more HED issues into BIDS-compatible issues.
- *
- * @param {IssueError|Issue[]} hedIssues One or more HED-format issues.
- * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
- * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} objects.
- * @returns {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
- */
-function convertHedIssuesToBidsIssues(hedIssues, file, extraParameters) {
-  if (hedIssues instanceof IssueError) {
-    return [convertHedIssueToBidsIssue(hedIssues.issue, file, extraParameters)]
-  } else {
-    return hedIssues.map((hedIssue) => convertHedIssueToBidsIssue(hedIssue, file, extraParameters))
-  }
-}
-
-/**
- * Convert a single HED issue into a BIDS-compatible issue.
- *
- * @param {Issue} hedIssue One HED-format issue.
- * @param {Object} file A BIDS-format file object used to generate a {@link BidsHedIssue} object.
- * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} object.
- * @returns {BidsHedIssue} The passed issue in BIDS-compatible format.
- */
-function convertHedIssueToBidsIssue(hedIssue, file, extraParameters) {
-  if (extraParameters) {
-    Object.assign(hedIssue.parameters, extraParameters)
-    hedIssue.generateMessage()
-  }
-  return new BidsHedIssue(hedIssue, file)
 }

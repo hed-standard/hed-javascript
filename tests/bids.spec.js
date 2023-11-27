@@ -798,15 +798,18 @@ describe('BIDS datasets', () => {
         single: [],
         all_good: [],
         warning_and_good: [
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('extension', { tag: 'Train/Maglev', sidecarKey: 'transport' }),
             bidsSidecars[1][0].file,
           ),
         ],
         error_and_good: [
           // TODO: Duplication temporary
-          new BidsHedIssue(converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]), bidsSidecars[1][1].file),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
+            converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]),
+            bidsSidecars[1][1].file,
+          ),
+          BidsHedIssue.fromHedIssue(
             generateIssue('invalidTag', { tag: 'Confused', sidecarKey: 'emotion' }),
             bidsSidecars[1][1].file,
           ),
@@ -822,40 +825,40 @@ describe('BIDS datasets', () => {
       }
       const expectedIssues = {
         placeholders: [
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'InvalidDefinitionGroup',
               sidecarKey: 'invalid_definition_group',
             }),
             placeholderDatasets[2].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'InvalidDefinitionTag',
               sidecarKey: 'invalid_definition_tag',
             }),
             placeholderDatasets[3].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: 'MultiplePlaceholdersInGroupDefinition',
               sidecarKey: 'multiple_placeholders_in_group',
             }),
             placeholderDatasets[4].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('invalidPlaceholder', { tag: 'Duration/# s', sidecarKey: 'multiple_value_tags' }),
             placeholderDatasets[5].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#', sidecarKey: 'multiple_value_tags' }),
             placeholderDatasets[5].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('missingPlaceholder', { string: 'Sad', sidecarKey: 'no_value_tags' }),
             placeholderDatasets[6].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('invalidPlaceholder', { tag: 'RGB-green/#', sidecarKey: 'value_in_categorical' }),
             placeholderDatasets[7].file,
           ),
@@ -884,14 +887,14 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         all_good: [],
         all_bad: [
-          new BidsHedIssue(speedIssue, badDatasets[0].file),
-          new BidsHedIssue(maglevWarning, badDatasets[1].file),
-          new BidsHedIssue(speedIssue, badDatasets[2].file),
-          new BidsHedIssue(speedIssue, badDatasets[3].file),
-          new BidsHedIssue(maglevError, badDatasets[3].file),
-          new BidsHedIssue(converterMaglevError, badDatasets[3].file),
-          new BidsHedIssue(speedIssue, badDatasets[4].file),
-          new BidsHedIssue(maglevWarning, badDatasets[4].file),
+          BidsHedIssue.fromHedIssue(speedIssue, badDatasets[0].file),
+          BidsHedIssue.fromHedIssue(maglevWarning, badDatasets[1].file),
+          BidsHedIssue.fromHedIssue(speedIssue, badDatasets[2].file),
+          BidsHedIssue.fromHedIssue(speedIssue, badDatasets[3].file),
+          BidsHedIssue.fromHedIssue(maglevError, badDatasets[3].file),
+          BidsHedIssue.fromHedIssue(converterMaglevError, badDatasets[3].file),
+          BidsHedIssue.fromHedIssue(speedIssue, badDatasets[4].file),
+          BidsHedIssue.fromHedIssue(maglevWarning, badDatasets[4].file),
         ],
       }
       return validator(testDatasets, expectedIssues, specs)
@@ -909,49 +912,49 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         all_good: [],
         all_bad: [
-          // new BidsHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
-          new BidsHedIssue(converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]), badDatasets[0].file),
-          // new BidsHedIssue(converterGenerateIssue('invalidTag', 'Confused,Gray', {}, [0, 8]), badDatasets[0].file),
+          // BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
+          BidsHedIssue.fromHedIssue(converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]), badDatasets[0].file),
+          // BidsHedIssue.fromHedIssue(converterGenerateIssue('invalidTag', 'Confused,Gray', {}, [0, 8]), badDatasets[0].file),
           // TODO: Catch warning in sidecar validation
-          /* new BidsHedIssue(
+          /* BidsHedIssue.fromHedIssue(
             generateIssue('extension', { tag: 'Train/Maglev' }),
             badDatasets[1].file,
           ), */
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Boat',
               bounds: [0, 4],
             }),
             badDatasets[2].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Boat',
               bounds: [5, 9],
             }),
             badDatasets[2].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('invalidValue', {
               tag: 'Duration/ferry s',
             }),
             badDatasets[3].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Age/30',
               bounds: [17, 23],
             }),
             badDatasets[3].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Age/30',
               bounds: [24, 30],
             }),
             badDatasets[3].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('sidecarKeyMissing', {
               key: 'purple',
               column: 'color',
@@ -1071,7 +1074,7 @@ describe('BIDS datasets', () => {
 
         const expectedIssues = {
           unknown_library: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('remoteSchemaLoadFailed', {
                 spec: JSON.stringify(new SchemaSpec('ts', '1.0.2', 'badlib')),
                 error:
@@ -1081,49 +1084,49 @@ describe('BIDS datasets', () => {
             ),
           ],
           leading_colon: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('invalidSchemaNickname', { nickname: '', spec: ':testlib_1.0.2' }),
               badDatasetDescriptions[1].file,
             ),
           ],
           bad_nickname: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('invalidSchemaNickname', { nickname: 't-s', spec: 't-s:testlib_1.0.2' }),
               badDatasetDescriptions[2].file,
             ),
           ],
           multipleColons1: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: 'ts::testlib_1.0.2' }),
               badDatasetDescriptions[3].file,
             ),
           ],
           multipleColons2: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: ':ts:testlib_1.0.2' }),
               badDatasetDescriptions[4].file,
             ),
           ],
           noLibraryName: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: 'ts:_1.0.2' }),
               badDatasetDescriptions[5].file,
             ),
           ],
           badVersion1: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: 'ts:testlib1.0.2' }),
               badDatasetDescriptions[6].file,
             ),
           ],
           badVersion2: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: 'ts:testlib_1.a.2' }),
               badDatasetDescriptions[7].file,
             ),
           ],
           badRemote1: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('remoteSchemaLoadFailed', {
                 spec: JSON.stringify(new SchemaSpec('ts', '1.800.2', 'testlib')),
                 error:
@@ -1133,7 +1136,7 @@ describe('BIDS datasets', () => {
             ),
           ],
           badRemote2: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('remoteSchemaLoadFailed', {
                 spec: JSON.stringify(new SchemaSpec('', '8.828.0', '')),
                 error:
@@ -1143,7 +1146,7 @@ describe('BIDS datasets', () => {
             ),
           ],
           noHedVersion: [
-            new BidsHedIssue(
+            BidsHedIssue.fromHedIssue(
               generateIssue('invalidSchemaSpecification', { spec: 'no schema available' }),
               badDatasetDescriptions[10].file,
             ),
@@ -1205,27 +1208,27 @@ describe('BIDS datasets', () => {
       }
       const expectedIssues = {
         bad_tsv: [
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionContext', { string: '(Definition/myDef, (Label/Red, Green))' }),
             badTsvDatasets[0].file,
           ),
         ],
         sidecars: [
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionContext', {
               string: sidecars[5][2].event_code.HED,
               sidecarKey: 'event_code',
             }),
             defSidecars[2].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('missingPlaceholder', {
               string: sidecars[5][2].event_code.HED,
               sidecarKey: 'event_code',
             }),
             defSidecars[2].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionInExclusiveContext', {
               string: 'Red, Blue, (Definition/myDef, (Label/Red, Blue))',
               sidecarKey: 'event_code',
@@ -1233,11 +1236,11 @@ describe('BIDS datasets', () => {
             defSidecars[3].file,
           ),
           /* TODO: Fix cross-string exclusive context tests.
-           new BidsHedIssue(
+           BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionInExclusiveContext', { string: 'Def/Acc/5.4 m-per-s^2' }),
             defSidecars[3].file,
           ),
-          new BidsHedIssue(
+          BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionInExclusiveContext', { string: 'Def/Acc/4.5 m-per-s^2' }),
             defSidecars[4].file,
           ), */
