@@ -958,6 +958,7 @@ describe('BIDS datasets', () => {
               file: '/sub04/sub04_task-test_run-5_events.tsv',
             }),
             badDatasets[4].file,
+            { tsvLine: 2 },
           ),
         ],
       }
