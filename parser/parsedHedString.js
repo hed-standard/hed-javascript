@@ -79,6 +79,8 @@ export class ParsedHedString {
     this.definitionGroups = this.tagGroups.filter((group) => {
       return group.isDefinitionGroup
     })
+
+    this.context = new Map()
   }
 
   /**
