@@ -330,7 +330,7 @@ class BidsHedValidator {
     const hedStrings = []
 
     tsvHedRows.forEach((row, index) => {
-      const hedString = this._parseTsvHedRow(tsvFileData, row, index + 1)
+      const hedString = this._parseTsvHedRow(tsvFileData, row, index + 2)
       if (hedString !== null) {
         hedStrings.push(hedString)
       }
