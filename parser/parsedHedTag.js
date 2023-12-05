@@ -177,6 +177,12 @@ export class ParsedHedTag extends ParsedHedSubstring {
     yield tagString
   }
 
+  /**
+   * Determine whether this tag is a descendant of another tag.
+   *
+   * @param {ParsedHedTag|string} parent The possible parent tag.
+   * @return {boolean} Whether {@code parent} is the parent tag of this tag.
+   */
   isDescendantOf(parent) {
     if (parent instanceof ParsedHedTag) {
       if (this.schema !== parent.schema) {

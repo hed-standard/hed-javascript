@@ -386,6 +386,8 @@ class BidsHedValidator {
    * @private
    */
   _parseTsvHedRow(tsvFileData, rowCells, tsvLine) {
+    const columnSpliceMapping = this._generateColumnSpliceMapping(tsvFileData, rowCells)
+
     const hedStringParts = []
     for (const [columnName, columnValue] of rowCells.entries()) {
       const hedStringPart = this._parseTsvRowCell(tsvFileData, columnName, columnValue, tsvLine)
@@ -403,7 +405,6 @@ class BidsHedValidator {
       return null
     }
 
-    const columnSpliceMapping = this._generateColumnSpliceMapping(tsvFileData, rowCells)
     const [splicedParsedString, splicingIssues] = spliceColumns(parsedString, columnSpliceMapping, this.hedSchemas)
     if (splicingIssues.length > 0) {
       this.issues.push(...BidsHedIssue.fromHedIssues(splicingIssues, tsvFileData.file, { tsvLine }))
@@ -412,6 +413,35 @@ class BidsHedValidator {
     splicedParsedString.context.set('tsvLine', tsvLine)
 
     return splicedParsedString
+  }
+
+  /**
+   * Generate the column splice mapping for a BIDS TSV file row.
+   *
+   * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
+   * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
+   * @return {Map<string, ParsedHedString>} A mapping of column names to their corresponding parsed sidecar strings.
+   * @private
+   */
+  _generateColumnSpliceMapping(tsvFileData, rowCells) {
+    const columnSpliceMapping = new Map()
+
+    for (const [columnName, columnValue] of rowCells.entries()) {
+      if (columnValue === 'n/a') {
+        columnSpliceMapping.set(columnName, null)
+        continue
+      }
+
+      const sidecarEntry = tsvFileData.mergedSidecar.parsedHedData.get(columnName)
+
+      if (sidecarEntry instanceof ParsedHedString) {
+        columnSpliceMapping.set(columnName, sidecarEntry)
+      } else if (sidecarEntry instanceof Map) {
+        columnSpliceMapping.set(columnName, sidecarEntry.get(columnValue))
+      }
+    }
+
+    return columnSpliceMapping
   }
 
   /**
@@ -455,30 +485,6 @@ class BidsHedValidator {
       ),
     )
     return null
-  }
-
-  /**
-   * Generate the column splice mapping for a BIDS TSV file row.
-   *
-   * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
-   * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
-   * @return {Map<string, ParsedHedString>} A mapping of column names to their corresponding parsed sidecar strings.
-   * @private
-   */
-  _generateColumnSpliceMapping(tsvFileData, rowCells) {
-    const columnSpliceMapping = new Map()
-
-    for (const [columnName, columnValue] of rowCells.entries()) {
-      const sidecarEntry = tsvFileData.mergedSidecar.parsedHedData.get(columnName)
-
-      if (sidecarEntry instanceof ParsedHedString) {
-        columnSpliceMapping.set(columnName, sidecarEntry)
-      } else if (sidecarEntry instanceof Map) {
-        columnSpliceMapping.set(columnName, sidecarEntry.get(columnValue))
-      }
-    }
-
-    return columnSpliceMapping
   }
 
   /**

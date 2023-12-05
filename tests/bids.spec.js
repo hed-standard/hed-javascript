@@ -529,4 +529,136 @@ describe('BIDS datasets', () => {
       return validator(testDatasets, expectedIssues, specs)
     }, 10000)
   })
+
+  describe('Curly braces', () => {
+    it('should validate the use of HED curly braces in BIDS data', () => {
+      const tsvDatasets = bidsTsvFiles[7]
+      const defSidecars = bidsSidecars[6]
+      const testDatasets = {
+        tsv: new BidsDataset(tsvDatasets, []),
+        sidecars: new BidsDataset([], defSidecars),
+      }
+      const expectedIssues = {
+        tsv: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('curlyBracesInHedColumn', { column: '{response_time}' }),
+            tsvDatasets[1].file,
+          ),
+        ],
+        sidecars: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('curlyBracesInDefinition', {
+              definition: 'Acc/#',
+              column: 'event_code',
+              bounds: [19, 30],
+              sidecarKey: 'defs',
+            }),
+            defSidecars[1].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('curlyBracesInDefinition', {
+              definition: 'MyColor',
+              column: 'response_time',
+              bounds: [33, 47],
+              sidecarKey: 'defs',
+            }),
+            defSidecars[1].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('undefinedCurlyBraces', {
+              column: 'response_time',
+              sidecarKey: 'event_code',
+            }),
+            defSidecars[6].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('undefinedCurlyBraces', {
+              column: 'response_time',
+              sidecarKey: 'event_code',
+            }),
+            defSidecars[7].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidCharacter', {
+              character: '{',
+              index: 9,
+              string: '(Def/Acc/{response_time})',
+            }),
+            defSidecars[8].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('recursiveCurlyBracesWithKey', {
+              column: 'response_time',
+              referrer: 'event_code',
+            }),
+            defSidecars[9].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('recursiveCurlyBracesWithKey', {
+              column: 'event_code',
+              referrer: 'response_time',
+            }),
+            defSidecars[9].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('recursiveCurlyBracesWithKey', {
+              column: 'event_type',
+              referrer: 'event_code',
+            }),
+            defSidecars[10].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('recursiveCurlyBracesWithKey', {
+              column: 'response_time',
+              referrer: 'event_type',
+            }),
+            defSidecars[10].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('recursiveCurlyBracesWithKey', {
+              column: 'response_time',
+              referrer: 'event_code',
+            }),
+            defSidecars[10].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('recursiveCurlyBracesWithKey', {
+              column: 'response_time',
+              referrer: 'response_time',
+            }),
+            defSidecars[11].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('unclosedCurlyBrace', {
+              index: 15,
+              string: defSidecars[12].hedData.get('event_code').ball,
+            }),
+            defSidecars[12].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('nestedCurlyBrace', {
+              index: 1,
+              string: defSidecars[12].hedData.get('event_code2').ball,
+            }),
+            defSidecars[12].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('unopenedCurlyBrace', {
+              index: 15,
+              string: defSidecars[12].hedData.get('event_code3').ball,
+            }),
+            defSidecars[12].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('emptyCurlyBrace', {
+              bounds: [0, 1],
+              string: defSidecars[12].hedData.get('event_code4').ball,
+            }),
+            defSidecars[12].file,
+          ),
+        ],
+      }
+      return validator(testDatasets, expectedIssues, specs)
+    }, 10000)
+  })
 })

@@ -32,6 +32,9 @@ function spliceSubstrings(parsedString, substrings, columnReplacements, hedSchem
   for (const substring of substrings) {
     if (substring instanceof ParsedHedColumnSplice) {
       const [substitution, subIssues] = spliceTemplate(substring, columnReplacements)
+      if (substitution === null) {
+        continue
+      }
       newData.push(...substitution)
       if (substitution.length === 0) {
         newData.push(substring)
@@ -39,6 +42,10 @@ function spliceSubstrings(parsedString, substrings, columnReplacements, hedSchem
       issues.push(...subIssues)
     } else if (substring instanceof ParsedHedGroup) {
       const [substitution, subIssues] = spliceGroup(parsedString, substring, columnReplacements, hedSchemas)
+      if (substitution === null) {
+        issues.push(...subIssues)
+        continue
+      }
       newData.push(substitution)
       issues.push(...subIssues)
     } else {
@@ -58,6 +65,9 @@ function spliceSubstrings(parsedString, substrings, columnReplacements, hedSchem
 function spliceTemplate(columnTemplate, columnReplacements) {
   const columnName = columnTemplate.originalTag
   const replacementString = columnReplacements.get(columnName)
+  if (replacementString === null) {
+    return [null, []]
+  }
   if (replacementString === undefined) {
     return [[], [generateIssue('undefinedCurlyBraces', { column: columnName })]]
   }
@@ -78,6 +88,9 @@ function spliceTemplate(columnTemplate, columnReplacements) {
  */
 function spliceGroup(parsedString, group, columnReplacements, hedSchemas) {
   const [newData, issues] = spliceSubstrings(parsedString, group.tags, columnReplacements, hedSchemas)
+  if (newData.length === 0) {
+    return [null, issues]
+  }
   const newGroup = new ParsedHedGroup(newData, hedSchemas, parsedString.hedString, group.originalBounds)
   return [newGroup, issues]
 }

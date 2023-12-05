@@ -248,46 +248,226 @@ const sidecars = [
       },
     },
   ],
+  // sub07 - HED curly braces
+  [
+    {
+      // Valid definitions
+      defs: {
+        HED: {
+          def1: '(Definition/Acc/#, (Acceleration/#, Red))',
+          def2: '(Definition/MyColor, (Label/Pie))',
+        },
+      },
+    },
+    {
+      // Invalid definitions
+      defs: {
+        HED: {
+          def1: '(Definition/Acc/#, {event_code}, (Acceleration/#, Red))',
+          def2: '(Definition/MyColor, (Label/Pie, {response_time}))',
+        },
+      },
+    },
+    {
+      // Valid reference to named column with HED
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_time: {
+        Description: 'Has description with HED',
+        HED: 'Label/#',
+      },
+    },
+    {
+      // Valid reference to HED column
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{HED}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_action: {
+        Description: 'Does not correspond to curly braces',
+      },
+    },
+    {
+      // Valid references to named column and HED column
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2), ({HED})',
+        },
+      },
+      response_time: {
+        Description: 'Has description with HED',
+        HED: 'Label/#',
+      },
+    },
+    {
+      // Valid use of shared curly brace column references
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_time: {
+        Description: 'Has description with HED',
+        HED: 'Label/#',
+      },
+      response_count: {
+        Description: 'A count used to test curly braces in value columns.',
+        HED: '(Item-count/#, {response_time})',
+      },
+    },
+    {
+      // Invalid reference to column with no HED
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_time: {
+        Description: 'Has description but no HED',
+      },
+    },
+    {
+      // Invalid reference to non-existent column
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_action: {
+        Description: 'Does not correspond to curly braces',
+      },
+    },
+    {
+      // Invalid location of curly braces
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '(Def/Acc/{response_time})',
+        },
+      },
+      response_time: {
+        Description: 'Has description with HED',
+        HED: 'Label/#',
+      },
+    },
+    {
+      // Invalid use of mutually recursive curly brace references
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow)), {HED}',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_time: {
+        HED: 'Label/#, {event_code}',
+      },
+    },
+    {
+      // Invalid use of recursive curly brace references
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow)), {HED}',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+          dog: 'Orange, {event_type}',
+        },
+      },
+      response_time: {
+        HED: 'Label/#, {response_time2}',
+      },
+      response_time2: {
+        HED: 'Label/#',
+      },
+      event_type: {
+        HED: {
+          banana: 'Blue, {response_time}',
+          apple: 'Green',
+        },
+      },
+    },
+    {
+      // Invalid use of self-recursive curly braces
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow)), {HED}',
+          ball: '{HED}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_time: {
+        HED: 'Label/#, {response_time}',
+      },
+    },
+    {
+      // Invalid syntax errors in curly braces
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}{, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      event_code2: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{{response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      event_code3: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      event_code4: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_time: {
+        Description: 'Has description but no HED',
+        HED: 'Label/#',
+      },
+    },
+  ],
 ]
 
 const hedColumnOnlyHeader = 'onset\tduration\tHED\n'
 const tsvFiles = [
   // sub01 - Valid TSV-only data
   [
-    [[], {}, hedColumnOnlyHeader + '7\tsomething\tCellphone'],
-    [[], {}, hedColumnOnlyHeader + '7\tsomething\tCellphone\n' + '11\telse\tDesktop-computer'],
-    [[], {}, hedColumnOnlyHeader + '7\tsomething\tCeramic, Pink'],
+    [{}, hedColumnOnlyHeader + '7\tsomething\tCellphone'],
+    [{}, hedColumnOnlyHeader + '7\tsomething\tCellphone\n' + '11\telse\tDesktop-computer'],
+    [{}, hedColumnOnlyHeader + '7\tsomething\tCeramic, Pink'],
   ],
   // sub02 - Invalid TSV-only data
   [
-    [[], {}, hedColumnOnlyHeader + '11\telse\tSpeed/300 miles'],
-    [[], {}, hedColumnOnlyHeader + '7\tsomething\tTrain/Maglev'],
-    [[], {}, hedColumnOnlyHeader + '7\tsomething\tTrain\n' + '11\telse\tSpeed/300 miles'],
-    [[], {}, hedColumnOnlyHeader + '7\tsomething\tMaglev\n' + '11\telse\tSpeed/300 miles'],
-    [[], {}, hedColumnOnlyHeader + '7\tsomething\tTrain/Maglev\n' + '11\telse\tSpeed/300 miles'],
+    [{}, hedColumnOnlyHeader + '11\telse\tSpeed/300 miles'],
+    [{}, hedColumnOnlyHeader + '7\tsomething\tTrain/Maglev'],
+    [{}, hedColumnOnlyHeader + '7\tsomething\tTrain\n' + '11\telse\tSpeed/300 miles'],
+    [{}, hedColumnOnlyHeader + '7\tsomething\tMaglev\n' + '11\telse\tSpeed/300 miles'],
+    [{}, hedColumnOnlyHeader + '7\tsomething\tTrain/Maglev\n' + '11\telse\tSpeed/300 miles'],
   ],
   // sub03 - Valid combined sidecar/TSV data
   [
-    [['/sub03/sub03_task-test_run-1_events.json'], sidecars[2][0], 'onset\tduration\n' + '7\tsomething'],
-    [['/sub01/sub01_task-test_run-1_events.json'], sidecars[0][0], 'onset\tduration\tcolor\n' + '7\tsomething\tred'],
-    [['/sub01/sub01_task-test_run-2_events.json'], sidecars[0][1], 'onset\tduration\tspeed\n' + '7\tsomething\t60'],
+    [sidecars[2][0], 'onset\tduration\n' + '7\tsomething'],
+    [sidecars[0][0], 'onset\tduration\tcolor\n' + '7\tsomething\tred'],
+    [sidecars[0][1], 'onset\tduration\tspeed\n' + '7\tsomething\t60'],
+    [sidecars[2][0], hedColumnOnlyHeader + '7\tsomething\tLaptop-computer'],
+    [sidecars[0][0], 'onset\tduration\tcolor\tHED\n' + '7\tsomething\tgreen\tLaptop-computer'],
     [
-      ['/sub03/sub03_task-test_run-1_events.json'],
-      sidecars[2][0],
-      hedColumnOnlyHeader + '7\tsomething\tLaptop-computer',
-    ],
-    [
-      ['/sub01/sub01_task-test_run-1_events.json'],
-      sidecars[0][0],
-      'onset\tduration\tcolor\tHED\n' + '7\tsomething\tgreen\tLaptop-computer',
-    ],
-    [
-      ['/sub01/sub01_task-test_run-1_events.json', '/sub01/sub01_task-test_run-2_events.json'],
       Object.assign({}, sidecars[0][0], sidecars[0][1]),
       'onset\tduration\tcolor\tvehicle\tspeed\n' + '7\tsomething\tblue\ttrain\t150',
     ],
     [
-      ['/sub01/sub01_task-test_run-1_events.json', '/sub01/sub01_task-test_run-2_events.json'],
       Object.assign({}, sidecars[0][0], sidecars[0][1]),
       'onset\tduration\tcolor\tvehicle\tspeed\n' +
         '7\tsomething\tred\ttrain\t150\n' +
@@ -298,7 +478,6 @@ const tsvFiles = [
   // sub04 - Invalid combined sidecar/TSV data
   [
     [
-      ['/sub02/sub02_task-test_run-2_events.json'],
       sidecars[1][1],
       'onset\tduration\temotion\tHED\n' +
         '7\thigh\thappy\tYellow\n' +
@@ -307,7 +486,6 @@ const tsvFiles = [
         '19\thuh\tconfused\tGray',
     ],
     [
-      ['/sub02/sub02_task-test_run-1_events.json'],
       sidecars[1][0],
       'onset\tduration\ttransport\n' +
         '7\twet\tboat\n' +
@@ -316,73 +494,47 @@ const tsvFiles = [
         '19\tspeedy\tmaglev',
     ],
     [
-      ['/sub01/sub01_task-test_run-2_events.json', '/sub02/sub02_task-test_run-1_events.json'],
       Object.assign({}, sidecars[0][1], sidecars[1][0]),
       'onset\tduration\tvehicle\ttransport\tspeed\n' +
         '7\tferry\ttrain\tboat\t20\n' +
         '11\tautotrain\tcar\ttrain\t79\n' +
         '15\ttowing\tboat\tcar\t30\n' +
-        '19\ttugboat\tboat\tboat\t5',
+        '19\ttugboat\tboat\tboat\t5\n',
     ],
-    [
-      ['/sub01/sub01_task-test_run-3_events.json'],
-      sidecars[0][2],
-      'onset\tduration\tage\tHED\n' + '7\tferry\t30\tAge/30',
-    ],
-    [['/sub01/sub01_task-test_run-1_events.json'], sidecars[0][0], 'onset\tduration\tcolor\n' + '7\troyal\tpurple'],
+    [sidecars[0][2], 'onset\tduration\tage\tHED\n' + '7\tferry\t30\tAge/30\n'],
+    [sidecars[0][0], 'onset\tduration\tcolor\n' + '7\troyal\tpurple\n'],
   ],
   // sub05 - Valid combined sidecar/TSV data from HED 2
-  [
-    [
-      ['/sub04/sub04_task-test_run-1_events.json'],
-      sidecars[3][0],
-      'onset\tduration\ttest\tHED\n' + '7\tsomething\tfirst\tEvent/Duration/55 ms',
-    ],
-  ],
+  [[sidecars[3][0], 'onset\tduration\ttest\tHED\n' + '7\tsomething\tfirst\tEvent/Duration/55 ms']],
   // sub06 - Valid combined sidecar/TSV data with library
   [
-    [
-      ['/sub05/sub05_task-test_run-1_events.json'],
-      sidecars[4][0],
-      'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n',
-    ],
-    [
-      ['/sub05/sub05_task-test_run-2_events.json'],
-      sidecars[4][1],
-      'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n',
-    ],
-    [
-      ['/sub05/sub05_task-test_run-3_events.json'],
-      sidecars[4][2],
-      'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n',
-    ],
-    [
-      ['/sub05/sub05_task-test_run-4_events.json'],
-      sidecars[4][3],
-      'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n',
-    ],
-    [
-      ['/sub05/sub06_task-test_run-5_events.json'],
-      sidecars[4][4],
-      'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n',
-    ],
-    [
-      ['/sub05/sub06_task-test_run-6_events.json'],
-      sidecars[4][5],
-      'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n',
-    ],
-    [
-      ['/sub05/sub06_task-test_run-7_events.json'],
-      sidecars[4][6],
-      'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n',
-    ],
+    [sidecars[4][0], 'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n'],
+    [sidecars[4][1], 'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n'],
+    [sidecars[4][2], 'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n'],
+    [sidecars[4][3], 'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n'],
+    [sidecars[4][4], 'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n'],
+    [sidecars[4][5], 'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n'],
+    [sidecars[4][6], 'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n'],
   ],
   // sub07 - Definitions
+  [[sidecars[5][0], hedColumnOnlyHeader + '7\tsomething\t(Definition/myDef, (Label/Red, Green))']],
+  // sub08 - Curly braces
   [
     [
-      ['/sub06/sub06_task-test_run-1_events.json'],
-      sidecars[5][0],
-      hedColumnOnlyHeader + '7\tsomething\t(Definition/myDef, (Label/Red, Green))',
+      Object.assign({}, sidecars[6][0], sidecars[6][4]),
+      'onset\tduration\tevent_code\tHED\tresponse_time\n' +
+        '4.5\t0\tface\tBlue\t0\n' +
+        '5.0\t0\tball\tGreen,Def/MyColor\t1\n' +
+        '5.5\t0\tface\t\t2\n' +
+        '5.7\t0\tface\tn/a\t3',
+    ],
+    [
+      Object.assign({}, sidecars[6][0], sidecars[6][4]),
+      'onset\tduration\tevent_code\tHED\n' +
+        '4.5\t0\tface\tBlue, {response_time}\n' +
+        '5.0\t0\tball\tGreen, Def/MyColor\n' +
+        '5.2\t0\tface\t\n' +
+        '5.5\t0\tface\tn/a',
     ],
   ],
 ]
@@ -432,9 +584,9 @@ export const bidsSidecars = sidecars.map((subData, sub) => {
  */
 export const bidsTsvFiles = tsvFiles.map((subData, sub) => {
   return subData.map((runData, run) => {
-    const [potentialSidecars, mergedDictionary, tsvData] = runData
+    const [mergedDictionary, tsvData] = runData
     const name = `/sub0${sub + 1}/sub0${sub + 1}_task-test_run-${run + 1}_events.tsv`
-    return new BidsEventFile(name, potentialSidecars, mergedDictionary, tsvData, {
+    return new BidsEventFile(name, [], mergedDictionary, tsvData, {
       relativePath: name,
       path: name,
     })

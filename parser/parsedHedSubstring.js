@@ -28,6 +28,20 @@ export class ParsedHedSubstring extends Memoizer {
   }
 
   /**
+   * Determine whether this tag is a descendant of another tag.
+   *
+   * This is a default implementation. Subclasses should override as appropriate.
+   *
+   * @param {ParsedHedTag|string} parent The possible parent tag.
+   * @return {boolean} Whether {@code parent} is the parent tag of this tag.
+   * @abstract
+   */
+  // eslint-disable-next-line no-unused-vars
+  isDescendantOf(parent) {
+    return false
+  }
+
+  /**
    * Nicely format this substring.
    *
    * This is left blank for the subclasses to override.

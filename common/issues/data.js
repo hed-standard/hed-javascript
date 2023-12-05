@@ -214,7 +214,7 @@ export default {
   emptyCurlyBrace: {
     hedCode: 'SIDECAR_BRACES_INVALID',
     level: 'error',
-    message: stringTemplate`Curly brace expression at indices (${0}, ${1}) is empty.`,
+    message: stringTemplate`Curly brace expression at indices (${0}, ${1}) of string "${'string'}" is empty.`,
   },
   curlyBracesInDefinition: {
     hedCode: 'DEFINITION_INVALID',

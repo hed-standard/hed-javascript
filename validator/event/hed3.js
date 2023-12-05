@@ -8,6 +8,7 @@ import { getParsedParentTags } from '../../utils/hedData'
 import { getParentTag, getTagName, hedStringIsAGroup, replaceTagNameWithPound } from '../../utils/hedStrings'
 import { getCharacterCount, isNumber } from '../../utils/string'
 import { HedValidator } from './validator'
+import ParsedHedColumnSplice from '../../parser/parsedHedColumnSplice'
 
 const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
@@ -429,6 +430,12 @@ export class Hed3Validator extends HedValidator {
             })
           }
         }
+      } else if (tag instanceof ParsedHedColumnSplice) {
+        this.pushIssue('curlyBracesInDefinition', {
+          definition: definitionName,
+          bounds: tag.originalBounds,
+          column: tag.originalTag,
+        })
       } else if (!tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
         this.pushIssue('illegalDefinitionGroupTag', {
           tag: tag,
