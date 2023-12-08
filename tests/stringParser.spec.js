@@ -10,7 +10,7 @@ import ParsedHedSubstring from '../parser/parsedHedSubstring'
 import { ParsedHedTag } from '../parser/parsedHedTag'
 import splitHedString from '../parser/splitHedString'
 import { buildSchemas } from '../validator/schema/init'
-import { spliceColumns } from '../parser/columnSplicer'
+import ColumnSplicer from '../parser/columnSplicer'
 
 describe('HED string parsing', () => {
   const nullSchema = new Schemas(null)
@@ -430,7 +430,9 @@ describe('HED string parsing', () => {
         }
         const [baseString, refString, correctString] = parsedStrings
         const replacementMap = new Map([['stim_file', refString]])
-        const [splicedString, splicingIssues] = spliceColumns(baseString, replacementMap, hedSchemas)
+        const columnSplicer = new ColumnSplicer(baseString, replacementMap, new Map(), hedSchemas)
+        const splicedString = columnSplicer.splice()
+        const splicingIssues = columnSplicer.issues
         issues.push(...splicingIssues)
         assert.strictEqual(splicedString.format(), correctString.format(), 'Full string')
         assert.isEmpty(issues, 'Issues')

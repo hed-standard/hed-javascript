@@ -4,7 +4,7 @@ import { buildBidsSchemas } from './schema'
 import { generateIssue, Issue, IssueError } from '../common/issues/issues'
 import ParsedHedString from '../parser/parsedHedString'
 import { parseHedString } from '../parser/main'
-import { spliceColumns } from '../parser/columnSplicer'
+import ColumnSplicer from '../parser/columnSplicer'
 import { BidsEventFile } from './types/tsv'
 import { BidsDataset } from './types/dataset'
 import { BidsHedIssue, BidsIssue } from './types/issues'
@@ -391,9 +391,11 @@ class BidsHedValidator {
       return null
     }
 
-    const [splicedParsedString, splicingIssues] = spliceColumns(parsedString, columnSpliceMapping, this.hedSchemas)
+    const columnSplicer = new ColumnSplicer(parsedString, columnSpliceMapping, rowCells, this.hedSchemas)
+    const splicedParsedString = columnSplicer.splice()
+    const splicingIssues = columnSplicer.issues
     if (splicingIssues.length > 0) {
-      this.issues.push(...BidsHedIssue.fromHedIssues(splicingIssues, tsvFileData.file, { tsvLine }))
+      this.issues.push(...BidsHedIssue.fromHedIssues(splicingIssues, tsvFileData.file))
       return null
     }
     splicedParsedString.context.set('tsvLine', tsvLine)
