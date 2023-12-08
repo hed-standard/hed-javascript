@@ -120,27 +120,30 @@ class BidsHedValidator {
    */
   _validateSidecarStrings(sidecar) {
     const issues = []
+
+    const categoricalOptions = {
+      checkForWarnings: true,
+      expectValuePlaceholderString: false,
+      definitionsAllowed: 'exclusive',
+    }
+    const valueOptions = {
+      checkForWarnings: true,
+      expectValuePlaceholderString: true,
+      definitionsAllowed: 'no',
+    }
+
     for (const [sidecarKey, hedData] of sidecar.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
-        const options = {
-          checkForWarnings: true,
-          expectValuePlaceholderString: true,
-          definitionsAllowed: 'no',
-        }
-        issues.push(...this._validateSidecarString(sidecarKey, hedData, sidecar, options))
+        issues.push(...this._validateSidecarString(sidecarKey, hedData, sidecar, valueOptions))
       } else if (hedData instanceof Map) {
         for (const valueString of hedData.values()) {
-          const options = {
-            checkForWarnings: true,
-            expectValuePlaceholderString: false,
-            definitionsAllowed: 'exclusive',
-          }
-          issues.push(...this._validateSidecarString(sidecarKey, valueString, sidecar, options))
+          issues.push(...this._validateSidecarString(sidecarKey, valueString, sidecar, categoricalOptions))
         }
       } else {
         throw new Error('Unexpected type found in sidecar parsedHedData map.')
       }
     }
+
     return issues
   }
 
@@ -210,34 +213,52 @@ class BidsHedValidator {
    * @private
    */
   _validateFileHedColumn(eventFileData) {
-    const issues = []
-    for (const hedString of eventFileData.hedColumnHedStrings) {
-      if (!hedString) {
-        continue
-      }
-      const options = {
-        checkForWarnings: true,
-        expectValuePlaceholderString: false,
-        definitionsAllowed: 'no',
-      }
-      const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
-      issues.push(...BidsHedIssue.fromHedIssues(Object.values(parsingIssues).flat(), eventFileData.file))
-      if (parsedString === null) {
-        continue
-      }
-      if (parsedString.columnSplices.length > 0) {
-        issues.push(
-          BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInHedColumn', { column: parsedString.columnSplices[0].format() }),
-            eventFileData.file,
-          ),
-        )
-        continue
-      }
-      const [, hedIssues] = validateHedString(parsedString, this.hedSchemas, options)
-      const convertedIssues = BidsHedIssue.fromHedIssues(hedIssues, eventFileData.file)
-      issues.push(...convertedIssues)
+    return eventFileData.hedColumnHedStrings.flatMap((hedString) =>
+      this._validateFileHedColumnString(eventFileData, hedString),
+    )
+  }
+
+  /**
+   * Validate a string in an individual BIDS event file's HED column.
+   *
+   * @param {BidsEventFile} eventFileData The BIDS event file whose HED column is to be validated.
+   * @param {string} hedString The string to be validated.
+   * @returns {BidsHedIssue[]} All issues found.
+   * @private
+   */
+  _validateFileHedColumnString(eventFileData, hedString) {
+    if (!hedString) {
+      return []
     }
+
+    const issues = []
+    const options = {
+      checkForWarnings: true,
+      expectValuePlaceholderString: false,
+      definitionsAllowed: 'no',
+    }
+
+    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
+    issues.push(...BidsHedIssue.fromHedIssues(Object.values(parsingIssues).flat(), eventFileData.file))
+
+    if (parsedString === null) {
+      return issues
+    }
+
+    if (parsedString.columnSplices.length > 0) {
+      issues.push(
+        BidsHedIssue.fromHedIssue(
+          generateIssue('curlyBracesInHedColumn', { column: parsedString.columnSplices[0].format() }),
+          eventFileData.file,
+        ),
+      )
+      return issues
+    }
+
+    const [, hedIssues] = validateHedString(parsedString, this.hedSchemas, options)
+    const convertedIssues = BidsHedIssue.fromHedIssues(hedIssues, eventFileData.file)
+    issues.push(...convertedIssues)
+
     return issues
   }
 
@@ -328,7 +349,7 @@ class BidsHedValidator {
   }
 
   /**
-   * Parse a sidecar column cell in a TSV file.
+   * Parse a row in a TSV file.
    *
    * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
    * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
@@ -337,8 +358,6 @@ class BidsHedValidator {
    * @private
    */
   _parseTsvHedRow(tsvFileData, rowCells, tsvLine) {
-    const columnSpliceMapping = this._generateColumnSpliceMapping(tsvFileData, rowCells)
-
     const hedStringParts = []
     for (const [columnName, columnValue] of rowCells.entries()) {
       const hedStringPart = this._parseTsvRowCell(tsvFileData, columnName, columnValue, tsvLine)
@@ -348,6 +367,22 @@ class BidsHedValidator {
     }
 
     const hedString = hedStringParts.join(',')
+
+    return this._parseTsvHedRowString(tsvFileData, rowCells, tsvLine, hedString)
+  }
+
+  /**
+   * Parse a row's generated HED string in a TSV file.
+   *
+   * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
+   * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
+   * @param {number} tsvLine The index of this row in the TSV file.
+   * @param {string} hedString The unparsed HED string for this row.
+   * @return {ParsedHedString} A parsed HED string.
+   * @private
+   */
+  _parseTsvHedRowString(tsvFileData, rowCells, tsvLine, hedString) {
+    const columnSpliceMapping = this._generateColumnSpliceMapping(tsvFileData, rowCells)
 
     const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
     const flatParsingIssues = Object.values(parsingIssues).flat()

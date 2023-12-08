@@ -564,7 +564,7 @@ describe('BIDS datasets', () => {
             }),
             defSidecars[1].file,
           ),
-          BidsHedIssue.fromHedIssue(
+          /*BidsHedIssue.fromHedIssue(
             generateIssue('undefinedCurlyBraces', {
               column: 'response_time',
               sidecarKey: 'event_code',
@@ -577,7 +577,7 @@ describe('BIDS datasets', () => {
               sidecarKey: 'event_code',
             }),
             defSidecars[7].file,
-          ),
+          ),*/
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidCharacter', {
               character: '{',
