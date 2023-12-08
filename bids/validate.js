@@ -1,11 +1,13 @@
 import { validateHedDatasetWithContext } from '../validator/dataset'
 import { validateHedString } from '../validator/event'
-import { BidsDataset, BidsEventFile, BidsHedIssue, BidsIssue } from './types'
 import { buildBidsSchemas } from './schema'
 import { generateIssue, Issue, IssueError } from '../common/issues/issues'
 import ParsedHedString from '../parser/parsedHedString'
 import { parseHedString } from '../parser/main'
 import { spliceColumns } from '../parser/columnSplicer'
+import { BidsEventFile } from './types/tsv'
+import { BidsDataset } from './types/dataset'
+import { BidsHedIssue, BidsIssue } from './types/issues'
 
 /**
  * Validate a BIDS dataset.
@@ -171,7 +173,7 @@ class BidsHedValidator {
    */
   _validateSidecarCurlyBraces(sidecar) {
     const issues = []
-    const references = this._generateSidecarCurlyBraceMap(sidecar)
+    const references = sidecar.columnSpliceMapping
 
     for (const [key, referredKeys] of references) {
       for (const referredKey of referredKeys) {
@@ -187,57 +189,6 @@ class BidsHedValidator {
     }
 
     return issues
-  }
-
-  /**
-   * Generate a mapping of an individual BIDS sidecar's curly brace references.
-   *
-   * @param {BidsSidecar} sidecar A BIDS sidecar.
-   * @returns {Map<string, Set<string>>} The mapping of curly brace references in the sidecar.
-   * @private
-   */
-  _generateSidecarCurlyBraceMap(sidecar) {
-    const references = new Map()
-
-    for (const [sidecarKey, hedData] of sidecar.parsedHedData) {
-      if (hedData === null) {
-        // Skipped
-      } else if (hedData instanceof ParsedHedString) {
-        if (hedData.columnSplices.length === 0) {
-          continue
-        }
-
-        const keyReferences = new Set()
-
-        for (const columnSplice of hedData.columnSplices) {
-          keyReferences.add(columnSplice.originalTag)
-        }
-
-        references.set(sidecarKey, keyReferences)
-      } else if (hedData instanceof Map) {
-        let keyReferences = null
-
-        for (const valueString of hedData.values()) {
-          if (valueString === null || valueString.columnSplices.length === 0) {
-            continue
-          }
-
-          keyReferences ??= new Set()
-
-          for (const columnSplice of valueString.columnSplices) {
-            keyReferences.add(columnSplice.originalTag)
-          }
-        }
-
-        if (keyReferences instanceof Set) {
-          references.set(sidecarKey, keyReferences)
-        }
-      } else {
-        throw new Error('Unexpected type found in sidecar parsedHedData map.')
-      }
-    }
-
-    return references
   }
 
   /**
@@ -391,7 +342,7 @@ class BidsHedValidator {
     const hedStringParts = []
     for (const [columnName, columnValue] of rowCells.entries()) {
       const hedStringPart = this._parseTsvRowCell(tsvFileData, columnName, columnValue, tsvLine)
-      if (hedStringPart !== null) {
+      if (hedStringPart !== null && !tsvFileData.mergedSidecar.columnSpliceReferences.has(columnName)) {
         hedStringParts.push(hedStringPart)
       }
     }
