@@ -248,7 +248,7 @@ const sidecars = [
       },
     },
   ],
-  // sub07 - HED curly braces
+  // sub07 - Standalone HED curly brace tests
   [
     {
       // Valid definitions
@@ -321,30 +321,6 @@ const sidecars = [
       response_count: {
         Description: 'A count used to test curly braces in value columns.',
         HED: '(Item-count/#, {response_time})',
-      },
-    },
-    {
-      // Invalid reference to column with no HED
-      event_code: {
-        HED: {
-          face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
-        },
-      },
-      response_time: {
-        Description: 'Has description but no HED',
-      },
-    },
-    {
-      // Invalid reference to non-existent column
-      event_code: {
-        HED: {
-          face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
-        },
-      },
-      response_action: {
-        Description: 'Does not correspond to curly braces',
       },
     },
     {
@@ -438,6 +414,102 @@ const sidecars = [
       },
     },
   ],
+  // sub08 - Combined HED curly brace tests
+  [
+    {
+      // Valid definitions
+      defs: {
+        HED: {
+          def1: '(Definition/Acc/#, (Acceleration/#, Red))',
+          def2: '(Definition/MyColor, (Label/Pie))',
+        },
+      },
+    },
+    {
+      // Invalid definitions
+      defs: {
+        HED: {
+          def1: '(Definition/Acc/#, {event_code}, (Acceleration/#, Red))',
+          def2: '(Definition/MyColor, (Label/Pie, {response_time}))',
+        },
+      },
+    },
+    {
+      // Valid reference to named column with HED
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_time: {
+        Description: 'Has description with HED',
+        HED: 'Label/#',
+      },
+    },
+    {
+      // Valid reference to HED column
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{HED}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_action: {
+        Description: 'Does not correspond to curly braces',
+      },
+    },
+    {
+      // Valid references to named column and HED column
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2), ({HED})',
+        },
+      },
+      response_time: {
+        Description: 'Has description with HED',
+        HED: 'Label/#',
+      },
+    },
+    {
+      // Invalid reference to column with no HED
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_time: {
+        Description: 'Has description but no HED',
+      },
+    },
+    {
+      // Invalid reference to non-existent column
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_action: {
+        Description: 'Does not correspond to curly braces',
+      },
+    },
+    {
+      // Invalid duplicate reference to existing column
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '{response_time}, {response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_time: {
+        Description: 'Has description with HED',
+        HED: 'Label/#',
+      },
+    },
+  ],
 ]
 
 const hedColumnOnlyHeader = 'onset\tduration\tHED\n'
@@ -518,7 +590,7 @@ const tsvFiles = [
   ],
   // sub07 - Definitions
   [[sidecars[5][0], hedColumnOnlyHeader + '7\tsomething\t(Definition/myDef, (Label/Red, Green))']],
-  // sub08 - Curly braces
+  // sub08 - Standalone curly brace tests
   [
     [
       Object.assign({}, sidecars[6][0], sidecars[6][4]),
@@ -528,6 +600,44 @@ const tsvFiles = [
         '5.5\t0\tface\t\t2\n' +
         '5.7\t0\tface\tn/a\t3',
     ],
+    [
+      Object.assign({}, sidecars[6][0], sidecars[6][4]),
+      'onset\tduration\tevent_code\tHED\n' +
+        '4.5\t0\tface\tBlue, {response_time}\n' +
+        '5.0\t0\tball\tGreen, Def/MyColor\n' +
+        '5.2\t0\tface\t\n' +
+        '5.5\t0\tface\tn/a',
+    ],
+  ],
+  // sub09 - Combined curly brace tests
+  [
+    [
+      Object.assign({}, sidecars[7][0], sidecars[7][5]),
+      'onset\tduration\tevent_code\tHED\tresponse_time\n' +
+        '4.5\t0\tface\tBlue\t0\n' +
+        '5.0\t0\tball\tGreen,Def/MyColor\t1\n' +
+        '5.5\t0\tface\t\t2\n' +
+        '5.7\t0\tface\tn/a\t3',
+    ],
+    [
+      Object.assign({}, sidecars[7][0], sidecars[7][6]),
+      'onset\tduration\tevent_code\tHED\tresponse_action\n' +
+        '4.5\t0\tface\tBlue\t0\n' +
+        '5.0\t0\tball\tGreen,Def/MyColor\t1\n' +
+        '5.5\t0\tface\t\t2\n' +
+        '5.7\t0\tface\tn/a\t3',
+    ],
+    [
+      Object.assign({}, sidecars[7][0], sidecars[7][7]),
+      'onset\tduration\tevent_code\tHED\tresponse_time\n' +
+        '4.5\t0\tface\tBlue\t0\n' +
+        '5.0\t0\tball\tGreen,Def/MyColor\t1\n' +
+        '5.5\t0\tface\t\t2\n' +
+        '5.7\t0\tface\tn/a\t3',
+    ],
+  ],
+  // sub10 - HED column curly brace tests
+  [
     [
       Object.assign({}, sidecars[6][0], sidecars[6][4]),
       'onset\tduration\tevent_code\tHED\n' +

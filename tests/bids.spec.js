@@ -532,17 +532,21 @@ describe('BIDS datasets', () => {
 
   describe('Curly braces', () => {
     it('should validate the use of HED curly braces in BIDS data', () => {
-      const tsvDatasets = bidsTsvFiles[7]
-      const defSidecars = bidsSidecars[6]
+      const standaloneTsvFiles = bidsTsvFiles[7]
+      const standaloneSidecars = bidsSidecars[6]
+      const combinedDatasets = bidsTsvFiles[8]
+      const hedColumnDatasets = bidsTsvFiles[9]
       const testDatasets = {
-        tsv: new BidsDataset(tsvDatasets, []),
-        sidecars: new BidsDataset([], defSidecars),
+        tsv: new BidsDataset(standaloneTsvFiles, []),
+        sidecars: new BidsDataset([], standaloneSidecars),
+        combined: new BidsDataset(combinedDatasets, []),
+        hedColumn: new BidsDataset(hedColumnDatasets, []),
       }
       const expectedIssues = {
         tsv: [
           BidsHedIssue.fromHedIssue(
             generateIssue('curlyBracesInHedColumn', { column: '{response_time}' }),
-            tsvDatasets[1].file,
+            standaloneTsvFiles[1].file,
           ),
         ],
         sidecars: [
@@ -553,7 +557,7 @@ describe('BIDS datasets', () => {
               bounds: [19, 30],
               sidecarKey: 'defs',
             }),
-            defSidecars[1].file,
+            standaloneSidecars[1].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('curlyBracesInDefinition', {
@@ -562,99 +566,112 @@ describe('BIDS datasets', () => {
               bounds: [33, 47],
               sidecarKey: 'defs',
             }),
-            defSidecars[1].file,
+            standaloneSidecars[1].file,
           ),
-          /*BidsHedIssue.fromHedIssue(
-            generateIssue('undefinedCurlyBraces', {
-              column: 'response_time',
-              sidecarKey: 'event_code',
-            }),
-            defSidecars[6].file,
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('undefinedCurlyBraces', {
-              column: 'response_time',
-              sidecarKey: 'event_code',
-            }),
-            defSidecars[7].file,
-          ),*/
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidCharacter', {
               character: '{',
               index: 9,
               string: '(Def/Acc/{response_time})',
             }),
-            defSidecars[8].file,
+            standaloneSidecars[6].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'response_time',
               referrer: 'event_code',
             }),
-            defSidecars[9].file,
+            standaloneSidecars[7].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'event_code',
               referrer: 'response_time',
             }),
-            defSidecars[9].file,
+            standaloneSidecars[7].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'event_type',
               referrer: 'event_code',
             }),
-            defSidecars[10].file,
+            standaloneSidecars[8].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'response_time',
               referrer: 'event_type',
             }),
-            defSidecars[10].file,
+            standaloneSidecars[8].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'response_time',
               referrer: 'event_code',
             }),
-            defSidecars[10].file,
+            standaloneSidecars[8].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'response_time',
               referrer: 'response_time',
             }),
-            defSidecars[11].file,
+            standaloneSidecars[9].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('unclosedCurlyBrace', {
               index: 15,
-              string: defSidecars[12].hedData.get('event_code').ball,
+              string: standaloneSidecars[10].hedData.get('event_code').ball,
             }),
-            defSidecars[12].file,
+            standaloneSidecars[10].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('nestedCurlyBrace', {
               index: 1,
-              string: defSidecars[12].hedData.get('event_code2').ball,
+              string: standaloneSidecars[10].hedData.get('event_code2').ball,
             }),
-            defSidecars[12].file,
+            standaloneSidecars[10].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('unopenedCurlyBrace', {
               index: 15,
-              string: defSidecars[12].hedData.get('event_code3').ball,
+              string: standaloneSidecars[10].hedData.get('event_code3').ball,
             }),
-            defSidecars[12].file,
+            standaloneSidecars[10].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('emptyCurlyBrace', {
               bounds: [0, 1],
-              string: defSidecars[12].hedData.get('event_code4').ball,
+              string: standaloneSidecars[10].hedData.get('event_code4').ball,
             }),
-            defSidecars[12].file,
+            standaloneSidecars[10].file,
+          ),
+        ],
+        combined: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('undefinedCurlyBraces', {
+              column: 'response_time',
+            }),
+            combinedDatasets[0].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('undefinedCurlyBraces', {
+              column: 'response_time',
+            }),
+            combinedDatasets[1].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              tag: 'Label/#',
+              bounds: [0, 7],
+            }),
+            combinedDatasets[2].file,
+          ),
+        ],
+        hedColumn: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('curlyBracesInHedColumn', { column: '{response_time}' }),
+            hedColumnDatasets[0].file,
           ),
         ],
       }
