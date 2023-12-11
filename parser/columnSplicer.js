@@ -2,6 +2,7 @@ import ParsedHedString from './parsedHedString'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
 import { generateIssue } from '../common/issues/issues'
+import { parseHedString } from './main'
 
 export class ColumnSplicer {
   /**
@@ -122,7 +123,31 @@ export class ColumnSplicer {
       this.issues.push(generateIssue('recursiveCurlyBraces', { column: columnName }))
       return []
     }
+    const tagsHavePlaceholder = replacementString.tags.some((tag) => tag.originalTagName === '#')
+    if (tagsHavePlaceholder) {
+      return this._spliceValueTemplate(columnTemplate)
+    }
     return replacementString.parseTree
+  }
+
+  /**
+   * Splice a value-taking replacement string in place of a column template.
+   *
+   * @param {ParsedHedColumnSplice} columnTemplate The parsed HED column splice template in which to make the column splice.
+   * @returns {ParsedHedSubstring[]} The spliced column substitution.
+   * @private
+   */
+  _spliceValueTemplate(columnTemplate) {
+    const columnName = columnTemplate.originalTag
+    const replacementString = this.columnReplacements.get(columnName)
+    const replacedString = replacementString.hedString.replace('#', this.columnValues.get(columnName))
+    const [newParsedString, parsingIssues] = parseHedString(replacedString, this.hedSchemas)
+    const flatParsingIssues = Object.values(parsingIssues).flat()
+    if (flatParsingIssues.length > 0) {
+      this.issues.push(...flatParsingIssues)
+      return []
+    }
+    return newParsedString.parseTree
   }
 
   /**
