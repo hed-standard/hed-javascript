@@ -293,31 +293,25 @@ describe('HED string and event validation', () => {
           topLevelDuplicate: [
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [0, 36],
             }),
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [37, 73],
             }),
           ],
           groupDuplicate: [
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [27, 63],
             }),
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [94, 130],
             }),
           ],
           nestedGroupDuplicate: [
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [58, 94],
             }),
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [95, 131],
             }),
           ],
           noDuplicate: [],
@@ -937,21 +931,17 @@ describe('HED string and event validation', () => {
           duplicateSame: [
             generateIssue('duplicateTag', {
               tag: 'Train',
-              bounds: [0, 5],
             }),
             generateIssue('duplicateTag', {
               tag: 'Train',
-              bounds: [6, 11],
             }),
           ],
           duplicateSimilar: [
             generateIssue('duplicateTag', {
               tag: 'Train',
-              bounds: [0, 5],
             }),
             generateIssue('duplicateTag', {
               tag: 'Vehicle/Train',
-              bounds: [6, 19],
             }),
           ],
           missingChild: [

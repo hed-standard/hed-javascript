@@ -417,7 +417,7 @@ describe('HED string parsing', () => {
       const hedStrings = [
         'Sensory-event, Visual-presentation, {stim_file}, (Face, {stim_file})',
         '(Image, Face, Pathname/#)',
-        'Sensory-event, Visual-presentation, (Image, Face, Pathname/#), (Face, (Image, Face, Pathname/#))',
+        'Sensory-event, Visual-presentation, (Image, Face, Pathname/abc.bmp), (Face, (Image, Face, Pathname/abc.bmp))',
       ]
       const issues = []
       const parsedStrings = []
@@ -430,7 +430,12 @@ describe('HED string parsing', () => {
         }
         const [baseString, refString, correctString] = parsedStrings
         const replacementMap = new Map([['stim_file', refString]])
-        const columnSplicer = new ColumnSplicer(baseString, replacementMap, new Map(), hedSchemas)
+        const columnSplicer = new ColumnSplicer(
+          baseString,
+          replacementMap,
+          new Map([['stim_file', 'abc.bmp']]),
+          hedSchemas,
+        )
         const splicedString = columnSplicer.splice()
         const splicingIssues = columnSplicer.issues
         issues.push(...splicingIssues)

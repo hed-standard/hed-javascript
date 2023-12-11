@@ -274,7 +274,6 @@ class HedStringTokenizer {
     } else {
       this.syntaxIssues.push(
         generateIssue('emptyCurlyBrace', {
-          bounds: [this.startingIndex, i],
           string: this.hedString,
         }),
       )

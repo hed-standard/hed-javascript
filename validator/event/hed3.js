@@ -410,7 +410,6 @@ export class Hed3Validator extends HedValidator {
         for (const columnSplice of tag.columnSpliceIterator()) {
           this.pushIssue('curlyBracesInDefinition', {
             definition: definitionName,
-            bounds: columnSplice.originalBounds,
             column: columnSplice.originalTag,
           })
         }
@@ -433,7 +432,6 @@ export class Hed3Validator extends HedValidator {
       } else if (tag instanceof ParsedHedColumnSplice) {
         this.pushIssue('curlyBracesInDefinition', {
           definition: definitionName,
-          bounds: tag.originalBounds,
           column: tag.originalTag,
         })
       } else if (!tag.isDescendantOf(definitionParentTags.get(tag.schema))) {

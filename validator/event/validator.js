@@ -1,8 +1,6 @@
 import { ParsedHedTag } from '../../parser/parsedHedTag'
 import { generateIssue, Issue } from '../../common/issues/issues'
 import { Schemas } from '../../common/schema/types'
-import { replaceTagNameWithPound } from '../../utils/hedStrings'
-import { getCharacterCount } from '../../utils/string'
 
 const uniqueType = 'unique'
 const requiredType = 'required'
@@ -154,7 +152,6 @@ export class HedValidator {
       }
       this.pushIssue('duplicateTag', {
         tag: tag,
-        bounds: tag.originalBounds,
       })
       duplicateTags.add(tag)
     }

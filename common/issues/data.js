@@ -30,7 +30,7 @@ export default {
   duplicateTag: {
     hedCode: 'TAG_EXPRESSION_REPEATED',
     level: 'error',
-    message: stringTemplate`Duplicate tag at indices (${0}, ${1}) - "${'tag'}".`,
+    message: stringTemplate`Duplicate tag - "${'tag'}".`,
   },
   invalidCharacter: {
     hedCode: 'CHARACTER_INVALID',
@@ -214,12 +214,12 @@ export default {
   emptyCurlyBrace: {
     hedCode: 'SIDECAR_BRACES_INVALID',
     level: 'error',
-    message: stringTemplate`Curly brace expression at indices (${0}, ${1}) of string "${'string'}" is empty.`,
+    message: stringTemplate`Curly brace expression of string "${'string'}" is empty.`,
   },
   curlyBracesInDefinition: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Curly brace expression "${'column'}" found in definition "${'definition'}". Indices (${0}, ${1}).`,
+    message: stringTemplate`Curly brace expression "${'column'}" found in definition "${'definition'}".`,
   },
   curlyBracesInHedColumn: {
     hedCode: 'CHARACTER_INVALID',

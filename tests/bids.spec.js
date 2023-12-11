@@ -203,14 +203,12 @@ describe('BIDS datasets', () => {
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Boat',
-              bounds: [0, 4],
             }),
             badDatasets[2].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Boat',
-              bounds: [5, 9],
             }),
             badDatasets[2].file,
           ),
@@ -223,14 +221,12 @@ describe('BIDS datasets', () => {
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Age/30',
-              bounds: [17, 23],
             }),
             badDatasets[3].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Age/30',
-              bounds: [24, 30],
             }),
             badDatasets[3].file,
           ),
@@ -554,7 +550,6 @@ describe('BIDS datasets', () => {
             generateIssue('curlyBracesInDefinition', {
               definition: 'Acc/#',
               column: 'event_code',
-              bounds: [19, 30],
               sidecarKey: 'defs',
             }),
             standaloneSidecars[1].file,
@@ -563,7 +558,6 @@ describe('BIDS datasets', () => {
             generateIssue('curlyBracesInDefinition', {
               definition: 'MyColor',
               column: 'response_time',
-              bounds: [33, 47],
               sidecarKey: 'defs',
             }),
             standaloneSidecars[1].file,
@@ -641,7 +635,6 @@ describe('BIDS datasets', () => {
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('emptyCurlyBrace', {
-              bounds: [0, 1],
               string: standaloneSidecars[10].hedData.get('event_code4').ball,
             }),
             standaloneSidecars[10].file,
@@ -662,8 +655,13 @@ describe('BIDS datasets', () => {
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
-              tag: 'Label/#',
-              bounds: [0, 7],
+              tag: 'Label/1',
+            }),
+            combinedDatasets[2].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              tag: 'Label/1',
             }),
             combinedDatasets[2].file,
           ),
