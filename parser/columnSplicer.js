@@ -115,6 +115,9 @@ export class ColumnSplicer {
     if (replacementString === null) {
       return null
     }
+    if (columnName === 'HED') {
+      return this._spliceHedColumnTemplate()
+    }
     if (replacementString === undefined) {
       this.issues.push(generateIssue('undefinedCurlyBraces', { column: columnName }))
       return []
@@ -131,6 +134,18 @@ export class ColumnSplicer {
   }
 
   /**
+   * Splice a "HED" column value string in place of a column template.
+   *
+   * @returns {ParsedHedSubstring[]} The spliced column substitution.
+   * @private
+   */
+  _spliceHedColumnTemplate() {
+    const columnName = 'HED'
+    const replacementString = this.columnValues.get(columnName)
+    return this._reparseAndSpliceString(replacementString)
+  }
+
+  /**
    * Splice a value-taking replacement string in place of a column template.
    *
    * @param {ParsedHedColumnSplice} columnTemplate The parsed HED column splice template in which to make the column splice.
@@ -141,7 +156,18 @@ export class ColumnSplicer {
     const columnName = columnTemplate.originalTag
     const replacementString = this.columnReplacements.get(columnName)
     const replacedString = replacementString.hedString.replace('#', this.columnValues.get(columnName))
-    const [newParsedString, parsingIssues] = parseHedString(replacedString, this.hedSchemas)
+    return this._reparseAndSpliceString(replacedString)
+  }
+
+  /**
+   * Re-parse a string to use in splicing.
+   *
+   * @param {string} replacementString A new string to parse.
+   * @returns {ParsedHedSubstring[]} The new string's parse tree.
+   * @private
+   */
+  _reparseAndSpliceString(replacementString) {
+    const [newParsedString, parsingIssues] = parseHedString(replacementString, this.hedSchemas)
     const flatParsingIssues = Object.values(parsingIssues).flat()
     if (flatParsingIssues.length > 0) {
       this.issues.push(...flatParsingIssues)

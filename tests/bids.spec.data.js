@@ -647,6 +647,29 @@ const tsvFiles = [
         '5.5\t0\tface\tn/a',
     ],
   ],
+  // sub11 - 'n/a' curly brace tests
+  [
+    [
+      Object.assign({}, sidecars[6][0], sidecars[6][2]),
+      'onset\tduration\tevent_code\tresponse_time\n' + '5.0\t0\tball\tn/a\n',
+    ],
+    [
+      Object.assign({}, sidecars[6][0], sidecars[6][4]),
+      'onset\tduration\tevent_code\tHED\tresponse_time\n' + '5.0\t0\tball\tGreen,Def/MyColor\tn/a\n',
+    ],
+    [
+      Object.assign({}, sidecars[6][0], sidecars[6][4]),
+      'onset\tduration\tevent_code\tHED\tresponse_time\n' + '5.0\t0\tball\tn/a\t1\n',
+    ],
+    [
+      Object.assign({}, sidecars[6][0], sidecars[6][4]),
+      'onset\tduration\tevent_code\tHED\tresponse_time\n' + '5.0\t0\tball\tn/a\tn/a\n',
+    ],
+    [
+      Object.assign({}, sidecars[6][0], sidecars[6][5]),
+      'onset\tduration\tevent_code\tresponse_time\tresponse_code\n' + '5.0\t0\tface\t1\tn/a\n',
+    ],
+  ],
 ]
 
 const datasetDescriptions = [

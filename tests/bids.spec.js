@@ -3,9 +3,11 @@ const assert = chai.assert
 import converterGenerateIssue from '../converter/issues'
 import { generateIssue } from '../common/issues/issues'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
-import { parseSchemasSpec } from '../bids/schema'
+import { buildBidsSchemas, parseSchemasSpec } from '../bids/schema'
 import { BidsDataset, BidsHedIssue, BidsIssue, validateBidsDataset } from '../bids'
 import { bidsDatasetDescriptions, bidsSidecars, bidsTsvFiles } from './bids.spec.data'
+import { parseHedString } from '../parser/main'
+import { BidsHedTsvValidator } from '../bids/validator/bidsHedTsvValidator'
 
 describe('BIDS datasets', () => {
   /**
@@ -674,6 +676,41 @@ describe('BIDS datasets', () => {
         ],
       }
       return validator(testDatasets, expectedIssues, specs)
+    }, 10000)
+
+    it('should delete substrings corresponding to "n/a" TSV values', () => {
+      const tsvFiles = bidsTsvFiles[10]
+      const expectedStrings = [
+        '(Def/Acc/3.5 m-per-s^2)',
+        '(Def/Acc/3.5 m-per-s^2), (Green, Def/MyColor)',
+        'Label/1, (Def/Acc/3.5 m-per-s^2)',
+        '(Def/Acc/3.5 m-per-s^2)',
+        '(Red, Blue), (Green, (Yellow))',
+      ]
+      const dataset = new BidsDataset(tsvFiles, [])
+      return buildBidsSchemas(dataset, specs).then(([hedSchemas, schemaIssues]) => {
+        assert.isEmpty(schemaIssues, 'Schema failed to load')
+        const parsedExpectedStrings = []
+        for (const expectedString of expectedStrings) {
+          const [parsedExpectedString, parsingIssues] = parseHedString(expectedString, hedSchemas)
+          assert.isEmpty(Object.values(parsingIssues).flat(), `String "${expectedString}" failed to parse`)
+          parsedExpectedStrings.push(parsedExpectedString)
+        }
+        const tsvHedStrings = []
+        for (const tsvFile of tsvFiles) {
+          tsvFile.mergedSidecar.parseHedStrings(hedSchemas)
+          const tsvValidator = new BidsHedTsvValidator(tsvFile, hedSchemas)
+          const tsvHed = tsvValidator.parseHed()
+          assert.isEmpty(tsvValidator.issues, 'TSV file failed to parse')
+          tsvHedStrings.push(...tsvHed)
+        }
+        const formatMap = (hedString) => hedString.format()
+        assert.deepStrictEqual(
+          tsvHedStrings.map(formatMap),
+          parsedExpectedStrings.map(formatMap),
+          'Mismatch in parsed strings',
+        )
+      })
     }, 10000)
   })
 })
