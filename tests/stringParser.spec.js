@@ -443,5 +443,34 @@ describe('HED string parsing', () => {
         assert.isEmpty(issues, 'Issues')
       })
     })
+
+    it('must properly detect recursive curly braces', () => {
+      const hedStrings = ['Sensory-event, Visual-presentation, {stim_file}', '(Image, {body_part}, Pathname/#)', 'Face']
+      const issues = []
+      const parsedStrings = []
+      return hedSchemaPromise.then(([hedSchemas, schemaIssues]) => {
+        assert.isEmpty(schemaIssues)
+        for (const hedString of hedStrings) {
+          const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
+          parsedStrings.push(parsedString)
+          issues.push(...Object.values(parsingIssues).flat())
+        }
+        const [baseString, refString, doubleRefString] = parsedStrings
+        const replacementMap = new Map([
+          ['stim_file', refString],
+          ['body_part', doubleRefString],
+        ])
+        const columnSplicer = new ColumnSplicer(
+          baseString,
+          replacementMap,
+          new Map([['stim_file', 'abc.bmp']]),
+          hedSchemas,
+        )
+        columnSplicer.splice()
+        const splicingIssues = columnSplicer.issues
+        issues.push(...splicingIssues)
+        assert.deepStrictEqual(issues, [generateIssue('recursiveCurlyBraces', { column: 'stim_file' })])
+      })
+    })
   })
 })
