@@ -58,11 +58,12 @@ export const convertTagToLong = function (schema, hedTag, hedString, offset) {
           'invalidParentNode',
           hedString,
           {
-            parentTag: Array.isArray(tagEntries)
-              ? tagEntries.map((tagEntry) => {
-                  return tagEntry.longTag
-                })
-              : tagEntries.longTag,
+            parentTag:
+              tagEntries.length > 1
+                ? tagEntries.map((tagEntry) => {
+                    return tagEntry.longTag
+                  })
+                : tagEntries[0].longTag,
           },
           [startingIndex + offset, endingIndex + offset],
         ),

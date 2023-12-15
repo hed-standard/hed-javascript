@@ -1,8 +1,8 @@
-import { validateHedDatasetWithContext } from '../validator/dataset'
-import { validateHedString } from '../validator/event'
-import { BidsDataset, BidsEventFile, BidsHedIssue, BidsIssue } from './types'
 import { buildBidsSchemas } from './schema'
-import { generateIssue, Issue, IssueError } from '../common/issues/issues'
+import { BidsHedIssue, BidsIssue } from './types/issues'
+import { BidsHedTsvValidator } from './validator/bidsHedTsvValidator'
+import { BidsHedSidecarValidator } from './validator/bidsHedSidecarValidator'
+import { BidsHedColumnValidator } from './validator/bidsHedColumnValidator'
 
 /**
  * Validate a BIDS dataset.
@@ -14,216 +14,80 @@ import { generateIssue, Issue, IssueError } from '../common/issues/issues'
 export function validateBidsDataset(dataset, schemaDefinition) {
   return buildBidsSchemas(dataset, schemaDefinition).then(
     ([hedSchemas, schemaLoadIssues]) => {
-      return validateFullDataset(dataset, hedSchemas)
+      return new BidsHedValidator(dataset, hedSchemas)
+        .validateFullDataset()
         .catch(BidsIssue.generateInternalErrorPromise)
-        .then((issues) =>
-          issues.concat(convertHedIssuesToBidsIssues(schemaLoadIssues, dataset.datasetDescription.file)),
-        )
+        .then((issues) => issues.concat(BidsHedIssue.fromHedIssues(schemaLoadIssues, dataset.datasetDescription.file)))
     },
-    (issues) => convertHedIssuesToBidsIssues(issues, dataset.datasetDescription.file),
+    (issues) => BidsHedIssue.fromHedIssues(issues, dataset.datasetDescription.file),
   )
 }
 
 /**
- * Validate a full BIDS dataset using a HED schema collection.
- *
- * @param {BidsDataset} dataset A BIDS dataset.
- * @param {Schemas} hedSchemas A HED schema collection.
- * @returns {Promise<BidsIssue[]>|Promise<never>} Any issues found.
+ * A validator for HED content in a BIDS dataset.
  */
-function validateFullDataset(dataset, hedSchemas) {
-  try {
-    const [sidecarErrorsFound, sidecarIssues] = validateSidecars(dataset.sidecarData, hedSchemas)
-    const [hedColumnErrorsFound, hedColumnIssues] = validateHedColumn(dataset.eventData, hedSchemas)
-    if (sidecarErrorsFound || hedColumnErrorsFound) {
-      return Promise.resolve([...sidecarIssues, ...hedColumnIssues])
-    }
-    const eventFileIssues = dataset.eventData.map((eventFileData) => {
-      return validateBidsTsvFile(eventFileData, hedSchemas)
-    })
-    return Promise.resolve([].concat(sidecarIssues, hedColumnIssues, ...eventFileIssues))
-  } catch (e) {
-    return Promise.reject(e)
-  }
-}
+class BidsHedValidator {
+  /**
+   * The BIDS dataset being validated.
+   * @type {BidsDataset}
+   */
+  dataset
+  /**
+   * The HED schema collection being validated against.
+   * @type {Schemas}
+   */
+  hedSchemas
+  /**
+   * The issues found during validation.
+   * @type {BidsHedIssue[]}
+   */
+  issues
 
-/**
- * Validate a BIDS TSV file.
- *
- * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
- * @param {Schemas} hedSchemas A HED schema collection.
- * @returns {BidsIssue[]} Any issues found.
- */
-function validateBidsTsvFile(tsvFileData, hedSchemas) {
-  const [hedStrings, tsvIssues] = parseTsvHed(tsvFileData)
-  if (!hedStrings) {
-    return []
-  } else {
-    const datasetIssues = validateCombinedDataset(hedStrings, hedSchemas, tsvFileData)
-    return [...tsvIssues, ...datasetIssues]
-  }
-}
-
-/**
- * Validate a collection of BIDS sidecars.
- *
- * @param {BidsSidecar[]} sidecarData A collection of BIDS sidecars.
- * @param {Schemas} hedSchemas A HED schema collection.
- * @returns {[boolean, BidsHedIssue[]]} Whether errors (as opposed to warnings) were founds, and all issues found.
- */
-function validateSidecars(sidecarData, hedSchemas) {
-  const issues = []
-  // validate the HED strings in the json sidecars
-  for (const sidecar of sidecarData) {
-    const valueStringIssues = validateStrings(sidecar.hedValueStrings, hedSchemas, sidecar.file, {
-      expectValuePlaceholderString: true,
-      definitionsAllowed: 'no',
-    })
-    const categoricalStringIssues = validateStrings(sidecar.hedCategoricalStrings, hedSchemas, sidecar.file, {
-      expectValuePlaceholderString: false,
-      definitionsAllowed: 'exclusive',
-    })
-    issues.push(...valueStringIssues, ...categoricalStringIssues)
-  }
-  const sidecarErrorsFound = issues.some((issue) => issue.isError())
-  return [sidecarErrorsFound, issues]
-}
-
-/**
- * Validate the HED columns of a collection of BIDS event TSV files.
- *
- * @param {BidsEventFile[]} eventData A collection of BIDS event TSV files.
- * @param {Schemas} hedSchemas A HED schema collection.
- * @returns {[boolean, BidsHedIssue[]]} Whether errors (as opposed to warnings) were founds, and all issues found.
- */
-function validateHedColumn(eventData, hedSchemas) {
-  const issues = eventData.flatMap((eventFileData) => {
-    return validateStrings(eventFileData.hedColumnHedStrings, hedSchemas, eventFileData.file, {
-      expectValuePlaceholderString: false,
-      definitionsAllowed: 'no',
-    })
-  })
-  const errorsFound = issues.some((issue) => issue.isError())
-  return [errorsFound, issues]
-}
-
-/**
- * Combine the BIDS sidecar HED data into a BIDS TSV file's HED data.
- *
- * @param {BidsTsvFile} tsvFileData A BIDS TSV file.
- * @returns {[string[], BidsIssue[]]} The combined HED strings for this BIDS TSV file, and all issues found during the combination.
- */
-function parseTsvHed(tsvFileData) {
-  const hedStrings = []
-  const issues = []
-  const sidecarHedColumnIndices = {}
-  for (const sidecarHedColumn of tsvFileData.sidecarHedData.keys()) {
-    const sidecarHedColumnHeader = tsvFileData.parsedTsv.headers.indexOf(sidecarHedColumn)
-    if (sidecarHedColumnHeader > -1) {
-      sidecarHedColumnIndices[sidecarHedColumn] = sidecarHedColumnHeader
-    }
-  }
-  if (tsvFileData.hedColumnHedStrings.length + sidecarHedColumnIndices.length === 0) {
-    return [[], []]
+  /**
+   * Constructor.
+   *
+   * @param {BidsDataset} dataset The BIDS dataset being validated.
+   * @param {Schemas} hedSchemas The HED schema collection being validated against.
+   */
+  constructor(dataset, hedSchemas) {
+    this.dataset = dataset
+    this.hedSchemas = hedSchemas
+    this.issues = []
   }
 
-  tsvFileData.parsedTsv.rows.slice(1).forEach((rowCells, rowIndex) => {
-    // get the 'HED' field
-    const hedStringParts = []
-    if (tsvFileData.hedColumnHedStrings[rowIndex]) {
-      hedStringParts.push(tsvFileData.hedColumnHedStrings[rowIndex])
-    }
-    for (const [sidecarHedColumn, sidecarHedIndex] of Object.entries(sidecarHedColumnIndices)) {
-      const sidecarHedData = tsvFileData.sidecarHedData.get(sidecarHedColumn)
-      const rowCell = rowCells[sidecarHedIndex]
-      if (rowCell && rowCell !== 'n/a') {
-        let sidecarHedString
-        if (!sidecarHedData) {
-          continue
-        }
-        if (typeof sidecarHedData === 'string') {
-          sidecarHedString = sidecarHedData.replace('#', rowCell)
-        } else {
-          sidecarHedString = sidecarHedData[rowCell]
-        }
-        if (sidecarHedString !== undefined) {
-          hedStringParts.push(sidecarHedString)
-        } else {
-          issues.push(
-            new BidsHedIssue(
-              generateIssue('sidecarKeyMissing', {
-                key: rowCell,
-                column: sidecarHedColumn,
-                file: tsvFileData.file.relativePath,
-              }),
-              tsvFileData.file,
-            ),
-          )
-        }
+  /**
+   * Validate a full BIDS dataset using a HED schema collection.
+   *
+   * @returns {Promise<BidsIssue[]>|Promise<never>} Any issues found.
+   */
+  validateFullDataset() {
+    try {
+      const sidecarValidator = new BidsHedSidecarValidator(this.dataset, this.hedSchemas)
+      const hedColumnValidator = new BidsHedColumnValidator(this.dataset, this.hedSchemas)
+      const sidecarErrorsFound = this._pushIssues(sidecarValidator.validateSidecars())
+      const hedColumnErrorsFound = this._pushIssues(hedColumnValidator.validate())
+      if (sidecarErrorsFound || hedColumnErrorsFound) {
+        return Promise.resolve(this.issues)
       }
+      for (const eventFileData of this.dataset.eventData) {
+        const tsvValidator = new BidsHedTsvValidator(eventFileData, this.hedSchemas)
+        this.issues.push(...tsvValidator.validate())
+      }
+      return Promise.resolve(this.issues)
+    } catch (e) {
+      return Promise.reject(e)
     }
-
-    if (hedStringParts.length > 0) {
-      hedStrings.push(hedStringParts.join(','))
-    }
-  })
-
-  return [hedStrings, issues]
-}
-
-/**
- * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
- *
- * @param {string[]} hedStrings The HED strings in the data collection.
- * @param {Schemas} hedSchemas The HED schema collection to validate against.
- * @param {BidsTsvFile} tsvFileData The BIDS event TSV file being validated.
- * @returns {BidsHedIssue[]} Any issues found.
- */
-function validateCombinedDataset(hedStrings, hedSchemas, tsvFileData) {
-  const [, hedIssues] = validateHedDatasetWithContext(hedStrings, tsvFileData.mergedSidecar.hedStrings, hedSchemas, {
-    checkForWarnings: true,
-    validateDatasetLevel: tsvFileData instanceof BidsEventFile,
-  })
-  return convertHedIssuesToBidsIssues(hedIssues, tsvFileData.file)
-}
-
-/**
- * Validate a set of HED strings.
- *
- * @param {string[]} hedStrings The HED strings to validate.
- * @param {Schemas} hedSchemas The HED schema collection to validate against.
- * @param {Object} fileObject A BIDS-format file object used to generate {@link BidsHedIssue} objects.
- * @param {Object} settings Options to pass to {@link validateHedString}.
- * @returns {BidsHedIssue[]} Any issues found.
- */
-function validateStrings(hedStrings, hedSchemas, fileObject, settings) {
-  const issues = []
-  for (const hedString of hedStrings) {
-    if (!hedString) {
-      continue
-    }
-    const options = {
-      checkForWarnings: true,
-      ...settings,
-    }
-    const [, hedIssues] = validateHedString(hedString, hedSchemas, options)
-    const convertedIssues = convertHedIssuesToBidsIssues(hedIssues, fileObject)
-    issues.push(...convertedIssues)
   }
-  return issues
-}
 
-/**
- * Convert one or more HED issues into BIDS-compatible issues.
- *
- * @param {IssueError|Issue[]} hedIssues One or more HED-format issues.
- * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
- * @returns {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
- */
-function convertHedIssuesToBidsIssues(hedIssues, file) {
-  if (hedIssues instanceof IssueError) {
-    return [new BidsHedIssue(hedIssues.issue, file)]
-  } else {
-    return hedIssues.map((hedIssue) => new BidsHedIssue(hedIssue, file))
+  /**
+   * Push a list of issues to the validator's issue list.
+   *
+   * @param {BidsHedIssue[]} issues A list of issues generated by a file type-specific validator.
+   * @returns {boolean} Whether any of the issues generated/added were errors as opposed to warnings.
+   * @private
+   */
+  _pushIssues(issues) {
+    this.issues.push(...issues)
+    return issues.some((issue) => issue.isError())
   }
 }

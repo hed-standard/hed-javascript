@@ -2,7 +2,7 @@ import zip from 'lodash/zip'
 
 import { generateIssue, Issue } from '../common/issues/issues'
 import { validateHedEventWithDefinitions } from './event'
-import { parseHedStrings } from './parser/main'
+import { parseHedStrings } from '../parser/main'
 import { filterNonEqualDuplicates } from '../utils/map'
 
 /**
@@ -114,7 +114,7 @@ export const validateDataset = function (definitions, hedStrings, hedSchemas) {
  * @param {Schemas} hedSchemas The HED schema container object.
  * @param {Map<string, ParsedHedGroup>} definitions The dataset's parsed definitions.
  * @param {Object} settings The configuration settings for validation.
- * @return {[boolean, Issue[]]} Whether the HED strings are valid and any issues found.
+ * @returns {[boolean, Issue[]]} Whether the HED strings are valid and any issues found.
  */
 export const validateHedEvents = function (parsedHedStrings, hedSchemas, definitions, settings) {
   let stringsValid = true
@@ -133,7 +133,7 @@ export const validateHedEvents = function (parsedHedStrings, hedSchemas, definit
  * @param {string[]} hedStrings The dataset's HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
- * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
+ * @returns {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
 export const validateHedDataset = function (hedStrings, hedSchemas, ...args) {
   let settings
@@ -166,11 +166,11 @@ export const validateHedDataset = function (hedStrings, hedSchemas, ...args) {
 /**
  * Validate a HED dataset with additional context.
  *
- * @param {string[]} hedStrings The dataset's HED strings.
- * @param {string[]} contextHedStrings The dataset's context HED strings.
+ * @param {string[]|ParsedHedString[]} hedStrings The dataset's HED strings.
+ * @param {string[]|ParsedHedString[]} contextHedStrings The dataset's context HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
- * @return {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
+ * @returns {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
 export const validateHedDatasetWithContext = function (hedStrings, contextHedStrings, hedSchemas, ...args) {
   let settings

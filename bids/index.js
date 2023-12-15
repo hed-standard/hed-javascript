@@ -1,14 +1,8 @@
-import {
-  BidsDataset,
-  BidsEventFile,
-  BidsTabularFile,
-  BidsHedIssue,
-  BidsTsvFile,
-  BidsIssue,
-  BidsJsonFile,
-  BidsSidecar,
-} from './types'
 import { validateBidsDataset } from './validate'
+import { BidsJsonFile, BidsSidecar } from './types/json'
+import { BidsEventFile, BidsTabularFile, BidsTsvFile } from './types/tsv'
+import { BidsDataset } from './types/dataset'
+import { BidsHedIssue, BidsIssue } from './types/issues'
 
 export {
   BidsDataset,

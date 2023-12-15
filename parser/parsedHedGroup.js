@@ -1,10 +1,11 @@
 import differenceWith from 'lodash/differenceWith'
 
-import { generateIssue, IssueError } from '../../common/issues/issues'
-import { getParsedParentTags } from '../../utils/hedData'
-import { getTagName } from '../../utils/hedStrings'
+import { generateIssue, IssueError } from '../common/issues/issues'
+import { getParsedParentTags } from '../utils/hedData'
+import { getTagName } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { ParsedHedTag } from './parsedHedTag'
+import ParsedHedColumnSplice from './parsedHedColumnSplice'
 
 /**
  * A parsed HED tag group.
@@ -14,7 +15,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * The parsed HED tags in the HED tag group.
-   * @type {(ParsedHedTag|ParsedHedGroup)[]}
+   * @type {ParsedHedSubstring[]}
    */
   tags
   /**
@@ -35,7 +36,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Constructor.
-   * @param {(ParsedHedTag|ParsedHedGroup)[]} parsedHedTags The parsed HED tags in the HED tag group.
+   * @param {ParsedHedSubstring[]} parsedHedTags The parsed HED tags in the HED tag group.
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} hedString The original HED string.
    * @param {number[]} originalBounds The bounds of the HED tag in the original HED string.
@@ -86,6 +87,15 @@ export class ParsedHedGroup extends ParsedHedSubstring {
       default:
         return tags
     }
+  }
+
+  /**
+   * Nicely format this tag group.
+   *
+   * @returns {string}
+   */
+  format() {
+    return '(' + this.tags.map((substring) => substring.format()).join(', ') + ')'
   }
 
   /**
@@ -154,7 +164,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Whether this HED tag group is an inset group.
-   * @return {boolean}
+   * @returns {boolean}
    */
   get isInsetGroup() {
     return this.specialTags.has('Inset')
@@ -162,7 +172,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Whether this HED tag group is an onset, offset, or inset group.
-   * @return {boolean}
+   * @returns {boolean}
    */
   get isTemporalGroup() {
     return this.isOnsetGroup || this.isOffsetGroup || this.isInsetGroup
@@ -170,7 +180,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Whether this HED tag group is an onset, offset, or inset group.
-   * @return {string}
+   * @returns {string}
    */
   get temporalGroupName() {
     if (this.isOnsetGroup) {
@@ -187,7 +197,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Find what should be the sole definition tag, or throw an error if more than one is found.
    *
-   * @return {ParsedHedTag} This group's definition tag.
+   * @returns {ParsedHedTag} This group's definition tag.
    */
   get definitionTag() {
     return this.getSingleDefinitionTag('definitionTag', 'Definition')
@@ -196,7 +206,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Find what should be the sole {@code Def-expand} tag, or throw an error if more than one is found.
    *
-   * @return {ParsedHedTag} This group's {@code Def-expand} tag.
+   * @returns {ParsedHedTag} This group's {@code Def-expand} tag.
    */
   get defExpandTag() {
     return this.getSingleDefinitionTag('defExpandTag', 'Def-expand')
@@ -236,7 +246,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the name of this group's definition.
-   * @return {string|null}
+   * @returns {string|null}
    */
   get definitionName() {
     return this.getSingleDefinitionName('definitionName', 'Definition')
@@ -244,7 +254,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the name of this group's definition.
-   * @return {string|null}
+   * @returns {string|null}
    */
   get defExpandName() {
     return this.getSingleDefinitionName('defExpandName', 'Def-expand')
@@ -264,7 +274,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the value of this group's definition.
-   * @return {string|null}
+   * @returns {string|null}
    */
   get definitionValue() {
     return this.getSingleDefinitionValue('definitionValue', 'Definition')
@@ -272,7 +282,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the value of this group's definition.
-   * @return {string|null}
+   * @returns {string|null}
    */
   get defExpandValue() {
     return this.getSingleDefinitionValue('defExpandValue', 'Def-expand')
@@ -289,7 +299,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the name and value of this group's definition.
-   * @return {string|null}
+   * @returns {string|null}
    */
   get definitionNameAndValue() {
     return this.getSingleDefinitionNameAndValue('definition', 'Definition')
@@ -297,7 +307,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the name and value of this group's definition.
-   * @return {string|null}
+   * @returns {string|null}
    */
   get defExpandNameAndValue() {
     return this.getSingleDefinitionNameAndValue('defExpand', 'Def-expand')
@@ -321,7 +331,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the name(s) of this group's definition.
-   * @return {string|string[]|null}
+   * @returns {string|string[]|null}
    */
   get defName() {
     return this._memoize('defName', () => {
@@ -348,7 +358,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the name of this group's definition.
-   * @return {string|null}
+   * @returns {string|null}
    */
   get defValue() {
     return this._memoize('defValue', () => {
@@ -375,7 +385,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the name and value of this group's {@code Def} or {@code Def-expand}.
-   * @return {string|null}
+   * @returns {string|null}
    */
   get defNameAndValue() {
     return this._memoize('defNameAndValue', () => {
@@ -394,7 +404,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
    *
    * @param {ParsedHedTag} tag A definition-type tag.
    * @param {string} parentTag The expected parent of the tag.
-   * @return {string} The parameterized value of the definition, or an empty string if no value was found.
+   * @returns {string} The parameterized value of the definition, or an empty string if no value was found.
    */
   static getDefinitionTagValue(tag, parentTag) {
     if (getTagName(tag.parentCanonicalTag) === parentTag) {
@@ -406,7 +416,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the value of this group's definition.
-   * @return {ParsedHedGroup|null}
+   * @returns {ParsedHedGroup|null}
    */
   get definitionGroup() {
     return this._memoize('definitionGroup', () => {
@@ -424,7 +434,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Determine the number of {@code Def} and {@code Def-expand} tag/tag groups included in this group.
-   * @return {number} The number of first-level definition reference tags and tag groups in this group.
+   * @returns {number} The number of first-level definition reference tags and tag groups in this group.
    */
   get defCount() {
     return this._memoize('defCount', () => {
@@ -445,7 +455,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * The deeply nested array of parsed tags.
-   * @return {ParsedHedTag[]}
+   * @returns {ParsedHedTag[]}
    */
   nestedGroups() {
     const currentGroup = []
@@ -462,7 +472,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Iterator over the full HED groups and subgroups in this HED tag group.
    *
-   * @yield {ParsedHedTag[]} The subgroups of this tag group.
+   * @yields {ParsedHedTag[]} The subgroups of this tag group.
    */
   *subGroupArrayIterator() {
     const currentGroup = []
@@ -479,7 +489,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Iterator over the ParsedHedGroup objects in this HED tag group.
    *
-   * @yield {ParsedHedGroup} This object and the ParsedHedGroup objects belonging to this tag group.
+   * @yields {ParsedHedGroup} This object and the ParsedHedGroup objects belonging to this tag group.
    */
   *subParsedGroupIterator() {
     yield this
@@ -493,7 +503,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Iterator over the parsed HED tags in this HED tag group.
    *
-   * @yield {ParsedHedTag} This tag group's HED tags.
+   * @yields {ParsedHedTag} This tag group's HED tags.
    */
   *tagIterator() {
     for (const innerTag of this.tags) {
@@ -506,9 +516,24 @@ export class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
+   * Iterator over the parsed HED column splices in this HED tag group.
+   *
+   * @yields {ParsedHedColumnSplice} This tag group's HED column splices.
+   */
+  *columnSpliceIterator() {
+    for (const innerTag of this.tags) {
+      if (innerTag instanceof ParsedHedColumnSplice) {
+        yield innerTag
+      } else if (innerTag instanceof ParsedHedGroup) {
+        yield* innerTag.columnSpliceIterator()
+      }
+    }
+  }
+
+  /**
    * Iterator over the top-level parsed HED groups in this HED tag group.
    *
-   * @yield {ParsedHedTag} This tag group's top-level HED groups.
+   * @yields {ParsedHedTag} This tag group's top-level HED groups.
    */
   *topLevelGroupIterator() {
     for (const innerTag of this.tags) {

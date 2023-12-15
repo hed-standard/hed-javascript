@@ -1,7 +1,7 @@
-import { generateIssue } from '../../common/issues/issues'
-import { Schema } from '../../common/schema/types'
-import { convertPartialHedStringToLong } from '../../converter/converter'
-import { getTagLevels, replaceTagNameWithPound } from '../../utils/hedStrings'
+import { generateIssue } from '../common/issues/issues'
+import { Schema } from '../common/schema/types'
+import { convertPartialHedStringToLong } from '../converter/converter'
+import { getTagLevels, replaceTagNameWithPound } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 
 /**
@@ -177,6 +177,12 @@ export class ParsedHedTag extends ParsedHedSubstring {
     yield tagString
   }
 
+  /**
+   * Determine whether this tag is a descendant of another tag.
+   *
+   * @param {ParsedHedTag|string} parent The possible parent tag.
+   * @return {boolean} Whether {@code parent} is the parent tag of this tag.
+   */
   isDescendantOf(parent) {
     if (parent instanceof ParsedHedTag) {
       if (this.schema !== parent.schema) {
@@ -261,6 +267,23 @@ export class ParsedHed3Tag extends ParsedHedTag {
     )
     this.canonicalTag = canonicalTag
     this.conversionIssues = conversionIssues
+  }
+
+  /**
+   * Nicely format this tag.
+   *
+   * @returns {string}
+   */
+  format() {
+    let tagName = this.schema.entries.definitions.get('tags').getEntry(this.formattedTag)?.name
+    if (tagName === undefined) {
+      tagName = this.originalTag
+    }
+    if (this.schema?.prefix) {
+      return this.schema.prefix + ':' + tagName
+    } else {
+      return tagName
+    }
   }
 
   /**

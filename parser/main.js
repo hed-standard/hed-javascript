@@ -1,9 +1,9 @@
-import { mergeParsingIssues } from '../../utils/hedData'
-import { generateIssue } from '../../common/issues/issues'
+import { mergeParsingIssues } from '../utils/hedData'
+import { generateIssue } from '../common/issues/issues'
 
 import ParsedHedString from './parsedHedString'
 import splitHedString from './splitHedString'
-import { getCharacterCount, stringIsEmpty } from '../../utils/string'
+import { getCharacterCount, stringIsEmpty } from '../utils/string'
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
@@ -142,11 +142,14 @@ const validateFullUnparsedHedString = function (hedString) {
 /**
  * Parse a full HED string into an object of tag types.
  *
- * @param {string} hedString The full HED string to parse.
+ * @param {string|ParsedHedString} hedString The full HED string to parse.
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @returns {[ParsedHedString|null, Object<string, Issue[]>]} The parsed HED tag data and an object containing lists of parsing issues.
  */
 export const parseHedString = function (hedString, hedSchemas) {
+  if (hedString instanceof ParsedHedString) {
+    return [hedString, {}]
+  }
   const fullStringIssues = validateFullUnparsedHedString(hedString)
   if (fullStringIssues.delimiter.length > 0) {
     fullStringIssues.syntax = []
@@ -164,7 +167,7 @@ export const parseHedString = function (hedString, hedSchemas) {
 /**
  * Parse a set of HED strings.
  *
- * @param {string[]} hedStrings A set of HED strings.
+ * @param {string[]|ParsedHedString[]} hedStrings A set of HED strings.
  * @param {Schemas} hedSchemas The collection of HED schemas.
  * @returns {[ParsedHedString[], Object<string, Issue[]>]} The parsed HED strings and any issues found.
  */

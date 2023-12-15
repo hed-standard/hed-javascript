@@ -5,11 +5,13 @@ import { generateIssue } from '../common/issues/issues'
 import { Schemas, SchemaSpec, SchemasSpec } from '../common/schema/types'
 import converterGenerateIssue from '../converter/issues'
 import { recursiveMap } from '../utils/array'
-import { parseHedString } from '../validator/parser/main'
-import ParsedHedSubstring from '../validator/parser/parsedHedSubstring'
-import { ParsedHedTag } from '../validator/parser/parsedHedTag'
-import splitHedString from '../validator/parser/splitHedString'
+import { parseHedString } from '../parser/main'
+import ParsedHedSubstring from '../parser/parsedHedSubstring'
+import { ParsedHedTag } from '../parser/parsedHedTag'
+import splitHedString from '../parser/splitHedString'
 import { buildSchemas } from '../validator/schema/init'
+import ColumnSplicer from '../parser/columnSplicer'
+import ParsedHedGroup from '../parser/parsedHedGroup'
 
 describe('HED string parsing', () => {
   const nullSchema = new Schemas(null)
@@ -65,51 +67,20 @@ describe('HED string parsing', () => {
   }
 
   describe('HED strings', () => {
-    it.skip('cannot have invalid characters', () => {
+    it('cannot have invalid characters', () => {
       const testStrings = {
-        openingCurly: 'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend{/Upper-extremity/Elbow',
-        closingCurly: 'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend}/Upper-extremity/Elbow',
         openingSquare: 'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend[/Upper-extremity/Elbow',
         closingSquare: 'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend]/Upper-extremity/Elbow',
         tilde: 'Relation/Spatial-relation/Left-side-of,/Action/Move/Bend~/Upper-extremity/Elbow',
       }
-      const expectedResultList = [
-        new ParsedHedTag(
-          'Relation/Spatial-relation/Left-side-of',
-          'Relation/Spatial-relation/Left-side-of',
-          [0, 38],
-          nullSchema,
-        ),
-        new ParsedHedTag('/Action/Move/Bend', '/Action/Move/Bend', [39, 56], nullSchema),
-        new ParsedHedTag('/Upper-extremity/Elbow', '/Upper-extremity/Elbow', [57, 79], nullSchema),
-      ]
       const expectedResults = {
-        openingCurly: expectedResultList,
-        closingCurly: expectedResultList,
-        openingSquare: expectedResultList,
-        closingSquare: expectedResultList,
-        tilde: expectedResultList,
+        openingSquare: null,
+        closingSquare: null,
+        tilde: null,
       }
       const expectedIssues = {
-        openingCurly: {
-          syntax: [
-            generateIssue('invalidCharacter', {
-              character: '{',
-              index: 56,
-              string: testStrings.openingCurly,
-            }),
-          ],
-        },
-        closingCurly: {
-          syntax: [
-            generateIssue('invalidCharacter', {
-              character: '}',
-              index: 56,
-              string: testStrings.closingCurly,
-            }),
-          ],
-        },
         openingSquare: {
+          conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
               character: '[',
@@ -119,6 +90,7 @@ describe('HED string parsing', () => {
           ],
         },
         closingSquare: {
+          conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
               character: ']',
@@ -128,6 +100,7 @@ describe('HED string parsing', () => {
           ],
         },
         tilde: {
+          conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
               character: '~',
@@ -137,9 +110,13 @@ describe('HED string parsing', () => {
           ],
         },
       }
-      validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
-        return splitHedString(string, nullSchema)
-      })
+      for (const [testStringKey, testString] of Object.entries(testStrings)) {
+        assert.property(expectedResults, testStringKey, testStringKey + ' is not in expectedResults')
+        assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
+        const [testResult, testIssues] = splitHedString(testString, nullSchema)
+        assert.strictEqual(testResult, expectedResults[testStringKey], testString)
+        assert.deepStrictEqual(testIssues, expectedIssues[testStringKey], testString)
+      }
     })
   })
 
@@ -155,7 +132,7 @@ describe('HED string parsing', () => {
       const hedString =
         'Event/Category/Sensory-event,Item/Object/Man-made-object/Vehicle/Train,Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple'
       const [result, issues] = splitHedString(hedString, nullSchema)
-      assert.deepStrictEqual(Object.values(issues).flat(), [])
+      assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
       assert.deepStrictEqual(result, [
         new ParsedHedTag('Event/Category/Sensory-event', 'Event/Category/Sensory-event', [0, 28], nullSchema),
         new ParsedHedTag(
@@ -173,15 +150,26 @@ describe('HED string parsing', () => {
       ])
     })
 
-    it.skip('should include each group as its own single element', () => {
+    it('should include each group as its own single element', () => {
       const hedString =
         '/Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow),/Position/X-position/70 px,/Position/Y-position/23 px'
       const [result, issues] = splitHedString(hedString, nullSchema)
-      assert.deepStrictEqual(Object.values(issues).flat(), [])
+      assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
       assert.deepStrictEqual(result, [
         new ParsedHedTag('/Action/Move/Flex', '/Action/Move/Flex', [0, 17], nullSchema),
-        new ParsedHedSubstring(
-          '(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow)',
+        new ParsedHedGroup(
+          [
+            new ParsedHedTag(
+              'Relation/Spatial-relation/Left-side-of',
+              'Relation/Spatial-relation/Left-side-of',
+              [19, 57],
+              nullSchema,
+            ),
+            new ParsedHedTag('/Action/Move/Bend', '/Action/Move/Bend', [58, 75], nullSchema),
+            new ParsedHedTag('/Upper-extremity/Elbow', '/Upper-extremity/Elbow', [76, 98], nullSchema),
+          ],
+          nullSchema,
+          hedString,
           [18, 99],
         ),
         new ParsedHedTag('/Position/X-position/70 px', '/Position/X-position/70 px', [100, 126], nullSchema),
@@ -261,7 +249,7 @@ describe('HED string parsing', () => {
       const hedString =
         '/Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow),/Position/X-position/70 px,/Position/Y-position/23 px'
       const [parsedString, issues] = parseHedString(hedString, nullSchema)
-      assert.deepStrictEqual(Object.values(issues).flat(), [])
+      assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
       assert.sameDeepMembers(parsedString.tags.map(originalMap), [
         '/Action/Move/Flex',
         'Relation/Spatial-relation/Left-side-of',
@@ -291,8 +279,8 @@ describe('HED string parsing', () => {
       const formattedMap = (parsedTag) => {
         return parsedTag.formattedTag
       }
-      assert.deepStrictEqual(Object.values(issues).flat(), [])
-      assert.deepStrictEqual(Object.values(formattedIssues).flat(), [])
+      assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
+      assert.isEmpty(Object.values(formattedIssues).flat(), 'Parsing issues occurred in the formatted string')
       assert.deepStrictEqual(parsedString.tags.map(formattedMap), parsedFormattedString.tags.map(originalMap))
       assert.deepStrictEqual(
         parsedString.topLevelTags.map(formattedMap),
@@ -347,7 +335,7 @@ describe('HED string parsing', () => {
         assert.isEmpty(issues, 'Schema loading issues occurred')
         for (const [testStringKey, testString] of Object.entries(testStrings)) {
           const [parsedString, issues] = parseHedString(testString, hedSchemas)
-          assert.deepStrictEqual(Object.values(issues).flat(), [])
+          assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
           assert.sameDeepMembers(parsedString.tags.map(originalMap), expectedTags[testStringKey], testString)
           assert.deepStrictEqual(
             recursiveMap(
@@ -407,6 +395,68 @@ describe('HED string parsing', () => {
           })
           return [canonicalTags, issues]
         })
+      })
+    })
+  })
+
+  describe('HED column splicing', () => {
+    it('must properly splice columns', () => {
+      const hedStrings = [
+        'Sensory-event, Visual-presentation, {stim_file}, (Face, {stim_file})',
+        '(Image, Face, Pathname/#)',
+        'Sensory-event, Visual-presentation, (Image, Face, Pathname/abc.bmp), (Face, (Image, Face, Pathname/abc.bmp))',
+      ]
+      const issues = []
+      const parsedStrings = []
+      return hedSchemaPromise.then(([hedSchemas, schemaIssues]) => {
+        assert.isEmpty(schemaIssues, 'Schema loading issues occurred')
+        for (const hedString of hedStrings) {
+          const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
+          parsedStrings.push(parsedString)
+          issues.push(...Object.values(parsingIssues).flat())
+        }
+        const [baseString, refString, correctString] = parsedStrings
+        const replacementMap = new Map([['stim_file', refString]])
+        const columnSplicer = new ColumnSplicer(
+          baseString,
+          replacementMap,
+          new Map([['stim_file', 'abc.bmp']]),
+          hedSchemas,
+        )
+        const splicedString = columnSplicer.splice()
+        const splicingIssues = columnSplicer.issues
+        issues.push(...splicingIssues)
+        assert.strictEqual(splicedString.format(), correctString.format(), 'Full string')
+        assert.isEmpty(issues, 'Issues')
+      })
+    })
+
+    it('must properly detect recursive curly braces', () => {
+      const hedStrings = ['Sensory-event, Visual-presentation, {stim_file}', '(Image, {body_part}, Pathname/#)', 'Face']
+      const issues = []
+      const parsedStrings = []
+      return hedSchemaPromise.then(([hedSchemas, schemaIssues]) => {
+        assert.isEmpty(schemaIssues, 'Schema loading issues occurred')
+        for (const hedString of hedStrings) {
+          const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
+          parsedStrings.push(parsedString)
+          issues.push(...Object.values(parsingIssues).flat())
+        }
+        const [baseString, refString, doubleRefString] = parsedStrings
+        const replacementMap = new Map([
+          ['stim_file', refString],
+          ['body_part', doubleRefString],
+        ])
+        const columnSplicer = new ColumnSplicer(
+          baseString,
+          replacementMap,
+          new Map([['stim_file', 'abc.bmp']]),
+          hedSchemas,
+        )
+        columnSplicer.splice()
+        const splicingIssues = columnSplicer.issues
+        issues.push(...splicingIssues)
+        assert.deepStrictEqual(issues, [generateIssue('recursiveCurlyBraces', { column: 'stim_file' })])
       })
     })
   })

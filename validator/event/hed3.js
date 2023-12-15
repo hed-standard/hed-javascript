@@ -2,12 +2,13 @@ import differenceWith from 'lodash/differenceWith'
 import isEqual from 'lodash/isEqual'
 
 import { IssueError } from '../../common/issues/issues'
-import ParsedHedGroup from '../parser/parsedHedGroup'
-import { ParsedHedTag } from '../parser/parsedHedTag'
+import ParsedHedGroup from '../../parser/parsedHedGroup'
+import { ParsedHedTag } from '../../parser/parsedHedTag'
 import { getParsedParentTags } from '../../utils/hedData'
 import { getParentTag, getTagName, hedStringIsAGroup, replaceTagNameWithPound } from '../../utils/hedStrings'
 import { getCharacterCount, isNumber } from '../../utils/string'
 import { HedValidator } from './validator'
+import ParsedHedColumnSplice from '../../parser/parsedHedColumnSplice'
 
 const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
@@ -406,6 +407,12 @@ export class Hed3Validator extends HedValidator {
           continue
         }
         tagGroupValidated = true
+        for (const columnSplice of tag.columnSpliceIterator()) {
+          this.pushIssue('curlyBracesInDefinition', {
+            definition: definitionName,
+            column: columnSplice.originalTag,
+          })
+        }
         for (const innerTag of tag.tagIterator()) {
           const nestedDefinitionParentTags = [
             ...definitionParentTags.values(),
@@ -422,6 +429,11 @@ export class Hed3Validator extends HedValidator {
             })
           }
         }
+      } else if (tag instanceof ParsedHedColumnSplice) {
+        this.pushIssue('curlyBracesInDefinition', {
+          definition: definitionName,
+          column: tag.originalTag,
+        })
       } else if (!tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
         this.pushIssue('illegalDefinitionGroupTag', {
           tag: tag,

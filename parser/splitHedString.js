@@ -1,21 +1,24 @@
 import flattenDeep from 'lodash/flattenDeep'
 
-import { ParsedHedTag, ParsedHed3Tag } from './parsedHedTag'
+import { ParsedHed3Tag, ParsedHedTag } from './parsedHedTag'
+import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
-import { Schema, Schemas } from '../../common/schema/types'
-import { generateIssue } from '../../common/issues/issues'
-import { recursiveMap } from '../../utils/array'
-import { replaceTagNameWithPound } from '../../utils/hedStrings'
-import { mergeParsingIssues } from '../../utils/hedData'
-import { stringIsEmpty } from '../../utils/string'
-import { ParsedHed2Tag } from '../hed2/parser/parsedHed2Tag'
+import { Schemas } from '../common/schema/types'
+import { generateIssue } from '../common/issues/issues'
+import { recursiveMap } from '../utils/array'
+import { replaceTagNameWithPound } from '../utils/hedStrings'
+import { mergeParsingIssues } from '../utils/hedData'
+import { stringIsEmpty } from '../utils/string'
+import { ParsedHed2Tag } from '../validator/hed2/parser/parsedHed2Tag'
 
 const openingGroupCharacter = '('
 const closingGroupCharacter = ')'
+const openingColumnCharacter = '{'
+const closingColumnCharacter = '}'
 const commaCharacter = ','
 const colonCharacter = ':'
 const slashCharacter = '/'
-const invalidCharacters = new Set(['{', '}', '[', ']', '~', '"'])
+const invalidCharacters = new Set(['[', ']', '~', '"'])
 const invalidCharactersOutsideOfValues = new Set([':'])
 
 const generationToClass = [
@@ -25,39 +28,96 @@ const generationToClass = [
   ParsedHed3Tag,
 ]
 
-class TagSpec {
-  constructor(tag, start, end, librarySchema) {
-    this.tag = tag.trim()
+/**
+ * A specification for a tokenized substring.
+ */
+class SubstringSpec {
+  /**
+   * The starting and ending bounds of the substring.
+   * @type {number[]}
+   */
+  bounds
+
+  constructor(start, end) {
     this.bounds = [start, end]
-    /**
-     * @type {string}
-     */
-    this.library = librarySchema
-  }
-}
-
-class GroupSpec {
-  constructor(start, finish) {
-    this.start = start
-    this.finish = finish
-    /**
-     * @type {GroupSpec[]}
-     */
-    this.children = []
-  }
-
-  get bounds() {
-    return [this.start, this.finish]
   }
 }
 
 /**
- * Class for tokenizing hed strings
+ * A specification for a tokenized tag.
+ */
+class TagSpec extends SubstringSpec {
+  /**
+   * The tag this spec represents.
+   * @type {string}
+   */
+  tag
+  /**
+   * The schema prefix for this tag, if any.
+   * @type {string}
+   */
+  library
+
+  constructor(tag, start, end, librarySchema) {
+    super(start, end)
+
+    this.tag = tag.trim()
+    this.library = librarySchema
+  }
+}
+
+/**
+ * A specification for a tokenized tag group.
+ */
+class GroupSpec extends SubstringSpec {
+  /**
+   * The child group specifications.
+   * @type {GroupSpec[]}
+   */
+  children
+
+  constructor(start, end) {
+    super(start, end)
+
+    this.children = []
+  }
+}
+
+/**
+ * A specification for a tokenized column splice template.
+ */
+class ColumnSpliceSpec extends SubstringSpec {
+  /**
+   * The column name this spec refers to.
+   * @type {string}
+   */
+  columnName
+
+  constructor(name, start, end) {
+    super(start, end)
+
+    this.columnName = name.trim()
+  }
+}
+
+/**
+ * Class for tokenizing HED strings.
  */
 class HedStringTokenizer {
+  /**
+   * The HED string being parsed.
+   * @type {string}
+   */
   hedString
+
   syntaxIssues
+
+  /**
+   * The current substring being parsed.
+   * @type {string}
+   */
   currentTag
+
   groupDepth
   startingIndex
   resetStartingIndex
@@ -65,6 +125,7 @@ class HedStringTokenizer {
   librarySchema
   currentGroupStack
   parenthesesStack
+  ignoringCharacters
 
   constructor(hedString) {
     this.hedString = hedString
@@ -89,6 +150,15 @@ class HedStringTokenizer {
     }
     this.pushTag(this.hedString.length)
 
+    if (this.columnSpliceIndex >= 0) {
+      this.syntaxIssues.push(
+        generateIssue('unclosedCurlyBrace', {
+          index: this.columnSpliceIndex,
+          string: this.hedString,
+        }),
+      )
+    }
+
     this.unwindGroupStack()
 
     const tagSpecs = this.currentGroupStack.pop()
@@ -109,17 +179,35 @@ class HedStringTokenizer {
     this.resetStartingIndex = false
     this.slashFound = false
     this.librarySchema = ''
+    this.columnSpliceIndex = -1
     this.currentGroupStack = [[]]
     this.parenthesesStack = [new GroupSpec(0, this.hedString.length)]
+    this.ignoringCharacters = false
   }
 
   tokenizeCharacter(i, character) {
-    const dispatchTable = {
-      [openingGroupCharacter]: (i, character) => this.openingGroupCharacter(i),
-      [closingGroupCharacter]: (i, character) => this.closingGroupCharacter(i),
-      [commaCharacter]: (i, character) => this.pushTag(i),
-      [colonCharacter]: (i, character) => this.colonCharacter(character),
-      [slashCharacter]: (i, character) => this.slashCharacter(character),
+    let dispatchTable
+    if (this.ignoringCharacters) {
+      dispatchTable = {
+        [closingGroupCharacter]: (i, character) => {
+          this.clearTag()
+          this.closingGroupCharacter(i)
+        },
+        [commaCharacter]: (i, character) => this.clearTag(),
+      }
+    } else {
+      dispatchTable = {
+        [openingGroupCharacter]: (i, character) => this.openingGroupCharacter(i),
+        [closingGroupCharacter]: (i, character) => {
+          this.pushTag(i)
+          this.closingGroupCharacter(i)
+        },
+        [openingColumnCharacter]: (i, character) => this.openingColumnCharacter(i),
+        [closingColumnCharacter]: (i, character) => this.closingColumnCharacter(i),
+        [commaCharacter]: (i, character) => this.pushTag(i),
+        [colonCharacter]: (i, character) => this.colonCharacter(character),
+        [slashCharacter]: (i, character) => this.slashCharacter(character),
+      }
     }
     const characterHandler = dispatchTable[character]
     if (characterHandler) {
@@ -137,7 +225,6 @@ class HedStringTokenizer {
   }
 
   closingGroupCharacter(i) {
-    this.pushTag(i)
     if (this.groupDepth <= 0) {
       this.syntaxIssues.push(
         generateIssue('unopenedParenthesis', {
@@ -148,6 +235,53 @@ class HedStringTokenizer {
       return
     }
     this.closeGroup(i)
+  }
+
+  openingColumnCharacter(i) {
+    if (this.currentTag.length > 0) {
+      this.syntaxIssues.push(
+        generateIssue('invalidCharacter', {
+          character: openingColumnCharacter,
+          index: i,
+          string: this.hedString,
+        }),
+      )
+      this.ignoringCharacters = true
+      return
+    }
+    if (this.columnSpliceIndex >= 0) {
+      this.syntaxIssues.push(
+        generateIssue('nestedCurlyBrace', {
+          index: i,
+          string: this.hedString,
+        }),
+      )
+    }
+    this.columnSpliceIndex = i
+  }
+
+  closingColumnCharacter(i) {
+    if (this.columnSpliceIndex < 0) {
+      this.syntaxIssues.push(
+        generateIssue('unopenedCurlyBrace', {
+          index: i,
+          string: this.hedString,
+        }),
+      )
+      return
+    }
+    if (!stringIsEmpty(this.currentTag)) {
+      this.currentGroupStack[this.groupDepth].push(new ColumnSpliceSpec(this.currentTag, this.startingIndex, i))
+    } else {
+      this.syntaxIssues.push(
+        generateIssue('emptyCurlyBrace', {
+          string: this.hedString,
+        }),
+      )
+    }
+    this.columnSpliceIndex = -1
+    this.resetStartingIndex = true
+    this.slashFound = false
   }
 
   colonCharacter(character) {
@@ -165,6 +299,9 @@ class HedStringTokenizer {
   }
 
   otherCharacter(character) {
+    if (this.ignoringCharacters) {
+      return
+    }
     this.currentTag += character
     this.resetStartingIndex = stringIsEmpty(this.currentTag)
   }
@@ -175,7 +312,7 @@ class HedStringTokenizer {
     while (this.groupDepth > 0) {
       this.syntaxIssues.push(
         generateIssue('unclosedParenthesis', {
-          index: this.parenthesesStack[this.parenthesesStack.length - 1].start,
+          index: this.parenthesesStack[this.parenthesesStack.length - 1].bounds[0],
           string: this.hedString,
         }),
       )
@@ -184,7 +321,7 @@ class HedStringTokenizer {
   }
 
   pushTag(i) {
-    if (!stringIsEmpty(this.currentTag)) {
+    if (!stringIsEmpty(this.currentTag) && this.columnSpliceIndex < 0) {
       this.currentGroupStack[this.groupDepth].push(
         new TagSpec(this.currentTag, this.startingIndex, i, this.librarySchema),
       )
@@ -194,10 +331,17 @@ class HedStringTokenizer {
     this.librarySchema = ''
   }
 
+  clearTag() {
+    this.ignoringCharacters = false
+    this.resetStartingIndex = true
+    this.slashFound = false
+    this.librarySchema = ''
+  }
+
   closeGroup(i) {
-    const bounds = this.parenthesesStack.pop()
-    bounds.finish = i + 1
-    this.parenthesesStack[this.groupDepth - 1].children.push(bounds)
+    const groupSpec = this.parenthesesStack.pop()
+    groupSpec.bounds[1] = i + 1
+    this.parenthesesStack[this.groupDepth - 1].children.push(groupSpec)
     this.currentGroupStack[this.groupDepth - 1].push(this.currentGroupStack.pop())
     this.groupDepth--
   }
@@ -207,7 +351,7 @@ class HedStringTokenizer {
  * Check the split HED tags for invalid characters
  *
  * @param {string} hedString The HED string to be split.
- * @param {TagSpec[]} tagSpecs The tag specifications.
+ * @param {SubstringSpec[]} tagSpecs The tag specifications.
  * @returns {Object<string, Issue[]>} Any issues found.
  */
 const checkForInvalidCharacters = function (hedString, tagSpecs) {
@@ -215,6 +359,9 @@ const checkForInvalidCharacters = function (hedString, tagSpecs) {
   const flatTagSpecs = flattenDeep(tagSpecs)
 
   for (const tagSpec of flatTagSpecs) {
+    if (tagSpec instanceof ColumnSpliceSpec) {
+      continue
+    }
     const alwaysInvalidIssues = checkTagForInvalidCharacters(hedString, tagSpec, tagSpec.tag, invalidCharacters)
     const valueTag = replaceTagNameWithPound(tagSpec.tag)
     const outsideValueIssues = checkTagForInvalidCharacters(
@@ -270,10 +417,14 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
   const syntaxIssues = []
   const ParsedHedTagClass = generationToClass[hedSchemas.generation]
 
-  const createParsedTag = ({ library: librarySchema, tag: originalTag, bounds: originalBounds }) => {
-    const parsedTag = new ParsedHedTagClass(originalTag, hedString, originalBounds, hedSchemas, librarySchema)
-    conversionIssues.push(...parsedTag.conversionIssues)
-    return parsedTag
+  const createParsedTag = (tagSpec) => {
+    if (tagSpec instanceof TagSpec) {
+      const parsedTag = new ParsedHedTagClass(tagSpec.tag, hedString, tagSpec.bounds, hedSchemas, tagSpec.library)
+      conversionIssues.push(...parsedTag.conversionIssues)
+      return parsedTag
+    } else if (tagSpec instanceof ColumnSpliceSpec) {
+      return new ParsedHedColumnSplice(tagSpec.columnName, tagSpec.bounds)
+    }
   }
   const createParsedGroups = (tags, groupSpecs) => {
     const tagGroups = []

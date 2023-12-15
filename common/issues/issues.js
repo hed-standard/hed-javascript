@@ -1,6 +1,14 @@
+import mapValues from 'lodash/mapValues'
+
 import issueData from './data'
 
 export class IssueError extends Error {
+  /**
+   * The associated HED issue.
+   * @type {Issue}
+   */
+  issue
+
   constructor(issue, ...params) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
     super(...params)
@@ -50,22 +58,27 @@ export class Issue {
    * @type {string}
    */
   message
+  /**
+   * The parameters to the error message template.
+   * @type {Object<string, (string|number[])>}
+   */
+  parameters
 
   /**
    * Constructor.
    * @param {string} internalCode The internal error code.
    * @param {string} hedCode The HED 3 error code.
    * @param {string} level The issue level (error or warning).
-   * @param {string} message The detailed error message.
+   * @param {Object<string, (string|number[])>} parameters The error string parameters.
    */
-  constructor(internalCode, hedCode, level, message) {
+  constructor(internalCode, hedCode, level, parameters) {
     this.internalCode = internalCode
     this.code = internalCode
     this.hedCode = hedCode
     this.level = level
-    const hedCodeAnchor = hedCode.toLowerCase().replace(/_/g, '-')
-    const hedSpecLink = `For more information on this HED ${level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
-    this.message = `${level.toUpperCase()}: [${hedCode}] ${message} (${hedSpecLink}.)`
+    // Pre-convert all parameters except the substring bounds (an integer array) to their string forms.
+    this.parameters = mapValues(parameters, (value, key) => (key === 'bounds' ? value : String(value)))
+    this.generateMessage()
   }
 
   /**
@@ -75,6 +88,24 @@ export class Issue {
    */
   toString() {
     return this.message
+  }
+
+  /**
+   * (Re-)generate the issue message.
+   */
+  generateMessage() {
+    const bounds = this.parameters.bounds ?? []
+    const messageTemplate = issueData[this.internalCode].message
+    let message = messageTemplate(...bounds, this.parameters)
+    if (this.parameters.sidecarKey) {
+      message += ` Sidecar key: "${this.parameters.sidecarKey}".`
+    }
+    if (this.parameters.tsvLine) {
+      message += ` TSV line: ${this.parameters.tsvLine}.`
+    }
+    const hedCodeAnchor = this.hedCode.toLowerCase().replace(/_/g, '-')
+    const hedSpecLink = `For more information on this HED ${this.level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
+    this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${message} (${hedSpecLink}.)`
   }
 
   static issueListWithValidStatus(issues) {
@@ -91,13 +122,11 @@ export class Issue {
  */
 export const generateIssue = function (internalCode, parameters) {
   const issueCodeData = issueData[internalCode] ?? issueData.genericError
-  const { hedCode, level, message } = issueCodeData
-  const bounds = parameters.bounds ?? []
+  const { hedCode, level } = issueCodeData
   if (issueCodeData === issueData.genericError) {
     parameters.internalCode = internalCode
     parameters.parameters = 'Issue parameters: ' + JSON.stringify(parameters)
   }
-  const parsedMessage = message(...bounds, parameters)
 
-  return new Issue(internalCode, hedCode, level, parsedMessage)
+  return new Issue(internalCode, hedCode, level, parameters)
 }

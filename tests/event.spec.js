@@ -2,8 +2,8 @@ import chai from 'chai'
 const assert = chai.assert
 import * as hed from '../validator/event'
 import { buildSchemas } from '../validator/schema/init'
-import { parseHedString } from '../validator/parser/main'
-import { ParsedHedTag } from '../validator/parser/parsedHedTag'
+import { parseHedString } from '../parser/main'
+import { ParsedHedTag } from '../parser/parsedHedTag'
 import { HedValidator, Hed2Validator, Hed3Validator } from '../validator/event'
 import { generateIssue } from '../common/issues/issues'
 import converterGenerateIssue from '../converter/issues'
@@ -32,8 +32,11 @@ describe('HED string and event validation', () => {
       assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
       const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
       const validator = new ValidatorClass(parsedTestString, hedSchemas, testOptions)
-      testFunction(validator)
-      const issues = [].concat(...Object.values(parsingIssues), validator.issues)
+      const flattenedParsingIssues = Object.values(parsingIssues).flat()
+      if (flattenedParsingIssues.length === 0) {
+        testFunction(validator)
+      }
+      const issues = [].concat(flattenedParsingIssues, validator.issues)
       assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
     }
   }
@@ -190,8 +193,7 @@ describe('HED string and event validation', () => {
             }),
           ],
           closingBrace: [
-            generateIssue('invalidCharacter', {
-              character: '}',
+            generateIssue('unopenedCurlyBrace', {
               index: 47,
               string: testStrings.closingBrace,
             }),
@@ -291,31 +293,25 @@ describe('HED string and event validation', () => {
           topLevelDuplicate: [
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [0, 36],
             }),
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [37, 73],
             }),
           ],
           groupDuplicate: [
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [27, 63],
             }),
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [94, 130],
             }),
           ],
           nestedGroupDuplicate: [
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [58, 94],
             }),
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
-              bounds: [95, 131],
             }),
           ],
           noDuplicate: [],
@@ -884,8 +880,11 @@ describe('HED string and event validation', () => {
         assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
         const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
         const validator = new Hed3Validator(parsedTestString, hedSchemas, null, testOptions)
-        testFunction(validator)
-        const issues = [].concat(...Object.values(parsingIssues), validator.issues)
+        const flattenedParsingIssues = Object.values(parsingIssues).flat()
+        if (flattenedParsingIssues.length === 0) {
+          testFunction(validator)
+        }
+        const issues = [].concat(flattenedParsingIssues, validator.issues)
         assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
       }
     }
@@ -932,21 +931,17 @@ describe('HED string and event validation', () => {
           duplicateSame: [
             generateIssue('duplicateTag', {
               tag: 'Train',
-              bounds: [0, 5],
             }),
             generateIssue('duplicateTag', {
               tag: 'Train',
-              bounds: [6, 11],
             }),
           ],
           duplicateSimilar: [
             generateIssue('duplicateTag', {
               tag: 'Train',
-              bounds: [0, 5],
             }),
             generateIssue('duplicateTag', {
               tag: 'Vehicle/Train',
-              bounds: [6, 19],
             }),
           ],
           missingChild: [
@@ -1110,10 +1105,12 @@ describe('HED string and event validation', () => {
           ],
           illegalComma: [
             converterGenerateIssue('invalidTag', testStrings.illegalComma, { tag: 'This' }, [22, 26]),
+            /* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',
               tag: 'This/Is/A/Tag',
             }),
+           */
           ],
           placeholder: [
             generateIssue('invalidTag', {
@@ -1151,7 +1148,7 @@ describe('HED string and event validation', () => {
           notRequiredNumber: 'RGB-red/0.5',
           notRequiredScientific: 'RGB-red/5e-1',
           /*properTime: 'Clockface/08:30',
-          invalidTime: 'Clockface/54:54',*/
+        invalidTime: 'Clockface/54:54',*/
         }
         const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
         // const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
@@ -1214,13 +1211,15 @@ describe('HED string and event validation', () => {
           ],
           notRequiredNumber: [],
           notRequiredScientific: [],
-          /*properTime: [],
+          /*
+          properTime: [],
           invalidTime: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.invalidTime,
               unitClassUnits: legalClockTimeUnits.sort().join(','),
             }),
-          ],*/
+          ],
+          */
         }
         return validatorSemantic(
           testStrings,
@@ -1349,7 +1348,7 @@ describe('HED string and event validation', () => {
           noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: temporalTagName })],
           definition: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.definition, tag: temporalTagName }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: temporalTagName }),
           ],
           defAndTwoGroups: [
             generateIssue('extraTagsInTemporal', { definition: 'DefAndTwoGroups', tag: temporalTagName }),
@@ -1359,7 +1358,7 @@ describe('HED string and event validation', () => {
           ],
           tagAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: temporalTagName }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: temporalTagName }),
           ],
           tagGroupAndNoDef: [
             generateIssue('temporalWithoutDefinition', {
@@ -1420,11 +1419,11 @@ describe('HED string and event validation', () => {
           noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: 'Offset' })],
           tagAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: 'Offset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Offset' }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: 'Offset' }),
           ],
           tagGroupAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef, tag: 'Offset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Offset' }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: 'Offset' }),
           ],
           defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag', tag: 'Offset' })],
           defExpandAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTag', tag: 'Offset' })],
@@ -1591,9 +1590,10 @@ describe('HED string and event validation', () => {
               { parentTag: 'Item/Biological-item/Organism' },
               [7, 15],
             ),
+            /* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('invalidPlaceholder', {
               tag: testStrings.wrongLocation,
-            }),
+            }), */
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, true)
@@ -1784,8 +1784,11 @@ describe('HED string and event validation', () => {
         assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
         const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
         const validator = new Hed3Validator(parsedTestString, hedSchemas, null, testOptions)
-        testFunction(validator)
-        const issues = [].concat(...Object.values(parsingIssues), validator.issues)
+        const flattenedParsingIssues = Object.values(parsingIssues).flat()
+        if (flattenedParsingIssues.length === 0) {
+          testFunction(validator)
+        }
+        const issues = [].concat(flattenedParsingIssues, validator.issues)
         assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
       }
     }
@@ -1898,7 +1901,7 @@ describe('HED string and event validation', () => {
           noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: temporalTagName })],
           definition: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.definition, tag: temporalTagName }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: temporalTagName }),
           ],
           defAndTwoGroups: [
             generateIssue('extraTagsInTemporal', { definition: 'DefAndTwoGroups', tag: temporalTagName }),
@@ -1908,7 +1911,7 @@ describe('HED string and event validation', () => {
           ],
           tagAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: temporalTagName }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: temporalTagName }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: temporalTagName }),
           ],
           tagGroupAndNoDef: [
             generateIssue('temporalWithoutDefinition', {
@@ -1970,11 +1973,11 @@ describe('HED string and event validation', () => {
           noTag: [generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.noTag, tag: 'Offset' })],
           tagAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagAndNoDef, tag: 'Offset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Offset' }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: 'Offset' }),
           ],
           tagGroupAndNoDef: [
             generateIssue('temporalWithoutDefinition', { tagGroup: testStrings.tagGroupAndNoDef, tag: 'Offset' }),
-            generateIssue('extraTagsInTemporal', { definition: '', tag: 'Offset' }),
+            generateIssue('extraTagsInTemporal', { definition: null, tag: 'Offset' }),
           ],
           defAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefAndTag', tag: 'Offset' })],
           defExpandAndTag: [generateIssue('extraTagsInTemporal', { definition: 'DefExpandAndTag', tag: 'Offset' })],

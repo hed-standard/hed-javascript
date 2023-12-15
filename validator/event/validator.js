@@ -1,8 +1,6 @@
-import { ParsedHedTag } from '../parser/parsedHedTag'
+import { ParsedHedTag } from '../../parser/parsedHedTag'
 import { generateIssue, Issue } from '../../common/issues/issues'
 import { Schemas } from '../../common/schema/types'
-import { replaceTagNameWithPound } from '../../utils/hedStrings'
-import { getCharacterCount } from '../../utils/string'
 
 const uniqueType = 'unique'
 const requiredType = 'required'
@@ -154,21 +152,20 @@ export class HedValidator {
       }
       this.pushIssue('duplicateTag', {
         tag: tag,
-        bounds: tag.originalBounds,
       })
       duplicateTags.add(tag)
     }
 
-    for (const firstTag of tagList) {
-      for (const secondTag of tagList) {
-        if (firstTag !== secondTag && firstTag.equivalent(secondTag)) {
-          // firstTag and secondTag are not the same object (i.e. comparing a tag with itself),
+    tagList.forEach((firstTag, firstIndex) => {
+      tagList.forEach((secondTag, secondIndex) => {
+        if (firstIndex !== secondIndex && firstTag.equivalent(secondTag)) {
+          // firstIndex and secondIndex are not the same (i.e. comparing a tag with itself),
           // but they are equivalent tags or tag groups (i.e. have the same members up to order).
           addIssue(firstTag)
           addIssue(secondTag)
         }
-      }
-    }
+      })
+    })
   }
 
   /**

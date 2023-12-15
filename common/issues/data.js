@@ -7,12 +7,12 @@ export default {
     level: 'error',
     message: stringTemplate`Number of opening and closing parentheses are unequal. ${'opening'} opening parentheses. ${'closing'} closing parentheses.`,
   },
-  unopenedParentheses: {
+  unopenedParenthesis: {
     hedCode: 'PARENTHESES_MISMATCH',
     level: 'error',
     message: stringTemplate`Closing parenthesis at index ${'index'} of string "${'string'}" does not have a corresponding opening parenthesis.`,
   },
-  unclosedParentheses: {
+  unclosedParenthesis: {
     hedCode: 'PARENTHESES_MISMATCH',
     level: 'error',
     message: stringTemplate`Opening parenthesis at index ${'index'} of string "${'string'}" does not have a corresponding closing parenthesis.`,
@@ -30,7 +30,7 @@ export default {
   duplicateTag: {
     hedCode: 'TAG_EXPRESSION_REPEATED',
     level: 'error',
-    message: stringTemplate`Duplicate tag at indices (${0}, ${1}) - "${'tag'}".`,
+    message: stringTemplate`Duplicate tag - "${'tag'}".`,
   },
   invalidCharacter: {
     hedCode: 'CHARACTER_INVALID',
@@ -195,6 +195,52 @@ export default {
     level: 'error',
     message: stringTemplate`Source HED schema is invalid as it contains duplicate tags.`,
   },
+  // Curly brace issues
+  unopenedCurlyBrace: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Closing curly brace at index ${'index'} of string "${'string'}" does not have a corresponding opening curly brace.`,
+  },
+  unclosedCurlyBrace: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Opening curly brace at index ${'index'} of string "${'string'}" does not have a corresponding closing curly brace.`,
+  },
+  nestedCurlyBrace: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Opening curly brace at index ${'index'} of string "${'string'}" when curly brace expression is already open.`,
+  },
+  emptyCurlyBrace: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Curly brace expression of string "${'string'}" is empty.`,
+  },
+  curlyBracesInDefinition: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Curly brace expression "${'column'}" found in definition "${'definition'}".`,
+  },
+  curlyBracesInHedColumn: {
+    hedCode: 'CHARACTER_INVALID',
+    level: 'error',
+    message: stringTemplate`Curly brace expression "${'column'}" found in the HED column of a TSV file.`,
+  },
+  recursiveCurlyBraces: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Column name "${'column'}", which has curly braces, is illegally referred to by a string using curly braces.`,
+  },
+  recursiveCurlyBracesWithKey: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Column name "${'column'}", which has curly braces, is referred to by column "${'referrer'}", which also has curly braces.`,
+  },
+  undefinedCurlyBraces: {
+    hedCode: 'SIDECAR_BRACES_INVALID',
+    level: 'error',
+    message: stringTemplate`Column name "${'column'}", used in curly braces, is not mapped to a defined column.`,
+  },
   // Schema issues
   invalidSchemaNickname: {
     hedCode: 'SCHEMA_LOAD_FAILED',
@@ -256,6 +302,11 @@ export default {
     hedCode: 'SIDECAR_KEY_MISSING',
     level: 'warning',
     message: stringTemplate`Key "${'key'}" was referenced in column "${'column'}" of file "${'file'}", but it was not found in any associated sidecar.`,
+  },
+  illegalSidecarHedType: {
+    hedCode: 'SIDECAR_INVALID',
+    level: 'error',
+    message: stringTemplate`The HED data for sidecar key "${'key'}" of file "${'file'}" is not either a key-value dictionary or a string.`,
   },
   // Generic errors
   genericError: {

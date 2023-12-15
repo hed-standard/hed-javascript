@@ -1,5 +1,5 @@
 import { replaceTagNameWithPound } from '../../../utils/hedStrings'
-import { ParsedHedTag } from '../../parser/parsedHedTag'
+import { ParsedHedTag } from '../../../parser/parsedHedTag'
 
 /**
  * ParsedHedTag class
@@ -17,6 +17,18 @@ export class ParsedHed2Tag extends ParsedHedTag {
     this.canonicalTag = this.originalTag
     this.conversionIssues = []
     this.schema = hedSchemas.standardSchema
+  }
+
+  /**
+   * Nicely format this tag.
+   *
+   * Unfortunately, we don't actually have the properly capitalized version of the tag name available, so we just return
+   * {@link originalTag}, which we assume is properly capitalized.
+   *
+   * @returns {string}
+   */
+  format() {
+    return this.originalTag
   }
 
   /**

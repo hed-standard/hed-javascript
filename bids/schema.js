@@ -7,6 +7,13 @@ import { asArray } from '../utils/array'
 
 const alphanumericRegExp = new RegExp('^[a-zA-Z0-9]+$')
 
+/**
+ * Build a HED schema collection based on the defined BIDS schemas.
+ *
+ * @param {BidsDataset} dataset The BIDS dataset being validated.
+ * @param {object} schemaDefinition The version spec for the schema to be loaded.
+ * @returns {Promise<[Schemas,Issue[]]>|Promise<never>} A Promise with the schema collection and any issues found, or an issue list upon failure.
+ */
 export function buildBidsSchemas(dataset, schemaDefinition) {
   let schemasSpec
   let issues
@@ -25,7 +32,7 @@ export function buildBidsSchemas(dataset, schemaDefinition) {
 }
 
 export function validateSchemasSpec(schemasSpec) {
-  // ToDO: implement
+  // TODO: implement
   if (schemasSpec instanceof SchemasSpec) {
     return [schemasSpec, []]
   } else if (schemasSpec instanceof Map) {
