@@ -182,6 +182,7 @@ class HedStringTokenizer {
     this.columnSpliceIndex = -1
     this.currentGroupStack = [[]]
     this.parenthesesStack = [new GroupSpec(0, this.hedString.length)]
+    this.ignoringCharacters = false
   }
 
   tokenizeCharacter(i, character) {
@@ -338,9 +339,9 @@ class HedStringTokenizer {
   }
 
   closeGroup(i) {
-    const bounds = this.parenthesesStack.pop()
-    bounds.finish = i + 1
-    this.parenthesesStack[this.groupDepth - 1].children.push(bounds)
+    const groupSpec = this.parenthesesStack.pop()
+    groupSpec.bounds[1] = i + 1
+    this.parenthesesStack[this.groupDepth - 1].children.push(groupSpec)
     this.currentGroupStack[this.groupDepth - 1].push(this.currentGroupStack.pop())
     this.groupDepth--
   }
