@@ -1,5 +1,5 @@
 import { buildBidsSchemas } from './schema'
-import { BidsHedIssue } from './types/issues'
+import { BidsHedIssue, BidsIssue } from './types/issues'
 import { BidsHedTsvValidator } from './validator/bidsHedTsvValidator'
 import { BidsHedSidecarValidator } from './validator/bidsHedSidecarValidator'
 import { BidsHedColumnValidator } from './validator/bidsHedColumnValidator'
@@ -14,14 +14,10 @@ import { BidsHedColumnValidator } from './validator/bidsHedColumnValidator'
 export function validateBidsDataset(dataset, schemaDefinition) {
   return buildBidsSchemas(dataset, schemaDefinition).then(
     ([hedSchemas, schemaLoadIssues]) => {
-      return (
-        new BidsHedValidator(dataset, hedSchemas)
-          .validateFullDataset()
-          /*.catch(BidsIssue.generateInternalErrorPromise)*/
-          .then((issues) =>
-            issues.concat(BidsHedIssue.fromHedIssues(schemaLoadIssues, dataset.datasetDescription.file)),
-          )
-      )
+      return new BidsHedValidator(dataset, hedSchemas)
+        .validateFullDataset()
+        .catch(BidsIssue.generateInternalErrorPromise)
+        .then((issues) => issues.concat(BidsHedIssue.fromHedIssues(schemaLoadIssues, dataset.datasetDescription.file)))
     },
     (issues) => BidsHedIssue.fromHedIssues(issues, dataset.datasetDescription.file),
   )
