@@ -678,9 +678,10 @@ describe('BIDS datasets', () => {
       return validator(testDatasets, expectedIssues, specs)
     }, 10000)
 
-    it('should delete substrings corresponding to "n/a" TSV values', () => {
+    it('should splice strings by replacing placeholders and deleting "n/a" values', () => {
       const tsvFiles = bidsTsvFiles[10]
       const expectedStrings = [
+        'Label/1, (Def/Acc/3.5 m-per-s^2), (Item-count/2, Label/1)',
         '(Def/Acc/3.5 m-per-s^2)',
         '(Def/Acc/3.5 m-per-s^2), (Green, Def/MyColor)',
         'Label/1, (Def/Acc/3.5 m-per-s^2)',

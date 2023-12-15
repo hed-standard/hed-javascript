@@ -650,6 +650,11 @@ const tsvFiles = [
   // sub11 - 'n/a' curly brace tests
   [
     [
+      // Control
+      Object.assign({}, sidecars[6][0], sidecars[6][5]),
+      'onset\tduration\tevent_code\tresponse_time\tresponse_count\n' + '5.0\t0\tball\t1\t2\n',
+    ],
+    [
       Object.assign({}, sidecars[6][0], sidecars[6][2]),
       'onset\tduration\tevent_code\tresponse_time\n' + '5.0\t0\tball\tn/a\n',
     ],
@@ -667,7 +672,7 @@ const tsvFiles = [
     ],
     [
       Object.assign({}, sidecars[6][0], sidecars[6][5]),
-      'onset\tduration\tevent_code\tresponse_time\tresponse_code\n' + '5.0\t0\tface\t1\tn/a\n',
+      'onset\tduration\tevent_code\tresponse_time\tresponse_count\n' + '5.0\t0\tface\t1\tn/a\n',
     ],
   ],
 ]
