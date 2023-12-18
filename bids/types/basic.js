@@ -9,7 +9,7 @@ export class BidsFile {
   name
   /**
    * The file object representing this file data.
-   * This is used to generate BidsIssue objects.
+   * This is used to generate {@link BidsIssue} objects.
    * @type {object}
    */
   file
@@ -17,5 +17,14 @@ export class BidsFile {
   constructor(name, file) {
     this.name = name
     this.file = file
+  }
+
+  /**
+   * Determine whether this file has any HED data.
+   *
+   * @returns {boolean}
+   */
+  hasHedData() {
+    return false
   }
 }

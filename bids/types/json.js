@@ -92,6 +92,15 @@ export class BidsSidecar extends BidsJsonFile {
   }
 
   /**
+   * Determine whether this file has any HED data.
+   *
+   * @returns {boolean}
+   */
+  hasHedData() {
+    return this.hedData.size > 0
+  }
+
+  /**
    * Parse this sidecar's HED strings within the sidecar structure.
    *
    * The parsed strings are placed into {@link parsedHedData}.

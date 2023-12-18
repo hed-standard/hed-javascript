@@ -69,6 +69,15 @@ export class BidsTsvFile extends BidsFile {
       this.hedColumnHedStrings = hedColumn.map((hedCell) => (hedCell && hedCell !== 'n/a' ? hedCell : ''))
     }
   }
+
+  /**
+   * Determine whether this file has any HED data.
+   *
+   * @returns {boolean}
+   */
+  hasHedData() {
+    return this.parsedTsv.has('HED')
+  }
 }
 
 /**
