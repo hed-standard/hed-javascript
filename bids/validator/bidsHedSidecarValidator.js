@@ -42,14 +42,15 @@ export class BidsHedSidecarValidator {
    * @returns {BidsHedIssue[]} Any issues found during validation of the sidecars.
    */
   validateSidecars() {
-    const issues = []
-    // validate the HED strings in the json sidecars
     for (const sidecar of this.dataset.sidecarData) {
-      issues.push(...BidsHedIssue.fromHedIssues(sidecar.parseHedStrings(this.hedSchemas), sidecar.file))
+      const sidecarParsingIssues = BidsHedIssue.fromHedIssues(sidecar.parseHedStrings(this.hedSchemas), sidecar.file)
+      this.issues.push(...sidecarParsingIssues)
+      if (sidecarParsingIssues.length > 0) {
+        break
+      }
       const sidecarIssues = this.validateSidecar(sidecar)
-      issues.push(...sidecarIssues)
+      this.issues.push(...sidecarIssues)
     }
-    this.issues.push(...issues)
     return this.issues
   }
 
