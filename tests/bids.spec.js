@@ -86,13 +86,8 @@ describe('BIDS datasets', () => {
           ),
         ],
         error_and_good: [
-          // TODO: Duplication temporary
           BidsHedIssue.fromHedIssue(
             converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]),
-            bidsSidecars[1][1].file,
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTag', { tag: 'Confused', sidecarKey: 'emotion' }),
             bidsSidecars[1][1].file,
           ),
         ],
@@ -534,11 +529,13 @@ describe('BIDS datasets', () => {
       const standaloneSidecars = bidsSidecars[6]
       const combinedDatasets = bidsTsvFiles[8]
       const hedColumnDatasets = bidsTsvFiles[9]
+      const syntaxSidecars = bidsSidecars[8].slice(0, 1)
       const testDatasets = {
         tsv: new BidsDataset(standaloneTsvFiles, []),
         sidecars: new BidsDataset([], standaloneSidecars),
         combined: new BidsDataset(combinedDatasets, []),
         hedColumn: new BidsDataset(hedColumnDatasets, []),
+        syntax: new BidsDataset([], syntaxSidecars),
       }
       const expectedIssues = {
         tsv: [
@@ -565,81 +562,73 @@ describe('BIDS datasets', () => {
             standaloneSidecars[1].file,
           ),
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidCharacter', {
-              character: '{',
-              index: 9,
-              string: '(Def/Acc/{response_time})',
-            }),
-            standaloneSidecars[6].file,
-          ),
-          BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'response_time',
               referrer: 'event_code',
             }),
-            standaloneSidecars[7].file,
+            standaloneSidecars[6].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'event_code',
               referrer: 'response_time',
             }),
-            standaloneSidecars[7].file,
+            standaloneSidecars[6].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'event_type',
               referrer: 'event_code',
             }),
-            standaloneSidecars[8].file,
+            standaloneSidecars[7].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'response_time',
               referrer: 'event_type',
             }),
-            standaloneSidecars[8].file,
+            standaloneSidecars[7].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'response_time',
               referrer: 'event_code',
             }),
-            standaloneSidecars[8].file,
+            standaloneSidecars[7].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'response_time',
               referrer: 'response_time',
             }),
-            standaloneSidecars[9].file,
+            standaloneSidecars[8].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('unclosedCurlyBrace', {
               index: 15,
-              string: standaloneSidecars[10].hedData.get('event_code').ball,
+              string: standaloneSidecars[9].hedData.get('event_code').ball,
             }),
-            standaloneSidecars[10].file,
+            standaloneSidecars[9].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('nestedCurlyBrace', {
               index: 1,
-              string: standaloneSidecars[10].hedData.get('event_code2').ball,
+              string: standaloneSidecars[9].hedData.get('event_code2').ball,
             }),
-            standaloneSidecars[10].file,
+            standaloneSidecars[9].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('unopenedCurlyBrace', {
               index: 15,
-              string: standaloneSidecars[10].hedData.get('event_code3').ball,
+              string: standaloneSidecars[9].hedData.get('event_code3').ball,
             }),
-            standaloneSidecars[10].file,
+            standaloneSidecars[9].file,
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('emptyCurlyBrace', {
-              string: standaloneSidecars[10].hedData.get('event_code4').ball,
+              string: standaloneSidecars[9].hedData.get('event_code4').ball,
             }),
-            standaloneSidecars[10].file,
+            standaloneSidecars[9].file,
           ),
         ],
         combined: [
@@ -672,6 +661,16 @@ describe('BIDS datasets', () => {
           BidsHedIssue.fromHedIssue(
             generateIssue('curlyBracesInHedColumn', { column: '{response_time}' }),
             hedColumnDatasets[0].file,
+          ),
+        ],
+        syntax: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidCharacter', {
+              character: '{',
+              index: 9,
+              string: '(Def/Acc/{response_time})',
+            }),
+            syntaxSidecars[0].file,
           ),
         ],
       }

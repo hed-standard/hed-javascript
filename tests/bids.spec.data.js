@@ -324,19 +324,6 @@ const sidecars = [
       },
     },
     {
-      // Invalid location of curly braces
-      event_code: {
-        HED: {
-          face: '(Red, Blue), (Green, (Yellow))',
-          ball: '(Def/Acc/{response_time})',
-        },
-      },
-      response_time: {
-        Description: 'Has description with HED',
-        HED: 'Label/#',
-      },
-    },
-    {
       // Invalid use of mutually recursive curly brace references
       event_code: {
         HED: {
@@ -502,6 +489,22 @@ const sidecars = [
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
           ball: '{response_time}, {response_time}, (Def/Acc/3.5 m-per-s^2)',
+        },
+      },
+      response_time: {
+        Description: 'Has description with HED',
+        HED: 'Label/#',
+      },
+    },
+  ],
+  // sub09 - Syntax errors
+  [
+    {
+      // Invalid location of curly braces
+      event_code: {
+        HED: {
+          face: '(Red, Blue), (Green, (Yellow))',
+          ball: '(Def/Acc/{response_time})',
         },
       },
       response_time: {
