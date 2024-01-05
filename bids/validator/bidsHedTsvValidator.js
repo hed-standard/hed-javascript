@@ -249,7 +249,7 @@ export class BidsHedTsvValidator {
       this.hedSchemas,
       {
         checkForWarnings: true,
-        validateDatasetLevel: this.tsvFile instanceof BidsEventFile,
+        validateDatasetLevel: this.tsvFile.isTimelineFile,
       },
     )
     this.issues.push(...BidsHedIssue.fromHedIssues(hedIssues, this.tsvFile.file))

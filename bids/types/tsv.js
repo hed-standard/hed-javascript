@@ -73,21 +73,32 @@ export class BidsTsvFile extends BidsFile {
   /**
    * Determine whether this file has any HED data.
    *
+   * @todo To be replaced with property in version 4.0.0.
+   *
    * @returns {boolean}
    */
   hasHedData() {
     return this.parsedTsv.has('HED')
   }
+
+  /**
+   * Whether this TSV file is a timeline file.
+   *
+   * @returns {boolean}
+   */
+  get isTimelineFile() {
+    return this.parsedTsv.has('onset')
+  }
 }
 
 /**
  * A BIDS events.tsv file.
+ *
+ * @deprecated Use {@link BidsTsvFile}. Will be removed in version 4.0.0.
  */
 export class BidsEventFile extends BidsTsvFile {
   /**
    * Constructor.
-   *
-   * @todo This interface is subject to modification in version 4.0.0.
    *
    * @param {string} name The name of the event TSV file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
@@ -102,12 +113,12 @@ export class BidsEventFile extends BidsTsvFile {
 
 /**
  * A BIDS TSV file other than an events.tsv file.
+ *
+ * @deprecated Use {@link BidsTsvFile}. Will be removed in version 4.0.0.
  */
 export class BidsTabularFile extends BidsTsvFile {
   /**
    * Constructor.
-   *
-   * @todo This interface is subject to modification in version 4.0.0.
    *
    * @param {string} name The name of the TSV file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
