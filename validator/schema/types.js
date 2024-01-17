@@ -158,6 +158,12 @@ export class SchemaEntryManager extends Memoizer {
     })
   }
 
+  /**
+   * Filter the map underlying this manager.
+   *
+   * @param {function ([string, T]): boolean} fn The filtering function.
+   * @returns {Map<string, T>} The filtered map.
+   */
   filter(fn) {
     const pairArray = Array.from(this._definitions.entries())
     return new Map(pairArray.filter((entry) => fn(entry)))
@@ -434,27 +440,43 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
    */
   _derivativeUnits
 
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of the unit.
+   * @param {Set<SchemaAttribute>} booleanAttributes This unit's boolean attributes.
+   * @param {Map<SchemaAttribute, *>} valueAttributes This unit's key-value attributes.
+   * @param {SchemaEntryManager<SchemaUnitModifier>} unitModifiers The collection of unit modifiers.
+   */
   constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
     super(name, booleanAttributes, valueAttributes)
 
     this._derivativeUnits = [name]
     if (!this.isSIUnit) {
+      this._pushPluralUnit()
       return
     }
-    const matchingModifiers = unitModifiers.filter(([_, unitModifier]) => {
-      return this.isUnitSymbol === unitModifier.isSIUnitSymbolModifier
-    })
-    for (const modifierName of matchingModifiers.keys()) {
-      this._derivativeUnits.push(modifierName + name)
-    }
-    if (!this.isUnitSymbol) {
-      const pluralUnit = pluralize.plural(name)
-      this._derivativeUnits.push(pluralUnit)
+    if (this.isUnitSymbol) {
+      const SIUnitSymbolModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitSymbolModifier')
+      for (const modifierName of SIUnitSymbolModifiers.keys()) {
+        this._derivativeUnits.push(modifierName + name)
+      }
+    } else {
       const SIUnitModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
+      const pluralUnit = this._pushPluralUnit()
       for (const modifierName of SIUnitModifiers.keys()) {
-        this._derivativeUnits.push(modifierName + pluralUnit)
+        this._derivativeUnits.push(modifierName + name, modifierName + pluralUnit)
       }
     }
+  }
+
+  _pushPluralUnit() {
+    if (!this.isUnitSymbol) {
+      const pluralUnit = pluralize.plural(this._name)
+      this._derivativeUnits.push(pluralUnit)
+      return pluralUnit
+    }
+    return null
   }
 
   *derivativeUnits() {
