@@ -22,6 +22,11 @@ export class BidsJsonFile extends BidsFile {
 
 export class BidsSidecar extends BidsJsonFile {
   /**
+   * The extracted keys for this sidecar.
+   * @type {Map<string, BidsSidecarKey>}
+   */
+  sidecarKeys
+  /**
    * The extracted HED data for this sidecar.
    * @type {Map<string, string|Object<string, string>>}
    */
@@ -70,23 +75,26 @@ export class BidsSidecar extends BidsJsonFile {
     const sidecarHedTags = Object.entries(this.jsonData)
       .map(([sidecarKey, sidecarValue]) => {
         if (sidecarValueHasHed(sidecarValue)) {
-          return [sidecarKey, sidecarValue.HED]
+          return [sidecarKey, new BidsSidecarKey(sidecarKey, sidecarValue.HED)]
         } else {
-          return []
+          return null
         }
       })
-      .filter((x) => x.length > 0)
-    this.hedData = new Map(sidecarHedTags)
+      .filter((x) => x !== null)
+    this.sidecarKeys = new Map(sidecarHedTags)
   }
 
   _categorizeHedStrings() {
     this.hedValueStrings = []
     this.hedCategoricalStrings = []
-    for (const sidecarValue of this.hedData.values()) {
-      if (typeof sidecarValue === 'string') {
-        this.hedValueStrings.push(sidecarValue)
+    this.hedData = new Map()
+    for (const [key, sidecarValue] of this.sidecarKeys.entries()) {
+      if (sidecarValue.isValueKey) {
+        this.hedValueStrings.push(sidecarValue.valueString)
+        this.hedData.set(key, sidecarValue.valueString)
       } else {
-        this.hedCategoricalStrings.push(...Object.values(sidecarValue))
+        this.hedCategoricalStrings.push(...Object.values(sidecarValue.categoryMap))
+        this.hedData.set(key, sidecarValue.categoryMap)
       }
     }
   }
@@ -97,7 +105,7 @@ export class BidsSidecar extends BidsJsonFile {
    * @returns {boolean}
    */
   hasHedData() {
-    return this.hedData.size > 0
+    return this.sidecarKeys.size > 0
   }
 
   /**
@@ -111,32 +119,16 @@ export class BidsSidecar extends BidsJsonFile {
   parseHedStrings(hedSchemas) {
     this.parsedHedData = new Map()
     const issues = []
-    for (const [key, value] of this.hedData) {
-      issues.push(...this._parseSidecarKey(key, value, hedSchemas))
+    for (const [name, sidecarKey] of this.sidecarKeys.entries()) {
+      issues.push(...sidecarKey.parseHed(hedSchemas))
+      if (sidecarKey.isValueKey) {
+        this.parsedHedData.set(name, sidecarKey.parsedValueString)
+      } else {
+        this.parsedHedData.set(name, sidecarKey.parsedCategoryMap)
+      }
     }
     this._generateSidecarColumnSpliceMap()
     return issues
-  }
-
-  _parseSidecarKey(key, data, hedSchemas) {
-    if (typeof data === 'string') {
-      return this._parseHedString(this.parsedHedData, key, data, hedSchemas)
-    } else if (data !== Object(data)) {
-      return [generateIssue('illegalSidecarHedType', { key: key, file: this.name })]
-    }
-    const issues = []
-    const keyMap = new Map()
-    for (const [value, string] of Object.entries(data)) {
-      issues.push(...this._parseHedString(keyMap, value, string, hedSchemas))
-    }
-    this.parsedHedData.set(key, keyMap)
-    return issues
-  }
-
-  _parseHedString(map, key, string, hedSchemas) {
-    const [parsedString, parsingIssues] = parseHedString(string, hedSchemas)
-    map.set(key, parsedString)
-    return Object.values(parsingIssues).flat()
   }
 
   /**
@@ -203,6 +195,98 @@ export class BidsSidecar extends BidsJsonFile {
    */
   get sidecarData() {
     return this.jsonData
+  }
+}
+
+export class BidsSidecarKey {
+  /**
+   * The name of this key.
+   * @type {string}
+   */
+  name
+  /**
+   * The unparsed category mapping.
+   * @type {Object<string, string>}
+   */
+  categoryMap
+  /**
+   * The parsed category mapping.
+   * @type {Map<string, ParsedHedString>}
+   */
+  parsedCategoryMap
+  /**
+   * The unparsed value string.
+   * @type {string}
+   */
+  valueString
+  /**
+   * The parsed value string.
+   * @type {ParsedHedString}
+   */
+  parsedValueString
+
+  /**
+   * Constructor.
+   *
+   * @param {string} key The name of this key.
+   * @param {string|Object<string, string>} data The data for this key.
+   */
+  constructor(key, data) {
+    this.name = key
+    if (typeof data === 'string') {
+      this.valueString = data
+    } else if (data !== Object(data)) {
+      throw new Error('Non-object passed as categorical data.')
+    } else {
+      this.categoryMap = data
+    }
+  }
+
+  /**
+   * Parse the HED data for this key.
+   *
+   * @param {Schemas} hedSchemas The HED schema collection.
+   * @returns {Issue[]} Any issues found.
+   */
+  parseHed(hedSchemas) {
+    if (this.isValueKey) {
+      return this._parseValueString(hedSchemas)
+    }
+    return this._parseCategory(hedSchemas)
+  }
+
+  _parseValueString(hedSchemas) {
+    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas)
+    const flatIssues = Object.values(parsingIssues).flat()
+    this.parsedValueString = parsedString
+    return flatIssues
+  }
+
+  _parseCategory(hedSchemas) {
+    const issues = []
+    this.parsedCategoryMap = new Map()
+    for (const [value, string] of Object.entries(this.categoryMap)) {
+      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas)
+      this.parsedCategoryMap.set(value, parsedString)
+      issues.push(...Object.values(parsingIssues).flat())
+    }
+    return issues
+  }
+
+  /**
+   * Whether this key is a categorical key.
+   * @returns {boolean}
+   */
+  get isCategoricalKey() {
+    return Boolean(this.categoryMap)
+  }
+
+  /**
+   * Whether this key is a value key.
+   * @returns {boolean}
+   */
+  get isValueKey() {
+    return Boolean(this.valueString)
   }
 }
 

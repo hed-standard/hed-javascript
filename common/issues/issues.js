@@ -103,6 +103,9 @@ export class Issue {
     if (this.parameters.tsvLine) {
       message += ` TSV line: ${this.parameters.tsvLine}.`
     }
+    if (this.parameters.hedString) {
+      message += ` HED string: "${this.parameters.hedString}".`
+    }
     const hedCodeAnchor = this.hedCode.toLowerCase().replace(/_/g, '-')
     const hedSpecLink = `For more information on this HED ${this.level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
     this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${message} (${hedSpecLink}.)`

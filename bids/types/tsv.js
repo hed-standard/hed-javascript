@@ -1,6 +1,7 @@
 import { BidsFile } from './basic'
 import { convertParsedTSVData, parseTSV } from '../tsvParser'
 import { BidsSidecar } from './json'
+import ParsedHedString from '../../parser/parsedHedString'
 
 /**
  * A BIDS TSV file.
@@ -128,5 +129,53 @@ export class BidsTabularFile extends BidsTsvFile {
    */
   constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
     super(name, tsvData, file, potentialSidecars, mergedDictionary)
+  }
+}
+
+export class BidsTsvRow extends ParsedHedString {
+  /**
+   * The parsed string representing this row.
+   * @type {ParsedHedString}
+   */
+  parsedString
+  /**
+   * The column-to-value mapping for this row.
+   * @type {Map<string, string>}
+   */
+  rowCells
+  /**
+   * The file this row belongs to.
+   * @type {BidsTsvFile}
+   */
+  tsvFile
+  /**
+   * The line number in {@link BidsTsvRow.tsvFile} this line is located at.
+   * @type {number}
+   */
+  tsvLine
+
+  /**
+   * Constructor.
+   * @param {ParsedHedString} parsedString The parsed string representing this row.
+   * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
+   * @param {BidsTsvFile} tsvFile The file this row belongs to.
+   * @param {number} tsvLine The line number in {@link tsvFile} this line is located at.
+   */
+  constructor(parsedString, rowCells, tsvFile, tsvLine) {
+    super(parsedString.hedString, parsedString.parseTree)
+    this.parsedString = parsedString
+    this.context = parsedString.context
+    this.rowCells = rowCells
+    this.tsvFile = tsvFile
+    this.tsvLine = tsvLine
+  }
+
+  /**
+   * Override of {@link Object.prototype.toString}.
+   *
+   * @returns {string}
+   */
+  toString() {
+    return super.toString() + ` in TSV file "${this.tsvFile.name}" at line ${this.tsvLine}`
   }
 }
