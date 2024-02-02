@@ -154,7 +154,7 @@ export class BidsHedTsvValidator {
     }
     splicedParsedString.context.set('tsvLine', tsvLine)
 
-    return new BidsTsvRow(splicedParsedString, rowCells)
+    return new BidsTsvRow(splicedParsedString, rowCells, this.tsvFile, tsvLine)
   }
 
   /**
