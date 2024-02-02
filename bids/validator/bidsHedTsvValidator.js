@@ -1,6 +1,6 @@
 import { BidsHedSidecarValidator } from './bidsHedSidecarValidator'
 import { BidsHedIssue } from '../types/issues'
-import { BidsEventFile } from '../types/tsv'
+import { BidsTsvRow } from '../types/tsv'
 import { parseHedString } from '../../parser/main'
 import ColumnSplicer from '../../parser/columnSplicer'
 import ParsedHedString from '../../parser/parsedHedString'
@@ -67,15 +67,10 @@ export class BidsHedTsvValidator {
   /**
    * Combine the BIDS sidecar HED data into a BIDS TSV file's HED data.
    *
-   * @returns {ParsedHedString[]} The combined HED string collection for this BIDS TSV file.
+   * @returns {BidsTsvRow[]} The combined HED string collection for this BIDS TSV file.
    */
   parseHed() {
     const tsvHedRows = this._generateHedRows()
-    if (tsvHedRows === null) {
-      // There is no HED data.
-      return []
-    }
-
     const hedStrings = []
 
     tsvHedRows.forEach((row, index) => {
@@ -98,16 +93,11 @@ export class BidsHedTsvValidator {
     const tsvHedColumns = Array.from(this.tsvFile.parsedTsv.entries()).filter(
       ([header]) => this.tsvFile.sidecarHedData.has(header) || header === 'HED',
     )
-    if (tsvHedColumns.length === 0) {
-      return null
-    }
 
     const tsvHedRows = []
     for (const [header, data] of tsvHedColumns) {
       data.forEach((value, index) => {
-        if (tsvHedRows[index] === undefined) {
-          tsvHedRows[index] = new Map()
-        }
+        tsvHedRows[index] ??= new Map()
         tsvHedRows[index].set(header, value)
       })
     }
@@ -119,7 +109,7 @@ export class BidsHedTsvValidator {
    *
    * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
    * @param {number} tsvLine The index of this row in the TSV file.
-   * @return {ParsedHedString} A parsed HED string.
+   * @return {BidsTsvRow} A parsed HED string.
    * @private
    */
   _parseHedRow(rowCells, tsvLine) {
@@ -142,7 +132,7 @@ export class BidsHedTsvValidator {
    * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
    * @param {number} tsvLine The index of this row in the TSV file.
    * @param {string} hedString The unparsed HED string for this row.
-   * @return {ParsedHedString} A parsed HED string.
+   * @return {BidsTsvRow} A parsed HED string.
    * @private
    */
   _parseHedRowString(rowCells, tsvLine, hedString) {
@@ -164,7 +154,7 @@ export class BidsHedTsvValidator {
     }
     splicedParsedString.context.set('tsvLine', tsvLine)
 
-    return splicedParsedString
+    return new BidsTsvRow(splicedParsedString, rowCells, this.tsvFile, tsvLine)
   }
 
   /**

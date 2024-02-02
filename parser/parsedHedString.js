@@ -97,6 +97,15 @@ export class ParsedHedString {
       return [group.definitionName, group]
     })
   }
+
+  /**
+   * Override of {@link Object.prototype.toString}.
+   *
+   * @returns {string}
+   */
+  toString() {
+    return this.hedString
+  }
 }
 
 export default ParsedHedString
