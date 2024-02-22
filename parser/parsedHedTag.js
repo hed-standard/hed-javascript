@@ -233,6 +233,11 @@ export class ParsedHed3Tag extends ParsedHedTag {
    * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
    */
   _convertTag(hedString, hedSchemas, schemaName) {
+    const hed3ValidCharacters = /^[^{}[\]()~,\0\t]+$/
+    if (!hed3ValidCharacters.test(this.originalTag)) {
+      throw new Error('The parser failed to properly remove an illegal or special character.')
+    }
+
     if (hedSchemas.isSyntaxOnly) {
       this.canonicalTag = this.originalTag
       this.conversionIssues = []

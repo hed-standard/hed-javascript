@@ -390,7 +390,6 @@ const checkTagForInvalidCharacters = function (hedString, tagSpec, tag, invalidS
   for (let i = 0; i < tag.length; i++) {
     const character = tag.charAt(i)
     if (invalidSet.has(character)) {
-      tagSpec.invalidCharacter = true
       issues.push(
         generateIssue('invalidCharacter', {
           character: character,

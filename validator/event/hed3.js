@@ -19,12 +19,14 @@ const topLevelTagGroupType = 'topLevelTagGroup'
 export class Hed3Validator extends HedValidator {
   /**
    * The parsed definitions.
+   *
    * @type {Map<string, ParsedHedGroup>}
    */
   definitions
 
   /**
    * Constructor.
+   *
    * @param {ParsedHedString} parsedString The parsed HED string to be validated.
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {Map<string, ParsedHedGroup>} definitions The parsed definitions.
@@ -126,6 +128,7 @@ export class Hed3Validator extends HedValidator {
 
   /**
    * Check that the unit is valid for the tag's unit class.
+   *
    * @param {ParsedHed3Tag} tag A HED tag.
    */
   checkIfTagUnitClassUnitsAreValid(tag) {
@@ -281,6 +284,7 @@ export class Hed3Validator extends HedValidator {
 
   /**
    * Validate a unit and strip it from the value.
+   *
    * @param {ParsedHed3Tag} tag A HED tag.
    * @returns {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
    */
@@ -337,6 +341,8 @@ export class Hed3Validator extends HedValidator {
    *
    * @param {string} value The stripped value.
    * @param {boolean} isNumeric Whether the tag is numeric.
+   * @returns {boolean} Whether the stripped value is valid.
+   * @todo This function is a placeholder until support for value classes is implemented.
    */
   validateValue(value, isNumeric) {
     if (value === '#') {
@@ -346,8 +352,8 @@ export class Hed3Validator extends HedValidator {
     if (isNumeric) {
       return isNumber(value)
     }
-    const hed3ValidValueCharacters = /^[^{}[\]()~,\0\t]+$/
-    return hed3ValidValueCharacters.test(value)
+    // TODO: Placeholder.
+    return true
   }
 
   /**
