@@ -346,7 +346,7 @@ export class Hed3Validator extends HedValidator {
     if (isNumeric) {
       return isNumber(value)
     }
-    const hed3ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; ]+$/
+    const hed3ValidValueCharacters = /^[^{}[\]()~,\0\t]+$/
     return hed3ValidValueCharacters.test(value)
   }
 
