@@ -14,8 +14,7 @@ const delimiters = new Set([','])
  */
 const substituteCharacters = function (hedString) {
   const issues = []
-  const illegalCharacterMap = { '\0': ['ASCII NUL', ' '] }
-  const flaggedCharacters = /[^\w\d./$ :-]/g
+  const illegalCharacterMap = { '\0': ['ASCII NUL', ' '], '\t': ['Tab', ' '] }
   const replaceFunction = function (match, offset) {
     if (match in illegalCharacterMap) {
       const [name, replacement] = illegalCharacterMap[match]
@@ -31,7 +30,7 @@ const substituteCharacters = function (hedString) {
       return match
     }
   }
-  const fixedString = hedString.replace(flaggedCharacters, replaceFunction)
+  const fixedString = hedString.replace(/./g, replaceFunction)
 
   return [fixedString, issues]
 }

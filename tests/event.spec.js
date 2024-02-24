@@ -235,6 +235,7 @@ describe('HED string and event validation', () => {
       it('should substitute and warn for certain illegal characters', () => {
         const testStrings = {
           nul: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm\0',
+          tab: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm\t',
         }
         const expectedIssues = {
           nul: [
@@ -242,6 +243,13 @@ describe('HED string and event validation', () => {
               character: 'ASCII NUL',
               index: 61,
               string: testStrings.nul,
+            }),
+          ],
+          tab: [
+            generateIssue('invalidCharacter', {
+              character: 'Tab',
+              index: 61,
+              string: testStrings.tab,
             }),
           ],
         }
