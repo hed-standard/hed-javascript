@@ -1,3 +1,4 @@
+import identity from 'lodash/identity'
 import isEqual from 'lodash/isEqual'
 
 /**
@@ -26,4 +27,25 @@ export const filterNonEqualDuplicates = function (list, equalityFunction = isEqu
     duplicates.push([key, value])
   }
   return [map, duplicates]
+}
+
+/**
+ * Group a list by a given grouping function.
+ *
+ * @template T, U
+ * @param {T[]} list The list to group.
+ * @param {function (T): U} groupingFunction A function mapping a list value to the key it is to be grouped under.
+ * @return {Map<U, T[]>} The grouped map.
+ */
+export const groupBy = function (list, groupingFunction = identity) {
+  const groupingMap = new Map()
+  for (const listEntry of list) {
+    const groupingValue = groupingFunction(listEntry)
+    if (groupingMap.has(groupingValue)) {
+      groupingMap.get(groupingValue).push(listEntry)
+    } else {
+      groupingMap.set(groupingValue, [listEntry])
+    }
+  }
+  return groupingMap
 }
