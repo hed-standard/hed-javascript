@@ -132,6 +132,9 @@ export class BidsTabularFile extends BidsTsvFile {
   }
 }
 
+/**
+ * A row in a BIDS TSV file.
+ */
 export class BidsTsvRow extends ParsedHedString {
   /**
    * The parsed string representing this row.
@@ -156,6 +159,7 @@ export class BidsTsvRow extends ParsedHedString {
 
   /**
    * Constructor.
+   *
    * @param {ParsedHedString} parsedString The parsed string representing this row.
    * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
    * @param {BidsTsvFile} tsvFile The file this row belongs to.
@@ -177,5 +181,64 @@ export class BidsTsvRow extends ParsedHedString {
    */
   toString() {
     return super.toString() + ` in TSV file "${this.tsvFile.name}" at line ${this.tsvLine}`
+  }
+
+  /**
+   * The onset of this row.
+   *
+   * @return {number} The onset of this row.
+   */
+  get onset() {
+    const value = Number(this.rowCells.get('onset'))
+    if (Number.isNaN(value)) {
+      throw new Error('Attempting to access the onset of a TSV row without one.')
+    }
+    return value
+  }
+}
+
+/**
+ * An event in a BIDS TSV file.
+ */
+export class BidsTsvEvent extends ParsedHedString {
+  /**
+   * The file this row belongs to.
+   * @type {BidsTsvFile}
+   */
+  tsvFile
+  /**
+   * The TSV rows making up this event.
+   * @type {BidsTsvRow[]}
+   */
+  tsvRows
+
+  /**
+   * Constructor.
+   *
+   * @param {BidsTsvFile} tsvFile The file this row belongs to.
+   * @param {BidsTsvRow[]} tsvRows The TSV rows making up this event.
+   */
+  constructor(tsvFile, tsvRows) {
+    super(tsvRows.map((tsvRow) => tsvRow.hedString).join(', '), tsvRows.map((tsvRow) => tsvRow.parseTree).flat())
+    this.tsvFile = tsvFile
+    this.tsvRows = tsvRows
+  }
+
+  /**
+   * The lines in the TSV file corresponding to this event.
+   *
+   * @return {string} The lines in the TSV file corresponding to this event.
+   */
+  get tsvLines() {
+    return this.tsvRows.map((tsvRow) => tsvRow.tsvLine).join(', ')
+  }
+
+  /**
+   * Override of {@link Object.prototype.toString}.
+   *
+   * @returns {string}
+   */
+  toString() {
+    return super.toString() + ` in TSV file "${this.tsvFile.name}" at line(s) ${this.tsvLines}`
   }
 }
