@@ -39,17 +39,9 @@ export function validateSchemasSpec(schemasSpec) {
     const newSchemasSpec = new SchemasSpec()
     newSchemasSpec.data = schemasSpec
     return [newSchemasSpec, []]
-  } else if ('version' in schemasSpec || 'path' in schemasSpec || 'libraries' in schemasSpec) {
-    return [convertOldSpecToSchemasSpec(schemasSpec), []]
   } else {
     return [null, [generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemasSpec) })]]
   }
-}
-
-function convertOldSpecToSchemasSpec(oldSpec) {
-  const newSpec = new SchemasSpec()
-  // TODO:  implement
-  return newSpec
 }
 
 export function parseSchemasSpec(hedVersion) {
@@ -119,12 +111,4 @@ function splitLibraryAndVersion(schemaVersion, originalVersion) {
     return [['', ''], [generateIssue('invalidSchemaSpecification', { spec: originalVersion })]]
   }
   return [[library, version], []]
-}
-
-export function validateSchemaSpec(schemaSpec) {
-  // ToDO: implement
-  if (!(schemaSpec instanceof SchemaSpec)) {
-    return [null, [generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaSpec) })]]
-  }
-  return [schemaSpec, []]
 }
