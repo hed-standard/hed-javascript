@@ -482,7 +482,7 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         bad_tsv: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('illegalDefinitionContext', { string: '(Definition/myDef, (Label/Red, Green))' }),
+            generateIssue('illegalDefinitionContext', { string: '(Definition/myDef, (Label/Red, Green))', tsvLine: 2 }),
             badTsvDatasets[0].file,
           ),
         ],
