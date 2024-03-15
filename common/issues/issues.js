@@ -76,8 +76,7 @@ export class Issue {
     this.code = internalCode
     this.hedCode = hedCode
     this.level = level
-    // Pre-convert all parameters except the substring bounds (an integer array) to their string forms.
-    this.parameters = mapValues(parameters, (value, key) => (key === 'bounds' ? value : String(value)))
+    this.parameters = parameters
     this.generateMessage()
   }
 
@@ -94,9 +93,14 @@ export class Issue {
    * (Re-)generate the issue message.
    */
   generateMessage() {
+    // Convert all parameters except the substring bounds (an integer array) to their string forms.
+    this.parameters = mapValues(this.parameters, (value, key) => (key === 'bounds' ? value : String(value)))
+
     const bounds = this.parameters.bounds ?? []
     const messageTemplate = issueData[this.internalCode].message
     let message = messageTemplate(...bounds, this.parameters)
+
+    // Special parameters
     if (this.parameters.sidecarKey) {
       message += ` Sidecar key: "${this.parameters.sidecarKey}".`
     }
@@ -106,8 +110,11 @@ export class Issue {
     if (this.parameters.hedString) {
       message += ` HED string: "${this.parameters.hedString}".`
     }
+
+    // Append link to error code in HED spec.
     const hedCodeAnchor = this.hedCode.toLowerCase().replace(/_/g, '-')
     const hedSpecLink = `For more information on this HED ${this.level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
+
     this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${message} (${hedSpecLink}.)`
   }
 

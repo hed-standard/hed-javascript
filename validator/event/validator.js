@@ -267,6 +267,10 @@ export class HedValidator {
    * @param {Object<string, (string|number[])>} parameters The error string parameters.
    */
   pushIssue(internalCode, parameters) {
+    const tsvLine = this.parsedString.tsvLine ?? this.parsedString.tsvLines
+    if (tsvLine) {
+      parameters.tsvLine = tsvLine
+    }
     this.issues.push(generateIssue(internalCode, parameters))
   }
 }

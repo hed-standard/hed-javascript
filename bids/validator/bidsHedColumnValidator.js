@@ -55,8 +55,8 @@ export class BidsHedColumnValidator {
    * @private
    */
   _validateFileHedColumn(eventFileData) {
-    return eventFileData.hedColumnHedStrings.flatMap((hedString) =>
-      this._validateFileHedColumnString(eventFileData, hedString),
+    return eventFileData.hedColumnHedStrings.flatMap((hedString, rowIndexMinusTwo) =>
+      this._validateFileHedColumnString(eventFileData, hedString, rowIndexMinusTwo + 2),
     )
   }
 
@@ -65,10 +65,11 @@ export class BidsHedColumnValidator {
    *
    * @param {BidsEventFile} eventFileData The BIDS event file whose HED column is to be validated.
    * @param {string} hedString The string to be validated.
+   * @param {number} rowIndex The index of this row in the TSV file.
    * @returns {BidsHedIssue[]} All issues found.
    * @private
    */
-  _validateFileHedColumnString(eventFileData, hedString) {
+  _validateFileHedColumnString(eventFileData, hedString, rowIndex) {
     if (!hedString) {
       return []
     }
@@ -81,7 +82,9 @@ export class BidsHedColumnValidator {
     }
 
     const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
-    issues.push(...BidsHedIssue.fromHedIssues(Object.values(parsingIssues).flat(), eventFileData.file))
+    issues.push(
+      ...BidsHedIssue.fromHedIssues(Object.values(parsingIssues).flat(), eventFileData.file, { tsvLine: rowIndex }),
+    )
 
     if (parsedString === null) {
       return issues
@@ -90,7 +93,10 @@ export class BidsHedColumnValidator {
     if (parsedString.columnSplices.length > 0) {
       issues.push(
         BidsHedIssue.fromHedIssue(
-          generateIssue('curlyBracesInHedColumn', { column: parsedString.columnSplices[0].format() }),
+          generateIssue('curlyBracesInHedColumn', {
+            column: parsedString.columnSplices[0].format(),
+            tsvLine: rowIndex,
+          }),
           eventFileData.file,
         ),
       )
@@ -98,7 +104,7 @@ export class BidsHedColumnValidator {
     }
 
     const [, hedIssues] = validateHedString(parsedString, this.hedSchemas, options)
-    const convertedIssues = BidsHedIssue.fromHedIssues(hedIssues, eventFileData.file)
+    const convertedIssues = BidsHedIssue.fromHedIssues(hedIssues, eventFileData.file, { tsvLine: rowIndex })
     issues.push(...convertedIssues)
 
     return issues
