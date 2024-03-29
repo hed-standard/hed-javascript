@@ -57,7 +57,9 @@ export class BidsHedTsvValidator {
       return this.issues
     }
 
-    const hedStrings = this.parseHed()
+    const bidsHedTsvParser = new BidsHedTsvParser(this.tsvFile, this.hedSchemas)
+    const hedStrings = bidsHedTsvParser.parse()
+    this.issues.push(...bidsHedTsvParser.issues)
     if (hedStrings.length > 0) {
       this.validateCombinedDataset(hedStrings)
     }
@@ -66,11 +68,59 @@ export class BidsHedTsvValidator {
   }
 
   /**
+   * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
+   *
+   * @param {ParsedHedString[]} hedStrings The HED strings in the data collection.
+   */
+  validateCombinedDataset(hedStrings) {
+    const [, hedIssues] = validateHedDatasetWithContext(
+      hedStrings,
+      this.tsvFile.mergedSidecar.hedStrings,
+      this.hedSchemas,
+      {
+        checkForWarnings: true,
+        validateDatasetLevel: this.tsvFile.isTimelineFile,
+      },
+    )
+    this.issues.push(...BidsHedIssue.fromHedIssues(hedIssues, this.tsvFile.file))
+  }
+}
+
+export class BidsHedTsvParser {
+  /**
+   * The BIDS TSV file being parsed.
+   * @type {BidsTsvFile}
+   */
+  tsvFile
+  /**
+   * The HED schema collection being parsed against.
+   * @type {Schemas}
+   */
+  hedSchemas
+  /**
+   * The issues found during parsing.
+   * @type {BidsHedIssue[]}
+   */
+  issues
+
+  /**
+   * Constructor.
+   *
+   * @param {BidsTsvFile} tsvFile The BIDS TSV file being parsed.
+   * @param {Schemas} hedSchemas The HED schema collection being parsed against.
+   */
+  constructor(tsvFile, hedSchemas) {
+    this.tsvFile = tsvFile
+    this.hedSchemas = hedSchemas
+    this.issues = []
+  }
+
+  /**
    * Combine the BIDS sidecar HED data into a BIDS TSV file's HED data.
    *
    * @returns {ParsedHedString[]} The combined HED string collection for this BIDS TSV file.
    */
-  parseHed() {
+  parse() {
     const tsvHedRows = this._generateHedRows()
     const hedStrings = this._parseHedRows(tsvHedRows)
 
@@ -185,10 +235,9 @@ export class BidsHedTsvValidator {
     const splicedParsedString = columnSplicer.splice()
     const splicingIssues = columnSplicer.issues
     if (splicingIssues.length > 0) {
-      this.issues.push(...BidsHedIssue.fromHedIssues(splicingIssues, this.tsvFile.file))
+      this.issues.push(...BidsHedIssue.fromHedIssues(splicingIssues, this.tsvFile.file, { tsvLine }))
       return null
     }
-    splicedParsedString.context.set('tsvLine', tsvLine)
 
     return new BidsTsvRow(splicedParsedString, rowCells, this.tsvFile, tsvLine)
   }
@@ -261,23 +310,5 @@ export class BidsHedTsvValidator {
       ),
     )
     return null
-  }
-
-  /**
-   * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
-   *
-   * @param {ParsedHedString[]} hedStrings The HED strings in the data collection.
-   */
-  validateCombinedDataset(hedStrings) {
-    const [, hedIssues] = validateHedDatasetWithContext(
-      hedStrings,
-      this.tsvFile.mergedSidecar.hedStrings,
-      this.hedSchemas,
-      {
-        checkForWarnings: true,
-        validateDatasetLevel: this.tsvFile.isTimelineFile,
-      },
-    )
-    this.issues.push(...BidsHedIssue.fromHedIssues(hedIssues, this.tsvFile.file))
   }
 }
