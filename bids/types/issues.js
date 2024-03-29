@@ -27,10 +27,21 @@ export class BidsIssue {
 
   /**
    * Whether this issue is an error.
+   *
    * @returns {boolean}
    */
   isError() {
     return bidsHedErrorCodes.has(this.code)
+  }
+
+  /**
+   * Determine if any of the passed issues are errors.
+   *
+   * @param {BidsIssue[]} issues A list of issues.
+   * @return {boolean} Whether any of the passed issues are errors (rather than warnings).
+   */
+  static anyAreErrors(issues) {
+    return issues.some((issue) => issue.isError())
   }
 
   static generateInternalErrorPromise(error) {
