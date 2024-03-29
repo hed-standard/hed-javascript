@@ -1,5 +1,5 @@
 import { BidsHedSidecarValidator } from './bidsHedSidecarValidator'
-import { BidsHedIssue } from '../types/issues'
+import { BidsHedIssue, BidsIssue } from '../types/issues'
 import { BidsTsvEvent, BidsTsvRow } from '../types/tsv'
 import { parseHedString } from '../../parser/main'
 import ColumnSplicer from '../../parser/columnSplicer'
@@ -60,7 +60,7 @@ export class BidsHedTsvValidator {
     const bidsHedTsvParser = new BidsHedTsvParser(this.tsvFile, this.hedSchemas)
     const hedStrings = bidsHedTsvParser.parse()
     this.issues.push(...bidsHedTsvParser.issues)
-    if (hedStrings.length > 0) {
+    if (!BidsIssue.anyAreErrors(this.issues)) {
       this.validateCombinedDataset(hedStrings)
     }
 
