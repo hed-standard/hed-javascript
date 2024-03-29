@@ -1,5 +1,7 @@
 import chai from 'chai'
 const assert = chai.assert
+import cloneDeep from 'lodash/cloneDeep'
+
 import converterGenerateIssue from '../converter/issues'
 import { generateIssue } from '../common/issues/issues'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
@@ -7,7 +9,7 @@ import { buildBidsSchemas, parseSchemasSpec } from '../bids/schema'
 import { BidsDataset, BidsHedIssue, BidsIssue, validateBidsDataset } from '../bids'
 import { bidsDatasetDescriptions, bidsSidecars, bidsTsvFiles } from './bids.spec.data'
 import { parseHedString } from '../parser/main'
-import { BidsHedTsvValidator } from '../bids/validator/bidsHedTsvValidator'
+import { BidsHedTsvParser } from '../bids/validator/bidsHedTsvValidator'
 
 describe('BIDS datasets', () => {
   /**
@@ -164,14 +166,14 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         all_good: [],
         all_bad: [
-          BidsHedIssue.fromHedIssue(speedIssue, badDatasets[0].file),
-          BidsHedIssue.fromHedIssue(maglevWarning, badDatasets[1].file),
-          BidsHedIssue.fromHedIssue(speedIssue, badDatasets[2].file),
-          BidsHedIssue.fromHedIssue(speedIssue, badDatasets[3].file),
-          BidsHedIssue.fromHedIssue(maglevError, badDatasets[3].file),
-          BidsHedIssue.fromHedIssue(converterMaglevError, badDatasets[3].file),
-          BidsHedIssue.fromHedIssue(speedIssue, badDatasets[4].file),
-          BidsHedIssue.fromHedIssue(maglevWarning, badDatasets[4].file),
+          BidsHedIssue.fromHedIssue(cloneDeep(speedIssue), badDatasets[0].file, { tsvLine: 2 }),
+          BidsHedIssue.fromHedIssue(cloneDeep(maglevWarning), badDatasets[1].file, { tsvLine: 2 }),
+          BidsHedIssue.fromHedIssue(cloneDeep(speedIssue), badDatasets[2].file, { tsvLine: 3 }),
+          BidsHedIssue.fromHedIssue(converterMaglevError, badDatasets[3].file, { tsvLine: 2 }),
+          BidsHedIssue.fromHedIssue(cloneDeep(maglevError), badDatasets[3].file, { tsvLine: 2 }),
+          BidsHedIssue.fromHedIssue(cloneDeep(speedIssue), badDatasets[3].file, { tsvLine: 3 }),
+          BidsHedIssue.fromHedIssue(cloneDeep(maglevWarning), badDatasets[4].file, { tsvLine: 2 }),
+          BidsHedIssue.fromHedIssue(cloneDeep(speedIssue), badDatasets[4].file, { tsvLine: 3 }),
         ],
       }
       return validator(testDatasets, expectedIssues, specs)
@@ -202,30 +204,35 @@ describe('BIDS datasets', () => {
               tag: 'Boat',
             }),
             badDatasets[2].file,
+            { tsvLine: 5 },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Boat',
             }),
             badDatasets[2].file,
+            { tsvLine: 5 },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidValue', {
               tag: 'Duration/ferry s',
             }),
             badDatasets[3].file,
+            { tsvLine: 2 },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Age/30',
             }),
             badDatasets[3].file,
+            { tsvLine: 2 },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Age/30',
             }),
             badDatasets[3].file,
+            { tsvLine: 2 },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('sidecarKeyMissing', {
@@ -482,7 +489,7 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         bad_tsv: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('illegalDefinitionContext', { string: '(Definition/myDef, (Label/Red, Green))' }),
+            generateIssue('illegalDefinitionContext', { string: '(Definition/myDef, (Label/Red, Green))', tsvLine: 2 }),
             badTsvDatasets[0].file,
           ),
         ],
@@ -542,6 +549,7 @@ describe('BIDS datasets', () => {
           BidsHedIssue.fromHedIssue(
             generateIssue('curlyBracesInHedColumn', { column: '{response_time}' }),
             standaloneTsvFiles[1].file,
+            { tsvLine: 2 },
           ),
         ],
         sidecars: [
@@ -637,30 +645,35 @@ describe('BIDS datasets', () => {
               column: 'response_time',
             }),
             combinedDatasets[0].file,
+            { tsvLine: 3 },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('undefinedCurlyBraces', {
               column: 'response_time',
             }),
             combinedDatasets[1].file,
+            { tsvLine: 3 },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Label/1',
             }),
             combinedDatasets[2].file,
+            { tsvLine: 3 },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Label/1',
             }),
             combinedDatasets[2].file,
+            { tsvLine: 3 },
           ),
         ],
         hedColumn: [
           BidsHedIssue.fromHedIssue(
             generateIssue('curlyBracesInHedColumn', { column: '{response_time}' }),
             hedColumnDatasets[0].file,
+            { tsvLine: 2 },
           ),
         ],
         syntax: [
@@ -699,8 +712,8 @@ describe('BIDS datasets', () => {
         const tsvHedStrings = []
         for (const tsvFile of tsvFiles) {
           tsvFile.mergedSidecar.parseHedStrings(hedSchemas)
-          const tsvValidator = new BidsHedTsvValidator(tsvFile, hedSchemas)
-          const tsvHed = tsvValidator.parseHed()
+          const tsvValidator = new BidsHedTsvParser(tsvFile, hedSchemas)
+          const tsvHed = tsvValidator.parse()
           assert.isEmpty(tsvValidator.issues, 'TSV file failed to parse')
           tsvHedStrings.push(...tsvHed)
         }

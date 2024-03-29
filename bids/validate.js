@@ -88,6 +88,6 @@ class BidsHedValidator {
    */
   _pushIssues(issues) {
     this.issues.push(...issues)
-    return issues.some((issue) => issue.isError())
+    return BidsIssue.anyAreErrors(issues)
   }
 }
