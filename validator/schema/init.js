@@ -1,3 +1,4 @@
+import castArray from 'lodash/castArray'
 import zip from 'lodash/zip'
 
 import semver from 'semver'
@@ -42,12 +43,13 @@ export const buildSchemaAttributesObject = function (xmlData) {
  * @returns {Schema} The HED schema object.
  */
 const buildSchemaObject = function (xmlData) {
-  const schemaAttributes = buildSchemaAttributesObject(xmlData)
-  if (isHed3Schema(xmlData)) {
+  const xmlDataArray = castArray(xmlData)
+  const schemaAttributes = buildSchemaAttributesObject(xmlDataArray[0])
+  if (isHed3Schema(xmlDataArray[0])) {
     const mapping = buildMappingObject(schemaAttributes)
-    return new Hed3Schema(xmlData, schemaAttributes, mapping)
+    return new Hed3Schema(xmlDataArray[0], schemaAttributes, mapping)
   } else {
-    return new Hed2Schema(xmlData, schemaAttributes)
+    return new Hed2Schema(xmlDataArray[0], schemaAttributes)
   }
 }
 
@@ -91,15 +93,19 @@ export const buildSchemas = function (schemaSpecs) {
     schemaSpecs = schemaSpecs.data
   }
   const schemaKeys = Array.from(schemaSpecs.keys())
+  /* Data format example:
+   * [[[xmlData, issues], ...], [[xmlData, issues], [xmlData, issues], ...]] */
   return Promise.all(
     schemaKeys.map((k) => {
-      const spec = schemaSpecs.get(k)
-      return loadSchema(spec, false, false)
+      const specs = castArray(schemaSpecs.get(k))
+      return Promise.all(specs.map((spec) => loadSchema(spec, false, false)))
     }),
   ).then((schemaXmlDataAndIssues) => {
-    const [schemaXmlData, schemaXmlIssues] = zip(...schemaXmlDataAndIssues)
+    const [schemaXmlData, schemaXmlIssues] = zip(
+      ...schemaXmlDataAndIssues.map((schemaKeyXmlDataAndIssues) => zip(...schemaKeyXmlDataAndIssues)),
+    )
     const schemaObjects = schemaXmlData.map(buildSchemaObject)
     const schemas = new Map(zip(schemaKeys, schemaObjects))
-    return [new Schemas(schemas), schemaXmlIssues.flat()]
+    return [new Schemas(schemas), schemaXmlIssues.flat(2)]
   })
 }

@@ -52,8 +52,6 @@ export function parseSchemasSpec(hedVersion) {
     const [schemaSpec, verIssues] = parseSchemaSpec(schemaVersion)
     if (verIssues.length > 0) {
       issues.push(...verIssues)
-    } else if (schemasSpec.isDuplicate(schemaSpec)) {
-      issues.push(generateIssue('invalidSchemaNickname', { spec: schemaVersion, nickname: schemaSpec.nickname }))
     } else {
       schemasSpec.addSchemaSpec(schemaSpec)
     }

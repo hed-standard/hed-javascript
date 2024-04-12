@@ -1,5 +1,7 @@
 /** HED schema classes */
 
+import castArray from 'lodash/castArray'
+
 import { getGenerationForSchemaVersion } from '../../utils/hedData'
 
 /**
@@ -9,6 +11,7 @@ export class Schema {
   /**
    * The schema XML data.
    * @type {Object}
+   * @deprecated Unused. Will be removed in 4.0.0.
    */
   xmlData
   /**
@@ -34,13 +37,14 @@ export class Schema {
 
   /**
    * Constructor.
+   *
    * @param {object} xmlData The schema XML data.
    */
   constructor(xmlData) {
     this.xmlData = xmlData
     const rootElement = xmlData.HED
-    this.version = rootElement.$.version
-    this.library = rootElement.$.library ?? ''
+    this.version = rootElement?.$?.version
+    this.library = rootElement?.$?.library ?? ''
 
     if (this.library) {
       this.generation = 3
@@ -62,7 +66,7 @@ export class Schema {
 }
 
 /**
- * Hed2Schema class
+ * An imported HED 2 schema.
  */
 export class Hed2Schema extends Schema {
   /**
@@ -73,6 +77,7 @@ export class Hed2Schema extends Schema {
 
   /**
    * Constructor.
+   *
    * @param {object} xmlData The schema XML data.
    * @param {SchemaAttributes} attributes A description of tag attributes.
    */
@@ -95,7 +100,7 @@ export class Hed2Schema extends Schema {
 }
 
 /**
- * Hed3Schema class
+ * An imported HED 3 schema.
  */
 export class Hed3Schema extends Schema {
   /**
@@ -108,9 +113,15 @@ export class Hed3Schema extends Schema {
    * @type {Mapping}
    */
   mapping
+  /**
+   * The standard HED schema version this schema is linked to.
+   * @type {string}
+   */
+  withStandard
 
   /**
    * Constructor.
+   *
    * @param {object} xmlData The schema XML data.
    * @param {SchemaEntries} entries A collection of schema entries.
    * @param {Mapping} mapping A mapping between short and long tags.
@@ -118,6 +129,11 @@ export class Hed3Schema extends Schema {
   constructor(xmlData, entries, mapping) {
     super(xmlData)
 
+    if (!this.library) {
+      this.withStandard = undefined
+    } else {
+      this.withStandard = xmlData.HED?.$?.withStandard
+    }
     this.entries = entries
     this.mapping = mapping
   }
@@ -131,6 +147,31 @@ export class Hed3Schema extends Schema {
    */
   tagHasAttribute(tag, tagAttribute) {
     return this.entries.tagHasAttribute(tag, tagAttribute)
+  }
+}
+
+/**
+ * An imported lazy partnered HED 3 schema.
+ */
+export class PartneredSchema extends Hed3Schema {
+  /**
+   * The actual HED 3 schema underlying this partnered schema.
+   * @type {Hed3Schema}
+   */
+  actualSchema
+
+  /**
+   * Constructor.
+   *
+   * @param {Hed3Schema} actualSchema The actual HED 3 schema underlying this partnered schema.
+   */
+  constructor(actualSchema) {
+    super({}, actualSchema.entries, actualSchema.mapping)
+    this.actualSchema = actualSchema
+    this.withStandard = actualSchema.withStandard
+    this.library = undefined
+    // In case the parent constructor doesn't set this.
+    this.generation = 3
   }
 }
 
@@ -327,7 +368,7 @@ export class SchemaSpec {
 export class SchemasSpec {
   /**
    * The specification mapping data.
-   * @type {Map<string, SchemaSpec>}
+   * @type {Map<string, SchemaSpec|SchemaSpec[]>}
    */
   data
 
@@ -339,13 +380,28 @@ export class SchemasSpec {
   }
 
   /**
+   * Iterator over the specifications.
+   *
+   * @yields {[string, SchemaSpec[]]}
+   */
+  *[Symbol.iterator]() {
+    for (const [key, value] of this.data.entries()) {
+      yield [key, castArray(value)]
+    }
+  }
+
+  /**
    * Add a schema to this specification.
    *
    * @param {SchemaSpec} schemaSpec A schema specification.
    * @returns {SchemasSpec| map} This object.
    */
   addSchemaSpec(schemaSpec) {
-    this.data.set(schemaSpec.nickname, schemaSpec)
+    if (this.data.has(schemaSpec.nickname)) {
+      this.data.get(schemaSpec.nickname).push(schemaSpec)
+    } else {
+      this.data.set(schemaSpec.nickname, [schemaSpec])
+    }
     return this
   }
 

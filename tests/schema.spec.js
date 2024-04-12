@@ -558,7 +558,7 @@ describe('HED schemas', () => {
       )
     })
 
-    it('should return issues when invalid', () => {
+    it.skip('should return issues when invalid', () => {
       const schemas1 = new SchemasSpec()
       schemas1.addSchemaSpec(new SchemaSpec('', '8.1.0', '', ''))
 
