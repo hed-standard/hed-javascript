@@ -48,7 +48,7 @@ export class Schema {
 
     if (this.library) {
       this.generation = 3
-    } else {
+    } else if (this.version) {
       this.generation = getGenerationForSchemaVersion(this.version)
     }
   }
@@ -170,7 +170,6 @@ export class PartneredSchema extends Hed3Schema {
     this.actualSchema = actualSchema
     this.withStandard = actualSchema.withStandard
     this.library = undefined
-    // In case the parent constructor doesn't set this.
     this.generation = 3
   }
 }
