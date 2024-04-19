@@ -17,6 +17,7 @@ import {
   nodeProperty,
   schemaAttributeProperty,
 } from './types'
+import { generateIssue, IssueError } from '../../common/issues/issues'
 
 const lc = (str) => str.toLowerCase()
 
@@ -306,5 +307,32 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
   _addCustomProperties() {
     const recursiveProperty = new SchemaProperty('recursiveProperty', 'roleProperty')
     this.properties.set('recursiveProperty', recursiveProperty)
+  }
+}
+
+/**
+ * Merge two lazy partnered schemas.
+ *
+ * @param {Hed3Schema} baseSchema The schema to merge into.
+ * @param {Hed3Schema} additionalSchema The schema to be merged.
+ */
+export function mergePartneredSchemas(baseSchema, additionalSchema) {
+  if (baseSchema.generation < 3 || additionalSchema.generation < 3) {
+    throw new Error('Partnered schemas must be HED-3G schemas')
+  }
+  if (baseSchema.withStandard !== additionalSchema.withStandard) {
+    throw new IssueError(
+      generateIssue('differentWithStandard', { first: baseSchema.withStandard, second: additionalSchema.withStandard }),
+    )
+  }
+  for (const tag of additionalSchema.entries.definitions.get('tags').values()) {
+    if (!tag.hasAttributeName('inLibrary')) {
+      continue
+    }
+    const shortName = additionalSchema.mapping.longToTags.get(tag.name).shortTag
+    if (baseSchema.mapping.shortToTags.has(shortName)) {
+      throw new IssueError(generateIssue('lazyPartneredSchemasShareTag', { tag: shortName }))
+    }
+    baseSchema.mapping.shortToTags.get(shortName).longTag
   }
 }

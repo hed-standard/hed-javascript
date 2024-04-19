@@ -2,13 +2,13 @@ import castArray from 'lodash/castArray'
 import zip from 'lodash/zip'
 
 import semver from 'semver'
-import { Schema, Schemas, Hed2Schema, Hed3Schema, SchemasSpec } from '../../common/schema/types'
+import { Schema, Schemas, Hed2Schema, Hed3Schema, SchemasSpec, PartneredSchema } from '../../common/schema/types'
 import { loadSchema } from '../../common/schema/loader'
 import { buildMappingObject } from '../../converter/schema'
 import { setParent } from '../../utils/xml2js'
 
 import { Hed2SchemaParser } from '../hed2/schema/hed2SchemaParser'
-import { HedV8SchemaParser } from './hed3'
+import { HedV8SchemaParser, mergePartneredSchemas } from './hed3'
 
 /**
  * Determine whether a HED schema is based on the HED 3 spec.
@@ -37,20 +37,37 @@ export const buildSchemaAttributesObject = function (xmlData) {
 }
 
 /**
- * Build a single schema container object from a base schema version or path description.
+ * Build a single schema container object from an XML file.
  *
  * @param {object} xmlData The schema's XML data
  * @returns {Schema} The HED schema object.
  */
 const buildSchemaObject = function (xmlData) {
-  const xmlDataArray = castArray(xmlData)
-  const schemaAttributes = buildSchemaAttributesObject(xmlDataArray[0])
-  if (isHed3Schema(xmlDataArray[0])) {
+  const schemaAttributes = buildSchemaAttributesObject(xmlData)
+  if (isHed3Schema(xmlData)) {
     const mapping = buildMappingObject(schemaAttributes)
-    return new Hed3Schema(xmlDataArray[0], schemaAttributes, mapping)
+    return new Hed3Schema(xmlData, schemaAttributes, mapping)
   } else {
-    return new Hed2Schema(xmlDataArray[0], schemaAttributes)
+    return new Hed2Schema(xmlData, schemaAttributes)
   }
+}
+
+/**
+ * Build a single merged schema container object from one or more XML files.
+ *
+ * @param {object[]} xmlData The schemas' XML data.
+ * @returns {Schema} The HED schema object.
+ */
+const buildSchemaObjects = function (xmlData) {
+  const schemas = xmlData.map((data) => buildSchemaObject(data))
+  if (schemas.length === 1) {
+    return schemas[0]
+  }
+  const partneredSchema = new PartneredSchema(schemas[0])
+  for (const additionalSchema of schemas.slice(1)) {
+    mergePartneredSchemas(partneredSchema, additionalSchema)
+  }
+  return partneredSchema
 }
 
 /**
@@ -61,6 +78,7 @@ const buildSchemaObject = function (xmlData) {
  * @returns {Promise<never>|Promise<Schemas>} The schema container object or an error.
  * @deprecated
  */
+/* DEPRECATED!!!! DO NOT EDIT!!!! */
 export const buildSchema = function (schemaDef = {}, useFallback = true) {
   return loadSchema(schemaDef, useFallback).then(([xmlData, baseSchemaIssues]) => {
     const baseSchema = buildSchemaObject(xmlData)
@@ -104,7 +122,7 @@ export const buildSchemas = function (schemaSpecs) {
     const [schemaXmlData, schemaXmlIssues] = zip(
       ...schemaXmlDataAndIssues.map((schemaKeyXmlDataAndIssues) => zip(...schemaKeyXmlDataAndIssues)),
     )
-    const schemaObjects = schemaXmlData.map(buildSchemaObject)
+    const schemaObjects = schemaXmlData.map(buildSchemaObjects)
     const schemas = new Map(zip(schemaKeys, schemaObjects))
     return [new Schemas(schemas), schemaXmlIssues.flat(2)]
   })
