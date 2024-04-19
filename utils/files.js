@@ -1,5 +1,7 @@
 import fs from 'fs'
 
+import fetch, { Request } from 'cross-fetch'
+
 /**
  * Read a local file.
  *
@@ -24,7 +26,7 @@ export const readHTTPSFile = function (url) {
   const myRequest = new Request(url)
   return fetch(myRequest).then((response) => {
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`)
+      throw new Error(`Server responded to ${url} with status code ${response.status}: ${response.statusText}`)
     }
     return response.text()
   })
