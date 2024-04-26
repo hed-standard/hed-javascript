@@ -1,6 +1,6 @@
 import fs from 'fs'
 
-import fetch, { Request } from 'cross-fetch'
+import fetch from 'cross-fetch'
 
 /**
  * Read a local file.
@@ -23,8 +23,7 @@ export const readFile = function (fileName) {
  * @returns {Promise<string>} A promise with the file contents.
  */
 export const readHTTPSFile = function (url) {
-  const myRequest = new Request(url)
-  return fetch(myRequest).then((response) => {
+  return fetch(url).then((response) => {
     if (!response.ok) {
       throw new Error(`Server responded to ${url} with status code ${response.status}: ${response.statusText}`)
     }
