@@ -383,14 +383,21 @@ class SchemaEntryWithAttributes extends SchemaEntry {
     super(name)
     this.booleanAttributes = booleanAttributes
     this.valueAttributes = valueAttributes
+    this._parseAttributeNames()
+  }
 
-    // String-mapped versions of the above objects.
+  /**
+   * Create aliases of the attribute collections keyed on their names.
+   *
+   * @private
+   */
+  _parseAttributeNames() {
     this.booleanAttributeNames = new Set()
-    for (const attribute of booleanAttributes) {
+    for (const attribute of this.booleanAttributes) {
       this.booleanAttributeNames.add(attribute.name)
     }
     this.valueAttributeNames = new Map()
-    for (const [attributeName, value] of valueAttributes) {
+    for (const [attributeName, value] of this.valueAttributes) {
       this.valueAttributeNames.set(attributeName.name, value)
     }
   }
@@ -609,7 +616,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {string} name The name of this tag.
    * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this tag.
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this tag.
-   * @param {Map<string, SchemaUnit>} unitClasses The unit classes for this tag.
+   * @param {SchemaUnitClass[]} unitClasses The unit classes for this tag.
    * @constructor
    */
   constructor(name, booleanAttributes, valueAttributes, unitClasses) {

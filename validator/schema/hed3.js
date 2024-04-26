@@ -302,6 +302,10 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
     const recursiveProperty = this.properties.get('recursiveProperty')
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
     extensionAllowedAttribute._roleProperties.add(recursiveProperty)
+    const inLibraryAttribute = this.attributes.get('inLibrary')
+    if (inLibraryAttribute) {
+      inLibraryAttribute._roleProperties.add(recursiveProperty)
+    }
   }
 
   _addCustomProperties() {
@@ -320,19 +324,69 @@ export function mergePartneredSchemas(baseSchema, additionalSchema) {
   if (baseSchema.generation < 3 || additionalSchema.generation < 3) {
     throw new Error('Partnered schemas must be HED-3G schemas')
   }
+
   if (baseSchema.withStandard !== additionalSchema.withStandard) {
     throw new IssueError(
       generateIssue('differentWithStandard', { first: baseSchema.withStandard, second: additionalSchema.withStandard }),
     )
   }
-  for (const tag of additionalSchema.entries.definitions.get('tags').values()) {
-    if (!tag.hasAttributeName('inLibrary')) {
+
+  /**
+   * @type {SchemaEntryManager<SchemaTag>}
+   */
+  const tagManager = additionalSchema.entries.definitions.get('tags')
+  for (const tag of tagManager.values()) {
+    if (!tag.getNamedAttributeValue('inLibrary')) {
       continue
     }
+
     const shortName = additionalSchema.mapping.longToTags.get(tag.name).shortTag
-    if (baseSchema.mapping.shortToTags.has(shortName)) {
+    if (baseSchema.mapping.shortToTags.has(shortName.toLowerCase())) {
       throw new IssueError(generateIssue('lazyPartneredSchemasShareTag', { tag: shortName }))
     }
-    baseSchema.mapping.shortToTags.get(shortName).longTag
+
+    const rootedTagShortName = tag.getNamedAttributeValue('rooted')
+    if (rootedTagShortName) {
+      const parentTag = tag.parent
+      if (
+        additionalSchema.mapping.longToTags.get(parentTag.name).shortTag.toLowerCase() !==
+        rootedTagShortName.toLowerCase()
+      ) {
+        throw new Error(`Node ${shortName} is improperly rooted.`)
+      }
+    }
+
+    copyTagToSchema(additionalSchema, baseSchema, tag)
   }
+}
+
+/**
+ * Copy a tag from one schema to another.
+ *
+ * @param {Hed3Schema} originalSchema The source schema.
+ * @param {Hed3Schema} newSchema The destination schema.
+ * @param {SchemaTag} tag The tag to copy.
+ */
+function copyTagToSchema(originalSchema, newSchema, tag) {
+  const booleanAttributes = new Set()
+  const valueAttributes = new Map()
+
+  for (const attribute of tag.booleanAttributes) {
+    booleanAttributes.add(newSchema.entries.attributes.getEntry(attribute.name) ?? attribute)
+  }
+  for (const [key, value] of tag.valueAttributes) {
+    valueAttributes.set(newSchema.entries.attributes.getEntry(key.name) ?? key, value)
+  }
+
+  /**
+   * @type {SchemaUnitClass[]}
+   */
+  const unitClasses = tag.unitClasses.map(
+    (unitClass) => newSchema.entries.unitClassMap.getEntry(unitClass.name) ?? unitClass,
+  )
+
+  const newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
+  newTag._parent = newSchema.entries.definitions.get('tags').getEntry(tag.parent?.name?.toLowerCase())
+
+  newSchema.entries.definitions.get('tags')._definitions.set(newTag.name.toLowerCase(), newTag)
 }
