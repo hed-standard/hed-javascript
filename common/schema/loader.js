@@ -38,25 +38,27 @@ export async function loadSchema(schemaDef = null, useFallback = true, reportNoF
  * @returns {Promise<never>|Promise<[object, Issue[]]>} The fallback schema XML data or an error.
  */
 async function loadFallbackSchema(schemaDef, useFallback, reportNoFallbackError, issues) {
-  if (useFallback) {
-    issues.push(generateIssue('requestedSchemaLoadFailedFallbackUsed', { spec: JSON.stringify(schemaDef) }))
-    const fallbackSchemaPath = fallbackFilePath.get(schemaDef.library)
-    if (fallbackSchemaPath === undefined) {
-      issues.push(generateIssue('noFallbackSchemaForLibrary', { library: schemaDef.library }))
-      throw issues
-    }
-    try {
-      const fallbackXmlData = await loadLocalSchema(fallbackSchemaPath)
-      return [fallbackXmlData, issues]
-    } catch (fallbackIssues) {
-      fallbackIssues.push(generateIssue('fallbackSchemaLoadFailed', {}))
-      throw issues.concat(fallbackIssues)
-    }
-  } else {
+  if (!useFallback) {
     if (reportNoFallbackError) {
       issues.push(generateIssue('requestedSchemaLoadFailedNoFallbackUsed', { spec: JSON.stringify(schemaDef) }))
     }
     throw issues
+  }
+
+  issues.push(generateIssue('requestedSchemaLoadFailedFallbackUsed', { spec: JSON.stringify(schemaDef) }))
+
+  const fallbackSchemaPath = fallbackFilePath.get(schemaDef.library)
+  if (fallbackSchemaPath === undefined) {
+    issues.push(generateIssue('noFallbackSchemaForLibrary', { library: schemaDef.library }))
+    throw issues
+  }
+
+  try {
+    const fallbackXmlData = await loadLocalSchema(fallbackSchemaPath)
+    return [fallbackXmlData, issues]
+  } catch (fallbackIssues) {
+    fallbackIssues.push(generateIssue('fallbackSchemaLoadFailed', {}))
+    throw issues.concat(fallbackIssues)
   }
 }
 
