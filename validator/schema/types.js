@@ -142,18 +142,36 @@ export class SchemaEntryManager extends Memoizer {
     return this._definitions.values()
   }
 
+  /**
+   * Determine whether the entry with the given name exists.
+   *
+   * @param {string} name The name of the entry.
+   * @return {boolean} Whether the entry exists.
+   */
   hasEntry(name) {
     return this._definitions.has(name)
   }
 
+  /**
+   * Get the entry with the given name.
+   *
+   * @param {string} name The name of the entry to retrieve.
+   * @return {T} The entry with that name.
+   */
   getEntry(name) {
     return this._definitions.get(name)
   }
 
-  getEntriesWithBooleanAttribute(booleanPropertyName) {
-    return this._memoize(booleanPropertyName, () => {
+  /**
+   * Get a collection of entries with the given boolean attribute.
+   *
+   * @param {string} booleanAttributeName The name of boolean attribute to filter on.
+   * @return {Map<string, T>} A collection of entries with that attribute.
+   */
+  getEntriesWithBooleanAttribute(booleanAttributeName) {
+    return this._memoize(booleanAttributeName, () => {
       return this.filter(([_, v]) => {
-        return v.hasAttributeName(booleanPropertyName)
+        return v.hasAttributeName(booleanAttributeName)
       })
     })
   }
@@ -169,6 +187,11 @@ export class SchemaEntryManager extends Memoizer {
     return new Map(pairArray.filter((entry) => fn(entry)))
   }
 
+  /**
+   * The number of entries in this collection.
+   *
+   * @returns {number} The number of entries in this collection.
+   */
   get length() {
     return this._definitions.size
   }
