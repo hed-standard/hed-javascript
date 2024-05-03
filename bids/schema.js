@@ -1,9 +1,9 @@
+import castArray from 'lodash/castArray'
 import semver from 'semver'
 
 import { buildSchemas } from '../validator/schema/init'
 import { generateIssue } from '../common/issues/issues'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
-import { asArray } from '../utils/array'
 
 const alphanumericRegExp = new RegExp('^[a-zA-Z0-9]+$')
 
@@ -46,7 +46,7 @@ export function validateSchemasSpec(schemasSpec) {
 
 export function parseSchemasSpec(hedVersion) {
   const schemasSpec = new SchemasSpec()
-  const processVersion = asArray(hedVersion)
+  const processVersion = castArray(hedVersion)
   const issues = []
   for (const schemaVersion of processVersion) {
     const [schemaSpec, verIssues] = parseSchemaSpec(schemaVersion)
