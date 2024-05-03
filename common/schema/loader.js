@@ -74,12 +74,10 @@ const loadPromise = function (schemaDef) {
   } else if (schemaDef.path) {
     // TODO: Replace with localPath in 4.0.0.
     return loadLocalSchema(schemaDef.path)
+  } else if (localSchemaList.has(schemaDef.localName)) {
+    return loadBundledSchema(schemaDef)
   } else {
-    if (localSchemaList.has(schemaDef.localName)) {
-      return loadBundledSchema(schemaDef)
-    } else {
-      return loadRemoteSchema(schemaDef)
-    }
+    return loadRemoteSchema(schemaDef)
   }
 }
 
