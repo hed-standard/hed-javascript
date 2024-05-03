@@ -8,7 +8,7 @@ import { buildMappingObject } from '../../converter/schema'
 import { setParent } from '../../utils/xml2js'
 
 import { Hed2SchemaParser } from '../hed2/schema/hed2SchemaParser'
-import { HedV8SchemaParser, mergePartneredSchemas } from './hed3'
+import { HedV8SchemaParser, Hed3PartneredSchemaMerger } from './hed3'
 
 /**
  * Determine whether a HED schema is based on the HED 3 spec.
@@ -65,7 +65,7 @@ const buildSchemaObjects = function (xmlData) {
   }
   const partneredSchema = new PartneredSchema(schemas[0])
   for (const additionalSchema of schemas.slice(1)) {
-    mergePartneredSchemas(partneredSchema, additionalSchema)
+    new Hed3PartneredSchemaMerger(additionalSchema, partneredSchema).mergeData()
   }
   return partneredSchema
 }

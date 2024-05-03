@@ -314,79 +314,150 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
   }
 }
 
-/**
- * Merge two lazy partnered schemas.
- *
- * @param {Hed3Schema} baseSchema The schema to merge into.
- * @param {Hed3Schema} additionalSchema The schema to be merged.
- */
-export function mergePartneredSchemas(baseSchema, additionalSchema) {
-  if (baseSchema.generation < 3 || additionalSchema.generation < 3) {
-    throw new Error('Partnered schemas must be HED-3G schemas')
-  }
+export class Hed3PartneredSchemaMerger {
+  /**
+   * The source of data to be merged.
+   * @type {Hed3Schema}
+   */
+  source
+  /**
+   * The destination of data to be merged.
+   * @type {Hed3Schema}
+   */
+  destination
 
-  if (baseSchema.withStandard !== additionalSchema.withStandard) {
-    throw new IssueError(
-      generateIssue('differentWithStandard', { first: baseSchema.withStandard, second: additionalSchema.withStandard }),
-    )
+  /**
+   * Constructor.
+   *
+   * @param {Hed3Schema} source The source of data to be merged.
+   * @param {Hed3Schema} destination The destination of data to be merged.
+   */
+  constructor(source, destination) {
+    this._validate(source, destination)
+
+    this.source = source
+    this.destination = destination
   }
 
   /**
-   * @type {SchemaEntryManager<SchemaTag>}
+   * Pre-validate the partnered schemas.
+   *
+   * @param {Hed3Schema} source The source of data to be merged.
+   * @param {Hed3Schema} destination The destination of data to be merged.
+   * @private
    */
-  const tagManager = additionalSchema.entries.definitions.get('tags')
-  for (const tag of tagManager.values()) {
-    if (!tag.getNamedAttributeValue('inLibrary')) {
-      continue
+  _validate(source, destination) {
+    if (source.generation < 3 || destination.generation < 3) {
+      throw new Error('Partnered schemas must be HED-3G schemas')
     }
 
-    const shortName = additionalSchema.mapping.longToTags.get(tag.name).shortTag
-    if (baseSchema.mapping.shortToTags.has(shortName.toLowerCase())) {
+    if (source.withStandard !== destination.withStandard) {
+      throw new IssueError(
+        generateIssue('differentWithStandard', { first: source.withStandard, second: destination.withStandard }),
+      )
+    }
+  }
+
+  /**
+   * The source schema's tag collection.
+   *
+   * @return {SchemaEntryManager<SchemaTag>}
+   */
+  get sourceTags() {
+    return this.source.entries.definitions.get('tags')
+  }
+
+  /**
+   * The destination schema's tag collection.
+   *
+   * @return {SchemaEntryManager<SchemaTag>}
+   */
+  get destinationTags() {
+    return this.destination.entries.definitions.get('tags')
+  }
+
+  /**
+   * The source schema's mapping from long tag names to TagEntry objects.
+   *
+   * @return {Map<string, TagEntry>}
+   */
+  get sourceLongToTags() {
+    return this.source.mapping.longToTags
+  }
+
+  /**
+   * Merge two lazy partnered schemas.
+   *
+   * @returns {Hed3Schema} The merged partnered schema, for convenience.
+   */
+  mergeData() {
+    this.mergeTags()
+    return this.destination
+  }
+
+  /**
+   * Merge the tags from two lazy partnered schemas.
+   */
+  mergeTags() {
+    for (const tag of this.sourceTags.values()) {
+      this._mergeTag(tag)
+    }
+  }
+
+  /**
+   * Merge a tag from one schema to another.
+   *
+   * @param {SchemaTag} tag The tag to copy.
+   * @private
+   */
+  _mergeTag(tag) {
+    if (!tag.getNamedAttributeValue('inLibrary')) {
+      return
+    }
+
+    const shortName = this.sourceLongToTags.get(tag.name).shortTag
+    if (this.destination.mapping.shortToTags.has(shortName.toLowerCase())) {
       throw new IssueError(generateIssue('lazyPartneredSchemasShareTag', { tag: shortName }))
     }
 
     const rootedTagShortName = tag.getNamedAttributeValue('rooted')
     if (rootedTagShortName) {
       const parentTag = tag.parent
-      if (
-        additionalSchema.mapping.longToTags.get(parentTag.name).shortTag.toLowerCase() !==
-        rootedTagShortName.toLowerCase()
-      ) {
+      if (this.sourceLongToTags.get(parentTag?.name)?.shortTag?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
         throw new Error(`Node ${shortName} is improperly rooted.`)
       }
     }
 
-    copyTagToSchema(additionalSchema, baseSchema, tag)
-  }
-}
-
-/**
- * Copy a tag from one schema to another.
- *
- * @param {Hed3Schema} originalSchema The source schema.
- * @param {Hed3Schema} newSchema The destination schema.
- * @param {SchemaTag} tag The tag to copy.
- */
-function copyTagToSchema(originalSchema, newSchema, tag) {
-  const booleanAttributes = new Set()
-  const valueAttributes = new Map()
-
-  for (const attribute of tag.booleanAttributes) {
-    booleanAttributes.add(newSchema.entries.attributes.getEntry(attribute.name) ?? attribute)
-  }
-  for (const [key, value] of tag.valueAttributes) {
-    valueAttributes.set(newSchema.entries.attributes.getEntry(key.name) ?? key, value)
+    this._copyTagToSchema(tag)
   }
 
   /**
-   * @type {SchemaUnitClass[]}
+   * Copy a tag from one schema to another.
+   *
+   * @param {SchemaTag} tag The tag to copy.
+   * @private
    */
-  const unitClasses = tag.unitClasses.map(
-    (unitClass) => newSchema.entries.unitClassMap.getEntry(unitClass.name) ?? unitClass,
-  )
+  _copyTagToSchema(tag) {
+    const booleanAttributes = new Set()
+    const valueAttributes = new Map()
 
-  const newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
-  newTag._parent = newSchema.entries.definitions.get('tags').getEntry(tag.parent?.name?.toLowerCase())
+    for (const attribute of tag.booleanAttributes) {
+      booleanAttributes.add(this.destination.entries.attributes.getEntry(attribute.name) ?? attribute)
+    }
+    for (const [key, value] of tag.valueAttributes) {
+      valueAttributes.set(this.destination.entries.attributes.getEntry(key.name) ?? key, value)
+    }
 
-  newSchema.entries.definitions.get('tags')._definitions.set(newTag.name.toLowerCase(), newTag)
+    /**
+     * @type {SchemaUnitClass[]}
+     */
+    const unitClasses = tag.unitClasses.map(
+      (unitClass) => this.destination.entries.unitClassMap.getEntry(unitClass.name) ?? unitClass,
+    )
+
+    const newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
+    newTag._parent = this.destinationTags.getEntry(tag.parent?.name?.toLowerCase())
+
+    this.destinationTags._definitions.set(newTag.name.toLowerCase(), newTag)
+  }
 }
