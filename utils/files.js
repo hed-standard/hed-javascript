@@ -1,6 +1,6 @@
 import fs from 'fs'
 
-import fetch, { Request } from 'cross-fetch'
+import fetch from 'cross-fetch'
 
 /**
  * Read a local file.
@@ -8,10 +8,14 @@ import fetch, { Request } from 'cross-fetch'
  * @param {string} fileName The file path.
  * @returns {Promise<unknown>} A promise with the file contents.
  */
-export const readFile = function (fileName) {
-  return new Promise((resolve) => {
+export function readFile(fileName) {
+  return new Promise((resolve, reject) => {
     fs.readFile(fileName, 'utf8', (err, data) => {
-      process.nextTick(() => resolve(data))
+      if (err) {
+        reject(err)
+      } else {
+        resolve(data)
+      }
     })
   })
 }
@@ -22,12 +26,10 @@ export const readFile = function (fileName) {
  * @param {string} url The remote URL.
  * @returns {Promise<string>} A promise with the file contents.
  */
-export const readHTTPSFile = function (url) {
-  const myRequest = new Request(url)
-  return fetch(myRequest).then((response) => {
-    if (!response.ok) {
-      throw new Error(`Server responded to ${url} with status code ${response.status}: ${response.statusText}`)
-    }
-    return response.text()
-  })
+export async function readHTTPSFile(url) {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Server responded to ${url} with status code ${response.status}: ${response.statusText}`)
+  }
+  return response.text()
 }

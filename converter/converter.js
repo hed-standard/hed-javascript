@@ -1,5 +1,6 @@
+import castArray from 'lodash/castArray'
+
 import { TagEntry } from './types'
-import { asArray } from '../utils/array'
 import generateIssue from './issues'
 import splitHedString from './splitHedString'
 
@@ -78,7 +79,7 @@ export const convertTagToLong = function (schema, hedTag, hedString, offset) {
     const startingIndex = endingIndex
     endingIndex += tag.length
 
-    const tagEntries = asArray(mapping.mappingData.get(tag))
+    const tagEntries = castArray(mapping.mappingData.get(tag))
 
     if (foundUnknownExtension) {
       if (mapping.mappingData.has(tag)) {

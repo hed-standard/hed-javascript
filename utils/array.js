@@ -16,17 +16,6 @@ export const getElementCount = function (array, elementToCount) {
 }
 
 /**
- * Return a scalar as a singleton array and an array as-is.
- *
- * @template T
- * @param {T|T[]} array An array or scalar.
- * @returns {T[]} The original array or a singleton array of the scalar.
- */
-export const asArray = function (array) {
-  return Array.isArray(array) ? array : [array]
-}
-
-/**
  * Apply a function recursively to an array.
  *
  * @template T,U

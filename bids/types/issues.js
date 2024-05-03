@@ -68,11 +68,13 @@ export class BidsHedIssue extends BidsIssue {
    * @param {IssueError|Issue[]} hedIssues One or more HED-format issues.
    * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
    * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} objects.
-   * @returns {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
+   * @returns {BidsIssue[]} The passed issue(s) in BIDS-compatible format.
    */
   static fromHedIssues(hedIssues, file, extraParameters) {
     if (hedIssues instanceof IssueError) {
       return [BidsHedIssue.fromHedIssue(hedIssues.issue, file, extraParameters)]
+    } else if (hedIssues instanceof Error) {
+      return [new BidsIssue(106, null, hedIssues.message)]
     } else {
       return hedIssues.map((hedIssue) => BidsHedIssue.fromHedIssue(hedIssue, file, extraParameters))
     }

@@ -1,6 +1,5 @@
 import date from 'date-and-time'
-import parseISO from 'date-fns/parseISO'
-import dateIsValid from 'date-fns/isValid'
+import { parseISO, isValid as dateIsValid } from 'date-fns'
 const rfc3339ish = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?$/
 const digitExpression = /^-?\d+(?:\.\d+)?(?:[Ee]-?\d+)?$/
 
