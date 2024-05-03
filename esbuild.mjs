@@ -21,6 +21,7 @@ await esbuild.build({
   bundle: true,
   sourcemap: true,
   format: 'esm',
+  external: ['pluralize'],
   define: {
     global: 'globalThis',
     window: 'globalThis',
@@ -35,7 +36,6 @@ await esbuild.build({
       stdin: '',
       version: 'v12.14.1',
     }),
-    external: ['pluralize'],
   },
   plugins: [
     GlobalsPlugin({
