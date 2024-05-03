@@ -18,6 +18,7 @@ import {
   schemaAttributeProperty,
 } from './types'
 import { generateIssue, IssueError } from '../../common/issues/issues'
+import { buildMappingObject } from '../../converter/schema'
 
 const lc = (str) => str.toLowerCase()
 
@@ -392,6 +393,7 @@ export class Hed3PartneredSchemaMerger {
    */
   mergeData() {
     this.mergeTags()
+    this.destination.mapping = buildMappingObject(this.destination.entries)
     return this.destination
   }
 
