@@ -726,4 +726,48 @@ describe('BIDS datasets', () => {
       })
     }, 10000)
   })
+
+  describe('HED 3 partnered schema tests', () => {
+    let goodEvent
+    let goodDatasetDescriptions, badDatasetDescriptions
+
+    beforeAll(() => {
+      goodEvent = bidsTsvFiles[11][0]
+      goodDatasetDescriptions = bidsDatasetDescriptions[0]
+      badDatasetDescriptions = bidsDatasetDescriptions[1]
+    })
+
+    it('should validate HED 3 in BIDS event TSV files with JSON sidecar data using tags from merged partnered schemas', () => {
+      const testDatasets = {
+        validPartneredTestlib: new BidsDataset([goodEvent], [], goodDatasetDescriptions[8]),
+        validPartneredTestlibWithStandard: new BidsDataset([goodEvent], [], goodDatasetDescriptions[9]),
+        invalidPartneredTestlib1: new BidsDataset([goodEvent], [], badDatasetDescriptions[11]),
+        invalidPartneredTestlib2: new BidsDataset([goodEvent], [], badDatasetDescriptions[12]),
+        invalidPartneredTestlibWithStandard: new BidsDataset([goodEvent], [], badDatasetDescriptions[13]),
+      }
+      const expectedIssues = {
+        validPartneredTestlib: [],
+        validPartneredTestlibWithStandard: [],
+        invalidPartneredTestlib1: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('lazyPartneredSchemasShareTag', { tag: 'A-nonextension' }),
+            badDatasetDescriptions[11].file,
+          ),
+        ],
+        invalidPartneredTestlib2: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-sound' }),
+            badDatasetDescriptions[12].file,
+          ),
+        ],
+        invalidPartneredTestlibWithStandard: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('differentWithStandard', { first: '8.1.0', second: '8.2.0' }),
+            badDatasetDescriptions[13].file,
+          ),
+        ],
+      }
+      return validator(testDatasets, expectedIssues, null)
+    }, 10000)
+  })
 })
