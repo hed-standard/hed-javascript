@@ -130,7 +130,7 @@ export class Hed3Schema extends Schema {
     super(xmlData)
 
     if (!this.library) {
-      this.withStandard = undefined
+      this.withStandard = this.version
     } else {
       this.withStandard = xmlData.HED?.$?.withStandard
     }
