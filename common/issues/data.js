@@ -297,6 +297,16 @@ export default {
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is declared to use a library schema nicknamed "${'library'}" in the dataset's schema listing, but no such schema was found.`,
   },
+  differentWithStandard: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Could not merge lazy partnered schemas with different "withStandard" values: "${'first'}" and "${'second'}".`,
+  },
+  lazyPartneredSchemasShareTag: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Lazy partnered schemas are incompatible because they share the short tag "${'tag'}". These schemas require different prefixes.`,
+  },
   // BIDS issues
   sidecarKeyMissing: {
     hedCode: 'SIDECAR_KEY_MISSING',

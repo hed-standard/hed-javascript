@@ -1767,13 +1767,19 @@ describe('HED string and event validation', () => {
   })
 
   describe('HED-3G library and partnered schema validation', () => {
-    const hedLibrarySchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
-    let hedSchemaPromise
+    const hedLibrary2SchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
+    const hedLibrary3SchemaFile = 'tests/data/HED_testlib_3.0.0.xml'
+    let hedSchemaPromise, hedSchemaPromise2
 
     beforeAll(() => {
-      const spec4 = new SchemaSpec('testlib', '2.0.0', 'testlib', hedLibrarySchemaFile)
-      const specs = new SchemasSpec().addSchemaSpec(spec4)
+      const spec4 = new SchemaSpec('testlib', '2.0.0', 'testlib', hedLibrary2SchemaFile)
+      const spec5 = new SchemaSpec('testlib', '3.0.0', 'testlib', hedLibrary3SchemaFile)
+      const spec6 = new SchemaSpec('', '2.0.0', 'testlib', hedLibrary2SchemaFile)
+      const spec7 = new SchemaSpec('', '3.0.0', 'testlib', hedLibrary3SchemaFile)
+      const specs = new SchemasSpec().addSchemaSpec(spec4).addSchemaSpec(spec5)
+      const specs2 = new SchemasSpec().addSchemaSpec(spec6).addSchemaSpec(spec7)
       hedSchemaPromise = buildSchemas(specs)
+      hedSchemaPromise2 = buildSchemas(specs2)
     })
 
     /**
@@ -1817,6 +1823,59 @@ describe('HED string and event validation', () => {
         validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
       })
     }
+
+    describe('Full HED Strings', () => {
+      const validatorSemantic = validatorSemanticBase
+
+      /**
+       * HED 3 semantic validation function using the alternate schema Promise object.
+       *
+       * This base function uses the HED 3-specific {@link Hed3Validator} validator class.
+       *
+       * @param {Object<string, string>} testStrings A mapping of test strings.
+       * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
+       * @param {function(Hed3Validator): void} testFunction A test-specific function that executes the required validation check.
+       * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
+       */
+      const validatorSemantic2 = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
+        return hedSchemaPromise2.then(([hedSchemas, issues]) => {
+          assert.isEmpty(issues, 'Schema loading issues occurred')
+          validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
+        })
+      }
+
+      it('should allow combining tags from multiple partnered schemas', () => {
+        const testStrings = {
+          music: 'testlib:Piano-sound, testlib:Violin-sound',
+          test2: 'testlib:SubnodeA3, testlib:Frown',
+          test3: 'testlib:SubnodeF1, testlib:Car',
+        }
+        const expectedIssues = {
+          music: [],
+          test2: [],
+          test3: [],
+        }
+        return validatorSemantic(testStrings, expectedIssues, (validator) => {
+          validator.validateEventLevel()
+        })
+      })
+
+      it('should allow combining tags from multiple partnered schemas as the unprefixed schema', () => {
+        const testStrings = {
+          music: 'Piano-sound, Violin-sound',
+          test2: 'SubnodeA3, Frown',
+          test3: 'SubnodeF1, Car',
+        }
+        const expectedIssues = {
+          music: [],
+          test2: [],
+          test3: [],
+        }
+        return validatorSemantic2(testStrings, expectedIssues, (validator) => {
+          validator.validateEventLevel()
+        })
+      })
+    })
 
     describe('HED Tag Groups', () => {
       /**

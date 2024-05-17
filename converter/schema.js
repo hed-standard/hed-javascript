@@ -15,7 +15,11 @@ export const buildMappingObject = function (entries) {
   /**
    * @type {Map<string, TagEntry>}
    */
-  const nodeData = new Map()
+  const shortTagData = new Map()
+  /**
+   * @type {Map<string, TagEntry>}
+   */
+  const longTagData = new Map()
   /**
    * @type {Set<string>}
    */
@@ -32,16 +36,17 @@ export const buildMappingObject = function (entries) {
       continue
     }
     const tagObject = new TagEntry(shortTag, tag.name)
-    if (!nodeData.has(lowercaseShortTag)) {
-      nodeData.set(lowercaseShortTag, tagObject)
+    longTagData.set(tag.name, tagObject)
+    if (!shortTagData.has(lowercaseShortTag)) {
+      shortTagData.set(lowercaseShortTag, tagObject)
     } else {
       throw new IssueError(generateIssue('duplicateTagsInSchema', {}))
     }
   }
   for (const tag of takesValueTags) {
-    nodeData.get(tag).takesValue = true
+    shortTagData.get(tag).takesValue = true
   }
-  return new Mapping(nodeData)
+  return new Mapping(shortTagData, longTagData)
 }
 
 /**

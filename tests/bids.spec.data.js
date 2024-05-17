@@ -513,6 +513,19 @@ const sidecars = [
       },
     },
   ],
+  // sub10 - Lazy partnered schemas
+  [
+    {
+      // Valid partnered schemas
+      instruments: {
+        HED: {
+          piano_and_violin: '(Piano-sound, Violin-sound)',
+          flute_and_oboe: '(Flute-sound, Oboe-sound)',
+          choral_piano: '(Piano-sound, Vocalized-sound)',
+        },
+      },
+    },
+  ],
 ]
 
 const hedColumnOnlyHeader = 'onset\tduration\tHED\n'
@@ -678,6 +691,16 @@ const tsvFiles = [
       'onset\tduration\tevent_code\tresponse_time\tresponse_count\n' + '5.0\t0\tface\t1\tn/a\n',
     ],
   ],
+  // sub12 - Lazy partnered schemas
+  [
+    [
+      sidecars[9][0],
+      'onset\tduration\tinstruments\n' +
+        '4.5\t0\tpiano_and_violin\n' +
+        '5.0\t0\tflute_and_oboe\n' +
+        '5.2\t0\tchoral_piano\n',
+    ],
+  ],
 ]
 
 const datasetDescriptions = [
@@ -691,7 +714,14 @@ const datasetDescriptions = [
     { Name: 'OnlyScoreAsBase', BIDSVersion: '1.7.0', HEDVersion: 'score_1.0.0' },
     { Name: 'OnlyScoreAsLib', BIDSVersion: '1.7.0', HEDVersion: 'sc:score_1.0.0' },
     { Name: 'OnlyTestAsBase', BIDSVersion: '1.7.0', HEDVersion: 'testlib_1.0.2' },
+    { Name: 'GoodLazyPartneredSchemas', BIDSVersion: '1.7.0', HEDVersion: ['testlib_2.0.0', 'testlib_3.0.0'] },
+    {
+      Name: 'GoodLazyPartneredSchemasWithStandard',
+      BIDSVersion: '1.7.0',
+      HEDVersion: ['testlib_2.0.0', 'testlib_3.0.0', '8.2.0'],
+    },
   ],
+  // Bad datasetDescription.json files
   [
     { Name: 'NonExistentLibrary', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:badlib_1.0.2'] },
     { Name: 'LeadingColon', BIDSVersion: '1.7.0', HEDVersion: [':testlib_1.0.2', '8.1.0'] },
@@ -704,6 +734,13 @@ const datasetDescriptions = [
     { Name: 'BadRemote1', BIDSVersion: '1.7.0', HEDVersion: ['8.1.0', 'ts:testlib_1.800.2'] },
     { Name: 'BadRemote2', BIDSVersion: '1.7.0', HEDVersion: '8.828.0' },
     { Name: 'NoHedVersion', BIDSVersion: '1.7.0' },
+    { Name: 'BadLazyPartneredSchema1', BIDSVersion: '1.7.0', HEDVersion: ['testlib_2.0.0', 'testlib_2.1.0'] },
+    { Name: 'BadLazyPartneredSchema2', BIDSVersion: '1.7.0', HEDVersion: ['testlib_2.1.0', 'testlib_3.0.0'] },
+    {
+      Name: 'LazyPartneredSchemasWithWrongStandard',
+      BIDSVersion: '1.7.0',
+      HEDVersion: ['testlib_2.0.0', 'testlib_3.0.0', '8.1.0'],
+    },
   ],
 ]
 

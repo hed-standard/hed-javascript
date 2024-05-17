@@ -79,16 +79,16 @@ export const convertTagToLong = function (schema, hedTag, hedString, offset) {
     const startingIndex = endingIndex
     endingIndex += tag.length
 
-    const tagEntries = castArray(mapping.mappingData.get(tag))
+    const tagEntries = castArray(mapping.shortToTags.get(tag))
 
     if (foundUnknownExtension) {
-      if (mapping.mappingData.has(tag)) {
+      if (mapping.shortToTags.has(tag)) {
         return generateParentNodeIssue(tagEntries, startingIndex, endingIndex)
       } else {
         continue
       }
     }
-    if (!mapping.mappingData.has(tag)) {
+    if (!mapping.shortToTags.has(tag)) {
       if (foundTagEntry === null) {
         return [hedTag, [generateIssue('invalidTag', hedString, {}, [startingIndex + offset, endingIndex + offset])]]
       }
@@ -153,8 +153,8 @@ export const convertTagToShort = function (schema, hedTag, hedString, offset) {
   let lastFoundIndex = index
 
   for (const tag of splitTag) {
-    if (mapping.mappingData.has(tag)) {
-      foundTagEntry = mapping.mappingData.get(tag)
+    if (mapping.shortToTags.has(tag)) {
+      foundTagEntry = mapping.shortToTags.get(tag)
       lastFoundIndex = index
       index -= tag.length
       break

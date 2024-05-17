@@ -40,16 +40,24 @@ export class TagEntry {
  */
 export class Mapping {
   /**
-   * A dictionary mapping forms to TagEntry instances.
+   * A dictionary mapping short forms to TagEntry instances.
    * @type {Map<string, TagEntry>}
    */
-  mappingData
+  shortToTags
+  /**
+   * A dictionary mapping long forms to TagEntry instances.
+   * @type {Map<string, TagEntry>}
+   */
+  longToTags
 
   /**
    * Constructor.
-   * @param {Map<string, TagEntry>} mappingData A dictionary mapping forms to TagEntry instances.
+   *
+   * @param {Map<string, TagEntry>} shortToTags A dictionary mapping short forms to TagEntry instances.
+   * @param {Map<string, TagEntry>} longToTags A dictionary mapping long forms to TagEntry instances.
    */
-  constructor(mappingData) {
-    this.mappingData = mappingData
+  constructor(shortToTags, longToTags) {
+    this.shortToTags = shortToTags
+    this.longToTags = longToTags
   }
 }
