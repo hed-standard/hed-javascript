@@ -6,71 +6,15 @@ import xml2js from 'xml2js'
 import * as files from '../../utils/files'
 import { generateIssue } from '../issues/issues'
 
-import { fallbackFilePath, localSchemaList } from './config'
+import { localSchemaList } from './config'
 
 /**
  * Load schema XML data from a schema version or path description.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
- * @param {boolean} reportNoFallbackError Whether to report an error on a failed schema load when no fallback was used.
  * @returns {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
  */
-export async function loadSchema(schemaDef = null, useFallback = true, reportNoFallbackError = true) {
-  try {
-    const xmlData = await loadPromise(schemaDef)
-    if (xmlData === null) {
-      return Promise.reject([generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })])
-    }
-    return [xmlData, []]
-  } catch (issues) {
-    return loadFallbackSchema(schemaDef, useFallback, reportNoFallbackError, issues)
-  }
-}
-
-/**
- * Load fallback schema XML data from a schema version or path description.
- *
- * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
- * @param {boolean} reportNoFallbackError Whether to report an error on a failed schema load when no fallback was used.
- * @param {Issue[]} issues Any issues already found.
- * @returns {Promise<never>|Promise<[object, Issue[]]>} The fallback schema XML data or an error.
- */
-async function loadFallbackSchema(schemaDef, useFallback, reportNoFallbackError, issues) {
-  if (!useFallback) {
-    if (reportNoFallbackError) {
-      issues.push(generateIssue('requestedSchemaLoadFailedNoFallbackUsed', { spec: JSON.stringify(schemaDef) }))
-    }
-    throw issues
-  }
-
-  issues.push(generateIssue('requestedSchemaLoadFailedFallbackUsed', { spec: JSON.stringify(schemaDef) }))
-
-  const fallbackSchemaPath = fallbackFilePath.get(schemaDef.library)
-  if (fallbackSchemaPath === undefined) {
-    issues.push(generateIssue('noFallbackSchemaForLibrary', { library: schemaDef.library }))
-    throw issues
-  }
-
-  try {
-    const fallbackXmlData = await loadLocalSchema(fallbackSchemaPath)
-    return [fallbackXmlData, issues]
-  } catch (fallbackIssues) {
-    fallbackIssues.push(generateIssue('fallbackSchemaLoadFailed', {}))
-    throw issues.concat(fallbackIssues)
-  }
-}
-
-/**
- * Load schema XML data from a schema version or path description.
- *
- * @todo Rename to {@link loadSchema} in 4.0.0.
- *
- * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @returns {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
- */
-export async function loadSchemaFromSpec(schemaDef = null) {
+export default async function loadSchema(schemaDef = null) {
   const xmlData = await loadPromise(schemaDef)
   if (xmlData === null) {
     throw [generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })]

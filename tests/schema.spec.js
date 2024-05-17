@@ -64,9 +64,9 @@ describe('HED schemas', () => {
       })
     })
 
-    describe.skip('Remote HED schemas', () => {
+    describe('Remote HED schemas', () => {
       it('a HED 3 schema can be loaded remotely', () => {
-        const spec1 = new SchemaSpec('', '8.2.0', '', '')
+        const spec1 = new SchemaSpec('', '2.1.0', 'testlib', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1)
         return buildSchemas(specs).then(([hedSchemas, issues]) => {
           assert.isEmpty(issues, 'Schema loading issues occurred')
@@ -479,7 +479,7 @@ describe('HED schemas', () => {
   }
 
   describe('HED 3 SchemaSpec tests', () => {
-    it('should be return a SchemaSpec and no issues when valid', () => {
+    it('should return a SchemaSpec and no issues when valid', () => {
       const tests = {
         just_version: '8.1.0',
         just_library: 'score_1.0.0',
@@ -533,7 +533,7 @@ describe('HED schemas', () => {
   })
 
   describe('HED 3 SchemasSpec tests', () => {
-    it('should be return a SchemasSpec and no issues when valid', () => {
+    it('should return a SchemasSpec and no issues when valid', () => {
       const schemas1 = new SchemasSpec()
       schemas1.addSchemaSpec(new SchemaSpec('', '8.1.0', '', ''))
 
@@ -559,21 +559,15 @@ describe('HED schemas', () => {
       )
     })
 
-    it.skip('should return issues when invalid', () => {
-      const schemas1 = new SchemasSpec()
-      schemas1.addSchemaSpec(new SchemaSpec('', '8.1.0', '', ''))
-
+    it('should return issues when invalid', () => {
       const tests = {
-        // bad_version: '3.1.a',
-        duplicate_key: ['8.1.0', '8.0.0'],
+        bad_version: '3.1.a',
       }
       const expectedResults = {
         bad_version: new SchemasSpec(),
-        duplicate_key: schemas1,
       }
       const expectedIssues = {
         bad_version: [generateIssue('invalidSchemaSpecification', { spec: '3.1.a' })],
-        duplicate_key: [generateIssue('invalidSchemaNickname', { spec: '8.0.0', nickname: '' })],
       }
 
       return checkWithIssues(

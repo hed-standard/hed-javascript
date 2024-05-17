@@ -1009,7 +1009,7 @@ describe('HED string and event validation', () => {
           onsetAndOffsetWithDifferentValues: '(Def/Acc/5.4, Offset), (Def/Acc/4.3, Onset)',
           sameOffsetAndOnset: '(Def/MyColor, Offset), (Def/MyColor, Onset)',
           sameOnsetAndOffset: '(Def/MyColor, Onset), (Def/MyColor, Offset)',
-          duplicateOnset: '(Def/MyColor, Red, Onset), (Def/MyColor, Onset)',
+          duplicateOnset: '(Def/MyColor, (Red), Onset), (Def/MyColor, Onset)',
         }
         const expectedIssues = {
           onsetAndOffsetWithDifferentValues: [],

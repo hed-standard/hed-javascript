@@ -1,6 +1,3 @@
-import { Schemas } from '../common/schema/types'
-import { buildSchema as validatorBuildSchema } from '../validator/schema/init'
-
 import { Mapping, TagEntry } from './types'
 import { getTagName } from '../utils/hedStrings'
 import { generateIssue, IssueError } from '../common/issues/issues'
@@ -48,12 +45,3 @@ export const buildMappingObject = function (entries) {
   }
   return new Mapping(shortTagData, longTagData)
 }
-
-/**
- * Build a schema container object containing a short-long mapping from a base schema version or path description.
- *
- * @param {{path: string?, version: string?}} schemaDef The description of which schema to use.
- * @returns {Promise<never>|Promise<Schemas>} The schema container object or an error.
- * @deprecated
- */
-export const buildSchema = (schemaDef) => validatorBuildSchema(schemaDef)

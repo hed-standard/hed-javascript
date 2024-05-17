@@ -1,7 +1,5 @@
 /** HED schema classes */
 
-import castArray from 'lodash/castArray'
-
 import { getGenerationForSchemaVersion } from '../../utils/hedData'
 
 /**
@@ -238,6 +236,9 @@ export class Schemas {
    * @returns {Schema}
    */
   get standardSchema() {
+    if (this.schemas === null) {
+      return undefined
+    }
     for (const schema of this.schemas.values()) {
       if (schema.library === '') {
         return schema
@@ -367,7 +368,7 @@ export class SchemaSpec {
 export class SchemasSpec {
   /**
    * The specification mapping data.
-   * @type {Map<string, SchemaSpec|SchemaSpec[]>}
+   * @type {Map<string, SchemaSpec[]>}
    */
   data
 
@@ -385,7 +386,7 @@ export class SchemasSpec {
    */
   *[Symbol.iterator]() {
     for (const [key, value] of this.data.entries()) {
-      yield [key, castArray(value)]
+      yield [key, value]
     }
   }
 
@@ -402,15 +403,5 @@ export class SchemasSpec {
       this.data.set(schemaSpec.nickname, [schemaSpec])
     }
     return this
-  }
-
-  /**
-   * Determine whether this specification already has a schema with the given nickname.
-   *
-   * @param {SchemaSpec} schemaSpec A schema specification with a nickname.
-   * @returns {boolean} Whether the nickname exists in this specification.
-   */
-  isDuplicate(schemaSpec) {
-    return this.data.has(schemaSpec.nickname)
   }
 }

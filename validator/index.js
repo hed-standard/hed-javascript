@@ -1,7 +1,7 @@
 import { BidsDataset, BidsEventFile, BidsJsonFile, BidsSidecar, validateBidsDataset } from '../bids'
 import { validateHedDataset } from './dataset'
 import { validateHedEvent, validateHedString } from './event'
-import { buildSchema, buildSchemas } from './schema/init'
+import { buildSchemas } from './schema/init'
 
 export {
   BidsDataset,
@@ -12,7 +12,6 @@ export {
   validateHedDataset,
   validateHedEvent,
   validateHedString,
-  buildSchema,
   buildSchemas,
 }
 
@@ -25,6 +24,5 @@ export default {
   validateHedDataset,
   validateHedEvent,
   validateHedString,
-  buildSchema,
   buildSchemas,
 }

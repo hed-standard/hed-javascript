@@ -31,14 +31,9 @@ export function buildBidsSchemas(dataset, schemaDefinition) {
   }
 }
 
-export function validateSchemasSpec(schemasSpec) {
-  // TODO: implement
+function validateSchemasSpec(schemasSpec) {
   if (schemasSpec instanceof SchemasSpec) {
     return [schemasSpec, []]
-  } else if (schemasSpec instanceof Map) {
-    const newSchemasSpec = new SchemasSpec()
-    newSchemasSpec.data = schemasSpec
-    return [newSchemasSpec, []]
   } else {
     return [null, [generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemasSpec) })]]
   }

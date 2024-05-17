@@ -252,26 +252,6 @@ export default {
     level: 'error',
     message: stringTemplate`The supplied schema specification is invalid. Specification: ${'spec'}.`,
   },
-  requestedSchemaLoadFailedFallbackUsed: {
-    hedCode: 'SCHEMA_LOAD_FAILED',
-    level: 'warning',
-    message: stringTemplate`The requested schema failed to load. The fallback schema bundled with this validator will be used instead. Specification: ${'spec'}.`,
-  },
-  requestedSchemaLoadFailedNoFallbackUsed: {
-    hedCode: 'SCHEMA_LOAD_FAILED',
-    level: 'error',
-    message: stringTemplate`The requested schema failed to load. The validator did not attempt to load a fallback schema. Specification: ${'spec'}.`,
-  },
-  fallbackSchemaLoadFailed: {
-    hedCode: 'SCHEMA_LOAD_FAILED',
-    level: 'error',
-    message: stringTemplate`The fallback schema bundled with this validator failed to load. No HED validation was performed.`,
-  },
-  noFallbackSchemaForLibrary: {
-    hedCode: 'SCHEMA_LOAD_FAILED',
-    level: 'error',
-    message: stringTemplate`No fallback schema was found for library "${'library'}". No HED validation was performed.`,
-  },
   bundledSchemaLoadFailed: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',

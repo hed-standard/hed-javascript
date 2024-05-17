@@ -1,9 +1,8 @@
-import castArray from 'lodash/castArray'
 import zip from 'lodash/zip'
-
 import semver from 'semver'
+
 import { Schema, Schemas, Hed2Schema, Hed3Schema, SchemasSpec, PartneredSchema } from '../../common/schema/types'
-import { loadSchema } from '../../common/schema/loader'
+import loadSchema from '../../common/schema/loader'
 import { buildMappingObject } from '../../converter/schema'
 import { setParent } from '../../utils/xml2js'
 
@@ -73,50 +72,17 @@ const buildSchemaObjects = function (xmlData) {
 /**
  * Build a schema collection object from a schema specification.
  *
- * @param {{path: string?, version: string?, libraries: Object<string, {path: string?, version: string?, library: string?}>?}} schemaDef The description of which schemas to use.
- * @param {boolean} useFallback Whether to use a bundled fallback schema if the requested schema cannot be loaded.
- * @returns {Promise<never>|Promise<Schemas>} The schema container object or an error.
- * @deprecated
- */
-/* DEPRECATED!!!! DO NOT EDIT!!!! */
-export const buildSchema = function (schemaDef = {}, useFallback = true) {
-  return loadSchema(schemaDef, useFallback).then(([xmlData, baseSchemaIssues]) => {
-    const baseSchema = buildSchemaObject(xmlData)
-    if (schemaDef.libraries === undefined) {
-      return new Schemas(baseSchema)
-    }
-    const [libraryKeys, libraryDefs] = zip(...Object.entries(schemaDef.libraries))
-    return Promise.all(
-      libraryDefs.map((libraryDef) => {
-        return loadSchema(libraryDef, false)
-      }),
-    ).then((libraryXmlDataAndIssues) => {
-      const [libraryXmlData, libraryXmlIssues] = zip(...libraryXmlDataAndIssues)
-      const librarySchemaObjects = libraryXmlData.map(buildSchemaObject)
-      const schemas = new Map(zip(libraryKeys, librarySchemaObjects))
-      schemas.set('', baseSchema)
-      return new Schemas(schemas)
-    })
-  })
-}
-
-/**
- * Build a schema collection object from a schema specification.
- *
- * @param {Map<string, SchemaSpec>|SchemasSpec} schemaSpecs The description of which schemas to use.
+ * @param {SchemasSpec} schemaSpecs The description of which schemas to use.
  * @returns {Promise<never>|Promise<[Schemas, Issue[]]>} The schema container object and any issues found.
  */
 export const buildSchemas = function (schemaSpecs) {
-  if (schemaSpecs instanceof SchemasSpec) {
-    schemaSpecs = schemaSpecs.data
-  }
-  const schemaKeys = Array.from(schemaSpecs.keys())
+  const schemaKeys = Array.from(schemaSpecs.data.keys())
   /* Data format example:
    * [[[xmlData, issues], ...], [[xmlData, issues], [xmlData, issues], ...]] */
   return Promise.all(
     schemaKeys.map((k) => {
-      const specs = castArray(schemaSpecs.get(k))
-      return Promise.all(specs.map((spec) => loadSchema(spec, false, false)))
+      const specs = schemaSpecs.data.get(k)
+      return Promise.all(specs.map((spec) => loadSchema(spec)))
     }),
   ).then((schemaXmlDataAndIssues) => {
     const [schemaXmlData, schemaXmlIssues] = zip(
