@@ -73,23 +73,20 @@ const buildSchemaObjects = function (xmlData) {
  * Build a schema collection object from a schema specification.
  *
  * @param {SchemasSpec} schemaSpecs The description of which schemas to use.
- * @returns {Promise<never>|Promise<[Schemas, Issue[]]>} The schema container object and any issues found.
+ * @returns {Promise<Schemas>} The schema container object and any issues found.
  */
 export const buildSchemas = function (schemaSpecs) {
   const schemaKeys = Array.from(schemaSpecs.data.keys())
   /* Data format example:
-   * [[[xmlData, issues], ...], [[xmlData, issues], [xmlData, issues], ...]] */
+   * [[xmlData, ...], [xmlData, xmlData, ...], ...] */
   return Promise.all(
     schemaKeys.map((k) => {
       const specs = schemaSpecs.data.get(k)
       return Promise.all(specs.map((spec) => loadSchema(spec)))
     }),
-  ).then((schemaXmlDataAndIssues) => {
-    const [schemaXmlData, schemaXmlIssues] = zip(
-      ...schemaXmlDataAndIssues.map((schemaKeyXmlDataAndIssues) => zip(...schemaKeyXmlDataAndIssues)),
-    )
+  ).then((schemaXmlData) => {
     const schemaObjects = schemaXmlData.map(buildSchemaObjects)
     const schemas = new Map(zip(schemaKeys, schemaObjects))
-    return [new Schemas(schemas), schemaXmlIssues.flat(2)]
+    return new Schemas(schemas)
   })
 }

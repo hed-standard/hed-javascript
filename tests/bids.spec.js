@@ -438,11 +438,11 @@ describe('BIDS datasets', () => {
 
     describe('HED 3 library schema with version spec', () => {
       it('should validate HED 3 in BIDS event files sidecars and libraries using version spec', () => {
-        const [specs0] = parseSchemasSpec(['8.1.0'])
-        const [specs1] = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2'])
-        const [specs2] = parseSchemasSpec(['ts:testlib_1.0.2'])
-        const [specs3] = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
-        const [specs4] = parseSchemasSpec(['ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
+        const specs0 = parseSchemasSpec(['8.1.0'])
+        const specs1 = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2'])
+        const specs2 = parseSchemasSpec(['ts:testlib_1.0.2'])
+        const specs3 = parseSchemasSpec(['8.1.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
+        const specs4 = parseSchemasSpec(['ts:testlib_1.0.2', 'bg:testlib_1.0.2'])
         const testDatasets1 = {
           library_and_defs_base_ignored: new BidsDataset([goodEvents[0]], [], goodDatasetDescriptions[1]),
           library_and_defs_no_base: new BidsDataset([goodEvents[0]], [], goodDatasetDescriptions[3]),
@@ -701,8 +701,7 @@ describe('BIDS datasets', () => {
         '(Red, Blue), (Green, (Yellow))',
       ]
       const dataset = new BidsDataset(tsvFiles, [])
-      return buildBidsSchemas(dataset, specs).then(([hedSchemas, schemaIssues]) => {
-        assert.isEmpty(schemaIssues, 'Schema failed to load')
+      return buildBidsSchemas(dataset, specs).then((hedSchemas) => {
         const parsedExpectedStrings = []
         for (const expectedString of expectedStrings) {
           const [parsedExpectedString, parsingIssues] = parseHedString(expectedString, hedSchemas)

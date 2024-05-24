@@ -26,8 +26,7 @@ describe('HED dataset validation', () => {
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = function (testDatasets, expectedIssues) {
-      return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.isEmpty(issues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
           assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
           const [, testIssues] = hed.validateHedEvents(testDataset, hedSchemas, null, true)
@@ -82,8 +81,7 @@ describe('HED dataset validation', () => {
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = function (testDatasets, expectedIssues) {
-      return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.isEmpty(issues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
           assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
           const [, testIssues] = hed.validateHedDataset(testDataset, hedSchemas, true)
@@ -220,8 +218,7 @@ describe('HED dataset validation', () => {
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = function (testDatasets, testContext, expectedIssues) {
-      return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.isEmpty(issues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
           assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
           const [, testIssues] = hed.validateHedDatasetWithContext(testDataset, testContext, hedSchemas, true)

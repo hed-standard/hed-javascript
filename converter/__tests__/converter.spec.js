@@ -26,8 +26,7 @@ describe('HED string conversion', () => {
      * @returns {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
-      return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.isEmpty(issues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         for (const [testStringKey, testString] of Object.entries(testStrings)) {
           const [testResult, issues] = testFunction(hedSchemas.baseSchema, testString, testString, 0)
           assert.strictEqual(testResult, expectedResults[testStringKey], testString)
@@ -591,8 +590,7 @@ describe('HED string conversion', () => {
      * @returns {Promise<void>}
      */
     const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
-      return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.isEmpty(issues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         for (const [testStringKey, testString] of Object.entries(testStrings)) {
           const [testResult, issues] = testFunction(hedSchemas, testString)
           assert.strictEqual(testResult, expectedResults[testStringKey], testString)

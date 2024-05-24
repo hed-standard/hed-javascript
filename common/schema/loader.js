@@ -4,7 +4,7 @@
 import xml2js from 'xml2js'
 
 import * as files from '../../utils/files'
-import { generateIssue } from '../issues/issues'
+import { generateIssue, IssueError } from '../issues/issues'
 
 import { localSchemaList } from './config'
 
@@ -12,28 +12,29 @@ import { localSchemaList } from './config'
  * Load schema XML data from a schema version or path description.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @returns {Promise<never>|Promise<[object, Issue[]]>} The schema XML data or an error.
+ * @returns {Promise<Object>} The schema XML data.
+ * @throws {IssueError} If the schema could not be loaded.
  */
 export default async function loadSchema(schemaDef = null) {
   const xmlData = await loadPromise(schemaDef)
   if (xmlData === null) {
-    throw [generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })]
+    throw new IssueError(generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) }))
   }
-  return [xmlData, []]
+  return xmlData
 }
 
 /**
  * Choose the schema Promise from a schema version or path description.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @returns {Promise<object>} The schema XML data or an error.
+ * @returns {Promise<Object>} The schema XML data.
+ * @throws {IssueError} If the schema could not be loaded.
  */
 async function loadPromise(schemaDef) {
   if (schemaDef === null) {
     return null
-  } else if (schemaDef.path) {
-    // TODO: Replace with localPath in 4.0.0.
-    return loadLocalSchema(schemaDef.path)
+  } else if (schemaDef.localPath) {
+    return loadLocalSchema(schemaDef.localPath)
   } else if (localSchemaList.has(schemaDef.localName)) {
     return loadBundledSchema(schemaDef)
   } else {
@@ -46,6 +47,7 @@ async function loadPromise(schemaDef) {
  *
  * @param {SchemaSpec} schemaDef The standard schema version to load.
  * @returns {Promise<object>} The schema XML data.
+ * @throws {IssueError} If the schema could not be loaded.
  */
 function loadRemoteSchema(schemaDef) {
   let url
@@ -62,6 +64,7 @@ function loadRemoteSchema(schemaDef) {
  *
  * @param {string} path The path to the schema XML data.
  * @returns {Promise<object>} The schema XML data.
+ * @throws {IssueError} If the schema could not be loaded.
  */
 function loadLocalSchema(path) {
   return loadSchemaFile(files.readFile(path), 'localSchemaLoadFailed', { path: path })
@@ -72,13 +75,14 @@ function loadLocalSchema(path) {
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
  * @returns {Promise<object>} The schema XML data.
+ * @throws {IssueError} If the schema could not be loaded.
  */
 async function loadBundledSchema(schemaDef) {
   try {
     return parseSchemaXML(localSchemaList.get(schemaDef.localName))
   } catch (error) {
-    const issueArgs = { spec: schemaDef, error: error.message }
-    throw [generateIssue('bundledSchemaLoadFailed', issueArgs)]
+    const issueArgs = { spec: JSON.stringify(schemaDef), error: error.message }
+    throw new IssueError(generateIssue('bundledSchemaLoadFailed', issueArgs))
   }
 }
 
@@ -89,6 +93,7 @@ async function loadBundledSchema(schemaDef) {
  * @param {string} issueCode The issue code.
  * @param {Object<string, string>} issueArgs The issue arguments passed from the calling function.
  * @returns {Promise<object>} The parsed schema XML data.
+ * @throws {IssueError} If the schema could not be loaded.
  */
 async function loadSchemaFile(xmlDataPromise, issueCode, issueArgs) {
   try {
@@ -96,7 +101,7 @@ async function loadSchemaFile(xmlDataPromise, issueCode, issueArgs) {
     return parseSchemaXML(data)
   } catch (error) {
     issueArgs.error = error.message
-    throw [generateIssue(issueCode, issueArgs)]
+    throw new IssueError(generateIssue(issueCode, issueArgs))
   }
 }
 

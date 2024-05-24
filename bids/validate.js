@@ -8,19 +8,21 @@ import { BidsHedColumnValidator } from './validator/bidsHedColumnValidator'
  * Validate a BIDS dataset.
  *
  * @param {BidsDataset} dataset The BIDS dataset.
- * @param {object} schemaDefinition The version spec for the schema to be loaded.
+ * @param {SchemasSpec} schemaDefinition The version spec for the schema to be loaded.
  * @returns {Promise<BidsIssue[]>} Any issues found.
  */
-export function validateBidsDataset(dataset, schemaDefinition) {
-  return buildBidsSchemas(dataset, schemaDefinition).then(
-    ([hedSchemas, schemaLoadIssues]) => {
-      return new BidsHedValidator(dataset, hedSchemas)
-        .validateFullDataset()
-        .catch(BidsIssue.generateInternalErrorPromise)
-        .then((issues) => issues.concat(BidsHedIssue.fromHedIssues(schemaLoadIssues, dataset.datasetDescription.file)))
-    },
-    (issues) => BidsHedIssue.fromHedIssues(issues, dataset.datasetDescription.file),
-  )
+export async function validateBidsDataset(dataset, schemaDefinition) {
+  try {
+    const hedSchemas = await buildBidsSchemas(dataset, schemaDefinition)
+    const validator = new BidsHedValidator(dataset, hedSchemas)
+    try {
+      return validator.validateFullDataset()
+    } catch (internalError) {
+      return BidsIssue.generateInternalErrorPromise(internalError)
+    }
+  } catch (schemaIssues) {
+    return BidsHedIssue.fromHedIssues(schemaIssues, dataset.datasetDescription.file)
+  }
 }
 
 /**
