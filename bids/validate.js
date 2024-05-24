@@ -60,25 +60,21 @@ class BidsHedValidator {
   /**
    * Validate a full BIDS dataset using a HED schema collection.
    *
-   * @returns {Promise<BidsIssue[]>|Promise<never>} Any issues found.
+   * @returns {Promise<BidsIssue[]>} Any issues found.
    */
-  validateFullDataset() {
-    try {
-      const sidecarValidator = new BidsHedSidecarValidator(this.dataset, this.hedSchemas)
-      const hedColumnValidator = new BidsHedColumnValidator(this.dataset, this.hedSchemas)
-      const sidecarErrorsFound = this._pushIssues(sidecarValidator.validateSidecars())
-      const hedColumnErrorsFound = this._pushIssues(hedColumnValidator.validate())
-      if (sidecarErrorsFound || hedColumnErrorsFound) {
-        return Promise.resolve(this.issues)
-      }
-      for (const eventFileData of this.dataset.eventData) {
-        const tsvValidator = new BidsHedTsvValidator(eventFileData, this.hedSchemas)
-        this.issues.push(...tsvValidator.validate())
-      }
-      return Promise.resolve(this.issues)
-    } catch (e) {
-      return Promise.reject(e)
+  async validateFullDataset() {
+    const sidecarValidator = new BidsHedSidecarValidator(this.dataset, this.hedSchemas)
+    const hedColumnValidator = new BidsHedColumnValidator(this.dataset, this.hedSchemas)
+    const sidecarErrorsFound = this._pushIssues(sidecarValidator.validateSidecars())
+    const hedColumnErrorsFound = this._pushIssues(hedColumnValidator.validate())
+    if (sidecarErrorsFound || hedColumnErrorsFound) {
+      return this.issues
     }
+    for (const eventFileData of this.dataset.eventData) {
+      const tsvValidator = new BidsHedTsvValidator(eventFileData, this.hedSchemas)
+      this.issues.push(...tsvValidator.validate())
+    }
+    return this.issues
   }
 
   /**
