@@ -249,19 +249,6 @@ describe('BIDS datasets', () => {
     }, 10000)
   })
 
-  describe.skip('HED 2 combined datasets', () => {
-    it('should validate HED 2 data in BIDS event files combined with JSON sidecar data', () => {
-      const goodDatasets = bidsTsvFiles[4]
-      const testDatasets = {
-        all_good: new BidsDataset(goodDatasets, []),
-      }
-      const expectedIssues = {
-        all_good: [],
-      }
-      return validator(testDatasets, expectedIssues, specs2)
-    }, 10000)
-  })
-
   describe('HED 3 library schema tests', () => {
     let goodEvents
     let goodDatasetDescriptions, badDatasetDescriptions

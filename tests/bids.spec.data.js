@@ -592,8 +592,8 @@ const tsvFiles = [
     [sidecars[0][2], 'onset\tduration\tage\tHED\n' + '7\tferry\t30\tAge/30\n'],
     [sidecars[0][0], 'onset\tduration\tcolor\n' + '7\troyal\tpurple\n'],
   ],
-  // sub05 - Valid combined sidecar/TSV data from HED 2
-  [[sidecars[3][0], 'onset\tduration\ttest\tHED\n' + '7\tsomething\tfirst\tEvent/Duration/55 ms']],
+  // sub05 - Valid combined sidecar/TSV data from HED 2 - Deprecated
+  [],
   // sub06 - Valid combined sidecar/TSV data with library
   [
     [sidecars[4][0], 'onset\tduration\tevent_type\tsize\n' + '7\tn/a\tshow_face\t6\n' + '7\tn/a\tleft_press\t7\n'],
