@@ -198,8 +198,7 @@ describe('HED tag string utility functions', () => {
       const invalidVolumeString = '200 cm'
       const currencyUnits = ['dollars', '$', 'points', 'fraction']
       const volumeUnits = ['m^3']
-      return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.isEmpty(issues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         const strippedDollarsString = hed.validateUnits(dollarsString, currencyUnits, hedSchemas.baseSchema.attributes)
         const strippedVolumeString = hed.validateUnits(volumeString, volumeUnits, hedSchemas.baseSchema.attributes)
         const strippedPrefixedVolumeString = hed.validateUnits(

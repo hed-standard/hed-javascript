@@ -356,8 +356,7 @@ describe('HED string and event validation', () => {
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-        return hedSchemaPromise.then(([hedSchemas, issues]) => {
-          assert.isEmpty(issues, 'Schema loading issues occurred')
+        return hedSchemaPromise.then((hedSchemas) => {
           validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
         })
       }
@@ -698,8 +697,7 @@ describe('HED string and event validation', () => {
 
       describe('HED Strings', () => {
         const validator = function (testStrings, expectedIssues, expectValuePlaceholderString = false) {
-          return hedSchemaPromise.then(([hedSchemas, issues]) => {
-            assert.isEmpty(issues, 'Schema loading issues occurred')
+          return hedSchemaPromise.then((hedSchemas) => {
             for (const [testStringKey, testString] of Object.entries(testStrings)) {
               assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
               const [, testIssues] = hed.validateHedString(testString, hedSchemas, true, expectValuePlaceholderString)
@@ -743,8 +741,7 @@ describe('HED string and event validation', () => {
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-        return hedSchemaPromise.then(([hedSchemas, issues]) => {
-          assert.isEmpty(issues, 'Schema loading issues occurred')
+        return hedSchemaPromise.then((hedSchemas) => {
           validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
         })
       }
@@ -908,8 +905,7 @@ describe('HED string and event validation', () => {
      * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
      */
     const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-      return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.isEmpty(issues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
       })
     }
@@ -1009,7 +1005,7 @@ describe('HED string and event validation', () => {
           onsetAndOffsetWithDifferentValues: '(Def/Acc/5.4, Offset), (Def/Acc/4.3, Onset)',
           sameOffsetAndOnset: '(Def/MyColor, Offset), (Def/MyColor, Onset)',
           sameOnsetAndOffset: '(Def/MyColor, Onset), (Def/MyColor, Offset)',
-          duplicateOnset: '(Def/MyColor, Red, Onset), (Def/MyColor, Onset)',
+          duplicateOnset: '(Def/MyColor, (Red), Onset), (Def/MyColor, Onset)',
         }
         const expectedIssues = {
           onsetAndOffsetWithDifferentValues: [],
@@ -1818,8 +1814,7 @@ describe('HED string and event validation', () => {
      * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
      */
     const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-      return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.isEmpty(issues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
       })
     }
@@ -1838,8 +1833,7 @@ describe('HED string and event validation', () => {
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemantic2 = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-        return hedSchemaPromise2.then(([hedSchemas, issues]) => {
-          assert.isEmpty(issues, 'Schema loading issues occurred')
+        return hedSchemaPromise2.then((hedSchemas) => {
           validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
         })
       }

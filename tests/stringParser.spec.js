@@ -331,8 +331,7 @@ describe('HED string parsing', () => {
         ],
       }
 
-      return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.isEmpty(issues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         for (const [testStringKey, testString] of Object.entries(testStrings)) {
           const [parsedString, issues] = parseHedString(testString, hedSchemas)
           assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
@@ -386,8 +385,7 @@ describe('HED string parsing', () => {
         },
       }
 
-      return hedSchemaPromise.then(([hedSchemas, issues]) => {
-        assert.isEmpty(issues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         return validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
           const [parsedString, issues] = parseHedString(string, hedSchemas)
           const canonicalTags = parsedString.tags.map((parsedTag) => {
@@ -408,8 +406,7 @@ describe('HED string parsing', () => {
       ]
       const issues = []
       const parsedStrings = []
-      return hedSchemaPromise.then(([hedSchemas, schemaIssues]) => {
-        assert.isEmpty(schemaIssues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         for (const hedString of hedStrings) {
           const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
           parsedStrings.push(parsedString)
@@ -435,8 +432,7 @@ describe('HED string parsing', () => {
       const hedStrings = ['Sensory-event, Visual-presentation, {stim_file}', '(Image, {body_part}, Pathname/#)', 'Face']
       const issues = []
       const parsedStrings = []
-      return hedSchemaPromise.then(([hedSchemas, schemaIssues]) => {
-        assert.isEmpty(schemaIssues, 'Schema loading issues occurred')
+      return hedSchemaPromise.then((hedSchemas) => {
         for (const hedString of hedStrings) {
           const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
           parsedStrings.push(parsedString)
