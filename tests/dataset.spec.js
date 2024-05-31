@@ -25,14 +25,13 @@ describe('HED dataset validation', () => {
      * @param {Object<string, string[]>} testDatasets The datasets to test.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
-    const validator = function (testDatasets, expectedIssues) {
-      return hedSchemaPromise.then((hedSchemas) => {
-        for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
-          assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
-          const [, testIssues] = hed.validateHedEvents(testDataset, hedSchemas, null, true)
-          assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
-        }
-      })
+    const validator = async function (testDatasets, expectedIssues) {
+      const hedSchemas = await hedSchemaPromise
+      for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
+        assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
+        const [, testIssues] = hed.validateHedEvents(testDataset, hedSchemas, null, true)
+        assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
+      }
     }
 
     it('should properly validate simple HED datasets', () => {
@@ -80,14 +79,13 @@ describe('HED dataset validation', () => {
      * @param {Object<string, string[]>} testDatasets The datasets to test.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
-    const validator = function (testDatasets, expectedIssues) {
-      return hedSchemaPromise.then((hedSchemas) => {
-        for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
-          assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
-          const [, testIssues] = hed.validateHedDataset(testDataset, hedSchemas, true)
-          assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
-        }
-      })
+    const validator = async function (testDatasets, expectedIssues) {
+      const hedSchemas = await hedSchemaPromise
+      for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
+        assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
+        const [, testIssues] = hed.validateHedDataset(testDataset, hedSchemas, true)
+        assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
+      }
     }
 
     it('should properly validate HED datasets without definitions', () => {
@@ -215,16 +213,16 @@ describe('HED dataset validation', () => {
      * Test-validate a dataset.
      *
      * @param {Object<string, string[]>} testDatasets The datasets to test.
+     * @param {string[]} testContext The context for the test datasets.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
-    const validator = function (testDatasets, testContext, expectedIssues) {
-      return hedSchemaPromise.then((hedSchemas) => {
-        for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
-          assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
-          const [, testIssues] = hed.validateHedDatasetWithContext(testDataset, testContext, hedSchemas, true)
-          assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
-        }
-      })
+    const validator = async function (testDatasets, testContext, expectedIssues) {
+      const hedSchemas = await hedSchemaPromise
+      for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
+        assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
+        const [, testIssues] = hed.validateHedDatasetWithContext(testDataset, testContext, hedSchemas, true)
+        assert.sameDeepMembers(testIssues, expectedIssues[testDatasetKey], testDataset.join(','))
+      }
     }
 
     it('should properly validate onset and offset ordering', () => {

@@ -75,18 +75,17 @@ const buildSchemaObjects = function (xmlData) {
  * @param {SchemasSpec} schemaSpecs The description of which schemas to use.
  * @returns {Promise<Schemas>} The schema container object and any issues found.
  */
-export const buildSchemas = function (schemaSpecs) {
+export async function buildSchemas(schemaSpecs) {
   const schemaKeys = Array.from(schemaSpecs.data.keys())
   /* Data format example:
    * [[xmlData, ...], [xmlData, xmlData, ...], ...] */
-  return Promise.all(
+  const schemaXmlData = await Promise.all(
     schemaKeys.map((k) => {
       const specs = schemaSpecs.data.get(k)
       return Promise.all(specs.map((spec) => loadSchema(spec)))
     }),
-  ).then((schemaXmlData) => {
-    const schemaObjects = schemaXmlData.map(buildSchemaObjects)
-    const schemas = new Map(zip(schemaKeys, schemaObjects))
-    return new Schemas(schemas)
-  })
+  )
+  const schemaObjects = schemaXmlData.map(buildSchemaObjects)
+  const schemas = new Map(zip(schemaKeys, schemaObjects))
+  return new Schemas(schemas)
 }
