@@ -25,14 +25,13 @@ describe('HED string conversion', () => {
      * @param {function (Schema, string, string, number): [string, Issue[]]} testFunction The test function.
      * @returns {Promise<void>}
      */
-    const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
-      return hedSchemaPromise.then((hedSchemas) => {
-        for (const [testStringKey, testString] of Object.entries(testStrings)) {
-          const [testResult, issues] = testFunction(hedSchemas.baseSchema, testString, testString, 0)
-          assert.strictEqual(testResult, expectedResults[testStringKey], testString)
-          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
-        }
-      })
+    const validatorBase = async function (testStrings, expectedResults, expectedIssues, testFunction) {
+      const hedSchemas = await hedSchemaPromise
+      for (const [testStringKey, testString] of Object.entries(testStrings)) {
+        const [testResult, issues] = testFunction(hedSchemas.baseSchema, testString, testString, 0)
+        assert.strictEqual(testResult, expectedResults[testStringKey], testString)
+        assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
+      }
     }
 
     describe('Long-to-short', () => {
@@ -589,14 +588,13 @@ describe('HED string conversion', () => {
      * @param {function (Schemas, string): [string, Issue[]]} testFunction The test function.
      * @returns {Promise<void>}
      */
-    const validatorBase = function (testStrings, expectedResults, expectedIssues, testFunction) {
-      return hedSchemaPromise.then((hedSchemas) => {
-        for (const [testStringKey, testString] of Object.entries(testStrings)) {
-          const [testResult, issues] = testFunction(hedSchemas, testString)
-          assert.strictEqual(testResult, expectedResults[testStringKey], testString)
-          assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
-        }
-      })
+    const validatorBase = async function (testStrings, expectedResults, expectedIssues, testFunction) {
+      const hedSchemas = await hedSchemaPromise
+      for (const [testStringKey, testString] of Object.entries(testStrings)) {
+        const [testResult, issues] = testFunction(hedSchemas, testString)
+        assert.strictEqual(testResult, expectedResults[testStringKey], testString)
+        assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
+      }
     }
 
     describe('Long-to-short', () => {
