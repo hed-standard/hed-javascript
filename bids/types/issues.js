@@ -44,8 +44,8 @@ export class BidsIssue {
     return issues.some((issue) => issue.isError())
   }
 
-  static generateInternalErrorPromise(error) {
-    return Promise.resolve([new BidsIssue(106, null, error.message)])
+  static generateInternalErrorPromise(error, errorFile) {
+    return Promise.resolve([new BidsIssue(106, errorFile, error.message)])
   }
 }
 
