@@ -18,7 +18,7 @@ export async function validateBidsDataset(dataset, schemaDefinition) {
     try {
       return validator.validateFullDataset()
     } catch (internalError) {
-      return BidsIssue.generateInternalErrorPromise(internalError)
+      return BidsIssue.generateInternalErrorPromise(internalError, dataset.datasetDescription.file)
     }
   } catch (schemaIssues) {
     return BidsHedIssue.fromHedIssues(schemaIssues, dataset.datasetDescription.file)
