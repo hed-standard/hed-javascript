@@ -107,11 +107,6 @@ export class Hed3Schema extends Schema {
    */
   entries
   /**
-   * The mapping between short and long tags.
-   * @type {Mapping}
-   */
-  mapping
-  /**
    * The standard HED schema version this schema is linked to.
    * @type {string}
    */
@@ -122,9 +117,8 @@ export class Hed3Schema extends Schema {
    *
    * @param {object} xmlData The schema XML data.
    * @param {SchemaEntries} entries A collection of schema entries.
-   * @param {Mapping} mapping A mapping between short and long tags.
    */
-  constructor(xmlData, entries, mapping) {
+  constructor(xmlData, entries) {
     super(xmlData)
 
     if (!this.library) {
@@ -133,7 +127,6 @@ export class Hed3Schema extends Schema {
       this.withStandard = xmlData.HED?.$?.withStandard
     }
     this.entries = entries
-    this.mapping = mapping
   }
 
   /**
@@ -164,7 +157,7 @@ export class PartneredSchema extends Hed3Schema {
    * @param {Hed3Schema} actualSchema The actual HED 3 schema underlying this partnered schema.
    */
   constructor(actualSchema) {
-    super({}, actualSchema.entries, actualSchema.mapping)
+    super({}, actualSchema.entries)
     this.actualSchema = actualSchema
     this.withStandard = actualSchema.withStandard
     this.library = undefined

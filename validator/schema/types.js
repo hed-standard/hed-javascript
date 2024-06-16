@@ -11,19 +11,34 @@ pluralize.addUncountableRule('hertz')
 export class SchemaEntries extends Memoizer {
   /**
    * The schema's properties.
-   * @type {SchemaEntryManager}
+   * @type {SchemaEntryManager<SchemaProperty>}
    */
   properties
   /**
    * The schema's attributes.
-   * @type {SchemaEntryManager}
+   * @type {SchemaEntryManager<SchemaAttribute>}
    */
   attributes
   /**
-   * The schema's definitions.
-   * @type {Map<string, SchemaEntryManager>}
+   * The schema's value classes.
+   * @type {SchemaEntryManager<SchemaValueClass>}
    */
-  definitions
+  valueClasses
+  /**
+   * The schema's unit classes.
+   * @type {SchemaEntryManager<SchemaUnitClass>}
+   */
+  unitClasses
+  /**
+   * The schema's unit modifiers.
+   * @type {SchemaEntryManager<SchemaUnitModifier>}
+   */
+  unitModifiers
+  /**
+   * The schema's tags.
+   * @type {SchemaTagManager}
+   */
+  tags
 
   /**
    * Constructor.
@@ -33,15 +48,10 @@ export class SchemaEntries extends Memoizer {
     super()
     this.properties = new SchemaEntryManager(schemaParser.properties)
     this.attributes = new SchemaEntryManager(schemaParser.attributes)
-    this.definitions = schemaParser.definitions
-  }
-
-  /**
-   * Get the schema's unit classes.
-   * @returns {SchemaEntryManager}
-   */
-  get unitClassMap() {
-    return this.definitions.get('unitClasses')
+    this.valueClasses = schemaParser.valueClasses
+    this.unitClasses = schemaParser.unitClasses
+    this.unitModifiers = schemaParser.unitModifiers
+    this.tags = schemaParser.tags
   }
 
   /**
@@ -50,7 +60,7 @@ export class SchemaEntries extends Memoizer {
   get allUnits() {
     return this._memoize('allUnits', () => {
       const units = []
-      for (const unitClass of this.unitClassMap.values()) {
+      for (const unitClass of this.unitClasses.values()) {
         const unitClassUnits = unitClass.units
         units.push(...unitClassUnits)
       }
@@ -63,8 +73,7 @@ export class SchemaEntries extends Memoizer {
    * @returns {Map<string, SchemaUnitModifier>}
    */
   get SIUnitModifiers() {
-    const unitModifiers = this.definitions.get('unitModifiers')
-    return unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
+    return this.unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
   }
 
   /**
@@ -72,8 +81,7 @@ export class SchemaEntries extends Memoizer {
    * @returns {Map<string, SchemaUnitModifier>}
    */
   get SIUnitSymbolModifiers() {
-    const unitModifiers = this.definitions.get('unitModifiers')
-    return unitModifiers.getEntriesWithBooleanAttribute('SIUnitSymbolModifier')
+    return this.unitModifiers.getEntriesWithBooleanAttribute('SIUnitSymbolModifier')
   }
 
   /**
@@ -84,10 +92,10 @@ export class SchemaEntries extends Memoizer {
    * @returns {boolean} Whether this tag has this attribute.
    */
   tagHasAttribute(tag, tagAttribute) {
-    if (!this.definitions.get('tags').hasEntry(tag)) {
+    if (!this.tags.hasLongNameEntry(tag)) {
       return false
     }
-    return this.definitions.get('tags').getEntry(tag).hasAttributeName(tagAttribute)
+    return this.tags.getLongNameEntry(tag).hasAttributeName(tagAttribute)
   }
 }
 
@@ -198,9 +206,64 @@ export class SchemaEntryManager extends Memoizer {
 }
 
 /**
+ * A manager of {@link SchemaTag} objects.
+ *
+ * @extends {SchemaEntryManager<SchemaTag>}
+ */
+export class SchemaTagManager extends SchemaEntryManager {
+  /**
+   * The mapping of tags by long name.
+   * @type {Map<string, SchemaTag>}
+   */
+  _definitionsByLongName
+
+  /**
+   * Constructor.
+   *
+   * @param {Map<string, SchemaTag>} byShortName The mapping of tags by short name.
+   * @param {Map<string, SchemaTag>} byLongName The mapping of tags by long name.
+   */
+  constructor(byShortName, byLongName) {
+    super(byShortName)
+    this._definitionsByLongName = byLongName
+  }
+
+  /**
+   * Determine whether the tag with the given name exists.
+   *
+   * @param {string} longName The long name of the tag.
+   * @return {boolean} Whether the tag exists.
+   */
+  hasLongNameEntry(longName) {
+    return this._definitionsByLongName.has(longName)
+  }
+
+  /**
+   * Get the tag with the given name.
+   *
+   * @param {string} longName The long name of the tag to retrieve.
+   * @return {SchemaTag} The tag with that name.
+   */
+  getLongNameEntry(longName) {
+    return this._definitionsByLongName.get(longName)
+  }
+
+  /**
+   * Filter the map underlying this manager using the long name.
+   *
+   * @param {function ([string, T]): boolean} fn The filtering function.
+   * @returns {Map<string, T>} The filtered map.
+   */
+  filterByLongName(fn) {
+    const pairArray = Array.from(this._definitionsByLongName.entries())
+    return new Map(pairArray.filter((entry) => fn(entry)))
+  }
+}
+
+/**
  * SchemaEntry class
  */
-export class SchemaEntry {
+export class SchemaEntry extends Memoizer {
   /**
    * The name of this schema entry.
    * @type {string}
@@ -208,6 +271,7 @@ export class SchemaEntry {
   _name
 
   constructor(name) {
+    super()
     this._name = name
   }
 
@@ -600,15 +664,23 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
  */
 export class SchemaTag extends SchemaEntryWithAttributes {
   /**
+   * This tag's parent tag.
+   * @type {SchemaTag}
+   * @private
+   */
+  _parent
+  /**
    * This tag's unit classes.
    * @type {SchemaUnitClass[]}
+   * @private
    */
   _unitClasses
   /**
-   * This tag's parent tag.
-   * @type {SchemaTag}
+   * This tag's value-taking child.
+   * @type {SchemaValueTag}
+   * @private
    */
-  _parent
+  _valueTag
 
   /**
    * Constructor.
@@ -637,7 +709,15 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @returns {boolean}
    */
   get hasUnitClasses() {
-    return this._unitClasses.length !== 0
+    return this.unitClasses.length !== 0
+  }
+
+  /**
+   * This tag's value-taking child.
+   * @returns {SchemaValueTag}
+   */
+  get valueTag() {
+    return this._valueTag
   }
 
   /**
@@ -646,5 +726,43 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    */
   get parent() {
     return this._parent
+  }
+
+  /**
+   * Return all of this tag's ancestors.
+   * @returns {*[]}
+   */
+  get ancestors() {
+    return this._memoize('ancestors', () => {
+      if (this.parent) {
+        return [this.parent, ...this.parent.ancestors]
+      }
+      return []
+    })
+  }
+
+  /**
+   * This tag's long name.
+   * @returns {string}
+   */
+  get longName() {
+    const nameParts = this.ancestors.map((parentTag) => parentTag.name)
+    nameParts.reverse().push(this.name)
+    return nameParts.join('/')
+  }
+}
+
+/**
+ * A value-taking tag in a HED schema.
+ */
+export class SchemaValueTag extends SchemaTag {
+  /**
+   * This tag's long name.
+   * @returns {string}
+   */
+  get longName() {
+    const nameParts = this.ancestors.map((parentTag) => parentTag.name)
+    nameParts.reverse().push('#')
+    return nameParts.join('/')
   }
 }
