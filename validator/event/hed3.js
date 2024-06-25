@@ -96,9 +96,9 @@ export class Hed3Validator extends HedValidator {
   _checkForTagAttribute(attribute, fn) {
     const schemas = this.hedSchemas.schemas.values()
     for (const schema of schemas) {
-      const tags = schema.entries.definitions.get('tags').getEntriesWithBooleanAttribute(attribute)
-      for (const tag of tags) {
-        fn(tag.name)
+      const tags = schema.entries.tags.getEntriesWithBooleanAttribute(attribute)
+      for (const tag of tags.values()) {
+        fn(tag.longName)
       }
     }
   }

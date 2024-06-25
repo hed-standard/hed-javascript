@@ -347,7 +347,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    * @returns {string} The nicely formatted version of this tag.
    */
   format() {
-    let tagName = this.schema?.entries.definitions.get('tags').getEntry(this.formattedTag)?.name
+    let tagName = this.schema?.entries?.tags?.getLongNameEntry(this.formattedTag)?.longName
     if (tagName === undefined) {
       tagName = this.originalTag
     }
@@ -365,7 +365,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    */
   get existsInSchema() {
     return this._memoize('existsInSchema', () => {
-      return this.schema?.entries.definitions.get('tags').hasEntry(this.formattedTag)
+      return this.schema?.entries?.tags?.hasLongNameEntry(this.formattedTag)
     })
   }
 
@@ -395,7 +395,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
   get takesValueTag() {
     return this._memoize('takesValueTag', () => {
       if (this.takesValueFormattedTag !== null) {
-        return this.schema?.entries.definitions.get('tags').getEntry(this.takesValueFormattedTag)
+        return this.schema?.entries?.tags?.getLongNameEntry(this.takesValueFormattedTag)
       } else {
         return null
       }
@@ -420,9 +420,6 @@ export class ParsedHed3Tag extends ParsedHedTag {
    */
   get hasUnitClass() {
     return this._memoize('hasUnitClass', () => {
-      if (!this.schema?.entries.definitions.has('unitClasses')) {
-        return false
-      }
       if (this.takesValueTag === null) {
         return false
       }
@@ -475,7 +472,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
       const tagUnitClasses = this.unitClasses
       const units = new Set()
       for (const unitClass of tagUnitClasses) {
-        const unitClassUnits = this.schema?.entries.unitClassMap.getEntry(unitClass.name).units
+        const unitClassUnits = this.schema?.entries.unitClasses.getEntry(unitClass.name).units
         for (const unit of unitClassUnits.values()) {
           units.add(unit)
         }

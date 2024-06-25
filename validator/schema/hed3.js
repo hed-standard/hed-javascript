@@ -1,3 +1,6 @@
+import zip from 'lodash/zip'
+import semver from 'semver'
+
 // TODO: Switch require once upstream bugs are fixed.
 // import xpath from 'xml2js-xpath'
 // Temporary
@@ -5,24 +8,54 @@ import * as xpath from '../../utils/xpath'
 
 import { SchemaParser } from './parser'
 import {
+  nodeProperty,
+  SchemaAttribute,
+  schemaAttributeProperty,
   SchemaEntries,
   SchemaEntryManager,
-  SchemaAttribute,
   SchemaProperty,
   SchemaTag,
+  SchemaTagManager,
   SchemaUnit,
   SchemaUnitClass,
   SchemaUnitModifier,
   SchemaValueClass,
-  nodeProperty,
-  schemaAttributeProperty,
+  SchemaValueTag,
 } from './types'
 import { generateIssue, IssueError } from '../../common/issues/issues'
-import { buildMappingObject } from '../../converter/schema'
 
 const lc = (str) => str.toLowerCase()
 
 export class Hed3SchemaParser extends SchemaParser {
+  /**
+   * @type {Map<string, SchemaProperty>}
+   */
+  properties
+  /**
+   * @type {Map<string, SchemaAttribute>}
+   */
+  attributes
+  /**
+   * The schema's value classes.
+   * @type {SchemaEntryManager<SchemaValueClass>}
+   */
+  valueClasses
+  /**
+   * The schema's unit classes.
+   * @type {SchemaEntryManager<SchemaUnitClass>}
+   */
+  unitClasses
+  /**
+   * The schema's unit modifiers.
+   * @type {SchemaEntryManager<SchemaUnitModifier>}
+   */
+  unitModifiers
+  /**
+   * The schema's tags.
+   * @type {SchemaTagManager}
+   */
+  tags
+
   constructor(rootElement) {
     super(rootElement)
     this._versionDefinitions = {}
@@ -36,7 +69,6 @@ export class Hed3SchemaParser extends SchemaParser {
   populateDictionaries() {
     this.parseProperties()
     this.parseAttributes()
-    this.definitions = new Map()
     this.parseUnitModifiers()
     this.parseUnitClasses()
     this.parseTags()
@@ -57,10 +89,16 @@ export class Hed3SchemaParser extends SchemaParser {
     }
   }
 
+  /**
+   * Retrieve all the tags in the schema.
+   *
+   * @param {string} tagElementName The name of the tag element.
+   * @returns {Map<Object, string>} The tag names and XML elements.
+   */
   getAllTags(tagElementName = 'node') {
     const tagElements = xpath.find(this.rootElement, '//' + tagElementName)
-    const tags = tagElements.map((element) => this.getTagPathFromTagElement(element))
-    return [tags, tagElements]
+    const tags = tagElements.map((element) => this.getElementTagName(element))
+    return new Map(zip(tagElements, tags))
   }
 
   // Rewrite starts here.
@@ -120,7 +158,7 @@ export class Hed3SchemaParser extends SchemaParser {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes))
     }
-    this.definitions.set('valueClasses', new SchemaEntryManager(valueClasses))
+    this.valueClasses = new SchemaEntryManager(valueClasses)
   }
 
   parseUnitModifiers() {
@@ -130,7 +168,7 @@ export class Hed3SchemaParser extends SchemaParser {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       unitModifiers.set(name, new SchemaUnitModifier(name, booleanAttributes, valueAttributes))
     }
-    this.definitions.set('unitModifiers', new SchemaEntryManager(unitModifiers))
+    this.unitModifiers = new SchemaEntryManager(unitModifiers)
   }
 
   parseUnitClasses() {
@@ -142,13 +180,13 @@ export class Hed3SchemaParser extends SchemaParser {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       unitClasses.set(name, new SchemaUnitClass(name, booleanAttributes, valueAttributes, unitClassUnits.get(name)))
     }
-    this.definitions.set('unitClasses', new SchemaEntryManager(unitClasses))
+    this.unitClasses = new SchemaEntryManager(unitClasses)
   }
 
   parseUnits() {
     const unitClassUnits = new Map()
     const unitClassElements = this.getElementsByName('unitClassDefinition')
-    const unitModifiers = this.definitions.get('unitModifiers')
+    const unitModifiers = this.unitModifiers
     for (const element of unitClassElements) {
       const elementName = this.getElementTagName(element)
       const units = new Map()
@@ -169,30 +207,35 @@ export class Hed3SchemaParser extends SchemaParser {
   }
 
   parseTags() {
-    const [tags, tagElements] = this.getAllTags()
-    const lowercaseTags = tags.map(lc)
-    this.tags = new Set(lowercaseTags)
+    const tags = this.getAllTags()
+    const shortTags = new Map()
+    for (const tagElement of tags.keys()) {
+      const shortKey =
+        this.getElementTagName(tagElement) === '#'
+          ? this.getParentTagName(tagElement) + '-#'
+          : this.getElementTagName(tagElement)
+      shortTags.set(tagElement, shortKey)
+    }
     const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseAttributeElements(
-      tagElements,
-      (element) => this.getTagPathFromTagElement(element),
+      tags.keys(),
+      (element) => shortTags.get(element),
     )
 
     const recursiveAttributes = Array.from(this.attributes.values()).filter((attribute) =>
-      attribute.roleProperties.has(this.properties.get('recursiveProperty')),
+      attribute.roleProperties.has(this.properties.get('isInheritedProperty')),
     )
-    const unitClasses = this.definitions.get('unitClasses')
     const tagUnitClassAttribute = this.attributes.get('unitClass')
+    const tagTakesValueAttribute = this.attributes.get('takesValue')
 
     const tagUnitClassDefinitions = new Map()
     const recursiveChildren = new Map()
-    tags.forEach((tagName, index) => {
-      const tagElement = tagElements[index]
+    for (const [tagElement, tagName] of shortTags) {
       const valueAttributes = valueAttributeDefinitions.get(tagName)
       if (valueAttributes.has(tagUnitClassAttribute)) {
         tagUnitClassDefinitions.set(
           tagName,
           valueAttributes.get(tagUnitClassAttribute).map((unitClassName) => {
-            return unitClasses.getEntry(unitClassName)
+            return this.unitClasses.getEntry(unitClassName)
           }),
         )
         valueAttributes.delete(tagUnitClassAttribute)
@@ -204,31 +247,46 @@ export class Hed3SchemaParser extends SchemaParser {
         }
         recursiveChildren.set(attribute, children)
       }
-    })
+    }
 
     for (const [attribute, childTagElements] of recursiveChildren) {
       for (const tagElement of childTagElements) {
-        const tagName = this.getTagPathFromTagElement(tagElement)
+        const tagName = this.getElementTagName(tagElement)
         booleanAttributeDefinitions.get(tagName).add(attribute)
       }
     }
 
     const tagEntries = new Map()
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      if (tagEntries.has(name)) {
+        throw new IssueError(generateIssue('duplicateTagsInSchema', {}))
+      }
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       const unitClasses = tagUnitClassDefinitions.get(name)
-      tagEntries.set(lc(name), new SchemaTag(name, booleanAttributes, valueAttributes, unitClasses))
-    }
-
-    for (const tagElement of tagElements) {
-      const tagName = this.getTagPathFromTagElement(tagElement)
-      const parentTagName = this.getParentTagPath(tagElement)
-      if (parentTagName) {
-        tagEntries.get(lc(tagName))._parent = tagEntries.get(lc(parentTagName))
+      if (booleanAttributes.has(tagTakesValueAttribute)) {
+        tagEntries.set(lc(name), new SchemaValueTag(name, booleanAttributes, valueAttributes, unitClasses))
+      } else {
+        tagEntries.set(lc(name), new SchemaTag(name, booleanAttributes, valueAttributes, unitClasses))
       }
     }
 
-    this.definitions.set('tags', new SchemaEntryManager(tagEntries))
+    for (const tagElement of tags.keys()) {
+      const tagName = shortTags.get(tagElement)
+      const parentTagName = shortTags.get(tagElement.$parent)
+      if (parentTagName) {
+        tagEntries.get(lc(tagName))._parent = tagEntries.get(lc(parentTagName))
+      }
+      if (this.getElementTagName(tagElement) === '#') {
+        tagEntries.get(lc(parentTagName))._valueTag = tagEntries.get(lc(tagName))
+      }
+    }
+
+    const longNameTagEntries = new Map()
+    for (const tag of tagEntries.values()) {
+      longNameTagEntries.set(lc(tag.longName), tag)
+    }
+
+    this.tags = new SchemaTagManager(tagEntries, longNameTagEntries)
   }
 
   _parseDefinitions(category) {
@@ -300,18 +358,22 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
   }
 
   _addCustomAttributes() {
-    const recursiveProperty = this.properties.get('recursiveProperty')
+    const isInheritedProperty = this.properties.get('isInheritedProperty')
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
-    extensionAllowedAttribute._roleProperties.add(recursiveProperty)
+    if (this.rootElement.$.library === undefined && semver.lt(this.rootElement.$.version, '8.2.0')) {
+      extensionAllowedAttribute._roleProperties.add(isInheritedProperty)
+    }
     const inLibraryAttribute = this.attributes.get('inLibrary')
     if (inLibraryAttribute) {
-      inLibraryAttribute._roleProperties.add(recursiveProperty)
+      inLibraryAttribute._roleProperties.add(isInheritedProperty)
     }
   }
 
   _addCustomProperties() {
-    const recursiveProperty = new SchemaProperty('recursiveProperty', 'roleProperty')
-    this.properties.set('recursiveProperty', recursiveProperty)
+    if (this.rootElement.$.library === undefined && semver.lt(this.rootElement.$.version, '8.2.0')) {
+      const recursiveProperty = new SchemaProperty('isInheritedProperty', 'roleProperty')
+      this.properties.set('isInheritedProperty', recursiveProperty)
+    }
   }
 }
 
@@ -362,28 +424,19 @@ export class Hed3PartneredSchemaMerger {
   /**
    * The source schema's tag collection.
    *
-   * @return {SchemaEntryManager<SchemaTag>}
+   * @return {SchemaTagManager}
    */
   get sourceTags() {
-    return this.source.entries.definitions.get('tags')
+    return this.source.entries.tags
   }
 
   /**
    * The destination schema's tag collection.
    *
-   * @return {SchemaEntryManager<SchemaTag>}
+   * @return {SchemaTagManager}
    */
   get destinationTags() {
-    return this.destination.entries.definitions.get('tags')
-  }
-
-  /**
-   * The source schema's mapping from long tag names to TagEntry objects.
-   *
-   * @return {Map<string, TagEntry>}
-   */
-  get sourceLongToTags() {
-    return this.source.mapping.longToTags
+    return this.destination.entries.tags
   }
 
   /**
@@ -393,7 +446,6 @@ export class Hed3PartneredSchemaMerger {
    */
   mergeData() {
     this.mergeTags()
-    this.destination.mapping = buildMappingObject(this.destination.entries)
     return this.destination
   }
 
@@ -417,15 +469,15 @@ export class Hed3PartneredSchemaMerger {
       return
     }
 
-    const shortName = this.sourceLongToTags.get(tag.name).shortTag
-    if (this.destination.mapping.shortToTags.has(shortName.toLowerCase())) {
+    const shortName = tag.name
+    if (this.destinationTags.hasEntry(shortName.toLowerCase())) {
       throw new IssueError(generateIssue('lazyPartneredSchemasShareTag', { tag: shortName }))
     }
 
     const rootedTagShortName = tag.getNamedAttributeValue('rooted')
     if (rootedTagShortName) {
       const parentTag = tag.parent
-      if (this.sourceLongToTags.get(parentTag?.name)?.shortTag?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
+      if (parentTag?.name?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
         throw new Error(`Node ${shortName} is improperly rooted.`)
       }
     }
@@ -454,12 +506,24 @@ export class Hed3PartneredSchemaMerger {
      * @type {SchemaUnitClass[]}
      */
     const unitClasses = tag.unitClasses.map(
-      (unitClass) => this.destination.entries.unitClassMap.getEntry(unitClass.name) ?? unitClass,
+      (unitClass) => this.destination.entries.unitClasses.getEntry(unitClass.name) ?? unitClass,
     )
 
-    const newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
-    newTag._parent = this.destinationTags.getEntry(tag.parent?.name?.toLowerCase())
+    let newTag
+    if (tag instanceof SchemaValueTag) {
+      newTag = new SchemaValueTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
+    } else {
+      newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
+    }
+    const destinationParentTag = this.destinationTags.getEntry(tag.parent?.name?.toLowerCase())
+    if (destinationParentTag) {
+      newTag._parent = destinationParentTag
+      if (newTag instanceof SchemaValueTag) {
+        newTag.parent._valueTag = newTag
+      }
+    }
 
     this.destinationTags._definitions.set(newTag.name.toLowerCase(), newTag)
+    this.destinationTags._definitionsByLongName.set(newTag.longName.toLowerCase(), newTag)
   }
 }
