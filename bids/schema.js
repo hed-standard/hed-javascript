@@ -10,17 +10,17 @@ const alphabeticRegExp = new RegExp('^[a-zA-Z]+$')
 /**
  * Build a HED schema collection based on the defined BIDS schemas.
  *
- * @param {BidsDataset} dataset The BIDS dataset being validated.
- * @param {SchemasSpec} schemaDefinition The version spec for the schema to be loaded.
- * @returns {Promise<Schemas>} A Promise with the schema collection and any issues found, or an issue list upon failure.
+ * @param {BidsJsonFile} datasetDescription The description of the BIDS dataset being validated.
+ * @param {SchemasSpec} schemaDefinition The version spec override for the schema to be loaded.
+ * @returns {Promise<Schemas>} A Promise with the schema collection and any issues found.
  * @throws {IssueError} If the schema specification is invalid or missing.
  */
-export async function buildBidsSchemas(dataset, schemaDefinition) {
+export async function buildBidsSchemas(datasetDescription, schemaDefinition) {
   let schemasSpec
   if (schemaDefinition) {
     schemasSpec = validateSchemasSpec(schemaDefinition)
-  } else if (dataset.datasetDescription.jsonData?.HEDVersion) {
-    schemasSpec = parseSchemasSpec(dataset.datasetDescription.jsonData.HEDVersion)
+  } else if (datasetDescription.jsonData?.HEDVersion) {
+    schemasSpec = parseSchemasSpec(datasetDescription.jsonData.HEDVersion)
   } else {
     throw new IssueError(generateIssue('invalidSchemaSpecification', { spec: 'no schema available' }))
   }
@@ -89,3 +89,5 @@ function splitLibraryAndVersion(schemaVersion, originalVersion) {
   }
   return [library, version]
 }
+
+export default buildBidsSchemas

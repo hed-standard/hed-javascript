@@ -29,3 +29,5 @@ export class BidsDataset {
     this.datasetRootDirectory = datasetRootDirectory
   }
 }
+
+export default BidsDataset

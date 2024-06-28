@@ -9,10 +9,10 @@ import { generateIssue } from '../../common/issues/issues'
  */
 export class BidsHedSidecarValidator {
   /**
-   * The BIDS dataset being validated.
-   * @type {BidsDataset}
+   * The BIDS sidecar data being validated.
+   * @type {BidsSidecar[]}
    */
-  dataset
+  sidecarData
   /**
    * The HED schema collection being validated against.
    * @type {Schemas}
@@ -20,18 +20,18 @@ export class BidsHedSidecarValidator {
   hedSchemas
   /**
    * The issues found during validation.
-   * @type {BidsHedIssue[]}
+   * @type {BidsIssue[]}
    */
   issues
 
   /**
    * Constructor.
    *
-   * @param {BidsDataset} dataset The BIDS dataset being validated.
+   * @param {BidsSidecar[]} sidecarData The BIDS sidecar data being validated.
    * @param {Schemas} hedSchemas The HED schema collection being validated against.
    */
-  constructor(dataset, hedSchemas) {
-    this.dataset = dataset
+  constructor(sidecarData, hedSchemas) {
+    this.sidecarData = sidecarData
     this.hedSchemas = hedSchemas
     this.issues = []
   }
@@ -39,10 +39,10 @@ export class BidsHedSidecarValidator {
   /**
    * Validate a collection of BIDS sidecars. This method returns the complete issue list for convenience.
    *
-   * @returns {BidsHedIssue[]} Any issues found during validation of the sidecars.
+   * @returns {BidsIssue[]} Any issues found during validation of the sidecars.
    */
   validateSidecars() {
-    for (const sidecar of this.dataset.sidecarData) {
+    for (const sidecar of this.sidecarData) {
       const sidecarParsingIssues = BidsHedIssue.fromHedIssues(sidecar.parseHedStrings(this.hedSchemas), sidecar.file)
       this.issues.push(...sidecarParsingIssues)
       if (sidecarParsingIssues.length > 0) {
@@ -58,7 +58,7 @@ export class BidsHedSidecarValidator {
    * Validate an individual BIDS sidecar.
    *
    * @param {BidsSidecar} sidecar A BIDS sidecar.
-   * @returns {BidsHedIssue[]} All issues found.
+   * @returns {BidsIssue[]} All issues found.
    */
   validateSidecar(sidecar) {
     return [...this._validateSidecarStrings(sidecar), ...BidsHedSidecarValidator.validateSidecarCurlyBraces(sidecar)]
@@ -68,7 +68,7 @@ export class BidsHedSidecarValidator {
    * Validate an individual BIDS sidecar's HED strings.
    *
    * @param {BidsSidecar} sidecar A BIDS sidecar.
-   * @returns {BidsHedIssue[]} All issues found.
+   * @returns {BidsIssue[]} All issues found.
    */
   _validateSidecarStrings(sidecar) {
     const issues = []
@@ -106,7 +106,7 @@ export class BidsHedSidecarValidator {
    * @param {ParsedHedString} sidecarString The parsed sidecar HED string.
    * @param {BidsSidecar} sidecar The BIDS sidecar.
    * @param {Object} options Options specific to this validation run to pass to {@link validateHedString}.
-   * @returns {BidsHedIssue[]} All issues found.
+   * @returns {BidsIssue[]} All issues found.
    * @private
    */
   _validateSidecarString(sidecarKey, sidecarString, sidecar, options) {
@@ -123,7 +123,7 @@ export class BidsHedSidecarValidator {
    * Validate an individual BIDS sidecar's curly braces.
    *
    * @param {BidsSidecar} sidecar A BIDS sidecar.
-   * @returns {BidsHedIssue[]} All issues found.
+   * @returns {BidsIssue[]} All issues found.
    */
   static validateSidecarCurlyBraces(sidecar) {
     const issues = []
@@ -145,3 +145,5 @@ export class BidsHedSidecarValidator {
     return issues
   }
 }
+
+export default BidsHedSidecarValidator
