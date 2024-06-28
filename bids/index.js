@@ -1,8 +1,11 @@
-import { validateBidsDataset } from './validate'
+import buildBidsSchemas from './schema'
+import validateBidsDataset from './validate'
 import { BidsJsonFile, BidsSidecar } from './types/json'
 import { BidsEventFile, BidsTabularFile, BidsTsvFile } from './types/tsv'
-import { BidsDataset } from './types/dataset'
+import BidsDataset from './types/dataset'
 import { BidsHedIssue, BidsIssue } from './types/issues'
+import BidsHedSidecarValidator from './validator/bidsHedSidecarValidator'
+import BidsHedTsvValidator from './validator/bidsHedTsvValidator'
 
 export {
   BidsDataset,
@@ -13,6 +16,9 @@ export {
   BidsSidecar,
   BidsIssue,
   BidsHedIssue,
+  BidsHedSidecarValidator,
+  BidsHedTsvValidator,
+  buildBidsSchemas,
   validateBidsDataset,
 }
 
@@ -25,5 +31,8 @@ export default {
   BidsSidecar,
   BidsIssue,
   BidsHedIssue,
+  BidsHedSidecarValidator,
+  BidsHedTsvValidator,
+  buildBidsSchemas,
   validateBidsDataset,
 }
