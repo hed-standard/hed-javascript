@@ -50,13 +50,12 @@ export class BidsHedSidecarValidator {
     if (sidecarParsingIssues.length > 0) {
       return this.issues
     }
-    const sidecarIssues = [...this._validateStrings(), ...this.validateCurlyBraces()]
-    this.issues.push(...sidecarIssues)
+    this.issues.push(...this._validateStrings(), ...this.validateCurlyBraces())
     return this.issues
   }
 
   /**
-   * Validate an individual BIDS sidecar's HED strings.
+   * Validate this sidecar's HED strings.
    *
    * @returns {BidsIssue[]} All issues found.
    */
@@ -90,7 +89,7 @@ export class BidsHedSidecarValidator {
   }
 
   /**
-   * Validate an individual BIDS sidecar string.
+   * Validate an individual string in this sidecar.
    *
    * @param {string} sidecarKey The sidecar key this string belongs to.
    * @param {ParsedHedString} sidecarString The parsed sidecar HED string.
