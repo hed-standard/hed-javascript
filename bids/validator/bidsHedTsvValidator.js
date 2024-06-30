@@ -51,12 +51,16 @@ export class BidsHedTsvValidator {
       this.tsvFile.mergedSidecar.parseHedStrings(this.hedSchemas),
       this.tsvFile.file,
     )
+    this.issues.push(...parsingIssues)
+    if (BidsIssue.anyAreErrors(parsingIssues)) {
+      return this.issues
+    }
     const curlyBraceIssues = new BidsHedSidecarValidator(
       this.tsvFile.mergedSidecar,
       this.hedSchemas,
     ).validateCurlyBraces()
     const hedColumnIssues = this._validateHedColumn()
-    this.issues.push(...parsingIssues, ...curlyBraceIssues, ...hedColumnIssues)
+    this.issues.push(...curlyBraceIssues, ...hedColumnIssues)
     if (BidsIssue.anyAreErrors(this.issues)) {
       return this.issues
     }
