@@ -252,6 +252,11 @@ export default {
     level: 'error',
     message: stringTemplate`The supplied schema specification is invalid. Specification: ${'spec'}.`,
   },
+  missingSchemaSpecification: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`No schema specification was supplied.`,
+  },
   bundledSchemaLoadFailed: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',

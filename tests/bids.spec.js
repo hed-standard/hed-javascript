@@ -413,10 +413,7 @@ describe('BIDS datasets', () => {
             ),
           ],
           noHedVersion: [
-            BidsHedIssue.fromHedIssue(
-              generateIssue('invalidSchemaSpecification', { spec: 'no schema available' }),
-              badDatasetDescriptions[10].file,
-            ),
+            BidsHedIssue.fromHedIssue(generateIssue('missingSchemaSpecification', {}), badDatasetDescriptions[10].file),
           ],
         }
         return validator(testDatasets, expectedIssues, null)

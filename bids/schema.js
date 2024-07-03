@@ -16,15 +16,26 @@ const alphabeticRegExp = new RegExp('^[a-zA-Z]+$')
  * @throws {IssueError} If the schema specification is invalid or missing.
  */
 export async function buildBidsSchemas(datasetDescription, schemaDefinition) {
-  let schemasSpec
-  if (schemaDefinition) {
-    schemasSpec = validateSchemasSpec(schemaDefinition)
-  } else if (datasetDescription.jsonData?.HEDVersion) {
-    schemasSpec = parseSchemasSpec(datasetDescription.jsonData.HEDVersion)
-  } else {
-    throw new IssueError(generateIssue('invalidSchemaSpecification', { spec: 'no schema available' }))
-  }
+  const schemasSpec = buildSchemasSpec(datasetDescription, schemaDefinition)
   return buildSchemas(schemasSpec)
+}
+
+/**
+ * Build a HED schema specification based on the defined BIDS schemas.
+ *
+ * @param {BidsJsonFile} datasetDescription The description of the BIDS dataset being validated.
+ * @param {SchemasSpec} schemaDefinition The version spec override for the schema to be loaded.
+ * @returns {SchemasSpec} The schema specification to be used to build the schemas.
+ * @throws {IssueError} If the schema specification is invalid or missing.
+ */
+function buildSchemasSpec(datasetDescription, schemaDefinition) {
+  if (schemaDefinition) {
+    return validateSchemasSpec(schemaDefinition)
+  } else if (datasetDescription.jsonData?.HEDVersion) {
+    return parseSchemasSpec(datasetDescription.jsonData.HEDVersion)
+  } else {
+    throw new IssueError(generateIssue('missingSchemaSpecification', {}))
+  }
 }
 
 function validateSchemasSpec(schemasSpec) {
