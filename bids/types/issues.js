@@ -65,7 +65,7 @@ export class BidsHedIssue extends BidsIssue {
   /**
    * Convert one or more HED issues into BIDS-compatible issues.
    *
-   * @param {IssueError|Issue[]} hedIssues One or more HED-format issues.
+   * @param {Error|Issue[]} hedIssues One or more HED-format issues.
    * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
    * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} objects.
    * @returns {BidsIssue[]} The passed issue(s) in BIDS-compatible format.
