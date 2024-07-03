@@ -28,6 +28,13 @@ export class BidsDataset {
     this.datasetDescription = datasetDescription
     this.datasetRootDirectory = datasetRootDirectory
   }
+
+  get hasHedData() {
+    return (
+      this.sidecarData.some((sidecarFileData) => sidecarFileData.hasHedData()) ||
+      this.eventData.some((tsvFileData) => tsvFileData.hasHedData())
+    )
+  }
 }
 
 export default BidsDataset

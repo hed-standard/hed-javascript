@@ -79,7 +79,7 @@ export class BidsTsvFile extends BidsFile {
    * @returns {boolean}
    */
   hasHedData() {
-    return this.parsedTsv.has('HED')
+    return this.parsedTsv.has('HED') || this.mergedSidecar.hasHedData()
   }
 
   /**
