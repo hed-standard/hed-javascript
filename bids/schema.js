@@ -12,11 +12,14 @@ const alphabeticRegExp = new RegExp('^[a-zA-Z]+$')
  *
  * @param {BidsJsonFile} datasetDescription The description of the BIDS dataset being validated.
  * @param {SchemasSpec} schemaDefinition The version spec override for the schema to be loaded.
- * @returns {Promise<Schemas>} A Promise with the schema collection and any issues found.
- * @throws {IssueError} If the schema specification is invalid or missing.
+ * @returns {Promise<Schemas|null>} A Promise with the schema collection, or null if the specification is missing.
+ * @throws {IssueError} If the schema specification is invalid.
  */
 export async function buildBidsSchemas(datasetDescription, schemaDefinition) {
   const schemasSpec = buildSchemasSpec(datasetDescription, schemaDefinition)
+  if (schemasSpec === null) {
+    return null
+  }
   return buildSchemas(schemasSpec)
 }
 
@@ -25,8 +28,8 @@ export async function buildBidsSchemas(datasetDescription, schemaDefinition) {
  *
  * @param {BidsJsonFile} datasetDescription The description of the BIDS dataset being validated.
  * @param {SchemasSpec} schemaDefinition The version spec override for the schema to be loaded.
- * @returns {SchemasSpec} The schema specification to be used to build the schemas.
- * @throws {IssueError} If the schema specification is invalid or missing.
+ * @returns {SchemasSpec|null} The schema specification to be used to build the schemas, or null if the specification is missing.
+ * @throws {IssueError} If the schema specification is invalid.
  */
 function buildSchemasSpec(datasetDescription, schemaDefinition) {
   if (schemaDefinition) {
@@ -34,7 +37,7 @@ function buildSchemasSpec(datasetDescription, schemaDefinition) {
   } else if (datasetDescription.jsonData?.HEDVersion) {
     return parseSchemasSpec(datasetDescription.jsonData.HEDVersion)
   } else {
-    throw new IssueError(generateIssue('missingSchemaSpecification', {}))
+    return null
   }
 }
 

@@ -2,6 +2,7 @@ import { buildBidsSchemas } from './schema'
 import { BidsHedIssue, BidsIssue } from './types/issues'
 import BidsHedSidecarValidator from './validator/bidsHedSidecarValidator'
 import BidsHedTsvValidator from './validator/bidsHedTsvValidator'
+import { generateIssue } from '../common/issues/issues'
 
 /**
  * Validate a BIDS dataset.
@@ -11,17 +12,8 @@ import BidsHedTsvValidator from './validator/bidsHedTsvValidator'
  * @returns {Promise<BidsIssue[]>} Any issues found.
  */
 export async function validateBidsDataset(dataset, schemaDefinition) {
-  try {
-    const hedSchemas = await buildBidsSchemas(dataset.datasetDescription, schemaDefinition)
-    const validator = new BidsHedValidator(dataset, hedSchemas)
-    try {
-      return validator.validateFullDataset()
-    } catch (internalError) {
-      return BidsIssue.generateInternalErrorPromise(internalError, dataset.datasetDescription.file)
-    }
-  } catch (schemaIssues) {
-    return BidsHedIssue.fromHedIssues(schemaIssues, dataset.datasetDescription.file)
-  }
+  const validator = new BidsHedValidator(dataset, schemaDefinition)
+  return validator.validate()
 }
 
 export default validateBidsDataset
@@ -35,6 +27,11 @@ class BidsHedValidator {
    * @type {BidsDataset}
    */
   dataset
+  /**
+   * The schema specification override.
+   * @type {SchemasSpec}
+   */
+  schemaDefinition
   /**
    * The HED schema collection being validated against.
    * @type {Schemas}
@@ -50,12 +47,42 @@ class BidsHedValidator {
    * Constructor.
    *
    * @param {BidsDataset} dataset The BIDS dataset being validated.
-   * @param {Schemas} hedSchemas The HED schema collection being validated against.
+   * @param {SchemasSpec} schemaDefinition The version spec for the schema to be loaded.
    */
-  constructor(dataset, hedSchemas) {
+  constructor(dataset, schemaDefinition) {
     this.dataset = dataset
-    this.hedSchemas = hedSchemas
+    this.schemaDefinition = schemaDefinition
     this.issues = []
+  }
+
+  async validate() {
+    this.issues.push(...(await this._buildSchemas()))
+    if (this.issues.length > 0) {
+      return this.issues
+    }
+    try {
+      await this.validateFullDataset()
+    } catch (internalError) {
+      return BidsIssue.generateInternalErrorPromise(internalError, this.dataset.datasetDescription.file)
+    }
+    return this.issues
+  }
+
+  async _buildSchemas() {
+    try {
+      this.hedSchemas = await buildBidsSchemas(this.dataset.datasetDescription, this.schemaDefinition)
+      if (this.hedSchemas === null && this.dataset.hasHedData) {
+        return [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingSchemaSpecification', {}),
+            this.dataset.datasetDescription.file,
+          ),
+        ]
+      }
+      return []
+    } catch (schemaIssues) {
+      return BidsHedIssue.fromHedIssues(schemaIssues, this.dataset.datasetDescription.file)
+    }
   }
 
   /**
