@@ -1,7 +1,5 @@
 import { buildBidsSchemas } from './schema'
 import { BidsHedIssue, BidsIssue } from './types/issues'
-import BidsHedSidecarValidator from './validator/bidsHedSidecarValidator'
-import BidsHedTsvValidator from './validator/bidsHedTsvValidator'
 import { generateIssue } from '../common/issues/issues'
 
 /**
@@ -91,17 +89,47 @@ class BidsHedValidator {
    * @returns {Promise<BidsIssue[]>} Any issues found.
    */
   async validateFullDataset() {
-    for (const sidecar of this.dataset.sidecarData) {
-      const sidecarValidator = new BidsHedSidecarValidator(sidecar, this.hedSchemas)
-      this.issues.push(...sidecarValidator.validate())
-    }
+    this._validateFiles(this.dataset.sidecarData)
     if (BidsIssue.anyAreErrors(this.issues)) {
       return this.issues
     }
-    for (const eventFileData of this.dataset.eventData) {
-      const tsvValidator = new BidsHedTsvValidator(eventFileData, this.hedSchemas)
-      this.issues.push(...tsvValidator.validate())
-    }
+    this._validateFiles(this.dataset.eventData)
     return this.issues
+  }
+
+  /**
+   * Validate a set of BIDS files using a HED schema collection.
+   *
+   * @param {BidsFile[]} files The list of files.
+   * @private
+   */
+  _validateFiles(files) {
+    for (const file of files) {
+      const schemaFound = this._validateFile(file)
+      if (!schemaFound) {
+        return
+      }
+    }
+  }
+
+  /**
+   * Validate a BIDS file using a HED schema collection.
+   *
+   * @returns {boolean} If the schema was found by the validator.
+   * @private
+   */
+  _validateFile(file) {
+    const issues = file.validate(this.hedSchemas)
+    if (issues === null) {
+      this.issues.push(
+        BidsHedIssue.fromHedIssue(
+          generateIssue('missingSchemaSpecification', {}),
+          this.dataset.datasetDescription.file,
+        ),
+      )
+      return false
+    }
+    this.issues.push(...issues)
+    return true
   }
 }

@@ -74,7 +74,7 @@ export class BidsHedIssue extends BidsIssue {
     if (hedIssues instanceof IssueError) {
       return [BidsHedIssue.fromHedIssue(hedIssues.issue, file, extraParameters)]
     } else if (hedIssues instanceof Error) {
-      return [new BidsIssue(106, null, hedIssues.message)]
+      return [new BidsIssue(106, file ?? null, hedIssues.message)]
     } else {
       return hedIssues.map((hedIssue) => BidsHedIssue.fromHedIssue(hedIssue, file, extraParameters))
     }
