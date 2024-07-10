@@ -59,7 +59,7 @@ class BidsHedValidator {
       return this.issues
     }
     try {
-      await this.validateFullDataset()
+      this.validateFullDataset()
     } catch (internalError) {
       return BidsIssue.generateInternalErrorPromise(internalError, this.dataset.datasetDescription.file)
     }
@@ -86,9 +86,9 @@ class BidsHedValidator {
   /**
    * Validate a full BIDS dataset using a HED schema collection.
    *
-   * @returns {Promise<BidsIssue[]>} Any issues found.
+   * @returns {BidsIssue[]} Any issues found.
    */
-  async validateFullDataset() {
+  validateFullDataset() {
     this._validateFiles(this.dataset.sidecarData)
     if (BidsIssue.anyAreErrors(this.issues)) {
       return this.issues
