@@ -19,6 +19,7 @@ import {
 } from './types'
 import { generateIssue, IssueError } from '../../common/issues/issues'
 import { buildMappingObject } from '../../converter/schema'
+import semver from 'semver'
 
 const lc = (str) => str.toLowerCase()
 
@@ -177,9 +178,7 @@ export class Hed3SchemaParser extends SchemaParser {
       (element) => this.getTagPathFromTagElement(element),
     )
 
-    const recursiveAttributes = Array.from(this.attributes.values()).filter((attribute) =>
-      attribute.roleProperties.has(this.properties.get('recursiveProperty')),
-    )
+    const recursiveAttributes = this._getRecursiveAttributes()
     const unitClasses = this.definitions.get('unitClasses')
     const tagUnitClassAttribute = this.attributes.get('unitClass')
 
@@ -272,6 +271,19 @@ export class Hed3SchemaParser extends SchemaParser {
     return [booleanAttributes, valueAttributes]
   }
 
+  _getRecursiveAttributes() {
+    const attributeArray = Array.from(this.attributes.values())
+    if (semver.lt(this.rootElement.$.version, '8.3.0')) {
+      return attributeArray.filter((attribute) =>
+        attribute.roleProperties.has(this.properties.get('isInheritedProperty')),
+      )
+    } else {
+      return attributeArray.filter(
+        (attribute) => !attribute.roleProperties.has(this.properties.get('annotationProperty')),
+      )
+    }
+  }
+
   _addCustomAttributes() {
     // No-op
   }
@@ -295,23 +307,27 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
         'unitModifierProperty',
         'valueClassProperty',
       ]),
-      roleProperties: new Set(['recursiveProperty', 'isInheritedProperty']),
+      roleProperties: new Set(['recursiveProperty', 'isInheritedProperty', 'annotationProperty']),
     }
   }
 
   _addCustomAttributes() {
-    const recursiveProperty = this.properties.get('recursiveProperty')
+    const isInheritedProperty = this.properties.get('isInheritedProperty')
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
-    extensionAllowedAttribute._roleProperties.add(recursiveProperty)
+    if (this.rootElement.$.library === undefined && semver.lt(this.rootElement.$.version, '8.2.0')) {
+      extensionAllowedAttribute._roleProperties.add(isInheritedProperty)
+    }
     const inLibraryAttribute = this.attributes.get('inLibrary')
-    if (inLibraryAttribute) {
-      inLibraryAttribute._roleProperties.add(recursiveProperty)
+    if (inLibraryAttribute && semver.lt(this.rootElement.$.version, '8.3.0')) {
+      inLibraryAttribute._roleProperties.add(isInheritedProperty)
     }
   }
 
   _addCustomProperties() {
-    const recursiveProperty = new SchemaProperty('recursiveProperty', 'roleProperty')
-    this.properties.set('recursiveProperty', recursiveProperty)
+    if (this.rootElement.$.library === undefined && semver.lt(this.rootElement.$.version, '8.2.0')) {
+      const recursiveProperty = new SchemaProperty('isInheritedProperty', 'roleProperty')
+      this.properties.set('isInheritedProperty', recursiveProperty)
+    }
   }
 }
 
