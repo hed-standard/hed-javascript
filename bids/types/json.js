@@ -1,8 +1,8 @@
 import { sidecarValueHasHed } from '../utils'
-import { generateIssue } from '../../common/issues/issues'
 import { parseHedString } from '../../parser/main'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './basic'
+import BidsHedSidecarValidator from '../validator/bidsHedSidecarValidator'
 
 /**
  * A BIDS JSON file.
@@ -15,7 +15,7 @@ export class BidsJsonFile extends BidsFile {
   jsonData
 
   constructor(name, jsonData, file) {
-    super(name, file)
+    super(name, file, BidsHedSidecarValidator)
     this.jsonData = jsonData
   }
 }

@@ -1,4 +1,4 @@
-import { BidsHedSidecarValidator } from './bidsHedSidecarValidator'
+import BidsHedSidecarValidator from './bidsHedSidecarValidator'
 import { BidsHedIssue, BidsIssue } from '../types/issues'
 import { BidsTsvEvent, BidsTsvRow } from '../types/tsv'
 import { parseHedString } from '../../parser/main'
@@ -7,6 +7,7 @@ import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../common/issues/issues'
 import { validateHedDatasetWithContext } from '../../validator/dataset'
 import { groupBy } from '../../utils/map'
+import { validateHedString } from '../../validator/event/init'
 
 /**
  * Validator for HED data in BIDS TSV files.
@@ -24,7 +25,7 @@ export class BidsHedTsvValidator {
   hedSchemas
   /**
    * The issues found during validation.
-   * @type {BidsHedIssue[]}
+   * @type {BidsIssue[]}
    */
   issues
 
@@ -43,17 +44,24 @@ export class BidsHedTsvValidator {
   /**
    * Validate a BIDS TSV file. This method returns the complete issue list for convenience.
    *
-   * @returns {BidsHedIssue[]} Any issues found during validation of this TSV file.
+   * @returns {BidsIssue[]} Any issues found during validation of this TSV file.
    */
   validate() {
     const parsingIssues = BidsHedIssue.fromHedIssues(
       this.tsvFile.mergedSidecar.parseHedStrings(this.hedSchemas),
       this.tsvFile.file,
     )
-    const curlyBraceIssues = BidsHedSidecarValidator.validateSidecarCurlyBraces(this.tsvFile.mergedSidecar)
-    const syntaxIssues = [...parsingIssues, ...curlyBraceIssues]
-    this.issues.push(...syntaxIssues)
-    if (syntaxIssues.length > 0) {
+    this.issues.push(...parsingIssues)
+    if (BidsIssue.anyAreErrors(parsingIssues)) {
+      return this.issues
+    }
+    const curlyBraceIssues = new BidsHedSidecarValidator(
+      this.tsvFile.mergedSidecar,
+      this.hedSchemas,
+    ).validateCurlyBraces()
+    const hedColumnIssues = this._validateHedColumn()
+    this.issues.push(...curlyBraceIssues, ...hedColumnIssues)
+    if (BidsIssue.anyAreErrors(this.issues)) {
       return this.issues
     }
 
@@ -65,6 +73,67 @@ export class BidsHedTsvValidator {
     }
 
     return this.issues
+  }
+
+  /**
+   * Validate this TSV file's HED column.
+   *
+   * @returns {BidsIssue[]} All issues found.
+   * @private
+   */
+  _validateHedColumn() {
+    return this.tsvFile.hedColumnHedStrings.flatMap((hedString, rowIndexMinusTwo) =>
+      this._validateHedColumnString(hedString, rowIndexMinusTwo + 2),
+    )
+  }
+
+  /**
+   * Validate a string in this TSV file's HED column.
+   *
+   * @param {string} hedString The string to be validated.
+   * @param {number} rowIndex The index of this row in the TSV file.
+   * @returns {BidsIssue[]} All issues found.
+   * @private
+   */
+  _validateHedColumnString(hedString, rowIndex) {
+    if (!hedString) {
+      return []
+    }
+
+    const issues = []
+    const options = {
+      checkForWarnings: true,
+      expectValuePlaceholderString: false,
+      definitionsAllowed: 'no',
+    }
+
+    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
+    issues.push(
+      ...BidsHedIssue.fromHedIssues(Object.values(parsingIssues).flat(), this.tsvFile.file, { tsvLine: rowIndex }),
+    )
+
+    if (parsedString === null) {
+      return issues
+    }
+
+    if (parsedString.columnSplices.length > 0) {
+      issues.push(
+        BidsHedIssue.fromHedIssue(
+          generateIssue('curlyBracesInHedColumn', {
+            column: parsedString.columnSplices[0].format(),
+            tsvLine: rowIndex,
+          }),
+          this.tsvFile.file,
+        ),
+      )
+      return issues
+    }
+
+    const [, hedIssues] = validateHedString(parsedString, this.hedSchemas, options)
+    const convertedIssues = BidsHedIssue.fromHedIssues(hedIssues, this.tsvFile.file, { tsvLine: rowIndex })
+    issues.push(...convertedIssues)
+
+    return issues
   }
 
   /**
@@ -99,7 +168,7 @@ export class BidsHedTsvParser {
   hedSchemas
   /**
    * The issues found during parsing.
-   * @type {BidsHedIssue[]}
+   * @type {BidsIssue[]}
    */
   issues
 
@@ -312,3 +381,5 @@ export class BidsHedTsvParser {
     return null
   }
 }
+
+export default BidsHedTsvValidator

@@ -1,3 +1,5 @@
+import { BidsHedIssue } from './issues'
+
 /**
  * A BIDS file.
  */
@@ -13,10 +15,16 @@ export class BidsFile {
    * @type {object}
    */
   file
+  /**
+   * The validator class used to validate this file.
+   * @private
+   */
+  _validatorClass
 
-  constructor(name, file) {
+  constructor(name, file, validatorClass) {
     this.name = name
     this.file = file
+    this._validatorClass = validatorClass
   }
 
   /**
@@ -26,5 +34,28 @@ export class BidsFile {
    */
   hasHedData() {
     return false
+  }
+
+  validate(hedSchemas) {
+    if (!this.hasHedData()) {
+      return []
+    } else if (hedSchemas === null) {
+      return null
+    }
+
+    try {
+      const validator = new this.validatorClass(this, hedSchemas)
+      return validator.validate()
+    } catch (internalError) {
+      return BidsHedIssue.fromHedIssues(internalError, this.file)
+    }
+  }
+
+  /**
+   * The validator class used to validate this file.
+   * @returns {*}
+   */
+  get validatorClass() {
+    return this._validatorClass
   }
 }
