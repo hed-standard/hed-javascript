@@ -65,7 +65,7 @@ describe('HED dataset validation', () => {
           generateValidationIssue('invalidTag', {
             tag: testDatasets.multipleInvalid[1],
           }),
-          generateConverterIssue('invalidTag', testDatasets.multipleInvalid[1], {}, [0, 12]),
+          generateValidationIssue('invalidTag', { tag: testDatasets.multipleInvalid[1], bounds: [0, 12] }),
         ],
       }
       return validator(testDatasets, expectedIssues)
@@ -119,7 +119,7 @@ describe('HED dataset validation', () => {
           generateValidationIssue('invalidTag', {
             tag: testDatasets.multipleInvalid[1],
           }),
-          generateConverterIssue('invalidTag', testDatasets.multipleInvalid[1], {}, [0, 12]),
+          generateValidationIssue('invalidTag', { tag: testDatasets.multipleInvalid[1], bounds: [0, 12] }),
         ],
       }
       return validator(testDatasets, expectedIssues)

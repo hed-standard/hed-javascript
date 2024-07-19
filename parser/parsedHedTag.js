@@ -3,6 +3,8 @@ import { Schema } from '../common/schema/types'
 import { convertPartialHedStringToLong } from '../converter/converter'
 import { getTagLevels, replaceTagNameWithPound } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
+import convertTagSpecToSchemaTag from './converter'
+import { SchemaValueTag } from '../validator/schema/types'
 
 /**
  * A parsed HED tag.
@@ -33,15 +35,13 @@ export class ParsedHedTag extends ParsedHedSubstring {
    * Constructor.
    *
    * @param {string} originalTag The original HED tag.
-   * @param {string} hedString The original HED string.
    * @param {number[]} originalBounds The bounds of the HED tag in the original HED string.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
    */
-  constructor(originalTag, hedString, originalBounds, hedSchemas, schemaName = '') {
+  constructor(originalTag, originalBounds) {
     super(originalTag, originalBounds)
 
-    this._convertTag(hedString, hedSchemas, schemaName)
+    this.canonicalTag = this.originalTag
+    this.conversionIssues = []
 
     this.formattedTag = this._formatTag()
   }
@@ -66,19 +66,6 @@ export class ParsedHedTag extends ParsedHedSubstring {
    */
   format() {
     return this.toString()
-  }
-
-  /**
-   * Convert this tag to long form.
-   *
-   * @param {string} hedString The original HED string.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
-   */
-  // eslint-disable-next-line no-unused-vars
-  _convertTag(hedString, hedSchemas, schemaName) {
-    this.canonicalTag = this.originalTag
-    this.conversionIssues = []
   }
 
   /**
@@ -293,24 +280,42 @@ export class ParsedHedTag extends ParsedHedSubstring {
  */
 export class ParsedHed3Tag extends ParsedHedTag {
   /**
+   * Constructor.
+   *
+   * @param {TagSpec} tagSpec The token for this tag.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string} hedString The original HED string.
+   */
+  constructor(tagSpec, hedSchemas, hedString) {
+    super(tagSpec.tag, tagSpec.bounds)
+
+    this._convertTag(hedSchemas, hedString, tagSpec)
+
+    this.formattedTag = this._formatTag()
+  }
+
+  /**
+   * The schema's representation of this tag.
+   *
+   * @type {SchemaTag}
+   * @private
+   */
+  _schemaTag
+
+  /**
    * Convert this tag to long form.
    *
-   * @param {string} hedString The original HED string.
    * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
+   * @param {string} hedString The original HED string.
+   * @param {TagSpec} tagSpec The token for this tag.
    */
-  _convertTag(hedString, hedSchemas, schemaName) {
+  _convertTag(hedSchemas, hedString, tagSpec) {
     const hed3ValidCharacters = /^[^{}[\]()~,\0\t]+$/
     if (!hed3ValidCharacters.test(this.originalTag)) {
       throw new Error('The parser failed to properly remove an illegal or special character.')
     }
 
-    if (hedSchemas.isSyntaxOnly) {
-      this.canonicalTag = this.originalTag
-      this.conversionIssues = []
-      return
-    }
-
+    const schemaName = tagSpec.library
     this.schema = hedSchemas.getSchema(schemaName)
     if (this.schema === undefined) {
       if (schemaName !== '') {
@@ -331,14 +336,20 @@ export class ParsedHed3Tag extends ParsedHedTag {
       return
     }
 
-    const [canonicalTag, conversionIssues] = convertPartialHedStringToLong(
-      this.schema,
-      this.originalTag,
-      hedString,
-      this.originalBounds[0],
-    )
-    this.canonicalTag = canonicalTag
-    this.conversionIssues = conversionIssues
+    try {
+      const [schemaTag, remainder] = convertTagSpecToSchemaTag(tagSpec, hedSchemas)
+      this._schemaTag = schemaTag
+      if (this._schemaTag instanceof SchemaValueTag) {
+        this.canonicalTag = this._schemaTag.parent.longName + '/' + remainder
+      } else if (remainder) {
+        this.canonicalTag = this._schemaTag.longName + '/' + remainder
+      } else {
+        this.canonicalTag = this._schemaTag.longName
+      }
+      this.conversionIssues = []
+    } catch (error) {
+      this.conversionIssues = [error.issue]
+    }
   }
 
   /**
@@ -347,7 +358,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    * @returns {string} The nicely formatted version of this tag.
    */
   format() {
-    let tagName = this.schema?.entries?.tags?.getLongNameEntry(this.formattedTag)?.longName
+    let tagName = this.canonicalTag
     if (tagName === undefined) {
       tagName = this.originalTag
     }
@@ -394,11 +405,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    */
   get takesValueTag() {
     return this._memoize('takesValueTag', () => {
-      if (this.takesValueFormattedTag !== null) {
-        return this.schema?.entries?.tags?.getLongNameEntry(this.takesValueFormattedTag)
-      } else {
-        return null
-      }
+      return this._schemaTag
     })
   }
 
@@ -420,7 +427,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    */
   get hasUnitClass() {
     return this._memoize('hasUnitClass', () => {
-      if (this.takesValueTag === null) {
+      if (!this.takesValueTag) {
         return false
       }
       return this.takesValueTag.hasUnitClasses

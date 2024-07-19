@@ -8,10 +8,14 @@ import { ParsedHed2Tag } from '../validator/hed2/parser/parsedHed2Tag'
 import { HedStringTokenizer, ColumnSpliceSpec, TagSpec } from './tokenizer'
 
 const generationToClass = [
-  ParsedHedTag,
-  ParsedHedTag, // Generation 1 is not supported by this validator.
-  ParsedHed2Tag,
-  ParsedHed3Tag,
+  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
+    new ParsedHedTag(originalTag, originalBounds),
+  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
+    new ParsedHedTag(originalTag, originalBounds), // Generation 1 is not supported by this validator.
+  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
+    new ParsedHed2Tag(originalTag, hedString, originalBounds, hedSchemas, schemaName),
+  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
+    new ParsedHed3Tag(tagSpec, hedSchemas, hedString),
 ]
 
 /**
@@ -26,11 +30,18 @@ const generationToClass = [
 const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) {
   const conversionIssues = []
   const syntaxIssues = []
-  const ParsedHedTagClass = generationToClass[hedSchemas.generation]
+  const ParsedHedTagConstructor = generationToClass[hedSchemas.generation]
 
   const createParsedTag = (tagSpec) => {
     if (tagSpec instanceof TagSpec) {
-      const parsedTag = new ParsedHedTagClass(tagSpec.tag, hedString, tagSpec.bounds, hedSchemas, tagSpec.library)
+      const parsedTag = ParsedHedTagConstructor(
+        tagSpec.tag,
+        hedString,
+        tagSpec.bounds,
+        hedSchemas,
+        tagSpec.library,
+        tagSpec,
+      )
       conversionIssues.push(...parsedTag.conversionIssues)
       return parsedTag
     } else if (tagSpec instanceof ColumnSpliceSpec) {

@@ -134,18 +134,11 @@ describe('HED string parsing', () => {
       const [result, issues] = splitHedString(hedString, nullSchema)
       assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
       assert.deepStrictEqual(result, [
-        new ParsedHedTag('Event/Category/Sensory-event', 'Event/Category/Sensory-event', [0, 28], nullSchema),
+        new ParsedHedTag('Event/Category/Sensory-event', [0, 28]),
+        new ParsedHedTag('Item/Object/Man-made-object/Vehicle/Train', [29, 70]),
         new ParsedHedTag(
-          'Item/Object/Man-made-object/Vehicle/Train',
-          'Item/Object/Man-made-object/Vehicle/Train',
-          [29, 70],
-          nullSchema,
-        ),
-        new ParsedHedTag(
-          'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple',
           'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple',
           [71, 167],
-          nullSchema,
         ),
       ])
     })
@@ -156,24 +149,19 @@ describe('HED string parsing', () => {
       const [result, issues] = splitHedString(hedString, nullSchema)
       assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
       assert.deepStrictEqual(result, [
-        new ParsedHedTag('/Action/Move/Flex', '/Action/Move/Flex', [0, 17], nullSchema),
+        new ParsedHedTag('/Action/Move/Flex', [0, 17]),
         new ParsedHedGroup(
           [
-            new ParsedHedTag(
-              'Relation/Spatial-relation/Left-side-of',
-              'Relation/Spatial-relation/Left-side-of',
-              [19, 57],
-              nullSchema,
-            ),
-            new ParsedHedTag('/Action/Move/Bend', '/Action/Move/Bend', [58, 75], nullSchema),
-            new ParsedHedTag('/Upper-extremity/Elbow', '/Upper-extremity/Elbow', [76, 98], nullSchema),
+            new ParsedHedTag('Relation/Spatial-relation/Left-side-of', [19, 57]),
+            new ParsedHedTag('/Action/Move/Bend', [58, 75]),
+            new ParsedHedTag('/Upper-extremity/Elbow', [76, 98]),
           ],
           nullSchema,
           hedString,
           [18, 99],
         ),
-        new ParsedHedTag('/Position/X-position/70 px', '/Position/X-position/70 px', [100, 126], nullSchema),
-        new ParsedHedTag('/Position/Y-position/23 px', '/Position/Y-position/23 px', [127, 153], nullSchema),
+        new ParsedHedTag('/Position/X-position/70 px', [100, 126]),
+        new ParsedHedTag('/Position/Y-position/23 px', [127, 153]),
       ])
     })
 
@@ -183,13 +171,8 @@ describe('HED string parsing', () => {
         trailingBlank: '/Item/Object/Man-made-object/Vehicle/Car, /Action/Perform/Operate,',
       }
       const expectedList = [
-        new ParsedHedTag(
-          '/Item/Object/Man-made-object/Vehicle/Car',
-          '/Item/Object/Man-made-object/Vehicle/Car',
-          [0, 40],
-          nullSchema,
-        ),
-        new ParsedHedTag('/Action/Perform/Operate', '/Action/Perform/Operate', [42, 65], nullSchema),
+        new ParsedHedTag('/Item/Object/Man-made-object/Vehicle/Car', [0, 40]),
+        new ParsedHedTag('/Action/Perform/Operate', [42, 65]),
       ]
       const expectedResults = {
         doubleComma: expectedList,
@@ -238,7 +221,7 @@ describe('HED string parsing', () => {
         openingAndClosingDoubleQuotedSlash: formattedHedTag,
       }
       validatorWithoutIssues(testStrings, expectedResults, (string) => {
-        const parsedTag = new ParsedHedTag(string, string, [], nullSchema)
+        const parsedTag = new ParsedHedTag(string, [])
         return parsedTag.formattedTag
       })
     })
@@ -371,16 +354,15 @@ describe('HED string parsing', () => {
         simple: {},
         groupAndTag: {},
         invalidTag: {
-          conversion: [converterGenerateIssue('invalidTag', testStrings.invalidTag, {}, [0, 10])],
+          conversion: [generateIssue('invalidTag', { tag: expectedResults.invalidTag[0], bounds: [0, 10] })],
         },
         invalidParentNode: {
           conversion: [
-            converterGenerateIssue(
-              'invalidParentNode',
-              testStrings.invalidParentNode,
-              { parentTag: 'Item/Object/Man-made-object/Vehicle/Train' },
-              [4, 9],
-            ),
+            generateIssue('invalidParentNode', {
+              parentTag: 'Item/Object/Man-made-object/Vehicle/Train',
+              tag: 'Train',
+              bounds: [4, 9],
+            }),
           ],
         },
       }

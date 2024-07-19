@@ -963,36 +963,27 @@ describe('HED string and event validation', () => {
         const testStrings = {
           // Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
           red: 'Property/RGB-red, Duration/20 cm',
-          redAndBlue: 'Property/RGB-red, Property/RGB-blue, Duration/20 cm',
+          redAndBlue: 'Property/RGB-red, Property/RGB-blue/Blah, Duration/20 cm',
         }
         const expectedIssues = {
           red: [
-            converterGenerateIssue(
-              'invalidParentNode',
-              testStrings.red,
-              {
-                parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
-              },
-              [9, 16],
-            ),
+            generateIssue('invalidParentNode', {
+              tag: 'RGB-red',
+              parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
+              bounds: [9, 16],
+            }),
           ],
           redAndBlue: [
-            converterGenerateIssue(
-              'invalidParentNode',
-              testStrings.redAndBlue,
-              {
-                parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
-              },
-              [9, 16],
-            ),
-            converterGenerateIssue(
-              'invalidParentNode',
-              testStrings.redAndBlue,
-              {
-                parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-blue',
-              },
-              [27, 35],
-            ),
+            generateIssue('invalidParentNode', {
+              tag: 'RGB-red',
+              parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
+              bounds: [9, 16],
+            }),
+            generateIssue('invalidParentNode', {
+              tag: 'RGB-blue',
+              parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-blue',
+              bounds: [27, 35],
+            }),
           ],
         }
         // This is a no-op since short-to-long conversion errors are handled in the string parsing phase.
@@ -1108,7 +1099,7 @@ describe('HED string and event validation', () => {
             }),
           ],
           illegalComma: [
-            converterGenerateIssue('invalidTag', testStrings.illegalComma, { tag: 'This' }, [22, 26]),
+            generateIssue('invalidTag', { tag: 'This/Is/A/Tag', bounds: [22, 35] }),
             /* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',
@@ -1588,16 +1579,9 @@ describe('HED string and event validation', () => {
           ],
           missingRequiredUnit: [],
           wrongLocation: [
-            converterGenerateIssue(
-              'invalidParentNode',
-              testStrings.wrongLocation,
-              { parentTag: 'Item/Biological-item/Organism' },
-              [7, 15],
-            ),
-            /* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('invalidPlaceholder', {
               tag: testStrings.wrongLocation,
-            }), */
+            }),
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, true)

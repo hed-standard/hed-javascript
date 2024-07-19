@@ -16,7 +16,7 @@ export const replaceTagNameWithPound = function (formattedTag) {
 /**
  * Get the indices of all slashes in a HED tag.
  */
-const getTagSlashIndices = function (tag) {
+export const getTagSlashIndices = function (tag) {
   const indices = []
   let i = -1
   while ((i = tag.indexOf('/', i + 1)) >= 0) {

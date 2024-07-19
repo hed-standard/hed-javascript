@@ -89,7 +89,7 @@ describe('BIDS datasets', () => {
         ],
         error_and_good: [
           BidsHedIssue.fromHedIssue(
-            converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]),
+            generateIssue('invalidTag', { tag: 'Confused', bounds: [0, 8] }),
             bidsSidecars[1][1].file,
           ),
         ],
@@ -160,7 +160,7 @@ describe('BIDS datasets', () => {
         tag: 'Speed/300 miles',
         unitClassUnits: legalSpeedUnits.sort().join(','),
       })
-      const converterMaglevError = converterGenerateIssue('invalidTag', 'Maglev', {}, [0, 6])
+      const converterMaglevError = generateIssue('invalidTag', { tag: 'Maglev', bounds: [0, 6] })
       const maglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
       const expectedIssues = {
@@ -192,8 +192,10 @@ describe('BIDS datasets', () => {
         all_good: [],
         all_bad: [
           // BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
-          BidsHedIssue.fromHedIssue(converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]), badDatasets[0].file),
-          // BidsHedIssue.fromHedIssue(converterGenerateIssue('invalidTag', 'Confused,Gray', {}, [0, 8]), badDatasets[0].file),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', { tag: 'Confused', bounds: [0, 8] }),
+            badDatasets[0].file,
+          ),
           // TODO: Catch warning in sidecar validation
           /* BidsHedIssue.fromHedIssue(
             generateIssue('extension', { tag: 'Train/Maglev' }),
