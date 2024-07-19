@@ -185,6 +185,11 @@ export default {
     level: 'error',
     message: stringTemplate`"${'tag'}" appears as "${'parentTag'}" and cannot be used as an extension. Indices (${0}, ${1}).`,
   },
+  invalidExtension: {
+    hedCode: 'TAG_EXTENSION_INVALID',
+    level: 'error',
+    message: stringTemplate`"${'tag'}" appears as an extension of "${'parentTag'}", which does not allow tag extensions.`,
+  },
   emptyTagFound: {
     hedCode: 'TAG_EMPTY',
     level: 'error',

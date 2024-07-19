@@ -46,10 +46,11 @@ export class ParsedHedSubstring extends Memoizer {
    *
    * This is left blank for the subclasses to override.
    *
+   * @param {boolean} long Whether the tags should be in long form.
    * @returns {string}
    * @abstract
    */
-  format() {}
+  format(long = true) {}
 
   /**
    * Override of {@link Object.prototype.toString}.

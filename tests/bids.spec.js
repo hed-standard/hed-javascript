@@ -475,7 +475,10 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         bad_tsv: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('illegalDefinitionContext', { string: '(Definition/myDef, (Label/Red, Green))', tsvLine: 2 }),
+            generateIssue('illegalDefinitionContext', {
+              string: '(Definition/myDef, (Label/Reddish, Green))',
+              tsvLine: 2,
+            }),
             badTsvDatasets[0].file,
           ),
         ],
@@ -496,7 +499,7 @@ describe('BIDS datasets', () => {
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionInExclusiveContext', {
-              string: 'Red, Blue, (Definition/myDef, (Label/Red, Blue))',
+              string: 'Red, Blue, (Definition/myDef, (Label/Reddish, Blue))',
               sidecarKey: 'event_code',
             }),
             defSidecars[3].file,

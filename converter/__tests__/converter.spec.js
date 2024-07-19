@@ -28,7 +28,7 @@ describe('HED string conversion', () => {
     const validatorBase = async function (testStrings, expectedResults, expectedIssues, testFunction) {
       const hedSchemas = await hedSchemaPromise
       for (const [testStringKey, testString] of Object.entries(testStrings)) {
-        const [testResult, issues] = testFunction(hedSchemas.baseSchema, testString, testString, 0)
+        const [testResult, issues] = testFunction(hedSchemas, testString, testString, 0)
         assert.strictEqual(testResult, expectedResults[testStringKey], testString)
         assert.sameDeepMembers(issues, expectedIssues[testStringKey], testString)
       }

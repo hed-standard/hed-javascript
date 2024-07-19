@@ -750,6 +750,34 @@ export class SchemaTag extends SchemaEntryWithAttributes {
     nameParts.reverse().push(this.name)
     return nameParts.join('/')
   }
+
+  /**
+   * Extend this tag's short name.
+   *
+   * @param {string} extension The extension.
+   * @returns {string} The extended short string.
+   */
+  extend(extension) {
+    if (extension) {
+      return this.name + '/' + extension
+    } else {
+      return this.name
+    }
+  }
+
+  /**
+   * Extend this tag's long name.
+   *
+   * @param {string} extension The extension.
+   * @returns {string} The extended long string.
+   */
+  longExtend(extension) {
+    if (extension) {
+      return this.longName + '/' + extension
+    } else {
+      return this.longName
+    }
+  }
 }
 
 /**
@@ -764,5 +792,25 @@ export class SchemaValueTag extends SchemaTag {
     const nameParts = this.ancestors.map((parentTag) => parentTag.name)
     nameParts.reverse().push('#')
     return nameParts.join('/')
+  }
+
+  /**
+   * Extend this tag's short name.
+   *
+   * @param {string} extension The extension.
+   * @returns {string} The extended short string.
+   */
+  extend(extension) {
+    return this.parent.extend(extension)
+  }
+
+  /**
+   * Extend this tag's long name.
+   *
+   * @param {string} extension The extension.
+   * @returns {string} The extended long string.
+   */
+  longExtend(extension) {
+    return this.parent.longExtend(extension)
   }
 }

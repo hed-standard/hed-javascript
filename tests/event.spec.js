@@ -1092,10 +1092,11 @@ describe('HED string and event validation', () => {
           takesValue: [],
           full: [],
           extensionAllowed: [generateIssue('extension', { tag: testStrings.extensionAllowed })],
-          leafExtension: [generateIssue('invalidTag', { tag: testStrings.leafExtension })],
+          leafExtension: [generateIssue('invalidExtension', { tag: 'Something', parentTag: 'Event/Sensory-event' })],
           nonExtensionAllowed: [
-            generateIssue('invalidTag', {
-              tag: testStrings.nonExtensionAllowed,
+            generateIssue('invalidExtension', {
+              tag: 'Nonsense',
+              parentTag: 'Event',
             }),
           ],
           illegalComma: [
@@ -1556,7 +1557,7 @@ describe('HED string and event validation', () => {
           invalidParent: 'Event/Nonsense/#',
           extensionParent: 'Item/TestDef1/#',
           missingRequiredUnit: 'Time-value/#',
-          wrongLocation: 'Item/#/Organism',
+          wrongLocation: 'Item/#/OtherItem',
         }
         const expectedIssues = {
           takesValue: [],
@@ -1568,8 +1569,9 @@ describe('HED string and event validation', () => {
             }),
           ],
           invalidParent: [
-            generateIssue('invalidPlaceholder', {
-              tag: testStrings.invalidParent,
+            generateIssue('invalidExtension', {
+              tag: 'Nonsense',
+              parentTag: 'Event',
             }),
           ],
           extensionParent: [

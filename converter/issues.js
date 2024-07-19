@@ -16,6 +16,5 @@ export default function (code, hedString, parameters = {}, bounds = []) {
   parameters.tag = hedString.slice(bounds[0], bounds[1])
   parameters.bounds = bounds
   const issue = generateIssue(code, parameters)
-  issue.sourceString = hedString
   return issue
 }

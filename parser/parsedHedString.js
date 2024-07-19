@@ -86,10 +86,11 @@ export class ParsedHedString {
   /**
    * Nicely format this HED string.
    *
+   * @param {boolean} long Whether the tags should be in long form.
    * @returns {string}
    */
-  format() {
-    return this.parseTree.map((substring) => substring.format()).join(', ')
+  format(long = true) {
+    return this.parseTree.map((substring) => substring.format(long)).join(', ')
   }
 
   get definitions() {

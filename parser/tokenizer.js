@@ -314,7 +314,9 @@ export class HedStringTokenizer {
   }
 
   pushTag(i) {
-    if (!stringIsEmpty(this.currentTag) && this.columnSpliceIndex < 0) {
+    if (stringIsEmpty(this.currentTag)) {
+      this.syntaxIssues.push(generateIssue('emptyTagFound', {}))
+    } else if (this.columnSpliceIndex < 0) {
       this._checkValueTagForInvalidCharacters()
       this.currentGroupStack[this.groupDepth].push(
         new TagSpec(this.currentTag, this.startingIndex, i, this.librarySchema),

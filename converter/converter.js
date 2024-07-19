@@ -1,7 +1,6 @@
-import castArray from 'lodash/castArray'
-
-import generateIssue from './issues'
-import splitHedString from './splitHedString'
+import { HedStringTokenizer } from '../parser/tokenizer'
+import { parseHedString } from '../parser/main'
+import TagConverter from '../parser/converter'
 
 const doubleSlashPattern = /[\s/]*\/+[\s/]*/g
 
@@ -22,13 +21,65 @@ export const removeSlashesAndSpaces = function (hedString) {
  * on for HED 3 schemas) allow for similar HED 2 validation with minimal code
  * duplication.
  *
+ * @param {Schemas} hedSchemas The schema object containing a short-to-long mapping.
+ * @param {string} hedTag The HED tag to convert.
+ * @param {string} hedString The full HED string (for error messages).
+ * @param {number} offset The offset of this tag within the HED string.
+ * @returns {[string, Issue[]]} The long-form tag and any issues.
+ */
+export const convertTagToLong = function (hedSchemas, hedTag, hedString, offset) {
+  const tokenizer = new HedStringTokenizer(hedTag)
+  const [tagSpecs, groupSpecs, issues] = tokenizer.tokenize()
+  const flattenedIssues = Object.values(issues).flat()
+  if (flattenedIssues.length > 0) {
+    return [hedTag, flattenedIssues]
+  }
+  try {
+    const [schemaTag, remainder] = new TagConverter(tagSpecs[0], hedSchemas).convert()
+    return [schemaTag.longExtend(remainder), []]
+  } catch (issueError) {
+    return [hedTag, [issueError.issue]]
+  }
+}
+
+/**
+ * Convert a HED tag to short form.
+ *
+ * @param {Hed3Schema} schema The schema object containing a short-to-long mapping.
+ * @param {string} hedTag The HED tag to convert.
+ * @param {string} hedString The full HED string (for error messages).
+ * @param {number} offset The offset of this tag within the HED string.
+ * @returns {[string, Issue[]]} The short-form tag and any issues.
+ */
+export const convertTagToShort = function (hedSchemas, hedTag, hedString, offset) {
+  const tokenizer = new HedStringTokenizer(hedTag)
+  const [tagSpecs, groupSpecs, issues] = tokenizer.tokenize()
+  const flattenedIssues = Object.values(issues).flat()
+  if (flattenedIssues.length > 0) {
+    return [hedTag, flattenedIssues]
+  }
+  try {
+    const [schemaTag, remainder] = new TagConverter(tagSpecs[0], hedSchemas).convert()
+    return [schemaTag.extend(remainder), []]
+  } catch (issueError) {
+    return [hedTag, [issueError.issue]]
+  }
+}
+
+/**
+ * Convert a HED tag to long form.
+ *
+ * The seemingly redundant code for duplicate tag entries (which are errored out
+ * on for HED 3 schemas) allow for similar HED 2 validation with minimal code
+ * duplication.
+ *
  * @param {Hed3Schema} schema The schema object containing a short-to-long mapping.
  * @param {string} hedTag The HED tag to convert.
  * @param {string} hedString The full HED string (for error messages).
  * @param {number} offset The offset of this tag within the HED string.
  * @returns {[string, Issue[]]} The long-form tag and any issues.
  */
-export const convertTagToLong = function (schema, hedTag, hedString, offset) {
+/*export const convertTagToLong = function (schema, hedTag, hedString, offset) {
   const schemaTags = schema.entries.tags
 
   if (hedTag.startsWith('/')) {
@@ -41,23 +92,23 @@ export const convertTagToLong = function (schema, hedTag, hedString, offset) {
   const cleanedTag = hedTag.toLowerCase()
   const splitTag = cleanedTag.split('/')
 
-  /**
+  /!**
    * @type {SchemaTag}
-   */
+   *!/
   let foundTagEntry = null
   let takesValueTag = false
   let endingIndex = 0
   let foundUnknownExtension = false
   let foundEndingIndex = 0
 
-  /**
+  /!**
    * Generate an issue for an invalid parent node.
    *
    * @param {SchemaTag[]} schemaTags The invalid schema tags.
    * @param {number} startingIndex The starting index in the string.
    * @param {number} endingIndex The ending index in the string.
    * @returns {[string, Issue[]]} The original HED string and the issue.
-   */
+   *!/
   const generateParentNodeIssue = (schemaTags, startingIndex, endingIndex) => {
     return [
       hedTag,
@@ -127,7 +178,7 @@ export const convertTagToLong = function (schema, hedTag, hedString, offset) {
   const remainder = hedTag.slice(foundEndingIndex)
   const longTagString = foundTagEntry.longName + remainder
   return [longTagString, []]
-}
+}*/
 
 /**
  * Convert a HED tag to short form.
@@ -138,7 +189,7 @@ export const convertTagToLong = function (schema, hedTag, hedString, offset) {
  * @param {number} offset The offset of this tag within the HED string.
  * @returns {[string, Issue[]]} The short-form tag and any issues.
  */
-export const convertTagToShort = function (schema, hedTag, hedString, offset) {
+/*export const convertTagToShort = function (schema, hedTag, hedString, offset) {
   const schemaTags = schema.entries.tags
 
   if (hedTag.startsWith('/')) {
@@ -152,9 +203,9 @@ export const convertTagToShort = function (schema, hedTag, hedString, offset) {
   const splitTag = cleanedTag.split('/')
   splitTag.reverse()
 
-  /**
+  /!**
    * @type {SchemaTag}
-   */
+   *!/
   let foundTagEntry = null
   let index = hedTag.length
   let lastFoundIndex = index
@@ -196,7 +247,7 @@ export const convertTagToShort = function (schema, hedTag, hedString, offset) {
   const remainder = hedTag.slice(lastFoundIndex)
   const shortTagString = foundTagEntry.name + remainder
   return [shortTagString, []]
-}
+}*/
 
 /**
  * Convert a partial HED string to long form.
@@ -209,7 +260,7 @@ export const convertTagToShort = function (schema, hedTag, hedString, offset) {
  * @param {number} offset The offset of the partial HED string within the full string.
  * @returns {[string, Issue[]]} The converted string and any issues.
  */
-export const convertPartialHedStringToLong = function (schema, partialHedString, fullHedString, offset) {
+/*export const convertPartialHedStringToLong = function (schema, partialHedString, fullHedString, offset) {
   let issues = []
 
   const hedString = removeSlashesAndSpaces(partialHedString)
@@ -234,41 +285,20 @@ export const convertPartialHedStringToLong = function (schema, partialHedString,
   }
 
   return [finalString, issues]
-}
+}*/
 
 /**
  * Convert a HED string.
  *
- * @param {Hed3Schema} schema The schema object containing a short-to-long mapping.
+ * @param {Schemas} hedSchemas The HED schema collection.
  * @param {string} hedString The HED tag to convert.
- * @param {function (Schema, string, string, number): [string, Issue[]]} conversionFn The conversion function for a tag.
+ * @param {boolean} long Whether the tags should be in long form.
  * @returns {[string, Issue[]]} The converted string and any issues.
  */
-const convertHedString = function (schema, hedString, conversionFn) {
-  let issues = []
-
-  hedString = removeSlashesAndSpaces(hedString)
-
-  if (hedString === '') {
-    issues.push(generateIssue('emptyTagFound', ''))
-    return [hedString, issues]
-  }
-
-  const hedTags = splitHedString(hedString)
-  let finalString = ''
-
-  for (const [isHedTag, [startPosition, endPosition]] of hedTags) {
-    const tag = hedString.slice(startPosition, endPosition)
-    if (isHedTag) {
-      const [shortTagString, singleError] = conversionFn(schema, tag, hedString, startPosition)
-      issues = issues.concat(singleError)
-      finalString += shortTagString
-    } else {
-      finalString += tag
-    }
-  }
-
-  return [finalString, issues]
+const convertHedString = function (hedSchemas, hedString, long) {
+  const [parsedString, issues] = parseHedString(hedString, hedSchemas)
+  const convertedString = parsedString.format(long)
+  return [convertedString, Object.values(issues).flat()]
 }
 
 /**
@@ -280,7 +310,7 @@ const convertHedString = function (schema, hedString, conversionFn) {
  * @deprecated
  */
 export const convertHedStringToLong = function (schemas, hedString) {
-  return convertHedString(schemas.baseSchema, hedString, convertTagToLong)
+  return convertHedString(schemas, hedString, true)
 }
 
 /**
@@ -292,5 +322,5 @@ export const convertHedStringToLong = function (schemas, hedString) {
  * @deprecated
  */
 export const convertHedStringToShort = function (schemas, hedString) {
-  return convertHedString(schemas.baseSchema, hedString, convertTagToShort)
+  return convertHedString(schemas, hedString, false)
 }
