@@ -1,5 +1,7 @@
 import chai from 'chai'
 const assert = chai.assert
+import { beforeAll, describe, it } from '@jest/globals'
+
 import * as converter from '../converter'
 import generateIssue from '../issues'
 import { SchemaSpec, SchemasSpec } from '../../common/schema/types'

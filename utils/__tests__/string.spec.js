@@ -1,5 +1,7 @@
 import chai from 'chai'
 const assert = chai.assert
+import { describe, it } from '@jest/globals'
+
 import * as stringUtils from '../string'
 
 describe('String utility functions', () => {

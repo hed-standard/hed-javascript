@@ -1,9 +1,10 @@
 import chai from 'chai'
 const assert = chai.assert
+import { beforeAll, describe, it } from '@jest/globals'
+
 import * as hed from '../validator/dataset'
 import { buildSchemas } from '../validator/schema/init'
 import { generateIssue as generateValidationIssue } from '../common/issues/issues'
-import generateConverterIssue from '../converter/issues'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 
 describe('HED dataset validation', () => {

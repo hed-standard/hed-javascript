@@ -1,8 +1,8 @@
 import chai from 'chai'
 const assert = chai.assert
+import { beforeAll, describe, it } from '@jest/globals'
 import cloneDeep from 'lodash/cloneDeep'
 
-import converterGenerateIssue from '../converter/issues'
 import { generateIssue } from '../common/issues/issues'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { buildBidsSchemas, parseSchemasSpec } from '../bids/schema'

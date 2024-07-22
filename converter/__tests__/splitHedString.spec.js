@@ -1,5 +1,7 @@
 import chai from 'chai'
 const assert = chai.assert
+import { describe, it } from '@jest/globals'
+
 import splitHedString from '../splitHedString'
 
 describe('HED string delimiter splitting', () => {
