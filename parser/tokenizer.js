@@ -273,7 +273,7 @@ export class HedStringTokenizer {
       return
     }
     if (!stringIsEmpty(this.currentTag)) {
-      this.currentGroupStack[this.groupDepth].push(new ColumnSpliceSpec(this.currentTag, this.startingIndex, i))
+      this.currentGroupStack[this.groupDepth].push(new ColumnSpliceSpec(this.currentTag.trim(), this.startingIndex, i))
     } else {
       this.syntaxIssues.push(
         generateIssue('emptyCurlyBrace', {
@@ -338,7 +338,7 @@ export class HedStringTokenizer {
     } else if (this.columnSpliceIndex < 0) {
       this._checkValueTagForInvalidCharacters()
       this.currentGroupStack[this.groupDepth].push(
-        new TagSpec(this.currentTag, this.startingIndex, i, this.librarySchema),
+        new TagSpec(this.currentTag.trim(), this.startingIndex, i, this.librarySchema),
       )
     }
     this.resetStartingIndex = true

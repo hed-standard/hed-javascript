@@ -75,7 +75,7 @@ export class BidsSidecar extends BidsJsonFile {
     const sidecarHedTags = Object.entries(this.jsonData)
       .map(([sidecarKey, sidecarValue]) => {
         if (sidecarValueHasHed(sidecarValue)) {
-          return [sidecarKey, new BidsSidecarKey(sidecarKey, sidecarValue.HED)]
+          return [sidecarKey.trim(), new BidsSidecarKey(sidecarKey.trim(), sidecarValue.HED)]
         } else {
           return null
         }
