@@ -191,7 +191,20 @@ export class SchemaEntryManager extends Memoizer {
    * @returns {Map<string, T>} The filtered map.
    */
   filter(fn) {
-    const pairArray = Array.from(this._definitions.entries())
+    return SchemaEntryManager._filterDefinitionMap(this._definitions, fn)
+  }
+
+  /**
+   * Filter a definition map.
+   *
+   * @template T
+   * @param {Map<string, T>} definitionMap The definition map.
+   * @param {function ([string, T]): boolean} fn The filtering function.
+   * @returns {Map<string, T>} The filtered map.
+   * @protected
+   */
+  static _filterDefinitionMap(definitionMap, fn) {
+    const pairArray = Array.from(definitionMap.entries())
     return new Map(pairArray.filter((entry) => fn(entry)))
   }
 
@@ -251,12 +264,11 @@ export class SchemaTagManager extends SchemaEntryManager {
   /**
    * Filter the map underlying this manager using the long name.
    *
-   * @param {function ([string, T]): boolean} fn The filtering function.
-   * @returns {Map<string, T>} The filtered map.
+   * @param {function ([string, SchemaTag]): boolean} fn The filtering function.
+   * @returns {Map<string, SchemaTag>} The filtered map.
    */
   filterByLongName(fn) {
-    const pairArray = Array.from(this._definitionsByLongName.entries())
-    return new Map(pairArray.filter((entry) => fn(entry)))
+    return SchemaEntryManager._filterDefinitionMap(this._definitionsByLongName, fn)
   }
 }
 
