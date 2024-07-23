@@ -60,14 +60,6 @@ export default class TagConverter {
     this.tagString = tagSpec.tag
     this.tagLevels = this.tagString.split('/')
     this.tagSlashes = getTagSlashIndices(this.tagString)
-    if (!this.tagLevels[0]) {
-      this.tagLevels.shift()
-      this.tagSlashes.shift()
-    }
-    if (!this.tagLevels[this.tagLevels.length - 1]) {
-      this.tagLevels.pop()
-      this.tagSlashes.pop()
-    }
   }
 
   /**
@@ -85,10 +77,10 @@ export default class TagConverter {
   }
 
   _checkFirstLevel() {
-    const firstLevel = this.tagLevels[0].trim().toLowerCase()
+    const firstLevel = this.tagLevels[0].toLowerCase().trimStart()
     const schemaTag = this.tagMapping.getEntry(firstLevel)
-    if (!schemaTag) {
-      throw new IssueError(generateIssue('invalidTag', { tag: this.tagString, bounds: this.tagSpec.bounds }))
+    if (!schemaTag || firstLevel === '' || firstLevel !== firstLevel.trim()) {
+      throw new IssueError(generateIssue('invalidTag', { tag: this.tagString }))
     }
     if (this.tagLevels.length === 1) {
       return schemaTag
@@ -102,12 +94,13 @@ export default class TagConverter {
     for (let i = 1; i < this.tagLevels.length; i++) {
       if (parentTag?.valueTag) {
         this._setSchemaTag(parentTag.valueTag, i)
+        break
       }
       const childTag = this._validateChildTag(parentTag, i)
       if (childTag === undefined) {
         this._setSchemaTag(parentTag, i)
       }
-      parentTag = this._getSchemaTag(i)
+      parentTag = childTag
     }
     this._setSchemaTag(parentTag, this.tagLevels.length + 1)
     return [this.schemaTag, this.remainder]
@@ -115,23 +108,26 @@ export default class TagConverter {
 
   _validateChildTag(parentTag, i) {
     const childTag = this._getSchemaTag(i)
-    if (
-      childTag === undefined &&
-      parentTag &&
-      !parentTag.hasAttributeName('extensionAllowed') &&
-      !(this.schemaTag instanceof SchemaValueTag)
-    ) {
-      throw new IssueError(generateIssue('invalidExtension', { tag: this.tagLevels[i], parentTag: parentTag.longName }))
+    if (this.schemaTag instanceof SchemaValueTag) {
+      throw new IssueError(
+        generateIssue('internalConsistencyError', {
+          message: 'Child tag is a value tag which should have been handled earlier.',
+        }),
+      )
     }
-    if (childTag !== undefined && childTag.parent !== parentTag) {
+    if (childTag === undefined && parentTag && !parentTag.hasAttributeName('extensionAllowed')) {
+      throw new IssueError(
+        generateIssue('invalidExtension', {
+          tag: this.tagLevels[i],
+          parentTag: parentTag.longName,
+        }),
+      )
+    }
+    if (childTag !== undefined && (childTag.parent === undefined || childTag.parent !== parentTag)) {
       throw new IssueError(
         generateIssue('invalidParentNode', {
           tag: this.tagLevels[i],
           parentTag: childTag.longName,
-          bounds: [
-            this.tagSpec.bounds[0] + this.tagSlashes[i - 1] + 1,
-            this.tagSpec.bounds[0] + (this.tagSlashes[i] ?? this.tagString.length),
-          ],
         }),
       )
     }
@@ -139,9 +135,9 @@ export default class TagConverter {
   }
 
   _getSchemaTag(i) {
-    const tagLevel = this.tagLevels[i].trim().toLowerCase()
-    if (tagLevel === '') {
-      throw new IssueError(generateIssue('invalidTag', { tag: this.tagString, bounds: this.tagSpec.bounds }))
+    const tagLevel = this.tagLevels[i].toLowerCase()
+    if (tagLevel === '' || tagLevel !== tagLevel.trim()) {
+      throw new IssueError(generateIssue('invalidTag', { tag: this.tagString }))
     }
     return this.tagMapping.getEntry(tagLevel)
   }

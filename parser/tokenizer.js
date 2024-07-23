@@ -103,6 +103,12 @@ export class HedStringTokenizer {
    */
   currentTag
 
+  /**
+   * Whether we are currently closing a group.
+   * @type {boolean}
+   */
+  closingGroup
+
   groupDepth
   startingIndex
   resetStartingIndex
@@ -133,7 +139,7 @@ export class HedStringTokenizer {
         this.currentTag = ''
       }
     }
-    this.pushTag(this.hedString.length)
+    this.pushTag(this.hedString.length, true)
 
     if (this.columnSpliceIndex >= 0) {
       this.syntaxIssues.push(
@@ -168,6 +174,7 @@ export class HedStringTokenizer {
     this.currentGroupStack = [[]]
     this.parenthesesStack = [new GroupSpec(0, this.hedString.length)]
     this.ignoringCharacters = false
+    this.closingGroup = false
   }
 
   tokenizeCharacter(i, character) {
@@ -184,12 +191,12 @@ export class HedStringTokenizer {
       dispatchTable = {
         [openingGroupCharacter]: (i /* character */) => this.openingGroupCharacter(i),
         [closingGroupCharacter]: (i /* character */) => {
-          this.pushTag(i)
+          this.pushTag(i, false)
           this.closingGroupCharacter(i)
         },
         [openingColumnCharacter]: (i /* character */) => this.openingColumnCharacter(i),
         [closingColumnCharacter]: (i /* character */) => this.closingColumnCharacter(i),
-        [commaCharacter]: (i /* character */) => this.pushTag(i),
+        [commaCharacter]: (i /* character */) => this.pushTag(i, false),
         [colonCharacter]: (i, character) => this.colonCharacter(character),
         [slashCharacter]: (i, character) => this.slashCharacter(character),
       }
@@ -218,6 +225,7 @@ export class HedStringTokenizer {
   }
 
   closingGroupCharacter(i) {
+    this.closingGroup = true
     if (this.groupDepth <= 0) {
       this.syntaxIssues.push(
         generateIssue('unopenedParenthesis', {
@@ -254,6 +262,7 @@ export class HedStringTokenizer {
   }
 
   closingColumnCharacter(i) {
+    this.closingGroup = true
     if (this.columnSpliceIndex < 0) {
       this.syntaxIssues.push(
         generateIssue('unopenedCurlyBrace', {
@@ -313,9 +322,19 @@ export class HedStringTokenizer {
     }
   }
 
-  pushTag(i) {
-    if (stringIsEmpty(this.currentTag)) {
-      this.syntaxIssues.push(generateIssue('emptyTagFound', {}))
+  /**
+   * Push a tag to the current group.
+   *
+   * @param {number} i The current index.
+   * @param {boolean} isEndOfString Whether we are at the end of the string.
+   */
+  pushTag(i, isEndOfString) {
+    if (stringIsEmpty(this.currentTag) && isEndOfString) {
+      return
+    } else if (this.closingGroup) {
+      this.closingGroup = false
+    } else if (stringIsEmpty(this.currentTag)) {
+      this.syntaxIssues.push(generateIssue('emptyTagFound', { index: i }))
     } else if (this.columnSpliceIndex < 0) {
       this._checkValueTagForInvalidCharacters()
       this.currentGroupStack[this.groupDepth].push(

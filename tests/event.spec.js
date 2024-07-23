@@ -8,7 +8,6 @@ import { parseHedString } from '../parser/main'
 import { ParsedHedTag } from '../parser/parsedHedTag'
 import { HedValidator, Hed2Validator, Hed3Validator } from '../validator/event'
 import { generateIssue } from '../common/issues/issues'
-import converterGenerateIssue from '../converter/issues'
 import { Schemas, SchemaSpec, SchemasSpec } from '../common/schema/types'
 
 describe('HED string and event validation', () => {
@@ -375,32 +374,20 @@ describe('HED string and event validation', () => {
           }
           const expectedIssues = {
             red: [
-              converterGenerateIssue(
-                'invalidParentNode',
-                testStrings.red,
-                {
-                  parentTag: 'Attribute/Visual/Color/Red',
-                },
-                [10, 13],
-              ),
+              generateIssue('invalidParentNode', {
+                tag: 'Red',
+                parentTag: 'Attribute/Visual/Color/Red',
+              }),
             ],
             redAndBlue: [
-              converterGenerateIssue(
-                'invalidParentNode',
-                testStrings.redAndBlue,
-                {
-                  parentTag: 'Attribute/Visual/Color/Red',
-                },
-                [10, 13],
-              ),
-              converterGenerateIssue(
-                'invalidParentNode',
-                testStrings.redAndBlue,
-                {
-                  parentTag: 'Attribute/Visual/Color/Blue',
-                },
-                [25, 29],
-              ),
+              generateIssue('invalidParentNode', {
+                tag: 'Red',
+                parentTag: 'Attribute/Visual/Color/Red',
+              }),
+              generateIssue('invalidParentNode', {
+                tag: 'Blue',
+                parentTag: 'Attribute/Visual/Color/Blue',
+              }),
             ],
           }
           // This is a no-op function since this is checked during string parsing.
@@ -972,19 +959,16 @@ describe('HED string and event validation', () => {
             generateIssue('invalidParentNode', {
               tag: 'RGB-red',
               parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
-              bounds: [9, 16],
             }),
           ],
           redAndBlue: [
             generateIssue('invalidParentNode', {
               tag: 'RGB-red',
               parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
-              bounds: [9, 16],
             }),
             generateIssue('invalidParentNode', {
               tag: 'RGB-blue',
               parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-blue',
-              bounds: [27, 35],
             }),
           ],
         }
@@ -1102,7 +1086,7 @@ describe('HED string and event validation', () => {
             }),
           ],
           illegalComma: [
-            generateIssue('invalidTag', { tag: 'This/Is/A/Tag', bounds: [22, 35] }),
+            generateIssue('invalidTag', { tag: 'This/Is/A/Tag' }),
             /* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',

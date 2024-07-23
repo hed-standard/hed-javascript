@@ -193,7 +193,7 @@ export default {
   emptyTagFound: {
     hedCode: 'TAG_EMPTY',
     level: 'error',
-    message: stringTemplate`Empty tag cannot be converted.`,
+    message: stringTemplate`Empty tag at index ${'index'} cannot be converted.`,
   },
   duplicateTagsInSchema: {
     hedCode: 'SCHEMA_DUPLICATE_NODE',
@@ -313,5 +313,10 @@ export default {
     hedCode: 'GENERIC_ERROR',
     level: 'error',
     message: stringTemplate`Unknown HED error "${'internalCode'}" - parameters: "${'parameters'}".`,
+  },
+  internalConsistencyError: {
+    hedCode: 'GENERIC_ERROR',
+    level: 'error',
+    message: stringTemplate`Internal consistency error - message: "${'message'}".`,
   },
 }

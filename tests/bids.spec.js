@@ -88,10 +88,7 @@ describe('BIDS datasets', () => {
           ),
         ],
         error_and_good: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTag', { tag: 'Confused', bounds: [0, 8] }),
-            bidsSidecars[1][1].file,
-          ),
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), bidsSidecars[1][1].file),
         ],
       }
       return validator(testDatasets, expectedIssues, specs)
@@ -160,7 +157,7 @@ describe('BIDS datasets', () => {
         tag: 'Speed/300 miles',
         unitClassUnits: legalSpeedUnits.sort().join(','),
       })
-      const converterMaglevError = generateIssue('invalidTag', { tag: 'Maglev', bounds: [0, 6] })
+      const converterMaglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
       const expectedIssues = {
@@ -192,10 +189,7 @@ describe('BIDS datasets', () => {
         all_good: [],
         all_bad: [
           // BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTag', { tag: 'Confused', bounds: [0, 8] }),
-            badDatasets[0].file,
-          ),
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
           // TODO: Catch warning in sidecar validation
           /* BidsHedIssue.fromHedIssue(
             generateIssue('extension', { tag: 'Train/Maglev' }),
@@ -476,7 +470,7 @@ describe('BIDS datasets', () => {
         bad_tsv: [
           BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionContext', {
-              string: '(Definition/myDef, (Label/Reddish, Green))',
+              string: '(Definition/myDef, (Label/Red, Green))',
               tsvLine: 2,
             }),
             badTsvDatasets[0].file,
@@ -499,7 +493,7 @@ describe('BIDS datasets', () => {
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionInExclusiveContext', {
-              string: 'Red, Blue, (Definition/myDef, (Label/Reddish, Blue))',
+              string: 'Red, Blue, (Definition/myDef, (Label/Red, Blue))',
               sidecarKey: 'event_code',
             }),
             defSidecars[3].file,

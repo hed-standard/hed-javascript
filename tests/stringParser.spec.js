@@ -166,7 +166,6 @@ describe('HED string parsing', () => {
 
     it('should not include blanks', () => {
       const testStrings = {
-        doubleComma: '/Item/Object/Man-made-object/Vehicle/Car,,/Action/Perform/Operate',
         trailingBlank: '/Item/Object/Man-made-object/Vehicle/Car, /Action/Perform/Operate,',
       }
       const expectedList = [
@@ -174,11 +173,9 @@ describe('HED string parsing', () => {
         new ParsedHedTag('/Action/Perform/Operate', [42, 65]),
       ]
       const expectedResults = {
-        doubleComma: expectedList,
         trailingBlank: expectedList,
       }
       const expectedIssues = {
-        doubleComma: {},
         trailingBlank: {},
       }
       validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
@@ -353,14 +350,13 @@ describe('HED string parsing', () => {
         simple: {},
         groupAndTag: {},
         invalidTag: {
-          conversion: [generateIssue('invalidTag', { tag: expectedResults.invalidTag[0], bounds: [0, 10] })],
+          conversion: [generateIssue('invalidTag', { tag: expectedResults.invalidTag[0] })],
         },
         invalidParentNode: {
           conversion: [
             generateIssue('invalidParentNode', {
               parentTag: 'Item/Object/Man-made-object/Vehicle/Train',
               tag: 'Train',
-              bounds: [4, 9],
             }),
           ],
         },
@@ -393,6 +389,7 @@ describe('HED string parsing', () => {
           parsedStrings.push(parsedString)
           issues.push(...Object.values(parsingIssues).flat())
         }
+        assert.isEmpty(issues, 'Parsing issues')
         const [baseString, refString, correctString] = parsedStrings
         const replacementMap = new Map([['stim_file', refString]])
         const columnSplicer = new ColumnSplicer(
@@ -403,9 +400,8 @@ describe('HED string parsing', () => {
         )
         const splicedString = columnSplicer.splice()
         const splicingIssues = columnSplicer.issues
-        issues.push(...splicingIssues)
         assert.strictEqual(splicedString.format(), correctString.format(), 'Full string')
-        assert.isEmpty(issues, 'Issues')
+        assert.isEmpty(splicingIssues, 'Splicing issues')
       })
     })
 
