@@ -629,96 +629,67 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it.skip('should strip leading and trailing slashes', () => {
+      it('should strip leading and trailing slashes', () => {
         const testStrings = {
           leadingSingle: '/Event',
-          leadingMultiLevel: '/Object/Man-made-object/Vehicle/Train',
+          leadingMultiLevel: '/Item/Object/Man-made-object/Vehicle/Train',
           trailingSingle: 'Event/',
-          trailingMultiLevel: 'Object/Man-made-object/Vehicle/Train/',
+          trailingMultiLevel: 'Item/Object/Man-made-object/Vehicle/Train/',
           bothSingle: '/Event/',
-          bothMultiLevel: '/Object/Man-made-object/Vehicle/Train/',
-          twoMixedOuter: '/Event,Object/Man-made-object/Vehicle/Train/',
-          twoMixedInner: 'Event/,/Object/Man-made-object/Vehicle/Train',
-          twoMixedBoth: '/Event/,/Object/Man-made-object/Vehicle/Train/',
-          twoMixedBothGroup: '(/Event/,/Object/Man-made-object/Vehicle/Train/)',
+          bothMultiLevel: '/Item/Object/Man-made-object/Vehicle/Train/',
+          twoMixedOuter: '/Event,Item/Object/Man-made-object/Vehicle/Train/',
+          twoMixedInner: 'Event/,/Item/Object/Man-made-object/Vehicle/Train',
+          twoMixedBoth: '/Event/,/Item/Object/Man-made-object/Vehicle/Train/',
+          twoMixedBothGroup: '(/Event/,/Item/Object/Man-made-object/Vehicle/Train/)',
         }
-        const expectedEvent = 'Event'
-        const expectedTrain = 'Train'
-        const expectedMixed = expectedEvent + ',' + expectedTrain
-        const expectedResults = {
-          leadingSingle: expectedEvent,
-          leadingMultiLevel: expectedTrain,
-          trailingSingle: expectedEvent,
-          trailingMultiLevel: expectedTrain,
-          bothSingle: expectedEvent,
-          bothMultiLevel: expectedTrain,
-          twoMixedOuter: expectedMixed,
-          twoMixedInner: expectedMixed,
-          twoMixedBoth: expectedMixed,
-          twoMixedBothGroup: '(' + expectedMixed + ')',
-        }
+        const expectedResults = testStrings
         const expectedIssues = {
-          leadingSingle: [],
-          leadingMultiLevel: [],
-          trailingSingle: [],
-          trailingMultiLevel: [],
-          bothSingle: [],
-          bothMultiLevel: [],
-          twoMixedOuter: [],
-          twoMixedInner: [],
-          twoMixedBoth: [],
-          twoMixedBothGroup: [],
+          leadingSingle: [generateIssue('invalidTag', { tag: testStrings.leadingSingle })],
+          leadingMultiLevel: [generateIssue('invalidTag', { tag: testStrings.leadingMultiLevel })],
+          trailingSingle: [generateIssue('invalidTag', { tag: testStrings.trailingSingle })],
+          trailingMultiLevel: [generateIssue('invalidTag', { tag: testStrings.trailingMultiLevel })],
+          bothSingle: [generateIssue('invalidTag', { tag: testStrings.bothSingle })],
+          bothMultiLevel: [generateIssue('invalidTag', { tag: testStrings.bothMultiLevel })],
+          twoMixedOuter: [
+            generateIssue('invalidTag', { tag: '/Event' }),
+            generateIssue('invalidTag', { tag: 'Item/Object/Man-made-object/Vehicle/Train/' }),
+          ],
+          twoMixedInner: [
+            generateIssue('invalidTag', { tag: 'Event/' }),
+            generateIssue('invalidTag', { tag: '/Item/Object/Man-made-object/Vehicle/Train' }),
+          ],
+          twoMixedBoth: [
+            generateIssue('invalidTag', { tag: '/Event/' }),
+            generateIssue('invalidTag', { tag: '/Item/Object/Man-made-object/Vehicle/Train/' }),
+          ],
+          twoMixedBothGroup: [
+            generateIssue('invalidTag', { tag: '/Event/' }),
+            generateIssue('invalidTag', { tag: '/Item/Object/Man-made-object/Vehicle/Train/' }),
+          ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it.skip('should replace extra spaces and slashes with single slashes', () => {
+      it('should replace extra spaces and slashes with single slashes', () => {
         const testStrings = {
-          twoLevelDoubleSlash: 'Event//Extension',
+          twoLevelDoubleSlash: 'Item//Extension',
           threeLevelDoubleSlash: 'Item//Object//Geometric-object',
           tripleSlashes: 'Item///Object///Geometric-object',
           mixedSingleAndDoubleSlashes: 'Item///Object/Geometric-object',
-          singleSlashWithSpace: 'Event/ Extension',
-          doubleSlashSurroundingSpace: 'Event/ /Extension',
-          doubleSlashThenSpace: 'Event// Extension',
-          sosPattern: 'Event///   ///Extension',
+          singleSlashWithSpace: 'Item/ Extension',
+          doubleSlashSurroundingSpace: 'Item/ /Extension',
+          doubleSlashThenSpace: 'Item// Extension',
+          sosPattern: 'Item///   ///Extension',
           alternatingSlashSpace: 'Item/ / Object/ / Geometric-object',
-          leadingDoubleSlash: '//Event/Extension',
-          trailingDoubleSlash: 'Event/Extension//',
-          leadingDoubleSlashWithSpace: '/ /Event/Extension',
-          trailingDoubleSlashWithSpace: 'Event/Extension/ /',
+          leadingDoubleSlash: '//Item/Extension',
+          trailingDoubleSlash: 'Item/Extension//',
+          leadingDoubleSlashWithSpace: '/ /Item/Extension',
+          trailingDoubleSlashWithSpace: 'Item/Extension/ /',
         }
-        const expectedEventExtension = 'Event/Extension'
-        const expectedGeometric = 'Geometric-object'
-        const expectedResults = {
-          twoLevelDoubleSlash: expectedEventExtension,
-          threeLevelDoubleSlash: expectedGeometric,
-          tripleSlashes: expectedGeometric,
-          mixedSingleAndDoubleSlashes: expectedGeometric,
-          singleSlashWithSpace: expectedEventExtension,
-          doubleSlashSurroundingSpace: expectedEventExtension,
-          doubleSlashThenSpace: expectedEventExtension,
-          sosPattern: expectedEventExtension,
-          alternatingSlashSpace: expectedGeometric,
-          leadingDoubleSlash: expectedEventExtension,
-          trailingDoubleSlash: expectedEventExtension,
-          leadingDoubleSlashWithSpace: expectedEventExtension,
-          trailingDoubleSlashWithSpace: expectedEventExtension,
-        }
-        const expectedIssues = {
-          twoLevelDoubleSlash: [],
-          threeLevelDoubleSlash: [],
-          tripleSlashes: [],
-          mixedSingleAndDoubleSlashes: [],
-          singleSlashWithSpace: [],
-          doubleSlashSurroundingSpace: [],
-          doubleSlashThenSpace: [],
-          sosPattern: [],
-          alternatingSlashSpace: [],
-          leadingDoubleSlash: [],
-          trailingDoubleSlash: [],
-          leadingDoubleSlashWithSpace: [],
-          trailingDoubleSlashWithSpace: [],
+        const expectedResults = testStrings
+        const expectedIssues = {}
+        for (const [testStringKey, testString] of Object.entries(testStrings)) {
+          expectedIssues[testStringKey] = [generateIssue('invalidTag', { tag: testString })]
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
@@ -818,7 +789,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it.skip('should strip leading and trailing slashes', () => {
+      it('should raise an issue if there are extra slashes', () => {
         const testStrings = {
           leadingSingle: '/Event',
           leadingMultiLevel: '/Vehicle/Train',
@@ -831,32 +802,30 @@ describe('HED string conversion', () => {
           twoMixedBoth: '/Event/,/Vehicle/Train/',
           twoMixedBothGroup: '(/Event/,/Vehicle/Train/)',
         }
-        const expectedEvent = 'Event'
-        const expectedTrain = 'Item/Object/Man-made-object/Vehicle/Train'
-        const expectedMixed = expectedEvent + ',' + expectedTrain
-        const expectedResults = {
-          leadingSingle: expectedEvent,
-          leadingMultiLevel: expectedTrain,
-          trailingSingle: expectedEvent,
-          trailingMultiLevel: expectedTrain,
-          bothSingle: expectedEvent,
-          bothMultiLevel: expectedTrain,
-          twoMixedOuter: expectedMixed,
-          twoMixedInner: expectedMixed,
-          twoMixedBoth: expectedMixed,
-          twoMixedBothGroup: '(' + expectedMixed + ')',
-        }
+        const expectedResults = testStrings
         const expectedIssues = {
-          leadingSingle: [],
-          leadingMultiLevel: [],
-          trailingSingle: [],
-          trailingMultiLevel: [],
-          bothSingle: [],
-          bothMultiLevel: [],
-          twoMixedOuter: [],
-          twoMixedInner: [],
-          twoMixedBoth: [],
-          twoMixedBothGroup: [],
+          leadingSingle: [generateIssue('invalidTag', { tag: testStrings.leadingSingle })],
+          leadingMultiLevel: [generateIssue('invalidTag', { tag: testStrings.leadingMultiLevel })],
+          trailingSingle: [generateIssue('invalidTag', { tag: testStrings.trailingSingle })],
+          trailingMultiLevel: [generateIssue('invalidTag', { tag: testStrings.trailingMultiLevel })],
+          bothSingle: [generateIssue('invalidTag', { tag: testStrings.bothSingle })],
+          bothMultiLevel: [generateIssue('invalidTag', { tag: testStrings.bothMultiLevel })],
+          twoMixedOuter: [
+            generateIssue('invalidTag', { tag: '/Event' }),
+            generateIssue('invalidTag', { tag: 'Vehicle/Train/' }),
+          ],
+          twoMixedInner: [
+            generateIssue('invalidTag', { tag: 'Event/' }),
+            generateIssue('invalidTag', { tag: '/Vehicle/Train' }),
+          ],
+          twoMixedBoth: [
+            generateIssue('invalidTag', { tag: '/Event/' }),
+            generateIssue('invalidTag', { tag: '/Vehicle/Train/' }),
+          ],
+          twoMixedBothGroup: [
+            generateIssue('invalidTag', { tag: '/Event/' }),
+            generateIssue('invalidTag', { tag: '/Vehicle/Train/' }),
+          ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
