@@ -1579,10 +1579,11 @@ describe('HED string and event validation', () => {
         const expectedPlaceholdersTestStrings = {
           noPlaceholders: 'Car',
           noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',
-          noPlaceholderDefinitionGroup: '(Definition/SimpleDefinition)',
           noPlaceholderTagGroupDefinition: '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          noPlaceholderDefinitionWithFixedValue: '(Definition/FixedTagGroupDefinition/Test, (Square, RGB-blue))',
           singlePlaceholder: 'RGB-green/#',
           definitionPlaceholder: '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
+          definitionPlaceholderWithFixedValue: '(Definition/FixedPlaceholderDefinition/Test, (RGB-green/#))',
           definitionPlaceholderWithTag: 'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
           singlePlaceholderWithValidDefinitionPlaceholder:
             'Time-value/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
@@ -1600,10 +1601,11 @@ describe('HED string and event validation', () => {
         const noExpectedPlaceholdersTestStrings = {
           noPlaceholders: 'Car',
           noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',
-          noPlaceholderDefinitionGroup: '(Definition/SimpleDefinition)',
           noPlaceholderTagGroupDefinition: '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          noPlaceholderDefinitionWithFixedValue: '(Definition/FixedTagGroupDefinition/Test, (Square, RGB-blue))',
           singlePlaceholder: 'RGB-green/#',
           definitionPlaceholder: '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
+          definitionPlaceholderWithFixedValue: '(Definition/FixedPlaceholderDefinition/Test, (RGB-green/#))',
           definitionPlaceholderWithTag: 'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
           singlePlaceholderWithValidDefinitionPlaceholder:
             'Time-value/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
@@ -1639,10 +1641,26 @@ describe('HED string and event validation', () => {
               string: expectedPlaceholdersTestStrings.noPlaceholderTagGroupDefinition,
             }),
           ],
+          noPlaceholderDefinitionWithFixedValue: [
+            generateIssue('missingPlaceholder', {
+              string: expectedPlaceholdersTestStrings.noPlaceholderDefinitionWithFixedValue,
+            }),
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'FixedTagGroupDefinition',
+            }),
+          ],
           singlePlaceholder: [],
           definitionPlaceholder: [
             generateIssue('missingPlaceholder', {
               string: expectedPlaceholdersTestStrings.definitionPlaceholder,
+            }),
+          ],
+          definitionPlaceholderWithFixedValue: [
+            generateIssue('missingPlaceholder', {
+              string: expectedPlaceholdersTestStrings.definitionPlaceholderWithFixedValue,
+            }),
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'FixedPlaceholderDefinition',
             }),
           ],
           definitionPlaceholderWithTag: [
@@ -1693,8 +1711,18 @@ describe('HED string and event validation', () => {
           noPlaceholderGroup: [],
           noPlaceholderDefinitionGroup: [],
           noPlaceholderTagGroupDefinition: [],
+          noPlaceholderDefinitionWithFixedValue: [
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'FixedTagGroupDefinition',
+            }),
+          ],
           singlePlaceholder: [generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' })],
           definitionPlaceholder: [],
+          definitionPlaceholderWithFixedValue: [
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'FixedPlaceholderDefinition',
+            }),
+          ],
           definitionPlaceholderWithTag: [],
           singlePlaceholderWithValidDefinitionPlaceholder: [
             generateIssue('invalidPlaceholder', { tag: 'Time-value/#' }),
