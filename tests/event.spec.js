@@ -1540,10 +1540,10 @@ describe('HED string and event validation', () => {
           withUnit: 'Time-value/# ms',
           child: 'Left-side-of/#',
           extensionAllowed: 'Human/Driver/#',
-          invalidParent: 'Event/Nonsense/#',
           extensionParent: 'Item/TestDef1/#',
           missingRequiredUnit: 'Time-value/#',
           wrongLocation: 'Item/#/OtherItem',
+          duplicatePlaceholder: 'Item/#/#',
         }
         const expectedIssues = {
           takesValue: [],
@@ -1552,12 +1552,6 @@ describe('HED string and event validation', () => {
           extensionAllowed: [
             generateIssue('invalidPlaceholder', {
               tag: testStrings.extensionAllowed,
-            }),
-          ],
-          invalidParent: [
-            generateIssue('invalidExtension', {
-              tag: 'Nonsense',
-              parentTag: 'Event',
             }),
           ],
           extensionParent: [
@@ -1569,6 +1563,20 @@ describe('HED string and event validation', () => {
           wrongLocation: [
             generateIssue('invalidPlaceholder', {
               tag: testStrings.wrongLocation,
+            }),
+          ],
+          duplicatePlaceholder: [
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.duplicatePlaceholder,
+            }),
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.duplicatePlaceholder,
+            }),
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.duplicatePlaceholder,
+            }),
+            generateIssue('invalidTag', {
+              tag: testStrings.duplicatePlaceholder,
             }),
           ],
         }
