@@ -1,8 +1,8 @@
 import chai from 'chai'
 const assert = chai.assert
+import { beforeAll, describe, it } from '@jest/globals'
 import cloneDeep from 'lodash/cloneDeep'
 
-import converterGenerateIssue from '../converter/issues'
 import { generateIssue } from '../common/issues/issues'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { buildBidsSchemas, parseSchemasSpec } from '../bids/schema'
@@ -88,10 +88,7 @@ describe('BIDS datasets', () => {
           ),
         ],
         error_and_good: [
-          BidsHedIssue.fromHedIssue(
-            converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]),
-            bidsSidecars[1][1].file,
-          ),
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), bidsSidecars[1][1].file),
         ],
       }
       return validator(testDatasets, expectedIssues, specs)
@@ -160,7 +157,7 @@ describe('BIDS datasets', () => {
         tag: 'Speed/300 miles',
         unitClassUnits: legalSpeedUnits.sort().join(','),
       })
-      const converterMaglevError = converterGenerateIssue('invalidTag', 'Maglev', {}, [0, 6])
+      const converterMaglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
       const expectedIssues = {
@@ -192,8 +189,7 @@ describe('BIDS datasets', () => {
         all_good: [],
         all_bad: [
           // BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
-          BidsHedIssue.fromHedIssue(converterGenerateIssue('invalidTag', 'Confused', {}, [0, 8]), badDatasets[0].file),
-          // BidsHedIssue.fromHedIssue(converterGenerateIssue('invalidTag', 'Confused,Gray', {}, [0, 8]), badDatasets[0].file),
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
           // TODO: Catch warning in sidecar validation
           /* BidsHedIssue.fromHedIssue(
             generateIssue('extension', { tag: 'Train/Maglev' }),
@@ -473,7 +469,10 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         bad_tsv: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('illegalDefinitionContext', { string: '(Definition/myDef, (Label/Red, Green))', tsvLine: 2 }),
+            generateIssue('illegalDefinitionContext', {
+              string: '(Definition/myDef, (Label/Red, Green))',
+              tsvLine: 2,
+            }),
             badTsvDatasets[0].file,
           ),
         ],

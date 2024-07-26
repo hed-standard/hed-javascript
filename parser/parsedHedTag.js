@@ -1,8 +1,9 @@
 import { generateIssue } from '../common/issues/issues'
 import { Schema } from '../common/schema/types'
-import { convertPartialHedStringToLong } from '../converter/converter'
 import { getTagLevels, replaceTagNameWithPound } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
+import { SchemaValueTag } from '../validator/schema/types'
+import TagConverter from './converter'
 
 /**
  * A parsed HED tag.
@@ -33,15 +34,13 @@ export class ParsedHedTag extends ParsedHedSubstring {
    * Constructor.
    *
    * @param {string} originalTag The original HED tag.
-   * @param {string} hedString The original HED string.
    * @param {number[]} originalBounds The bounds of the HED tag in the original HED string.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
    */
-  constructor(originalTag, hedString, originalBounds, hedSchemas, schemaName = '') {
+  constructor(originalTag, originalBounds) {
     super(originalTag, originalBounds)
 
-    this._convertTag(hedString, hedSchemas, schemaName)
+    this.canonicalTag = this.originalTag
+    this.conversionIssues = []
 
     this.formattedTag = this._formatTag()
   }
@@ -62,23 +61,12 @@ export class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Nicely format this tag.
    *
+   * @param {boolean} long Whether the tags should be in long form.
    * @returns {string} The nicely formatted version of this tag.
    */
-  format() {
-    return this.toString()
-  }
-
-  /**
-   * Convert this tag to long form.
-   *
-   * @param {string} hedString The original HED string.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
-   */
   // eslint-disable-next-line no-unused-vars
-  _convertTag(hedString, hedSchemas, schemaName) {
-    this.canonicalTag = this.originalTag
-    this.conversionIssues = []
+  format(long = true) {
+    return this.toString()
   }
 
   /**
@@ -293,24 +281,49 @@ export class ParsedHedTag extends ParsedHedSubstring {
  */
 export class ParsedHed3Tag extends ParsedHedTag {
   /**
+   * The schema's representation of this tag.
+   *
+   * @type {SchemaTag}
+   * @private
+   */
+  _schemaTag
+  /**
+   * The remaining part of the tag after the portion actually in the schema.
+   *
+   * @type {string}
+   * @private
+   */
+  _remainder
+
+  /**
+   * Constructor.
+   *
+   * @param {TagSpec} tagSpec The token for this tag.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string} hedString The original HED string.
+   */
+  constructor(tagSpec, hedSchemas, hedString) {
+    super(tagSpec.tag, tagSpec.bounds)
+
+    this._convertTag(hedSchemas, hedString, tagSpec)
+
+    this.formattedTag = this._formatTag()
+  }
+
+  /**
    * Convert this tag to long form.
    *
-   * @param {string} hedString The original HED string.
    * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
+   * @param {string} hedString The original HED string.
+   * @param {TagSpec} tagSpec The token for this tag.
    */
-  _convertTag(hedString, hedSchemas, schemaName) {
+  _convertTag(hedSchemas, hedString, tagSpec) {
     const hed3ValidCharacters = /^[^{}[\]()~,\0\t]+$/
     if (!hed3ValidCharacters.test(this.originalTag)) {
       throw new Error('The parser failed to properly remove an illegal or special character.')
     }
 
-    if (hedSchemas.isSyntaxOnly) {
-      this.canonicalTag = this.originalTag
-      this.conversionIssues = []
-      return
-    }
-
+    const schemaName = tagSpec.library
     this.schema = hedSchemas.getSchema(schemaName)
     if (this.schema === undefined) {
       if (schemaName !== '') {
@@ -331,23 +344,30 @@ export class ParsedHed3Tag extends ParsedHedTag {
       return
     }
 
-    const [canonicalTag, conversionIssues] = convertPartialHedStringToLong(
-      this.schema,
-      this.originalTag,
-      hedString,
-      this.originalBounds[0],
-    )
-    this.canonicalTag = canonicalTag
-    this.conversionIssues = conversionIssues
+    try {
+      const [schemaTag, remainder] = new TagConverter(tagSpec, hedSchemas).convert()
+      this._schemaTag = schemaTag
+      this._remainder = remainder
+      this.canonicalTag = this._schemaTag.longExtend(remainder)
+      this.conversionIssues = []
+    } catch (error) {
+      this.conversionIssues = [error.issue]
+    }
   }
 
   /**
    * Nicely format this tag.
    *
+   * @param {boolean} long Whether the tags should be in long form.
    * @returns {string} The nicely formatted version of this tag.
    */
-  format() {
-    let tagName = this.schema?.entries.definitions.get('tags').getEntry(this.formattedTag)?.name
+  format(long = true) {
+    let tagName
+    if (long) {
+      tagName = this._schemaTag?.longExtend(this._remainder)
+    } else {
+      tagName = this._schemaTag?.extend(this._remainder)
+    }
     if (tagName === undefined) {
       tagName = this.originalTag
     }
@@ -365,7 +385,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    */
   get existsInSchema() {
     return this._memoize('existsInSchema', () => {
-      return this.schema?.entries.definitions.get('tags').hasEntry(this.formattedTag)
+      return this.schema?.entries?.tags?.hasLongNameEntry(this.formattedTag)
     })
   }
 
@@ -394,11 +414,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    */
   get takesValueTag() {
     return this._memoize('takesValueTag', () => {
-      if (this.takesValueFormattedTag !== null) {
-        return this.schema?.entries.definitions.get('tags').getEntry(this.takesValueFormattedTag)
-      } else {
-        return null
-      }
+      return this._schemaTag
     })
   }
 
@@ -420,10 +436,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    */
   get hasUnitClass() {
     return this._memoize('hasUnitClass', () => {
-      if (!this.schema?.entries.definitions.has('unitClasses')) {
-        return false
-      }
-      if (this.takesValueTag === null) {
+      if (!this.takesValueTag) {
         return false
       }
       return this.takesValueTag.hasUnitClasses
@@ -475,7 +488,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
       const tagUnitClasses = this.unitClasses
       const units = new Set()
       for (const unitClass of tagUnitClasses) {
-        const unitClassUnits = this.schema?.entries.unitClassMap.getEntry(unitClass.name).units
+        const unitClassUnits = this.schema?.entries.unitClasses.getEntry(unitClass.name).units
         for (const unit of unitClassUnits.values()) {
           units.add(unit)
         }

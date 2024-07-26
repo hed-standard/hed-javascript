@@ -3,7 +3,6 @@ import semver from 'semver'
 
 import { Schema, Schemas, Hed2Schema, Hed3Schema, SchemasSpec, PartneredSchema } from '../../common/schema/types'
 import loadSchema from '../../common/schema/loader'
-import { buildMappingObject } from '../../converter/schema'
 import { setParent } from '../../utils/xml2js'
 
 import { Hed2SchemaParser } from '../hed2/schema/hed2SchemaParser'
@@ -44,8 +43,7 @@ export const buildSchemaAttributesObject = function (xmlData) {
 const buildSchemaObject = function (xmlData) {
   const schemaAttributes = buildSchemaAttributesObject(xmlData)
   if (isHed3Schema(xmlData)) {
-    const mapping = buildMappingObject(schemaAttributes)
-    return new Hed3Schema(xmlData, schemaAttributes, mapping)
+    return new Hed3Schema(xmlData, schemaAttributes)
   } else {
     return new Hed2Schema(xmlData, schemaAttributes)
   }

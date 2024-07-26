@@ -96,9 +96,9 @@ export class Hed3Validator extends HedValidator {
   _checkForTagAttribute(attribute, fn) {
     const schemas = this.hedSchemas.schemas.values()
     for (const schema of schemas) {
-      const tags = schema.entries.definitions.get('tags').getEntriesWithBooleanAttribute(attribute)
-      for (const tag of tags) {
-        fn(tag.name)
+      const tags = schema.entries.tags.getEntriesWithBooleanAttribute(attribute)
+      for (const tag of tags.values()) {
+        fn(tag.longName)
       }
     }
   }
@@ -213,7 +213,8 @@ export class Hed3Validator extends HedValidator {
   _checkDefinitionPlaceholderStringSyntaxInGroup(tagGroup) {
     // Count of placeholders within this Definition group.
     let definitionPlaceholders = 0
-    const definitionHasPlaceholder = tagGroup.definitionValue === '#'
+    const definitionValue = tagGroup.definitionValue
+    const definitionHasPlaceholder = definitionValue === '#'
     const definitionName = tagGroup.definitionName
     for (const tag of tagGroup.tagIterator()) {
       if (!definitionHasPlaceholder || tag !== tagGroup.definitionTag) {
@@ -221,7 +222,7 @@ export class Hed3Validator extends HedValidator {
       }
     }
     const isValid =
-      (!definitionHasPlaceholder && definitionPlaceholders === 0) ||
+      (definitionValue === '' && definitionPlaceholders === 0) ||
       (definitionHasPlaceholder && definitionPlaceholders === 1)
     if (!isValid) {
       this.pushIssue('invalidPlaceholderInDefinition', {

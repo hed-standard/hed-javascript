@@ -92,10 +92,11 @@ export class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Nicely format this tag group.
    *
+   * @param {boolean} long Whether the tags should be in long form.
    * @returns {string}
    */
-  format() {
-    return '(' + this.tags.map((substring) => substring.format()).join(', ') + ')'
+  format(long = true) {
+    return '(' + this.tags.map((substring) => substring.format(long)).join(', ') + ')'
   }
 
   /**

@@ -1,12 +1,11 @@
 import chai from 'chai'
 const assert = chai.assert
+import { beforeAll, describe, it } from '@jest/globals'
 
 import { generateIssue } from '../common/issues/issues'
 import { Schemas, SchemaSpec, SchemasSpec } from '../common/schema/types'
-import converterGenerateIssue from '../converter/issues'
 import { recursiveMap } from '../utils/array'
 import { parseHedString } from '../parser/main'
-import ParsedHedSubstring from '../parser/parsedHedSubstring'
 import { ParsedHedTag } from '../parser/parsedHedTag'
 import splitHedString from '../parser/splitHedString'
 import { buildSchemas } from '../validator/schema/init'
@@ -134,18 +133,11 @@ describe('HED string parsing', () => {
       const [result, issues] = splitHedString(hedString, nullSchema)
       assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
       assert.deepStrictEqual(result, [
-        new ParsedHedTag('Event/Category/Sensory-event', 'Event/Category/Sensory-event', [0, 28], nullSchema),
+        new ParsedHedTag('Event/Category/Sensory-event', [0, 28]),
+        new ParsedHedTag('Item/Object/Man-made-object/Vehicle/Train', [29, 70]),
         new ParsedHedTag(
-          'Item/Object/Man-made-object/Vehicle/Train',
-          'Item/Object/Man-made-object/Vehicle/Train',
-          [29, 70],
-          nullSchema,
-        ),
-        new ParsedHedTag(
-          'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple',
           'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Purple-color/Purple',
           [71, 167],
-          nullSchema,
         ),
       ])
     })
@@ -156,47 +148,34 @@ describe('HED string parsing', () => {
       const [result, issues] = splitHedString(hedString, nullSchema)
       assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
       assert.deepStrictEqual(result, [
-        new ParsedHedTag('/Action/Move/Flex', '/Action/Move/Flex', [0, 17], nullSchema),
+        new ParsedHedTag('/Action/Move/Flex', [0, 17]),
         new ParsedHedGroup(
           [
-            new ParsedHedTag(
-              'Relation/Spatial-relation/Left-side-of',
-              'Relation/Spatial-relation/Left-side-of',
-              [19, 57],
-              nullSchema,
-            ),
-            new ParsedHedTag('/Action/Move/Bend', '/Action/Move/Bend', [58, 75], nullSchema),
-            new ParsedHedTag('/Upper-extremity/Elbow', '/Upper-extremity/Elbow', [76, 98], nullSchema),
+            new ParsedHedTag('Relation/Spatial-relation/Left-side-of', [19, 57]),
+            new ParsedHedTag('/Action/Move/Bend', [58, 75]),
+            new ParsedHedTag('/Upper-extremity/Elbow', [76, 98]),
           ],
           nullSchema,
           hedString,
           [18, 99],
         ),
-        new ParsedHedTag('/Position/X-position/70 px', '/Position/X-position/70 px', [100, 126], nullSchema),
-        new ParsedHedTag('/Position/Y-position/23 px', '/Position/Y-position/23 px', [127, 153], nullSchema),
+        new ParsedHedTag('/Position/X-position/70 px', [100, 126]),
+        new ParsedHedTag('/Position/Y-position/23 px', [127, 153]),
       ])
     })
 
     it('should not include blanks', () => {
       const testStrings = {
-        doubleComma: '/Item/Object/Man-made-object/Vehicle/Car,,/Action/Perform/Operate',
         trailingBlank: '/Item/Object/Man-made-object/Vehicle/Car, /Action/Perform/Operate,',
       }
       const expectedList = [
-        new ParsedHedTag(
-          '/Item/Object/Man-made-object/Vehicle/Car',
-          '/Item/Object/Man-made-object/Vehicle/Car',
-          [0, 40],
-          nullSchema,
-        ),
-        new ParsedHedTag('/Action/Perform/Operate', '/Action/Perform/Operate', [42, 65], nullSchema),
+        new ParsedHedTag('/Item/Object/Man-made-object/Vehicle/Car', [0, 40]),
+        new ParsedHedTag('/Action/Perform/Operate', [42, 65]),
       ]
       const expectedResults = {
-        doubleComma: expectedList,
         trailingBlank: expectedList,
       }
       const expectedIssues = {
-        doubleComma: {},
         trailingBlank: {},
       }
       validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
@@ -238,7 +217,7 @@ describe('HED string parsing', () => {
         openingAndClosingDoubleQuotedSlash: formattedHedTag,
       }
       validatorWithoutIssues(testStrings, expectedResults, (string) => {
-        const parsedTag = new ParsedHedTag(string, string, [], nullSchema)
+        const parsedTag = new ParsedHedTag(string, [])
         return parsedTag.formattedTag
       })
     })
@@ -371,16 +350,14 @@ describe('HED string parsing', () => {
         simple: {},
         groupAndTag: {},
         invalidTag: {
-          conversion: [converterGenerateIssue('invalidTag', testStrings.invalidTag, {}, [0, 10])],
+          conversion: [generateIssue('invalidTag', { tag: expectedResults.invalidTag[0] })],
         },
         invalidParentNode: {
           conversion: [
-            converterGenerateIssue(
-              'invalidParentNode',
-              testStrings.invalidParentNode,
-              { parentTag: 'Item/Object/Man-made-object/Vehicle/Train' },
-              [4, 9],
-            ),
+            generateIssue('invalidParentNode', {
+              parentTag: 'Item/Object/Man-made-object/Vehicle/Train',
+              tag: 'Train',
+            }),
           ],
         },
       }
@@ -412,6 +389,7 @@ describe('HED string parsing', () => {
           parsedStrings.push(parsedString)
           issues.push(...Object.values(parsingIssues).flat())
         }
+        assert.isEmpty(issues, 'Parsing issues')
         const [baseString, refString, correctString] = parsedStrings
         const replacementMap = new Map([['stim_file', refString]])
         const columnSplicer = new ColumnSplicer(
@@ -422,9 +400,8 @@ describe('HED string parsing', () => {
         )
         const splicedString = columnSplicer.splice()
         const splicingIssues = columnSplicer.issues
-        issues.push(...splicingIssues)
         assert.strictEqual(splicedString.format(), correctString.format(), 'Full string')
-        assert.isEmpty(issues, 'Issues')
+        assert.isEmpty(splicingIssues, 'Splicing issues')
       })
     })
 

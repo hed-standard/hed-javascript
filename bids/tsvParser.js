@@ -20,7 +20,7 @@ export function parseTSV(contents) {
   const rows = stripBOM(normalizeEOL(contents))
     .split('\n')
     .filter(isContentfulRow)
-    .map((str) => str.split('\t'))
+    .map((str) => str.split('\t').map((cell) => cell.trim()))
   const headers = rows.length ? rows[0] : []
 
   headers.forEach((x) => {

@@ -1,5 +1,7 @@
 import chai from 'chai'
 const assert = chai.assert
+import { beforeAll, describe, it } from '@jest/globals'
+
 import * as hed from '../hedStrings'
 import { SchemaSpec, SchemasSpec } from '../../common/schema/types'
 import { buildSchemas } from '../../validator/schema/init'

@@ -1,5 +1,7 @@
 import chai from 'chai'
 const assert = chai.assert
+import { beforeAll, describe, it } from '@jest/globals'
+
 import { generateIssue } from '../common/issues/issues'
 import { PartneredSchema, SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { parseSchemaSpec, parseSchemasSpec } from '../bids/schema'
@@ -349,24 +351,15 @@ describe('HED schemas', () => {
 
     it('should contain all of the tag group tags', async () => {
       const hedSchemas = await hedSchemaPromise
-      const tagGroupTags = ['property/organizational-property/def-expand']
-      const schemaTagGroupTags = hedSchemas.baseSchema.entries.definitions
-        .get('tags')
-        .getEntriesWithBooleanAttribute('tagGroup')
+      const tagGroupTags = ['def-expand']
+      const schemaTagGroupTags = hedSchemas.baseSchema.entries.tags.getEntriesWithBooleanAttribute('tagGroup')
       assert.hasAllKeys(schemaTagGroupTags, tagGroupTags)
     })
 
     it('should contain all of the top-level tag group tags', async () => {
       const hedSchemas = await hedSchemaPromise
-      const tagGroupTags = [
-        'property/organizational-property/definition',
-        'property/organizational-property/event-context',
-        'property/data-property/data-marker/temporal-marker/onset',
-        'property/data-property/data-marker/temporal-marker/offset',
-      ]
-      const schemaTagGroupTags = hedSchemas.baseSchema.entries.definitions
-        .get('tags')
-        .getEntriesWithBooleanAttribute('topLevelTagGroup')
+      const tagGroupTags = ['definition', 'event-context', 'onset', 'offset']
+      const schemaTagGroupTags = hedSchemas.baseSchema.entries.tags.getEntriesWithBooleanAttribute('topLevelTagGroup')
       assert.hasAllKeys(schemaTagGroupTags, tagGroupTags)
     })
 
@@ -403,7 +396,7 @@ describe('HED schemas', () => {
         weightUnits: ['g', 'gram', 'pound', 'lb'],
       }
 
-      const schemaUnitClasses = hedSchemas.baseSchema.entries.definitions.get('unitClasses')
+      const schemaUnitClasses = hedSchemas.baseSchema.entries.unitClasses
       for (const [unitClassName, unitClass] of schemaUnitClasses) {
         const defaultUnit = unitClass.defaultUnit
         assert.strictEqual(
@@ -426,7 +419,7 @@ describe('HED schemas', () => {
         takesValue: 88,
       }
 
-      const schemaTags = hedSchemas.baseSchema.entries.definitions.get('tags')
+      const schemaTags = hedSchemas.baseSchema.entries.tags
       for (const [attribute, count] of Object.entries(expectedAttributeTagCount)) {
         assert.lengthOf(
           schemaTags.getEntriesWithBooleanAttribute(attribute),

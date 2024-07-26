@@ -6,6 +6,21 @@ import { ParsedHedTag } from '../../../parser/parsedHedTag'
  */
 export class ParsedHed2Tag extends ParsedHedTag {
   /**
+   * Constructor.
+   *
+   * @param {string} originalTag The original HED tag.
+   * @param {string} hedString The original HED string.
+   * @param {number[]} originalBounds The bounds of the HED tag in the original HED string.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string} schemaName The label of this tag's schema in the dataset's schema spec.
+   */
+  constructor(originalTag, hedString, originalBounds, hedSchemas, schemaName = '') {
+    super(originalTag, originalBounds)
+
+    this._convertTag(hedString, hedSchemas, schemaName)
+  }
+
+  /**
    * Convert this tag to long form.
    *
    * @param {string} hedString The original HED string.

@@ -1,12 +1,13 @@
 import chai from 'chai'
 const assert = chai.assert
+import { beforeAll, describe, it } from '@jest/globals'
+
 import * as hed from '../validator/event'
 import { buildSchemas } from '../validator/schema/init'
 import { parseHedString } from '../parser/main'
 import { ParsedHedTag } from '../parser/parsedHedTag'
 import { HedValidator, Hed2Validator, Hed3Validator } from '../validator/event'
 import { generateIssue } from '../common/issues/issues'
-import converterGenerateIssue from '../converter/issues'
 import { Schemas, SchemaSpec, SchemasSpec } from '../common/schema/types'
 
 describe('HED string and event validation', () => {
@@ -373,32 +374,20 @@ describe('HED string and event validation', () => {
           }
           const expectedIssues = {
             red: [
-              converterGenerateIssue(
-                'invalidParentNode',
-                testStrings.red,
-                {
-                  parentTag: 'Attribute/Visual/Color/Red',
-                },
-                [10, 13],
-              ),
+              generateIssue('invalidParentNode', {
+                tag: 'Red',
+                parentTag: 'Attribute/Visual/Color/Red',
+              }),
             ],
             redAndBlue: [
-              converterGenerateIssue(
-                'invalidParentNode',
-                testStrings.redAndBlue,
-                {
-                  parentTag: 'Attribute/Visual/Color/Red',
-                },
-                [10, 13],
-              ),
-              converterGenerateIssue(
-                'invalidParentNode',
-                testStrings.redAndBlue,
-                {
-                  parentTag: 'Attribute/Visual/Color/Blue',
-                },
-                [25, 29],
-              ),
+              generateIssue('invalidParentNode', {
+                tag: 'Red',
+                parentTag: 'Attribute/Visual/Color/Red',
+              }),
+              generateIssue('invalidParentNode', {
+                tag: 'Blue',
+                parentTag: 'Attribute/Visual/Color/Blue',
+              }),
             ],
           }
           // This is a no-op function since this is checked during string parsing.
@@ -963,36 +952,24 @@ describe('HED string and event validation', () => {
         const testStrings = {
           // Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
           red: 'Property/RGB-red, Duration/20 cm',
-          redAndBlue: 'Property/RGB-red, Property/RGB-blue, Duration/20 cm',
+          redAndBlue: 'Property/RGB-red, Property/RGB-blue/Blah, Duration/20 cm',
         }
         const expectedIssues = {
           red: [
-            converterGenerateIssue(
-              'invalidParentNode',
-              testStrings.red,
-              {
-                parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
-              },
-              [9, 16],
-            ),
+            generateIssue('invalidParentNode', {
+              tag: 'RGB-red',
+              parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
+            }),
           ],
           redAndBlue: [
-            converterGenerateIssue(
-              'invalidParentNode',
-              testStrings.redAndBlue,
-              {
-                parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
-              },
-              [9, 16],
-            ),
-            converterGenerateIssue(
-              'invalidParentNode',
-              testStrings.redAndBlue,
-              {
-                parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-blue',
-              },
-              [27, 35],
-            ),
+            generateIssue('invalidParentNode', {
+              tag: 'RGB-red',
+              parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red',
+            }),
+            generateIssue('invalidParentNode', {
+              tag: 'RGB-blue',
+              parentTag: 'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-blue',
+            }),
           ],
         }
         // This is a no-op since short-to-long conversion errors are handled in the string parsing phase.
@@ -1101,14 +1078,15 @@ describe('HED string and event validation', () => {
           takesValue: [],
           full: [],
           extensionAllowed: [generateIssue('extension', { tag: testStrings.extensionAllowed })],
-          leafExtension: [generateIssue('invalidTag', { tag: testStrings.leafExtension })],
+          leafExtension: [generateIssue('invalidExtension', { tag: 'Something', parentTag: 'Event/Sensory-event' })],
           nonExtensionAllowed: [
-            generateIssue('invalidTag', {
-              tag: testStrings.nonExtensionAllowed,
+            generateIssue('invalidExtension', {
+              tag: 'Nonsense',
+              parentTag: 'Event',
             }),
           ],
           illegalComma: [
-            converterGenerateIssue('invalidTag', testStrings.illegalComma, { tag: 'This' }, [22, 26]),
+            generateIssue('invalidTag', { tag: 'This/Is/A/Tag' }),
             /* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',
@@ -1562,10 +1540,10 @@ describe('HED string and event validation', () => {
           withUnit: 'Time-value/# ms',
           child: 'Left-side-of/#',
           extensionAllowed: 'Human/Driver/#',
-          invalidParent: 'Event/Nonsense/#',
           extensionParent: 'Item/TestDef1/#',
           missingRequiredUnit: 'Time-value/#',
-          wrongLocation: 'Item/#/Organism',
+          wrongLocation: 'Item/#/OtherItem',
+          duplicatePlaceholder: 'Item/#/#',
         }
         const expectedIssues = {
           takesValue: [],
@@ -1576,11 +1554,6 @@ describe('HED string and event validation', () => {
               tag: testStrings.extensionAllowed,
             }),
           ],
-          invalidParent: [
-            generateIssue('invalidPlaceholder', {
-              tag: testStrings.invalidParent,
-            }),
-          ],
           extensionParent: [
             generateIssue('invalidPlaceholder', {
               tag: testStrings.extensionParent,
@@ -1588,16 +1561,23 @@ describe('HED string and event validation', () => {
           ],
           missingRequiredUnit: [],
           wrongLocation: [
-            converterGenerateIssue(
-              'invalidParentNode',
-              testStrings.wrongLocation,
-              { parentTag: 'Item/Biological-item/Organism' },
-              [7, 15],
-            ),
-            /* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('invalidPlaceholder', {
               tag: testStrings.wrongLocation,
-            }), */
+            }),
+          ],
+          duplicatePlaceholder: [
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.duplicatePlaceholder,
+            }),
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.duplicatePlaceholder,
+            }),
+            generateIssue('invalidPlaceholder', {
+              tag: testStrings.duplicatePlaceholder,
+            }),
+            generateIssue('invalidTag', {
+              tag: testStrings.duplicatePlaceholder,
+            }),
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, true)
@@ -1607,10 +1587,11 @@ describe('HED string and event validation', () => {
         const expectedPlaceholdersTestStrings = {
           noPlaceholders: 'Car',
           noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',
-          noPlaceholderDefinitionGroup: '(Definition/SimpleDefinition)',
           noPlaceholderTagGroupDefinition: '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          noPlaceholderDefinitionWithFixedValue: '(Definition/FixedTagGroupDefinition/Test, (Square, RGB-blue))',
           singlePlaceholder: 'RGB-green/#',
           definitionPlaceholder: '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
+          definitionPlaceholderWithFixedValue: '(Definition/FixedPlaceholderDefinition/Test, (RGB-green/#))',
           definitionPlaceholderWithTag: 'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
           singlePlaceholderWithValidDefinitionPlaceholder:
             'Time-value/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
@@ -1628,10 +1609,11 @@ describe('HED string and event validation', () => {
         const noExpectedPlaceholdersTestStrings = {
           noPlaceholders: 'Car',
           noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',
-          noPlaceholderDefinitionGroup: '(Definition/SimpleDefinition)',
           noPlaceholderTagGroupDefinition: '(Definition/TagGroupDefinition, (Square, RGB-blue))',
+          noPlaceholderDefinitionWithFixedValue: '(Definition/FixedTagGroupDefinition/Test, (Square, RGB-blue))',
           singlePlaceholder: 'RGB-green/#',
           definitionPlaceholder: '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
+          definitionPlaceholderWithFixedValue: '(Definition/FixedPlaceholderDefinition/Test, (RGB-green/#))',
           definitionPlaceholderWithTag: 'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
           singlePlaceholderWithValidDefinitionPlaceholder:
             'Time-value/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
@@ -1667,10 +1649,26 @@ describe('HED string and event validation', () => {
               string: expectedPlaceholdersTestStrings.noPlaceholderTagGroupDefinition,
             }),
           ],
+          noPlaceholderDefinitionWithFixedValue: [
+            generateIssue('missingPlaceholder', {
+              string: expectedPlaceholdersTestStrings.noPlaceholderDefinitionWithFixedValue,
+            }),
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'FixedTagGroupDefinition',
+            }),
+          ],
           singlePlaceholder: [],
           definitionPlaceholder: [
             generateIssue('missingPlaceholder', {
               string: expectedPlaceholdersTestStrings.definitionPlaceholder,
+            }),
+          ],
+          definitionPlaceholderWithFixedValue: [
+            generateIssue('missingPlaceholder', {
+              string: expectedPlaceholdersTestStrings.definitionPlaceholderWithFixedValue,
+            }),
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'FixedPlaceholderDefinition',
             }),
           ],
           definitionPlaceholderWithTag: [
@@ -1721,8 +1719,18 @@ describe('HED string and event validation', () => {
           noPlaceholderGroup: [],
           noPlaceholderDefinitionGroup: [],
           noPlaceholderTagGroupDefinition: [],
+          noPlaceholderDefinitionWithFixedValue: [
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'FixedTagGroupDefinition',
+            }),
+          ],
           singlePlaceholder: [generateIssue('invalidPlaceholder', { tag: 'RGB-green/#' })],
           definitionPlaceholder: [],
+          definitionPlaceholderWithFixedValue: [
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: 'FixedPlaceholderDefinition',
+            }),
+          ],
           definitionPlaceholderWithTag: [],
           singlePlaceholderWithValidDefinitionPlaceholder: [
             generateIssue('invalidPlaceholder', { tag: 'Time-value/#' }),
