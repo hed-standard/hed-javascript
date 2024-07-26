@@ -142,12 +142,7 @@ export class HedStringTokenizer {
     this.pushTag(this.hedString.length, true)
 
     if (this.columnSpliceIndex >= 0) {
-      this.syntaxIssues.push(
-        generateIssue('unclosedCurlyBrace', {
-          index: this.columnSpliceIndex,
-          string: this.hedString,
-        }),
-      )
+      this._pushSyntaxIssue('unclosedCurlyBrace', this.columnSpliceIndex)
     }
 
     this.unwindGroupStack()
@@ -205,13 +200,7 @@ export class HedStringTokenizer {
     if (characterHandler) {
       characterHandler(i, character)
     } else if (invalidCharacters.has(character)) {
-      this.syntaxIssues.push(
-        generateIssue('invalidCharacter', {
-          character: character,
-          index: i,
-          string: this.hedString,
-        }),
-      )
+      this._pushInvalidCharacterIssue(character, i)
     } else {
       this.otherCharacter(character)
     }
@@ -227,12 +216,7 @@ export class HedStringTokenizer {
   closingGroupCharacter(i) {
     this.closingGroup = true
     if (this.groupDepth <= 0) {
-      this.syntaxIssues.push(
-        generateIssue('unopenedParenthesis', {
-          index: i,
-          string: this.hedString,
-        }),
-      )
+      this._pushSyntaxIssue('unopenedParenthesis', i)
       return
     }
     this.closeGroup(i)
@@ -240,23 +224,12 @@ export class HedStringTokenizer {
 
   openingColumnCharacter(i) {
     if (this.currentTag.length > 0) {
-      this.syntaxIssues.push(
-        generateIssue('invalidCharacter', {
-          character: openingColumnCharacter,
-          index: i,
-          string: this.hedString,
-        }),
-      )
+      this._pushInvalidCharacterIssue(openingColumnCharacter, i)
       this.ignoringCharacters = true
       return
     }
     if (this.columnSpliceIndex >= 0) {
-      this.syntaxIssues.push(
-        generateIssue('nestedCurlyBrace', {
-          index: i,
-          string: this.hedString,
-        }),
-      )
+      this._pushSyntaxIssue('nestedCurlyBrace', i)
     }
     this.columnSpliceIndex = i
   }
@@ -264,12 +237,7 @@ export class HedStringTokenizer {
   closingColumnCharacter(i) {
     this.closingGroup = true
     if (this.columnSpliceIndex < 0) {
-      this.syntaxIssues.push(
-        generateIssue('unopenedCurlyBrace', {
-          index: i,
-          string: this.hedString,
-        }),
-      )
+      this._pushSyntaxIssue('unopenedCurlyBrace', i)
       return
     }
     if (!stringIsEmpty(this.currentTag)) {
@@ -312,12 +280,7 @@ export class HedStringTokenizer {
     // groupDepth is decremented in closeGroup.
     // eslint-disable-next-line no-unmodified-loop-condition
     while (this.groupDepth > 0) {
-      this.syntaxIssues.push(
-        generateIssue('unclosedParenthesis', {
-          index: this.parenthesesStack[this.parenthesesStack.length - 1].bounds[0],
-          string: this.hedString,
-        }),
-      )
+      this._pushSyntaxIssue('unclosedParenthesis', this.parenthesesStack[this.parenthesesStack.length - 1].bounds[0])
       this.closeGroup(this.hedString.length)
     }
   }
@@ -373,13 +336,40 @@ export class HedStringTokenizer {
       if (!invalidCharactersOutsideOfValues.has(character)) {
         continue
       }
-      this.syntaxIssues.push(
-        generateIssue('invalidCharacter', {
-          character: character,
-          index: this.startingIndex + i,
-          string: this.hedString,
-        }),
-      )
+      this._pushInvalidCharacterIssue(character, this.startingIndex + i)
     }
+  }
+
+  /**
+   * Push an issue to the syntax issue list.
+   *
+   * @param {string} issueCode The internal code of the issue to be pushed.
+   * @param {number} index The location of the issue.
+   * @private
+   */
+  _pushSyntaxIssue(issueCode, index) {
+    this.syntaxIssues.push(
+      generateIssue(issueCode, {
+        index: index,
+        string: this.hedString,
+      }),
+    )
+  }
+
+  /**
+   * Push an invalid character issue to the syntax issue list.
+   *
+   * @param {string} character The illegal character to be reported.
+   * @param {number} index The location of the character.
+   * @private
+   */
+  _pushInvalidCharacterIssue(character, index) {
+    this.syntaxIssues.push(
+      generateIssue('invalidCharacter', {
+        character: character,
+        index: index,
+        string: this.hedString,
+      }),
+    )
   }
 }
