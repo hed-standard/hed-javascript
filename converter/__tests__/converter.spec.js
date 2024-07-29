@@ -9,12 +9,12 @@ import { buildSchemas } from '../../validator/schema/init'
 
 describe('HED string conversion', () => {
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'
-  let hedSchemaPromise
+  let hedSchemas
 
-  beforeAll(() => {
+  beforeAll(async () => {
     const spec1 = new SchemaSpec('', '8.0.0', '', hedSchemaFile)
     const specs = new SchemasSpec().addSchemaSpec(spec1)
-    hedSchemaPromise = buildSchemas(specs)
+    hedSchemas = await buildSchemas(specs)
   })
 
   describe('HED tags', () => {
@@ -28,7 +28,6 @@ describe('HED string conversion', () => {
      * @returns {Promise<void>}
      */
     const validatorBase = async function (testStrings, expectedResults, expectedIssues, testFunction) {
-      const hedSchemas = await hedSchemaPromise
       for (const [testStringKey, testString] of Object.entries(testStrings)) {
         const [testResult, issues] = testFunction(hedSchemas, testString)
         assert.strictEqual(testResult, expectedResults[testStringKey], testString)
@@ -527,7 +526,6 @@ describe('HED string conversion', () => {
      * @returns {Promise<void>}
      */
     const validatorBase = async function (testStrings, expectedResults, expectedIssues, testFunction) {
-      const hedSchemas = await hedSchemaPromise
       for (const [testStringKey, testString] of Object.entries(testStrings)) {
         const [testResult, issues] = testFunction(hedSchemas, testString)
         assert.strictEqual(testResult, expectedResults[testStringKey], testString)
