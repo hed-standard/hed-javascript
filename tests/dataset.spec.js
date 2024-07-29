@@ -10,13 +10,13 @@ import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 describe('HED dataset validation', () => {
   const hedSchemaFile = 'tests/data/HED8.2.0.xml'
   const hedLibrarySchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
-  let hedSchemaPromise
+  let hedSchemas
 
-  beforeAll(() => {
+  beforeAll(async () => {
     const spec1 = new SchemaSpec('', '8.2.0', '', hedSchemaFile)
     const spec2 = new SchemaSpec('testlib', '2.0.0', 'testlib', hedLibrarySchemaFile)
     const specs = new SchemasSpec().addSchemaSpec(spec1).addSchemaSpec(spec2)
-    hedSchemaPromise = buildSchemas(specs)
+    hedSchemas = await buildSchemas(specs)
   })
 
   describe('Basic HED string lists', () => {
@@ -27,7 +27,6 @@ describe('HED dataset validation', () => {
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = async function (testDatasets, expectedIssues) {
-      const hedSchemas = await hedSchemaPromise
       for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
         assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
         const [, testIssues] = hed.validateHedEvents(testDataset, hedSchemas, null, true)
@@ -81,7 +80,6 @@ describe('HED dataset validation', () => {
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = async function (testDatasets, expectedIssues) {
-      const hedSchemas = await hedSchemaPromise
       for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
         assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
         const [, testIssues] = hed.validateHedDataset(testDataset, hedSchemas, true)
@@ -218,7 +216,6 @@ describe('HED dataset validation', () => {
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      */
     const validator = async function (testDatasets, testContext, expectedIssues) {
-      const hedSchemas = await hedSchemaPromise
       for (const [testDatasetKey, testDataset] of Object.entries(testDatasets)) {
         assert.property(expectedIssues, testDatasetKey, testDatasetKey + ' is not in expectedIssues')
         const [, testIssues] = hed.validateHedDatasetWithContext(testDataset, testContext, hedSchemas, true)

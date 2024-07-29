@@ -22,12 +22,12 @@ describe('HED string parsing', () => {
   const originalMap = (parsedTag) => parsedTag.originalTag
 
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'
-  let hedSchemaPromise
+  let hedSchemas
 
-  beforeAll(() => {
+  beforeAll(async () => {
     const spec2 = new SchemaSpec('', '8.0.0', '', hedSchemaFile)
     const specs = new SchemasSpec().addSchemaSpec(spec2)
-    hedSchemaPromise = buildSchemas(specs)
+    hedSchemas = await buildSchemas(specs)
   })
 
   /**
@@ -310,21 +310,19 @@ describe('HED string parsing', () => {
         ],
       }
 
-      return hedSchemaPromise.then((hedSchemas) => {
-        for (const [testStringKey, testString] of Object.entries(testStrings)) {
-          const [parsedString, issues] = parseHedString(testString, hedSchemas)
-          assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
-          assert.sameDeepMembers(parsedString.tags.map(originalMap), expectedTags[testStringKey], testString)
-          assert.deepStrictEqual(
-            recursiveMap(
-              originalMap,
-              parsedString.tagGroups.map((tagGroup) => tagGroup.nestedGroups()),
-            ),
-            expectedGroups[testStringKey],
-            testString,
-          )
-        }
-      })
+      for (const [testStringKey, testString] of Object.entries(testStrings)) {
+        const [parsedString, issues] = parseHedString(testString, hedSchemas)
+        assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
+        assert.sameDeepMembers(parsedString.tags.map(originalMap), expectedTags[testStringKey], testString)
+        assert.deepStrictEqual(
+          recursiveMap(
+            originalMap,
+            parsedString.tagGroups.map((tagGroup) => tagGroup.nestedGroups()),
+          ),
+          expectedGroups[testStringKey],
+          testString,
+        )
+      }
     })
   })
 
@@ -362,14 +360,12 @@ describe('HED string parsing', () => {
         },
       }
 
-      return hedSchemaPromise.then((hedSchemas) => {
-        return validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
-          const [parsedString, issues] = parseHedString(string, hedSchemas)
-          const canonicalTags = parsedString.tags.map((parsedTag) => {
-            return parsedTag.canonicalTag
-          })
-          return [canonicalTags, issues]
+      return validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
+        const [parsedString, issues] = parseHedString(string, hedSchemas)
+        const canonicalTags = parsedString.tags.map((parsedTag) => {
+          return parsedTag.canonicalTag
         })
+        return [canonicalTags, issues]
       })
     })
   })
@@ -383,54 +379,50 @@ describe('HED string parsing', () => {
       ]
       const issues = []
       const parsedStrings = []
-      return hedSchemaPromise.then((hedSchemas) => {
-        for (const hedString of hedStrings) {
-          const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
-          parsedStrings.push(parsedString)
-          issues.push(...Object.values(parsingIssues).flat())
-        }
-        assert.isEmpty(issues, 'Parsing issues')
-        const [baseString, refString, correctString] = parsedStrings
-        const replacementMap = new Map([['stim_file', refString]])
-        const columnSplicer = new ColumnSplicer(
-          baseString,
-          replacementMap,
-          new Map([['stim_file', 'abc.bmp']]),
-          hedSchemas,
-        )
-        const splicedString = columnSplicer.splice()
-        const splicingIssues = columnSplicer.issues
-        assert.strictEqual(splicedString.format(), correctString.format(), 'Full string')
-        assert.isEmpty(splicingIssues, 'Splicing issues')
-      })
+      for (const hedString of hedStrings) {
+        const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
+        parsedStrings.push(parsedString)
+        issues.push(...Object.values(parsingIssues).flat())
+      }
+      assert.isEmpty(issues, 'Parsing issues')
+      const [baseString, refString, correctString] = parsedStrings
+      const replacementMap = new Map([['stim_file', refString]])
+      const columnSplicer = new ColumnSplicer(
+        baseString,
+        replacementMap,
+        new Map([['stim_file', 'abc.bmp']]),
+        hedSchemas,
+      )
+      const splicedString = columnSplicer.splice()
+      const splicingIssues = columnSplicer.issues
+      assert.strictEqual(splicedString.format(), correctString.format(), 'Full string')
+      assert.isEmpty(splicingIssues, 'Splicing issues')
     })
 
     it('must properly detect recursive curly braces', () => {
       const hedStrings = ['Sensory-event, Visual-presentation, {stim_file}', '(Image, {body_part}, Pathname/#)', 'Face']
       const issues = []
       const parsedStrings = []
-      return hedSchemaPromise.then((hedSchemas) => {
-        for (const hedString of hedStrings) {
-          const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
-          parsedStrings.push(parsedString)
-          issues.push(...Object.values(parsingIssues).flat())
-        }
-        const [baseString, refString, doubleRefString] = parsedStrings
-        const replacementMap = new Map([
-          ['stim_file', refString],
-          ['body_part', doubleRefString],
-        ])
-        const columnSplicer = new ColumnSplicer(
-          baseString,
-          replacementMap,
-          new Map([['stim_file', 'abc.bmp']]),
-          hedSchemas,
-        )
-        columnSplicer.splice()
-        const splicingIssues = columnSplicer.issues
-        issues.push(...splicingIssues)
-        assert.deepStrictEqual(issues, [generateIssue('recursiveCurlyBraces', { column: 'stim_file' })])
-      })
+      for (const hedString of hedStrings) {
+        const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
+        parsedStrings.push(parsedString)
+        issues.push(...Object.values(parsingIssues).flat())
+      }
+      const [baseString, refString, doubleRefString] = parsedStrings
+      const replacementMap = new Map([
+        ['stim_file', refString],
+        ['body_part', doubleRefString],
+      ])
+      const columnSplicer = new ColumnSplicer(
+        baseString,
+        replacementMap,
+        new Map([['stim_file', 'abc.bmp']]),
+        hedSchemas,
+      )
+      columnSplicer.splice()
+      const splicingIssues = columnSplicer.issues
+      issues.push(...splicingIssues)
+      assert.deepStrictEqual(issues, [generateIssue('recursiveCurlyBraces', { column: 'stim_file' })])
     })
   })
 })

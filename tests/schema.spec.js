@@ -116,15 +116,15 @@ describe('HED schemas', () => {
 
   describe('HED-2G schemas', () => {
     const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
-    let hedSchemaPromise
+    let hedSchemas
 
-    beforeAll(() => {
+    beforeAll(async () => {
       const spec1 = new SchemaSpec('', '7.1.1', '', localHedSchemaFile)
       const specs = new SchemasSpec().addSchemaSpec(spec1)
-      hedSchemaPromise = buildSchemas(specs)
+      hedSchemas = await buildSchemas(specs)
     })
 
-    it('should have tag dictionaries for all required tag attributes', async () => {
+    it('should have tag dictionaries for all required tag attributes', () => {
       const tagDictionaryKeys = [
         'default',
         'extensionAllowed',
@@ -137,41 +137,35 @@ describe('HED schemas', () => {
         'takesValue',
         'unique',
       ]
-      const hedSchemas = await hedSchemaPromise
       const dictionaries = hedSchemas.baseSchema.attributes.tagAttributes
       assert.hasAllKeys(dictionaries, tagDictionaryKeys)
     })
 
-    it('should have unit dictionaries for all required unit attributes', async () => {
+    it('should have unit dictionaries for all required unit attributes', () => {
       const unitDictionaryKeys = ['SIUnit', 'unitSymbol']
-      const hedSchemas = await hedSchemaPromise
       const dictionaries = hedSchemas.baseSchema.attributes.unitAttributes
       assert.hasAllKeys(dictionaries, unitDictionaryKeys)
     })
 
-    it('should contain all of the required tags', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should contain all of the required tags', () => {
       const requiredTags = ['event/category', 'event/description', 'event/label']
       const dictionariesRequiredTags = hedSchemas.baseSchema.attributes.tagAttributes['required']
       assert.hasAllKeys(dictionariesRequiredTags, requiredTags)
     })
 
-    it('should contain all of the positioned tags', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should contain all of the positioned tags', () => {
       const positionedTags = ['event/category', 'event/description', 'event/label', 'event/long name']
       const dictionariesPositionedTags = hedSchemas.baseSchema.attributes.tagAttributes['position']
       assert.hasAllKeys(dictionariesPositionedTags, positionedTags)
     })
 
-    it('should contain all of the unique tags', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should contain all of the unique tags', () => {
       const uniqueTags = ['event/description', 'event/label', 'event/long name']
       const dictionariesUniqueTags = hedSchemas.baseSchema.attributes.tagAttributes['unique']
       assert.hasAllKeys(dictionariesUniqueTags, uniqueTags)
     })
 
-    it('should contain all of the tags with default units', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should contain all of the tags with default units', () => {
       const defaultUnitTags = {
         'attribute/blink/time shut/#': 's',
         'attribute/blink/duration/#': 's',
@@ -182,8 +176,7 @@ describe('HED schemas', () => {
       assert.deepStrictEqual(dictionariesDefaultUnitTags, defaultUnitTags)
     })
 
-    it('should contain all of the unit classes with their units and default units', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should contain all of the unit classes with their units and default units', () => {
       const defaultUnits = {
         acceleration: 'm-per-s^2',
         currency: '$',
@@ -230,8 +223,7 @@ describe('HED schemas', () => {
       assert.deepStrictEqual(dictionariesAllUnits, allUnits, 'All units')
     })
 
-    it('should contain the correct (large) numbers of tags with certain attributes', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should contain the correct (large) numbers of tags with certain attributes', () => {
       const expectedAttributeTagCount = {
         isNumeric: 80,
         predicateType: 20,
@@ -259,8 +251,7 @@ describe('HED schemas', () => {
       )
     })
 
-    it('should identify if a tag has a certain attribute', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should identify if a tag has a certain attribute', () => {
       const testStrings = {
         value: 'Attribute/Location/Reference frame/Relative to participant/Azimuth/#',
         valueParent: 'Attribute/Location/Reference frame/Relative to participant/Azimuth',
@@ -341,30 +332,27 @@ describe('HED schemas', () => {
 
   describe('HED-3G schemas', () => {
     const localHedSchemaFile = 'tests/data/HED8.0.0.xml'
-    let hedSchemaPromise
+    let hedSchemas
 
-    beforeAll(() => {
+    beforeAll(async () => {
       const spec2 = new SchemaSpec('', '8.0.0', '', localHedSchemaFile)
       const specs = new SchemasSpec().addSchemaSpec(spec2)
-      hedSchemaPromise = buildSchemas(specs)
+      hedSchemas = await buildSchemas(specs)
     })
 
-    it('should contain all of the tag group tags', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should contain all of the tag group tags', () => {
       const tagGroupTags = ['def-expand']
       const schemaTagGroupTags = hedSchemas.baseSchema.entries.tags.getEntriesWithBooleanAttribute('tagGroup')
       assert.hasAllKeys(schemaTagGroupTags, tagGroupTags)
     })
 
-    it('should contain all of the top-level tag group tags', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should contain all of the top-level tag group tags', () => {
       const tagGroupTags = ['definition', 'event-context', 'onset', 'offset']
       const schemaTagGroupTags = hedSchemas.baseSchema.entries.tags.getEntriesWithBooleanAttribute('topLevelTagGroup')
       assert.hasAllKeys(schemaTagGroupTags, tagGroupTags)
     })
 
-    it('should contain all of the unit classes with their units and default units', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should contain all of the unit classes with their units and default units', () => {
       const defaultUnits = {
         accelerationUnits: 'm-per-s^2',
         angleUnits: 'radian',
@@ -412,8 +400,7 @@ describe('HED schemas', () => {
       }
     })
 
-    it('should contain the correct (large) numbers of tags with certain attributes', async () => {
-      const hedSchemas = await hedSchemaPromise
+    it('should contain the correct (large) numbers of tags with certain attributes', () => {
       const expectedAttributeTagCount = {
         requireChild: 7,
         takesValue: 88,

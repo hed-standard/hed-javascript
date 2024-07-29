@@ -37,11 +37,10 @@ describe('BIDS datasets', () => {
    */
   const validator = (testDatasets, expectedIssues, versionSpec) => {
     return Promise.all(
-      Object.entries(testDatasets).map(([datasetName, dataset]) => {
+      Object.entries(testDatasets).map(async ([datasetName, dataset]) => {
         assert.property(expectedIssues, datasetName, datasetName + ' is not in expectedIssues')
-        return validateBidsDataset(dataset, versionSpec).then((issues) => {
-          assert.sameDeepMembers(issues, expectedIssues[datasetName], datasetName)
-        })
+        const issues = await validateBidsDataset(dataset, versionSpec)
+        assert.sameDeepMembers(issues, expectedIssues[datasetName], datasetName)
       }),
     )
   }
@@ -55,16 +54,15 @@ describe('BIDS datasets', () => {
    */
   const validatorWithSpecs = (testDatasets, expectedIssues, versionSpecs) => {
     return Promise.all(
-      Object.entries(testDatasets).map(([datasetName, dataset]) => {
+      Object.entries(testDatasets).map(async ([datasetName, dataset]) => {
         assert.property(expectedIssues, datasetName, datasetName + ' is not in expectedIssues')
         let specs = versionSpecs
         if (versionSpecs) {
           assert.property(versionSpecs, datasetName, datasetName + ' is not in versionSpecs')
           specs = versionSpecs[datasetName]
         }
-        return validateBidsDataset(dataset, specs).then((issues) => {
-          assert.sameDeepMembers(issues, expectedIssues[datasetName], datasetName)
-        })
+        const issues = await validateBidsDataset(dataset, specs)
+        assert.sameDeepMembers(issues, expectedIssues[datasetName], datasetName)
       }),
     )
   }
@@ -673,7 +671,7 @@ describe('BIDS datasets', () => {
       return validator(testDatasets, expectedIssues, specs)
     }, 10000)
 
-    it('should splice strings by replacing placeholders and deleting "n/a" values', () => {
+    it('should splice strings by replacing placeholders and deleting "n/a" values', async () => {
       const tsvFiles = bidsTsvFiles[10]
       const expectedStrings = [
         'Label/1, (Def/Acc/3.5 m-per-s^2), (Item-count/2, Label/1)',
@@ -684,28 +682,27 @@ describe('BIDS datasets', () => {
         '(Red, Blue), (Green, (Yellow))',
       ]
       const dataset = new BidsDataset(tsvFiles, [])
-      return buildBidsSchemas(dataset, specs).then((hedSchemas) => {
-        const parsedExpectedStrings = []
-        for (const expectedString of expectedStrings) {
-          const [parsedExpectedString, parsingIssues] = parseHedString(expectedString, hedSchemas)
-          assert.isEmpty(Object.values(parsingIssues).flat(), `String "${expectedString}" failed to parse`)
-          parsedExpectedStrings.push(parsedExpectedString)
-        }
-        const tsvHedStrings = []
-        for (const tsvFile of tsvFiles) {
-          tsvFile.mergedSidecar.parseHedStrings(hedSchemas)
-          const tsvValidator = new BidsHedTsvParser(tsvFile, hedSchemas)
-          const tsvHed = tsvValidator.parse()
-          assert.isEmpty(tsvValidator.issues, 'TSV file failed to parse')
-          tsvHedStrings.push(...tsvHed)
-        }
-        const formatMap = (hedString) => hedString.format()
-        assert.deepStrictEqual(
-          tsvHedStrings.map(formatMap),
-          parsedExpectedStrings.map(formatMap),
-          'Mismatch in parsed strings',
-        )
-      })
+      const hedSchemas = await buildBidsSchemas(dataset, specs)
+      const parsedExpectedStrings = []
+      for (const expectedString of expectedStrings) {
+        const [parsedExpectedString, parsingIssues] = parseHedString(expectedString, hedSchemas)
+        assert.isEmpty(Object.values(parsingIssues).flat(), `String "${expectedString}" failed to parse`)
+        parsedExpectedStrings.push(parsedExpectedString)
+      }
+      const tsvHedStrings = []
+      for (const tsvFile of tsvFiles) {
+        tsvFile.mergedSidecar.parseHedStrings(hedSchemas)
+        const tsvValidator = new BidsHedTsvParser(tsvFile, hedSchemas)
+        const tsvHed = tsvValidator.parse()
+        assert.isEmpty(tsvValidator.issues, 'TSV file failed to parse')
+        tsvHedStrings.push(...tsvHed)
+      }
+      const formatMap = (hedString) => hedString.format()
+      assert.deepStrictEqual(
+        tsvHedStrings.map(formatMap),
+        parsedExpectedStrings.map(formatMap),
+        'Mismatch in parsed strings',
+      )
     }, 10000)
   })
 
