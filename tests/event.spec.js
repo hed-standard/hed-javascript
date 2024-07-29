@@ -338,12 +338,12 @@ describe('HED string and event validation', () => {
   describe('HED-2G validation', () => {
     describe('Later HED-2G schemas', () => {
       const hedSchemaFile = 'tests/data/HED7.1.1.xml'
-      let hedSchemaPromise
+      let hedSchemas
 
-      beforeAll(() => {
+      beforeAll(async () => {
         const spec1 = new SchemaSpec('', '7.1.1', '', hedSchemaFile)
         const specs = new SchemasSpec().addSchemaSpec(spec1)
-        hedSchemaPromise = buildSchemas(specs)
+        hedSchemas = await buildSchemas(specs)
       })
 
       /**
@@ -357,9 +357,7 @@ describe('HED string and event validation', () => {
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-        return hedSchemaPromise.then((hedSchemas) => {
-          validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
-        })
+        validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
       }
 
       describe('Full HED Strings', () => {
@@ -686,13 +684,11 @@ describe('HED string and event validation', () => {
 
       describe('HED Strings', () => {
         const validator = function (testStrings, expectedIssues, expectValuePlaceholderString = false) {
-          return hedSchemaPromise.then((hedSchemas) => {
-            for (const [testStringKey, testString] of Object.entries(testStrings)) {
-              assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
-              const [, testIssues] = hed.validateHedString(testString, hedSchemas, true, expectValuePlaceholderString)
-              assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testString)
-            }
-          })
+          for (const [testStringKey, testString] of Object.entries(testStrings)) {
+            assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
+            const [, testIssues] = hed.validateHedString(testString, hedSchemas, true, expectValuePlaceholderString)
+            assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testString)
+          }
         }
 
         it('should skip tag group-level checks', () => {
@@ -711,12 +707,12 @@ describe('HED string and event validation', () => {
 
     describe('Pre-v7.1.0 HED schemas', () => {
       const hedSchemaFile = 'tests/data/HED7.0.4.xml'
-      let hedSchemaPromise
+      let hedSchemas
 
-      beforeAll(() => {
+      beforeAll(async () => {
         const spec2 = new SchemaSpec('', '7.0.4', '', hedSchemaFile)
         const specs = new SchemasSpec().addSchemaSpec(spec2)
-        hedSchemaPromise = buildSchemas(specs)
+        hedSchemas = await buildSchemas(specs)
       })
 
       /**
@@ -730,9 +726,7 @@ describe('HED string and event validation', () => {
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-        return hedSchemaPromise.then((hedSchemas) => {
-          validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
-        })
+        validatorBase(hedSchemas, Hed2Validator, testStrings, expectedIssues, testFunction, testOptions)
       }
 
       describe('Individual HED Tags', () => {
@@ -850,12 +844,12 @@ describe('HED string and event validation', () => {
 
   describe('HED-3G validation', () => {
     const hedSchemaFile = 'tests/data/HED8.2.0.xml'
-    let hedSchemaPromise
+    let hedSchemas
 
-    beforeAll(() => {
+    beforeAll(async () => {
       const spec3 = new SchemaSpec('', '8.2.0', '', hedSchemaFile)
       const specs = new SchemasSpec().addSchemaSpec(spec3)
-      hedSchemaPromise = buildSchemas(specs)
+      hedSchemas = await buildSchemas(specs)
     })
 
     /**
@@ -894,9 +888,7 @@ describe('HED string and event validation', () => {
      * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
      */
     const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-      return hedSchemaPromise.then((hedSchemas) => {
-        validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
-      })
+      validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
     }
 
     describe('Full HED Strings', () => {
@@ -1762,10 +1754,8 @@ describe('HED string and event validation', () => {
             generateIssue('invalidPlaceholder', { tag: 'Time-value/#' }),
           ],
         }
-        return Promise.all([
-          validatorSemantic(expectedPlaceholdersTestStrings, expectedPlaceholdersIssues, true),
-          validatorSemantic(noExpectedPlaceholdersTestStrings, noExpectedPlaceholdersIssues, false),
-        ])
+        validatorSemantic(expectedPlaceholdersTestStrings, expectedPlaceholdersIssues, true)
+        validatorSemantic(noExpectedPlaceholdersTestStrings, noExpectedPlaceholdersIssues, false)
       })
     })
   })
@@ -1773,17 +1763,17 @@ describe('HED string and event validation', () => {
   describe('HED-3G library and partnered schema validation', () => {
     const hedLibrary2SchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
     const hedLibrary3SchemaFile = 'tests/data/HED_testlib_3.0.0.xml'
-    let hedSchemaPromise, hedSchemaPromise2
+    let hedSchemas, hedSchemas2
 
-    beforeAll(() => {
+    beforeAll(async () => {
       const spec4 = new SchemaSpec('testlib', '2.0.0', 'testlib', hedLibrary2SchemaFile)
       const spec5 = new SchemaSpec('testlib', '3.0.0', 'testlib', hedLibrary3SchemaFile)
       const spec6 = new SchemaSpec('', '2.0.0', 'testlib', hedLibrary2SchemaFile)
       const spec7 = new SchemaSpec('', '3.0.0', 'testlib', hedLibrary3SchemaFile)
       const specs = new SchemasSpec().addSchemaSpec(spec4).addSchemaSpec(spec5)
       const specs2 = new SchemasSpec().addSchemaSpec(spec6).addSchemaSpec(spec7)
-      hedSchemaPromise = buildSchemas(specs)
-      hedSchemaPromise2 = buildSchemas(specs2)
+      hedSchemas = await buildSchemas(specs)
+      hedSchemas2 = await buildSchemas(specs2)
     })
 
     /**
@@ -1822,16 +1812,14 @@ describe('HED string and event validation', () => {
      * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
      */
     const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-      return hedSchemaPromise.then((hedSchemas) => {
-        validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
-      })
+      validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
     }
 
     describe('Full HED Strings', () => {
       const validatorSemantic = validatorSemanticBase
 
       /**
-       * HED 3 semantic validation function using the alternate schema Promise object.
+       * HED 3 semantic validation function using the alternative schema collection.
        *
        * This base function uses the HED 3-specific {@link Hed3Validator} validator class.
        *
@@ -1841,9 +1829,7 @@ describe('HED string and event validation', () => {
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemantic2 = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
-        return hedSchemaPromise2.then((hedSchemas) => {
-          validatorBase(hedSchemas, testStrings, expectedIssues, testFunction, testOptions)
-        })
+        validatorBase(hedSchemas2, testStrings, expectedIssues, testFunction, testOptions)
       }
 
       it('should allow combining tags from multiple partnered schemas', () => {

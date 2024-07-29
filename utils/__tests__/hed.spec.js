@@ -185,12 +185,12 @@ describe('HED tag string utility functions', () => {
 
   describe('HED tag schema-based utility functions', () => {
     const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
-    let hedSchemaPromise
+    let hedSchemas
 
-    beforeAll(() => {
+    beforeAll(async () => {
       const spec1 = new SchemaSpec('', '7.1.1', '', localHedSchemaFile)
       const specs = new SchemasSpec().addSchemaSpec(spec1)
-      hedSchemaPromise = buildSchemas(specs)
+      hedSchemas = await buildSchemas(specs)
     })
 
     it.skip('should strip valid units from a value', () => {
@@ -200,24 +200,22 @@ describe('HED tag string utility functions', () => {
       const invalidVolumeString = '200 cm'
       const currencyUnits = ['dollars', '$', 'points', 'fraction']
       const volumeUnits = ['m^3']
-      return hedSchemaPromise.then((hedSchemas) => {
-        const strippedDollarsString = hed.validateUnits(dollarsString, currencyUnits, hedSchemas.baseSchema.attributes)
-        const strippedVolumeString = hed.validateUnits(volumeString, volumeUnits, hedSchemas.baseSchema.attributes)
-        const strippedPrefixedVolumeString = hed.validateUnits(
-          prefixedVolumeString,
-          volumeUnits,
-          hedSchemas.baseSchema.attributes,
-        )
-        const strippedInvalidVolumeString = hed.validateUnits(
-          invalidVolumeString,
-          volumeUnits,
-          hedSchemas.baseSchema.attributes,
-        )
-        assert.sameOrderedMembers(strippedDollarsString, [true, true, '25.99'])
-        assert.sameOrderedMembers(strippedVolumeString, [true, true, '100'])
-        assert.sameOrderedMembers(strippedPrefixedVolumeString, [true, true, '100'])
-        assert.sameOrderedMembers(strippedInvalidVolumeString, [true, false, '200'])
-      })
+      const strippedDollarsString = hed.validateUnits(dollarsString, currencyUnits, hedSchemas.baseSchema.attributes)
+      const strippedVolumeString = hed.validateUnits(volumeString, volumeUnits, hedSchemas.baseSchema.attributes)
+      const strippedPrefixedVolumeString = hed.validateUnits(
+        prefixedVolumeString,
+        volumeUnits,
+        hedSchemas.baseSchema.attributes,
+      )
+      const strippedInvalidVolumeString = hed.validateUnits(
+        invalidVolumeString,
+        volumeUnits,
+        hedSchemas.baseSchema.attributes,
+      )
+      assert.sameOrderedMembers(strippedDollarsString, [true, true, '25.99'])
+      assert.sameOrderedMembers(strippedVolumeString, [true, true, '100'])
+      assert.sameOrderedMembers(strippedPrefixedVolumeString, [true, true, '100'])
+      assert.sameOrderedMembers(strippedInvalidVolumeString, [true, false, '200'])
     })
   })
 })
