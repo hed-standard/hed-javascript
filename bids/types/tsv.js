@@ -1,3 +1,5 @@
+import isPlainObject from 'lodash/isPlainObject'
+
 import { BidsFile } from './basic'
 import { convertParsedTSVData, parseTSV } from '../tsvParser'
 import { BidsSidecar } from './json'
@@ -47,17 +49,18 @@ export class BidsTsvFile extends BidsFile {
    */
   constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}) {
     super(name, file, BidsHedTsvValidator)
-    let parsedTsvData
-    if (typeof tsvData === 'string') {
-      parsedTsvData = parseTSV(tsvData)
-    } else if (tsvData === Object(tsvData)) {
-      parsedTsvData = convertParsedTSVData(tsvData)
-    } else {
-      parsedTsvData = tsvData
-    }
-    this.parsedTsv = parsedTsvData
-    this.potentialSidecars = potentialSidecars
 
+    if (typeof tsvData === 'string') {
+      this.parsedTsv = parseTSV(tsvData)
+    } else if (tsvData instanceof Map) {
+      this.parsedTsv = tsvData
+    } else if (isPlainObject(tsvData)) {
+      this.parsedTsv = convertParsedTSVData(tsvData)
+    } else {
+      throw new Error('parsedTsv has an invalid type')
+    }
+
+    this.potentialSidecars = potentialSidecars
     this.mergedSidecar = new BidsSidecar(name, mergedDictionary, null)
     this.sidecarHedData = this.mergedSidecar.hedData
     this._parseHedColumn()
