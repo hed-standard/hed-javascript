@@ -39,7 +39,7 @@ Because full validation of all the features of HED-3G (versions >= 8.0.0) requir
 of an events file and its merged sidecars, the `hed-validator` currently only exposes its interface
 at the dataset level.
 The current focus of the `hed-validator` package is to support full validation of HED in
-[BIDS datasets](https://bids-specification.readthedocs.io/en/stable/)
+[BIDS datasets](https://bids-specification.readthedocs.io/en/stable/).
 
 HED validation is currently also supported in an [online version of the HED validator](https://hedtools.ucsd.edu/hed),
 which is implemented in Python and developed in a [public GitHub repository](https://github.com/hed-standard/hed-python/).
@@ -53,30 +53,7 @@ called during validation of BIDS datasets and is called by the
 This package has been deployed on npm as [hed-validator](https://www.npmjs.com/package/hed-validator).
 
 To use the `hed-validator`, you must install the npm `hed-validator` package and add:
-`const hedValidator = require('hed-validator')` to your JavaScript program.
+`import hedValidator from 'hed-validator'` to your JavaScript program.
 
-Currently, only validation at the BIDS dataset level is supported as an external interface,
-because full HED-3G validation requires the entire events file and merged sidecars be available.
-
-A sample call can be found in the BIDS validator in
-[hed.js](https://github.com/bids-standard/bids-validator/blob/94ee5225fdc965afc45f0841ec8013f148048084/bids-validator/validators/events/hed.js#L17)
-
-```javascript
-const dataset = new hedValidator.validator.BidsDataset(eventData, sidecarData, datasetDescriptionData, dir)
-try {
-  return hedValidator.validator.validateBidsDataset(dataset).then((hedValidationIssues) => {
-    return schemaDefinitionIssues.concat(convertHedIssuesToBidsIssues(hedValidationIssues))
-  })
-} catch (error) {
-  const issues = schemaDefinitionIssues.concat(internalHedValidatorIssue(error))
-  return Promise.resolve(issues)
-}
-```
-
-`eventData` is an array of `BidsEventFile` objects created from BIDS `events.tsv` files,
-while `sidecarData` is an array of `BidsSidecar` objects created from BIDS JSON sidecars.
-`datasetDescriptionData` is a `BidsJsonFile` object representing the dataset's
-`dataset_description.json` file, and `dir` is the path to the dataset's root directory.
-
-The primary objects needed for HED validation can be found in
-[validator/bids/types.js](https://github.com/hed-standard/hed-javascript/blob/master/validator/bids/types.js).
+A sample of current `hed-validator` usage can be found in the BIDS validator in
+[`hed.js`](https://github.com/bids-standard/bids-validator/blob/5dfc3938ea8ce128c7db295e7bebc8eed2de1ce6/bids-validator/validators/hed.js).
