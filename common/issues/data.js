@@ -314,6 +314,11 @@ export default {
     level: 'error',
     message: stringTemplate`Unknown HED error "${'internalCode'}" - parameters: "${'parameters'}".`,
   },
+  internalError: {
+    hedCode: 'GENERIC_ERROR',
+    level: 'error',
+    message: stringTemplate`Internal error - message: "${'message'}".`,
+  },
   internalConsistencyError: {
     hedCode: 'GENERIC_ERROR',
     level: 'error',
