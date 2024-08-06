@@ -1,4 +1,4 @@
-import { IssueError } from '../../common/issues/issues'
+import { generateIssue, IssueError } from '../../common/issues/issues'
 
 const bidsHedErrorCodes = new Set([104, 106, 107])
 
@@ -44,8 +44,8 @@ export class BidsIssue {
     return issues.some((issue) => issue.isError())
   }
 
-  static generateInternalErrorPromise(error, errorFile) {
-    return Promise.resolve([new BidsIssue(106, errorFile, error.message)])
+  static async generateInternalErrorPromise(error, errorFile) {
+    return [new BidsHedIssue(generateIssue('internalError', { message: error.message }), errorFile)]
   }
 }
 
@@ -56,10 +56,33 @@ export class BidsHedIssue extends BidsIssue {
    */
   hedIssue
 
+  /**
+   * Constructor.
+   *
+   * @param {Issue} hedIssue The HED issue object to be wrapped.
+   * @param {Object} file The file this error occurred in.
+   */
   constructor(hedIssue, file) {
-    super(hedIssue.level === 'warning' ? 105 : 104, file, hedIssue.message)
+    super(BidsHedIssue._determineBidsIssueCode(hedIssue), file, hedIssue.message)
 
     this.hedIssue = hedIssue
+  }
+
+  /**
+   * Determine the BIDS issue code for this issue.
+   *
+   * @param {Issue} hedIssue The HED issue object to be wrapped.
+   * @returns {number} The BIDS issue code for this issue.
+   * @private
+   */
+  static _determineBidsIssueCode(hedIssue) {
+    if (hedIssue.internalCode === 'internalError' || hedIssue.internalCode === 'internalConsistencyError') {
+      return 106
+    }
+    if (hedIssue.level === 'warning') {
+      return 105
+    }
+    return 104
   }
 
   /**
@@ -68,13 +91,13 @@ export class BidsHedIssue extends BidsIssue {
    * @param {Error|Issue[]} hedIssues One or more HED-format issues.
    * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
    * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} objects.
-   * @returns {BidsIssue[]} The passed issue(s) in BIDS-compatible format.
+   * @returns {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
    */
   static fromHedIssues(hedIssues, file, extraParameters) {
     if (hedIssues instanceof IssueError) {
       return [BidsHedIssue.fromHedIssue(hedIssues.issue, file, extraParameters)]
     } else if (hedIssues instanceof Error) {
-      return [new BidsIssue(106, file ?? null, hedIssues.message)]
+      return [new BidsHedIssue(generateIssue('internalError', { message: hedIssues.message }), file ?? null)]
     } else {
       return hedIssues.map((hedIssue) => BidsHedIssue.fromHedIssue(hedIssue, file, extraParameters))
     }
