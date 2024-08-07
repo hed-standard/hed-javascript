@@ -19,9 +19,9 @@
   "scripts": {
     "build": "node esbuild.mjs",
     "prepublishOnly": "npm run build",
-    "lint": "./node_modules/eslint/bin/eslint.js ./**/*.js",
-    "test": "./node_modules/.bin/jest",
-    "coverage": "./node_modules/.bin/jest --coverage",
+    "lint": "eslint ./**/*.js",
+    "test": "jest",
+    "coverage": "jest --coverage",
     "prepare": "husky install"
   },
   "contributors": [
