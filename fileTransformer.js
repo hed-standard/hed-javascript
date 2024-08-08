@@ -1,8 +1,10 @@
+const normalizeEOL = (str) => str.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+
 export default {
   process(sourceText, sourcePath, options) {
-    sourceText = sourceText.replace(/"/g, '\\"').replace(/\n/g, '\\n')
+    sourceText = normalizeEOL(sourceText)
     return {
-      code: `module.exports = "${sourceText}";`,
+      code: `module.exports = ${JSON.stringify(sourceText)};`,
     }
   },
 }
