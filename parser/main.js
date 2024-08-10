@@ -94,7 +94,7 @@ const findDelimiterIssuesInHedString = function (hedString) {
       if (currentTag.trim() === openingGroupCharacter) {
         currentTag = ''
       } else {
-        issues.push(generateIssue('invalidTag', { tag: currentTag }))
+        issues.push(generateIssue('commaMissing', { tag: currentTag }))
       }
     } else if (isCommaMissingAfterClosingParenthesis(lastNonEmptyValidCharacter, currentCharacter)) {
       issues.push(
