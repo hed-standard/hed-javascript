@@ -111,7 +111,7 @@ describe('HED string and event validation', () => {
             '/Action/Reach/To touch,(/Attribute/Object side/Left,/Participant/Effect/Body part/Arm,(/Attribute/Location/Screen/Top/70 px,/Attribute/Location/Screen/Left/23 px)),Event/Duration/3 ms',
         }
         const expectedIssues = {
-          missingOpeningComma: [generateIssue('invalidTag', { tag: '/Action/Reach/To touch(' })],
+          missingOpeningComma: [generateIssue('commaMissing', { tag: '/Action/Reach/To touch(' })],
           missingClosingComma: [
             generateIssue('commaMissing', {
               tag: '/Participant/Effect/Body part/Arm)',
