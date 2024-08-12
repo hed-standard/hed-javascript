@@ -46,7 +46,7 @@ function issuesToStr(issues) {
 }
 
 const loadTestData = () => {
-  const testFile = 'spec_tests/json_tests/COMMA_MISSING.json'
+  const testFile = 'spec_tests/specification.json'
 
   // Read and parse the test file synchronously
   const data = readFileSync(testFile, 'utf8')
