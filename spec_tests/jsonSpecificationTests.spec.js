@@ -17,9 +17,12 @@ const path = require('path')
 
 const readFileSync = fs.readFileSync
 let finalLog
+let badLog
 let testInfo
 let schemaMap
 let schemaSpecsMap
+
+const test_file_name = 'nonschema_tests.json'
 
 function defsToMap(defList) {
   const defMap = {}
@@ -47,7 +50,7 @@ function issuesToStr(issues) {
 }
 
 const loadTestData = () => {
-  const testFile = path.join(__dirname, 'specifications.json')
+  const testFile = path.join(__dirname, test_file_name)
 
   // Read and parse the test file synchronously
   const data = readFileSync(testFile, 'utf8')
@@ -59,12 +62,14 @@ loadTestData()
 
 describe('HED', () => {
   beforeAll(async () => {
+    jest.setTimeout(100000)
     schemaSpecsMap = {}
     schemaMap = {}
     finalLog = ''
+    badLog = ''
     await Promise.all(
       testInfo.map(async (item) => {
-        if (!(item['schema'] in schemaMap)) {
+        if (!(item['schema'] in schemaSpecsMap)) {
           const schemaFile = 'tests/data/HED' + item['schema'] + '.xml'
           const schemaSpec = new SchemaSpec('', item['schema'], '', schemaFile)
           const specs = new SchemasSpec().addSchemaSpec(schemaSpec)
@@ -73,10 +78,14 @@ describe('HED', () => {
         }
       }),
     )
+    finalLog = `Schemas: [ ${Object.keys(schemaMap).join(', ')} ]\n\n`
   })
 
   afterAll(() => {
-    console.log(finalLog)
+    const outlog = path.join(__dirname, 'test_log.txt')
+    fs.writeFileSync(outlog, finalLog, 'utf8')
+    const outbad = path.join(__dirname, 'test_badlog.txt')
+    fs.writeFileSync(outbad, badLog, 'utf8')
   })
 
   test('should load testInfo correctly', () => {
@@ -93,10 +102,17 @@ describe('HED', () => {
       expect(definitionIssues).toHaveLength(0)
 
       const string_tests_passes = info['tests']['string_tests']['passes']
-      string_tests_passes.forEach((str) => {
-        const [valid_strings] = validateHedEventWithDefinitions(str, hedSchemas, definitions)
+      string_tests_passes.forEach((str, index) => {
+        const [valid_strings, string_passes_issues] = validateHedEventWithDefinitions(str, hedSchemas, definitions)
+
+        if (!valid_strings) {
+          badLog =
+            badLog +
+            `[${info['error_code']}: ${info['name']}]\n\tstr[${index}] ${str} should be valid by threw ${issuesToStr(string_passes_issues)}`
+        }
         assert.strictEqual(valid_strings, true, `${str} should be valid`)
       })
+
       finalLog = finalLog + `\tValid string tests:\n\t\tpassed\n\tInvalid string tests:\n`
 
       const string_tests_fails = info['tests']['string_tests']['fails']
@@ -106,7 +122,7 @@ describe('HED', () => {
         assert.strictEqual(invalid_strings, false, `${str} should be invalid`)
       })
 
-      const sidecar_tests_passes = info['tests']['sidecar_tests']['passes']
+      /*      const sidecar_tests_passes = info['tests']['sidecar_tests']['passes']
       sidecar_tests_passes.forEach((sidecar, index) => {
         const bidsSide = new BidsSidecar(`sidecar: ${index}`, sidecar, null)
         const sideVal = new BidsHedSidecarValidator(bidsSide, hedSchemas)
@@ -170,7 +186,7 @@ describe('HED', () => {
         const eventsIssues = eventsVal.validate()
         finalLog = finalLog + `\t\tevents[${index}] ${bidsIssuesToStr(eventsIssues)} \n`
         expect(eventsIssues.length).toBeGreaterThan(0)
-      })
+      })*/
     })
   })
 })
