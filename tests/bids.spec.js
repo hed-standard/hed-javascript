@@ -89,7 +89,7 @@ describe('BIDS datasets', () => {
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), bidsSidecars[1][1].file),
         ],
       }
-      return validator(testDatasets, expectedIssues, specs)
+      validator(testDatasets, expectedIssues, specs)
     }, 10000)
 
     it('should validate placeholders in BIDS sidecars', () => {

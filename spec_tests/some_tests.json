@@ -1,0 +1,115 @@
+[
+  {
+    "error_code": "CHARACTER_INVALID",
+    "name": "character-invalid-utf-8",
+    "description": "The HED string contains a UTF-8 character.",
+    "schema": "8.2.0",
+    "definitions": ["(Definition/Acc/#, (Acceleration/#, Red))", "(Definition/MyColor, (Label/Pie))"],
+    "tests": {
+      "string_tests": {
+        "fails": ["Collection/[x]", "Item/Bl\b"],
+        "passes": ["Red, Blue, Description/Red", "Description/This is a ʰ good character"]
+      },
+      "sidecar_tests": {
+        "fails": [
+          {
+            "event_code": {
+              "HED": {
+                "show": "Red, Item/Bl\b"
+              }
+            }
+          }
+        ],
+        "passes": [
+          {
+            "event_code": {
+              "HED": {
+                "show": "(Red)(Blue),  Label/a ʰ good"
+              }
+            }
+          }
+        ]
+      },
+      "event_tests": {
+        "fails": [
+          [
+            ["onset", "duration", "HED"],
+            [4.5, 0, "Item/Bl\b"]
+          ]
+        ],
+        "passes": [
+          [
+            ["onset", "duration", "HED"],
+            [4.5, 0, "Label/Temp, Label/a ʰ good"]
+          ]
+        ]
+      },
+      "combo_tests": {
+        "fails": [
+          {
+            "sidecar": {
+              "event_code": {
+                "HED": {
+                  "show": "Red, Item/Bl\b",
+                  "ball": "Def/Acc/4.5 m-per-s^2"
+                }
+              }
+            },
+            "events": [
+              ["onset", "duration", "event_code", "HED"],
+              [4.5, 0, "show", "Description/a ʰ good"],
+              [5.0, 0, "ball", "Blue"]
+            ]
+          }
+        ],
+        "passes": [
+          {
+            "sidecar": {
+              "event_code": {
+                "HED": {
+                  "show": "Red, Label/a, Description/a ʰ good"
+                }
+              }
+            },
+            "events": [
+              ["onset", "duration", "event_code", "HED"],
+              [4.5, 0, "show", "Description/goodness"]
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "error_code": "CHARACTER_INVALID",
+    "name": "curly-braces-not-in-sidecar",
+    "description": "The curly brace notation is used outside of a sidecar.",
+    "schema": "8.3.0",
+    "definitions": ["(Definition/Acc/#, (Acceleration/#, Red))", "(Definition/MyColor, (Label/Pie))"],
+    "tests": {
+      "string_tests": {
+        "fails": ["{col_1}, Red"],
+        "passes": ["Red, Blue, Description/Red"]
+      },
+      "sidecar_tests": {
+        "fails": [{}],
+        "passes": [{}]
+      },
+      "event_tests": {
+        "fails": [
+          [
+            ["onset", "duration", "HED"],
+            [4.5, 0, "{who_knows}, Red"]
+          ]
+        ],
+        "passes": [
+          [
+            ["onset", "duration", "HED"],
+            [4.5, 0, "Label/Temp"]
+          ]
+        ]
+      },
+      "combo_tests": {}
+    }
+  }
+]
