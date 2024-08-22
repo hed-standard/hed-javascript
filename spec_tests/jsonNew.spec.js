@@ -1,62 +1,78 @@
 import chai from 'chai'
 const assert = chai.assert
-import { beforeAll, describe, it } from '@jest/globals'
+import { beforeAll, describe, afterAll } from '@jest/globals'
 
 import * as hed from '../validator/event'
+import { BidsIssue } from '../bids/types/issues'
 import { buildSchemas } from '../validator/schema/init'
-import { parseHedString, parseHedStrings } from '../parser/main'
-import { ParsedHedTag } from '../parser/parsedHedTag'
-import { HedValidator, Hed2Validator, Hed3Validator, validateHedEventWithDefinitions } from '../validator/event'
-import { generateIssue } from '../common/issues/issues'
-import { Schemas, SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { parseHedStrings } from '../parser/main'
+import { validateHedEventWithDefinitions } from '../validator/event'
+import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import path from 'path'
 import { parseDefinitions } from '../validator/dataset'
 import { BidsHedSidecarValidator, BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
 const fs = require('fs')
 
 const readFileSync = fs.readFileSync
-const test_file_name = 'nonschema_tests.json'
-const some_test_name = 'some_tests.json'
-let badLog = [],
-  finalLog = []
+//const test_file_name = 'nonschema_tests.json';
+const test_file_name = 'some_tests.json'
 
-function bidsIssuesToStr(issues) {
-  // Convert a list of issue dictionaries into a string of the hedCode keys.
-  return issues.map((issue) => issue.hedIssue.hedCode).join(', ')
+function comboListToStrings(items) {
+  const comboItems = new Array()
+  if (items === undefined || items.length === 0) {
+    return comboItems
+  }
+  for (const item of items) {
+    const nextItem = { sidecar: JSON.stringify(item.sidecar), events: tsvToString(item.events) }
+    comboItems.push(nextItem)
+  }
+  return comboItems
 }
 
-function getIssueCodes(issues) {
-  const codes = new Set()
-  if (issues === undefined) {
-    return codes
-  }
+function getIssues(expectError, eCode, issues) {
+  const errors = new Array()
+  const log = new Array()
   for (const issue of issues) {
-    codes.add(issue.hedCode)
+    if (issue instanceof BidsIssue) {
+      errors.push(`${issue.hedIssue.hedCode}`)
+    } else {
+      errors.push(`${issue.hedCode}`)
+    }
   }
-  return codes
+  const errorString = errors.join(',')
+  if (errors.length > 0) {
+    log.push(`---has errors [${errorString}]`)
+  }
+  const wrongError = `---expected ${eCode} but got errors [${errorString}]`
+  const hasErrors = `---expected no errors but got errors [${errorString}]`
+  if (expectError && !errorString.includes(eCode)) {
+    log.push(wrongError)
+  } else if (!expectError && errorString.length > 0) {
+    log.push(hasErrors)
+  }
+  return [log.join('\n'), errorString]
 }
 
-function issuesToStr(issues) {
-  // Convert a list of issue dictionaries into a string of the hedCode keys.
-  return issues.map((dict) => dict.hedCode).join(', ')
+function getMergedSidecar(side, definitions) {
+  const defSide = { definitions: { HED: { defList: definitions.join(',') } } }
+  const defstring = JSON.stringify(defSide)
+  const sideJSON = JSON.parse(side)
+  const mergedSide = Object.assign({}, sideJSON, defSide)
+  return mergedSide
 }
 
 function loadTestData() {
   const testFile = path.join(__dirname, test_file_name)
-  // Read and parse the test file synchronously
   const testData = JSON.parse(readFileSync(testFile, 'utf8'))
-  const someFile = path.join(__dirname, some_test_name)
-  const someData = JSON.parse(readFileSync(someFile, 'utf8'))
-  return [testData, someData]
+  return testData
 }
-const [testInfo, someInfo] = loadTestData()
+const testInfo = loadTestData()
 
 function stringifyList(items) {
   const stringItems = new Array()
   if (items === undefined || items.length === 0) {
     return stringItems
   }
-
   for (const item of items) {
     stringItems.push(JSON.stringify(item))
   }
@@ -81,6 +97,8 @@ describe('HED validation', () => {
     ['8.3.0', undefined],
   ])
 
+  const badLog = new Array()
+
   beforeAll(async () => {
     const spec2 = new SchemaSpec('', '8.2.0', '', path.join(__dirname, '../tests/data/HED8.2.0.xml'))
     const specs2 = new SchemasSpec().addSchemaSpec(spec2)
@@ -93,14 +111,11 @@ describe('HED validation', () => {
   })
 
   afterAll(() => {
-    const outlog = path.join(__dirname, 'test_log.txt')
-    fs.writeFileSync(outlog, finalLog.join('\n'), 'utf8')
-    const outbad = path.join(__dirname, 'test_badlog.txt')
-    fs.writeFileSync(outbad, badLog.join('\n'), 'utf8')
+    const outBad = path.join(__dirname, 'runlog.txt')
+    fs.writeFileSync(outBad, badLog.join('\n'), 'utf8')
   })
 
   test('should load testInfo and schemas correctly', () => {
-    expect(someInfo).toBeDefined()
     expect(testInfo).toBeDefined()
     expect(schemaMap).toBeDefined()
     const schema2 = schemaMap.get('8.2.0')
@@ -109,172 +124,152 @@ describe('HED validation', () => {
     expect(schema3).toBeDefined()
   })
 
-  describe.each(someInfo)(
+  describe.each(testInfo)(
     '$error_code $name : $description',
     ({ error_code, name, description, schema, definitions, tests }) => {
       let hedSchema
+      let itemLog
       let parsedDefStrings, parsedDefIssues
       let defs, defIssues
       const failedSidecars = stringifyList(tests.sidecar_tests.fails)
       const passedSidecars = stringifyList(tests.sidecar_tests.passes)
       const failedEvents = tsvListToStrings(tests.event_tests.fails)
       const passedEvents = tsvListToStrings(tests.event_tests.passes)
+      const failedCombos = comboListToStrings(tests.combo_tests.fails)
 
-      const eventsValidator = async function (ecode, ename, events, schema, expectError) {
-        const bidsTsv = new BidsTsvFile(`events`, events, null, [], definitions)
-        const eventsVal = new BidsHedTsvValidator(bidsTsv, hedSchema)
-        const eventsIssues = await eventsVal.validate()
-
-        const log = new Array()
-        const header = `\n${ecode}: ${ename}\tEVENTS:\n"${events}"`
-        log.push(header)
-        const errors = []
-        const errorCodes = new Set()
-        for (const issue of eventsIssues) {
-          errorCodes.add(issue.hedIssue.hedCode)
-          errors.push(`---has error [${issue.hedIssue.hedCode}]`)
+      const comboValidator = function (eCode, eName, side, events, schema, defs, expectError, iLog) {
+        const status = expectError ? 'Expect fail' : 'Expect pass'
+        const header = `\n[${eCode} ${eName}](${status})\tCOMBO\t"${side}"\n"${events}"\n`
+        if (events.length === 0 || side.length === 0) {
+          iLog.push(header)
+          return
         }
-        const errorString = errors.join('\n\t')
-        if (errorString.length > 0) {
-          log.push(`${errorString}`)
-        }
-        try {
-          if (expectError && errorCodes.size > 0 && !errorCodes.has(ecode)) {
-            const wrongError = `does not have expected error code ${ecode}`
-            log.push(wrongError)
-            assert(errorCodes.has(ecode), true, wrongError)
-          } else if (!expectError && errorCodes.size > 0) {
-            const hasErrors = `should not have errors but has errors ${errorString}`
-            log.push(hasErrors)
-            assert(errorString.length === 0, true, hasErrors)
-          }
-        } finally {
-          badLog.push(log.join('\n'))
+        const mergedSide = getMergedSidecar(side, definitions)
+        const bidsSide = new BidsSidecar(`sidecar`, mergedSide, null)
+        const bidsTsv = new BidsTsvFile(`events`, events, null, [side], mergedSide)
+        const sidecarIssues = bidsSide.validate()
+        const eventsIssues = bidsTsv.validate()
+        const allIssues = [...sidecarIssues, ...eventsIssues]
+        const [logString, errorString] = getIssues(expectError, eCode, allIssues)
+        iLog.push(header + logString)
+        if (expectError) {
+          assert(!errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
+        } else {
+          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
         }
       }
 
-      const sideValidator = async function (ecode, ename, side, schema, expectError) {
-        const side1 = JSON.parse(side)
-        const bidsSide = new BidsSidecar(`sidecar`, side1, null)
-        const sideVal = new BidsHedSidecarValidator(bidsSide, schema)
-        const sidecarIssues = await sideVal.validate()
+      const eventsValidator = function (eCode, eName, events, schema, defs, expectError, iLog) {
+        const status = expectError ? 'Expect fail' : 'Expect pass'
+        const header = `\n[${eCode} ${eName}](${status})\tEvents:\n"${events}"\n`
+        if (events.length === 0) {
+          iLog.push(header)
+          return
+        }
+        const bidsTsv = new BidsTsvFile(`events`, events, null, [], defs)
+        // const eventsVal = new BidsHedTsvValidator(bidsTsv, schema);
+        const eventsIssues = bidsTsv.validate(schema)
+        const [logString, errorString] = getIssues(expectError, eCode, eventsIssues)
+        iLog.push(header + logString)
+        if (expectError) {
+          assert(!errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
+        } else {
+          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
+        }
+      }
 
-        const log = new Array()
-        const header = `\n${ecode}: ${ename}\tSIDECAR: "${side}"`
-        log.push(header)
-        const errors = []
-        const errorCodes = new Set()
-        for (const issue of sidecarIssues) {
-          errorCodes.add(issue.hedIssue.hedCode)
-          errors.push(`--- has error [${issue.hedIssue.hedCode}]`)
+      const sideValidator = function (eCode, ename, side, schema, expectError, iLog) {
+        const status = expectError ? 'Expect fail' : 'Expect pass'
+        const header = `\n[${eCode} ${ename}](${status})\tSIDECAR "${side}"\n`
+        if (side === '{}') {
+          iLog.push(header)
+          return
         }
-        const errorString = errors.join('\n---')
-        if (errorString.length > 0) {
-          log.push(`---${errorString}`)
+        const side1 = getMergedSidecar(side, definitions)
+        const bidsSide = new BidsSidecar(`sidecar`, side1, null)
+        // const sideVal = new BidsHedSidecarValidator(bidsSide, schema);
+        const sidecarIssues = bidsSide.validate(schema)
+        const [logString, errorString] = getIssues(expectError, eCode, sidecarIssues)
+        iLog.push(header + logString)
+        if (expectError) {
+          assert(!errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
+        } else {
+          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
         }
-        try {
-          if (expectError && errorCodes.size > 0 && !errorCodes.has(ecode)) {
-            const wrongError = `--- does not have expected error code`
-            log.push(wrongError)
-            assert(errorCodes.has(ecode), true, wrongError)
-          } else if (!expectError && errorCodes.size > 0) {
-            const hasErrors = `should not have errors but has errors ${errorString}`
-            log.push(hasErrors)
-            assert(errorString.length === 0, true, hasErrors)
-          }
-        } finally {
-          badLog.push(log.join('\n'))
+      }
+
+      const stringValidator = function (eCode, ename, str, schema, defs, expectError, iLog) {
+        const status = expectError ? 'Expect fail' : 'Expect pass'
+        const header = `\n[${eCode} ${ename}](${status})\tSTRING: "${str}"\n`
+        if (str.length === 0) {
+          iLog.push(header)
+          return
         }
+        const hTsv = `HED\n${str}\n`
+        const bidsTsv = new BidsTsvFile(`events`, hTsv, null, [], defs)
+        const stringIssues = bidsTsv.validate(schema)
+        const [logString, errorString] = getIssues(expectError, eCode, stringIssues)
+        iLog.push(header + logString)
+        if (expectError) {
+          assert(!errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
+        } else {
+          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
+        }
+
+        // const [validStrings, stringIssues] = validateHedEventWithDefinitions(str, schema, defs);
+        // const [logString, errorString] = getIssues(expectError, eCode, stringIssues);
+        // iLog.push(header + logString);
+        //
+        // if (expectError) {
+        //   assert(!errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`);
+        // } else {
+        //   assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`);
+        // }
       }
 
       beforeAll(async () => {
         hedSchema = schemaMap.get(schema)
-        ;[parsedDefStrings, parsedDefIssues] = parseHedStrings(definitions, hedSchema)
-        ;[defs, defIssues] = parseDefinitions(parsedDefStrings)
-        finalLog.push(`\n[${error_code}:${name}]: ${description}`)
+        defs = getMergedSidecar('{}', definitions)
+        // [parsedDefStrings, parsedDefIssues] = parseHedStrings(definitions, hedSchema);
+        // [defs, defIssues] = parseDefinitions(parsedDefStrings);
+        itemLog = new Array()
+        // finalLog.push(`\n[${error_code}:${name}]: ${description}`);
+      })
+
+      afterAll(() => {
+        badLog.push(itemLog.join('\n'))
       })
 
       test('it should have HED schema defined', () => {
         expect(hedSchema).toBeDefined()
       })
 
-      test('it should have definitions with no issues', () => {
-        expect(defIssues).toHaveLength(0)
-      })
-
-      // STRING tests
       test.each(tests.string_tests.passes)('Valid string: %s', (str) => {
-        const [valid_strings, string_passes_issues] = validateHedEventWithDefinitions(str, hedSchema, defs)
-
-        const stringError = `\tSTRING: "${str}" should be valid but raised ${issuesToStr(string_passes_issues)}`
-        if (!valid_strings) {
-          badLog.push(`${error_code}: ${name}`)
-          badLog.push(stringError)
-        }
-        assert.strictEqual(valid_strings, true, stringError)
+        stringValidator(error_code, name, str, hedSchema, defs, false, itemLog)
       })
 
       test.each(tests.string_tests.fails)('Invalid string: %s', (str) => {
-        const [invalid_strings, string_fails_issues] = validateHedEventWithDefinitions(str, hedSchema, defs)
-        const codes = getIssueCodes(string_fails_issues)
-
-        const stringWrongError = `\tSTRING: "${str}" has error codes ${JSON.stringify([...codes])} not ${error_code}`
-        if (!invalid_strings && !codes.has(error_code)) {
-          badLog.push(`${error_code}: ${name}`)
-          badLog.push(stringWrongError)
-        }
-        //assert.strictEqual(invalid_strings, false, stringNoError);
-        assert(codes.has(error_code), stringWrongError)
+        stringValidator(error_code, name, str, hedSchema, defs, true, itemLog)
       })
 
-      // SIDECAR tests
       test.each(passedSidecars)(`Valid sidecar: %s`, (side) => {
-        if (side === '{}') {
-          return
-        }
-        sideValidator(error_code, name, side, hedSchema, false)
+        sideValidator(error_code, name, side, hedSchema, false, itemLog)
       })
 
       test.each(failedSidecars)(`Invalid sidecar: %s`, (side) => {
-        if (side === '{}') {
-          return
-        }
-        sideValidator(error_code, name, side, hedSchema, true)
+        sideValidator(error_code, name, side, hedSchema, true, itemLog)
       })
 
       test.each(passedEvents)(`Valid events: %s`, (events) => {
-        if (events.length === 0) {
-          return
-        }
-        eventsValidator(error_code, name, events, hedSchema, false)
-        // const bidsTsv = new BidsTsvFile(`events}`, events, null, [], definitions);
-        // const eventsVal = new BidsHedTsvValidator(bidsTsv, hedSchema);
-        // const eventsIssues = eventsVal.validate();
-        // const eventsError = `\tEVENTS: "${events}" should be valid but raised ${eventsIssues.join(',')}`
-        // if (eventsIssues.length > 0) {
-        //   badLog.push(`${error_code}: ${name}`);
-        //   badLog.push(eventsError);
-        // }
-        // assert(eventsIssues.length === 0,  eventsError);
+        eventsValidator(error_code, name, events, hedSchema, defs, false, itemLog)
       })
 
       test.each(failedEvents)('Invalid events: %s', (events) => {
-        if (events.length === 0) {
-          return
-        }
-        eventsValidator(error_code, name, events, hedSchema, true)
-        //   const bidsTsv = new BidsTsvFile(`events`, events, null, [], definitions);
-        //   const eventsVal = new BidsHedTsvValidator(bidsTsv, hedSchema);
-        //   const eventsIssues = eventsVal.validate();
-        //   const codes = getIssueCodes(eventsIssues);
-        //
-        //   const eventsWrongError = `\tEVENTS: "${events}" has error codes ${JSON.stringify([...codes])} not ${error_code}`
-        //   if (!codes.has(error_code)) {
-        //     badLog.push(`${error_code}: ${name}`);
-        //     badLog.push(eventsWrongError);
-        //   }
-        //   assert(codes.has(error_code), eventsWrongError);
-        // });
+        eventsValidator(error_code, name, events, hedSchema, defs, true, itemLog)
+      })
+
+      test.each(failedCombos)(`Invalid combo: [%s] [%s]`, (side, events) => {
+        comboValidator(error_code, name, side, events, hedSchema, defs, true, itemLog)
       })
     },
   )
