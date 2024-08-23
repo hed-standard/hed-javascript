@@ -180,8 +180,8 @@
         "passes": ["Red, Blue, Description/Red"]
       },
       "sidecar_tests": {
-        "fails": [{}],
-        "passes": [{}]
+        "fails": [],
+        "passes": []
       },
       "event_tests": {
         "fails": [
@@ -198,7 +198,8 @@
         ]
       },
       "combo_tests": {
-        "fails": []
+        "fails": [],
+        "passes": []
       }
     }
   }

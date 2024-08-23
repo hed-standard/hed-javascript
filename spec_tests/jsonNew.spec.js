@@ -5,12 +5,9 @@ import { beforeAll, describe, afterAll } from '@jest/globals'
 import * as hed from '../validator/event'
 import { BidsIssue } from '../bids/types/issues'
 import { buildSchemas } from '../validator/schema/init'
-import { parseHedStrings } from '../parser/main'
-import { validateHedEventWithDefinitions } from '../validator/event'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import path from 'path'
-import { parseDefinitions } from '../validator/dataset'
-import { BidsHedSidecarValidator, BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
+import { BidsSidecar, BidsTsvFile } from '../bids'
 const fs = require('fs')
 
 const readFileSync = fs.readFileSync
@@ -23,7 +20,7 @@ function comboListToStrings(items) {
     return comboItems
   }
   for (const item of items) {
-    const nextItem = { sidecar: JSON.stringify(item.sidecar), events: tsvToString(item.events) }
+    const nextItem = [JSON.stringify(item.sidecar), tsvToString(item.events)]
     comboItems.push(nextItem)
   }
   return comboItems
@@ -81,6 +78,9 @@ function stringifyList(items) {
 
 function tsvListToStrings(eventList) {
   const eventStrings = new Array()
+  if (eventList === undefined || eventList.length === 0) {
+    return eventStrings
+  }
   for (const item of eventList) {
     eventStrings.push(tsvToString(item))
   }
@@ -91,7 +91,7 @@ function tsvToString(events) {
   return events.map((row) => row.join('\t')).join('\n')
 }
 
-describe('HED validation', () => {
+describe('HED validation using JSON tests', () => {
   const schemaMap = new Map([
     ['8.2.0', undefined],
     ['8.3.0', undefined],
@@ -129,31 +129,27 @@ describe('HED validation', () => {
     ({ error_code, name, description, schema, definitions, tests }) => {
       let hedSchema
       let itemLog
-      let parsedDefStrings, parsedDefIssues
-      let defs, defIssues
+      let defs
       const failedSidecars = stringifyList(tests.sidecar_tests.fails)
       const passedSidecars = stringifyList(tests.sidecar_tests.passes)
       const failedEvents = tsvListToStrings(tests.event_tests.fails)
       const passedEvents = tsvListToStrings(tests.event_tests.passes)
       const failedCombos = comboListToStrings(tests.combo_tests.fails)
+      const passedCombos = comboListToStrings(tests.combo_tests.passes)
 
       const comboValidator = function (eCode, eName, side, events, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
         const header = `\n[${eCode} ${eName}](${status})\tCOMBO\t"${side}"\n"${events}"\n`
-        if (events.length === 0 || side.length === 0) {
-          iLog.push(header)
-          return
-        }
         const mergedSide = getMergedSidecar(side, definitions)
         const bidsSide = new BidsSidecar(`sidecar`, mergedSide, null)
         const bidsTsv = new BidsTsvFile(`events`, events, null, [side], mergedSide)
-        const sidecarIssues = bidsSide.validate()
-        const eventsIssues = bidsTsv.validate()
+        const sidecarIssues = bidsSide.validate(schema)
+        const eventsIssues = bidsTsv.validate(schema)
         const allIssues = [...sidecarIssues, ...eventsIssues]
         const [logString, errorString] = getIssues(expectError, eCode, allIssues)
         iLog.push(header + logString)
         if (expectError) {
-          assert(!errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
+          assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
         } else {
           assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
         }
@@ -162,17 +158,12 @@ describe('HED validation', () => {
       const eventsValidator = function (eCode, eName, events, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
         const header = `\n[${eCode} ${eName}](${status})\tEvents:\n"${events}"\n`
-        if (events.length === 0) {
-          iLog.push(header)
-          return
-        }
         const bidsTsv = new BidsTsvFile(`events`, events, null, [], defs)
-        // const eventsVal = new BidsHedTsvValidator(bidsTsv, schema);
         const eventsIssues = bidsTsv.validate(schema)
         const [logString, errorString] = getIssues(expectError, eCode, eventsIssues)
         iLog.push(header + logString)
         if (expectError) {
-          assert(!errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
+          assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
         } else {
           assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
         }
@@ -181,18 +172,13 @@ describe('HED validation', () => {
       const sideValidator = function (eCode, ename, side, schema, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
         const header = `\n[${eCode} ${ename}](${status})\tSIDECAR "${side}"\n`
-        if (side === '{}') {
-          iLog.push(header)
-          return
-        }
         const side1 = getMergedSidecar(side, definitions)
         const bidsSide = new BidsSidecar(`sidecar`, side1, null)
-        // const sideVal = new BidsHedSidecarValidator(bidsSide, schema);
         const sidecarIssues = bidsSide.validate(schema)
         const [logString, errorString] = getIssues(expectError, eCode, sidecarIssues)
         iLog.push(header + logString)
         if (expectError) {
-          assert(!errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
+          assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
         } else {
           assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
         }
@@ -201,39 +187,22 @@ describe('HED validation', () => {
       const stringValidator = function (eCode, ename, str, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
         const header = `\n[${eCode} ${ename}](${status})\tSTRING: "${str}"\n`
-        if (str.length === 0) {
-          iLog.push(header)
-          return
-        }
         const hTsv = `HED\n${str}\n`
         const bidsTsv = new BidsTsvFile(`events`, hTsv, null, [], defs)
         const stringIssues = bidsTsv.validate(schema)
         const [logString, errorString] = getIssues(expectError, eCode, stringIssues)
         iLog.push(header + logString)
         if (expectError) {
-          assert(!errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
+          assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
         } else {
           assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
         }
-
-        // const [validStrings, stringIssues] = validateHedEventWithDefinitions(str, schema, defs);
-        // const [logString, errorString] = getIssues(expectError, eCode, stringIssues);
-        // iLog.push(header + logString);
-        //
-        // if (expectError) {
-        //   assert(!errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`);
-        // } else {
-        //   assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`);
-        // }
       }
 
       beforeAll(async () => {
         hedSchema = schemaMap.get(schema)
         defs = getMergedSidecar('{}', definitions)
-        // [parsedDefStrings, parsedDefIssues] = parseHedStrings(definitions, hedSchema);
-        // [defs, defIssues] = parseDefinitions(parsedDefStrings);
         itemLog = new Array()
-        // finalLog.push(`\n[${error_code}:${name}]: ${description}`);
       })
 
       afterAll(() => {
@@ -244,33 +213,53 @@ describe('HED validation', () => {
         expect(hedSchema).toBeDefined()
       })
 
-      test.each(tests.string_tests.passes)('Valid string: %s', (str) => {
-        stringValidator(error_code, name, str, hedSchema, defs, false, itemLog)
-      })
+      if (tests.string_tests.passes.length > 0) {
+        test.each(tests.string_tests.passes)('Valid string: %s', (str) => {
+          stringValidator(error_code, name, str, hedSchema, defs, false, itemLog)
+        })
+      }
 
-      test.each(tests.string_tests.fails)('Invalid string: %s', (str) => {
-        stringValidator(error_code, name, str, hedSchema, defs, true, itemLog)
-      })
+      if (tests.string_tests.fails.length > 0) {
+        test.each(tests.string_tests.fails)('Invalid string: %s', (str) => {
+          stringValidator(error_code, name, str, hedSchema, defs, true, itemLog)
+        })
+      }
 
-      test.each(passedSidecars)(`Valid sidecar: %s`, (side) => {
-        sideValidator(error_code, name, side, hedSchema, false, itemLog)
-      })
+      if (passedSidecars.length > 0) {
+        test.each(passedSidecars)(`Valid sidecar: %s`, (side) => {
+          sideValidator(error_code, name, side, hedSchema, false, itemLog)
+        })
+      }
 
-      test.each(failedSidecars)(`Invalid sidecar: %s`, (side) => {
-        sideValidator(error_code, name, side, hedSchema, true, itemLog)
-      })
+      if (failedSidecars.length > 0) {
+        test.each(failedSidecars)(`Invalid sidecar: %s`, (side) => {
+          sideValidator(error_code, name, side, hedSchema, true, itemLog)
+        })
+      }
 
-      test.each(passedEvents)(`Valid events: %s`, (events) => {
-        eventsValidator(error_code, name, events, hedSchema, defs, false, itemLog)
-      })
+      if (passedEvents.length > 0) {
+        test.each(passedEvents)(`Valid events: %s`, (events) => {
+          eventsValidator(error_code, name, events, hedSchema, defs, false, itemLog)
+        })
+      }
 
-      test.each(failedEvents)('Invalid events: %s', (events) => {
-        eventsValidator(error_code, name, events, hedSchema, defs, true, itemLog)
-      })
+      if (failedEvents.length > 0) {
+        test.each(failedEvents)('Invalid events: %s', (events) => {
+          eventsValidator(error_code, name, events, hedSchema, defs, true, itemLog)
+        })
+      }
 
-      test.each(failedCombos)(`Invalid combo: [%s] [%s]`, (side, events) => {
-        comboValidator(error_code, name, side, events, hedSchema, defs, true, itemLog)
-      })
+      if (passedCombos.length > 0) {
+        test.each(passedCombos)(`Valid combo: [%s] [%s]`, (side, events) => {
+          comboValidator(error_code, name, side, events, hedSchema, defs, false, itemLog)
+        })
+      }
+
+      if (failedCombos.length > 0) {
+        test.each(failedCombos)(`Invalid combo: [%s] [%s]`, (side, events) => {
+          comboValidator(error_code, name, side, events, hedSchema, defs, true, itemLog)
+        })
+      }
     },
   )
 })
