@@ -25,7 +25,7 @@ describe('HED string conversion', () => {
      * @param {Object<string, string>} expectedResults The expected results.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues.
      * @param {function (Schema, string): [string, Issue[]]} testFunction The test function.
-     * @returns {Promise<void>}
+     * @returns {Promise}
      */
     const validatorBase = async function (testStrings, expectedResults, expectedIssues, testFunction) {
       for (const [testStringKey, testString] of Object.entries(testStrings)) {
