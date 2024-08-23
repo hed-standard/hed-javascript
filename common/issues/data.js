@@ -23,7 +23,7 @@ export default {
     message: stringTemplate`Extra delimiter "${'character'}" at index ${'index'} of string "${'string'}".`,
   },
   commaMissing: {
-    hedCode: 'COMMA MISSING',
+    hedCode: 'COMMA_MISSING',
     level: 'error',
     message: stringTemplate`Comma missing after - "${'tag'}".`,
   },
