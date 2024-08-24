@@ -11,8 +11,9 @@ import { BidsSidecar, BidsTsvFile } from '../bids'
 const fs = require('fs')
 
 const readFileSync = fs.readFileSync
-//const test_file_name = 'nonschema_tests.json';
-const test_file_name = 'some_tests.json'
+const test_file_name = 'nonschema_tests.json'
+//const test_file_name = 'some_tests.json'
+//const test_file_name = 'start4.json'
 
 function comboListToStrings(items) {
   const comboItems = new Array()
@@ -51,18 +52,20 @@ function getIssues(expectError, eCode, issues) {
 }
 
 function getMergedSidecar(side, definitions) {
-  const defSide = { definitions: { HED: { defList: definitions.join(',') } } }
-  const defstring = JSON.stringify(defSide)
-  const sideJSON = JSON.parse(side)
-  const mergedSide = Object.assign({}, sideJSON, defSide)
-  return mergedSide
+  let defSide
+  if (definitions.length === 0) {
+    defSide = {}
+  } else {
+    defSide = { definitions: { HED: { defList: definitions.join(',') } } }
+  }
+  return Object.assign({}, JSON.parse(side), defSide)
 }
 
 function loadTestData() {
   const testFile = path.join(__dirname, test_file_name)
-  const testData = JSON.parse(readFileSync(testFile, 'utf8'))
-  return testData
+  return JSON.parse(readFileSync(testFile, 'utf8'))
 }
+
 const testInfo = loadTestData()
 
 function stringifyList(items) {
@@ -111,7 +114,7 @@ describe('HED validation using JSON tests', () => {
   })
 
   afterAll(() => {
-    const outBad = path.join(__dirname, 'runlog.txt')
+    const outBad = path.join(__dirname, 'runLog.txt')
     fs.writeFileSync(outBad, badLog.join('\n'), 'utf8')
   })
 
@@ -151,7 +154,7 @@ describe('HED validation using JSON tests', () => {
         if (expectError) {
           assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
         } else {
-          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
+          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
         }
       }
 
@@ -165,7 +168,7 @@ describe('HED validation using JSON tests', () => {
         if (expectError) {
           assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
         } else {
-          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
+          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
         }
       }
 
@@ -180,7 +183,7 @@ describe('HED validation using JSON tests', () => {
         if (expectError) {
           assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
         } else {
-          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
+          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
         }
       }
 
@@ -195,7 +198,7 @@ describe('HED validation using JSON tests', () => {
         if (expectError) {
           assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
         } else {
-          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}}]`)
+          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
         }
       }
 

@@ -7,15 +7,15 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/#, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": ["Collection/[x]", "Description/This is a \u00ca\u00b0 bad character"],
-        "passes": ["Red, Blue, Description/Red"]
+        "fails": ["Collection/[x]", "Item/Bl\b"],
+        "passes": ["Red, Blue, Description/Red", "Description/This is a \u00ca\u00b0 good character"]
       },
       "sidecar_tests": {
         "fails": [
           {
             "event_code": {
               "HED": {
-                "show": "Red, Label/a \u00ca\u00b0 bad"
+                "show": "Red, Item/Bl\b"
               }
             }
           }
@@ -24,7 +24,7 @@
           {
             "event_code": {
               "HED": {
-                "show": "Red, Label/Good"
+                "show": "Red,  Label/a \u00ca\u00b0 good"
               }
             }
           }
@@ -34,13 +34,13 @@
         "fails": [
           [
             ["onset", "duration", "HED"],
-            [4.5, 0, "Label/a \u00ca\u00b0 bad"]
+            [4.5, 0, "Item/Bl\b"]
           ]
         ],
         "passes": [
           [
             ["onset", "duration", "HED"],
-            [4.5, 0, "Label/Temp"]
+            [4.5, 0, "Label/Temp, Label/a \u00ca\u00b0 good"]
           ]
         ]
       },
@@ -50,7 +50,7 @@
             "sidecar": {
               "event_code": {
                 "HED": {
-                  "show": "Red, Label/a \u00ca\u00b0 bad",
+                  "show": "Red, Item/Bl\b",
                   "ball": "Def/Acc/4.5 m-per-s^2"
                 }
               }
@@ -67,7 +67,7 @@
             "sidecar": {
               "event_code": {
                 "HED": {
-                  "show": "Red, Label/a"
+                  "show": "Red, Label/a, Description/a \u00ca\u00b0 good"
                 }
               }
             },
@@ -83,7 +83,7 @@
   {
     "error_code": "CHARACTER_INVALID",
     "name": "curly-braces-not-in-sidecar",
-    "description": "The curly brace notation is used outside of a sidecar.",
+    "description": "The curly brace notation is used outside a sidecar.",
     "schema": "8.3.0",
     "definitions": ["(Definition/Acc/#, (Acceleration/#, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
@@ -91,7 +91,10 @@
         "fails": ["{col_1}, Red"],
         "passes": ["Red, Blue, Description/Red"]
       },
-      "sidecar_tests": {},
+      "sidecar_tests": {
+        "fails": [],
+        "passes": []
+      },
       "event_tests": {
         "fails": [
           [
@@ -106,7 +109,10 @@
           ]
         ]
       },
-      "combo_tests": {}
+      "combo_tests": {
+        "fails": [],
+        "passes": []
+      }
     }
   },
   {
@@ -114,6 +120,7 @@
     "name": "invalid-character-name-value-class",
     "description": "An invalid character was used in an 8.3.0 or greater style text value class.",
     "schema": "8.3.0",
+    "definitions": ["(Definition/Acc/#, (Acceleration/#, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
         "fails": ["Parameter-label/[", "Parameter-label/Taco*"],
@@ -141,7 +148,10 @@
         "fails": [],
         "passes": []
       },
-      "combo_tests": {}
+      "combo_tests": {
+        "fails": [],
+        "passes": []
+      }
     }
   },
   {
@@ -149,6 +159,7 @@
     "name": "invalid-character-name-value-class-deprecated",
     "description": "An invalid character was used in an 8.2.0 or lower style text value class.",
     "schema": "8.2.0",
+    "definitions": ["(Definition/Acc/#, (Acceleration/#, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
         "fails": ["Parameter-label/[", "Parameter-label/Taco\u00c3\u201e"],
@@ -176,7 +187,10 @@
         "fails": [],
         "passes": []
       },
-      "combo_tests": {}
+      "combo_tests": {
+        "fails": [],
+        "passes": []
+      }
     }
   },
   {
@@ -184,6 +198,7 @@
     "name": "invalid-character-numeric-class",
     "description": "An invalid character was used in an 8.3.0 or greater style numeric value class.",
     "schema": "8.3.0",
+    "definitions": [],
     "tests": {
       "string_tests": {
         "fails": [
@@ -231,7 +246,10 @@
         "fails": [],
         "passes": []
       },
-      "combo_tests": {}
+      "combo_tests": {
+        "fails": [],
+        "passes": []
+      }
     }
   },
   {
@@ -239,6 +257,7 @@
     "name": "invalid-character-name-class",
     "description": "An invalid character was used in an 8.3.0 or greater style numeric value class.",
     "schema": "8.3.0",
+    "definitions": [],
     "tests": {
       "string_tests": {
         "fails": ["Label/30$", "Label/30db kg"],
@@ -266,7 +285,10 @@
         "fails": [],
         "passes": []
       },
-      "combo_tests": {}
+      "combo_tests": {
+        "fails": [],
+        "passes": []
+      }
     }
   },
   {
@@ -2596,6 +2618,10 @@
       "event_tests": {
         "fails": [],
         "passes": []
+      },
+      "combo_tests": {
+        "fails": [],
+        "passes": []
       }
     }
   },
@@ -2617,11 +2643,11 @@
       "event_tests": {
         "fails": [],
         "passes": []
+      },
+      "combo_tests": {
+        "fails": [],
+        "passes": []
       }
-    },
-    "combo_tests": {
-      "fails": [],
-      "passes": []
     }
   },
   {
@@ -3385,7 +3411,9 @@
                   "ball": "(Def/MyColor, Onset), (Def/Acc/3.5 m-per-s^2)"
                 }
               }
-            },
+            }
+          },
+          {
             "HED": {
               "face": "(Red, Blue), (Green, (Yellow))",
               "ball": "(Def/MyColor, Onset), (Def/Acc/3.5 m-per-s^2)"
@@ -7342,6 +7370,18 @@
       "string_tests": {
         "fails": ["Temperature/4.5"],
         "passes": ["Temperature/4 oC"]
+      },
+      "sidecar_tests": {
+        "fails": [],
+        "passes": []
+      },
+      "event_tests": {
+        "fails": [],
+        "passes": []
+      },
+      "combo_tests": {
+        "fails": [],
+        "passes": []
       }
     }
   },
