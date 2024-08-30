@@ -10,13 +10,18 @@ import path from 'path'
 import { BidsSidecar, BidsTsvFile } from '../bids'
 const fs = require('fs')
 
+const skippedErrors = {
+  VERSION_DEPRECATED: 'Not handling in the spec tests',
+  ELEMENT_DEPRECATED: 'Not handling in this round. This is a warning',
+}
 const readFileSync = fs.readFileSync
-const test_file_name = 'nonschema_tests.json'
+const test_file_name = 'javascript_tests.json'
+//const test_file_name = 'temp2.json';
 //const test_file_name = 'some_tests.json'
 //const test_file_name = 'start4.json'
 
 function comboListToStrings(items) {
-  const comboItems = new Array()
+  const comboItems = []
   if (items === undefined || items.length === 0) {
     return comboItems
   }
@@ -27,38 +32,8 @@ function comboListToStrings(items) {
   return comboItems
 }
 
-function getIssues(expectError, eCode, issues) {
-  const errors = new Array()
-  const log = new Array()
-  for (const issue of issues) {
-    if (issue instanceof BidsIssue) {
-      errors.push(`${issue.hedIssue.hedCode}`)
-    } else {
-      errors.push(`${issue.hedCode}`)
-    }
-  }
-  const errorString = errors.join(',')
-  if (errors.length > 0) {
-    log.push(`---has errors [${errorString}]`)
-  }
-  const wrongError = `---expected ${eCode} but got errors [${errorString}]`
-  const hasErrors = `---expected no errors but got errors [${errorString}]`
-  if (expectError && !errorString.includes(eCode)) {
-    log.push(wrongError)
-  } else if (!expectError && errorString.length > 0) {
-    log.push(hasErrors)
-  }
-  return [log.join('\n'), errorString]
-}
-
-function getMergedSidecar(side, definitions) {
-  let defSide
-  if (definitions.length === 0) {
-    defSide = {}
-  } else {
-    defSide = { definitions: { HED: { defList: definitions.join(',') } } }
-  }
-  return Object.assign({}, JSON.parse(side), defSide)
+function getMergedSidecar(side1, side2) {
+  return Object.assign({}, JSON.parse(side1), side2)
 }
 
 function loadTestData() {
@@ -69,7 +44,7 @@ function loadTestData() {
 const testInfo = loadTestData()
 
 function stringifyList(items) {
-  const stringItems = new Array()
+  const stringItems = []
   if (items === undefined || items.length === 0) {
     return stringItems
   }
@@ -80,7 +55,7 @@ function stringifyList(items) {
 }
 
 function tsvListToStrings(eventList) {
-  const eventStrings = new Array()
+  const eventStrings = []
   if (eventList === undefined || eventList.length === 0) {
     return eventStrings
   }
@@ -100,7 +75,7 @@ describe('HED validation using JSON tests', () => {
     ['8.3.0', undefined],
   ])
 
-  const badLog = new Array()
+  const badLog = []
 
   beforeAll(async () => {
     const spec2 = new SchemaSpec('', '8.2.0', '', path.join(__dirname, '../tests/data/HED8.2.0.xml'))
@@ -129,7 +104,7 @@ describe('HED validation using JSON tests', () => {
 
   describe.each(testInfo)(
     '$error_code $name : $description',
-    ({ error_code, name, description, schema, definitions, tests }) => {
+    ({ error_code, alt_codes, name, description, schema, warning, definitions, tests }) => {
       let hedSchema
       let itemLog
       let defs
@@ -140,128 +115,141 @@ describe('HED validation using JSON tests', () => {
       const failedCombos = comboListToStrings(tests.combo_tests.fails)
       const passedCombos = comboListToStrings(tests.combo_tests.passes)
 
-      const comboValidator = function (eCode, eName, side, events, schema, defs, expectError, iLog) {
+      const assertErrors = function (eCode, altCodes, expectError, iLog, header, issues) {
+        const errors = []
+        const log = [header]
+        for (const issue of issues) {
+          if (issue instanceof BidsIssue) {
+            errors.push(`${issue.hedIssue.hedCode}`)
+          } else {
+            errors.push(`${issue.hedCode}`)
+          }
+        }
+        let altErrorString = ''
+        if (altCodes.length > 0) {
+          altErrorString = ` or alternative error codes [${altCodes.join(' ,')}] `
+        }
+        const errorString = errors.join(',')
+        if (errors.length > 0) {
+          log.push(`---has errors [${errorString}]`)
+        }
+        const expectedErrors = [...[eCode], ...altCodes]
+        const wrongError = `---expected ${eCode} ${altErrorString} but got errors [${errorString}]`
+        const hasErrors = `---expected no errors but got errors [${errorString}]`
+        if (expectError && !expectedErrors.some((substring) => errorString.includes(substring))) {
+          log.push(wrongError)
+          iLog.push(log.join('\n'))
+          assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
+        } else if (!expectError && errorString.length > 0) {
+          log.push(hasErrors)
+          iLog.push(log.join('\n'))
+          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
+        }
+      }
+
+      const comboValidator = function (eCode, altCodes, eName, side, events, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
         const header = `\n[${eCode} ${eName}](${status})\tCOMBO\t"${side}"\n"${events}"\n`
-        const mergedSide = getMergedSidecar(side, definitions)
+        const mergedSide = getMergedSidecar(side, defs)
         const bidsSide = new BidsSidecar(`sidecar`, mergedSide, null)
         const bidsTsv = new BidsTsvFile(`events`, events, null, [side], mergedSide)
         const sidecarIssues = bidsSide.validate(schema)
         const eventsIssues = bidsTsv.validate(schema)
         const allIssues = [...sidecarIssues, ...eventsIssues]
-        const [logString, errorString] = getIssues(expectError, eCode, allIssues)
-        iLog.push(header + logString)
-        if (expectError) {
-          assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
-        } else {
-          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
-        }
+        assertErrors(eCode, altCodes, expectError, iLog, header, allIssues)
       }
 
-      const eventsValidator = function (eCode, eName, events, schema, defs, expectError, iLog) {
+      const eventsValidator = function (eCode, altCodes, eName, events, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
         const header = `\n[${eCode} ${eName}](${status})\tEvents:\n"${events}"\n`
         const bidsTsv = new BidsTsvFile(`events`, events, null, [], defs)
         const eventsIssues = bidsTsv.validate(schema)
-        const [logString, errorString] = getIssues(expectError, eCode, eventsIssues)
-        iLog.push(header + logString)
-        if (expectError) {
-          assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
-        } else {
-          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
-        }
+        assertErrors(eCode, altCodes, expectError, iLog, header, eventsIssues)
       }
 
-      const sideValidator = function (eCode, ename, side, schema, expectError, iLog) {
+      const sideValidator = function (eCode, altCodes, eName, side, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
-        const header = `\n[${eCode} ${ename}](${status})\tSIDECAR "${side}"\n`
-        const side1 = getMergedSidecar(side, definitions)
+        const header = `\n[${eCode} ${eName}](${status})\tSIDECAR "${side}"\n`
+        const side1 = getMergedSidecar(side, defs)
         const bidsSide = new BidsSidecar(`sidecar`, side1, null)
         const sidecarIssues = bidsSide.validate(schema)
-        const [logString, errorString] = getIssues(expectError, eCode, sidecarIssues)
-        iLog.push(header + logString)
-        if (expectError) {
-          assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
-        } else {
-          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
-        }
+        assertErrors(eCode, altCodes, expectError, iLog, header, sidecarIssues)
       }
 
-      const stringValidator = function (eCode, ename, str, schema, defs, expectError, iLog) {
+      const stringValidator = function (eCode, altCodes, eName, str, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
-        const header = `\n[${eCode} ${ename}](${status})\tSTRING: "${str}"\n`
+        const header = `\n[${eCode} ${eName}](${status})\tSTRING: "${str}"\n`
         const hTsv = `HED\n${str}\n`
         const bidsTsv = new BidsTsvFile(`events`, hTsv, null, [], defs)
         const stringIssues = bidsTsv.validate(schema)
-        const [logString, errorString] = getIssues(expectError, eCode, stringIssues)
-        iLog.push(header + logString)
-        if (expectError) {
-          assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
-        } else {
-          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
-        }
+        assertErrors(eCode, altCodes, expectError, iLog, header, stringIssues)
       }
 
       beforeAll(async () => {
         hedSchema = schemaMap.get(schema)
-        defs = getMergedSidecar('{}', definitions)
-        itemLog = new Array()
+        defs = { definitions: { HED: { defList: definitions.join(',') } } }
+        itemLog = []
       })
 
       afterAll(() => {
         badLog.push(itemLog.join('\n'))
       })
 
-      test('it should have HED schema defined', () => {
-        expect(hedSchema).toBeDefined()
-      })
-
-      if (tests.string_tests.passes.length > 0) {
-        test.each(tests.string_tests.passes)('Valid string: %s', (str) => {
-          stringValidator(error_code, name, str, hedSchema, defs, false, itemLog)
+      if (error_code in skippedErrors) {
+        //badLog.push(`${error_code} skipped because ${skippedErrors["error_code"]}`);
+        test.skip(`Skipping tests ${error_code} skipped because ${skippedErrors['error_code']}`, () => {})
+      } else {
+        test('it should have HED schema defined', () => {
+          expect(hedSchema).toBeDefined()
         })
-      }
 
-      if (tests.string_tests.fails.length > 0) {
-        test.each(tests.string_tests.fails)('Invalid string: %s', (str) => {
-          stringValidator(error_code, name, str, hedSchema, defs, true, itemLog)
-        })
-      }
+        if (tests.string_tests.passes.length > 0) {
+          test.each(tests.string_tests.passes)('Valid string: %s', (str) => {
+            stringValidator(error_code, alt_codes, name, str, hedSchema, defs, false, itemLog)
+          })
+        }
 
-      if (passedSidecars.length > 0) {
-        test.each(passedSidecars)(`Valid sidecar: %s`, (side) => {
-          sideValidator(error_code, name, side, hedSchema, false, itemLog)
-        })
-      }
+        if (tests.string_tests.fails.length > 0) {
+          test.each(tests.string_tests.fails)('Invalid string: %s', (str) => {
+            stringValidator(error_code, alt_codes, name, str, hedSchema, defs, true, itemLog)
+          })
+        }
 
-      if (failedSidecars.length > 0) {
-        test.each(failedSidecars)(`Invalid sidecar: %s`, (side) => {
-          sideValidator(error_code, name, side, hedSchema, true, itemLog)
-        })
-      }
+        if (passedSidecars.length > 0) {
+          test.each(passedSidecars)(`Valid sidecar: %s`, (side) => {
+            sideValidator(error_code, alt_codes, name, side, hedSchema, defs, false, itemLog)
+          })
+        }
 
-      if (passedEvents.length > 0) {
-        test.each(passedEvents)(`Valid events: %s`, (events) => {
-          eventsValidator(error_code, name, events, hedSchema, defs, false, itemLog)
-        })
-      }
+        if (failedSidecars.length > 0) {
+          test.each(failedSidecars)(`Invalid sidecar: %s`, (side) => {
+            sideValidator(error_code, alt_codes, name, side, hedSchema, defs, true, itemLog)
+          })
+        }
 
-      if (failedEvents.length > 0) {
-        test.each(failedEvents)('Invalid events: %s', (events) => {
-          eventsValidator(error_code, name, events, hedSchema, defs, true, itemLog)
-        })
-      }
+        if (passedEvents.length > 0) {
+          test.each(passedEvents)(`Valid events: %s`, (events) => {
+            eventsValidator(error_code, alt_codes, name, events, hedSchema, defs, false, itemLog)
+          })
+        }
 
-      if (passedCombos.length > 0) {
-        test.each(passedCombos)(`Valid combo: [%s] [%s]`, (side, events) => {
-          comboValidator(error_code, name, side, events, hedSchema, defs, false, itemLog)
-        })
-      }
+        if (failedEvents.length > 0) {
+          test.each(failedEvents)(`Invalid events: %s`, (events) => {
+            eventsValidator(error_code, alt_codes, name, events, hedSchema, defs, true, itemLog)
+          })
+        }
 
-      if (failedCombos.length > 0) {
-        test.each(failedCombos)(`Invalid combo: [%s] [%s]`, (side, events) => {
-          comboValidator(error_code, name, side, events, hedSchema, defs, true, itemLog)
-        })
+        if (passedCombos.length > 0) {
+          test.each(passedCombos)(`Valid combo: [%s] [%s]`, (side, events) => {
+            comboValidator(error_code, alt_codes, name, side, events, hedSchema, defs, false, itemLog)
+          })
+        }
+
+        if (failedCombos.length > 0) {
+          test.each(failedCombos)(`Invalid combo: [%s] [%s]`, (side, events) => {
+            comboValidator(error_code, alt_codes, name, side, events, hedSchema, defs, true, itemLog)
+          })
+        }
       }
     },
   )

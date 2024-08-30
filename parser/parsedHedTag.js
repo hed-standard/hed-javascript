@@ -349,7 +349,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
       this._schemaTag = schemaTag
       this._remainder = remainder
       this.canonicalTag = this._schemaTag.longExtend(remainder)
-      this.conversionIssues = []
+      //this.conversionIssues = []
     } catch (error) {
       this.conversionIssues = [error.issue]
     }
