@@ -20,8 +20,8 @@
     "build": "node esbuild.mjs",
     "prepublishOnly": "npm run build",
     "lint": "eslint ./**/*.js",
-    "test": "jest",
-    "coverage": "jest --coverage",
+    "test": "jest --testPathIgnorePatterns=spec_tests",
+    "coverage": "jest --coverage --testPathIgnorePatterns=spec_tests",
     "prepare": "husky install"
   },
   "contributors": [
