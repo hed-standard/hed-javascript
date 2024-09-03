@@ -48,18 +48,14 @@ jobs:
   SpecTests:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 'node']
-
     steps:
       - name: Check out the code
         uses: actions/checkout@v4
-      - name: Set up with Node.js ${{ matrix.node-version }}
+      - name: Set up with Node.js  LTS
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: lts/*
       - name: Download dependencies
         run: npm ci
-      - name: Test with Node.js ${{ matrix.node-version }}
-        run: npm test
+      - name: Test with Node.js LTS
+        run: npm testSpecs
