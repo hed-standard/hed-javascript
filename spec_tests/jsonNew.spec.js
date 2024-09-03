@@ -10,6 +10,8 @@ import path from 'path'
 import { BidsSidecar, BidsTsvFile } from '../bids'
 const fs = require('fs')
 
+const displayLog = process.env.DISPLAY_LOG === 'true'
+
 const skippedErrors = {
   VERSION_DEPRECATED: 'Not handling in the spec tests',
   ELEMENT_DEPRECATED: 'Not handling in this round. This is a warning',
@@ -76,6 +78,9 @@ describe('HED validation using JSON tests', () => {
   ])
 
   const badLog = []
+  let totalTests = 0
+  let wrongErrors = 0
+  let unexpectedErrors = 0
 
   beforeAll(async () => {
     const spec2 = new SchemaSpec('', '8.2.0', '', path.join(__dirname, '../tests/data/HED8.2.0.xml'))
@@ -90,7 +95,11 @@ describe('HED validation using JSON tests', () => {
 
   afterAll(() => {
     const outBad = path.join(__dirname, 'runLog.txt')
-    fs.writeFileSync(outBad, badLog.join('\n'), 'utf8')
+    const summary = `Total tests:${totalTests} Wrong error codes:${wrongErrors} Unexpected errors:${unexpectedErrors}\n`
+    console.log(summary)
+    if (displayLog) {
+      fs.writeFileSync(outBad, summary + badLog.join('\n'), 'utf8')
+    }
   })
 
   test('should load testInfo and schemas correctly', () => {
@@ -118,6 +127,7 @@ describe('HED validation using JSON tests', () => {
       const assertErrors = function (eCode, altCodes, expectError, iLog, header, issues) {
         const errors = []
         const log = [header]
+        totalTests += 1
         for (const issue of issues) {
           if (issue instanceof BidsIssue) {
             errors.push(`${issue.hedIssue.hedCode}`)
@@ -139,17 +149,19 @@ describe('HED validation using JSON tests', () => {
         if (expectError && !expectedErrors.some((substring) => errorString.includes(substring))) {
           log.push(wrongError)
           iLog.push(log.join('\n'))
+          wrongErrors += 1
           assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
         } else if (!expectError && errorString.length > 0) {
           log.push(hasErrors)
           iLog.push(log.join('\n'))
+          unexpectedErrors += 1
           assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
         }
       }
 
       const comboValidator = function (eCode, altCodes, eName, side, events, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
-        const header = `\n[${eCode} ${eName}](${status})\tCOMBO\t"${side}"\n"${events}"\n`
+        const header = `\n[${eCode} ${eName}](${status})\tCOMBO\t"${side}"\n"${events}"`
         const mergedSide = getMergedSidecar(side, defs)
         const bidsSide = new BidsSidecar(`sidecar`, mergedSide, null)
         const bidsTsv = new BidsTsvFile(`events`, events, null, [side], mergedSide)
@@ -161,7 +173,7 @@ describe('HED validation using JSON tests', () => {
 
       const eventsValidator = function (eCode, altCodes, eName, events, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
-        const header = `\n[${eCode} ${eName}](${status})\tEvents:\n"${events}"\n`
+        const header = `\n[${eCode} ${eName}](${status})\tEvents:\n"${events}"`
         const bidsTsv = new BidsTsvFile(`events`, events, null, [], defs)
         const eventsIssues = bidsTsv.validate(schema)
         assertErrors(eCode, altCodes, expectError, iLog, header, eventsIssues)
@@ -169,7 +181,7 @@ describe('HED validation using JSON tests', () => {
 
       const sideValidator = function (eCode, altCodes, eName, side, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
-        const header = `\n[${eCode} ${eName}](${status})\tSIDECAR "${side}"\n`
+        const header = `\n[${eCode} ${eName}](${status})\tSIDECAR "${side}"`
         const side1 = getMergedSidecar(side, defs)
         const bidsSide = new BidsSidecar(`sidecar`, side1, null)
         const sidecarIssues = bidsSide.validate(schema)
@@ -178,7 +190,7 @@ describe('HED validation using JSON tests', () => {
 
       const stringValidator = function (eCode, altCodes, eName, str, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
-        const header = `\n[${eCode} ${eName}](${status})\tSTRING: "${str}"\n`
+        const header = `\n[${eCode} ${eName}](${status})\tSTRING: "${str}"`
         const hTsv = `HED\n${str}\n`
         const bidsTsv = new BidsTsvFile(`events`, hTsv, null, [], defs)
         const stringIssues = bidsTsv.validate(schema)

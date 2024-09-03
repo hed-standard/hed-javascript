@@ -44,3 +44,22 @@ jobs:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
           coverageCommand: ./node_modules/.bin/jest --coverage --testPathIgnorePatterns=spec_tests
+
+  SpecTests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 'node']
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+      - name: Set up with Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Download dependencies
+        run: npm ci
+      - name: Test with Node.js ${{ matrix.node-version }}
+        run: npm test

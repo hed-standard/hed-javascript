@@ -21,7 +21,8 @@
     "prepublishOnly": "npm run build",
     "lint": "eslint ./**/*.js",
     "test": "jest --testPathIgnorePatterns=spec_tests",
-    "coverage": "jest --coverage --testPathIgnorePatterns=spec_tests",
+    "testSpecs": "jest --silent --reporters=summary",
+    "coverage": "jest --coverage --testPathIgnorePatterns=spec_tests spec_tests/jsonNew.spec.js",
     "prepare": "husky install"
   },
   "contributors": [
