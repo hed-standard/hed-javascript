@@ -58,4 +58,4 @@ jobs:
       - name: Download dependencies
         run: npm ci
       - name: Test with Node.js LTS
-        run: npm testSpecs
+        run: npm run testSpecs
