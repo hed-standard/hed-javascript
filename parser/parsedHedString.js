@@ -6,6 +6,8 @@ import ParsedHedColumnSplice from './parsedHedColumnSplice'
  * A parsed HED string.
  */
 export class ParsedHedString {
+  /** Directions for tag/group handling (hardcoded from specification) **/
+
   /**
    * The original HED string.
    * @type {string}

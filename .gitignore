@@ -5,6 +5,7 @@ node_modules
 dist/
 /venv/
 spec_tests/*.txt
+spec_tests/temp*.json
 
 
 # Unit test / coverage reports

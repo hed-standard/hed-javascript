@@ -2,9 +2,12 @@ import { ParsedHedTag } from '../../parser/parsedHedTag'
 import { generateIssue, Issue } from '../../common/issues/issues'
 import { Schemas } from '../../common/schema/types'
 
+const NAME_CLASS_REGEX = /^[\w\-\u0080-\uFFFF]+$/
+
 const uniqueType = 'unique'
 const requiredType = 'required'
 const requireChildType = 'requireChild'
+const specialTags = require('../specialTags.json')
 
 // Validation tests
 /**
@@ -253,6 +256,8 @@ export class HedValidator {
       })
     } else if (!isExtensionAllowedTag) {
       // This is not a valid tag.
+      this.pushIssue('invalidTag', { tag: tag })
+    } else if (!NAME_CLASS_REGEX.test(tag._remainder)) {
       this.pushIssue('invalidTag', { tag: tag })
     } else if (!this.options.isEventLevel && this.options.checkForWarnings) {
       // This is an allowed extension.

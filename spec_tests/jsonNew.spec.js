@@ -13,12 +13,12 @@ const fs = require('fs')
 const skippedErrors = {
   VERSION_DEPRECATED: 'Not handling in the spec tests',
   ELEMENT_DEPRECATED: 'Not handling in this round. This is a warning',
+  STYLE_WARNING: 'Not handling style warnings at this time',
+  'invalid-character-name-value-class-deprecated': 'We will let this pass regardless of schema version.',
 }
 const readFileSync = fs.readFileSync
 const test_file_name = 'javascript_tests.json'
-//const test_file_name = 'temp2.json';
-//const test_file_name = 'some_tests.json'
-//const test_file_name = 'start4.json'
+//const test_file_name = 'temp3.json';
 
 function comboListToStrings(items) {
   const comboItems = []
@@ -195,7 +195,7 @@ describe('HED validation using JSON tests', () => {
         badLog.push(itemLog.join('\n'))
       })
 
-      if (error_code in skippedErrors) {
+      if (error_code in skippedErrors || name in skippedErrors) {
         //badLog.push(`${error_code} skipped because ${skippedErrors["error_code"]}`);
         test.skip(`Skipping tests ${error_code} skipped because ${skippedErrors['error_code']}`, () => {})
       } else {

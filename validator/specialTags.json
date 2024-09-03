@@ -1,0 +1,92 @@
+{
+  "Definition": {
+    "requireChild": true,
+    "tagGroup": true,
+    "topLevelTagGroup": true,
+    "maxNumberSubgroups": 1,
+    "minNumberSubgroups": 0,
+    "ERROR_CODE": "DEFINITION_INVALID",
+    "requiredTags": [],
+    "otherTags": []
+  },
+  "Def": {
+    "requireChild": true,
+    "tagGroup": false,
+    "topLevelTagGroup": false,
+    "maxNumberSubgroups": null,
+    "minNumberSubgroups": null,
+    "ERROR_CODE": "DEF_INVALID",
+    "requiredTags": [],
+    "otherTags": []
+  },
+  "Def-expand": {
+    "requireChild": true,
+    "tagGroup": true,
+    "topLevelTagGroup": false,
+    "maxNumberSubgroups": 1,
+    "minNumberSubgroups": 0,
+    "ERROR_CODE": "DEF_EXPAND_INVALID",
+    "requiredTags": [],
+    "otherTags": []
+  },
+  "Onset": {
+    "requireChild": true,
+    "tagGroup": true,
+    "topLevelTagGroup": true,
+    "maxNumberSubgroups": 1,
+    "minNumberSubgroups": 0,
+    "ERROR_CODE": "TEMPORAL_TAG_ERROR",
+    "requiredTags": ["Def"],
+    "otherTags": []
+  },
+  "Inset": {
+    "requireChild": true,
+    "tagGroup": true,
+    "topLevelTagGroup": true,
+    "maxNumberSubgroups": 1,
+    "minNumberSubgroups": 0,
+    "ERROR_CODE": "TEMPORAL_TAG_ERROR",
+    "requiredTags": ["Def"],
+    "otherTags": []
+  },
+  "Offset": {
+    "requireChild": true,
+    "tagGroup": true,
+    "topLevelTagGroup": true,
+    "maxNumberSubgroups": 0,
+    "minNumberSubgroups": 0,
+    "ERROR_CODE": "TEMPORAL_TAG_ERROR",
+    "requiredTags": ["Def"],
+    "otherTags": []
+  },
+  "Delay": {
+    "requireChild": true,
+    "tagGroup": true,
+    "topLevelTagGroup": true,
+    "maxNumberSubgroups": 1,
+    "minNumberSubgroups": 1,
+    "ERROR_CODE": "TEMPORAL_TAG_ERROR",
+    "requiredTags": [],
+    "otherTags": ["Duration"]
+  },
+  "Duration": {
+    "requireChild": true,
+    "tagGroup": true,
+    "topLevelTagGroup": true,
+    "maxNumberSubgroups": 1,
+    "minNumberSubgroups": 1,
+    "ERROR_CODE": "TEMPORAL_TAG_ERROR",
+    "requiredTags": [],
+    "otherTags": ["Delay"]
+  },
+  "Event-context": {
+    "requireChild": false,
+    "tagGroup": true,
+    "topLevelTagGroup": true,
+    "maxNumberSubgroups": null,
+    "minNumberSubgroups": 0,
+    "ERROR_CODE": "TAG_GROUP_ERROR",
+    "requiredTags": [],
+    "otherTags": []
+  }
+}
