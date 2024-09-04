@@ -96,7 +96,6 @@ describe('HED validation using JSON tests', () => {
   afterAll(() => {
     const outBad = path.join(__dirname, 'runLog.txt')
     const summary = `Total tests:${totalTests} Wrong error codes:${wrongErrors} Unexpected errors:${unexpectedErrors}\n`
-    console.log(summary)
     if (displayLog) {
       fs.writeFileSync(outBad, summary + badLog.join('\n'), 'utf8')
     }
