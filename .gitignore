@@ -4,7 +4,8 @@ node_modules
 .idea
 dist/
 /venv/
-spec_tests/
+spec_tests/*.txt
+spec_tests/temp*.json
 
 # Unit test / coverage reports
 htmlcov/
