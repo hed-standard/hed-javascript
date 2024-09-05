@@ -45,17 +45,17 @@ jobs:
         with:
           coverageCommand: ./node_modules/.bin/jest --coverage --testPathIgnorePatterns=spec_tests
 
-SpecTests:
-  runs-on: ubuntu-latest
+  SpecTests:
+    runs-on: ubuntu-latest
 
-  steps:
-    - name: Check out the code
-      uses: actions/checkout@v4
-    - name: Set up with Node.js  LTS
-      uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Download dependencies
-      run: npm ci
-    - name: Test with Node.js LTS
-      run: npm run testSpecs
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+      - name: Set up with Node.js  LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Download dependencies
+        run: npm ci
+      - name: Test with Node.js LTS
+        run: npm run testSpecs
