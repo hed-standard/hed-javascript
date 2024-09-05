@@ -6,7 +6,7 @@
     "maxNumberSubgroups": 1,
     "minNumberSubgroups": 0,
     "ERROR_CODE": "DEFINITION_INVALID",
-    "requiredTags": [],
+    "requiredGroupTags": [],
     "otherTags": []
   },
   "Def": {
@@ -16,7 +16,7 @@
     "maxNumberSubgroups": null,
     "minNumberSubgroups": null,
     "ERROR_CODE": "DEF_INVALID",
-    "requiredTags": [],
+    "requiredGroupTags": [],
     "otherTags": []
   },
   "Def-expand": {
@@ -26,7 +26,7 @@
     "maxNumberSubgroups": 1,
     "minNumberSubgroups": 0,
     "ERROR_CODE": "DEF_EXPAND_INVALID",
-    "requiredTags": [],
+    "requiredGroupTags": [],
     "otherTags": []
   },
   "Onset": {
@@ -36,7 +36,7 @@
     "maxNumberSubgroups": 1,
     "minNumberSubgroups": 0,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
-    "requiredTags": ["Def"],
+    "requiredGroupTags": ["Def"],
     "otherTags": []
   },
   "Inset": {
@@ -46,7 +46,7 @@
     "maxNumberSubgroups": 1,
     "minNumberSubgroups": 0,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
-    "requiredTags": ["Def"],
+    "requiredGroupTags": ["Def"],
     "otherTags": []
   },
   "Offset": {
@@ -56,7 +56,7 @@
     "maxNumberSubgroups": 0,
     "minNumberSubgroups": 0,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
-    "requiredTags": ["Def"],
+    "requiredGroupTags": ["Def"],
     "otherTags": []
   },
   "Delay": {
@@ -66,7 +66,7 @@
     "maxNumberSubgroups": 1,
     "minNumberSubgroups": 1,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
-    "requiredTags": [],
+    "requiredGroupTags": [],
     "otherTags": ["Duration"]
   },
   "Duration": {
@@ -76,7 +76,7 @@
     "maxNumberSubgroups": 1,
     "minNumberSubgroups": 1,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
-    "requiredTags": [],
+    "requiredGroupTags": [],
     "otherTags": ["Delay"]
   },
   "Event-context": {
@@ -86,7 +86,7 @@
     "maxNumberSubgroups": null,
     "minNumberSubgroups": 0,
     "ERROR_CODE": "TAG_GROUP_ERROR",
-    "requiredTags": [],
+    "requiredGroupTags": [],
     "otherTags": []
   }
 }
