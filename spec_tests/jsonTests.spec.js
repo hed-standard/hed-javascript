@@ -3,7 +3,7 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 
 import * as hed from '../validator/event'
-import { BidsIssue } from '../bids/types/issues'
+import { BidsHedIssue } from '../bids/types/issues'
 import { buildSchemas } from '../validator/schema/init'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import path from 'path'
@@ -128,7 +128,7 @@ describe('HED validation using JSON tests', () => {
         const log = [header]
         totalTests += 1
         for (const issue of issues) {
-          if (issue instanceof BidsIssue) {
+          if (issue instanceof BidsHedIssue) {
             errors.push(`${issue.hedIssue.hedCode}`)
           } else {
             errors.push(`${issue.hedCode}`)

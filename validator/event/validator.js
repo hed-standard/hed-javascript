@@ -6,7 +6,7 @@ const NAME_CLASS_REGEX = /^[\w\-\u0080-\uFFFF]+$/
 const uniqueType = 'unique'
 const requiredType = 'required'
 const requireChildType = 'requireChild'
-const specialTags = require('../specialTags.json')
+const specialTags = require('./specialTags.json')
 
 // Validation tests
 /**
