@@ -6,6 +6,7 @@ dist/
 /venv/
 spec_tests/*.txt
 spec_tests/temp*.json
+spec_tests/temp.spec.js
 
 # Unit test / coverage reports
 htmlcov/
