@@ -30,7 +30,7 @@
     "ERROR_CODE": "DEF_INVALID",
     "subgroupTagsNotAllowed": [],
     "defTagRequired": false,
-    "otherAllowedTags": []
+    "otherAllowedTags": null
   },
   "Def-expand": {
     "child": true,
