@@ -18,7 +18,10 @@ export class SpecialTagValidator {
     return tag._schemaTag.name in this.specialTags
   }
 
-  /** Check a list of tags for whether they can have children **/
+  // List of parsed hed tags that
+  mustBeGroup(tagList) {}
+
+  /** Check a list of special HEDTags tags for whether they can have children **/
   checkTags(tagList) {
     const issueList = []
     for (const tag of tagList) {
@@ -41,7 +44,7 @@ export class SpecialTagValidator {
     const topSubgroups = tagGroup.tag.filter((tag) => tag instanceof ParsedHedGroup)
   }
 
-  checktopTags(tag, topSubgroups) {
+  checkTopGroupTags(tag, topSubgroups) {
     const issueList = []
     if (this.isSpecialTag(tag)) {
       return issueList
