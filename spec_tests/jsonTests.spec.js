@@ -165,14 +165,14 @@ describe('HED validation using JSON tests', () => {
         const mergedSide = getMergedSidecar(side, defs)
         let sidecarIssues = []
         try {
-          const bidsSide = new BidsSidecar(`sidecar`, mergedSide, null)
+          const bidsSide = new BidsSidecar(`sidecar`, mergedSide, { relativePath: 'combo test sidecar' })
           sidecarIssues = bidsSide.validate(schema)
         } catch (e) {
           sidecarIssues = [convertIssue(e)]
         }
         let eventsIssues = []
         try {
-          const bidsTsv = new BidsTsvFile(`events`, events, null, [side], mergedSide)
+          const bidsTsv = new BidsTsvFile(`events`, events, { relativePath: 'combo test tsv' }, [side], mergedSide)
           eventsIssues = bidsTsv.validate(schema)
         } catch (e) {
           eventsIssues = [convertIssue(e)]
@@ -186,7 +186,7 @@ describe('HED validation using JSON tests', () => {
         const header = `\n[${eCode} ${eName}](${status})\tEvents:\n"${events}"`
         let eventsIssues = []
         try {
-          const bidsTsv = new BidsTsvFile(`events`, events, null, [], defs)
+          const bidsTsv = new BidsTsvFile(`events`, events, { relativePath: 'events test' }, [], defs)
           eventsIssues = bidsTsv.validate(schema)
         } catch (e) {
           eventsIssues = [convertIssue(e)]
@@ -200,7 +200,7 @@ describe('HED validation using JSON tests', () => {
         const side1 = getMergedSidecar(side, defs)
         let sidecarIssues = []
         try {
-          const bidsSide = new BidsSidecar(`sidecar`, side1, null)
+          const bidsSide = new BidsSidecar(`sidecar`, side1, { relativePath: 'sidecar test' })
           sidecarIssues = bidsSide.validate(schema)
         } catch (e) {
           sidecarIssues = [convertIssue(e)]
@@ -214,7 +214,7 @@ describe('HED validation using JSON tests', () => {
         const hTsv = `HED\n${str}\n`
         let stringIssues = []
         try {
-          const bidsTsv = new BidsTsvFile(`events`, hTsv, null, [], defs)
+          const bidsTsv = new BidsTsvFile(`events`, hTsv, { relativePath: 'string test tsv' }, [], defs)
           stringIssues = bidsTsv.validate(schema)
         } catch (e) {
           stringIssues = [convertIssue(e)]
