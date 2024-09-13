@@ -8,6 +8,7 @@ import { buildSchemas } from '../validator/schema/init'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import path from 'path'
 import { BidsSidecar, BidsTsvFile } from '../bids'
+import { generateIssue, IssueError } from '../common/issues/issues'
 const fs = require('fs')
 
 const displayLog = process.env.DISPLAY_LOG === 'true'
@@ -162,10 +163,20 @@ describe('HED validation using JSON tests', () => {
         const status = expectError ? 'Expect fail' : 'Expect pass'
         const header = `\n[${eCode} ${eName}](${status})\tCOMBO\t"${side}"\n"${events}"`
         const mergedSide = getMergedSidecar(side, defs)
-        const bidsSide = new BidsSidecar(`sidecar`, mergedSide, null)
-        const bidsTsv = new BidsTsvFile(`events`, events, null, [side], mergedSide)
-        const sidecarIssues = bidsSide.validate(schema)
-        const eventsIssues = bidsTsv.validate(schema)
+        let sidecarIssues = []
+        try {
+          const bidsSide = new BidsSidecar(`sidecar`, mergedSide, null)
+          sidecarIssues = bidsSide.validate(schema)
+        } catch (e) {
+          sidecarIssues = [convertIssue(e)]
+        }
+        let eventsIssues = []
+        try {
+          const bidsTsv = new BidsTsvFile(`events`, events, null, [side], mergedSide)
+          eventsIssues = bidsTsv.validate(schema)
+        } catch (e) {
+          eventsIssues = [convertIssue(e)]
+        }
         const allIssues = [...sidecarIssues, ...eventsIssues]
         assertErrors(eCode, altCodes, expectError, iLog, header, allIssues)
       }
@@ -173,8 +184,13 @@ describe('HED validation using JSON tests', () => {
       const eventsValidator = function (eCode, altCodes, eName, events, schema, defs, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
         const header = `\n[${eCode} ${eName}](${status})\tEvents:\n"${events}"`
-        const bidsTsv = new BidsTsvFile(`events`, events, null, [], defs)
-        const eventsIssues = bidsTsv.validate(schema)
+        let eventsIssues = []
+        try {
+          const bidsTsv = new BidsTsvFile(`events`, events, null, [], defs)
+          eventsIssues = bidsTsv.validate(schema)
+        } catch (e) {
+          eventsIssues = [convertIssue(e)]
+        }
         assertErrors(eCode, altCodes, expectError, iLog, header, eventsIssues)
       }
 
@@ -182,8 +198,13 @@ describe('HED validation using JSON tests', () => {
         const status = expectError ? 'Expect fail' : 'Expect pass'
         const header = `\n[${eCode} ${eName}](${status})\tSIDECAR "${side}"`
         const side1 = getMergedSidecar(side, defs)
-        const bidsSide = new BidsSidecar(`sidecar`, side1, null)
-        const sidecarIssues = bidsSide.validate(schema)
+        let sidecarIssues = []
+        try {
+          const bidsSide = new BidsSidecar(`sidecar`, side1, null)
+          sidecarIssues = bidsSide.validate(schema)
+        } catch (e) {
+          sidecarIssues = [convertIssue(e)]
+        }
         assertErrors(eCode, altCodes, expectError, iLog, header, sidecarIssues)
       }
 
@@ -191,9 +212,28 @@ describe('HED validation using JSON tests', () => {
         const status = expectError ? 'Expect fail' : 'Expect pass'
         const header = `\n[${eCode} ${eName}](${status})\tSTRING: "${str}"`
         const hTsv = `HED\n${str}\n`
-        const bidsTsv = new BidsTsvFile(`events`, hTsv, null, [], defs)
-        const stringIssues = bidsTsv.validate(schema)
+        let stringIssues = []
+        try {
+          const bidsTsv = new BidsTsvFile(`events`, hTsv, null, [], defs)
+          stringIssues = bidsTsv.validate(schema)
+        } catch (e) {
+          stringIssues = [convertIssue(e)]
+        }
         assertErrors(eCode, altCodes, expectError, iLog, header, stringIssues)
+      }
+
+      /**
+       * Convert an Error into an Issue.
+       *
+       * @param {Error} issueError A thrown error.
+       * @returns {Issue} A HED issue.
+       */
+      const convertIssue = function (issueError) {
+        if (issueError instanceof IssueError) {
+          return issueError.issue
+        } else {
+          return generateIssue('internalError', { message: issueError.message })
+        }
       }
 
       beforeAll(async () => {
