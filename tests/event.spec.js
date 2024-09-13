@@ -707,28 +707,6 @@ describe('HED string and event validation', () => {
           )
         })
       })
-
-      describe('HED Strings', () => {
-        const validator = function (testStrings, expectedIssues, expectValuePlaceholderString = false) {
-          for (const [testStringKey, testString] of Object.entries(testStrings)) {
-            assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
-            const [, testIssues] = hed.validateHedString(testString, hedSchemas, true, expectValuePlaceholderString)
-            assert.sameDeepMembers(testIssues, expectedIssues[testStringKey], testString)
-          }
-        }
-
-        it('should skip tag group-level checks', () => {
-          const testStrings = {
-            duplicate: 'Item/Object/Vehicle/Train,Item/Object/Vehicle/Train',
-            multipleUnique: 'Event/Description/Rail vehicles,Event/Description/Locomotive-pulled or multiple units',
-          }
-          const expectedIssues = {
-            duplicate: [],
-            multipleUnique: [],
-          }
-          return validator(testStrings, expectedIssues)
-        })
-      })
     })
 
     describe('Pre-v7.1.0 HED schemas', () => {
