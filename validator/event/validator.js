@@ -52,6 +52,7 @@ export class HedValidator {
   validateStringLevel() {
     this.options.isEventLevel = false
     this.validateIndividualHedTags()
+    this.validateHedTagLevels()
     this.validateHedTagGroups()
   }
 
@@ -99,7 +100,7 @@ export class HedValidator {
         this.validateHedTagLevel(subGroup)
       }
     }
-    this.validateHedTagLevel(this.parsedString.topLevelTags)
+    this.validateHedTagLevel(this.parsedString.parseTree)
   }
 
   /**
@@ -174,8 +175,9 @@ export class HedValidator {
    * Check for multiple instances of a unique tag.
    */
   checkForMultipleUniqueTags(tagList) {
+    const actualTagList = tagList.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)
     this._checkForTagAttribute(uniqueType, (uniqueTagPrefix) => {
-      if (tagList.filter((tag) => tag.formattedTag.startsWith(uniqueTagPrefix)).length > 1) {
+      if (actualTagList.filter((tag) => tag.formattedTag.startsWith(uniqueTagPrefix)).length > 1) {
         this.pushIssue('multipleUniqueTags', {
           tag: uniqueTagPrefix,
         })

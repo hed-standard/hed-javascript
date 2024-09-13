@@ -476,15 +476,12 @@ export class ParsedHedGroup extends ParsedHedSubstring {
    * @yields {ParsedHedTag[]} The subgroups of this tag group.
    */
   *subGroupArrayIterator() {
-    const currentGroup = []
     for (const innerTag of this.tags) {
-      if (innerTag instanceof ParsedHedTag) {
-        currentGroup.push(innerTag)
-      } else if (innerTag instanceof ParsedHedGroup) {
+      if (innerTag instanceof ParsedHedGroup) {
         yield* innerTag.subGroupArrayIterator()
       }
     }
-    yield currentGroup
+    yield this.tags
   }
 
   /**
