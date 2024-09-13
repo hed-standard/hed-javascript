@@ -1,8 +1,13 @@
+import isPlainObject from 'lodash/isPlainObject'
+
 import { sidecarValueHasHed } from '../utils'
 import { parseHedString } from '../../parser/main'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './basic'
 import BidsHedSidecarValidator from '../validator/bidsHedSidecarValidator'
+import { generateIssue, IssueError } from '../../common/issues/issues'
+
+const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
 
 /**
  * A BIDS JSON file.
@@ -74,14 +79,39 @@ export class BidsSidecar extends BidsJsonFile {
   _filterHedStrings() {
     const sidecarHedTags = Object.entries(this.jsonData)
       .map(([sidecarKey, sidecarValue]) => {
+        const trimmedSidecarKey = sidecarKey.trim()
+        if (ILLEGAL_SIDECAR_KEYS.has(trimmedSidecarKey.toLowerCase())) {
+          throw new IssueError(generateIssue('illegalSidecarHedKey', {}))
+        }
         if (sidecarValueHasHed(sidecarValue)) {
-          return [sidecarKey.trim(), new BidsSidecarKey(sidecarKey.trim(), sidecarValue.HED)]
+          return [trimmedSidecarKey, new BidsSidecarKey(trimmedSidecarKey, sidecarValue.HED, this)]
         } else {
+          this._verifyKeyHasNoDeepHed(sidecarKey, sidecarValue)
           return null
         }
       })
       .filter((x) => x !== null)
     this.sidecarKeys = new Map(sidecarHedTags)
+  }
+
+  /**
+   * Verify that a column has no deeply nested "HED" keys.
+   *
+   * @param {string} key An object key.
+   * @param {*} value An object value.
+   * @throws {IssueError} If an invalid "HED" key is found.
+   * @private
+   */
+  _verifyKeyHasNoDeepHed(key, value) {
+    if (key.toUpperCase() === 'HED') {
+      throw new IssueError(generateIssue('illegalSidecarHedDeepKey', {}))
+    }
+    if (!isPlainObject(value)) {
+      return
+    }
+    for (const [subkey, subvalue] of Object.entries(value)) {
+      this._verifyKeyHasNoDeepHed(subkey, subvalue)
+    }
   }
 
   _categorizeHedStrings() {
@@ -176,7 +206,9 @@ export class BidsSidecar extends BidsJsonFile {
           this.columnSpliceMapping.set(sidecarKey, keyReferences)
         }
       } else {
-        throw new Error('Unexpected type found in sidecar parsedHedData map.')
+        throw new IssueError(
+          generateIssue('internalConsistencyError', { message: 'Unexpected type found in sidecar parsedHedData map.' }),
+        )
       }
     }
   }
@@ -224,19 +256,26 @@ export class BidsSidecarKey {
    * @type {ParsedHedString}
    */
   parsedValueString
+  /**
+   * Weak reference to the sidecar.
+   * @type {WeakRef<BidsSidecar>}
+   */
+  sidecar
 
   /**
    * Constructor.
    *
    * @param {string} key The name of this key.
    * @param {string|Object<string, string>} data The data for this key.
+   * @param {BidsSidecar} sidecar The parent sidecar.
    */
-  constructor(key, data) {
+  constructor(key, data, sidecar) {
     this.name = key
+    this.sidecar = new WeakRef(sidecar)
     if (typeof data === 'string') {
       this.valueString = data
-    } else if (data !== Object(data)) {
-      throw new Error('Non-object passed as categorical data.')
+    } else if (!isPlainObject(data)) {
+      throw new IssueError(generateIssue('illegalSidecarHedType', { key: key, file: sidecar.file.relativePath }))
     } else {
       this.categoryMap = data
     }
@@ -266,6 +305,14 @@ export class BidsSidecarKey {
     const issues = []
     this.parsedCategoryMap = new Map()
     for (const [value, string] of Object.entries(this.categoryMap)) {
+      const trimmedValue = value.trim()
+      if (ILLEGAL_SIDECAR_KEYS.has(trimmedValue.toLowerCase())) {
+        throw new IssueError(generateIssue('illegalSidecarHedCategoricalValue', {}))
+      } else if (typeof string !== 'string') {
+        throw new IssueError(
+          generateIssue('illegalSidecarHedType', { key: value, file: this.sidecar.deref()?.file?.relativePath }),
+        )
+      }
       const [parsedString, parsingIssues] = parseHedString(string, hedSchemas)
       this.parsedCategoryMap.set(value, parsedString)
       issues.push(...Object.values(parsingIssues).flat())

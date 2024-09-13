@@ -313,6 +313,21 @@ export default {
     level: 'error',
     message: stringTemplate`The HED data for sidecar key "${'key'}" of file "${'file'}" is not either a key-value dictionary or a string.`,
   },
+  illegalSidecarHedKey: {
+    hedCode: 'SIDECAR_INVALID',
+    level: 'error',
+    message: stringTemplate`The string 'HED' or 'n/a' was illegally used as a sidecar key.`,
+  },
+  illegalSidecarHedCategoricalValue: {
+    hedCode: 'SIDECAR_INVALID',
+    level: 'error',
+    message: stringTemplate`The string 'HED' or 'n/a' was illegally used as a sidecar categorical value.`,
+  },
+  illegalSidecarHedDeepKey: {
+    hedCode: 'SIDECAR_INVALID',
+    level: 'error',
+    message: stringTemplate`The key 'HED' was illegally used within a non-HED sidecar column.`,
+  },
   // Generic errors
   genericError: {
     hedCode: 'GENERIC_ERROR',

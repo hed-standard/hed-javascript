@@ -126,6 +126,14 @@ export class BidsHedSidecarValidator {
             ),
           )
         }
+        if (!this.sidecar.parsedHedData.has(referredKey) && referredKey !== 'HED') {
+          issues.push(
+            BidsHedIssue.fromHedIssue(
+              generateIssue('undefinedCurlyBraces', { column: referredKey }),
+              this.sidecar.file,
+            ),
+          )
+        }
       }
     }
 

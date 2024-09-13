@@ -5,6 +5,7 @@ import { convertParsedTSVData, parseTSV } from '../tsvParser'
 import { BidsSidecar } from './json'
 import ParsedHedString from '../../parser/parsedHedString'
 import BidsHedTsvValidator from '../validator/bidsHedTsvValidator'
+import { generateIssue, IssueError } from '../../common/issues/issues'
 
 /**
  * A BIDS TSV file.
@@ -57,11 +58,11 @@ export class BidsTsvFile extends BidsFile {
     } else if (isPlainObject(tsvData)) {
       this.parsedTsv = convertParsedTSVData(tsvData)
     } else {
-      throw new Error('parsedTsv has an invalid type')
+      throw new IssueError(generateIssue('internalError', { message: 'parsedTsv has an invalid type' }))
     }
 
     this.potentialSidecars = potentialSidecars
-    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, null)
+    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, this.file)
     this.sidecarHedData = this.mergedSidecar.hedData
     this._parseHedColumn()
   }
@@ -195,7 +196,9 @@ export class BidsTsvRow extends ParsedHedString {
   get onset() {
     const value = Number(this.rowCells.get('onset'))
     if (Number.isNaN(value)) {
-      throw new Error('Attempting to access the onset of a TSV row without one.')
+      throw new IssueError(
+        generateIssue('internalError', { message: 'Attempting to access the onset of a TSV row without one.' }),
+      )
     }
     return value
   }
