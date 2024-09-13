@@ -266,7 +266,7 @@ describe('HED string and event validation', () => {
        *
        * @param {Object<string, string>} testStrings A mapping of test strings.
        * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
-       * @param {function(HedValidator, ParsedHedTag[]): void} testFunction A test-specific function that executes the required validation check.
+       * @param {function(HedValidator, ParsedHedSubstring[]): void} testFunction A test-specific function that executes the required validation check.
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSyntactic = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
@@ -279,7 +279,7 @@ describe('HED string and event validation', () => {
                 testFunction(validator, subGroup)
               }
             }
-            testFunction(validator, validator.parsedString.topLevelTags)
+            testFunction(validator, validator.parsedString.parseTree)
           },
           testOptions,
         )
@@ -287,18 +287,26 @@ describe('HED string and event validation', () => {
 
       it('should not contain duplicates', () => {
         const testStrings = {
-          //topLevelDuplicate: 'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
-          groupDuplicate:
-            'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Attribute/Visual/Color/Purple,Event/Category/Experimental stimulus)',
-          nestedGroupDuplicate:
-            'Item/Object/Vehicle/Train,(Attribute/Visual/Color/Purple,(Event/Category/Experimental stimulus,Event/Category/Experimental stimulus))',
           noDuplicate: 'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple',
           legalDuplicate: 'Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
           nestedLegalDuplicate:
             '(Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus))',
           legalDuplicateDifferentValue: '(Attribute/Language/Unit/Word/Brain,Attribute/Language/Unit/Word/Study)',
+          twoNonDuplicateGroups: '(Red, Blue, (Green)), (Red, Blue, ((Green)))',
+          //topLevelDuplicate: 'Event/Category/Experimental stimulus,Event/Category/Experimental stimulus',
+          groupDuplicate:
+            'Item/Object/Vehicle/Train,(Event/Category/Experimental stimulus,Attribute/Visual/Color/Purple,Event/Category/Experimental stimulus)',
+          nestedGroupDuplicate:
+            'Item/Object/Vehicle/Train,(Attribute/Visual/Color/Purple,(Event/Category/Experimental stimulus,Event/Category/Experimental stimulus))',
+          twoDuplicateGroups: '(Red, Blue, (Green)), (Red, Blue, (Green))',
+          repeatedGroup: '(Red, (Blue, Green, (Yellow)), Red, (Blue, Green, (Yellow)))',
         }
         const expectedIssues = {
+          noDuplicate: [],
+          legalDuplicate: [],
+          nestedLegalDuplicate: [],
+          legalDuplicateDifferentValue: [],
+          twoNonDuplicateGroups: [],
           topLevelDuplicate: [
             generateIssue('duplicateTag', {
               tag: 'Event/Category/Experimental stimulus',
@@ -323,10 +331,28 @@ describe('HED string and event validation', () => {
               tag: 'Event/Category/Experimental stimulus',
             }),
           ],
-          noDuplicate: [],
-          legalDuplicate: [],
-          nestedLegalDuplicate: [],
-          legalDuplicateDifferentValue: [],
+          twoDuplicateGroups: [
+            generateIssue('duplicateTag', {
+              tag: '(Red, Blue, (Green))',
+            }),
+            generateIssue('duplicateTag', {
+              tag: '(Red, Blue, (Green))',
+            }),
+          ],
+          repeatedGroup: [
+            generateIssue('duplicateTag', {
+              tag: 'Red',
+            }),
+            generateIssue('duplicateTag', {
+              tag: 'Red',
+            }),
+            generateIssue('duplicateTag', {
+              tag: '(Blue, Green, (Yellow))',
+            }),
+            generateIssue('duplicateTag', {
+              tag: '(Blue, Green, (Yellow))',
+            }),
+          ],
         }
         validatorSyntactic(testStrings, expectedIssues, (validator, tagLevel) => {
           validator.checkForDuplicateTags(tagLevel)
@@ -593,7 +619,7 @@ describe('HED string and event validation', () => {
          *
          * @param {Object<string, string>} testStrings A mapping of test strings.
          * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
-         * @param {function(HedValidator, ParsedHedTag[]): void} testFunction A test-specific function that executes the required validation check.
+         * @param {function(HedValidator, ParsedHedSubstring[]): void} testFunction A test-specific function that executes the required validation check.
          * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
          */
         const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
@@ -606,7 +632,7 @@ describe('HED string and event validation', () => {
                   testFunction(validator, subGroup)
                 }
               }
-              testFunction(validator, validator.parsedString.topLevelTags)
+              testFunction(validator, validator.parsedString.parseTree)
             },
             testOptions,
           )
