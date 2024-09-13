@@ -551,6 +551,18 @@ describe('BIDS datasets', () => {
             standaloneSidecars[1].file,
           ),
           BidsHedIssue.fromHedIssue(
+            generateIssue('undefinedCurlyBraces', {
+              column: 'event_code',
+            }),
+            standaloneSidecars[1].file,
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('undefinedCurlyBraces', {
+              column: 'response_time',
+            }),
+            standaloneSidecars[1].file,
+          ),
+          BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
               column: 'response_time',
               referrer: 'event_code',
@@ -626,14 +638,12 @@ describe('BIDS datasets', () => {
               column: 'response_time',
             }),
             combinedDatasets[0].file,
-            { tsvLine: 3 },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('undefinedCurlyBraces', {
               column: 'response_time',
             }),
             combinedDatasets[1].file,
-            { tsvLine: 3 },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {

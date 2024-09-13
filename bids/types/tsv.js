@@ -61,7 +61,7 @@ export class BidsTsvFile extends BidsFile {
     }
 
     this.potentialSidecars = potentialSidecars
-    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, null)
+    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, this.file)
     this.sidecarHedData = this.mergedSidecar.hedData
     this._parseHedColumn()
   }
