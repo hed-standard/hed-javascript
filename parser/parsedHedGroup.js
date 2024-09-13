@@ -451,7 +451,11 @@ export class ParsedHedGroup extends ParsedHedSubstring {
     if (!(other instanceof ParsedHedGroup)) {
       return false
     }
-    return differenceWith(this.tags, other.tags, (ours, theirs) => ours.equivalent(theirs)).length === 0
+    const equivalence = (ours, theirs) => ours.equivalent(theirs)
+    return (
+      differenceWith(this.tags, other.tags, equivalence).length === 0 &&
+      differenceWith(other.tags, this.tags, equivalence).length === 0
+    )
   }
 
   /**
