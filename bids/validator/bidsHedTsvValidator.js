@@ -322,7 +322,7 @@ export class BidsHedTsvParser {
     const columnSpliceMapping = new Map()
 
     for (const [columnName, columnValue] of rowCells.entries()) {
-      if (columnValue === 'n/a') {
+      if (columnValue === 'n/a' || columnValue === '') {
         columnSpliceMapping.set(columnName, null)
         continue
       }
