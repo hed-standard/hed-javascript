@@ -20,7 +20,7 @@ const skippedErrors = {
   'invalid-character-name-value-class-deprecated': 'We will let this pass regardless of schema version.',
 }
 const readFileSync = fs.readFileSync
-const test_file_name = 'javascript_tests.json'
+const test_file_name = 'javascriptTests.json'
 //const test_file_name = 'temp3.json'
 
 function comboListToStrings(items) {
@@ -117,6 +117,7 @@ describe('HED validation using JSON tests', () => {
       let hedSchema
       let itemLog
       let defs
+      let hasWarning
       const failedSidecars = stringifyList(tests.sidecar_tests.fails)
       const passedSidecars = stringifyList(tests.sidecar_tests.passes)
       const failedEvents = tsvListToStrings(tests.event_tests.fails)
@@ -128,6 +129,7 @@ describe('HED validation using JSON tests', () => {
         const errors = []
         const log = [header]
         totalTests += 1
+
         for (const issue of issues) {
           if (issue instanceof BidsHedIssue) {
             errors.push(`${issue.hedIssue.hedCode}`)
@@ -240,6 +242,7 @@ describe('HED validation using JSON tests', () => {
         hedSchema = schemaMap.get(schema)
         defs = { definitions: { HED: { defList: definitions.join(',') } } }
         itemLog = []
+        hasWarning = warning
       })
 
       afterAll(() => {
