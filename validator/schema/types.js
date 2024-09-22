@@ -325,7 +325,7 @@ export class SchemaProperty extends SchemaEntry {
   _propertyType
 
   constructor(name, propertyType) {
-    super(name, new Set(), new Map())
+    super(name)
     this._propertyType = propertyType
   }
 
