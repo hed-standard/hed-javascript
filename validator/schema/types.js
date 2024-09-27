@@ -701,7 +701,7 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
    * @returns {boolean} Whether the value conforms to this value class.
    */
   validateValue(value) {
-    return this._charClassRegex.test(value) && this._wordRegex.test(value)
+    return this._wordRegex.test(value) && this._charClassRegex.test(value)
   }
 }
 
