@@ -24,6 +24,8 @@ import {
 } from './types'
 import { generateIssue, IssueError } from '../../common/issues/issues'
 
+import classRegex from './class_regex.json'
+
 const lc = (str) => str.toLowerCase()
 
 export class Hed3SchemaParser extends SchemaParser {
@@ -69,6 +71,7 @@ export class Hed3SchemaParser extends SchemaParser {
   populateDictionaries() {
     this.parseProperties()
     this.parseAttributes()
+    this.parseValueClasses()
     this.parseUnitModifiers()
     this.parseUnitClasses()
     this.parseTags()
@@ -156,7 +159,19 @@ export class Hed3SchemaParser extends SchemaParser {
     const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('valueClass')
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
-      valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes))
+      let classChars
+      if (Array.isArray(classRegex.class_chars[name]) && classRegex.class_chars[name].length > 0) {
+        classChars =
+          '^(?:' + classRegex.class_chars[name].map((charClass) => classRegex.char_regex[charClass]).join('|') + ')+$'
+      } else {
+        classChars = '^.+$'
+      }
+      const classCharsRegex = new RegExp(classChars)
+      const classWordRegex = new RegExp(classRegex.class_words[name] ?? '^.+$')
+      valueClasses.set(
+        name,
+        new SchemaValueClass(name, booleanAttributes, valueAttributes, classCharsRegex, classWordRegex),
+      )
     }
     this.valueClasses = new SchemaEntryManager(valueClasses)
   }
@@ -223,9 +238,11 @@ export class Hed3SchemaParser extends SchemaParser {
 
     const recursiveAttributes = this._getRecursiveAttributes()
     const tagUnitClassAttribute = this.attributes.get('unitClass')
+    const tagValueClassAttribute = this.attributes.get('valueClass')
     const tagTakesValueAttribute = this.attributes.get('takesValue')
 
     const tagUnitClassDefinitions = new Map()
+    const tagValueClassDefinitions = new Map()
     const recursiveChildren = new Map()
     for (const [tagElement, tagName] of shortTags) {
       const valueAttributes = valueAttributeDefinitions.get(tagName)
@@ -237,6 +254,15 @@ export class Hed3SchemaParser extends SchemaParser {
           }),
         )
         valueAttributes.delete(tagUnitClassAttribute)
+      }
+      if (valueAttributes.has(tagValueClassAttribute)) {
+        tagValueClassDefinitions.set(
+          tagName,
+          valueAttributes.get(tagValueClassAttribute).map((valueClassName) => {
+            return this.valueClasses.getEntry(valueClassName)
+          }),
+        )
+        valueAttributes.delete(tagValueClassAttribute)
       }
       for (const attribute of recursiveAttributes) {
         const children = recursiveChildren.get(attribute) ?? []
@@ -261,10 +287,14 @@ export class Hed3SchemaParser extends SchemaParser {
       }
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       const unitClasses = tagUnitClassDefinitions.get(name)
+      const valueClasses = tagValueClassDefinitions.get(name)
       if (booleanAttributes.has(tagTakesValueAttribute)) {
-        tagEntries.set(lc(name), new SchemaValueTag(name, booleanAttributes, valueAttributes, unitClasses))
+        tagEntries.set(
+          lc(name),
+          new SchemaValueTag(name, booleanAttributes, valueAttributes, unitClasses, valueClasses),
+        )
       } else {
-        tagEntries.set(lc(name), new SchemaTag(name, booleanAttributes, valueAttributes, unitClasses))
+        tagEntries.set(lc(name), new SchemaTag(name, booleanAttributes, valueAttributes, unitClasses, valueClasses))
       }
     }
 
@@ -520,12 +550,18 @@ export class Hed3PartneredSchemaMerger {
     const unitClasses = tag.unitClasses.map(
       (unitClass) => this.destination.entries.unitClasses.getEntry(unitClass.name) ?? unitClass,
     )
+    /**
+     * @type {SchemaValueClass[]}
+     */
+    const valueClasses = tag.valueClasses.map(
+      (valueClass) => this.destination.entries.valueClasses.getEntry(valueClass.name) ?? valueClass,
+    )
 
     let newTag
     if (tag instanceof SchemaValueTag) {
-      newTag = new SchemaValueTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
+      newTag = new SchemaValueTag(tag.name, booleanAttributes, valueAttributes, unitClasses, valueClasses)
     } else {
-      newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
+      newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses, valueClasses)
     }
     const destinationParentTag = this.destinationTags.getEntry(tag.parent?.name?.toLowerCase())
     if (destinationParentTag) {
