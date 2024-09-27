@@ -148,11 +148,9 @@ export class Hed3Validator extends HedValidator {
         tag: tag,
         unitClassUnits: tagUnitClassUnits.sort().join(','),
       })
-    } else {
-      const validValue = this.validateValue(value, true)
-      if (!validValue) {
-        this.pushIssue('invalidValue', { tag: tag })
-      }
+    }
+    if (!this.validateValue(tag, value)) {
+      this.pushIssue('invalidValue', { tag: tag })
     }
   }
 
@@ -273,10 +271,7 @@ export class Hed3Validator extends HedValidator {
    */
   checkValueTagSyntax(tag) {
     if (tag.takesValue && !tag.hasUnitClass) {
-      const isValidValue = this.validateValue(
-        tag.formattedTagName,
-        tag.takesValueTag.hasAttributeName('isNumeric'), // Always false
-      )
+      const isValidValue = this.validateValue(tag, tag.formattedTagName)
       if (!isValidValue) {
         this.pushIssue('invalidValue', { tag: tag })
       }
@@ -340,21 +335,23 @@ export class Hed3Validator extends HedValidator {
   /**
    * Determine if a stripped value is valid.
    *
+   * @param {ParsedHed3Tag} tag The tag being validated.
    * @param {string} value The stripped value.
-   * @param {boolean} isNumeric Whether the tag is numeric.
    * @returns {boolean} Whether the stripped value is valid.
-   * @todo This function is a placeholder until support for value classes is implemented.
    */
-  validateValue(value, isNumeric) {
+  validateValue(tag, value) {
     if (value === '#') {
       return true
     }
-    // TODO: Replace with full value class-based implementation.
-    if (isNumeric) {
-      return isNumber(value)
+    const valueTag = tag.takesValueTag
+    if (valueTag === undefined) {
+      return true
     }
-    // TODO: Placeholder.
-    return true
+    const valueClasses = valueTag.valueClasses
+    if (valueClasses.length === 0) {
+      return true
+    }
+    return valueClasses.some((valueClass) => valueClass.validateValue(value))
   }
 
   /**
