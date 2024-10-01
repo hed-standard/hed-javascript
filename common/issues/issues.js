@@ -81,6 +81,15 @@ export class Issue {
   }
 
   /**
+   * Whether this issue is an error.
+   *
+   * @returns {boolean}
+   */
+  isError() {
+    return this.level === 'error'
+  }
+
+  /**
    * Override of {@link Object.prototype.toString}.
    *
    * @returns {string} This issue's message.
@@ -118,8 +127,14 @@ export class Issue {
     this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${message} (${hedSpecLink}.)`
   }
 
+  /**
+   * Return a tuple with a boolean denoting overall validity and all issues.
+   *
+   * @param {Issue[]} issues A list of issues.
+   * @returns {[boolean, Issue[]]} Whether the validation succeeded (i.e. any errors were found), and all issues (both errors and warnings).
+   */
   static issueListWithValidStatus(issues) {
-    return [!issues.some((issue) => issue.level === 'error'), issues]
+    return [!issues.some((issue) => issue.isError()), issues]
   }
 }
 
