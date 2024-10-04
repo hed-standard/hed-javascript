@@ -61,10 +61,6 @@ describe('HED dataset validation', () => {
             tag: testDatasets.multipleInvalid[0],
             unitClassUnits: legalTimeUnits.sort().join(','),
           }),
-          // TODO: Duplication temporary
-          generateValidationIssue('invalidTag', {
-            tag: testDatasets.multipleInvalid[1],
-          }),
           generateValidationIssue('invalidTag', { tag: testDatasets.multipleInvalid[1] }),
         ],
       }
@@ -113,10 +109,6 @@ describe('HED dataset validation', () => {
           generateValidationIssue('unitClassInvalidUnit', {
             tag: testDatasets.multipleInvalid[0],
             unitClassUnits: legalTimeUnits.sort().join(','),
-          }),
-          // TODO: Duplication temporary
-          generateValidationIssue('invalidTag', {
-            tag: testDatasets.multipleInvalid[1],
           }),
           generateValidationIssue('invalidTag', { tag: testDatasets.multipleInvalid[1] }),
         ],

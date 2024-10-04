@@ -341,14 +341,14 @@ describe('HED string parsing', () => {
           'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red/0.5',
           'Item/Object/Man-made-object/Vehicle/Car',
         ],
-        invalidTag: ['InvalidTag'],
-        invalidParentNode: ['Car/Train/Maglev'],
+        invalidTag: [],
+        invalidParentNode: [],
       }
       const expectedIssues = {
         simple: {},
         groupAndTag: {},
         invalidTag: {
-          conversion: [generateIssue('invalidTag', { tag: expectedResults.invalidTag[0] })],
+          conversion: [generateIssue('invalidTag', { tag: testStrings.invalidTag })],
         },
         invalidParentNode: {
           conversion: [

@@ -30,7 +30,6 @@ export class ParsedHed2Tag extends ParsedHedTag {
   // eslint-disable-next-line no-unused-vars
   _convertTag(hedString, hedSchemas, schemaName) {
     this.canonicalTag = this.originalTag
-    this.conversionIssues = []
     this.schema = hedSchemas.standardSchema
   }
 

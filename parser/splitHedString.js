@@ -6,6 +6,7 @@ import { recursiveMap } from '../utils/array'
 import { mergeParsingIssues } from '../utils/hedData'
 import { ParsedHed2Tag } from '../validator/hed2/parser/parsedHed2Tag'
 import { HedStringTokenizer, ColumnSpliceSpec, TagSpec } from './tokenizer'
+import { generateIssue, IssueError } from '../common/issues/issues'
 
 const generationToClass = [
   (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
@@ -34,16 +35,24 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
 
   const createParsedTag = (tagSpec) => {
     if (tagSpec instanceof TagSpec) {
-      const parsedTag = ParsedHedTagConstructor(
-        tagSpec.tag,
-        hedString,
-        tagSpec.bounds,
-        hedSchemas,
-        tagSpec.library,
-        tagSpec,
-      )
-      conversionIssues.push(...parsedTag.conversionIssues)
-      return parsedTag
+      try {
+        const parsedTag = ParsedHedTagConstructor(
+          tagSpec.tag,
+          hedString,
+          tagSpec.bounds,
+          hedSchemas,
+          tagSpec.library,
+          tagSpec,
+        )
+        return parsedTag
+      } catch (issueError) {
+        if (issueError instanceof IssueError) {
+          conversionIssues.push(issueError.issue)
+        } else if (issueError instanceof Error) {
+          conversionIssues.push(generateIssue('internalError', { message: issueError.message }))
+        }
+        return null
+      }
     } else if (tagSpec instanceof ColumnSpliceSpec) {
       return new ParsedHedColumnSplice(tagSpec.columnName, tagSpec.bounds)
     }
@@ -58,7 +67,7 @@ const createParsedTags = function (hedString, hedSchemas, tagSpecs, groupSpecs) 
           new ParsedHedGroup(createParsedGroups(tag, groupSpec.children), hedSchemas, hedString, groupSpec.bounds),
         )
         index++
-      } else {
+      } else if (tag !== null) {
         tagGroups.push(tag)
       }
     }

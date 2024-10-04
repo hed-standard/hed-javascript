@@ -35,13 +35,15 @@ export const mergeParsingIssues = function (previousIssues, currentIssues) {
 export const getParsedParentTags = function (hedSchemas, shortTag) {
   const parentTags = new Map()
   for (const [schemaNickname, schema] of hedSchemas.schemas) {
-    const parentTag = new ParsedHed3Tag(
-      new TagSpec(shortTag, 0, shortTag.length - 1, schemaNickname),
-      hedSchemas,
-      shortTag,
-    )
-    parentTags.set(schema, parentTag)
-    parentTag.conversionIssues = parentTag.conversionIssues.filter((issue) => issue.internalCode !== 'invalidTag')
+    try {
+      const parentTag = new ParsedHed3Tag(
+        new TagSpec(shortTag, 0, shortTag.length - 1, schemaNickname),
+        hedSchemas,
+        shortTag,
+      )
+      parentTags.set(schema, parentTag)
+      // eslint-disable-next-line no-empty
+    } catch (e) {}
   }
   return parentTags
 }

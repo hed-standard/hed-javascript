@@ -1,4 +1,4 @@
-import { generateIssue } from '../common/issues/issues'
+import { generateIssue, IssueError } from '../common/issues/issues'
 import { Schema } from '../common/schema/types'
 import { getTagLevels, replaceTagNameWithPound } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
@@ -20,11 +20,6 @@ export class ParsedHedTag extends ParsedHedSubstring {
    */
   canonicalTag
   /**
-   * Any issues encountered during tag conversion.
-   * @type {Issue[]}
-   */
-  conversionIssues
-  /**
    * The HED schema this tag belongs to.
    * @type {Schema}
    */
@@ -35,12 +30,12 @@ export class ParsedHedTag extends ParsedHedSubstring {
    *
    * @param {string} originalTag The original HED tag.
    * @param {number[]} originalBounds The bounds of the HED tag in the original HED string.
+   * @throws {IssueError} If tag conversion or parsing fails.
    */
   constructor(originalTag, originalBounds) {
     super(originalTag, originalBounds)
 
     this.canonicalTag = this.originalTag
-    this.conversionIssues = []
 
     this.formattedTag = this._formatTag()
   }
@@ -301,6 +296,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    * @param {TagSpec} tagSpec The token for this tag.
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} hedString The original HED string.
+   * @throws {IssueError} If tag conversion or parsing fails.
    */
   constructor(tagSpec, hedSchemas, hedString) {
     super(tagSpec.tag, tagSpec.bounds)
@@ -316,6 +312,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} hedString The original HED string.
    * @param {TagSpec} tagSpec The token for this tag.
+   * @throws {IssueError} If tag conversion or parsing fails.
    */
   _convertTag(hedSchemas, hedString, tagSpec) {
     const hed3ValidCharacters = /^[^{}[\]()~,\0\t]+$/
@@ -326,33 +323,27 @@ export class ParsedHed3Tag extends ParsedHedTag {
     const schemaName = tagSpec.library
     this.schema = hedSchemas.getSchema(schemaName)
     if (this.schema === undefined) {
+      this.canonicalTag = this.originalTag
       if (schemaName !== '') {
-        this.conversionIssues = [
+        throw new IssueError(
           generateIssue('unmatchedLibrarySchema', {
             tag: this.originalTag,
             library: schemaName,
           }),
-        ]
+        )
       } else {
-        this.conversionIssues = [
+        throw new IssueError(
           generateIssue('unmatchedBaseSchema', {
             tag: this.originalTag,
           }),
-        ]
+        )
       }
-      this.canonicalTag = this.originalTag
-      return
     }
 
-    try {
-      const [schemaTag, remainder] = new TagConverter(tagSpec, hedSchemas).convert()
-      this._schemaTag = schemaTag
-      this._remainder = remainder
-      this.canonicalTag = this._schemaTag.longExtend(remainder)
-      this.conversionIssues = []
-    } catch (error) {
-      this.conversionIssues = [error.issue]
-    }
+    const [schemaTag, remainder] = new TagConverter(tagSpec, hedSchemas).convert()
+    this._schemaTag = schemaTag
+    this._remainder = remainder
+    this.canonicalTag = this._schemaTag.longExtend(remainder)
   }
 
   /**

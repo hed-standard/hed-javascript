@@ -155,7 +155,6 @@ describe('BIDS datasets', () => {
         tag: 'Speed/300 miles',
         unitClassUnits: legalSpeedUnits.sort().join(','),
       })
-      const converterMaglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
       const expectedIssues = {
@@ -164,7 +163,6 @@ describe('BIDS datasets', () => {
           BidsHedIssue.fromHedIssue(cloneDeep(speedIssue), badDatasets[0].file, { tsvLine: 2 }),
           BidsHedIssue.fromHedIssue(cloneDeep(maglevWarning), badDatasets[1].file, { tsvLine: 2 }),
           BidsHedIssue.fromHedIssue(cloneDeep(speedIssue), badDatasets[2].file, { tsvLine: 3 }),
-          BidsHedIssue.fromHedIssue(converterMaglevError, badDatasets[3].file, { tsvLine: 2 }),
           BidsHedIssue.fromHedIssue(cloneDeep(maglevError), badDatasets[3].file, { tsvLine: 2 }),
           BidsHedIssue.fromHedIssue(cloneDeep(speedIssue), badDatasets[3].file, { tsvLine: 3 }),
           BidsHedIssue.fromHedIssue(cloneDeep(maglevWarning), badDatasets[4].file, { tsvLine: 2 }),
