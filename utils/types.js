@@ -1,6 +1,6 @@
 /** Utility classes. **/
 
-import { generateIssue, IssueError } from '../common/issues/issues'
+import { IssueError } from '../common/issues/issues'
 
 /**
  * Superclass for property memoization until we can get away with private fields.
@@ -32,9 +32,9 @@ export class Memoizer {
    */
   _memoize(propertyName, valueComputer) {
     if (!propertyName) {
-      throw new IssueError(
-        generateIssue('internalConsistencyError', { message: 'Invalid property name in Memoizer subclass.' }),
-      )
+      IssueError.generateAndThrow('internalConsistencyError', {
+        message: 'Invalid property name in Memoizer subclass.',
+      })
     }
     if (this._memoizedProperties.has(propertyName)) {
       return this._memoizedProperties.get(propertyName)

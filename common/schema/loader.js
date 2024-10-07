@@ -4,7 +4,7 @@
 import xml2js from 'xml2js'
 
 import * as files from '../../utils/files'
-import { generateIssue, IssueError } from '../issues/issues'
+import { IssueError } from '../issues/issues'
 
 import { localSchemaList } from './config'
 
@@ -18,7 +18,7 @@ import { localSchemaList } from './config'
 export default async function loadSchema(schemaDef = null) {
   const xmlData = await loadPromise(schemaDef)
   if (xmlData === null) {
-    throw new IssueError(generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) }))
+    IssueError.generateAndThrow('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })
   }
   return xmlData
 }
@@ -82,7 +82,7 @@ async function loadBundledSchema(schemaDef) {
     return parseSchemaXML(localSchemaList.get(schemaDef.localName))
   } catch (error) {
     const issueArgs = { spec: JSON.stringify(schemaDef), error: error.message }
-    throw new IssueError(generateIssue('bundledSchemaLoadFailed', issueArgs))
+    IssueError.generateAndThrow('bundledSchemaLoadFailed', issueArgs)
   }
 }
 
@@ -101,7 +101,7 @@ async function loadSchemaFile(xmlDataPromise, issueCode, issueArgs) {
     return parseSchemaXML(data)
   } catch (error) {
     issueArgs.error = error.message
-    throw new IssueError(generateIssue(issueCode, issueArgs))
+    IssueError.generateAndThrow(issueCode, issueArgs)
   }
 }
 

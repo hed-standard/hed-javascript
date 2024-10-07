@@ -5,7 +5,7 @@ import { parseHedString } from '../../parser/main'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './basic'
 import BidsHedSidecarValidator from '../validator/bidsHedSidecarValidator'
-import { generateIssue, IssueError } from '../../common/issues/issues'
+import { IssueError } from '../../common/issues/issues'
 
 const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
 
@@ -81,7 +81,7 @@ export class BidsSidecar extends BidsJsonFile {
       .map(([sidecarKey, sidecarValue]) => {
         const trimmedSidecarKey = sidecarKey.trim()
         if (ILLEGAL_SIDECAR_KEYS.has(trimmedSidecarKey.toLowerCase())) {
-          throw new IssueError(generateIssue('illegalSidecarHedKey', {}))
+          IssueError.generateAndThrow('illegalSidecarHedKey')
         }
         if (sidecarValueHasHed(sidecarValue)) {
           return [trimmedSidecarKey, new BidsSidecarKey(trimmedSidecarKey, sidecarValue.HED, this)]
@@ -104,7 +104,7 @@ export class BidsSidecar extends BidsJsonFile {
    */
   _verifyKeyHasNoDeepHed(key, value) {
     if (key.toUpperCase() === 'HED') {
-      throw new IssueError(generateIssue('illegalSidecarHedDeepKey', {}))
+      IssueError.generateAndThrow('illegalSidecarHedDeepKey')
     }
     if (!isPlainObject(value)) {
       return
@@ -206,9 +206,9 @@ export class BidsSidecar extends BidsJsonFile {
           this.columnSpliceMapping.set(sidecarKey, keyReferences)
         }
       } else {
-        throw new IssueError(
-          generateIssue('internalConsistencyError', { message: 'Unexpected type found in sidecar parsedHedData map.' }),
-        )
+        IssueError.generateAndThrow('internalConsistencyError', {
+          message: 'Unexpected type found in sidecar parsedHedData map.',
+        })
       }
     }
   }
@@ -275,7 +275,7 @@ export class BidsSidecarKey {
     if (typeof data === 'string') {
       this.valueString = data
     } else if (!isPlainObject(data)) {
-      throw new IssueError(generateIssue('illegalSidecarHedType', { key: key, file: sidecar.file.relativePath }))
+      IssueError.generateAndThrow('illegalSidecarHedType', { key: key, file: sidecar.file.relativePath })
     } else {
       this.categoryMap = data
     }
@@ -307,11 +307,12 @@ export class BidsSidecarKey {
     for (const [value, string] of Object.entries(this.categoryMap)) {
       const trimmedValue = value.trim()
       if (ILLEGAL_SIDECAR_KEYS.has(trimmedValue.toLowerCase())) {
-        throw new IssueError(generateIssue('illegalSidecarHedCategoricalValue', {}))
+        IssueError.generateAndThrow('illegalSidecarHedCategoricalValue')
       } else if (typeof string !== 'string') {
-        throw new IssueError(
-          generateIssue('illegalSidecarHedType', { key: value, file: this.sidecar.deref()?.file?.relativePath }),
-        )
+        IssueError.generateAndThrow('illegalSidecarHedType', {
+          key: value,
+          file: this.sidecar.deref()?.file?.relativePath,
+        })
       }
       const [parsedString, parsingIssues] = parseHedString(string, hedSchemas)
       this.parsedCategoryMap.set(value, parsedString)

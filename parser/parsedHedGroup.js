@@ -344,12 +344,10 @@ export class ParsedHedGroup extends ParsedHedSubstring {
           this.defTags.map((defTag) => ParsedHedGroup.findDefinitionName(defTag.canonicalTag, 'Def')),
         )
       } else if (this.defCount > 1) {
-        throw new IssueError(
-          generateIssue('temporalWithMultipleDefinitions', {
-            tagGroup: this.originalTag,
-            tag: this.temporalGroupName,
-          }),
-        )
+        IssueError.generateAndThrow('temporalWithMultipleDefinitions', {
+          tagGroup: this.originalTag,
+          tag: this.temporalGroupName,
+        })
       } else if (this.hasDefExpandChildren) {
         return this.defExpandChildren[0].defExpandName
       }
@@ -371,12 +369,10 @@ export class ParsedHedGroup extends ParsedHedSubstring {
           this.defTags.map((defTag) => ParsedHedGroup.getDefinitionTagValue(defTag, 'Def')),
         )
       } else if (this.defCount > 1) {
-        throw new IssueError(
-          generateIssue('temporalWithMultipleDefinitions', {
-            tagGroup: this.originalTag,
-            tag: this.temporalGroupName,
-          }),
-        )
+        IssueError.generateAndThrow('temporalWithMultipleDefinitions', {
+          tagGroup: this.originalTag,
+          tag: this.temporalGroupName,
+        })
       } else if (this.hasDefExpandChildren) {
         return this.defExpandChildren[0].defExpandValue
       }

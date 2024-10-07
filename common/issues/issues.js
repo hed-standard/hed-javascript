@@ -24,6 +24,17 @@ export class IssueError extends Error {
 
     Object.setPrototypeOf(this, IssueError.prototype)
   }
+
+  /**
+   * Generate a new {@link Issue} object and immediately throw it as an {@link IssueError}.
+   *
+   * @param {string} internalCode The internal error code.
+   * @param {Object<string, (string|number[])>?} parameters The error string parameters.
+   * @throws {IssueError} Corresponding to the generated {@link Issue}.
+   */
+  static generateAndThrow(internalCode, parameters = {}) {
+    throw new IssueError(generateIssue(internalCode, parameters))
+  }
 }
 
 /**

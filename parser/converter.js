@@ -80,7 +80,7 @@ export default class TagConverter {
     const firstLevel = this.tagLevels[0].toLowerCase().trimStart()
     const schemaTag = this.tagMapping.getEntry(firstLevel)
     if (!schemaTag || firstLevel === '' || firstLevel !== firstLevel.trim()) {
-      throw new IssueError(generateIssue('invalidTag', { tag: this.tagString }))
+      IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
     }
     if (this.tagLevels.length === 1) {
       return schemaTag
@@ -109,27 +109,21 @@ export default class TagConverter {
   _validateChildTag(parentTag, i) {
     const childTag = this._getSchemaTag(i)
     if (this.schemaTag instanceof SchemaValueTag) {
-      throw new IssueError(
-        generateIssue('internalConsistencyError', {
-          message: 'Child tag is a value tag which should have been handled earlier.',
-        }),
-      )
+      IssueError.generateAndThrow('internalConsistencyError', {
+        message: 'Child tag is a value tag which should have been handled earlier.',
+      })
     }
     if (childTag === undefined && parentTag && !parentTag.hasAttributeName('extensionAllowed')) {
-      throw new IssueError(
-        generateIssue('invalidExtension', {
-          tag: this.tagLevels[i],
-          parentTag: parentTag.longName,
-        }),
-      )
+      IssueError.generateAndThrow('invalidExtension', {
+        tag: this.tagLevels[i],
+        parentTag: parentTag.longName,
+      })
     }
     if (childTag !== undefined && (childTag.parent === undefined || childTag.parent !== parentTag)) {
-      throw new IssueError(
-        generateIssue('invalidParentNode', {
-          tag: this.tagLevels[i],
-          parentTag: childTag.longName,
-        }),
-      )
+      IssueError.generateAndThrow('invalidParentNode', {
+        tag: this.tagLevels[i],
+        parentTag: childTag.longName,
+      })
     }
     return childTag
   }
@@ -137,7 +131,7 @@ export default class TagConverter {
   _getSchemaTag(i) {
     const tagLevel = this.tagLevels[i].toLowerCase()
     if (tagLevel === '' || tagLevel !== tagLevel.trim()) {
-      throw new IssueError(generateIssue('invalidTag', { tag: this.tagString }))
+      IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
     }
     return this.tagMapping.getEntry(tagLevel)
   }

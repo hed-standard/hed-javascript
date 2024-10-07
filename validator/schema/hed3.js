@@ -257,7 +257,7 @@ export class Hed3SchemaParser extends SchemaParser {
     const tagEntries = new Map()
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       if (tagEntries.has(name)) {
-        throw new IssueError(generateIssue('duplicateTagsInSchema', {}))
+        IssueError.generateAndThrow('duplicateTagsInSchema')
       }
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       const unitClasses = tagUnitClassDefinitions.get(name)
@@ -422,13 +422,14 @@ export class Hed3PartneredSchemaMerger {
    */
   _validate(source, destination) {
     if (source.generation < 3 || destination.generation < 3) {
-      throw new Error('Partnered schemas must be HED-3G schemas')
+      IssueError.generateAndThrow('internalConsistencyError', { message: 'Partnered schemas must be HED-3G schemas' })
     }
 
     if (source.withStandard !== destination.withStandard) {
-      throw new IssueError(
-        generateIssue('differentWithStandard', { first: source.withStandard, second: destination.withStandard }),
-      )
+      IssueError.generateAndThrow('differentWithStandard', {
+        first: source.withStandard,
+        second: destination.withStandard,
+      })
     }
   }
 
@@ -482,14 +483,14 @@ export class Hed3PartneredSchemaMerger {
 
     const shortName = tag.name
     if (this.destinationTags.hasEntry(shortName.toLowerCase())) {
-      throw new IssueError(generateIssue('lazyPartneredSchemasShareTag', { tag: shortName }))
+      IssueError.generateAndThrow('lazyPartneredSchemasShareTag', { tag: shortName })
     }
 
     const rootedTagShortName = tag.getNamedAttributeValue('rooted')
     if (rootedTagShortName) {
       const parentTag = tag.parent
       if (parentTag?.name?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
-        throw new Error(`Node ${shortName} is improperly rooted.`)
+        IssueError.generateAndThrow('internalError', { message: `Node ${shortName} is improperly rooted.` })
       }
     }
 
