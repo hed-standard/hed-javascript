@@ -45,7 +45,7 @@ function validateSchemasSpec(schemasSpec) {
   if (schemasSpec instanceof SchemasSpec) {
     return schemasSpec
   } else {
-    throw new IssueError(generateIssue('invalidSchemaSpecification', { spec: JSON.stringify(schemasSpec) }))
+    IssueError.generateAndThrow('invalidSchemaSpecification', { spec: JSON.stringify(schemasSpec) })
   }
 }
 
@@ -70,12 +70,12 @@ function splitNicknameAndSchema(schemaVersion) {
   let nickname = ''
   let schema
   if (nicknameSplit.length > 2) {
-    throw new IssueError(generateIssue('invalidSchemaSpecification', { spec: schemaVersion }))
+    IssueError.generateAndThrow('invalidSchemaSpecification', { spec: schemaVersion })
   }
   if (nicknameSplit.length > 1) {
     ;[nickname, schema] = nicknameSplit
     if (!alphabeticRegExp.test(nickname)) {
-      throw new IssueError(generateIssue('invalidSchemaNickname', { nickname: nickname, spec: schemaVersion }))
+      IssueError.generateAndThrow('invalidSchemaNickname', { nickname: nickname, spec: schemaVersion })
     }
   } else {
     schema = nicknameSplit[0]
@@ -88,18 +88,18 @@ function splitLibraryAndVersion(schemaVersion, originalVersion) {
   let library = ''
   let version
   if (versionSplit.length > 2) {
-    throw new IssueError(generateIssue('invalidSchemaSpecification', { spec: originalVersion }))
+    IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
   }
   if (versionSplit.length > 1) {
     ;[library, version] = versionSplit
     if (!alphabeticRegExp.test(library)) {
-      throw new IssueError(generateIssue('invalidSchemaSpecification', { spec: originalVersion }))
+      IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
     }
   } else {
     version = versionSplit[0]
   }
   if (!semver.valid(version)) {
-    throw new IssueError(generateIssue('invalidSchemaSpecification', { spec: originalVersion }))
+    IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
   }
   return [library, version]
 }

@@ -2,7 +2,7 @@ import { BidsHedIssue } from '../types/issues'
 import ParsedHedString from '../../parser/parsedHedString'
 // IMPORTANT: This import cannot be shortened to '../../validator', as this creates a circular dependency until v4.0.0.
 import { validateHedString } from '../../validator/event/init'
-import { generateIssue } from '../../common/issues/issues'
+import { generateIssue, IssueError } from '../../common/issues/issues'
 
 /**
  * Validator for HED data in BIDS JSON sidecars.
@@ -81,7 +81,9 @@ export class BidsHedSidecarValidator {
           issues.push(...this._validateString(sidecarKey, valueString, categoricalOptions))
         }
       } else {
-        throw new Error('Unexpected type found in sidecar parsedHedData map.')
+        IssueError.generateAndThrow('internalConsistencyError', {
+          message: 'Unexpected type found in sidecar parsedHedData map.',
+        })
       }
     }
 
