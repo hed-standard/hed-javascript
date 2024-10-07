@@ -317,7 +317,9 @@ export class ParsedHed3Tag extends ParsedHedTag {
   _convertTag(hedSchemas, hedString, tagSpec) {
     const hed3ValidCharacters = /^[^{}[\]()~,\0\t]+$/
     if (!hed3ValidCharacters.test(this.originalTag)) {
-      throw new Error('The parser failed to properly remove an illegal or special character.')
+      IssueError.generateAndThrow('internalConsistencyError', {
+        message: 'The parser failed to properly remove an illegal or special character.',
+      })
     }
 
     const schemaName = tagSpec.library
@@ -325,18 +327,14 @@ export class ParsedHed3Tag extends ParsedHedTag {
     if (this.schema === undefined) {
       this.canonicalTag = this.originalTag
       if (schemaName !== '') {
-        throw new IssueError(
-          generateIssue('unmatchedLibrarySchema', {
-            tag: this.originalTag,
-            library: schemaName,
-          }),
-        )
+        IssueError.generateAndThrow('unmatchedLibrarySchema', {
+          tag: this.originalTag,
+          library: schemaName,
+        })
       } else {
-        throw new IssueError(
-          generateIssue('unmatchedBaseSchema', {
-            tag: this.originalTag,
-          }),
-        )
+        IssueError.generateAndThrow('unmatchedBaseSchema', {
+          tag: this.originalTag,
+        })
       }
     }
 
