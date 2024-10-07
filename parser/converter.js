@@ -1,9 +1,9 @@
-import { generateIssue, IssueError } from '../common/issues/issues'
+import { IssueError } from '../common/issues/issues'
 import { getTagSlashIndices } from '../utils/hedStrings'
 import { SchemaValueTag } from '../validator/schema/types'
 
 /**
- * Converter from a tas specification to a schema-based tag object.
+ * Converter from a tag specification to a schema-based tag object.
  */
 export default class TagConverter {
   /**
@@ -68,30 +68,8 @@ export default class TagConverter {
    * @returns {[SchemaTag, string]} The schema's corresponding tag object and the remainder of the tag string.
    */
   convert() {
-    const firstLevel = this._checkFirstLevel()
-    if (firstLevel) {
-      return [firstLevel, '']
-    }
-
-    return this._checkLowerLevels()
-  }
-
-  _checkFirstLevel() {
-    const firstLevel = this.tagLevels[0].toLowerCase().trimStart()
-    const schemaTag = this.tagMapping.getEntry(firstLevel)
-    if (!schemaTag || firstLevel === '' || firstLevel !== firstLevel.trim()) {
-      IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
-    }
-    if (this.tagLevels.length === 1) {
-      return schemaTag
-    } else {
-      return undefined
-    }
-  }
-
-  _checkLowerLevels() {
-    let parentTag = this._getSchemaTag(0)
-    for (let i = 1; i < this.tagLevels.length; i++) {
+    let parentTag = undefined
+    for (let i = 0; i < this.tagLevels.length; i++) {
       if (parentTag?.valueTag) {
         this._setSchemaTag(parentTag.valueTag, i)
         break
@@ -113,13 +91,16 @@ export default class TagConverter {
         message: 'Child tag is a value tag which should have been handled earlier.',
       })
     }
+    if (childTag === undefined && i === 0) {
+      IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
+    }
     if (childTag === undefined && parentTag && !parentTag.hasAttributeName('extensionAllowed')) {
       IssueError.generateAndThrow('invalidExtension', {
         tag: this.tagLevels[i],
         parentTag: parentTag.longName,
       })
     }
-    if (childTag !== undefined && (childTag.parent === undefined || childTag.parent !== parentTag)) {
+    if (childTag !== undefined && parentTag && (childTag.parent === undefined || childTag.parent !== parentTag)) {
       IssueError.generateAndThrow('invalidParentNode', {
         tag: this.tagLevels[i],
         parentTag: childTag.longName,
@@ -128,8 +109,11 @@ export default class TagConverter {
     return childTag
   }
 
-  _getSchemaTag(i) {
-    const tagLevel = this.tagLevels[i].toLowerCase()
+  _getSchemaTag(i, trimLeft = false) {
+    let tagLevel = this.tagLevels[i].toLowerCase()
+    if (trimLeft) {
+      tagLevel = tagLevel.trimLeft()
+    }
     if (tagLevel === '' || tagLevel !== tagLevel.trim()) {
       IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
     }
@@ -137,9 +121,13 @@ export default class TagConverter {
   }
 
   _setSchemaTag(schemaTag, i) {
-    if (this.schemaTag === undefined) {
-      this.schemaTag = schemaTag
-      this.remainder = this.tagLevels.slice(i).join('/')
+    if (this.schemaTag !== undefined) {
+      return
+    }
+    this.schemaTag = schemaTag
+    this.remainder = this.tagLevels.slice(i).join('/')
+    if (this.schemaTag?.hasAttributeName('requireChild') && !this.remainder) {
+      IssueError.generateAndThrow('childRequired', { tag: this.tagString })
     }
   }
 }
