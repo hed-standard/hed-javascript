@@ -396,9 +396,6 @@ export class Hed3Validator extends HedValidator {
     const definitionShortTag = 'Definition'
     const defExpandShortTag = 'Def-expand'
     const defShortTag = 'Def'
-    const definitionParentTags = getParsedParentTags(this.hedSchemas, definitionShortTag)
-    const defExpandParentTags = getParsedParentTags(this.hedSchemas, defExpandShortTag)
-    const defParentTags = getParsedParentTags(this.hedSchemas, defShortTag)
 
     const definitionName = tagGroup.definitionNameAndValue
 
@@ -421,14 +418,10 @@ export class Hed3Validator extends HedValidator {
           })
         }
         for (const innerTag of tag.tagIterator()) {
-          const nestedDefinitionParentTags = [
-            ...definitionParentTags.values(),
-            ...defExpandParentTags.values(),
-            ...defParentTags.values(),
-          ]
+          const nestedDefinitionParentTags = [definitionShortTag, defExpandShortTag, defShortTag]
           if (
             nestedDefinitionParentTags.some((parentTag) => {
-              return innerTag.isDescendantOf(parentTag)
+              return innerTag.schemaTag?.name === parentTag
             })
           ) {
             this.pushIssue('nestedDefinition', {
@@ -441,7 +434,7 @@ export class Hed3Validator extends HedValidator {
           definition: definitionName,
           column: tag.originalTag,
         })
-      } else if (!tag.isDescendantOf(definitionParentTags.get(tag.schema))) {
+      } else if (tag.schemaTag?.name !== 'Definition') {
         this.pushIssue('illegalDefinitionGroupTag', {
           tag: tag,
           definition: definitionName,
@@ -453,12 +446,11 @@ export class Hed3Validator extends HedValidator {
   /**
    * Check for missing HED 3 definitions.
    *
-   * @param {ParsedHedTag} tag The HED tag.
+   * @param {ParsedHed3Tag} tag The HED tag.
    * @param {string} defShortTag The short tag to check for.
    */
   checkForMissingDefinitions(tag, defShortTag = 'Def') {
-    const defParentTags = getParsedParentTags(this.hedSchemas, defShortTag)
-    if (!tag.isDescendantOf(defParentTags.get(tag.schema))) {
+    if (tag.schemaTag?.name !== defShortTag) {
       return
     }
     const defName = ParsedHedGroup.findDefinitionName(tag.canonicalTag, defShortTag)

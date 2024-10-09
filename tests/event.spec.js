@@ -1235,6 +1235,32 @@ describe('HED string and event validation', () => {
           validator.checkForMissingDefinitions(tag, 'Def-expand')
         })
       })
+
+      it('should have a child when required', () => {
+        const testStrings = {
+          noRequiredChild: 'Red',
+          hasRequiredChild: 'Label/Blah',
+          missingChild: 'Label',
+          longMissingChild: 'Property/Informational-property/Label',
+        }
+        const expectedIssues = {
+          noRequiredChild: [],
+          hasRequiredChild: [],
+          missingChild: [
+            generateIssue('childRequired', {
+              tag: testStrings.missingChild,
+            }),
+          ],
+          longMissingChild: [
+            generateIssue('childRequired', {
+              tag: testStrings.longMissingChild,
+            }),
+          ],
+        }
+        return validatorSemantic(testStrings, expectedIssues, (validator) => {
+          validator.validateEventLevel()
+        })
+      })
     })
 
     describe('HED Tag Groups', () => {

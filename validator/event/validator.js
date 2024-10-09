@@ -5,7 +5,6 @@ import { Schemas } from '../../common/schema/types'
 const NAME_CLASS_REGEX = /^[\w\-\u0080-\uFFFF]+$/
 const uniqueType = 'unique'
 const requiredType = 'required'
-const requireChildType = 'requireChild'
 const specialTags = require('./specialTags.json')
 
 // Validation tests
@@ -84,7 +83,6 @@ export class HedValidator {
     if (this.hedSchemas.generation > 0) {
       this.checkIfTagIsValid(tag, previousTag)
       this.checkIfTagUnitClassUnitsAreValid(tag)
-      this.checkIfTagRequiresChild(tag)
       if (!this.options.isEventLevel) {
         this.checkValueTagSyntax(tag)
       }
@@ -208,19 +206,6 @@ export class HedValidator {
    */
   // eslint-disable-next-line no-unused-vars
   _checkForTagAttribute(attribute, fn) {}
-
-  /**
-   * Check if a tag is missing a required child.
-   *
-   * @param {ParsedHedTag} tag The HED tag to be checked.
-   */
-  checkIfTagRequiresChild(tag) {
-    const invalid = tag.hasAttribute(requireChildType)
-    if (invalid) {
-      // If this tag has the "requireChild" attribute, then by virtue of even being in the dataset it is missing a required child.
-      this.pushIssue('childRequired', { tag: tag })
-    }
-  }
 
   /**
    * Check that the unit is valid for the tag's unit class.

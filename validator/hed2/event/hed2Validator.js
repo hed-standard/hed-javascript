@@ -6,12 +6,22 @@ const clockTimeUnitClass = 'clockTime'
 const dateTimeUnitClass = 'dateTime'
 const timeUnitClass = 'time'
 
+const requireChildType = 'requireChild'
+
 /**
  * Hed2Validator class
  */
 export class Hed2Validator extends HedValidator {
   constructor(parsedString, hedSchemas, options) {
     super(parsedString, hedSchemas, options)
+  }
+
+  /**
+   * Validate an individual HED tag.
+   */
+  validateIndividualHedTag(tag, previousTag) {
+    super.validateIndividualHedTag(tag, previousTag)
+    this.checkIfTagRequiresChild(tag)
   }
 
   _checkForTagAttribute(attribute, fn) {
@@ -118,5 +128,18 @@ export class Hed2Validator extends HedValidator {
     }
     const hed2ValidValueCharacters = /^[-a-zA-Z0-9.$%^+_; :]+$/
     return hed2ValidValueCharacters.test(value)
+  }
+
+  /**
+   * Check if a tag is missing a required child.
+   *
+   * @param {ParsedHed2Tag} tag The HED tag to be checked.
+   */
+  checkIfTagRequiresChild(tag) {
+    const invalid = tag.hasAttribute(requireChildType)
+    if (invalid) {
+      // If this tag has the "requireChild" attribute, then by virtue of even being in the dataset it is missing a required child.
+      this.pushIssue('childRequired', { tag: tag })
+    }
   }
 }
