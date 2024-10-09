@@ -7,7 +7,7 @@ import { Schemas, SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { recursiveMap } from '../utils/array'
 import { parseHedString } from '../parser/main'
 import { ParsedHedTag } from '../parser/parsedHedTag'
-import splitHedString from '../parser/splitHedString'
+import HedStringSplitter from '../parser/splitHedString'
 import { buildSchemas } from '../validator/schema/init'
 import ColumnSplicer from '../parser/columnSplicer'
 import ParsedHedGroup from '../parser/parsedHedGroup'
@@ -20,6 +20,8 @@ describe('HED string parsing', () => {
    * @returns {string} The original tag.
    */
   const originalMap = (parsedTag) => parsedTag.originalTag
+
+  const splitHedString = (hedString, hedSchemas) => new HedStringSplitter(hedString, hedSchemas).splitHedString()
 
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'
   let hedSchemas

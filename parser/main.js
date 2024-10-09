@@ -2,7 +2,7 @@ import { mergeParsingIssues } from '../utils/hedData'
 import { generateIssue } from '../common/issues/issues'
 
 import ParsedHedString from './parsedHedString'
-import splitHedString from './splitHedString'
+import HedStringSplitter from './splitHedString'
 import { getCharacterCount, stringIsEmpty } from '../utils/string'
 
 const openingGroupCharacter = '('
@@ -154,7 +154,7 @@ export const parseHedString = function (hedString, hedSchemas) {
     fullStringIssues.syntax = []
     return [null, fullStringIssues]
   }
-  const [parsedTags, splitIssues] = splitHedString(hedString, hedSchemas)
+  const [parsedTags, splitIssues] = new HedStringSplitter(hedString, hedSchemas).splitHedString()
   const parsingIssues = Object.assign(fullStringIssues, splitIssues)
   if (parsedTags === null) {
     return [null, parsingIssues]
