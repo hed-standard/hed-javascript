@@ -4,7 +4,7 @@ import { generateIssue, IssueError } from '../common/issues/issues'
 import { getParsedParentTags } from '../utils/hedData'
 import { getTagName } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
-import { ParsedHedTag } from './parsedHedTag'
+import { ParsedHed3Tag, ParsedHedTag } from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 
 /**
@@ -73,13 +73,12 @@ export class ParsedHedGroup extends ParsedHedSubstring {
     if (!hedSchemas.isHed3) {
       return undefined
     }
-    const parsedTags = getParsedParentTags(hedSchemas, shortTag)
     const tags = group.tags.filter((tag) => {
-      if (!(tag instanceof ParsedHedTag)) {
+      if (!(tag instanceof ParsedHed3Tag)) {
         return false
       }
-      const parsedTag = parsedTags.get(tag.schema)
-      return tag.isDescendantOf(parsedTag)
+      const schemaTag = tag.schemaTag
+      return schemaTag.name === shortTag
     })
     switch (tags.length) {
       case 0:

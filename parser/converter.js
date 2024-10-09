@@ -100,7 +100,7 @@ export default class TagConverter {
         parentTag: parentTag.longName,
       })
     }
-    if (childTag !== undefined && parentTag && (childTag.parent === undefined || childTag.parent !== parentTag)) {
+    if (childTag !== undefined && i > 0 && (childTag.parent === undefined || childTag.parent !== parentTag)) {
       IssueError.generateAndThrow('invalidParentNode', {
         tag: this.tagLevels[i],
         parentTag: childTag.longName,

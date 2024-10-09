@@ -379,31 +379,32 @@ export class ParsedHed3Tag extends ParsedHedTag {
   }
 
   /**
-   * Get the value-taking form of this tag.
+   * Get the schema tag object for this tag.
    *
-   * @returns {string} The value-taking form of this tag.
+   * @returns {SchemaTag} The schema tag object for this tag.
    */
-  get takesValueFormattedTag() {
-    return this._memoize('takesValueFormattedTag', () => {
-      const takesValueType = 'takesValue'
-      for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
-        const takesValueTag = replaceTagNameWithPound(ancestor)
-        if (this.schema?.tagHasAttribute(takesValueTag, takesValueType)) {
-          return takesValueTag
-        }
+  get schemaTag() {
+    return this._memoize('takesValueTag', () => {
+      if (this._schemaTag instanceof SchemaValueTag) {
+        return this._schemaTag.parent
+      } else {
+        return this._schemaTag
       }
-      return null
     })
   }
 
   /**
    * Get the schema tag object for this tag's value-taking form.
    *
-   * @returns {SchemaTag} The schema tag object for this tag's value-taking form.
+   * @returns {SchemaValueTag} The schema tag object for this tag's value-taking form.
    */
   get takesValueTag() {
     return this._memoize('takesValueTag', () => {
-      return this._schemaTag
+      if (this._schemaTag instanceof SchemaValueTag) {
+        return this._schemaTag
+      } else {
+        return undefined
+      }
     })
   }
 
@@ -414,7 +415,7 @@ export class ParsedHed3Tag extends ParsedHedTag {
    */
   get takesValue() {
     return this._memoize('takesValue', () => {
-      return this.takesValueFormattedTag !== null
+      return this.takesValueTag !== undefined
     })
   }
 
