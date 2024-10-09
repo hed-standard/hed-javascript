@@ -42,7 +42,7 @@ export default class TagConverter {
    */
   schemaTag
   /**
-   * The remainder of the tag string.
+   * The remainder (e.g. value, extension) of the tag string.
    * @type {string}
    */
   remainder
@@ -69,14 +69,14 @@ export default class TagConverter {
    */
   convert() {
     let parentTag = undefined
-    for (let i = 0; i < this.tagLevels.length; i++) {
+    for (let tagLevelIndex = 0; tagLevelIndex < this.tagLevels.length; tagLevelIndex++) {
       if (parentTag?.valueTag) {
-        this._setSchemaTag(parentTag.valueTag, i)
-        break
+        this._setSchemaTag(parentTag.valueTag, tagLevelIndex)
+        return [this.schemaTag, this.remainder]
       }
-      const childTag = this._validateChildTag(parentTag, i)
+      const childTag = this._validateChildTag(parentTag, tagLevelIndex)
       if (childTag === undefined) {
-        this._setSchemaTag(parentTag, i)
+        this._setSchemaTag(parentTag, tagLevelIndex)
       }
       parentTag = childTag
     }
@@ -84,34 +84,40 @@ export default class TagConverter {
     return [this.schemaTag, this.remainder]
   }
 
-  _validateChildTag(parentTag, i) {
-    const childTag = this._getSchemaTag(i)
+  _validateChildTag(parentTag, tagLevelIndex) {
     if (this.schemaTag instanceof SchemaValueTag) {
       IssueError.generateAndThrow('internalConsistencyError', {
         message: 'Child tag is a value tag which should have been handled earlier.',
       })
     }
-    if (childTag === undefined && i === 0) {
-      IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
+
+    const childTag = this._getSchemaTag(tagLevelIndex)
+    if (childTag === undefined) {
+      if (tagLevelIndex === 0) {
+        IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
+      }
+      if (parentTag !== undefined && !parentTag.hasAttributeName('extensionAllowed')) {
+        IssueError.generateAndThrow('invalidExtension', {
+          tag: this.tagLevels[tagLevelIndex],
+          parentTag: parentTag.longName,
+        })
+      }
+      return childTag
     }
-    if (childTag === undefined && parentTag && !parentTag.hasAttributeName('extensionAllowed')) {
-      IssueError.generateAndThrow('invalidExtension', {
-        tag: this.tagLevels[i],
-        parentTag: parentTag.longName,
-      })
-    }
-    if (childTag !== undefined && i > 0 && (childTag.parent === undefined || childTag.parent !== parentTag)) {
+
+    if (tagLevelIndex > 0 && (childTag.parent === undefined || childTag.parent !== parentTag)) {
       IssueError.generateAndThrow('invalidParentNode', {
-        tag: this.tagLevels[i],
+        tag: this.tagLevels[tagLevelIndex],
         parentTag: childTag.longName,
       })
     }
+
     return childTag
   }
 
-  _getSchemaTag(i) {
-    let tagLevel = this.tagLevels[i].toLowerCase()
-    if (i === 0) {
+  _getSchemaTag(tagLevelIndex) {
+    let tagLevel = this.tagLevels[tagLevelIndex].toLowerCase()
+    if (tagLevelIndex === 0) {
       tagLevel = tagLevel.trimLeft()
     }
     if (tagLevel === '' || tagLevel !== tagLevel.trim()) {
@@ -120,12 +126,12 @@ export default class TagConverter {
     return this.tagMapping.getEntry(tagLevel)
   }
 
-  _setSchemaTag(schemaTag, i) {
+  _setSchemaTag(schemaTag, remainderStartLevelIndex) {
     if (this.schemaTag !== undefined) {
       return
     }
     this.schemaTag = schemaTag
-    this.remainder = this.tagLevels.slice(i).join('/')
+    this.remainder = this.tagLevels.slice(remainderStartLevelIndex).join('/')
     if (this.schemaTag?.hasAttributeName('requireChild') && !this.remainder) {
       IssueError.generateAndThrow('childRequired', { tag: this.tagString })
     }
