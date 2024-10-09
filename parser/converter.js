@@ -109,9 +109,9 @@ export default class TagConverter {
     return childTag
   }
 
-  _getSchemaTag(i, trimLeft = false) {
+  _getSchemaTag(i) {
     let tagLevel = this.tagLevels[i].toLowerCase()
-    if (trimLeft) {
+    if (i === 0) {
       tagLevel = tagLevel.trimLeft()
     }
     if (tagLevel === '' || tagLevel !== tagLevel.trim()) {
