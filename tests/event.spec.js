@@ -1162,6 +1162,9 @@ describe('HED string and event validation', () => {
               tag: testStrings.incorrectPluralUnit,
               unitClassUnits: legalFrequencyUnits.sort().join(','),
             }),
+            generateIssue('invalidValue', {
+              tag: testStrings.incorrectPluralUnit,
+            }),
           ],
           incorrectSymbolCapitalizedUnit: [
             generateIssue('unitClassInvalidUnit', {
@@ -1180,11 +1183,17 @@ describe('HED string and event validation', () => {
               tag: testStrings.incorrectNonSIUnitModifier,
               unitClassUnits: legalTimeUnits.sort().join(','),
             }),
+            generateIssue('invalidValue', {
+              tag: testStrings.incorrectNonSIUnitModifier,
+            }),
           ],
           incorrectNonSIUnitSymbolModifier: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectNonSIUnitSymbolModifier,
               unitClassUnits: legalSpeedUnits.sort().join(','),
+            }),
+            generateIssue('invalidValue', {
+              tag: testStrings.incorrectNonSIUnitSymbolModifier,
             }),
           ],
           notRequiredNumber: [],
