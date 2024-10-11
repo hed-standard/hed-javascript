@@ -1,3 +1,5 @@
+import { unicodeName } from 'unicode-name'
+
 import { generateIssue } from '../common/issues/issues'
 import { stringIsEmpty } from '../utils/string'
 import { replaceTagNameWithPound } from '../utils/hedStrings'
@@ -12,6 +14,14 @@ const slashCharacter = '/'
 
 const invalidCharacters = new Set(['[', ']', '~', '"'])
 const invalidCharactersOutsideOfValues = new Set([':'])
+// C0 control codes
+for (let i = 0x00; i <= 0x1f; i++) {
+  invalidCharacters.add(String.fromCodePoint(i))
+}
+// DEL and C1 control codes
+for (let i = 0x7f; i <= 0x9f; i++) {
+  invalidCharacters.add(String.fromCodePoint(i))
+}
 
 /**
  * A specification for a tokenized substring.
@@ -366,7 +376,7 @@ export class HedStringTokenizer {
   _pushInvalidCharacterIssue(character, index) {
     this.syntaxIssues.push(
       generateIssue('invalidCharacter', {
-        character: character,
+        character: unicodeName(character),
         index: index,
         string: this.hedString,
       }),

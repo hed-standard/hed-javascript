@@ -1,7 +1,7 @@
 import isPlainObject from 'lodash/isPlainObject'
 
 import { sidecarValueHasHed } from '../utils'
-import { parseHedString } from '../../parser/main'
+import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './basic'
 import BidsHedSidecarValidator from '../validator/bidsHedSidecarValidator'

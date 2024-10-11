@@ -45,6 +45,7 @@
     "pluralize": "^8.0.0",
     "semver": "^7.6.0",
     "string_decoder": "^1.3.0",
+    "unicode-name": "^1.0.2",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
@@ -74,7 +75,10 @@
     "transform": {
       "\\.js$": "esbuild-runner/jest",
       "\\.xml$": "<rootDir>/fileTransformer.js"
-    }
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!unicode-name)"
+    ]
   },
   "browser": {
     "fs": false

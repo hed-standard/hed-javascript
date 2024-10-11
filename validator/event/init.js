@@ -1,4 +1,4 @@
-import { parseHedString } from '../../parser/main'
+import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { Schemas } from '../../common/schema/types'
 

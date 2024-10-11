@@ -2,7 +2,7 @@ import ParsedHedString from './parsedHedString'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
 import { generateIssue } from '../common/issues/issues'
-import { parseHedString } from './main'
+import { parseHedString } from './parser'
 
 export class ColumnSplicer {
   /**

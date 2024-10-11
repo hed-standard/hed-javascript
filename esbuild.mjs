@@ -7,7 +7,7 @@ await esbuild.build({
   entryPoints: [path.join(process.cwd(), 'index.js')],
   loader: { '.xml': 'text' },
   outdir: path.join(process.cwd(), 'dist', 'commonjs'),
-  target: 'node12',
+  target: 'node18',
   bundle: true,
   sourcemap: true,
   platform: 'node',
