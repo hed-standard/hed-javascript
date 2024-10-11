@@ -9,7 +9,7 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/#, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": ["Item/Bl\b"],
+        "fails": ["Item/Bl\b", "Item/ABC\u009e"],
         "passes": ["Red, Blue, Description/Red", "Description/This is a \u00ca\u00b0 good character"]
       },
       "sidecar_tests": {
@@ -37,6 +37,10 @@
           [
             ["onset", "duration", "HED"],
             [4.5, 0, "Item/Bl\b"]
+          ],
+          [
+            ["onset", "duration", "HED"],
+            [4.5, 0, "Item/{abc}"]
           ]
         ],
         "passes": [
