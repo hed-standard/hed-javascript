@@ -1,7 +1,7 @@
 import BidsHedSidecarValidator from './bidsHedSidecarValidator'
 import { BidsHedIssue, BidsIssue } from '../types/issues'
 import { BidsTsvEvent, BidsTsvRow } from '../types/tsv'
-import { parseHedString } from '../../parser/main'
+import { parseHedString } from '../../parser/parser'
 import ColumnSplicer from '../../parser/columnSplicer'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../common/issues/issues'

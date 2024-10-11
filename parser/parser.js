@@ -1,7 +1,7 @@
 import { mergeParsingIssues } from '../utils/hedData'
 import { generateIssue } from '../common/issues/issues'
 import ParsedHedString from './parsedHedString'
-import HedStringSplitter from './splitHedString'
+import HedStringSplitter from './splitter'
 import { getCharacterCount, stringIsEmpty } from '../utils/string'
 
 const openingGroupCharacter = '('
