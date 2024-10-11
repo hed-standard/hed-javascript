@@ -47,7 +47,7 @@ export default class HedStringSplitter {
   ParsedHedTagConstructor
 
   /**
-   * Constructor for the HED string parser.
+   * Constructor.
    *
    * @param {string} hedString The HED string to be split and parsed.
    * @param {Schemas} hedSchemas The collection of HED schemas.

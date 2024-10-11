@@ -668,7 +668,7 @@ describe('BIDS datasets', () => {
         syntax: [
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidCharacter', {
-              character: '{',
+              character: 'LEFT CURLY BRACKET',
               index: 9,
               string: '(Def/Acc/{response_time})',
             }),

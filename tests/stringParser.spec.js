@@ -84,7 +84,7 @@ describe('HED string parsing', () => {
           conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
-              character: '[',
+              character: 'LEFT SQUARE BRACKET',
               index: 56,
               string: testStrings.openingSquare,
             }),
@@ -94,7 +94,7 @@ describe('HED string parsing', () => {
           conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
-              character: ']',
+              character: 'RIGHT SQUARE BRACKET',
               index: 56,
               string: testStrings.closingSquare,
             }),
@@ -104,7 +104,7 @@ describe('HED string parsing', () => {
           conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
-              character: '~',
+              character: 'TILDE',
               index: 56,
               string: testStrings.tilde,
             }),
