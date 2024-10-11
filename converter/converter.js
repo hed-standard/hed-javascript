@@ -1,4 +1,4 @@
-import { parseHedString } from '../parser/main'
+import { parseHedString } from '../parser/parser'
 
 /**
  * Convert a HED string.

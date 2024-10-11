@@ -4,7 +4,7 @@ import { beforeAll, describe, it } from '@jest/globals'
 
 import * as hed from '../validator/event'
 import { buildSchemas } from '../validator/schema/init'
-import { parseHedString } from '../parser/main'
+import { parseHedString } from '../parser/parser'
 import { ParsedHedTag } from '../parser/parsedHedTag'
 import { HedValidator, Hed2Validator, Hed3Validator } from '../validator/event'
 import { generateIssue } from '../common/issues/issues'
@@ -184,11 +184,13 @@ describe('HED string and event validation', () => {
           closingBracket: '/Attribute/Object side/Left,/Participant/Effect]/Body part/Arm',
           tilde: '/Attribute/Object side/Left,/Participant/Effect~/Body part/Arm',
           doubleQuote: '/Attribute/Object side/Left,/Participant/Effect"/Body part/Arm',
+          null: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm\0',
+          tab: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm\t',
         }
         const expectedIssues = {
           openingBrace: [
             generateIssue('invalidCharacter', {
-              character: '{',
+              character: 'LEFT CURLY BRACKET',
               index: 47,
               string: testStrings.openingBrace,
             }),
@@ -201,54 +203,42 @@ describe('HED string and event validation', () => {
           ],
           openingBracket: [
             generateIssue('invalidCharacter', {
-              character: '[',
+              character: 'LEFT SQUARE BRACKET',
               index: 47,
               string: testStrings.openingBracket,
             }),
           ],
           closingBracket: [
             generateIssue('invalidCharacter', {
-              character: ']',
+              character: 'RIGHT SQUARE BRACKET',
               index: 47,
               string: testStrings.closingBracket,
             }),
           ],
           tilde: [
             generateIssue('invalidCharacter', {
-              character: '~',
+              character: 'TILDE',
               index: 47,
               string: testStrings.tilde,
             }),
           ],
           doubleQuote: [
             generateIssue('invalidCharacter', {
-              character: '"',
+              character: 'QUOTATION MARK',
               index: 47,
               string: testStrings.doubleQuote,
             }),
           ],
-        }
-        // No-op function as this check is done during the parsing stage.
-        // eslint-disable-next-line no-unused-vars
-        validatorSyntactic(testStrings, expectedIssues, (validator) => {})
-      })
-
-      it('should substitute and warn for certain illegal characters', () => {
-        const testStrings = {
-          nul: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm\0',
-          tab: '/Attribute/Object side/Left,/Participant/Effect/Body part/Arm\t',
-        }
-        const expectedIssues = {
-          nul: [
+          null: [
             generateIssue('invalidCharacter', {
-              character: 'ASCII NUL',
+              character: 'NULL',
               index: 61,
-              string: testStrings.nul,
+              string: testStrings.null,
             }),
           ],
           tab: [
             generateIssue('invalidCharacter', {
-              character: 'Tab',
+              character: 'CHARACTER TABULATION',
               index: 61,
               string: testStrings.tab,
             }),

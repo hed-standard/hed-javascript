@@ -5,9 +5,9 @@ import { beforeAll, describe, it } from '@jest/globals'
 import { generateIssue } from '../common/issues/issues'
 import { Schemas, SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { recursiveMap } from '../utils/array'
-import { parseHedString } from '../parser/main'
+import { parseHedString } from '../parser/parser'
 import { ParsedHedTag } from '../parser/parsedHedTag'
-import splitHedString from '../parser/splitHedString'
+import HedStringSplitter from '../parser/splitter'
 import { buildSchemas } from '../validator/schema/init'
 import ColumnSplicer from '../parser/columnSplicer'
 import ParsedHedGroup from '../parser/parsedHedGroup'
@@ -20,6 +20,8 @@ describe('HED string parsing', () => {
    * @returns {string} The original tag.
    */
   const originalMap = (parsedTag) => parsedTag.originalTag
+
+  const splitHedString = (hedString, hedSchemas) => new HedStringSplitter(hedString, hedSchemas).splitHedString()
 
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'
   let hedSchemas
@@ -82,7 +84,7 @@ describe('HED string parsing', () => {
           conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
-              character: '[',
+              character: 'LEFT SQUARE BRACKET',
               index: 56,
               string: testStrings.openingSquare,
             }),
@@ -92,7 +94,7 @@ describe('HED string parsing', () => {
           conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
-              character: ']',
+              character: 'RIGHT SQUARE BRACKET',
               index: 56,
               string: testStrings.closingSquare,
             }),
@@ -102,7 +104,7 @@ describe('HED string parsing', () => {
           conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
-              character: '~',
+              character: 'TILDE',
               index: 56,
               string: testStrings.tilde,
             }),
