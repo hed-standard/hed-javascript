@@ -6,6 +6,7 @@ import * as hed from '../validator/event'
 import { BidsHedIssue } from '../bids/types/issues'
 import path from 'path'
 import { HedStringTokenizer } from '../parser/tokenizer'
+import { HedStringTokenizerNew } from '../parser/tokenizerNew'
 import { generateIssue, IssueError } from '../common/issues/issues'
 const fs = require('fs')
 
@@ -14,7 +15,7 @@ const displayLog = process.env.DISPLAY_LOG === 'true'
 const skippedErrors = {}
 const readFileSync = fs.readFileSync
 // const test_file_name = 'javascriptTests.json'
-const test_file_name = 'temp.json'
+const test_file_name = './data/tokenizerTests.json'
 
 function loadTestData() {
   const testFile = path.join(__dirname, test_file_name)
@@ -22,6 +23,7 @@ function loadTestData() {
 }
 
 const testInfo = loadTestData()
+console.log(testInfo)
 
 describe('HED tokenizer validation using JSON tests', () => {
   const badLog = []
@@ -39,56 +41,57 @@ describe('HED tokenizer validation using JSON tests', () => {
     }
   })
 
+  test('dummy test', () => {
+    const x = 1
+    expect(x).toBeDefined()
+  })
+
   describe.each(testInfo)(
     '$hedCode $code $name : $description',
-    ({ hedCode, code, name, description, warning, fails }) => {
+    ({ hedCode, code, name, description, warning, tests }) => {
       let itemLog
       let hasWarning
 
-      const assertErrors = function (hedCode, code, expectError, iLog, header, issues) {
+      const assertErrors = function (eHedCode, eCode, expectError, iLog, header, issues) {
         const log = [header]
         totalTests += 1
 
-        const errors = Object.values(issues).flat()
+        let errors = []
+        if (issues.length > 0) {
+          errors = issues.map((dict) => dict.hedCode) // list of hedCodes in the issues
+        }
+        const errorString = errors.join(',')
         if (errors.length > 0) {
           log.push(`---has errors [${errorString}]`)
         }
-        const expectedError = code
-        const wrongError = `---expected ${eCode} ${altErrorString} but got errors [${errorString}]`
+        const expectedError = eCode
+        const wrongError = `---expected ${eHedCode} but got errors [${errorString}]`
         const hasErrors = `---expected no errors but got errors [${errorString}]`
-        if (expectError && !expectedErrors.some((substring) => errorString.includes(substring))) {
+        if (expectError && !errors.includes(eHedCode)) {
           log.push(wrongError)
           iLog.push(log.join('\n'))
           wrongErrors += 1
-          assert(errorString.includes(eCode), `${header}---expected ${eCode} and got errors [${errorString}]`)
-        } else if (!expectError && errorString.length > 0) {
+          assert.strictEqual(
+            errors.includes(eHedCode),
+            true,
+            `${header}---expected ${eHedCode} and got errors [${errorString}]`,
+          )
+        } else if (!expectError && errors.length > 0) {
           log.push(hasErrors)
           iLog.push(log.join('\n'))
           unexpectedErrors += 1
-          assert(errorString.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
+          assert(errors.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
         }
       }
 
       const stringTokenizer = function (eHedCode, eCode, eName, tokenizer, expectError, iLog) {
         const status = expectError ? 'Expect fail' : 'Expect pass'
-        const header = `\n[${eHedCode} ${eName}](${status})\tSTRING: "${tokenizer.hedString}"`
+        const tokType = tokenizer instanceof HedStringTokenizer ? 'Original-tokenizer' : 'New tokenizer'
+        const header = `\n[${eHedCode} ${eName} ${tokType}](${status})\tSTRING: "${tokenizer.hedString}"`
         const [tagSpecs, groupBounds, tokenizingIssues] = tokenizer.tokenize()
-        assertErrors(eHedCode, eCode, expectError, iLog, header, tokenizingIssues)
+        const issues = Object.values(tokenizingIssues).flat()
+        assertErrors(eHedCode, eCode, expectError, iLog, header, issues)
       }
-
-      /**
-       * Convert an Error into an Issue.
-       *
-       * @param {Error} issueError A thrown error.
-       * @returns {Issue} A HED issue.
-       */
-      // const convertIssue = function (issueError) {
-      //   if (issueError instanceof IssueError) {
-      //     return issueError.issue
-      //   } else {
-      //     return generateIssue('internalError', { message: issueError.message })
-      //   }
-      // }
 
       beforeAll(async () => {
         itemLog = []
@@ -99,15 +102,19 @@ describe('HED tokenizer validation using JSON tests', () => {
         badLog.push(itemLog.join('\n'))
       })
 
-      // if (testInfo.passes.length > 0) {
-      //   test.each(testInfo.passes)('Valid string: %s', (str) => {
-      //     stringValidator(error_code, alt_codes, name, str, hedSchema, defs, false, itemLog)
-      //   })
-      // }
+      test('dummy test', () => {
+        const y = 1
+        expect(y).toBeDefined()
+      })
 
-      if (testInfo.fails.length > 0) {
-        test.each(testInfo.fails)('NewTokenizer: Invalid string: %s ', (str) => {
-          stringTokenizer(hedCode, code, name, new HedStringTokenizer(str), true, itemLog)
+      if (tests.fails && tests.fails.length > 0) {
+        test.each(tests.fails)('NewTokenizer: Invalid string: %s ', (ex) => {
+          //console.log(ex)
+          stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizerNew(ex.string), true, itemLog)
+        })
+
+        test.each(tests.fails)('Original tokenizer: Invalid string: %s ', (ex) => {
+          stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizer(ex.string), true, itemLog)
         })
       }
     },

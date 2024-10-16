@@ -1,0 +1,74 @@
+[
+  {
+    "hedCode": "TAG_EMPTY",
+    "code": "emptyTagFound",
+    "name": "empty-tag-in-various-places",
+    "description": "Empty tags in various places (empty groups are allowed).",
+    "warning": false,
+    "tests": {
+      "fails": [
+        {
+          "name": "end-in-comma",
+          "string": "x,y,",
+          "issueCount": 1,
+          "hedCode": "TAG_EMPTY",
+          "code": "emptyTagFound",
+          "explanation": "Can't end in a comma"
+        },
+        {
+          "name": "double-in-comma",
+          "string": "x,,y,",
+          "issueCount": 1,
+          "hedCode": "TAG_EMPTY",
+          "code": "emptyTagFound",
+          "explanation": "Can't have double commas"
+        },
+        {
+          "name": "leading-comma",
+          "string": ",x,y",
+          "issueCount": 1,
+          "hedCode": "TAG_EMPTY",
+          "code": "emptyTagFound",
+          "explanation": "Can't leading comma"
+        }
+      ],
+      "passes": []
+    }
+  },
+  {
+    "hedCode": "TAG_INVALID",
+    "code": "emptyTagFound",
+    "name": "empty-tag-in-various-places",
+    "description": "Empty tags in various places (empty groups are allowed).",
+    "warning": false,
+    "tests": {
+      "fails": [
+        {
+          "name": "end-in-comma",
+          "string": "x,y,",
+          "issueCount": 1,
+          "hedCode": "TAG_EMPTY",
+          "code": "emptyTagFound",
+          "explanation": "Can't end in a comma"
+        },
+        {
+          "name": "double-in-comma",
+          "string": "x,,y,",
+          "issueCount": 1,
+          "hedCode": "TAG_EMPTY",
+          "code": "emptyTagFound",
+          "explanation": "Can't have double commas"
+        }
+      ],
+      "passes": []
+    }
+  },
+  {
+    "name": "leading-comma",
+    "string": "  x,  y  ",
+    "issueCount": 0,
+    "hedCode": "TAG_EMPTY",
+    "code": "",
+    "explanation": "Can have extra blanks"
+  }
+]
