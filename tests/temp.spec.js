@@ -17,7 +17,7 @@ import { HedStringTokenizerNew } from '../parser/tokenizerNew'
 
 describe('HED string parsing', () => {
   it('should include each group as its own single element', () => {
-    const hedString = 'y,'
+    const hedString = '(xy)'
     const tok = new HedStringTokenizerNew(hedString)
     const [tagSpecs, groupBounds, tokenizingIssues] = tok.tokenize()
     assert.isEmpty(Object.values(tokenizingIssues).flat(), 'Parsing issues occurred')

@@ -8,16 +8,16 @@ import path from 'path'
 import { HedStringTokenizer } from '../parser/tokenizer'
 import { HedStringTokenizerNew } from '../parser/tokenizerNew'
 import { generateIssue, IssueError } from '../common/issues/issues'
-import passingTests from './tokenizerTestData'
+import { errorTests } from './tokenizerErrorData'
+const displayLog = process.env.DISPLAY_LOG === 'true'
 const fs = require('fs')
 
-const displayLog = process.env.DISPLAY_LOG === 'true'
-
 const skippedErrors = {}
-const readFileSync = fs.readFileSync
-// const test_file_name = 'javascriptTests.json'
 
-describe('HED tokenizer validation - validData', () => {
+//const testInfo = loadTestData()
+console.log(errorTests)
+
+describe('HED tokenizer validation using JSON tests', () => {
   const badLog = []
   let totalTests = 0
   let wrongErrors = 0
@@ -33,10 +33,10 @@ describe('HED tokenizer validation - validData', () => {
     }
   })
 
-  describe.each(testInfo)('$name : $description', ({ tests }) => {
+  describe.each(errorTests)('$name : $description', ({ tests }) => {
     let itemLog
 
-    const checkForErrors = function (iLog, header, issues) {
+    const assertErrors = function (eHedCode, eCode, expectError, iLog, header, issues) {
       const log = [header]
       totalTests += 1
 
@@ -68,15 +68,6 @@ describe('HED tokenizer validation - validData', () => {
       }
     }
 
-    const stringTokenizer = function (eName, tokenizer, iLog) {
-      const status = 'Expect pass'
-      const tokType = tokenizer instanceof HedStringTokenizer ? 'Original-tokenizer' : 'New tokenizer'
-      const header = `\n[${tokType}](${status})\tSTRING: "${tokenizer.hedString}"`
-      const [tagSpecs, groupBounds, tokenizingIssues] = tokenizer.tokenize()
-      const issues = Object.values(tokenizingIssues).flat()
-      assertErrors(eHedCode, eCode, expectError, iLog, header, issues)
-    }
-
     const stringTokenizer = function (eHedCode, eCode, eName, tokenizer, expectError, iLog) {
       const status = expectError ? 'Expect fail' : 'Expect pass'
       const tokType = tokenizer instanceof HedStringTokenizer ? 'Original-tokenizer' : 'New tokenizer'
@@ -97,21 +88,10 @@ describe('HED tokenizer validation - validData', () => {
     if (tests && tests.length > 0) {
       test.each(tests)('NewTokenizer: Invalid string: %s ', (ex) => {
         //console.log(ex)
-        stringTokenizer(ex.name, new HedStringTokenizerNew(ex.string), true, itemLog)
-      })
-
-      test.each(tests.fails)('Original tokenizer: Invalid string: %s ', (ex) => {
-        stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizer(ex.string), true, itemLog)
-      })
-    }
-
-    if (tests.fails && tests.fails.length > 0) {
-      test.each(tests.fails)('NewTokenizer: Invalid string: %s ', (ex) => {
-        //console.log(ex)
         stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizerNew(ex.string), true, itemLog)
       })
 
-      test.each(tests.fails)('Original tokenizer: Invalid string: %s ', (ex) => {
+      test.each(tests)('Original tokenizer: Invalid string: %s ', (ex) => {
         stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizer(ex.string), true, itemLog)
       })
     }

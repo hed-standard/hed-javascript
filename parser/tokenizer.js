@@ -71,10 +71,10 @@ export class GroupSpec extends SubstringSpec {
    */
   children
 
-  constructor(start, end) {
+  constructor(start, end, children) {
     super(start, end)
 
-    this.children = []
+    this.children = children
   }
 }
 
@@ -177,7 +177,7 @@ export class HedStringTokenizer {
     this.librarySchema = ''
     this.columnSpliceIndex = -1
     this.currentGroupStack = [[]]
-    this.parenthesesStack = [new GroupSpec(0, this.hedString.length)]
+    this.parenthesesStack = [new GroupSpec(0, this.hedString.length, [])]
     this.ignoringCharacters = false
     this.closingGroup = false
   }
@@ -218,7 +218,7 @@ export class HedStringTokenizer {
 
   openingGroupCharacter(i) {
     this.currentGroupStack.push([])
-    this.parenthesesStack.push(new GroupSpec(i))
+    this.parenthesesStack.push(new GroupSpec(i, undefined, []))
     this.resetStartingIndex = true
     this.groupDepth++
   }

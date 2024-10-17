@@ -13,6 +13,18 @@ const CHARACTERS = {
   SLASH: '/',
 }
 
+function getTrimmedBounds(originalString) {
+  const start = originalString.search(/\S/)
+  const end = originalString.search(/\S\s*$/)
+
+  if (start === -1) {
+    // The string contains only whitespace
+    return null
+  }
+
+  return [start, end + 1]
+}
+
 const invalidCharacters = new Set(['[', ']', '~', '"'])
 // Add control codes to invalidCharacters
 for (let i = 0x00; i <= 0x1f; i++) {
@@ -72,10 +84,10 @@ export class GroupSpec extends SubstringSpec {
    */
   children
 
-  constructor(start, end) {
+  constructor(start, end, children) {
     super(start, end)
 
-    this.children = []
+    this.children = children
   }
 }
 
@@ -106,7 +118,7 @@ class TokenizerState {
     this.librarySchema = ''
     this.columnSpliceIndex = -1 //Index of { if this token is column splice
     this.currentGroupStack = [[]]
-    this.parenthesesStack = [new GroupSpec(0)]
+    this.parenthesesStack = []
     this.ignoringCharacters = false
     this.closingGroup = false
     // this.closingColumn = false
@@ -120,7 +132,7 @@ export class HedStringTokenizerNew {
   constructor(hedString) {
     this.hedString = hedString
     this.syntaxIssues = []
-    this.state = new TokenizerState()
+    this.state = null
   }
 
   /**
@@ -140,7 +152,7 @@ export class HedStringTokenizerNew {
         this.state.currentToken = ''
       }
     }
-    this.pushTag(this.hedString.length - 1)
+    //this.pushTag(this.hedString.length - 1)
 
     if (this.state.columnSpliceIndex >= 0) {
       this.pushIssue('unclosedCurlyBrace', this.state.columnSpliceIndex)
@@ -160,6 +172,7 @@ export class HedStringTokenizerNew {
   initializeTokenizer() {
     this.syntaxIssues = []
     this.state = new TokenizerState()
+    this.state.parenthesesStack = [new GroupSpec(0, this.hedString.length, [])]
   }
 
   tokenizeCharacter(i, character) {
@@ -218,7 +231,7 @@ export class HedStringTokenizerNew {
 
   handleOpeningGroup(i) {
     this.state.currentGroupStack.push([])
-    this.state.parenthesesStack.push(new GroupSpec(i))
+    this.state.parenthesesStack.push(new GroupSpec(i, undefined, []))
     this.state.resetIndexFlag = true
     this.state.groupDepth++
   }
@@ -326,8 +339,14 @@ export class HedStringTokenizerNew {
     } else if (this.state.columnSpliceIndex < 0) {
       // Not a column splice so goes on group stack as a TagSpec
       this.checkValueTagForInvalidCharacters()
+      let bounds = getTrimmedBounds(this.state.currentToken)
       this.state.currentGroupStack[this.state.groupDepth].push(
-        new TagSpec(this.state.currentToken.trim(), this.state.startingIndex, i, this.state.librarySchema),
+        new TagSpec(
+          this.state.currentToken.trim(),
+          this.state.startingIndex + bounds[0],
+          this.state.startingIndex + bounds[1],
+          this.state.librarySchema,
+        ),
       )
     }
     // Clear the current token and reset flags for the next iteration.
