@@ -43,6 +43,16 @@ export default {
     level: 'error',
     message: stringTemplate`Invalid tag - "${'tag'}".`,
   },
+  extraSlash: {
+    hedCode: 'TAG_INVALID',
+    level: 'error',
+    message: stringTemplate`Tag extra slash at index ${'index'} of string "${'string'}".`,
+  },
+  extraBlank: {
+    hedCode: 'TAG_INVALID',
+    level: 'error',
+    message: stringTemplate`Tag extra blank at index ${'index'} of string "${'string'}".`,
+  },
   extraCommaOrInvalid: {
     hedCode: 'TAG_INVALID',
     level: 'error',

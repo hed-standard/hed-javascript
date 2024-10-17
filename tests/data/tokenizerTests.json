@@ -1,7 +1,5 @@
 [
   {
-    "hedCode": "TAG_EMPTY",
-    "code": "emptyTagFound",
     "name": "empty-tag-in-various-places",
     "description": "Empty tags in various places (empty groups are allowed).",
     "warning": false,
@@ -36,39 +34,97 @@
     }
   },
   {
-    "hedCode": "TAG_INVALID",
-    "code": "emptyTagFound",
-    "name": "empty-tag-in-various-places",
-    "description": "Empty tags in various places (empty groups are allowed).",
+    "name": "extra-slash-in-various-places",
+    "description": "Tags can't have leading or trailing, or extra slashes",
     "warning": false,
     "tests": {
       "fails": [
         {
-          "name": "end-in-comma",
-          "string": "x,y,",
+          "name": "leading-slash",
+          "string": "/x",
           "issueCount": 1,
-          "hedCode": "TAG_EMPTY",
-          "code": "emptyTagFound",
-          "explanation": "Can't end in a comma"
+          "hedCode": "TAG_INVALID",
+          "code": "extraSlash",
+          "explanation": "Can't have a leading slash"
         },
         {
-          "name": "double-in-comma",
-          "string": "x,,y,",
+          "name": "double-slash",
+          "string": "x//y",
           "issueCount": 1,
-          "hedCode": "TAG_EMPTY",
-          "code": "emptyTagFound",
-          "explanation": "Can't have double commas"
+          "hedCode": "TAG_INVALID",
+          "code": "extraSlash",
+          "explanation": "Can't have double slash"
+        },
+        {
+          "name": "triple-slash",
+          "string": "x///y",
+          "issueCount": 1,
+          "hedCode": "TAG_INVALID",
+          "code": "extraSlash",
+          "explanation": "Can't have double slash"
+        },
+        {
+          "name": "trailing-slash",
+          "string": "x/y/",
+          "issueCount": 1,
+          "hedCode": "TAG_INVALID",
+          "code": "extraSlash",
+          "explanation": "Can't have ending slash"
+        },
+        {
+          "name": "value-slash",
+          "string": "x /y",
+          "issueCount": 1,
+          "hedCode": "TAG_INVALID",
+          "code": "extraSlash",
+          "explanation": "Can't have ending slash"
         }
       ],
       "passes": []
     }
   },
   {
-    "name": "leading-comma",
-    "string": "  x,  y  ",
-    "issueCount": 0,
-    "hedCode": "TAG_EMPTY",
-    "code": "",
-    "explanation": "Can have extra blanks"
+    "hedCode": "SIDECAR_BRACES_INVALID",
+    "code": "unopenedCurlyBrace",
+    "name": "unopened-curly-brace",
+    "description": "Tags can't have leading or trailing, or extra slashes",
+    "warning": false,
+    "tests": {
+      "fails": [
+        {
+          "name": "leading-close-brace",
+          "string": "}x",
+          "issueCount": 1,
+          "hedCode": "TAG_INVALID",
+          "code": "extraSlash",
+          "explanation": "Can't have a leading slash"
+        },
+        {
+          "name": "double-slash",
+          "string": "x//y",
+          "issueCount": 1,
+          "hedCode": "TAG_INVALID",
+          "code": "extraSlash",
+          "explanation": "Can't have double slash"
+        },
+        {
+          "name": "triple-slash",
+          "string": "x///y",
+          "issueCount": 1,
+          "hedCode": "TAG_INVALID",
+          "code": "extraSlash",
+          "explanation": "Can't have double slash"
+        },
+        {
+          "name": "trailing-slash",
+          "string": "x/y/",
+          "issueCount": 1,
+          "hedCode": "TAG_INVALID",
+          "code": "extraSlash",
+          "explanation": "Can't have ending slash"
+        }
+      ],
+      "passes": []
+    }
   }
 ]
