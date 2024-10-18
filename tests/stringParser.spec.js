@@ -228,25 +228,25 @@ describe('HED string parsing', () => {
   describe('Parsed HED strings', () => {
     it('must have the correct number of tags, top-level tags, and groups', () => {
       const hedString =
-        '/Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow),/Position/X-position/70 px,/Position/Y-position/23 px'
+        'Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,Action/Move/Bend,Upper-extremity/Elbow),Position/X-position/70 px,Position/Y-position/23 px'
       const [parsedString, issues] = parseHedString(hedString, nullSchema)
       assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
       assert.sameDeepMembers(parsedString.tags.map(originalMap), [
-        '/Action/Move/Flex',
+        'Action/Move/Flex',
         'Relation/Spatial-relation/Left-side-of',
-        '/Action/Move/Bend',
-        '/Upper-extremity/Elbow',
-        '/Position/X-position/70 px',
-        '/Position/Y-position/23 px',
+        'Action/Move/Bend',
+        'Upper-extremity/Elbow',
+        'Position/X-position/70 px',
+        'Position/Y-position/23 px',
       ])
       assert.sameDeepMembers(parsedString.topLevelTags.map(originalMap), [
-        '/Action/Move/Flex',
-        '/Position/X-position/70 px',
-        '/Position/Y-position/23 px',
+        'Action/Move/Flex',
+        'Position/X-position/70 px',
+        'Position/Y-position/23 px',
       ])
       assert.sameDeepMembers(
         parsedString.tagGroups.map((group) => group.tags.map(originalMap)),
-        [['Relation/Spatial-relation/Left-side-of', '/Action/Move/Bend', '/Upper-extremity/Elbow']],
+        [['Relation/Spatial-relation/Left-side-of', 'Action/Move/Bend', 'Upper-extremity/Elbow']],
       )
     })
 

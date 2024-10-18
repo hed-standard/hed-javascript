@@ -5,8 +5,10 @@ import { beforeAll, describe, afterAll } from '@jest/globals'
 import * as hed from '../validator/event'
 import { BidsHedIssue } from '../bids/types/issues'
 import path from 'path'
-import { HedStringTokenizer } from '../parser/tokenizer'
-import { TagSpec, GroupSpec, ColumnSpliceSpec, HedStringTokenizerNew } from '../parser/tokenizerNew'
+//import { HedStringTokenizer } from '../parser/tokenizer'
+import { HedStringTokenizerOld } from '../parser/tokenizerOld'
+import { TagSpec, GroupSpec, ColumnSpliceSpec, HedStringTokenizer } from '../parser/tokenizer'
+//import { TagSpec, GroupSpec, ColumnSpliceSpec, HedStringTokenizer } from '../parser/tokenizerNew'
 import { generateIssue, IssueError } from '../common/issues/issues'
 import { passingTests } from './tokenizerPassingData'
 const fs = require('fs')
@@ -51,7 +53,7 @@ describe('HED tokenizer validation - validData', () => {
 
     const stringTokenizer = function (eName, tokenizer, tSpecs, gSpec, explanation, iLog) {
       const status = 'Expect pass'
-      const tokType = tokenizer instanceof HedStringTokenizer ? 'Original-tokenizer' : 'New tokenizer'
+      const tokType = tokenizer instanceof HedStringTokenizer ? 'Tokenizer' : 'Original tokenizer'
       const header = `\n[${tokType}](${status})\tSTRING: "${tokenizer.hedString}"`
       const [tagSpecs, groupSpec, tokenizingIssues] = tokenizer.tokenize()
       // Test for no errors
@@ -71,20 +73,19 @@ describe('HED tokenizer validation - validData', () => {
     })
 
     if (tests && tests.length > 0) {
-      test.each(tests)('NewTokenizer: Invalid string: %s ', (ex) => {
-        //console.log(ex)
+      test.each(tests)('Tokenizer: Invalid string: %s ', (ex) => {
+        stringTokenizer(ex.name, new HedStringTokenizer(ex.string), ex.tagSpecs, ex.groupSpec, ex.explanation, itemLog)
+      })
+
+      test.each(tests)('Original tokenizer: Invalid string: %s ', (ex) => {
         stringTokenizer(
           ex.name,
-          new HedStringTokenizerNew(ex.string),
+          new HedStringTokenizerOld(ex.string),
           ex.tagSpecs,
           ex.groupSpec,
           ex.explanation,
           itemLog,
         )
-      })
-
-      test.each(tests)('Original tokenizer: Invalid string: %s ', (ex) => {
-        stringTokenizer(ex.name, new HedStringTokenizer(ex.string), ex.tagSpecs, ex.groupSpec, ex.explanation, itemLog)
       })
     }
   })

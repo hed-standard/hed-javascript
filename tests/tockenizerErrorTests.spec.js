@@ -6,7 +6,8 @@ import * as hed from '../validator/event'
 import { BidsHedIssue } from '../bids/types/issues'
 import path from 'path'
 import { HedStringTokenizer } from '../parser/tokenizer'
-import { HedStringTokenizerNew } from '../parser/tokenizerNew'
+import { HedStringTokenizerOld } from '../parser/tokenizerOld'
+//import { HedStringTokenizerNew } from '../parser/tokenizerNew'
 import { generateIssue, IssueError } from '../common/issues/issues'
 import { errorTests } from './tokenizerErrorData'
 const displayLog = process.env.DISPLAY_LOG === 'true'
@@ -70,7 +71,7 @@ describe('HED tokenizer validation using JSON tests', () => {
 
     const stringTokenizer = function (eHedCode, eCode, eName, tokenizer, expectError, iLog) {
       const status = expectError ? 'Expect fail' : 'Expect pass'
-      const tokType = tokenizer instanceof HedStringTokenizer ? 'Original-tokenizer' : 'New tokenizer'
+      const tokType = tokenizer instanceof HedStringTokenizer ? 'New tokenizer' : 'Original tokenizer'
       const header = `\n[${eHedCode} ${eName} ${tokType}](${status})\tSTRING: "${tokenizer.hedString}"`
       const [tagSpecs, groupBounds, tokenizingIssues] = tokenizer.tokenize()
       const issues = Object.values(tokenizingIssues).flat()
@@ -88,11 +89,11 @@ describe('HED tokenizer validation using JSON tests', () => {
     if (tests && tests.length > 0) {
       test.each(tests)('NewTokenizer: Invalid string: %s ', (ex) => {
         //console.log(ex)
-        stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizerNew(ex.string), true, itemLog)
+        stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizer(ex.string), true, itemLog)
       })
 
       test.each(tests)('Original tokenizer: Invalid string: %s ', (ex) => {
-        stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizer(ex.string), true, itemLog)
+        stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizerOld(ex.string), true, itemLog)
       })
     }
   })
