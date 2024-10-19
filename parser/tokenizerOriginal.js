@@ -98,7 +98,7 @@ class ColumnSpliceSpec extends SubstringSpec {
 /**
  * Class for tokenizing HED strings.
  */
-export class HedStringTokenizerOld {
+export class HedStringTokenizerOriginal {
   /**
    * The HED string being parsed.
    * @type {string}

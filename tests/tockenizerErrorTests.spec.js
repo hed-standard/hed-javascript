@@ -6,7 +6,7 @@ import * as hed from '../validator/event'
 import { BidsHedIssue } from '../bids/types/issues'
 import path from 'path'
 import { HedStringTokenizer } from '../parser/tokenizer'
-import { HedStringTokenizerOld } from '../parser/tokenizerOld'
+import { HedStringTokenizerOriginal } from '../parser/tokenizerOriginal'
 //import { HedStringTokenizerNew } from '../parser/tokenizerNew'
 import { generateIssue, IssueError } from '../common/issues/issues'
 import { errorTests } from './tokenizerErrorData'
@@ -93,7 +93,7 @@ describe('HED tokenizer validation using JSON tests', () => {
       })
 
       test.each(tests)('Original tokenizer: Invalid string: %s ', (ex) => {
-        stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizerOld(ex.string), true, itemLog)
+        stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizerOriginal(ex.string), true, itemLog)
       })
     }
   })

@@ -113,16 +113,11 @@ class TokenizerState {
     this.currentToken = '' // Characters in the token currently being parsed
     this.groupDepth = 0
     this.startingIndex = 0 // Starting index of this token
-    this.resetIndexFlag = false
-    this.slashFound = false
-    this.commaFound = false // A comma is hanging there -- if there is nothing else coming, it is a problem
+    this.lastDelimiter = [undefined, -1] // Type and position of the last delimiter
     this.librarySchema = ''
-    this.columnSpliceIndex = -1 //Index of { if this token is column splice
+    this.lastSlash = -1 // Position of the last slash in current token
     this.currentGroupStack = [[]]
     this.parenthesesStack = []
-    this.ignoringCharacters = false // If we encounter error in a token, we want to just skip until we can recover.
-    this.closingGroup = false
-    // this.closingColumn = false
   }
 }
 
@@ -132,7 +127,7 @@ class TokenizerState {
 export class HedStringTokenizer {
   constructor(hedString) {
     this.hedString = hedString
-    this.syntaxIssues = []
+    this.issues = []
     this.state = null
   }
 
@@ -146,80 +141,58 @@ export class HedStringTokenizer {
 
     for (let i = 0; i < this.hedString.length; i++) {
       const character = this.hedString.charAt(i)
-      this.tokenizeCharacter(i, character)
-      if (this.state.resetIndexFlag) {
-        this.state.resetIndexFlag = false
-        this.state.startingIndex = i + 1
-        this.state.currentToken = ''
+      this.handleCharacter(i, character)
+      //this.tokenizeCharacter(i, character)
+      if (this.issues.length > 0) {
+        return [null, null, this.issues]
       }
     }
-    this.pushTag(this.hedString.length, true)
-
-    if (this.state.columnSpliceIndex >= 0) {
-      this.pushIssue('unclosedCurlyBrace', this.state.columnSpliceIndex)
+    this.finalizeTokenizer()
+    if (this.issues.length > 0) {
+      return [null, null, this.issues]
+    } else {
+      return [this.state.currentGroupStack.pop(), this.state.parenthesesStack.pop(), []]
     }
+  }
 
-    this.unwindGroupStack()
+  resetToken(i) {
+    this.state.startingIndex = i + 1
+    this.state.currentToken = ''
+    this.state.librarySchema = ''
+    this.state.lastSlash = '-1'
+  }
 
-    const tagSpecs = this.state.currentGroupStack.pop()
-    const groupSpecs = this.state.parenthesesStack.pop()
-    const issues = {
-      syntax: this.syntaxIssues,
-      conversion: [],
+  finalizeTokenizer() {
+    if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
+      // Extra opening brace
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
+    } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_GROUP) {
+      // Extra opening parenthesis
+      this.pushIssue('unclosedParentheses', this.state.lastDelimiter[1])
+    } else if (
+      this.state.lastDelimiter[0] === CHARACTERS.COMMA &&
+      this.hedString.slice(this.state.lastDelimiter[1] + 1).trim().length === 0
+    ) {
+      this.pushIssue('emptyTagFound', this.state.lastDelimiter[1]) // Extra comma
+    } else {
+      this.unwindGroupStack()
     }
-    return [tagSpecs, groupSpecs, issues]
   }
 
   initializeTokenizer() {
-    this.syntaxIssues = []
+    this.issues = []
     this.state = new TokenizerState()
     this.state.parenthesesStack = [new GroupSpec(0, this.hedString.length, [])]
-  }
-
-  tokenizeCharacter(i, character) {
-    if (this.state.ignoringCharacters) {
-      this.handleIgnoringCharacters(i, character)
-    } else {
-      this.handleCharacter(i, character)
-    }
-  }
-
-  handleIgnoringCharacters(i, character) {
-    // We have encountered a parsing error on this token and want to ignore until the next token.
-    const characterHandler = {
-      [CHARACTERS.CLOSING_GROUP]: () => {
-        this.clearToken()
-        this.handleClosingGroup(i)
-      },
-      [CHARACTERS.COMMA]: () => {
-        this.clearToken()
-        this.handleClosingGroup(i)
-      },
-    }[character]
-
-    if (characterHandler) {
-      characterHandler()
-    }
   }
 
   handleCharacter(i, character) {
     const characterHandler = {
       [CHARACTERS.OPENING_GROUP]: () => this.handleOpeningGroup(i),
-      [CHARACTERS.CLOSING_GROUP]: () => {
-        this.pushTag(i, false)
-        this.handleClosingGroup(i)
-      },
+      [CHARACTERS.CLOSING_GROUP]: () => this.handleClosingGroup(i),
       [CHARACTERS.OPENING_COLUMN]: () => this.handleOpeningColumn(i),
-      [CHARACTERS.CLOSING_COLUMN]: () => {
-        this.pushTag(i)
-        this.handleClosingColumn(i)
-      },
-      [CHARACTERS.COMMA]: () => {
-        this.state.commaFound = true
-        this.pushTag(i, false)
-        this.state.closingColumn = false
-      },
-      [CHARACTERS.COLON]: () => this.handleColon(character),
+      [CHARACTERS.CLOSING_COLUMN]: () => this.handleClosingColumn(i),
+      [CHARACTERS.COMMA]: () => this.handleComma(i),
+      [CHARACTERS.COLON]: () => this.handleColon(i),
       [CHARACTERS.SLASH]: () => this.handleSlash(i),
     }[character] // Selects the character handler based on the value of character
 
@@ -228,95 +201,102 @@ export class HedStringTokenizer {
     } else if (invalidCharacters.has(character)) {
       this.pushInvalidCharacterIssue(character, i)
     } else {
-      this.handleRegularCharacter(character)
-    }
-  }
-
-  handleOpeningGroup(i) {
-    this.state.currentGroupStack.push([])
-    this.state.parenthesesStack.push(new GroupSpec(i, undefined, []))
-    this.state.resetIndexFlag = true
-    this.state.commaFound = false
-    this.state.groupDepth++
-  }
-
-  handleClosingGroup(i) {
-    this.state.closingGroup = true
-    // If the group depth is <= 0, it means there's no corresponding opening group.
-    if (this.state.groupDepth <= 0) {
-      this.pushIssue('unopenedParenthesis', i)
-      return
-    }
-    // Close the group by updating its bounds and moving it to the parent group.
-    this.closeGroup(i)
-    this.commaFound = false
-  }
-
-  handleOpeningColumn(i) {
-    // We're already in the middle of a token -- can't have an opening brace
-    if (this.state.currentToken.trim().length > 0) {
-      this.pushInvalidCharacterIssue(CHARACTERS.OPENING_COLUMN, i)
-      this.state.ignoringCharacters = true
-      return
-    }
-    if (this.state.columnSpliceIndex >= 0) {
-      this.pushIssue('nestedCurlyBrace', i)
-    }
-    this.state.columnSpliceIndex = i
-    this.state.commaFound = false
-  }
-
-  handleClosingColumn(i) {
-    // If a column splice is not in progress push an issue indicating an unopened curly brace.
-    if (this.state.columnSpliceIndex < 0) {
-      this.pushIssue('unopenedCurlyBrace', i)
-      return
-    }
-    // Ensure that column slice is not empty
-    if (!this.state.currentToken) {
-      this.pushIssue('emptyCurlyBrace', i)
-      return
-    }
-
-    // Close the column by updating its bounds and moving it to the parent group, push a column splice on the stack.
-    this.state.currentGroupStack[this.state.groupDepth].push(
-      new ColumnSpliceSpec(this.state.currentToken.trim(), this.state.startingIndex, i),
-    )
-    this.state.columnSpliceIndex = -1
-    this.clearToken()
-    this.state.closingColumn = true // Used to indicate that
-    this.state.commaFound = false
-  }
-
-  handleColon(character) {
-    if (!this.state.slashFound && !this.state.librarySchema) {
-      this.state.librarySchema = this.state.currentToken
-      this.state.resetIndexFlag = true
-    } else {
       this.state.currentToken += character
-      this.state.slashFound = false
+    }
+  }
+
+  handleComma(i) {
+    if (
+      this.state.lastDelimiter[0] === CHARACTERS.COMMA &&
+      this.hedString.slice(this.state.lastDelimiter[1] + 1, i).trim().length === 0
+    ) {
+      this.pushIssue('emptyTagFound', this.state.lastDelimiter[1]) // Check for empty group between commas
+    } else if (
+      this.state.currentToken.trim().length === 0 &&
+      [CHARACTERS.CLOSING_GROUP, CHARACTERS.CLOSING_COLUMN].includes(this.state.lastDelimiter[0])
+    ) {
+      this.resetToken(i)
+    } else {
+      this.pushTag(i)
+      this.state.lastDelimiter = [CHARACTERS.COMMA, i]
     }
   }
 
   handleSlash(i) {
-    if (!this.state.currentToken.trim() || this.state.slashFound) {
-      // Leading slash is error -- ignore rest of the token
+    const afterLastSlash = this.state.lastSlash === -1 ? 0 : this.state.lastSlash + 1
+    if (this.hedString.slice(afterLastSlash, i).trim().length === 0) {
       this.pushIssue('extraSlash', i)
-      this.state.ignoringCharacters = true
     } else {
-      this.state.slashFound = true
       this.state.currentToken += CHARACTERS.SLASH
+      this.state.lastSlash = i
     }
   }
 
-  handleRegularCharacter(character) {
-    // if (character != CHARACTERS.BLANK && this.state.closingColumn) {
-    //   this.pushIssue('unparsedCurlyBraces', i)
-    // }
-    if (!this.state.ignoringCharacters) {
-      this.state.currentToken += character
-      this.state.slashFound = false
-      this.state.resetIndexFlag = this.state.currentToken === ''
+  handleOpeningGroup(i) {
+    if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
+    } else {
+      this.state.currentGroupStack.push([])
+      this.state.parenthesesStack.push(new GroupSpec(i, undefined, []))
+      this.resetToken(i)
+      this.state.groupDepth++
+      this.state.lastDelimiter = [CHARACTERS.OPENING_GROUP, i]
+    }
+  }
+
+  handleClosingGroup(i) {
+    if (this.state.currentToken.trim().length > 0) {
+      // only push a tag if it has length > 0. Empty groups are allowed.
+      this.pushTag(i)
+    }
+    if (this.state.groupDepth <= 0) {
+      // If the group depth is <= 0, it means there's no corresponding opening group.
+      this.pushIssue('unopenedParenthesis', i)
+    } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
+    } else {
+      // Close the group by updating its bounds and moving it to the parent group.
+      this.closeGroup(i)
+      this.state.lastDelimiter = [CHARACTERS.CLOSING_GROUP, i]
+    }
+  }
+
+  handleOpeningColumn(i) {
+    if (this.state.currentToken.trim().length > 0) {
+      // In the middle of a token -- can't have an opening brace
+      this.pushInvalidCharacterIssue(CHARACTERS.OPENING_COLUMN, i)
+    } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
+      //
+      this.pushIssue('nestedCurlyBrace', i)
+    } else {
+      this.state.lastDelimiter = [CHARACTERS.OPENING_COLUMN, i]
+    }
+  }
+
+  handleClosingColumn(i) {
+    if (this.state.lastDelimiter !== CHARACTERS.OPENING_COLUMN) {
+      // Column splice not in progress
+      this.pushIssue('unopenedCurlyBrace', i)
+    } else if (!this.state.currentToken.trim()) {
+      // Ensure that column slice is not empty
+      this.pushIssue('emptyCurlyBrace', i)
+    } else {
+      // Close column by updating bounds and moving it to the parent group, push a column splice on the stack.
+      this.state.currentGroupStack[this.state.groupDepth].push(
+        new ColumnSpliceSpec(this.state.currentToken.trim(), this.state.startingIndex, i),
+      )
+      this.resetToken(i)
+      this.state.lastDelimiter = [CHARACTERS.CLOSING_COLUMN, i]
+    }
+  }
+
+  handleColon(i) {
+    if (!this.state.librarySchema) {
+      // If colon has not been seen, it is a library. Ignore other colons.
+      this.state.librarySchema = this.state.currentToken
+      this.resetToken(i)
+    } else {
+      this.state.currentToken += CHARACTERS.COLON
     }
   }
 
@@ -330,29 +310,15 @@ export class HedStringTokenizer {
     }
   }
 
-  pushTag(i, isEndOfString) {
+  pushTag(i) {
     // Called when a token has been parsed
     const token = this.state.currentToken.trim()
-    if (!token && isEndOfString) {
-      // If empty token at end of string just return.
-      if (this.state.commaFound) {
-        this.pushIssue('emptyTagFound', i)
-      }
-      return
-    }
-    // If we're in the process of closing a group, reset the closingGroup flag (allows for empty groups)
-    if (this.state.closingGroup) {
-      // Empty groups are allowed.
-      this.state.closingGroup = false
-    } else if (this.state.slashFound) {
-      //Trailing token slash is an error
-      this.pushIssue('extraSlash', i)
-    } else if (!token) {
-      // Column spec has already been called.
+    if (!token) {
+      // Empty tokens cannot be pushed
       this.pushIssue('emptyTagFound', i)
-    } else if (this.state.columnSpliceIndex < 0) {
-      // Not a column splice so goes on group stack as a TagSpec
-      this.checkValueTagForInvalidCharacters()
+    } else if (token.startsWith(CHARACTERS.SLASH) || token.endsWith(CHARACTERS.SLASH)) {
+      this.pushIssue('extraSlash', this.state.startingIndex)
+    } else {
       const bounds = getTrimmedBounds(this.state.currentToken)
       this.state.currentGroupStack[this.state.groupDepth].push(
         new TagSpec(
@@ -362,17 +328,8 @@ export class HedStringTokenizer {
           this.state.librarySchema,
         ),
       )
+      this.resetToken(i)
     }
-    // Clear the current token and reset flags for the next iteration.
-    this.clearToken()
-  }
-
-  clearToken() {
-    this.state.ignoringCharacters = false
-    this.state.resetIndexFlag = true
-    this.state.slashFound = false
-    this.state.librarySchema = ''
-    this.state.closingColumn = false
   }
 
   closeGroup(i) {
@@ -381,7 +338,7 @@ export class HedStringTokenizer {
     this.state.parenthesesStack[this.state.groupDepth - 1].children.push(groupSpec)
     this.state.currentGroupStack[this.state.groupDepth - 1].push(this.state.currentGroupStack.pop())
     this.state.groupDepth--
-    //this.closingColumn = false
+    this.resetToken(i)
   }
 
   checkValueTagForInvalidCharacters() {
@@ -395,16 +352,12 @@ export class HedStringTokenizer {
   }
 
   pushIssue(issueCode, index) {
-    this.syntaxIssues.push(generateIssue(issueCode, { index, string: this.hedString }))
+    this.issues.push(generateIssue(issueCode, { index, string: this.hedString }))
   }
 
   pushInvalidCharacterIssue(character, index) {
-    this.syntaxIssues.push(
-      generateIssue('invalidCharacter', {
-        character: unicodeName(character),
-        index,
-        string: this.hedString,
-      }),
+    this.issues.push(
+      generateIssue('invalidCharacter', { character: unicodeName(character), index, string: this.hedString }),
     )
   }
 }
