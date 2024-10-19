@@ -14,15 +14,19 @@ import ColumnSplicer from '../parser/columnSplicer'
 import ParsedHedGroup from '../parser/parsedHedGroup'
 import { HedStringTokenizer } from '../parser/tokenizer'
 import { HedStringTokenizerOld } from '../parser/tokenizerOld'
+import { HedStringTokenizerNew } from '../parser/tokenizerNew'
 
 describe('HED string parsing', () => {
   it('should include each group as its own single element', () => {
-    //const hedString = "Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,Action/Move/Bend,Upper-extremity/Elbow),Position/X-position/70 px,Position/Y-position/23 px"
+    const hedString =
+      'Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,Action/Move/Bend,Upper-extremity/Elbow),Position/X-position/70 px,Position/Y-position/23 px'
     //const hedString = 'x/y w/z'
-    const hedString = '(r,z)'
+    //const hedString = '(r,z)'
     //const hedString = 'r,'
     //const hedString = 'r,y'
-    const tok = new HedStringTokenizer(hedString)
+    //const hedString = 'r'
+    //const hedString = '(r),p'
+    const tok = new HedStringTokenizerNew(hedString)
     const [tagSpecs, groupBounds, tokenizingIssues] = tok.tokenize()
     assert.isEmpty(Object.values(tokenizingIssues).flat(), 'Parsing issues occurred')
     //const hedString = 'Action/Move/My-flex,(Relation/Spatial-relation/Left-side-of,Action/Move/My-bend,Upper-extremity/My-elbow),Position/X-position/70 m,Position/Y-position/23 m'
