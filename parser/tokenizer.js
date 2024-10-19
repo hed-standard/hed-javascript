@@ -174,6 +174,8 @@ export class HedStringTokenizer {
       this.hedString.slice(this.state.lastDelimiter[1] + 1).trim().length === 0
     ) {
       this.pushIssue('emptyTagFound', this.state.lastDelimiter[1]) // Extra comma
+    } else if (this.state.lastSlash >= 0 && this.hedString.slice(this.state.lastSlash + 1).trim().length === 0) {
+      this.pushIssue('extraSlash', this.state.lastSlash) // Extra slash
     } else {
       this.unwindGroupStack()
     }
@@ -223,9 +225,15 @@ export class HedStringTokenizer {
   }
 
   handleSlash(i) {
-    const afterLastSlash = this.state.lastSlash === -1 ? 0 : this.state.lastSlash + 1
-    if (this.hedString.slice(afterLastSlash, i).trim().length === 0) {
+    if (this.hedString.slice(0, i).trim().length === 0) {
+      // Slash at beginning of tag.
       this.pushIssue('extraSlash', i)
+    } else if (this.state.lastSlash >= 0 && this.hedString.slice(this.state.lastSlash + 1, i).trim().length === 0) {
+      this.pushIssue('extraSlash', i)
+    } else if (i > 0 && this.hedString.charAt(i - 1) === CHARACTERS.BLANK) {
+      this.pushIssue('extraBlank', i - 1)
+    } else if (i < this.hedString.length - 1 && this.hedString.charAt(i + 1) === CHARACTERS.BLANK) {
+      this.pushIssue('extraBlank', i + 1)
     } else {
       this.state.currentToken += CHARACTERS.SLASH
       this.state.lastSlash = i
