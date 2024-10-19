@@ -87,12 +87,11 @@ describe('HED tokenizer validation using JSON tests', () => {
     })
 
     if (tests && tests.length > 0) {
-      test.each(tests)('NewTokenizer: Invalid string: %s ', (ex) => {
-        //console.log(ex)
+      test.each(tests)('Tokenizer: %s ', (ex) => {
         stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizer(ex.string), true, itemLog)
       })
 
-      test.each(tests)('Original tokenizer: Invalid string: %s ', (ex) => {
+      test.each(tests)('Original tokenizer: %s ', (ex) => {
         stringTokenizer(ex.hedCode, ex.code, ex.name, new HedStringTokenizerOriginal(ex.string), true, itemLog)
       })
     }

@@ -6,7 +6,7 @@ import * as hed from '../validator/event'
 import { BidsHedIssue } from '../bids/types/issues'
 import path from 'path'
 //import { HedStringTokenizer } from '../parser/tokenizer'
-import { HedStringTokenizerOld } from '../parser/tokenizerOld'
+import { HedStringTokenizerOriginal } from '../parser/tokenizerOriginal'
 import { TagSpec, GroupSpec, ColumnSpliceSpec, HedStringTokenizer } from '../parser/tokenizer'
 //import { TagSpec, GroupSpec, ColumnSpliceSpec, HedStringTokenizer } from '../parser/tokenizerNew'
 import { generateIssue, IssueError } from '../common/issues/issues'
@@ -73,14 +73,14 @@ describe('HED tokenizer validation - validData', () => {
     })
 
     if (tests && tests.length > 0) {
-      test.each(tests)('Tokenizer: Invalid string: %s ', (ex) => {
+      test.each(tests)('Tokenizer: %s ', (ex) => {
         stringTokenizer(ex.name, new HedStringTokenizer(ex.string), ex.tagSpecs, ex.groupSpec, ex.explanation, itemLog)
       })
 
-      test.each(tests)('Original tokenizer: Invalid string: %s ', (ex) => {
+      test.each(tests)('Original tokenizer: %s ', (ex) => {
         stringTokenizer(
           ex.name,
-          new HedStringTokenizerOld(ex.string),
+          new HedStringTokenizerOriginal(ex.string),
           ex.tagSpecs,
           ex.groupSpec,
           ex.explanation,

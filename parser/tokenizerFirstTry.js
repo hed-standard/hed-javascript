@@ -129,7 +129,7 @@ class TokenizerState {
 /**
  * Class for tokenizing HED strings.
  */
-export class HedStringTokenizer {
+export class HedStringTokenizerFirstTry {
   constructor(hedString) {
     this.hedString = hedString
     this.syntaxIssues = []

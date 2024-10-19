@@ -27,8 +27,9 @@ describe('HED string parsing', () => {
     //const hedString = 'r'
     //const hedString = '(r),p'
     //const hedString = '/x'
-    const hedString = 'x/ /y'
+    //const hedString = 'x/ /y'
     //const hedString = 'x/'
+    const hedString = 'x'
     const tok = new HedStringTokenizer(hedString)
     const [tagSpecs, groupBounds, tokenizingIssues] = tok.tokenize()
     assert.isEmpty(Object.values(tokenizingIssues).flat(), 'Parsing issues occurred')

@@ -138,7 +138,11 @@ export class HedStringTokenizer {
    */
   tokenize() {
     this.initializeTokenizer()
-
+    // Empty strings cannot be tokenized
+    if (this.hedString.trim().length === 0) {
+      this.pushIssue('emptyTagFound', 0)
+      return [null, null, this.issues]
+    }
     for (let i = 0; i < this.hedString.length; i++) {
       const character = this.hedString.charAt(i)
       this.handleCharacter(i, character)
@@ -177,6 +181,9 @@ export class HedStringTokenizer {
     } else if (this.state.lastSlash >= 0 && this.hedString.slice(this.state.lastSlash + 1).trim().length === 0) {
       this.pushIssue('extraSlash', this.state.lastSlash) // Extra slash
     } else {
+      if (this.state.currentToken.trim().length > 0) {
+        this.pushTag(this.hedString.length)
+      }
       this.unwindGroupStack()
     }
   }
@@ -229,11 +236,15 @@ export class HedStringTokenizer {
       // Slash at beginning of tag.
       this.pushIssue('extraSlash', i)
     } else if (this.state.lastSlash >= 0 && this.hedString.slice(this.state.lastSlash + 1, i).trim().length === 0) {
-      this.pushIssue('extraSlash', i)
+      this.pushIssue('extraSlash', i) // Slashes with only blanks between
     } else if (i > 0 && this.hedString.charAt(i - 1) === CHARACTERS.BLANK) {
+      // Blank before slash
       this.pushIssue('extraBlank', i - 1)
     } else if (i < this.hedString.length - 1 && this.hedString.charAt(i + 1) === CHARACTERS.BLANK) {
+      //Blank after
       this.pushIssue('extraBlank', i + 1)
+    } else if (this.hedString.slice(i).trim().length === 0) {
+      this.pushIssue('extraSlash', this.state.startingIndex)
     } else {
       this.state.currentToken += CHARACTERS.SLASH
       this.state.lastSlash = i
@@ -319,13 +330,9 @@ export class HedStringTokenizer {
   }
 
   pushTag(i) {
-    // Called when a token has been parsed
-    const token = this.state.currentToken.trim()
-    if (!token) {
-      // Empty tokens cannot be pushed
+    if (this.state.currentToken.trim().length == 0) {
       this.pushIssue('emptyTagFound', i)
-    } else if (token.startsWith(CHARACTERS.SLASH) || token.endsWith(CHARACTERS.SLASH)) {
-      this.pushIssue('extraSlash', this.state.startingIndex)
+      return
     } else {
       const bounds = getTrimmedBounds(this.state.currentToken)
       this.state.currentGroupStack[this.state.groupDepth].push(
@@ -346,7 +353,7 @@ export class HedStringTokenizer {
     this.state.parenthesesStack[this.state.groupDepth - 1].children.push(groupSpec)
     this.state.currentGroupStack[this.state.groupDepth - 1].push(this.state.currentGroupStack.pop())
     this.state.groupDepth--
-    this.resetToken(i)
+    //this.resetToken(i)
   }
 
   checkValueTagForInvalidCharacters() {
