@@ -141,21 +141,21 @@ export class HedStringTokenizer {
     // Empty strings cannot be tokenized
     if (this.hedString.trim().length === 0) {
       this.pushIssue('emptyTagFound', 0)
-      return [null, null, this.issues]
+      return [null, null, { syntax: this.issues }]
     }
     for (let i = 0; i < this.hedString.length; i++) {
       const character = this.hedString.charAt(i)
       this.handleCharacter(i, character)
       //this.tokenizeCharacter(i, character)
       if (this.issues.length > 0) {
-        return [null, null, this.issues]
+        return [null, null, { syntax: this.issues }]
       }
     }
     this.finalizeTokenizer()
     if (this.issues.length > 0) {
-      return [null, null, this.issues]
+      return [null, null, { syntax: this.issues }]
     } else {
-      return [this.state.currentGroupStack.pop(), this.state.parenthesesStack.pop(), []]
+      return [this.state.currentGroupStack.pop(), this.state.parenthesesStack.pop(), { syntax: [] }]
     }
   }
 
@@ -216,10 +216,14 @@ export class HedStringTokenizer {
 
   handleComma(i) {
     if (
+      // Empty token
       this.state.lastDelimiter[0] === CHARACTERS.COMMA &&
       this.hedString.slice(this.state.lastDelimiter[1] + 1, i).trim().length === 0
     ) {
       this.pushIssue('emptyTagFound', this.state.lastDelimiter[1]) // Check for empty group between commas
+    } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
+      // Unclosed curly brace
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
     } else if (
       this.state.currentToken.trim().length === 0 &&
       [CHARACTERS.CLOSING_GROUP, CHARACTERS.CLOSING_COLUMN].includes(this.state.lastDelimiter[0])
@@ -293,16 +297,16 @@ export class HedStringTokenizer {
   }
 
   handleClosingColumn(i) {
-    if (this.state.lastDelimiter !== CHARACTERS.OPENING_COLUMN) {
+    if (this.state.lastDelimiter[0] !== CHARACTERS.OPENING_COLUMN) {
       // Column splice not in progress
       this.pushIssue('unopenedCurlyBrace', i)
     } else if (!this.state.currentToken.trim()) {
-      // Ensure that column slice is not empty
+      // Column slice cannot be empty
       this.pushIssue('emptyCurlyBrace', i)
     } else {
       // Close column by updating bounds and moving it to the parent group, push a column splice on the stack.
       this.state.currentGroupStack[this.state.groupDepth].push(
-        new ColumnSpliceSpec(this.state.currentToken.trim(), this.state.startingIndex, i),
+        new ColumnSpliceSpec(this.state.currentToken.trim(), this.state.lastDelimiter[1], i),
       )
       this.resetToken(i)
       this.state.lastDelimiter = [CHARACTERS.CLOSING_COLUMN, i]
@@ -310,12 +314,15 @@ export class HedStringTokenizer {
   }
 
   handleColon(i) {
-    if (!this.state.librarySchema) {
+    if (this.state.librarySchema || this.state.currentToken.trim().includes(CHARACTERS.BLANK)) {
       // If colon has not been seen, it is a library. Ignore other colons.
-      this.state.librarySchema = this.state.currentToken
-      this.resetToken(i)
-    } else {
       this.state.currentToken += CHARACTERS.COLON
+    } else if (/[^A-Za-z]/.test(this.state.currentToken.trim())) {
+      this.pushIssue('invalidTagPrefix', i)
+    } else {
+      const lib = this.state.currentToken
+      this.resetToken(i)
+      this.state.librarySchema = lib
     }
   }
 
@@ -332,7 +339,6 @@ export class HedStringTokenizer {
   pushTag(i) {
     if (this.state.currentToken.trim().length == 0) {
       this.pushIssue('emptyTagFound', i)
-      return
     } else {
       const bounds = getTrimmedBounds(this.state.currentToken)
       this.state.currentGroupStack[this.state.groupDepth].push(

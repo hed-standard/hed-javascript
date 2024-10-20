@@ -81,7 +81,6 @@ describe('HED string parsing', () => {
       }
       const expectedIssues = {
         openingSquare: {
-          conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
               character: 'LEFT SQUARE BRACKET',
@@ -91,7 +90,6 @@ describe('HED string parsing', () => {
           ],
         },
         closingSquare: {
-          conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
               character: 'RIGHT SQUARE BRACKET',
@@ -101,7 +99,6 @@ describe('HED string parsing', () => {
           ],
         },
         tilde: {
-          conversion: [],
           syntax: [
             generateIssue('invalidCharacter', {
               character: 'TILDE',
@@ -168,17 +165,28 @@ describe('HED string parsing', () => {
 
     it('should not include blanks', () => {
       const testStrings = {
-        trailingBlank: '/Item/Object/Man-made-object/Vehicle/Car, /Action/Perform/Operate,',
+        okay: 'Item/Object/Man-made-object/Vehicle/Car, Action/Perform/Operate',
+        internalBlank: 'Item /Object',
       }
       const expectedList = [
-        new ParsedHedTag('/Item/Object/Man-made-object/Vehicle/Car', [0, 40]),
-        new ParsedHedTag('/Action/Perform/Operate', [42, 65]),
+        new ParsedHedTag('Item/Object/Man-made-object/Vehicle/Car', [0, 39]),
+        new ParsedHedTag('Action/Perform/Operate', [41, 63]),
       ]
       const expectedResults = {
-        trailingBlank: expectedList,
+        okay: expectedList,
+        internalBlank: [],
       }
       const expectedIssues = {
-        trailingBlank: {},
+        okay: {},
+        internalBlank: {
+          syntax: [
+            generateIssue('invalidCharacter', {
+              character: 'RIGHT SQUARE BRACKET',
+              index: 56,
+              string: testStrings.closingSquare,
+            }),
+          ],
+        },
       }
       validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
         return splitHedString(string, nullSchema)
