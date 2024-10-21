@@ -152,7 +152,7 @@ describe('BIDS datasets', () => {
       const maglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
       const expectedIssues = {
-        //all_good: [],
+        all_good: [],
         all_bad: [
           BidsHedIssue.fromHedIssue(cloneDeep(speedIssue), badDatasets[0].file, { tsvLine: 2 }),
           BidsHedIssue.fromHedIssue(cloneDeep(maglevWarning), badDatasets[1].file, { tsvLine: 2 }),
@@ -577,15 +577,8 @@ describe('BIDS datasets', () => {
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', {
-              column: 'response_time',
+              column: 'event_code',
               referrer: 'event_type',
-            }),
-            standaloneSidecars[7].file,
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('recursiveCurlyBracesWithKey', {
-              column: 'response_time',
-              referrer: 'event_code',
             }),
             standaloneSidecars[7].file,
           ),

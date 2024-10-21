@@ -340,7 +340,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow)), {HED}',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '(Def/Acc/3.5 m-per-s^2)',
           dog: 'Orange, {event_type}',
         },
       },
@@ -352,7 +352,7 @@ const sidecars = [
       },
       event_type: {
         HED: {
-          banana: 'Blue, {response_time}',
+          banana: 'Blue, {event_code}',
           apple: 'Green',
         },
       },

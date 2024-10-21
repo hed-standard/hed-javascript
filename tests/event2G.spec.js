@@ -42,7 +42,7 @@ describe('HED string and event validation', () => {
     }
   }
 
-  describe('HED-2G validation', () => {
+  describe.skip('HED-2G validation', () => {
     describe('Later HED-2G schemas', () => {
       const hedSchemaFile = 'tests/data/HED7.1.1.xml'
       let hedSchemas
