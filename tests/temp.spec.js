@@ -14,7 +14,6 @@ import ColumnSplicer from '../parser/columnSplicer'
 import ParsedHedGroup from '../parser/parsedHedGroup'
 import { HedStringTokenizer } from '../parser/tokenizer'
 import { HedStringTokenizerOriginal } from '../parser/tokenizerOriginal'
-import { HedStringTokenizerFirstTry } from '../parser/tokenizerFirstTry'
 
 describe('HED string parsing', () => {
   it('should include each group as its own single element', () => {
@@ -29,7 +28,10 @@ describe('HED string parsing', () => {
     //const hedString = '/x'
     //const hedString = 'x/ /y'
     //const hedString = 'x/'
-    const hedString = 'x:z'
+    //const hedString = '((x))'
+    //const hedString = '((xy))'
+    //const hedString = '((xy), ( h:p, ((q, r ))), g), h,'
+    const hedString = '((xy), g), h'
     const tok = new HedStringTokenizer(hedString)
     const [tagSpecs, groupBounds, tokenizingIssues] = tok.tokenize()
     assert.isEmpty(Object.values(tokenizingIssues).flat(), 'Parsing issues occurred')

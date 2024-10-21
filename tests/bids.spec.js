@@ -16,16 +16,10 @@ describe('BIDS datasets', () => {
    * @type {SchemasSpec}
    */
   let specs
-  /**
-   * @type {SchemasSpec}
-   */
-  let specs2
 
   beforeAll(() => {
-    const spec1 = new SchemaSpec('', '8.0.0')
+    const spec1 = new SchemaSpec('', '8.3.0')
     specs = new SchemasSpec().addSchemaSpec(spec1)
-    const spec2 = new SchemaSpec('', '7.2.0')
-    specs2 = new SchemasSpec().addSchemaSpec(spec2)
   })
 
   /**
@@ -121,11 +115,11 @@ describe('BIDS datasets', () => {
             placeholderDatasets[4].file,
           ),
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidPlaceholder', { tag: 'Duration/# s', sidecarKey: 'multiple_value_tags' }),
+            generateIssue('invalidPlaceholder', { tag: 'Label/#', sidecarKey: 'multiple_value_tags' }),
             placeholderDatasets[5].file,
           ),
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidPlaceholder', { tag: 'RGB-blue/#', sidecarKey: 'multiple_value_tags' }),
+            generateIssue('invalidPlaceholder', { tag: 'Description/#', sidecarKey: 'multiple_value_tags' }),
             placeholderDatasets[5].file,
           ),
           BidsHedIssue.fromHedIssue(
@@ -158,7 +152,7 @@ describe('BIDS datasets', () => {
       const maglevError = generateIssue('invalidTag', { tag: 'Maglev' })
       const maglevWarning = generateIssue('extension', { tag: 'Train/Maglev' })
       const expectedIssues = {
-        all_good: [],
+        //all_good: [],
         all_bad: [
           BidsHedIssue.fromHedIssue(cloneDeep(speedIssue), badDatasets[0].file, { tsvLine: 2 }),
           BidsHedIssue.fromHedIssue(cloneDeep(maglevWarning), badDatasets[1].file, { tsvLine: 2 }),

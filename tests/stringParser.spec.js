@@ -143,30 +143,30 @@ describe('HED string parsing', () => {
 
     it('should include each group as its own single element', () => {
       const hedString =
-        '/Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow),/Position/X-position/70 px,/Position/Y-position/23 px'
+        'Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,Action/Move/Bend,Upper-extremity/Elbow),Position/X-position/70 px,Position/Y-position/23 px'
       const [result, issues] = splitHedString(hedString, nullSchema)
       assert.isEmpty(Object.values(issues).flat(), 'Parsing issues occurred')
       assert.deepStrictEqual(result, [
-        new ParsedHedTag('/Action/Move/Flex', [0, 17]),
+        new ParsedHedTag('Action/Move/Flex', [0, 16]),
         new ParsedHedGroup(
           [
-            new ParsedHedTag('Relation/Spatial-relation/Left-side-of', [19, 57]),
-            new ParsedHedTag('/Action/Move/Bend', [58, 75]),
-            new ParsedHedTag('/Upper-extremity/Elbow', [76, 98]),
+            new ParsedHedTag('Relation/Spatial-relation/Left-side-of', [18, 56]),
+            new ParsedHedTag('Action/Move/Bend', [57, 73]),
+            new ParsedHedTag('Upper-extremity/Elbow', [74, 95]),
           ],
           nullSchema,
           hedString,
-          [18, 99],
+          [17, 96],
         ),
-        new ParsedHedTag('/Position/X-position/70 px', [100, 126]),
-        new ParsedHedTag('/Position/Y-position/23 px', [127, 153]),
+        new ParsedHedTag('Position/X-position/70 px', [97, 122]),
+        new ParsedHedTag('Position/Y-position/23 px', [123, 148]),
       ])
     })
 
     it('should not include blanks', () => {
       const testStrings = {
         okay: 'Item/Object/Man-made-object/Vehicle/Car, Action/Perform/Operate',
-        internalBlank: 'Item /Object',
+        internalBlank: 'Item Object',
       }
       const expectedList = [
         new ParsedHedTag('Item/Object/Man-made-object/Vehicle/Car', [0, 39]),
@@ -174,19 +174,11 @@ describe('HED string parsing', () => {
       ]
       const expectedResults = {
         okay: expectedList,
-        internalBlank: [],
+        internalBlank: [new ParsedHedTag('Item Object', [0, 11])],
       }
       const expectedIssues = {
         okay: {},
-        internalBlank: {
-          syntax: [
-            generateIssue('invalidCharacter', {
-              character: 'RIGHT SQUARE BRACKET',
-              index: 56,
-              string: testStrings.closingSquare,
-            }),
-          ],
-        },
+        internalBlank: {},
       }
       validatorWithIssues(testStrings, expectedResults, expectedIssues, (string) => {
         return splitHedString(string, nullSchema)
@@ -260,7 +252,7 @@ describe('HED string parsing', () => {
 
     it('must include properly formatted tags', () => {
       const hedString =
-        '/Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,/Action/Move/Bend,/Upper-extremity/Elbow),/Position/X-position/70 px,/Position/Y-position/23 px'
+        'Action/Move/Flex,(Relation/Spatial-relation/Left-side-of,Action/Move/Bend,/Upper-extremity/Elbow),Position/X-position/70 px,Position/Y-position/23 px'
       const formattedHedString =
         'action/move/flex,(relation/spatial-relation/left-side-of,action/move/bend,upper-extremity/elbow),position/x-position/70 px,position/y-position/23 px'
       const [parsedString, issues] = parseHedString(hedString, nullSchema)

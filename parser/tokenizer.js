@@ -215,24 +215,30 @@ export class HedStringTokenizer {
   }
 
   handleComma(i) {
-    if (
-      // Empty token
-      this.state.lastDelimiter[0] === CHARACTERS.COMMA &&
-      this.hedString.slice(this.state.lastDelimiter[1] + 1, i).trim().length === 0
-    ) {
+    if (this.state.lastDelimiter[0] === undefined && this.hedString.slice(0, i).length === 0) {
+      // Start of string empty
+      this.pushIssue('emptyTagFound', i)
+      return
+    }
+    const trimmed = this.hedString.slice(this.state.lastDelimiter[1] + 1, i).trim()
+    if (this.state.lastDelimiter[0] === CHARACTERS.COMMA && trimmed.length === 0) {
+      // empty token after a previous comma
       this.pushIssue('emptyTagFound', this.state.lastDelimiter[1]) // Check for empty group between commas
     } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
       // Unclosed curly brace
       this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
-    } else if (
-      this.state.currentToken.trim().length === 0 &&
-      [CHARACTERS.CLOSING_GROUP, CHARACTERS.CLOSING_COLUMN].includes(this.state.lastDelimiter[0])
-    ) {
-      this.resetToken(i)
-    } else {
-      this.pushTag(i)
-      this.state.lastDelimiter = [CHARACTERS.COMMA, i]
     }
+    if (
+      [CHARACTERS.CLOSING_GROUP, CHARACTERS.CLOSING_COLUMN].includes(this.state.lastDelimiter[0]) &&
+      trimmed.length > 0
+    ) {
+      this.pushIssue('invalidTag', i, trimmed)
+    } else if (trimmed.length > 0) {
+      this.pushTag(i)
+    } else {
+      this.resetToken(i)
+    }
+    this.state.lastDelimiter = [CHARACTERS.COMMA, i]
   }
 
   handleSlash(i) {
@@ -268,8 +274,7 @@ export class HedStringTokenizer {
   }
 
   handleClosingGroup(i) {
-    if (this.state.currentToken.trim().length > 0) {
-      // only push a tag if it has length > 0. Empty groups are allowed.
+    if ([CHARACTERS.OPENING_GROUP, CHARACTERS.COMMA].includes(this.state.lastDelimiter[0])) {
       this.pushTag(i)
     }
     if (this.state.groupDepth <= 0) {
@@ -320,7 +325,7 @@ export class HedStringTokenizer {
     } else if (/[^A-Za-z]/.test(this.state.currentToken.trim())) {
       this.pushIssue('invalidTagPrefix', i)
     } else {
-      const lib = this.state.currentToken
+      const lib = this.state.currentToken.trimStart()
       this.resetToken(i)
       this.state.librarySchema = lib
     }
@@ -356,6 +361,10 @@ export class HedStringTokenizer {
   closeGroup(i) {
     const groupSpec = this.state.parenthesesStack.pop()
     groupSpec.bounds[1] = i + 1
+    if (this.hedString.slice(groupSpec.bounds[0] + 1, i).trim().length === 0) {
+      //The group is empty
+      this.pushIssue('emptyTagFound', i)
+    }
     this.state.parenthesesStack[this.state.groupDepth - 1].children.push(groupSpec)
     this.state.currentGroupStack[this.state.groupDepth - 1].push(this.state.currentGroupStack.pop())
     this.state.groupDepth--
@@ -374,6 +383,10 @@ export class HedStringTokenizer {
 
   pushIssue(issueCode, index) {
     this.issues.push(generateIssue(issueCode, { index, string: this.hedString }))
+  }
+
+  pushInvalidTag(issueCode, index, tag) {
+    this.issues.push(generateIssue(issueCode, { index, tag: tag, string: this.hedString }))
   }
 
   pushInvalidCharacterIssue(character, index) {
