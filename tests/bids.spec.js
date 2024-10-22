@@ -612,6 +612,7 @@ describe('BIDS datasets', () => {
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('emptyCurlyBrace', {
+              index: 1,
               string: standaloneSidecars[9].hedData.get('event_code4').ball,
             }),
             standaloneSidecars[9].file,

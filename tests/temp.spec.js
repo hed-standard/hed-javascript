@@ -16,7 +16,9 @@ import { HedStringTokenizer } from '../parser/tokenizer'
 import { HedStringTokenizerOriginal } from '../parser/tokenizerOriginal'
 import { BidsEventFile } from '../bids'
 import { BidsSidecar } from '../bids/types/json'
+import { BidsDataset } from '../bids/types/dataset'
 import path from 'path'
+import validate from '../bids/validate'
 
 describe('HED string parsing', () => {
   const schemaMap = new Map([
@@ -61,27 +63,27 @@ describe('HED string parsing', () => {
   it('should validate a sidecar', () => {
     const nameE = '/sub03/su03_task-test_run-1_events.tsv'
     const nameJ = '/sub03/su03_task-test_run-1_events.json'
-    const eventString = 'onset\tduration\n' + '7\t4.0'
+    const eventString = 'onset\tduration\n' + '7\tsomething'
     const schema = schemaMap.get('8.3.0')
     const sidecarObject = {
-      event_code: {
-        HED: {
-          face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, Black',
-        },
-      },
-      response_time: {
-        Description: 'Has description with HED',
-        HED: 'Label/#, {event_code}',
+      valid_definition: {
+        HED: { definition: '(Definition/ValidDefinition, (Square))' },
       },
     }
+
     const bidsSidecar = new BidsSidecar('thisOne', sidecarObject, { relativePath: nameJ, path: nameJ })
     assert(bidsSidecar instanceof BidsSidecar)
-
+    // [sidecars[2][0], 'onset\tduration\n' + '7\tsomething']
     const sidecarIssues = bidsSidecar.validate(schema)
     assert.isEmpty(Object.values(sidecarIssues).flat(), 'Parsing issues occurred')
-    //const bidsEvents = new BidsEventFile("thatOne", [], bidsSidecar, eventString, {relativePath: nameE, path: nameE})
-    //assert.InstanceOf(bidsEvents, BidsEventFile)
+    const bidsEvents = new BidsEventFile('thatOne', [], sidecarObject, eventString, {
+      relativePath: nameE,
+      path: nameE,
+    })
+    assert(bidsEvents instanceof BidsEventFile)
+    const bidsDataset = new BidsDataset([bidsEvents], [bidsSidecar])
+    assert(bidsDataset instanceof BidsDataset)
+    //const issues = validateBidsDataSet()
   })
 })
 
