@@ -176,7 +176,15 @@ describe('BIDS datasets', () => {
         all_bad: new BidsDataset(badDatasets, []),
       }
       const expectedIssues = {
-        all_good: [],
+        all_good: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              tag: 'Boat',
+            }),
+            goodDatasets[0].file,
+            { tsvLine: 5 },
+          ),
+        ],
         all_bad: [
           // BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Confused' }), badDatasets[0].file),
@@ -216,6 +224,13 @@ describe('BIDS datasets', () => {
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
               tag: 'Age/30',
+            }),
+            badDatasets[3].file,
+            { tsvLine: 2 },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Duration/ferry s',
             }),
             badDatasets[3].file,
             { tsvLine: 2 },

@@ -81,7 +81,7 @@ describe('HED tokenizer validation', () => {
     })
   })
 
-  describe.skip('Original tokenizer validation - validData', () => {
+  describe('Original tokenizer validation - validData', () => {
     const badLog = []
     let totalTests = 0
     let unexpectedErrors = 0

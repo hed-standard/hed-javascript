@@ -82,6 +82,10 @@ export class BidsHedTsvValidator {
    * @private
    */
   _validateHedColumn() {
+    if (this.tsvFile.hedColumnHedStrings.length === 0) {
+      // no HED column strings to validate
+      return []
+    }
     return this.tsvFile.hedColumnHedStrings.flatMap((hedString, rowIndexMinusTwo) =>
       this._validateHedColumnString(hedString, rowIndexMinusTwo + 2),
     )
@@ -230,13 +234,14 @@ export class BidsHedTsvParser {
    */
   _parseHedRows(tsvHedRows) {
     const hedStrings = []
-
-    tsvHedRows.forEach((row, index) => {
-      const hedString = this._parseHedRow(row, index + 2)
-      if (hedString !== null) {
-        hedStrings.push(hedString)
-      }
-    })
+    if (tsvHedRows.size > 0) {
+      tsvHedRows.forEach((row, index) => {
+        const hedString = this._parseHedRow(row, index + 2)
+        if (hedString !== null) {
+          hedStrings.push(hedString)
+        }
+      })
+    }
     return hedStrings
   }
 
@@ -248,13 +253,15 @@ export class BidsHedTsvParser {
    * @private
    */
   _mergeEventRows(rowStrings) {
-    const groupedTsvRows = groupBy(rowStrings, (rowString) => rowString.onset)
-    const sortedOnsetTimes = Array.from(groupedTsvRows.keys()).sort((a, b) => a - b)
     const eventStrings = []
-    for (const onset of sortedOnsetTimes) {
-      const onsetRows = groupedTsvRows.get(onset)
-      const onsetEventString = new BidsTsvEvent(this.tsvFile, onsetRows)
-      eventStrings.push(onsetEventString)
+    if (rowStrings.length > 0) {
+      const groupedTsvRows = groupBy(rowStrings, (rowString) => rowString.onset)
+      const sortedOnsetTimes = Array.from(groupedTsvRows.keys()).sort((a, b) => a - b)
+      for (const onset of sortedOnsetTimes) {
+        const onsetRows = groupedTsvRows.get(onset)
+        const onsetEventString = new BidsTsvEvent(this.tsvFile, onsetRows)
+        eventStrings.push(onsetEventString)
+      }
     }
     return eventStrings
   }

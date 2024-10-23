@@ -89,7 +89,7 @@ describe('Tokenizer validation using JSON tests', () => {
   })
 })
 
-describe.skip('Original tokenizer validation using JSON tests', () => {
+describe('Original tokenizer validation using JSON tests', () => {
   const badLog = []
   let totalTests = 0
   let wrongErrors = 0
