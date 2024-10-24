@@ -127,10 +127,10 @@ describe('BIDS validation', () => {
       assert(parsedTsv instanceof Map, `${eventName} cannot be parsed`)
 
       // Validate the events file by itself
-      // const bidsTsv = new BidsTsvFile(test.name, parsedTsv, { relativePath: eventName }, [], {})
-      // const validator = new BidsHedTsvValidator(bidsTsv, thisSchema)
-      // validator.validate()
-      // assertErrors(test, 'Events only', test.eventsOnlyErrors, validator.issues, iLog)
+      const bidsTsv = new BidsTsvFile(test.name, parsedTsv, { relativePath: eventName }, [], {})
+      const validator = new BidsHedTsvValidator(bidsTsv, thisSchema)
+      validator.validate()
+      assertErrors(test, 'Events only', test.eventsOnlyErrors, validator.issues, iLog)
 
       // Validate the events file with the sidecar
       const bidsTsvSide = new BidsTsvFile(
@@ -138,7 +138,7 @@ describe('BIDS validation', () => {
         parsedTsv,
         { relativePath: eventName, path: eventName },
         [],
-        bidsSidecar,
+        test.sidecar,
       )
       const validatorWithSide = new BidsHedTsvValidator(bidsTsvSide, thisSchema)
       validatorWithSide.validate()

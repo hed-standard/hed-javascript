@@ -1,7 +1,23 @@
-Total tests:5 Wrong errors:0 MissingErrors:0
+Total tests:15 Wrong errors:0 MissingErrors:4
 
-[no-hed-at-all (Expect pass)]
+[no-hed-at-all-but-both-tsv-json-non-empty (Expect pass)]
 
-[only-header-in-tsv (Expect pass)]
+[only-header-in-tsv-with-return (Expect pass)]
+
+[empty-json-empty-tsv (Expect pass)]
 
 [valid-sidecar-bad-tag-tsv (Expect pass)]
+[valid-sidecar-bad-tag-tsv:Events only:](Expect fail)
+---has errors [TAG_INVALID]
+---did not receive expected errors [object Object]
+[valid-sidecar-bad-tag-tsv:Events+side:](Expect fail)
+---has errors [TAG_INVALID]
+---did not receive expected errors [object Object]
+
+[valid-sidecar-tsv-curly-brace (Expect pass)]
+[valid-sidecar-tsv-curly-brace:Events only:](Expect fail)
+---has errors [CHARACTER_INVALID]
+---did not receive expected errors [object Object]
+[valid-sidecar-tsv-curly-brace:Events+side:](Expect fail)
+---has errors [CHARACTER_INVALID]
+---did not receive expected errors [object Object]
