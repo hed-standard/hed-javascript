@@ -546,11 +546,11 @@ const tsvFiles = [
   ],
   // sub03 - Valid combined sidecar/TSV data
   [
-    [sidecars[2][0], 'onset\tduration\n' + '7\tsomething'],
-    [sidecars[0][0], 'onset\tduration\tcolor\n' + '7\tsomething\tred'],
-    [sidecars[0][1], 'onset\tduration\tspeed\n' + '7\tsomething\t60'],
-    [sidecars[2][0], hedColumnOnlyHeader + '7\tsomething\tLaptop-computer'],
-    [sidecars[0][0], 'onset\tduration\tcolor\tHED\n' + '7\tsomething\tgreen\tLaptop-computer'],
+    [sidecars[2][0], 'onset\tduration\n' + '7\t4'],
+    [sidecars[0][0], 'onset\tduration\tcolor\n' + '7\t4\tred'],
+    [sidecars[0][1], 'onset\tduration\tspeed\n' + '7\t4\t60'],
+    [sidecars[2][0], hedColumnOnlyHeader + '7\t4\tLaptop-computer'],
+    [sidecars[0][0], 'onset\tduration\tcolor\tHED\n' + '7\t4\tgreen\tLaptop-computer'],
     [
       Object.assign({}, sidecars[0][0], sidecars[0][1]),
       'onset\tduration\tcolor\tvehicle\tspeed\n' + '7\tsomething\tblue\ttrain\t150',

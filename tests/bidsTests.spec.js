@@ -11,14 +11,35 @@ import { generateIssue, IssueError } from '../common/issues/issues'
 
 import { HedStringTokenizerOriginal } from '../parser/tokenizerOriginal'
 import { HedStringTokenizer } from '../parser/tokenizer'
-import { bidsTestData } from './bidsTestData'
+import { bidsTestData } from './bidsTests.data'
 import { BidsHedTsvParser } from '../bids/validator/bidsHedTsvValidator'
 import parseTSV from '../bids/tsvParser'
 const fs = require('fs')
 
 //const displayLog = process.env.DISPLAY_LOG === 'true'
 const displayLog = true
-const skippedErrors = {}
+const skippedErrors = new Map()
+
+// Ability to select individual tests to run
+const runAll = true
+let onlyRun = new Map()
+if (!runAll) {
+  onlyRun = new Map([['curly-brace-tests', ['invalid-curly-brace-column-slice-has-no hed']]])
+}
+
+function shouldRun(name, testname) {
+  if (onlyRun.size === 0) return true
+  if (onlyRun.get(name) === undefined) return false
+
+  const cases = onlyRun.get(name)
+  if (cases.length === 0) return true
+
+  if (cases.includes(testname)) {
+    return true
+  } else {
+    return false
+  }
+}
 
 // Return an array of hedCode values extracted from an issues list.
 function extractHedCodes(issues) {
@@ -66,13 +87,13 @@ describe('BIDS validation', () => {
     }
   })
 
-  describe.each(bidsTestData)('$name : $description', ({ tests }) => {
+  describe.each(bidsTestData)('$name : $description', ({ name, description, tests }) => {
     let itemLog
 
     const assertErrors = function (test, type, expectedErrors, issues, iLog) {
       const status = expectedErrors.length > 0 ? 'Expect fail' : 'Expect pass'
-      const header = `[${test.name}:${type}:](${status})`
-      const log = [header]
+      const header = `[${name}:${test.testname}][${type}](${status})`
+      const log = []
       totalTests += 1
 
       const errors = extractHedCodes(issues)
@@ -83,51 +104,57 @@ describe('BIDS validation', () => {
       if (expectedErrors.length === 0 && errorString.length > 0) {
         const hasErrors = `---expected no errors but got errors [${errorString}]`
         log.push(hasErrors)
-        iLog.push(log.join('\n'))
+        log.push(`Received issues: ${JSON.stringify(issues)}`)
+        iLog.push(header + '\n' + log.join('\n'))
         wrongErrors += 1
         assert(errorString.length === 0, `${header}${hasErrors}]`)
-        return
+      } else {
+        const expectedErrorCodes = extractHedCodes(expectedErrors)
+        const wrong = difference(errors, expectedErrorCodes)
+        const missing = difference(expectedErrorCodes, errors)
+        let errorMessage = ''
+        if (wrong.length > 0) {
+          errorMessage = `---received unexpected errors ${wrong.join(',')}\n`
+          wrongErrors += 1
+        }
+        if (missing.length > 0) {
+          errorMessage = errorMessage + `---did not receive expected errors ${missing.join(',')}`
+          missingErrors += 1
+        }
+
+        if (errorMessage.length > 0) {
+          log.push(errorMessage)
+          log.push(`Expected issues:\n${JSON.stringify(expectedErrors)}`)
+          log.push(`Received issues:\n${JSON.stringify(issues)}`)
+          iLog.push(header + '\n' + log.join('\n'))
+        } else {
+          iLog.push(header)
+        }
+        assert.sameDeepMembers(issues, expectedErrors, header)
       }
-      const expectedErrorCodes = extractHedCodes(expectedErrors)
-      const wrong = difference(errors, expectedErrorCodes)
-      const missing = difference(expectedErrors, errors)
-      let errorMessage = ''
-      if (wrong.length > 0) {
-        errorMessage = `---received unexpected errors ${wrong.join(',')}\n`
-        wrongErrors += 1
-      }
-      if (missing.length > 0) {
-        errorMessage = errorMessage + `---did not receive expected errors ${missing.join(',')}`
-        missingErrors += 1
-      }
-      if (errorMessage.length > 0) {
-        log.push(errorMessage)
-        iLog.push(log.join('\n'))
-      }
-      assert.sameDeepMembers(issues, expectedErrors, header)
     }
 
     const validate = function (test, iLog) {
       // Make sure that the schema is available
-      const header = `\n[${test.name} (Expect pass)]`
+      const header = `[${test.testname} (Expect pass)]`
       iLog.push(header)
       const thisSchema = schemaMap.get(test.schemaVersion)
       assert(thisSchema !== undefined, `${test.schemaVersion} is not available in test ${test.name}`)
 
       // Validate the sidecar by itself
-      const sidecarName = test.name + '.json'
+      const sidecarName = test.testname + '.json'
       const bidsSidecar = new BidsSidecar('thisOne', test.sidecar, { relativePath: sidecarName, path: sidecarName })
       assert(bidsSidecar instanceof BidsSidecar, 'Test')
       const sidecarIssues = bidsSidecar.validate(thisSchema)
       assertErrors(test, 'Sidecar only', test.sidecarOnlyErrors, sidecarIssues, iLog)
 
       // Parse the events file
-      const eventName = test.name + '.tsv'
+      const eventName = test.testname + '.tsv'
       const parsedTsv = parseTSV(test.eventsString)
       assert(parsedTsv instanceof Map, `${eventName} cannot be parsed`)
 
       // Validate the events file by itself
-      const bidsTsv = new BidsTsvFile(test.name, parsedTsv, { relativePath: eventName }, [], {})
+      const bidsTsv = new BidsTsvFile(test.testname, parsedTsv, { relativePath: eventName }, [], {})
       const validator = new BidsHedTsvValidator(bidsTsv, thisSchema)
       validator.validate()
       assertErrors(test, 'Events only', test.eventsOnlyErrors, validator.issues, iLog)
@@ -154,8 +181,12 @@ describe('BIDS validation', () => {
     })
 
     if (tests && tests.length > 0) {
-      test.each(tests)('$name $explanation ', (test) => {
-        validate(test, itemLog)
+      test.each(tests)('$testname: $explanation ', (test) => {
+        if (shouldRun(name, test.testname)) {
+          validate(test, itemLog)
+        } else {
+          itemLog.push(`----Skipping ${name}: ${test.testname}`)
+        }
       })
     }
   })
