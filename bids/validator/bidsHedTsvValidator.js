@@ -234,14 +234,12 @@ export class BidsHedTsvParser {
    */
   _parseHedRows(tsvHedRows) {
     const hedStrings = []
-    if (tsvHedRows.size > 0) {
-      tsvHedRows.forEach((row, index) => {
-        const hedString = this._parseHedRow(row, index + 2)
-        if (hedString !== null) {
-          hedStrings.push(hedString)
-        }
-      })
-    }
+    tsvHedRows.forEach((row, index) => {
+      const hedString = this._parseHedRow(row, index + 2)
+      if (hedString !== null) {
+        hedStrings.push(hedString)
+      }
+    })
     return hedStrings
   }
 
@@ -254,14 +252,12 @@ export class BidsHedTsvParser {
    */
   _mergeEventRows(rowStrings) {
     const eventStrings = []
-    if (rowStrings.length > 0) {
-      const groupedTsvRows = groupBy(rowStrings, (rowString) => rowString.onset)
-      const sortedOnsetTimes = Array.from(groupedTsvRows.keys()).sort((a, b) => a - b)
-      for (const onset of sortedOnsetTimes) {
-        const onsetRows = groupedTsvRows.get(onset)
-        const onsetEventString = new BidsTsvEvent(this.tsvFile, onsetRows)
-        eventStrings.push(onsetEventString)
-      }
+    const groupedTsvRows = groupBy(rowStrings, (rowString) => rowString.onset)
+    const sortedOnsetTimes = Array.from(groupedTsvRows.keys()).sort((a, b) => a - b)
+    for (const onset of sortedOnsetTimes) {
+      const onsetRows = groupedTsvRows.get(onset)
+      const onsetEventString = new BidsTsvEvent(this.tsvFile, onsetRows)
+      eventStrings.push(onsetEventString)
     }
     return eventStrings
   }
@@ -282,6 +278,7 @@ export class BidsHedTsvParser {
         hedStringParts.push(hedStringPart)
       }
     }
+    if (hedStringParts.length === 0) return null
 
     const hedString = hedStringParts.join(',')
 

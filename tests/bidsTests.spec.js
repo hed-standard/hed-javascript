@@ -21,7 +21,7 @@ const skippedTests = new Map()
 const runAll = true
 let onlyRun = new Map()
 if (!runAll) {
-  onlyRun = new Map([['curly-brace-tests', ['invalid-curly-brace-column-slice-has-no hed']]])
+  onlyRun = new Map([['duplicate-tag-test', []]])
 }
 
 function shouldRun(name, testname) {
@@ -104,7 +104,7 @@ describe('BIDS validation', () => {
         log.push(`Received issues: ${JSON.stringify(issues)}`)
         iLog.push(header + '\n' + log.join('\n'))
         wrongErrors += 1
-        assert(errorString.length === 0, `${header}${hasErrors}]`)
+        assert.isEmpty(errorString, `${header}${hasErrors}]`)
       } else {
         const expectedErrorCodes = extractHedCodes(expectedErrors)
         const wrong = difference(errors, expectedErrorCodes)
@@ -136,19 +136,19 @@ describe('BIDS validation', () => {
       const header = `[${test.testname} (Expect pass)]`
       iLog.push(header)
       const thisSchema = schemaMap.get(test.schemaVersion)
-      assert(thisSchema !== undefined, `${test.schemaVersion} is not available in test ${test.name}`)
+      assert.isDefined(thisSchema, `${test.schemaVersion} is not available in test ${test.name}`)
 
       // Validate the sidecar by itself
       const sidecarName = test.testname + '.json'
       const bidsSidecar = new BidsSidecar('thisOne', test.sidecar, { relativePath: sidecarName, path: sidecarName })
-      assert(bidsSidecar instanceof BidsSidecar, 'Test')
+      assert.instanceOf(bidsSidecar, BidsSidecar, 'Test')
       const sidecarIssues = bidsSidecar.validate(thisSchema)
       assertErrors(test, 'Sidecar only', test.sidecarOnlyErrors, sidecarIssues, iLog)
 
       // Parse the events file
       const eventName = test.testname + '.tsv'
       const parsedTsv = parseTSV(test.eventsString)
-      assert(parsedTsv instanceof Map, `${eventName} cannot be parsed`)
+      assert.instanceOf(parsedTsv, Map, `${eventName} cannot be parsed`)
 
       // Validate the events file by itself
       const bidsTsv = new BidsTsvFile(test.testname, parsedTsv, { relativePath: eventName }, [], {})
@@ -158,7 +158,7 @@ describe('BIDS validation', () => {
 
       // Validate the events file with the sidecar
       const bidsTsvSide = new BidsTsvFile(
-        test.name,
+        test.testname,
         parsedTsv,
         { relativePath: eventName, path: eventName },
         [],

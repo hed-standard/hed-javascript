@@ -145,6 +145,11 @@ export const bidsTestData = [
             { path: 'first-level-duplicate-json-tsv.tsv', relativePath: 'first-level-duplicate-json-tsv.tsv' },
             { tsvLine: 2 },
           ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: 'Boat' }),
+            { path: 'first-level-duplicate-json-tsv.tsv', relativePath: 'first-level-duplicate-json-tsv.tsv' },
+            { tsvLine: 2 },
+          ),
         ],
       },
     ],
@@ -230,14 +235,18 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tn/a\tPurple\n',
-        sidecarOnlyErrors: [],
+        sidecarOnlyErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('undefinedCurlyBraces', { column: 'ball_type' }), {
+            path: 'invalid-curly-brace-column-slice-has-no hed.json',
+            relativePath: 'invalid-curly-brace-column-slice-has-no hed.json',
+          }),
+        ],
         eventsOnlyErrors: [],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTag', { tag: 'Baloney' }),
-            { relativePath: 'valid-sidecar-bad-tag-tsv.tsv' },
-            { column: 'ball_type' },
-          ),
+          BidsHedIssue.fromHedIssue(generateIssue('undefinedCurlyBraces', { column: 'ball_type' }), {
+            path: 'invalid-curly-brace-column-slice-has-no hed.tsv',
+            relativePath: 'invalid-curly-brace-column-slice-has-no hed.tsv',
+          }),
         ],
       },
     ],
