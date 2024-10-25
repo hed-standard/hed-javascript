@@ -1,4 +1,33 @@
-Total tests:10 Wrong errors:1 MissingErrors:0
+Total tests:28 Wrong errors:1 MissingErrors:1
+[no-hed-at-all-but-both-tsv-json-non-empty (Expect pass)]
+[valid-bids-datasets-with-limited-hed:no-hed-at-all-but-both-tsv-json-non-empty][Sidecar only](Expect pass)
+[valid-bids-datasets-with-limited-hed:no-hed-at-all-but-both-tsv-json-non-empty][Events only](Expect pass)
+[valid-bids-datasets-with-limited-hed:no-hed-at-all-but-both-tsv-json-non-empty][Events+side](Expect pass)
+[only-header-in-tsv-with-return (Expect pass)]
+[valid-bids-datasets-with-limited-hed:only-header-in-tsv-with-return][Sidecar only](Expect pass)
+[valid-bids-datasets-with-limited-hed:only-header-in-tsv-with-return][Events only](Expect pass)
+[valid-bids-datasets-with-limited-hed:only-header-in-tsv-with-return][Events+side](Expect pass)
+[empty-json-empty-tsv (Expect pass)]
+[valid-bids-datasets-with-limited-hed:empty-json-empty-tsv][Sidecar only](Expect pass)
+[valid-bids-datasets-with-limited-hed:empty-json-empty-tsv][Events only](Expect pass)
+[valid-bids-datasets-with-limited-hed:empty-json-empty-tsv][Events+side](Expect pass)
+[valid-sidecar-bad-tag-tsv (Expect pass)]
+[valid-json-invalid-tsv:valid-sidecar-bad-tag-tsv][Sidecar only](Expect pass)
+[valid-json-invalid-tsv:valid-sidecar-bad-tag-tsv][Events only](Expect fail)
+[valid-json-invalid-tsv:valid-sidecar-bad-tag-tsv][Events+side](Expect fail)
+[valid-sidecar-tsv-curly-brace (Expect pass)]
+[valid-json-invalid-tsv:valid-sidecar-tsv-curly-brace][Sidecar only](Expect pass)
+[valid-json-invalid-tsv:valid-sidecar-tsv-curly-brace][Events only](Expect fail)
+[valid-json-invalid-tsv:valid-sidecar-tsv-curly-brace][Events+side](Expect fail)
+[first-level-duplicate-json-tsv (Expect pass)]
+[duplicate-tag-test:first-level-duplicate-json-tsv][Sidecar only](Expect pass)
+[duplicate-tag-test:first-level-duplicate-json-tsv][Events only](Expect pass)
+[duplicate-tag-test:first-level-duplicate-json-tsv][Events+side](Expect fail)
+---did not receive expected errors TAG_EXPRESSION_REPEATED
+Expected issues:
+[{"code":104,"file":{"path":"first-level-duplicate-json-tsv.tsv","relativePath":"first-level-duplicate-json-tsv.tsv"},"evidence":"ERROR: [TAG_EXPRESSION_REPEATED] Duplicate tag - \"Boat\". TSV line: 2. (For more information on this HED error, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#tag-expression-repeated.)","hedIssue":{"internalCode":"duplicateTag","code":"duplicateTag","hedCode":"TAG_EXPRESSION_REPEATED","level":"error","message":"ERROR: [TAG_EXPRESSION_REPEATED] Duplicate tag - \"Boat\". TSV line: 2. (For more information on this HED error, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#tag-expression-repeated.)","parameters":{"tag":"Boat","tsvLine":"2"}}}]
+Received issues:
+[]
 [valid-curly-brace-in-sidecar-with-simple-splice (Expect pass)]
 [curly-brace-tests:valid-curly-brace-in-sidecar-with-simple-splice][Sidecar only](Expect pass)
 [curly-brace-tests:valid-curly-brace-in-sidecar-with-simple-splice][Events only](Expect pass)
@@ -15,4 +44,4 @@ Total tests:10 Wrong errors:1 MissingErrors:0
 [curly-brace-tests:invalid-curly-brace-column-slice-has-no hed][Sidecar only](Expect pass)
 ---has errors [SIDECAR_BRACES_INVALID]
 ---expected no errors but got errors [SIDECAR_BRACES_INVALID]
-[{"code":104,"file":{"relativePath":"invalid-curly-brace-column-slice-has-no hed.json","path":"invalid-curly-brace-column-slice-has-no hed.json"},"evidence":"ERROR: [SIDECAR_BRACES_INVALID] Column name \"ball_type\", used in curly braces, is not mapped to a defined column. (For more information on this HED error, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#sidecar-braces-invalid.)","hedIssue":{"internalCode":"undefinedCurlyBraces","code":"undefinedCurlyBraces","hedCode":"SIDECAR_BRACES_INVALID","level":"error","message":"ERROR: [SIDECAR_BRACES_INVALID] Column name \"ball_type\", used in curly braces, is not mapped to a defined column. (For more information on this HED error, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#sidecar-braces-invalid.)","parameters":{"column":"ball_type"}}}]
+Received issues: [{"code":104,"file":{"relativePath":"invalid-curly-brace-column-slice-has-no hed.json","path":"invalid-curly-brace-column-slice-has-no hed.json"},"evidence":"ERROR: [SIDECAR_BRACES_INVALID] Column name \"ball_type\", used in curly braces, is not mapped to a defined column. (For more information on this HED error, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#sidecar-braces-invalid.)","hedIssue":{"internalCode":"undefinedCurlyBraces","code":"undefinedCurlyBraces","hedCode":"SIDECAR_BRACES_INVALID","level":"error","message":"ERROR: [SIDECAR_BRACES_INVALID] Column name \"ball_type\", used in curly braces, is not mapped to a defined column. (For more information on this HED error, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#sidecar-braces-invalid.)","parameters":{"column":"ball_type"}}}]

@@ -2,7 +2,7 @@ import { BidsHedIssue } from '../bids'
 import { generateIssue } from '../common/issues/issues'
 
 export const bidsTestData = [
-  /*  {
+  {
     name: 'valid-bids-datasets-with-limited-hed',
     description: 'HED or data is missing in various places',
     tests: [
@@ -109,46 +109,46 @@ export const bidsTestData = [
     ],
   },
   {
-      name: 'duplicate-tag-test',
-      description: 'Duplicate tags can appear in isolation or in combiantion',
-      tests: [
-        {
-          testname: 'first-level-duplicate-json-tsv',
-          explanation: 'Each is okay but when combined, duplicate tag',
-          schemaVersion: '8.3.0',
-          sidecar: {
-            vehicle: {
-              HED: {
-                car: 'Car',
-                train: 'Train',
-                boat: 'Boat',
-              },
+    name: 'duplicate-tag-test',
+    description: 'Duplicate tags can appear in isolation or in combiantion',
+    tests: [
+      {
+        testname: 'first-level-duplicate-json-tsv',
+        explanation: 'Each is okay but when combined, duplicate tag',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          vehicle: {
+            HED: {
+              car: 'Car',
+              train: 'Train',
+              boat: 'Boat',
             },
-            speed: {
-              HED: 'Speed/# mph',
-            },
-            transport: {
-              HED: {
-                car: 'Car',
-                train: 'Train',
-                boat: 'Boat',
-                maglev: 'Vehicle',
-              },
-            }
           },
-          eventsString: 'onset\tduration\tvehicle\ttransport\tspeed\n' + '19\t6\tboat\tboat\t5\n',
-          sidecarOnlyErrors: [],
-          eventsOnlyErrors: [],
-          comboErrors: [
-            BidsHedIssue.fromHedIssue(
-              generateIssue('duplicateTag', { tag: 'Boat' }),
-              { path: 'first-level-duplicate-json-tsv.tsv', relativePath: 'first-level-duplicate-json-tsv.tsv' },
-              { tsvLine: 2 },
-            ),
-          ],
+          speed: {
+            HED: 'Speed/# mph',
+          },
+          transport: {
+            HED: {
+              car: 'Car',
+              train: 'Train',
+              boat: 'Boat',
+              maglev: 'Vehicle',
+            },
+          },
         },
-      ],
-    },*/
+        eventsString: 'onset\tduration\tvehicle\ttransport\tspeed\n' + '19\t6\tboat\tboat\t5\n',
+        sidecarOnlyErrors: [],
+        eventsOnlyErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: 'Boat' }),
+            { path: 'first-level-duplicate-json-tsv.tsv', relativePath: 'first-level-duplicate-json-tsv.tsv' },
+            { tsvLine: 2 },
+          ),
+        ],
+      },
+    ],
+  },
 
   {
     name: 'curly-brace-tests',
@@ -232,7 +232,13 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tn/a\tPurple\n',
         sidecarOnlyErrors: [],
         eventsOnlyErrors: [],
-        comboErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', { tag: 'Baloney' }),
+            { relativePath: 'valid-sidecar-bad-tag-tsv.tsv' },
+            { column: 'ball_type' },
+          ),
+        ],
       },
     ],
   },

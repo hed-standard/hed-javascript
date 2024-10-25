@@ -9,16 +9,13 @@ import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { BidsDataset, BidsEventFile, BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
 import { generateIssue, IssueError } from '../common/issues/issues'
 
-import { HedStringTokenizerOriginal } from '../parser/tokenizerOriginal'
-import { HedStringTokenizer } from '../parser/tokenizer'
 import { bidsTestData } from './bidsTests.data'
-import { BidsHedTsvParser } from '../bids/validator/bidsHedTsvValidator'
 import parseTSV from '../bids/tsvParser'
 const fs = require('fs')
 
 //const displayLog = process.env.DISPLAY_LOG === 'true'
 const displayLog = true
-const skippedErrors = new Map()
+const skippedTests = new Map()
 
 // Ability to select individual tests to run
 const runAll = true
