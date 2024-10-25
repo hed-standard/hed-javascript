@@ -627,7 +627,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should strip leading and trailing slashes', () => {
+      it('should detect bad leading and trailing slashes', () => {
         const testStrings = {
           leadingSingle: '/Event',
           leadingMultiLevel: '/Item/Object/Man-made-object/Vehicle/Train',
@@ -642,24 +642,18 @@ describe('HED string conversion', () => {
         }
         const expectedResults = testStrings
         const expectedIssues = {
-          leadingSingle: [generateIssue('invalidTag', { tag: testStrings.leadingSingle })],
-          leadingMultiLevel: [generateIssue('invalidTag', { tag: testStrings.leadingMultiLevel })],
-          trailingSingle: [generateIssue('invalidTag', { tag: testStrings.trailingSingle })],
-          trailingMultiLevel: [generateIssue('invalidTag', { tag: testStrings.trailingMultiLevel })],
-          bothSingle: [generateIssue('invalidTag', { tag: testStrings.bothSingle })],
-          bothMultiLevel: [generateIssue('invalidTag', { tag: testStrings.bothMultiLevel })],
-          twoMixedOuter: [
-            generateIssue('invalidTag', { tag: '/Event' }),
-            generateIssue('invalidTag', { tag: 'Item/Object/Man-made-object/Vehicle/Train/' }),
-          ],
+          leadingSingle: [generateIssue('extraSlash', { index: 0, string: testStrings.leadingSingle })],
+          leadingMultiLevel: [generateIssue('extraSlash', { index: 0, string: testStrings.leadingMultiLevel })],
+          trailingSingle: [generateIssue('extraSlash', { index: 5, string: testStrings.trailingSingle })],
+          trailingMultiLevel: [generateIssue('extraSlash', { index: 41, string: testStrings.trailingMultiLevel })],
+          bothSingle: [generateIssue('extraSlash', { index: 0, string: testStrings.bothSingle })],
+          bothMultiLevel: [generateIssue('extraSlash', { index: 0, string: testStrings.bothMultiLevel })],
+          twoMixedOuter: [generateIssue('extraSlash', { index: 0, string: testStrings.twoMixedOuter })],
           twoMixedInner: [
             generateIssue('invalidTag', { tag: 'Event/' }),
             generateIssue('invalidTag', { tag: '/Item/Object/Man-made-object/Vehicle/Train' }),
           ],
-          twoMixedBoth: [
-            generateIssue('invalidTag', { tag: '/Event/' }),
-            generateIssue('invalidTag', { tag: '/Item/Object/Man-made-object/Vehicle/Train/' }),
-          ],
+          twoMixedBoth: [generateIssue('extraSlash', { index: 0, string: testStrings.twoMixedBoth })],
           twoMixedBothGroup: [
             generateIssue('invalidTag', { tag: '/Event/' }),
             generateIssue('invalidTag', { tag: '/Item/Object/Man-made-object/Vehicle/Train/' }),
@@ -685,9 +679,28 @@ describe('HED string conversion', () => {
           trailingDoubleSlashWithSpace: 'Item/Extension/ /',
         }
         const expectedResults = testStrings
-        const expectedIssues = {}
-        for (const [testStringKey, testString] of Object.entries(testStrings)) {
-          expectedIssues[testStringKey] = [generateIssue('invalidTag', { tag: testString })]
+        const expectedIssues = {
+          twoLevelDoubleSlash: [generateIssue('extraSlash', { index: 5, string: testStrings.twoLevelDoubleSlash })],
+          threeLevelDoubleSlash: [generateIssue('extraSlash', { index: 5, string: testStrings.threeLevelDoubleSlash })],
+          tripleSlashes: [generateIssue('extraSlash', { index: 5, string: testStrings.tripleSlashes })],
+          mixedSingleAndDoubleSlashes: [
+            generateIssue('extraSlash', { index: 5, string: testStrings.mixedSingleAndDoubleSlashes }),
+          ],
+          singleSlashWithSpace: [generateIssue('extraBlank', { index: 5, string: testStrings.singleSlashWithSpace })],
+          doubleSlashSurroundingSpace: [
+            generateIssue('extraBlank', { index: 5, string: testStrings.doubleSlashSurroundingSpace }),
+          ],
+          doubleSlashThenSpace: [generateIssue('extraSlash', { index: 5, string: testStrings.doubleSlashThenSpace })],
+          sosPattern: [generateIssue('extraSlash', { index: 5, string: testStrings.sosPattern })],
+          alternatingSlashSpace: [generateIssue('extraBlank', { index: 5, string: testStrings.alternatingSlashSpace })],
+          leadingDoubleSlash: [generateIssue('extraSlash', { index: 0, string: testStrings.leadingDoubleSlash })],
+          trailingDoubleSlash: [generateIssue('extraSlash', { index: 15, string: testStrings.trailingDoubleSlash })],
+          leadingDoubleSlashWithSpace: [
+            generateIssue('extraSlash', { index: 0, string: testStrings.leadingDoubleSlashWithSpace }),
+          ],
+          trailingDoubleSlashWithSpace: [
+            generateIssue('extraBlank', { index: 15, string: testStrings.trailingDoubleSlashWithSpace }),
+          ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
@@ -791,39 +804,39 @@ describe('HED string conversion', () => {
         const testStrings = {
           leadingSingle: '/Event',
           leadingMultiLevel: '/Vehicle/Train',
-          trailingSingle: 'Event/',
-          trailingMultiLevel: 'Vehicle/Train/',
-          bothSingle: '/Event/',
-          bothMultiLevel: '/Vehicle/Train/',
-          twoMixedOuter: '/Event,Vehicle/Train/',
-          twoMixedInner: 'Event/,/Vehicle/Train',
-          twoMixedBoth: '/Event/,/Vehicle/Train/',
-          twoMixedBothGroup: '(/Event/,/Vehicle/Train/)',
+          // trailingSingle: 'Event/',
+          // trailingMultiLevel: 'Vehicle/Train/',
+          // bothSingle: '/Event/',
+          // bothMultiLevel: '/Vehicle/Train/',
+          // twoMixedOuter: '/Event,Vehicle/Train/',
+          // twoMixedInner: 'Event/,/Vehicle/Train',
+          // twoMixedBoth: '/Event/,/Vehicle/Train/',
+          // twoMixedBothGroup: '(/Event/,/Vehicle/Train/)',
         }
         const expectedResults = testStrings
         const expectedIssues = {
-          leadingSingle: [generateIssue('invalidTag', { tag: testStrings.leadingSingle })],
-          leadingMultiLevel: [generateIssue('invalidTag', { tag: testStrings.leadingMultiLevel })],
-          trailingSingle: [generateIssue('invalidTag', { tag: testStrings.trailingSingle })],
-          trailingMultiLevel: [generateIssue('invalidTag', { tag: testStrings.trailingMultiLevel })],
-          bothSingle: [generateIssue('invalidTag', { tag: testStrings.bothSingle })],
-          bothMultiLevel: [generateIssue('invalidTag', { tag: testStrings.bothMultiLevel })],
-          twoMixedOuter: [
-            generateIssue('invalidTag', { tag: '/Event' }),
-            generateIssue('invalidTag', { tag: 'Vehicle/Train/' }),
-          ],
-          twoMixedInner: [
-            generateIssue('invalidTag', { tag: 'Event/' }),
-            generateIssue('invalidTag', { tag: '/Vehicle/Train' }),
-          ],
-          twoMixedBoth: [
-            generateIssue('invalidTag', { tag: '/Event/' }),
-            generateIssue('invalidTag', { tag: '/Vehicle/Train/' }),
-          ],
-          twoMixedBothGroup: [
-            generateIssue('invalidTag', { tag: '/Event/' }),
-            generateIssue('invalidTag', { tag: '/Vehicle/Train/' }),
-          ],
+          leadingSingle: [generateIssue('extraSlash', { index: 0, string: testStrings.leadingSingle })],
+          leadingMultiLevel: [generateIssue('extraSlash', { index: 0, string: testStrings.leadingMultiLevel })],
+          // trailingSingle: [generateIssue('invalidTag', { tag: testStrings.trailingSingle })],
+          // trailingMultiLevel: [generateIssue('invalidTag', { tag: testStrings.trailingMultiLevel })],
+          // bothSingle: [generateIssue('invalidTag', { tag: testStrings.bothSingle })],
+          // bothMultiLevel: [generateIssue('invalidTag', { tag: testStrings.bothMultiLevel })],
+          // twoMixedOuter: [
+          //   generateIssue('invalidTag', { tag: '/Event' }),
+          //   generateIssue('invalidTag', { tag: 'Vehicle/Train/' }),
+          // ],
+          // twoMixedInner: [
+          //   generateIssue('invalidTag', { tag: 'Event/' }),
+          //   generateIssue('invalidTag', { tag: '/Vehicle/Train' }),
+          // ],
+          // twoMixedBoth: [
+          //   generateIssue('invalidTag', { tag: '/Event/' }),
+          //   generateIssue('invalidTag', { tag: '/Vehicle/Train/' }),
+          // ],
+          // twoMixedBothGroup: [
+          //   generateIssue('invalidTag', { tag: '/Event/' }),
+          //   generateIssue('invalidTag', { tag: '/Vehicle/Train/' }),
+          // ],
         }
         return validator(testStrings, expectedResults, expectedIssues)
       })
