@@ -5,7 +5,7 @@
 
 # hed-validator
 
-This package contains a JavaScript validator for HED (hierarchical event descriptor) strings.
+This package contains a JavaScript validator for HED (Hierarchical Event Descriptor) strings.
 
 [HED](https://www.hedtags.org/) is a system for annotating events using comma-separated path strings.
 Any type of event can be annotated using HED-type syntax.
@@ -57,3 +57,8 @@ To use the `hed-validator`, you must install the npm `hed-validator` package and
 
 A sample of current `hed-validator` usage can be found in the BIDS validator in
 [`hed.js`](https://github.com/bids-standard/bids-validator/blob/5dfc3938ea8ce128c7db295e7bebc8eed2de1ce6/bids-validator/validators/hed.js).
+
+## Repository notes:
+
+The `develop` branch is now the default branch. All changes to the repository should
+be done as PRs (pull requests) to the `develop` branch.
