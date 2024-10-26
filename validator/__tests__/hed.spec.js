@@ -2,9 +2,9 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
-import * as hed from '../hedStrings'
+import * as hed from '../../utils/hedStrings'
 import { SchemaSpec, SchemasSpec } from '../../common/schema/types'
-import { buildSchemas } from '../../validator/schema/init'
+import { buildSchemas } from '../schema/init'
 
 describe('HED tag string utility functions', () => {
   describe('Syntactic utility functions', () => {
