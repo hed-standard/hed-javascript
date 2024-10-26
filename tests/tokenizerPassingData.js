@@ -8,63 +8,63 @@ export const passingTests = [
     warning: false,
     tests: [
       {
-        name: 'simple-tag-no-blanks',
+        testname: 'simple-tag-no-blanks',
         string: 'xy',
         explanation: 'Should have bounds 0, 2',
         tagSpecs: [new TagSpec('xy', 0, 2, '')],
         groupSpec: new GroupSpec(0, 2, []),
       },
       {
-        name: 'internal-blank',
+        testname: 'internal-blank',
         string: 'x y',
         explanation: 'Can have internal blank',
         tagSpecs: [new TagSpec('x y', 0, 3, '')],
         groupSpec: new GroupSpec(0, 3, []),
       },
       {
-        name: 'extra-blanks-simple',
+        testname: 'extra-blanks-simple',
         string: ' xy  ',
         explanation: 'Can have extra blanks',
         tagSpecs: [new TagSpec('xy', 1, 3, '')],
         groupSpec: new GroupSpec(0, 5, []),
       },
       {
-        name: 'tag-with-slashes',
+        testname: 'tag-with-slashes',
         string: 'x/y/z',
         explanation: 'Can have multiple slashes',
         tagSpecs: [new TagSpec('x/y/z', 0, 5, '')],
         groupSpec: new GroupSpec(0, 5, []),
       },
       {
-        name: 'tag-in-column-spec',
+        testname: 'tag-in-column-spec',
         string: '{xy}',
         explanation: 'Single column spec',
         tagSpecs: [new ColumnSpliceSpec('xy', 0, 3, '')],
         groupSpec: new GroupSpec(0, 4, []),
       },
       {
-        name: 'tag-in-column-spec-multiple-blanks',
+        testname: 'tag-in-column-spec-multiple-blanks',
         string: '  { xy  } ',
         explanation: 'Single column spec with multiple blanks',
         tagSpecs: [new ColumnSpliceSpec('xy', 2, 8, '')],
         groupSpec: new GroupSpec(0, 10, []),
       },
       {
-        name: 'tag-with-colons-no-blanks',
+        testname: 'tag-with-colons-no-blanks',
         string: 'xy:wz',
         explanation: 'Tag with a single colon and no blanks',
         tagSpecs: [new TagSpec('wz', 3, 5, 'xy')],
         groupSpec: new GroupSpec(0, 5, []),
       },
       {
-        name: 'tag-with-multiple-colons',
+        testname: 'tag-with-multiple-colons',
         string: 'xy:wz x:y',
         explanation: 'Tag with one colon marking library and another as part of a value',
         tagSpecs: [new TagSpec('wz x:y', 3, 9, 'xy')],
         groupSpec: new GroupSpec(0, 9, []),
       },
       {
-        name: 'tags-with-one-value column',
+        testname: 'tags-with-one-value column',
         string: 'xy x:y',
         explanation: 'Tag with one colon as part of a value',
         tagSpecs: [new TagSpec('xy x:y', 0, 6, '')],
@@ -78,21 +78,21 @@ export const passingTests = [
     warning: false,
     tests: [
       {
-        name: 'multiple-tags',
+        testname: 'multiple-tags',
         string: 'xy,zy,wy',
         explanation: 'Multiple tags with no blanks',
         tagSpecs: [new TagSpec('xy', 0, 2, ''), new TagSpec('zy', 3, 5, ''), new TagSpec('wy', 6, 8, '')],
         groupSpec: new GroupSpec(0, 8, []),
       },
       {
-        name: 'multiple-tags-with-blanks',
+        testname: 'multiple-tags-with-blanks',
         string: ' xy,  zy , wy  ',
         explanation: 'Can have extra blanks',
         tagSpecs: [new TagSpec('xy', 1, 3, ''), new TagSpec('zy', 6, 8, ''), new TagSpec('wy', 11, 13, '')],
         groupSpec: new GroupSpec(0, 15, []),
       },
       {
-        name: 'multiple-tags-with-blanks',
+        testname: 'multiple-tags-with-blanks',
         string: ' xy,  zy , wy  ',
         explanation: 'Can have extra blanks',
         tagSpecs: [new TagSpec('xy', 1, 3, ''), new TagSpec('zy', 6, 8, ''), new TagSpec('wy', 11, 13, '')],
@@ -106,28 +106,28 @@ export const passingTests = [
     warning: false,
     tests: [
       {
-        name: 'single-non-empty-group-no-blanks',
+        testname: 'single-non-empty-group-no-blanks',
         string: '(xy)',
         explanation: 'Single group',
         tagSpecs: [[new TagSpec('xy', 1, 3, '')]],
         groupSpec: new GroupSpec(0, 4, [new GroupSpec(0, 4, [])]),
       },
       {
-        name: 'tag-after-group',
+        testname: 'tag-after-group',
         string: '(x), p',
         explanation: 'A tag after a group.',
         tagSpecs: [[new TagSpec('x', 1, 2, '')], new TagSpec('p', 5, 6, '')],
         groupSpec: new GroupSpec(0, 6, [new GroupSpec(0, 3, [])]),
       },
       {
-        name: 'multiple-tags-in-group',
+        testname: 'multiple-tags-in-group',
         string: '(x,y)',
         explanation: 'Multiple tags in one group.',
         tagSpecs: [[new TagSpec('x', 1, 2, ''), new TagSpec('y', 3, 4, '')]],
         groupSpec: new GroupSpec(0, 5, [new GroupSpec(0, 5, [])]),
       },
       {
-        name: 'multiple-unnested-groups',
+        testname: 'multiple-unnested-groups',
         string: 'q, (xy), (zw, uv), p',
         explanation: 'Multiple unnested tag groups and tags.',
         tagSpecs: [
@@ -139,7 +139,7 @@ export const passingTests = [
         groupSpec: new GroupSpec(0, 20, [new GroupSpec(3, 7, []), new GroupSpec(9, 17, [])]),
       },
       {
-        name: 'tag-after-group',
+        testname: 'tag-after-group',
         string: 'x/y,(r,v)',
         explanation: 'A tag after a group.',
         tagSpecs: [new TagSpec('x/y', 0, 3, ''), [new TagSpec('r', 5, 6, ''), new TagSpec('v', 7, 8, '')]],
@@ -153,30 +153,37 @@ export const passingTests = [
     warning: false,
     tests: [
       {
-        name: 'Single-multi-nested-group',
+        testname: 'Single-multi-nested-group',
         string: '(((xy)))',
         explanation: 'Single group with deep nesting',
         tagSpecs: [[[[new TagSpec('xy', 3, 5, '')]]]],
         groupSpec: new GroupSpec(0, 8, [new GroupSpec(0, 8, [new GroupSpec(1, 7, [new GroupSpec(2, 6, [])])])]),
       },
       {
-        name: 'Single-nested-group-with-extra-tag',
+        testname: 'Single-nested-group-with-trailing-tag',
         string: '((xy)), g',
         explanation: 'Nested group with trailing tag',
         tagSpecs: [[[new TagSpec('xy', 2, 4, '')]], new TagSpec('g', 8, 9, '')],
         groupSpec: new GroupSpec(0, 9, [new GroupSpec(0, 6, [new GroupSpec(1, 5, [])])]),
       },
       {
-        name: 'Single-nested-group-with-splice',
+        testname: 'Single-nested-group-with-leading-tag',
+        string: ' g, ((xy))',
+        explanation: 'Nested group with trailing tag',
+        tagSpecs: [new TagSpec('g', 1, 2, ''), [[new TagSpec('xy', 6, 8, '')]]],
+        groupSpec: new GroupSpec(0, 10, [new GroupSpec(4, 10, [new GroupSpec(5, 9, [])])]),
+      },
+      {
+        testname: 'Single-nested-group-with-splice',
         string: '((({xy})))',
         explanation: 'A single nested group with a column splice.',
         tagSpecs: [[[[new ColumnSpliceSpec('xy', 3, 6)]]]],
         groupSpec: new GroupSpec(0, 10, [new GroupSpec(0, 10, [new GroupSpec(1, 9, [new GroupSpec(2, 8, [])])])]),
       },
       {
-        name: 'Complex-nested-group-1',
+        testname: 'Complex-nested-group-1',
         string: '((xy), ( h:p, ((q, r ))))',
-        explanation: 'Single group',
+        explanation: 'Single deeply nested group',
         tagSpecs: [
           [
             [new TagSpec('xy', 2, 4, '')],
@@ -191,16 +198,16 @@ export const passingTests = [
         ]),
       },
       {
-        name: 'Complex-nested-group-2',
+        testname: 'Complex-nested-group-2',
         string: '((xy), g), h',
-        explanation: 'Nested groups with tags',
+        explanation: 'Nested group with trailing tag',
         tagSpecs: [[[new TagSpec('xy', 2, 4, '')], new TagSpec('g', 7, 8, '')], new TagSpec('h', 11, 12, '')],
         groupSpec: new GroupSpec(0, 12, [new GroupSpec(0, 9, [new GroupSpec(1, 5, [])])]),
       },
       {
-        name: 'Complex-nested-group-3',
+        testname: 'Complex-nested-group-3',
         string: '((xy), ( h:p, ((q, r ))), g)',
-        explanation: 'Single group',
+        explanation: 'A single group with multiple nested groups and a tag',
         tagSpecs: [
           [
             [new TagSpec('xy', 2, 4, '')],
@@ -218,7 +225,7 @@ export const passingTests = [
       {
         name: 'Complex-nested-group-4',
         string: '((xy), ( h:p, ((q, r ))), g), h',
-        explanation: 'Single group',
+        explanation: 'Complex group with trailing tag',
         tagSpecs: [
           [
             [new TagSpec('xy', 2, 4, '')],

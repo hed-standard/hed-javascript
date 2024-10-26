@@ -8,7 +8,26 @@ const fs = require('fs')
 
 const displayLog = process.env.DISPLAY_LOG === 'true'
 
-const skippedErrors = {}
+// Ability to select individual tests to run
+const runAll = true
+let onlyRun = new Map()
+if (!runAll) {
+  onlyRun = new Map([['valid-single-tags', ['simple-tag-no-blanks']]])
+}
+
+function shouldRun(name, testname) {
+  if (onlyRun.size === 0) return true
+  if (onlyRun.get(name) === undefined) return false
+
+  const cases = onlyRun.get(name)
+  if (cases.length === 0) return true
+
+  if (cases.includes(testname)) {
+    return true
+  } else {
+    return false
+  }
+}
 
 describe('HED tokenizer validation', () => {
   describe('Tokenizer validation - validData', () => {
@@ -26,10 +45,11 @@ describe('HED tokenizer validation', () => {
       }
     })
 
-    describe.each(passingTests)('$name : $description', ({ tests }) => {
+    describe.each(passingTests)('$name : $description', ({ name, description, tests }) => {
       let itemLog
-      const assertErrors = function (header, issues, iLog) {
-        iLog.push(`${header}\n`)
+
+      const assertErrors = function (test, iLog, header, issues) {
+        const log = [header]
         totalTests += 1
 
         let errors = []
@@ -38,23 +58,23 @@ describe('HED tokenizer validation', () => {
         }
         const errorString = errors.join(',')
         if (errors.length > 0) {
-          iLog.push(`---expected no errors but got errors [${errorString}]\n`)
+          log.push(`---expected no errors but got errors [${errorString}]\n`)
+          log.push(`Received issues: ${JSON.stringify(issues)}`)
+          iLog.push(log.join('\n'))
           unexpectedErrors += 1
-          assert(errors.length === 0, `${header}---expected no errors but got errors [${errorString}]`)
+          assert.isEmpty(errors, `${header}---expected no errors but got errors [${errorString}]`)
         }
       }
 
-      const stringTokenizer = function (eName, tokenizer, tSpecs, gSpec, explanation, iLog) {
+      const stringTokenizer = function (test, iLog) {
         const status = 'Expect pass'
-        const tokType = tokenizer instanceof HedStringTokenizer ? 'Tokenizer' : 'Original tokenizer'
-        const header = `\n[${tokType}](${status})\tSTRING: "${tokenizer.hedString}"`
+        const tokenizer = new HedStringTokenizer(test.string)
+        const header = `\n[${test.hedCode} ${test.testname}](${status})\tSTRING: "${tokenizer.hedString}"`
         const [tagSpecs, groupSpec, tokenizingIssues] = tokenizer.tokenize()
-        // Test for no errors
         const issues = Object.values(tokenizingIssues).flat()
-        assertErrors(header, issues, iLog)
-        assert.sameDeepMembers(tagSpecs, tSpecs, explanation)
-        assert.deepEqual(groupSpec, gSpec, explanation)
-        //assert.sameDeepMembers(groupSpec, gSpec, explanation)
+        assertErrors(test, iLog, header, issues)
+        assert.sameDeepMembers(tagSpecs, test.tagSpecs, test.explanation)
+        assert.deepEqual(groupSpec, test.groupSpec, test.explanation)
       }
 
       beforeAll(async () => {
@@ -66,15 +86,12 @@ describe('HED tokenizer validation', () => {
       })
 
       if (tests && tests.length > 0) {
-        test.each(tests)('Tokenizer: %s ', (ex) => {
-          stringTokenizer(
-            ex.name,
-            new HedStringTokenizer(ex.string),
-            ex.tagSpecs,
-            ex.groupSpec,
-            ex.explanation,
-            itemLog,
-          )
+        test.each(tests)('$testname: $explanation ', (test) => {
+          if (shouldRun(name, test.testname)) {
+            stringTokenizer(test, itemLog)
+          } else {
+            itemLog.push(`----Skipping ${name}: ${test.testname}`)
+          }
         })
       }
     })

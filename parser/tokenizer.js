@@ -242,17 +242,15 @@ export class HedStringTokenizer {
   }
 
   handleSlash(i) {
-    if (this.hedString.slice(0, i).trim().length === 0) {
+    if (this.state.currentToken.trim().length === 0) {
       // Slash at beginning of tag.
       this.pushIssue('extraSlash', i)
     } else if (this.state.lastSlash >= 0 && this.hedString.slice(this.state.lastSlash + 1, i).trim().length === 0) {
       this.pushIssue('extraSlash', i) // Slashes with only blanks between
     } else if (i > 0 && this.hedString.charAt(i - 1) === CHARACTERS.BLANK) {
-      // Blank before slash
-      this.pushIssue('extraBlank', i - 1)
+      this.pushIssue('extraBlank', i - 1) // Blank before slash such as slash in value
     } else if (i < this.hedString.length - 1 && this.hedString.charAt(i + 1) === CHARACTERS.BLANK) {
-      //Blank after
-      this.pushIssue('extraBlank', i + 1)
+      this.pushIssue('extraBlank', i + 1) //Blank after
     } else if (this.hedString.slice(i).trim().length === 0) {
       this.pushIssue('extraSlash', this.state.startingIndex)
     } else {
