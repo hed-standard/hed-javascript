@@ -112,15 +112,15 @@ export class ColumnSplicer {
   _spliceTemplate(columnTemplate) {
     const columnName = columnTemplate.originalTag
     const replacementString = this.columnReplacements.get(columnName)
+    if (replacementString === undefined) {
+      this.issues.push(generateIssue('undefinedCurlyBraces', { column: columnName }))
+      return []
+    }
     if (replacementString === null) {
       return null
     }
     if (columnName === 'HED') {
       return this._spliceHedColumnTemplate()
-    }
-    if (replacementString === undefined) {
-      this.issues.push(generateIssue('undefinedCurlyBraces', { column: columnName }))
-      return []
     }
     if (replacementString.columnSplices.length > 0) {
       this.issues.push(generateIssue('recursiveCurlyBraces', { column: columnName }))

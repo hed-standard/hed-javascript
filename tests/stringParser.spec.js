@@ -187,7 +187,7 @@ describe('HED string parsing', () => {
   })
 
   describe('Formatted HED tags', () => {
-    it('should be lowercase and not have leading or trailing double quotes or slashes', () => {
+    it('should be lowercase and not have leading or trailing double quotes', () => {
       // Correct formatting
       const formattedHedTag = 'event/category/sensory-event'
       const testStrings = {

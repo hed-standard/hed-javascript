@@ -249,6 +249,32 @@ export const bidsTestData = [
           }),
         ],
       },
+      {
+        testname: 'invalid-HED-curly-brace-but-tsv-has-no-HED-column',
+        explanation: 'A {HED} column splice is used in a sidecar but the tsv has no HED column',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Red, Blue), (Green, (Yellow))',
+              ball: '{HED}, Black',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\n' + '19\t6\tball\n',
+        sidecarOnlyErrors: [],
+        eventsOnlyErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('undefinedCurlyBraces', { column: 'HED' }),
+            {
+              path: 'invalid-HED-curly-brace-but-tsv-has-no-HED-column.tsv',
+              relativePath: 'invalid-HED-curly-brace-but-tsv-has-no-HED-column.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+        ],
+      },
     ],
   },
 ]

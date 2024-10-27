@@ -4,7 +4,7 @@ import { beforeAll, describe, it } from '@jest/globals'
 
 import * as hed from '../../utils/hedStrings'
 import { SchemaSpec, SchemasSpec } from '../../common/schema/types'
-import { buildSchemas } from '../schema/init'
+import { buildSchemas } from '../../validator/schema/init'
 
 describe('HED tag string utility functions', () => {
   describe('Syntactic utility functions', () => {
@@ -38,7 +38,7 @@ describe('HED tag string utility functions', () => {
       })
     })
 
-    it.skip('should detect the locations of slashes in a tag', () => {
+    it('should detect the locations of slashes in a tag', () => {
       const testStrings = {
         description: 'Event/Description/Something',
         direction: 'Attribute/Direction/Left',

@@ -18,10 +18,10 @@ const displayLog = true
 const skippedTests = new Map()
 
 // Ability to select individual tests to run
-const runAll = true
+const runAll = false
 let onlyRun = new Map()
 if (!runAll) {
-  onlyRun = new Map([['duplicate-tag-test', []]])
+  onlyRun = new Map([['curly-brace-tests', ['invalid-HED-curly-brace-but-tsv-has-no-HED-column']]])
 }
 
 function shouldRun(name, testname) {

@@ -2,13 +2,14 @@ import chai from 'chai'
 const assert = chai.assert
 const difference = require('lodash/difference')
 import { beforeAll, describe, afterAll } from '@jest/globals'
+
 import path from 'path'
 import { BidsHedIssue } from '../bids/types/issues'
+import { SchemaTag, SchemaValueTag } from '../validator/schema/types'
 import { buildSchemas } from '../validator/schema/init'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { ParsedHed3Tag } from '../parser/parsedHedTag'
 import { TagConverter } from '../parser/tagConverter'
-import { BidsDataset, BidsEventFile, BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
-import { generateIssue, IssueError } from '../common/issues/issues'
 
 import { tagConverterTestData } from './tagConverterTests.data'
 import parseTSV from '../bids/tsvParser'
@@ -138,9 +139,11 @@ describe('BIDS validation', () => {
       iLog.push(header)
       const thisSchema = schemaMap.get(test.schemaVersion)
       assert.isDefined(thisSchema, `${test.schemaVersion} is not available in test ${test.name}`)
-      //const con = new TagConverter(test.tagSpec, thisSchema)
-      //const [thisTag, remainder] = new TagConverter(test.tagSpec, thisSchema).convert()
-      //assert.instanceOf(thisTag, SchemaTag, `${test.testname} should convert to a SchemaTag`)
+      const parse = new ParsedHed3Tag(test.tagSpec, thisSchema, 'Event')
+      const con = new TagConverter(test.tagSpec, thisSchema)
+      const [thisTag, remainder] = con.convert()
+      assert.instanceOf(thisTag, SchemaTag, `${test.testname} should convert to a SchemaTag`)
+      assert.strictEqual(test.longName, thisTag.longName, 'Long Names should be equal')
     }
 
     beforeAll(async () => {

@@ -3,7 +3,7 @@ import { Schema } from '../common/schema/types'
 import { getTagLevels, replaceTagNameWithPound } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../validator/schema/types'
-import TagConverter from './tagConverter'
+import { TagConverter } from './tagConverter'
 
 /**
  * A parsed HED tag.
