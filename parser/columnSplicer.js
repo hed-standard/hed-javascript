@@ -111,25 +111,36 @@ export class ColumnSplicer {
    */
   _spliceTemplate(columnTemplate) {
     const columnName = columnTemplate.originalTag
+
+    // HED column handled specially
+    if (columnName === 'HED') {
+      return this._spliceHedColumnTemplate()
+    }
+
+    // Not the HED column so treat as usual
     const replacementString = this.columnReplacements.get(columnName)
+
+    // Handle null or undefined replacement strings
+    if (replacementString === null) {
+      return null
+    }
     if (replacementString === undefined) {
       this.issues.push(generateIssue('undefinedCurlyBraces', { column: columnName }))
       return []
     }
-    if (replacementString === null) {
-      return null
-    }
-    if (columnName === 'HED') {
-      return this._spliceHedColumnTemplate()
-    }
+
+    // Handle recursive curly braces
     if (replacementString.columnSplices.length > 0) {
       this.issues.push(generateIssue('recursiveCurlyBraces', { column: columnName }))
       return []
     }
-    const tagsHavePlaceholder = replacementString.tags.some((tag) => tag.originalTagName === '#')
-    if (tagsHavePlaceholder) {
+
+    // Handle value templates with placeholder
+    if (replacementString.tags.some((tag) => tag.originalTagName === '#')) {
       return this._spliceValueTemplate(columnTemplate)
     }
+
+    // Default case
     return replacementString.parseTree
   }
 
@@ -142,6 +153,14 @@ export class ColumnSplicer {
   _spliceHedColumnTemplate() {
     const columnName = 'HED'
     const replacementString = this.columnValues.get(columnName)
+    if (replacementString === null || replacementString === 'n/a' || replacementString === '') {
+      return null
+    }
+
+    if (replacementString === undefined) {
+      this.issues.push(generateIssue('undefinedCurlyBraces', { column: columnName }))
+      return []
+    }
     return this._reparseAndSpliceString(replacementString)
   }
 

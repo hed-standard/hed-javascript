@@ -1,7 +1,7 @@
-import { BidsHedIssue } from '../bids'
-import { generateIssue } from '../common/issues/issues'
-import { ColumnSpliceSpec, TagSpec } from '../parser/tokenizer'
-import { SchemaTag } from '../validator/schema/types.js'
+import { BidsHedIssue } from '../../bids'
+import { generateIssue } from '../../common/issues/issues'
+import { ColumnSpliceSpec, TagSpec } from '../../parser/tokenizer'
+import { SchemaTag } from '../../validator/schema/types.js'
 
 export const tagConverterTestData = [
   // Tests conversion of TagSpec to schema tag

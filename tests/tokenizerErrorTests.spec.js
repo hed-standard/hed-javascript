@@ -3,7 +3,7 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 import { HedStringTokenizer } from '../parser/tokenizer'
-import { errorTests } from './tokenizerErrorData'
+import { errorTests } from './testData/tokenizerErrorData'
 const displayLog = process.env.DISPLAY_LOG === 'true'
 const fs = require('fs')
 

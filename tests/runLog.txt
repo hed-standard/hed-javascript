@@ -4,12 +4,20 @@ Total tests:3 Wrong errors:0 MissingErrors:0
 ----Skipping valid-bids-datasets-with-limited-hed: empty-json-empty-tsv
 ----Skipping valid-json-invalid-tsv: valid-sidecar-bad-tag-tsv
 ----Skipping valid-json-invalid-tsv: valid-sidecar-tsv-curly-brace
-----Skipping duplicate-tag-test: first-level-duplicate-json-tsv
-----Skipping curly-brace-tests: valid-curly-brace-in-sidecar-with-simple-splice
+----Skipping duplicate-tag-tests: invalid-first-level-duplicate-json-tsv
+[invalid-duplicate-groups-first-level-tsv (Expect pass)]
+[duplicate-tag-tests:invalid-duplicate-groups-first-level-tsv][Sidecar only](Expect pass)
+[duplicate-tag-tests:invalid-duplicate-groups-first-level-tsv][Events only](Expect fail)
+[duplicate-tag-tests:invalid-duplicate-groups-first-level-tsv][Events+side](Expect fail)
+----Skipping curly-brace-tests: valid-curly-brace-in-sidecar-with-value-splice
+----Skipping curly-brace-tests: valid-curly-brace-in-sidecar-with-category-splice
 ----Skipping curly-brace-tests: valid-curly-brace-in-sidecar-with-n/a-splice
-----Skipping curly-brace-tests: valid-curly-brace-in-sidecar-with-HED-column-splice
+----Skipping curly-brace-tests: valid-HED-column-splice
+----Skipping curly-brace-tests: valid-HED-column-splice-with-n/a
 ----Skipping curly-brace-tests: invalid-curly-brace-column-slice-has-no hed
-[invalid-HED-curly-brace-but-tsv-has-no-HED-column (Expect pass)]
-[curly-brace-tests:invalid-HED-curly-brace-but-tsv-has-no-HED-column][Sidecar only](Expect pass)
-[curly-brace-tests:invalid-HED-curly-brace-but-tsv-has-no-HED-column][Events only](Expect pass)
-[curly-brace-tests:invalid-HED-curly-brace-but-tsv-has-no-HED-column][Events+side](Expect fail)
+----Skipping curly-brace-tests: invalid-HED-curly-brace-but-tsv-has-no-HED-column
+----Skipping curly-brace-tests: invalid-curly-brace-in-HED-tsv-column
+----Skipping curly-brace-tests: invalid-curly-brace-in-HED-tsv-column
+----Skipping curly-brace-tests: invalid-recursive-curly-braces
+----Skipping curly-brace-tests: invalid-self-recursive-curly-braces
+----Skipping curly-brace-tests: invalid-recursive-curly-brace-chain

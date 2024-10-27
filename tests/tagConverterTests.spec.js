@@ -11,7 +11,7 @@ import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { ParsedHed3Tag } from '../parser/parsedHedTag'
 import { TagConverter } from '../parser/tagConverter'
 
-import { tagConverterTestData } from './tagConverterTests.data'
+import { tagConverterTestData } from './testData/tagConverterTests.data'
 import parseTSV from '../bids/tsvParser'
 const fs = require('fs')
 

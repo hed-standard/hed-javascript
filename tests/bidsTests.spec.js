@@ -6,22 +6,20 @@ import path from 'path'
 import { BidsHedIssue } from '../bids/types/issues'
 import { buildSchemas } from '../validator/schema/init'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
-import { BidsDataset, BidsEventFile, BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
-import { generateIssue, IssueError } from '../common/issues/issues'
+import { BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
 
-import { bidsTestData } from './bidsTests.data'
+import { bidsTestData } from './testData/bidsTests.data'
 import parseTSV from '../bids/tsvParser'
 const fs = require('fs')
 
 //const displayLog = process.env.DISPLAY_LOG === 'true'
 const displayLog = true
-const skippedTests = new Map()
 
 // Ability to select individual tests to run
 const runAll = false
 let onlyRun = new Map()
 if (!runAll) {
-  onlyRun = new Map([['curly-brace-tests', ['invalid-HED-curly-brace-but-tsv-has-no-HED-column']]])
+  onlyRun = new Map([['duplicate-tag-tests', ['invalid-duplicate-groups-first-level-tsv']]])
 }
 
 function shouldRun(name, testname) {
@@ -31,11 +29,7 @@ function shouldRun(name, testname) {
   const cases = onlyRun.get(name)
   if (cases.length === 0) return true
 
-  if (cases.includes(testname)) {
-    return true
-  } else {
-    return false
-  }
+  return !!cases.includes(testname)
 }
 
 // Return an array of hedCode values extracted from an issues list.
@@ -84,7 +78,7 @@ describe('BIDS validation', () => {
     }
   })
 
-  describe.each(bidsTestData)('$name : $description', ({ name, description, tests }) => {
+  describe.each(bidsTestData)('$name : $description', ({ name, tests }) => {
     let itemLog
 
     const assertErrors = function (test, type, expectedErrors, issues, iLog) {

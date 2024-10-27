@@ -1,5 +1,5 @@
 //import { TagSpec, GroupSpec, ColumnSpliceSpec } from '../parser/tokenizerNew'
-import { TagSpec, GroupSpec, ColumnSpliceSpec } from '../parser/tokenizer'
+import { TagSpec, GroupSpec, ColumnSpliceSpec } from '../../parser/tokenizer'
 
 export const passingTests = [
   {

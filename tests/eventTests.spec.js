@@ -14,7 +14,7 @@ import { BidsHedTsvParser } from '../bids/validator/bidsHedTsvValidator'
 import { buildSchemas } from '../validator/schema/init'
 import { BidsEventFile, BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
 
-import { eventTestData } from './eventTests.data'
+import { eventTestData } from './testData/eventTests.data'
 import parseTSV from '../bids/tsvParser'
 const fs = require('fs')
 
