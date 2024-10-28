@@ -16,7 +16,7 @@ const fs = require('fs')
 const displayLog = true
 
 // Ability to select individual tests to run
-const runAll = false
+const runAll = true
 let onlyRun = new Map()
 if (!runAll) {
   onlyRun = new Map([['duplicate-tag-tests', ['invalid-duplicate-groups-first-level-tsv']]])

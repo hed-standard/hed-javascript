@@ -153,14 +153,15 @@ export class ColumnSplicer {
   _spliceHedColumnTemplate() {
     const columnName = 'HED'
     const replacementString = this.columnValues.get(columnName)
-    if (replacementString === null || replacementString === 'n/a' || replacementString === '') {
+    if (
+      replacementString === undefined ||
+      replacementString === null ||
+      replacementString === 'n/a' ||
+      replacementString === ''
+    ) {
       return null
     }
 
-    if (replacementString === undefined) {
-      this.issues.push(generateIssue('undefinedCurlyBraces', { column: columnName }))
-      return []
-    }
     return this._reparseAndSpliceString(replacementString)
   }
 

@@ -325,7 +325,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-curly-brace-column-slice-has-no hed',
-        explanation: 'A column name is used in a splice but does not have HED',
+        explanation: 'A column name is used in a splice but does not have a HED key',
         schemaVersion: '8.3.0',
         sidecar: {
           event_code: {
@@ -351,7 +351,7 @@ export const bidsTestData = [
         ],
       },
       {
-        testname: 'invalid-HED-curly-brace-but-tsv-has-no-HED-column',
+        testname: 'valid-HED-curly-brace-but-tsv-has-no-HED-column',
         explanation: 'A {HED} column splice is used in a sidecar but the tsv has no HED column',
         schemaVersion: '8.3.0',
         sidecar: {
@@ -365,16 +365,7 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tevent_code\n' + '19\t6\tball\n',
         sidecarOnlyErrors: [],
         eventsOnlyErrors: [],
-        comboErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('undefinedCurlyBraces', { column: 'HED' }),
-            {
-              path: 'invalid-HED-curly-brace-but-tsv-has-no-HED-column.tsv',
-              relativePath: 'invalid-HED-curly-brace-but-tsv-has-no-HED-column.tsv',
-            },
-            { tsvLine: 2 },
-          ),
-        ],
+        comboErrors: [],
       },
       {
         testname: 'invalid-curly-brace-in-HED-tsv-column',
