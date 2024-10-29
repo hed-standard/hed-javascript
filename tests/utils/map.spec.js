@@ -4,7 +4,7 @@ import { describe, it } from '@jest/globals'
 
 import isEqual from 'lodash/isEqual'
 
-import * as mapUtils from '../map'
+import * as mapUtils from '../../utils/map'
 
 describe('Map utility functions', () => {
   describe('Non-equal duplicate filtering', () => {

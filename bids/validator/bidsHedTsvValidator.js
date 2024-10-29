@@ -82,6 +82,10 @@ export class BidsHedTsvValidator {
    * @private
    */
   _validateHedColumn() {
+    if (this.tsvFile.hedColumnHedStrings.length === 0) {
+      // no HED column strings to validate
+      return []
+    }
     return this.tsvFile.hedColumnHedStrings.flatMap((hedString, rowIndexMinusTwo) =>
       this._validateHedColumnString(hedString, rowIndexMinusTwo + 2),
     )
@@ -230,7 +234,6 @@ export class BidsHedTsvParser {
    */
   _parseHedRows(tsvHedRows) {
     const hedStrings = []
-
     tsvHedRows.forEach((row, index) => {
       const hedString = this._parseHedRow(row, index + 2)
       if (hedString !== null) {
@@ -248,9 +251,9 @@ export class BidsHedTsvParser {
    * @private
    */
   _mergeEventRows(rowStrings) {
+    const eventStrings = []
     const groupedTsvRows = groupBy(rowStrings, (rowString) => rowString.onset)
     const sortedOnsetTimes = Array.from(groupedTsvRows.keys()).sort((a, b) => a - b)
-    const eventStrings = []
     for (const onset of sortedOnsetTimes) {
       const onsetRows = groupedTsvRows.get(onset)
       const onsetEventString = new BidsTsvEvent(this.tsvFile, onsetRows)
@@ -275,6 +278,7 @@ export class BidsHedTsvParser {
         hedStringParts.push(hedStringPart)
       }
     }
+    if (hedStringParts.length === 0) return null
 
     const hedString = hedStringParts.join(',')
 

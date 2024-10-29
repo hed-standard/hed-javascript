@@ -1,0 +1,77 @@
+Total tests:57 Wrong errors:0 MissingErrors:0
+[no-hed-at-all-but-both-tsv-json-non-empty (Expect pass)]
+[valid-bids-datasets-with-limited-hed:no-hed-at-all-but-both-tsv-json-non-empty][Sidecar only](Expect pass)
+[valid-bids-datasets-with-limited-hed:no-hed-at-all-but-both-tsv-json-non-empty][Events only](Expect pass)
+[valid-bids-datasets-with-limited-hed:no-hed-at-all-but-both-tsv-json-non-empty][Events+side](Expect pass)
+[only-header-in-tsv-with-return (Expect pass)]
+[valid-bids-datasets-with-limited-hed:only-header-in-tsv-with-return][Sidecar only](Expect pass)
+[valid-bids-datasets-with-limited-hed:only-header-in-tsv-with-return][Events only](Expect pass)
+[valid-bids-datasets-with-limited-hed:only-header-in-tsv-with-return][Events+side](Expect pass)
+[empty-json-empty-tsv (Expect pass)]
+[valid-bids-datasets-with-limited-hed:empty-json-empty-tsv][Sidecar only](Expect pass)
+[valid-bids-datasets-with-limited-hed:empty-json-empty-tsv][Events only](Expect pass)
+[valid-bids-datasets-with-limited-hed:empty-json-empty-tsv][Events+side](Expect pass)
+[valid-sidecar-bad-tag-tsv (Expect pass)]
+[valid-json-invalid-tsv:valid-sidecar-bad-tag-tsv][Sidecar only](Expect pass)
+[valid-json-invalid-tsv:valid-sidecar-bad-tag-tsv][Events only](Expect fail)
+[valid-json-invalid-tsv:valid-sidecar-bad-tag-tsv][Events+side](Expect fail)
+[valid-sidecar-tsv-curly-brace (Expect pass)]
+[valid-json-invalid-tsv:valid-sidecar-tsv-curly-brace][Sidecar only](Expect pass)
+[valid-json-invalid-tsv:valid-sidecar-tsv-curly-brace][Events only](Expect fail)
+[valid-json-invalid-tsv:valid-sidecar-tsv-curly-brace][Events+side](Expect fail)
+[invalid-first-level-duplicate-json-tsv (Expect pass)]
+[duplicate-tag-tests:invalid-first-level-duplicate-json-tsv][Sidecar only](Expect pass)
+[duplicate-tag-tests:invalid-first-level-duplicate-json-tsv][Events only](Expect pass)
+[duplicate-tag-tests:invalid-first-level-duplicate-json-tsv][Events+side](Expect fail)
+[invalid-duplicate-groups-first-level-tsv (Expect pass)]
+[duplicate-tag-tests:invalid-duplicate-groups-first-level-tsv][Sidecar only](Expect pass)
+[duplicate-tag-tests:invalid-duplicate-groups-first-level-tsv][Events only](Expect fail)
+[duplicate-tag-tests:invalid-duplicate-groups-first-level-tsv][Events+side](Expect fail)
+[valid-curly-brace-in-sidecar-with-value-splice (Expect pass)]
+[curly-brace-tests:valid-curly-brace-in-sidecar-with-value-splice][Sidecar only](Expect pass)
+[curly-brace-tests:valid-curly-brace-in-sidecar-with-value-splice][Events only](Expect pass)
+[curly-brace-tests:valid-curly-brace-in-sidecar-with-value-splice][Events+side](Expect pass)
+[valid-curly-brace-in-sidecar-with-category-splice (Expect pass)]
+[curly-brace-tests:valid-curly-brace-in-sidecar-with-category-splice][Sidecar only](Expect pass)
+[curly-brace-tests:valid-curly-brace-in-sidecar-with-category-splice][Events only](Expect pass)
+[curly-brace-tests:valid-curly-brace-in-sidecar-with-category-splice][Events+side](Expect pass)
+[valid-curly-brace-in-sidecar-with-n/a-splice (Expect pass)]
+[curly-brace-tests:valid-curly-brace-in-sidecar-with-n/a-splice][Sidecar only](Expect pass)
+[curly-brace-tests:valid-curly-brace-in-sidecar-with-n/a-splice][Events only](Expect pass)
+[curly-brace-tests:valid-curly-brace-in-sidecar-with-n/a-splice][Events+side](Expect pass)
+[valid-HED-column-splice (Expect pass)]
+[curly-brace-tests:valid-HED-column-splice][Sidecar only](Expect pass)
+[curly-brace-tests:valid-HED-column-splice][Events only](Expect pass)
+[curly-brace-tests:valid-HED-column-splice][Events+side](Expect pass)
+[valid-HED-column-splice-with-n/a (Expect pass)]
+[curly-brace-tests:valid-HED-column-splice-with-n/a][Sidecar only](Expect pass)
+[curly-brace-tests:valid-HED-column-splice-with-n/a][Events only](Expect pass)
+[curly-brace-tests:valid-HED-column-splice-with-n/a][Events+side](Expect pass)
+[invalid-curly-brace-column-slice-has-no hed (Expect pass)]
+[curly-brace-tests:invalid-curly-brace-column-slice-has-no hed][Sidecar only](Expect fail)
+[curly-brace-tests:invalid-curly-brace-column-slice-has-no hed][Events only](Expect pass)
+[curly-brace-tests:invalid-curly-brace-column-slice-has-no hed][Events+side](Expect fail)
+[valid-HED-curly-brace-but-tsv-has-no-HED-column (Expect pass)]
+[curly-brace-tests:valid-HED-curly-brace-but-tsv-has-no-HED-column][Sidecar only](Expect pass)
+[curly-brace-tests:valid-HED-curly-brace-but-tsv-has-no-HED-column][Events only](Expect pass)
+[curly-brace-tests:valid-HED-curly-brace-but-tsv-has-no-HED-column][Events+side](Expect pass)
+[invalid-curly-brace-in-HED-tsv-column (Expect pass)]
+[curly-brace-tests:invalid-curly-brace-in-HED-tsv-column][Sidecar only](Expect pass)
+[curly-brace-tests:invalid-curly-brace-in-HED-tsv-column][Events only](Expect fail)
+[curly-brace-tests:invalid-curly-brace-in-HED-tsv-column][Events+side](Expect fail)
+[invalid-curly-brace-in-HED-tsv-column (Expect pass)]
+[curly-brace-tests:invalid-curly-brace-in-HED-tsv-column][Sidecar only](Expect pass)
+[curly-brace-tests:invalid-curly-brace-in-HED-tsv-column][Events only](Expect fail)
+[curly-brace-tests:invalid-curly-brace-in-HED-tsv-column][Events+side](Expect fail)
+[invalid-recursive-curly-braces (Expect pass)]
+[curly-brace-tests:invalid-recursive-curly-braces][Sidecar only](Expect fail)
+[curly-brace-tests:invalid-recursive-curly-braces][Events only](Expect pass)
+[curly-brace-tests:invalid-recursive-curly-braces][Events+side](Expect fail)
+[invalid-self-recursive-curly-braces (Expect pass)]
+[curly-brace-tests:invalid-self-recursive-curly-braces][Sidecar only](Expect fail)
+[curly-brace-tests:invalid-self-recursive-curly-braces][Events only](Expect pass)
+[curly-brace-tests:invalid-self-recursive-curly-braces][Events+side](Expect fail)
+[invalid-recursive-curly-brace-chain (Expect pass)]
+[curly-brace-tests:invalid-recursive-curly-brace-chain][Sidecar only](Expect fail)
+[curly-brace-tests:invalid-recursive-curly-brace-chain][Events only](Expect pass)
+[curly-brace-tests:invalid-recursive-curly-brace-chain][Events+side](Expect fail)

@@ -3,7 +3,7 @@ import { Schema } from '../common/schema/types'
 import { getTagLevels, replaceTagNameWithPound } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../validator/schema/types'
-import TagConverter from './converter'
+import { TagConverter } from './tagConverter'
 
 /**
  * A parsed HED tag.
@@ -65,7 +65,7 @@ export class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Format this HED tag by removing newlines, double quotes, and slashes.
+   * Format this HED tag by removing newlines and double quotes.
    *
    * @returns {string} The formatted version of this tag.
    */
@@ -78,12 +78,12 @@ export class ParsedHedTag extends ParsedHedSubstring {
     if (hedTagString.endsWith('"')) {
       hedTagString = hedTagString.slice(0, -1)
     }
-    if (hedTagString.startsWith('/')) {
-      hedTagString = hedTagString.slice(1)
-    }
-    if (hedTagString.endsWith('/')) {
-      hedTagString = hedTagString.slice(0, -1)
-    }
+    // if (hedTagString.startsWith('/')) {
+    //   hedTagString = hedTagString.slice(1)
+    // }
+    // if (hedTagString.endsWith('/')) {
+    //   hedTagString = hedTagString.slice(0, -1)
+    // }
     return hedTagString.toLowerCase()
   }
 
@@ -315,12 +315,12 @@ export class ParsedHed3Tag extends ParsedHedTag {
    * @throws {IssueError} If tag conversion or parsing fails.
    */
   _convertTag(hedSchemas, hedString, tagSpec) {
-    const hed3ValidCharacters = /^[^{}[\]()~,\0\t]+$/
-    if (!hed3ValidCharacters.test(this.originalTag)) {
-      IssueError.generateAndThrow('internalConsistencyError', {
-        message: 'The parser failed to properly remove an illegal or special character.',
-      })
-    }
+    // const hed3ValidCharacters = /^[^{}[\]()~,\0\t]+$/
+    // if (!hed3ValidCharacters.test(this.originalTag)) {
+    //   IssueError.generateAndThrow('internalConsistencyError', {
+    //     message: 'The parser failed to properly remove an illegal or special character.',
+    //   })
+    // }
 
     const schemaName = tagSpec.library
     this.schema = hedSchemas.getSchema(schemaName)

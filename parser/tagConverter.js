@@ -5,7 +5,7 @@ import { SchemaValueTag } from '../validator/schema/types'
 /**
  * Converter from a tag specification to a schema-based tag object.
  */
-export default class TagConverter {
+export class TagConverter {
   /**
    * A parsed tag token.
    * @type {TagSpec}

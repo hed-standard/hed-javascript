@@ -43,10 +43,25 @@ export default {
     level: 'error',
     message: stringTemplate`Invalid tag - "${'tag'}".`,
   },
+  extraSlash: {
+    hedCode: 'TAG_INVALID',
+    level: 'error',
+    message: stringTemplate`Tag has extra slash at index ${'index'} of string "${'string'}".`,
+  },
+  extraBlank: {
+    hedCode: 'TAG_INVALID',
+    level: 'error',
+    message: stringTemplate`Tag has extra blank at index ${'index'} of string "${'string'}".`,
+  },
   extraCommaOrInvalid: {
     hedCode: 'TAG_INVALID',
     level: 'error',
     message: stringTemplate`Either "${'previousTag'}" contains a comma when it should not or "${'tag'}" is not a valid tag.`,
+  },
+  invalidTagPrefix: {
+    hedCode: 'TAG_NAMESPACE_PREFIX_INVALID',
+    level: 'error',
+    message: stringTemplate`Either tag prefix at index ${'index'} contains non-alphabetic characters or does not have an associated schema.`,
   },
   multipleUniqueTags: {
     hedCode: 'TAG_NOT_UNIQUE',

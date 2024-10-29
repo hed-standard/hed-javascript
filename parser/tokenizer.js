@@ -1,27 +1,40 @@
-import { unicodeName } from 'unicode-name'
-
-import { generateIssue } from '../common/issues/issues'
-import { stringIsEmpty } from '../utils/string'
 import { replaceTagNameWithPound } from '../utils/hedStrings'
+import { unicodeName } from 'unicode-name'
+import { generateIssue } from '../common/issues/issues'
 
-const openingGroupCharacter = '('
-const closingGroupCharacter = ')'
-const openingColumnCharacter = '{'
-const closingColumnCharacter = '}'
-const commaCharacter = ','
-const colonCharacter = ':'
-const slashCharacter = '/'
+const CHARACTERS = {
+  BLANK: ' ',
+  OPENING_GROUP: '(',
+  CLOSING_GROUP: ')',
+  OPENING_COLUMN: '{',
+  CLOSING_COLUMN: '}',
+  COMMA: ',',
+  COLON: ':',
+  SLASH: '/',
+}
+
+function getTrimmedBounds(originalString) {
+  const start = originalString.search(/\S/)
+  const end = originalString.search(/\S\s*$/)
+
+  if (start === -1) {
+    // The string contains only whitespace
+    return null
+  }
+
+  return [start, end + 1]
+}
 
 const invalidCharacters = new Set(['[', ']', '~', '"'])
-const invalidCharactersOutsideOfValues = new Set([':'])
-// C0 control codes
+// Add control codes to invalidCharacters
 for (let i = 0x00; i <= 0x1f; i++) {
   invalidCharacters.add(String.fromCodePoint(i))
 }
-// DEL and C1 control codes
 for (let i = 0x7f; i <= 0x9f; i++) {
   invalidCharacters.add(String.fromCodePoint(i))
 }
+
+const invalidCharactersOutsideOfValues = new Set([':'])
 
 /**
  * A specification for a tokenized substring.
@@ -71,10 +84,10 @@ export class GroupSpec extends SubstringSpec {
    */
   children
 
-  constructor(start, end) {
+  constructor(start, end, children) {
     super(start, end)
 
-    this.children = []
+    this.children = children
   }
 }
 
@@ -95,41 +108,27 @@ export class ColumnSpliceSpec extends SubstringSpec {
   }
 }
 
+class TokenizerState {
+  constructor() {
+    this.currentToken = '' // Characters in the token currently being parsed
+    this.groupDepth = 0
+    this.startingIndex = 0 // Starting index of this token
+    this.lastDelimiter = [undefined, -1] // Type and position of the last delimiter
+    this.librarySchema = ''
+    this.lastSlash = -1 // Position of the last slash in current token
+    this.currentGroupStack = [[]]
+    this.parenthesesStack = []
+  }
+}
+
 /**
  * Class for tokenizing HED strings.
  */
 export class HedStringTokenizer {
-  /**
-   * The HED string being parsed.
-   * @type {string}
-   */
-  hedString
-
-  syntaxIssues
-
-  /**
-   * The current substring being parsed.
-   * @type {string}
-   */
-  currentTag
-
-  /**
-   * Whether we are currently closing a group.
-   * @type {boolean}
-   */
-  closingGroup
-
-  groupDepth
-  startingIndex
-  resetStartingIndex
-  slashFound
-  librarySchema
-  currentGroupStack
-  parenthesesStack
-  ignoringCharacters
-
   constructor(hedString) {
     this.hedString = hedString
+    this.issues = []
+    this.state = null
   }
 
   /**
@@ -139,247 +138,258 @@ export class HedStringTokenizer {
    */
   tokenize() {
     this.initializeTokenizer()
-
+    // Empty strings cannot be tokenized
+    if (this.hedString.trim().length === 0) {
+      this.pushIssue('emptyTagFound', 0)
+      return [null, null, { syntax: this.issues }]
+    }
     for (let i = 0; i < this.hedString.length; i++) {
       const character = this.hedString.charAt(i)
-      this.tokenizeCharacter(i, character)
-      if (this.resetStartingIndex) {
-        this.resetStartingIndex = false
-        this.startingIndex = i + 1
-        this.currentTag = ''
+      this.handleCharacter(i, character)
+      //this.tokenizeCharacter(i, character)
+      if (this.issues.length > 0) {
+        return [null, null, { syntax: this.issues }]
       }
     }
-    this.pushTag(this.hedString.length, true)
-
-    if (this.columnSpliceIndex >= 0) {
-      this._pushSyntaxIssue('unclosedCurlyBrace', this.columnSpliceIndex)
+    this.finalizeTokenizer()
+    if (this.issues.length > 0) {
+      return [null, null, { syntax: this.issues }]
+    } else {
+      return [this.state.currentGroupStack.pop(), this.state.parenthesesStack.pop(), { syntax: [] }]
     }
+  }
 
-    this.unwindGroupStack()
+  resetToken(i) {
+    this.state.startingIndex = i + 1
+    this.state.currentToken = ''
+    this.state.librarySchema = ''
+    this.state.lastSlash = '-1'
+  }
 
-    const tagSpecs = this.currentGroupStack.pop()
-    const groupSpecs = this.parenthesesStack.pop()
-    const issues = {
-      syntax: this.syntaxIssues,
-      conversion: [],
+  finalizeTokenizer() {
+    if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
+      // Extra opening brace
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
+    } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_GROUP) {
+      // Extra opening parenthesis
+      this.pushIssue('unclosedParentheses', this.state.lastDelimiter[1])
+    } else if (
+      this.state.lastDelimiter[0] === CHARACTERS.COMMA &&
+      this.hedString.slice(this.state.lastDelimiter[1] + 1).trim().length === 0
+    ) {
+      this.pushIssue('emptyTagFound', this.state.lastDelimiter[1]) // Extra comma
+    } else if (this.state.lastSlash >= 0 && this.hedString.slice(this.state.lastSlash + 1).trim().length === 0) {
+      this.pushIssue('extraSlash', this.state.lastSlash) // Extra slash
+    } else {
+      if (this.state.currentToken.trim().length > 0) {
+        this.pushTag(this.hedString.length)
+      }
+      this.unwindGroupStack()
     }
-    return [tagSpecs, groupSpecs, issues]
   }
 
   initializeTokenizer() {
-    this.syntaxIssues = []
-
-    this.currentTag = ''
-    this.groupDepth = 0
-    this.startingIndex = 0
-    this.resetStartingIndex = false
-    this.slashFound = false
-    this.librarySchema = ''
-    this.columnSpliceIndex = -1
-    this.currentGroupStack = [[]]
-    this.parenthesesStack = [new GroupSpec(0, this.hedString.length)]
-    this.ignoringCharacters = false
-    this.closingGroup = false
+    this.issues = []
+    this.state = new TokenizerState()
+    this.state.parenthesesStack = [new GroupSpec(0, this.hedString.length, [])]
   }
 
-  tokenizeCharacter(i, character) {
-    let dispatchTable
-    if (this.ignoringCharacters) {
-      dispatchTable = {
-        [closingGroupCharacter]: (i /* character */) => {
-          this.clearTag()
-          this.closingGroupCharacter(i)
-        },
-        [commaCharacter]: (/*i, character */) => this.clearTag(),
-      }
-    } else {
-      dispatchTable = {
-        [openingGroupCharacter]: (i /* character */) => this.openingGroupCharacter(i),
-        [closingGroupCharacter]: (i /* character */) => {
-          this.pushTag(i, false)
-          this.closingGroupCharacter(i)
-        },
-        [openingColumnCharacter]: (i /* character */) => this.openingColumnCharacter(i),
-        [closingColumnCharacter]: (i /* character */) => this.closingColumnCharacter(i),
-        [commaCharacter]: (i /* character */) => this.pushTag(i, false),
-        [colonCharacter]: (i, character) => this.colonCharacter(character),
-        [slashCharacter]: (i, character) => this.slashCharacter(character),
-      }
-    }
-    const characterHandler = dispatchTable[character]
+  handleCharacter(i, character) {
+    const characterHandler = {
+      [CHARACTERS.OPENING_GROUP]: () => this.handleOpeningGroup(i),
+      [CHARACTERS.CLOSING_GROUP]: () => this.handleClosingGroup(i),
+      [CHARACTERS.OPENING_COLUMN]: () => this.handleOpeningColumn(i),
+      [CHARACTERS.CLOSING_COLUMN]: () => this.handleClosingColumn(i),
+      [CHARACTERS.COMMA]: () => this.handleComma(i),
+      [CHARACTERS.COLON]: () => this.handleColon(i),
+      [CHARACTERS.SLASH]: () => this.handleSlash(i),
+    }[character] // Selects the character handler based on the value of character
+
     if (characterHandler) {
-      characterHandler(i, character)
+      characterHandler()
     } else if (invalidCharacters.has(character)) {
-      this._pushInvalidCharacterIssue(character, i)
+      this.pushInvalidCharacterIssue(character, i)
     } else {
-      this.otherCharacter(character)
+      this.state.currentToken += character
     }
   }
 
-  openingGroupCharacter(i) {
-    this.currentGroupStack.push([])
-    this.parenthesesStack.push(new GroupSpec(i))
-    this.resetStartingIndex = true
-    this.groupDepth++
-  }
-
-  closingGroupCharacter(i) {
-    this.closingGroup = true
-    if (this.groupDepth <= 0) {
-      this._pushSyntaxIssue('unopenedParenthesis', i)
+  handleComma(i) {
+    if (this.state.lastDelimiter[0] === undefined && this.hedString.slice(0, i).length === 0) {
+      // Start of string empty
+      this.pushIssue('emptyTagFound', i)
       return
     }
-    this.closeGroup(i)
-  }
-
-  openingColumnCharacter(i) {
-    if (this.currentTag.length > 0) {
-      this._pushInvalidCharacterIssue(openingColumnCharacter, i)
-      this.ignoringCharacters = true
-      return
+    const trimmed = this.hedString.slice(this.state.lastDelimiter[1] + 1, i).trim()
+    if (this.state.lastDelimiter[0] === CHARACTERS.COMMA && trimmed.length === 0) {
+      // empty token after a previous comma
+      this.pushIssue('emptyTagFound', this.state.lastDelimiter[1]) // Check for empty group between commas
+    } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
+      // Unclosed curly brace
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
     }
-    if (this.columnSpliceIndex >= 0) {
-      this._pushSyntaxIssue('nestedCurlyBrace', i)
-    }
-    this.columnSpliceIndex = i
-  }
-
-  closingColumnCharacter(i) {
-    this.closingGroup = true
-    if (this.columnSpliceIndex < 0) {
-      this._pushSyntaxIssue('unopenedCurlyBrace', i)
-      return
-    }
-    if (!stringIsEmpty(this.currentTag)) {
-      this.currentGroupStack[this.groupDepth].push(new ColumnSpliceSpec(this.currentTag.trim(), this.startingIndex, i))
+    if (
+      [CHARACTERS.CLOSING_GROUP, CHARACTERS.CLOSING_COLUMN].includes(this.state.lastDelimiter[0]) &&
+      trimmed.length > 0
+    ) {
+      this.pushIssue('invalidTag', i, trimmed)
+    } else if (trimmed.length > 0) {
+      this.pushTag(i)
     } else {
-      this.syntaxIssues.push(
-        generateIssue('emptyCurlyBrace', {
-          string: this.hedString,
-        }),
+      this.resetToken(i)
+    }
+    this.state.lastDelimiter = [CHARACTERS.COMMA, i]
+  }
+
+  handleSlash(i) {
+    if (this.state.currentToken.trim().length === 0) {
+      // Slash at beginning of tag.
+      this.pushIssue('extraSlash', i)
+    } else if (this.state.lastSlash >= 0 && this.hedString.slice(this.state.lastSlash + 1, i).trim().length === 0) {
+      this.pushIssue('extraSlash', i) // Slashes with only blanks between
+    } else if (i > 0 && this.hedString.charAt(i - 1) === CHARACTERS.BLANK) {
+      this.pushIssue('extraBlank', i - 1) // Blank before slash such as slash in value
+    } else if (i < this.hedString.length - 1 && this.hedString.charAt(i + 1) === CHARACTERS.BLANK) {
+      this.pushIssue('extraBlank', i + 1) //Blank after
+    } else if (this.hedString.slice(i).trim().length === 0) {
+      this.pushIssue('extraSlash', this.state.startingIndex)
+    } else {
+      this.state.currentToken += CHARACTERS.SLASH
+      this.state.lastSlash = i
+    }
+  }
+
+  handleOpeningGroup(i) {
+    if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
+    } else {
+      this.state.currentGroupStack.push([])
+      this.state.parenthesesStack.push(new GroupSpec(i, undefined, []))
+      this.resetToken(i)
+      this.state.groupDepth++
+      this.state.lastDelimiter = [CHARACTERS.OPENING_GROUP, i]
+    }
+  }
+
+  handleClosingGroup(i) {
+    if ([CHARACTERS.OPENING_GROUP, CHARACTERS.COMMA].includes(this.state.lastDelimiter[0])) {
+      this.pushTag(i)
+    }
+    if (this.state.groupDepth <= 0) {
+      // If the group depth is <= 0, it means there's no corresponding opening group.
+      this.pushIssue('unopenedParenthesis', i)
+    } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
+    } else {
+      // Close the group by updating its bounds and moving it to the parent group.
+      this.closeGroup(i)
+      this.state.lastDelimiter = [CHARACTERS.CLOSING_GROUP, i]
+    }
+  }
+
+  handleOpeningColumn(i) {
+    if (this.state.currentToken.trim().length > 0) {
+      // In the middle of a token -- can't have an opening brace
+      this.pushInvalidCharacterIssue(CHARACTERS.OPENING_COLUMN, i)
+    } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
+      //
+      this.pushIssue('nestedCurlyBrace', i)
+    } else {
+      this.state.lastDelimiter = [CHARACTERS.OPENING_COLUMN, i]
+    }
+  }
+
+  handleClosingColumn(i) {
+    if (this.state.lastDelimiter[0] !== CHARACTERS.OPENING_COLUMN) {
+      // Column splice not in progress
+      this.pushIssue('unopenedCurlyBrace', i)
+    } else if (!this.state.currentToken.trim()) {
+      // Column slice cannot be empty
+      this.pushIssue('emptyCurlyBrace', i)
+    } else {
+      // Close column by updating bounds and moving it to the parent group, push a column splice on the stack.
+      this.state.currentGroupStack[this.state.groupDepth].push(
+        new ColumnSpliceSpec(this.state.currentToken.trim(), this.state.lastDelimiter[1], i),
       )
+      this.resetToken(i)
+      this.state.lastDelimiter = [CHARACTERS.CLOSING_COLUMN, i]
     }
-    this.columnSpliceIndex = -1
-    this.resetStartingIndex = true
-    this.slashFound = false
   }
 
-  colonCharacter(character) {
-    if (!this.slashFound && !this.librarySchema) {
-      this.librarySchema = this.currentTag
-      this.resetStartingIndex = true
+  handleColon(i) {
+    if (this.state.librarySchema || this.state.currentToken.trim().includes(CHARACTERS.BLANK)) {
+      // If colon has not been seen, it is a library. Ignore other colons.
+      this.state.currentToken += CHARACTERS.COLON
+    } else if (/[^A-Za-z]/.test(this.state.currentToken.trim())) {
+      this.pushIssue('invalidTagPrefix', i)
     } else {
-      this.currentTag += character
+      const lib = this.state.currentToken.trimStart()
+      this.resetToken(i)
+      this.state.librarySchema = lib
     }
-  }
-
-  slashCharacter(character) {
-    this.slashFound = true
-    this.currentTag += character
-  }
-
-  otherCharacter(character) {
-    if (this.ignoringCharacters) {
-      return
-    }
-    this.currentTag += character
-    this.resetStartingIndex = stringIsEmpty(this.currentTag)
   }
 
   unwindGroupStack() {
-    // groupDepth is decremented in closeGroup.
-    // eslint-disable-next-line no-unmodified-loop-condition
-    while (this.groupDepth > 0) {
-      this._pushSyntaxIssue('unclosedParenthesis', this.parenthesesStack[this.parenthesesStack.length - 1].bounds[0])
+    while (this.state.groupDepth > 0) {
+      this.pushIssue(
+        'unclosedParenthesis',
+        this.state.parenthesesStack[this.state.parenthesesStack.length - 1].bounds[0],
+      )
       this.closeGroup(this.hedString.length)
     }
   }
 
-  /**
-   * Push a tag to the current group.
-   *
-   * @param {number} i The current index.
-   * @param {boolean} isEndOfString Whether we are at the end of the string.
-   */
-  pushTag(i, isEndOfString) {
-    if (stringIsEmpty(this.currentTag) && isEndOfString) {
-      return
-    } else if (this.closingGroup) {
-      this.closingGroup = false
-    } else if (stringIsEmpty(this.currentTag)) {
-      this.syntaxIssues.push(generateIssue('emptyTagFound', { index: i }))
-    } else if (this.columnSpliceIndex < 0) {
-      this._checkValueTagForInvalidCharacters()
-      this.currentGroupStack[this.groupDepth].push(
-        new TagSpec(this.currentTag.trim(), this.startingIndex, i, this.librarySchema),
+  pushTag(i) {
+    if (this.state.currentToken.trim().length == 0) {
+      this.pushIssue('emptyTagFound', i)
+    } else {
+      const bounds = getTrimmedBounds(this.state.currentToken)
+      this.state.currentGroupStack[this.state.groupDepth].push(
+        new TagSpec(
+          this.state.currentToken.trim(),
+          this.state.startingIndex + bounds[0],
+          this.state.startingIndex + bounds[1],
+          this.state.librarySchema,
+        ),
       )
+      this.resetToken(i)
     }
-    this.resetStartingIndex = true
-    this.slashFound = false
-    this.librarySchema = ''
-  }
-
-  clearTag() {
-    this.ignoringCharacters = false
-    this.resetStartingIndex = true
-    this.slashFound = false
-    this.librarySchema = ''
   }
 
   closeGroup(i) {
-    const groupSpec = this.parenthesesStack.pop()
+    const groupSpec = this.state.parenthesesStack.pop()
     groupSpec.bounds[1] = i + 1
-    this.parenthesesStack[this.groupDepth - 1].children.push(groupSpec)
-    this.currentGroupStack[this.groupDepth - 1].push(this.currentGroupStack.pop())
-    this.groupDepth--
+    if (this.hedString.slice(groupSpec.bounds[0] + 1, i).trim().length === 0) {
+      //The group is empty
+      this.pushIssue('emptyTagFound', i)
+    }
+    this.state.parenthesesStack[this.state.groupDepth - 1].children.push(groupSpec)
+    this.state.currentGroupStack[this.state.groupDepth - 1].push(this.state.currentGroupStack.pop())
+    this.state.groupDepth--
+    //this.resetToken(i)
   }
 
-  /**
-   * Check an individual tag for invalid characters.
-   *
-   * @private
-   */
-  _checkValueTagForInvalidCharacters() {
-    const formToCheck = replaceTagNameWithPound(this.currentTag)
+  checkValueTagForInvalidCharacters() {
+    const formToCheck = replaceTagNameWithPound(this.state.currentToken)
     for (let i = 0; i < formToCheck.length; i++) {
       const character = formToCheck.charAt(i)
-      if (!invalidCharactersOutsideOfValues.has(character)) {
-        continue
+      if (invalidCharactersOutsideOfValues.has(character)) {
+        this.pushInvalidCharacterIssue(character, this.state.startingIndex + i)
       }
-      this._pushInvalidCharacterIssue(character, this.startingIndex + i)
     }
   }
 
-  /**
-   * Push an issue to the syntax issue list.
-   *
-   * @param {string} issueCode The internal code of the issue to be pushed.
-   * @param {number} index The location of the issue.
-   * @private
-   */
-  _pushSyntaxIssue(issueCode, index) {
-    this.syntaxIssues.push(
-      generateIssue(issueCode, {
-        index: index,
-        string: this.hedString,
-      }),
-    )
+  pushIssue(issueCode, index) {
+    this.issues.push(generateIssue(issueCode, { index, string: this.hedString }))
   }
 
-  /**
-   * Push an invalid character issue to the syntax issue list.
-   *
-   * @param {string} character The illegal character to be reported.
-   * @param {number} index The location of the character.
-   * @private
-   */
-  _pushInvalidCharacterIssue(character, index) {
-    this.syntaxIssues.push(
-      generateIssue('invalidCharacter', {
-        character: unicodeName(character),
-        index: index,
-        string: this.hedString,
-      }),
+  pushInvalidTag(issueCode, index, tag) {
+    this.issues.push(generateIssue(issueCode, { index, tag: tag, string: this.hedString }))
+  }
+
+  pushInvalidCharacterIssue(character, index) {
+    this.issues.push(
+      generateIssue('invalidCharacter', { character: unicodeName(character), index, string: this.hedString }),
     )
   }
 }
