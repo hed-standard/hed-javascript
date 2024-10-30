@@ -31,7 +31,7 @@ export async function buildBidsSchemas(datasetDescription, schemaDefinition) {
  * @returns {SchemasSpec|null} The schema specification to be used to build the schemas, or null if the specification is missing.
  * @throws {IssueError} If the schema specification is invalid.
  */
-function buildSchemasSpec(datasetDescription, schemaDefinition) {
+export function buildSchemasSpec(datasetDescription, schemaDefinition) {
   if (schemaDefinition) {
     return validateSchemasSpec(schemaDefinition)
   } else if (datasetDescription.jsonData?.HEDVersion) {
@@ -104,4 +104,4 @@ function splitLibraryAndVersion(schemaVersion, originalVersion) {
   return [library, version]
 }
 
-export default buildBidsSchemas
+//export default buildBidsSchemas

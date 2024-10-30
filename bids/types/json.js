@@ -4,7 +4,7 @@ import { sidecarValueHasHed } from '../utils'
 import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './basic'
-import BidsHedSidecarValidator from '../validator/bidsHedSidecarValidator'
+import SidecarValidator from '../validator/sidecarValidator'
 import { IssueError } from '../../common/issues/issues'
 
 const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
@@ -20,7 +20,7 @@ export class BidsJsonFile extends BidsFile {
   jsonData
 
   constructor(name, jsonData, file) {
-    super(name, file, BidsHedSidecarValidator)
+    super(name, file, SidecarValidator)
     this.jsonData = jsonData
   }
 }

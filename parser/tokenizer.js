@@ -1,6 +1,7 @@
-import { replaceTagNameWithPound } from '../utils/hedStrings'
 import { unicodeName } from 'unicode-name'
+
 import { generateIssue } from '../common/issues/issues'
+import { replaceTagNameWithPound } from '../utils/hedStrings'
 
 const CHARACTERS = {
   BLANK: ' ',
@@ -15,13 +16,12 @@ const CHARACTERS = {
 
 function getTrimmedBounds(originalString) {
   const start = originalString.search(/\S/)
-  const end = originalString.search(/\S\s*$/)
 
   if (start === -1) {
     // The string contains only whitespace
     return null
   }
-
+  const end = originalString.search(/\S\s*$/)
   return [start, end + 1]
 }
 

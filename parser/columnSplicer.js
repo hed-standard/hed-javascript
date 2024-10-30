@@ -136,7 +136,8 @@ export class ColumnSplicer {
     }
 
     // Handle value templates with placeholder
-    if (replacementString.tags.some((tag) => tag.originalTagName === '#')) {
+    const tagListHasPlaceholder = replacementString.tags.some((tag) => tag.originalTagName === '#')
+    if (tagListHasPlaceholder) {
       return this._spliceValueTemplate(columnTemplate)
     }
 
@@ -153,12 +154,8 @@ export class ColumnSplicer {
   _spliceHedColumnTemplate() {
     const columnName = 'HED'
     const replacementString = this.columnValues.get(columnName)
-    if (
-      replacementString === undefined ||
-      replacementString === null ||
-      replacementString === 'n/a' ||
-      replacementString === ''
-    ) {
+    const blankHedColumnValues = new Set([undefined, null, 'n/a', ''])
+    if (blankHedColumnValues.has(replacementString)) {
       return null
     }
 

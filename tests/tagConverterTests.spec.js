@@ -9,7 +9,7 @@ import { SchemaTag, SchemaValueTag } from '../validator/schema/types'
 import { buildSchemas } from '../validator/schema/init'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { ParsedHed3Tag } from '../parser/parsedHedTag'
-import { TagConverter } from '../parser/tagConverter'
+import TagConverter from '../parser/tagConverter'
 
 import { tagConverterTestData } from './testData/tagConverterTests.data'
 import parseTSV from '../bids/tsvParser'
