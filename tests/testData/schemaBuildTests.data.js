@@ -112,3 +112,54 @@ export const schemaSpecTestData = [
     ],
   },
 ]
+
+export const schemaBuildTestData = [
+  {
+    name: 'valid-schema-build',
+    description: 'Valid schema specs in various forms',
+    tests: [
+      {
+        testname: 'valid-standard-schema-build',
+        explanation: 'Standard version "8.3.0"',
+        schemaVersion: { Name: 'GoodStandardVersion', HEDVersion: '8.3.0' },
+        schemaError: null,
+      },
+      {
+        testname: 'base-and-two-libraries-build',
+        explanation: 'Version  ["8.3.0", "ts:testlib_1.0.2", "bg:testlib_1.0.2"] has a base and two libraries',
+        schemaVersion: { Name: 'BaseAndTwoTests', HEDVersion: ['8.3.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
+        schemaError: null,
+      },
+      {
+        testname: 'no-base-and-two-libraries-build',
+        explanation: 'Version  ["ts:testlib_1.0.2", "bg:testlib_1.0.2"] has a base and two libraries',
+        schemaVersion: { Name: 'TwoTests', HEDVersion: ['ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
+        schemaError: null,
+      },
+      {
+        testname: 'goodd-lazy-partnered-remote-schema-build',
+        explanation: 'Version  ["testlib_2.0.0", "testlib_3.0.0"] is lazy partnered and 3.0.0 is remote',
+        schemaVersion: { Name: 'GoodLazyPartnered', HEDVersion: ['testlib_2.0.0', 'testlib_3.0.0'] },
+        schemaError: null,
+      },
+    ],
+  },
+  {
+    name: 'invalid-schemas',
+    description: 'Invalid schema specs in various forms',
+    tests: [
+      {
+        testname: 'bad-standard-semantic-version-string',
+        explanation: 'Bad standard version "8.3.0.5"',
+        schemaVersion: { Name: 'BadSemanticVersion', HEDVersion: '8.3.0.5' },
+        schemaError: new IssueError(generateIssue('invalidSchemaSpecification', { spec: '8.3.0.5' })),
+      },
+      {
+        testname: 'lazy-partnered-with wrong-standard ',
+        explanation: 'Version ["testlib_2.0.0", "8.3.0"] has wrong standard schema',
+        schemaVersion: { Name: 'BadLazyPartnered', HEDVersion: ['testlib_2.0.0', '8.3.0'] },
+        schemaError: new IssueError(generateIssue('differentWithStandard', { first: '8.3.0', second: '8.2.0' })),
+      },
+    ],
+  },
+]
