@@ -45,28 +45,13 @@ function extractHedCode(issue) {
 }
 
 describe('Schema validation', () => {
-  const schemaMap = new Map([
-    ['8.2.0', undefined],
-    ['8.3.0', undefined],
-  ])
-
   const badLog = []
   let totalTests
   let wrongErrors
-  let missingErrors
 
   beforeAll(async () => {
-    const spec2 = new SchemaSpec('', '8.2.0', '', path.join(__dirname, '../tests/data/HED8.2.0.xml'))
-    const specs2 = new SchemasSpec().addSchemaSpec(spec2)
-    const schemas2 = await buildSchemas(specs2)
-    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../tests/data/HED8.3.0.xml'))
-    const specs3 = new SchemasSpec().addSchemaSpec(spec3)
-    const schemas3 = await buildSchemas(specs3)
-    schemaMap.set('8.2.0', schemas2)
-    schemaMap.set('8.3.0', schemas3)
     totalTests = 0
     wrongErrors = 0
-    missingErrors = 0
   })
 
   afterAll(() => {
@@ -77,60 +62,157 @@ describe('Schema validation', () => {
     }
   })
 
-  describe.each(schemaSpecTestData)('$name : $description', ({ name, tests }) => {
-    let itemLog
+  describe('Schema spec validation', () => {
+    describe.each(schemaSpecTestData)('$name : $description', ({ name, tests }) => {
+      let itemLog
 
-    const assertErrors = function (test, caughtError, schemaSpec, iLog) {
-      const status = test.schemaError === null ? 'Expect pass' : 'Expect fail'
-      const header = `[${test.testname} (${status})]`
-      const log = []
-      totalTests += 1
+      const assertErrors = function (test, caughtError, schemaSpec, iLog) {
+        const status = test.schemaError === null ? 'Expect pass' : 'Expect fail'
+        const header = `[${test.testname} (${status})]`
+        const log = []
+        totalTests += 1
 
-      const expectedErrorCode = test.schemaError === null ? null : test.schemaError.issue.hedCode
-      const expectedErrorString = test.schemaError === null ? '' : `${JSON.stringify(test.schemaError.issue)}`
-      const caughtErrorCode = caughtError === null ? null : caughtError.issue.hedCode
-      const caughtErrorString = caughtError === null ? '' : `${JSON.stringify(caughtError.issue)}`
-      if (caughtErrorCode !== null) {
-        log.push(`---Received error ${caughtErrorString}`)
+        const expectedErrorCode = test.schemaError === null ? null : test.schemaError.issue.hedCode
+        const expectedErrorString = test.schemaError === null ? '' : `${JSON.stringify(test.schemaError.issue)}`
+        const caughtErrorCode = caughtError === null ? null : caughtError.issue.hedCode
+        const caughtErrorString = caughtError === null ? '' : `${JSON.stringify(caughtError.issue)}`
+        if (caughtErrorCode !== null) {
+          log.push(`---Received error ${caughtErrorString}`)
+        }
+        if (expectedErrorCode !== null) {
+          log.push(`---Expected error ${expectedErrorString}`)
+        }
+        if (caughtErrorCode !== expectedErrorCode) {
+          wrongErrors++
+        }
+        iLog.push(header + '\n' + log.join('\n'))
+        assert.strictEqual(caughtErrorString, expectedErrorString, header)
       }
-      if (expectedErrorCode !== null) {
-        log.push(`---Expected error ${expectedErrorString}`)
-      }
-      iLog.push(header + '\n' + log.join('\n'))
-      assert.strictEqual(caughtErrorString, expectedErrorString, header)
-    }
 
-    const validateSpec = function (test, iLog) {
-      const desc = new BidsJsonFile('/dataset_description.json', test.schemaVersion, {
-        relativePath: '/dataset_description.json',
-        path: '/dataset_description.json',
+      const validateSpec = function (test, iLog) {
+        const desc = new BidsJsonFile('/dataset_description.json', test.schemaVersion, {
+          relativePath: '/dataset_description.json',
+          path: '/dataset_description.json',
+        })
+        let schemaSpec = undefined
+        let caughtError = null
+        try {
+          schemaSpec = buildSchemasSpec(desc, null)
+        } catch (error) {
+          caughtError = error
+        }
+        assertErrors(test, caughtError, schemaSpec, iLog)
+      }
+
+      beforeAll(async () => {
+        itemLog = []
       })
-      let schemaSpec = undefined
-      let caughtError = null
-      try {
-        schemaSpec = buildSchemasSpec(desc, null)
-      } catch (error) {
-        caughtError = error
+
+      afterAll(() => {
+        badLog.push(itemLog.join('\n'))
+      })
+
+      if (tests && tests.length > 0) {
+        test.each(tests)('$testname: $explanation ', (test) => {
+          if (shouldRun(name, test.testname)) {
+            validateSpec(test, itemLog)
+          } else {
+            itemLog.push(`----Skipping ${name}: ${test.testname}`)
+          }
+        })
       }
-      assertErrors(test, caughtError, schemaSpec, iLog)
-    }
+    })
+  })
+
+  /*
+  describe('Schema spec validation', () => {
+    const schemaMap = new Map([
+      ['8.2.0', undefined],
+      ['8.3.0', undefined],
+    ])
+
+    const badLog = []
+    let totalTests
+    let wrongErrors
+    let missingErrors
 
     beforeAll(async () => {
-      itemLog = []
+      const spec2 = new SchemaSpec('', '8.2.0', '', path.join(__dirname, '../tests/data/HED8.2.0.xml'))
+      const specs2 = new SchemasSpec().addSchemaSpec(spec2)
+      const schemas2 = await buildSchemas(specs2)
+      const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../tests/data/HED8.3.0.xml'))
+      const specs3 = new SchemasSpec().addSchemaSpec(spec3)
+      const schemas3 = await buildSchemas(specs3)
+      schemaMap.set('8.2.0', schemas2)
+      schemaMap.set('8.3.0', schemas3)
+      totalTests = 0
+      wrongErrors = 0
+      missingErrors = 0
     })
 
     afterAll(() => {
-      badLog.push(itemLog.join('\n'))
+      const outBad = path.join(__dirname, 'runLog.txt')
+      const summary = `Total tests:${totalTests} Wrong errors:${wrongErrors} MissingErrors:${missingErrors}\n`
+      if (displayLog) {
+        fs.writeFileSync(outBad, summary + badLog.join('\n'), 'utf8')
+      }
     })
 
-    if (tests && tests.length > 0) {
-      test.each(tests)('$testname: $explanation ', (test) => {
-        if (shouldRun(name, test.testname)) {
-          validateSpec(test, itemLog)
-        } else {
-          itemLog.push(`----Skipping ${name}: ${test.testname}`)
+    describe.each(schemaSpecTestData)('$name : $description', ({ name, tests }) => {
+      let itemLog
+
+      const assertErrors = function (test, caughtError, schemaSpec, iLog) {
+        const status = test.schemaError === null ? 'Expect pass' : 'Expect fail'
+        const header = `[${test.testname} (${status})]`
+        const log = []
+        totalTests += 1
+
+        const expectedErrorCode = test.schemaError === null ? null : test.schemaError.issue.hedCode
+        const expectedErrorString = test.schemaError === null ? '' : `${JSON.stringify(test.schemaError.issue)}`
+        const caughtErrorCode = caughtError === null ? null : caughtError.issue.hedCode
+        const caughtErrorString = caughtError === null ? '' : `${JSON.stringify(caughtError.issue)}`
+        if (caughtErrorCode !== null) {
+          log.push(`---Received error ${caughtErrorString}`)
         }
+        if (expectedErrorCode !== null) {
+          log.push(`---Expected error ${expectedErrorString}`)
+        }
+        iLog.push(header + '\n' + log.join('\n'))
+        assert.strictEqual(caughtErrorString, expectedErrorString, header)
+      }
+
+      const validateSpec = function (test, iLog) {
+        const desc = new BidsJsonFile('/dataset_description.json', test.schemaVersion, {
+          relativePath: '/dataset_description.json',
+          path: '/dataset_description.json',
+        })
+        let schemaSpec = undefined
+        let caughtError = null
+        try {
+          schemaSpec = buildSchemasSpec(desc, null)
+        } catch (error) {
+          caughtError = error
+        }
+        assertErrors(test, caughtError, schemaSpec, iLog)
+      }
+
+      beforeAll(async () => {
+        itemLog = []
       })
-    }
-  })
+
+      afterAll(() => {
+        badLog.push(itemLog.join('\n'))
+      })
+
+      if (tests && tests.length > 0) {
+        test.each(tests)('$testname: $explanation ', (test) => {
+          if (shouldRun(name, test.testname)) {
+            validateSpec(test, itemLog)
+          } else {
+            itemLog.push(`----Skipping ${name}: ${test.testname}`)
+          }
+        })
+      }
+    })
+  })*/
 })
