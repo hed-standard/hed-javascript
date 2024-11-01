@@ -9,10 +9,10 @@ import { SchemaTag, SchemaValueTag } from '../validator/schema/types'
 import { buildSchemas } from '../validator/schema/init'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { ParsedHed3Tag } from '../parser/parsedHedTag'
-import { TagConverter } from '../parser/tagConverter'
+import TagConverter from '../parser/tagConverter'
 
+import { shouldRun, extractHedCodes } from './testUtilities'
 import { tagConverterTestData } from './testData/tagConverterTests.data'
-import parseTSV from '../bids/tsvParser'
 const fs = require('fs')
 
 //const displayLog = process.env.DISPLAY_LOG === 'true'
@@ -23,33 +23,6 @@ const runAll = true
 let onlyRun = new Map()
 if (!runAll) {
   onlyRun = new Map([['', []]])
-}
-
-function shouldRun(name, testname) {
-  if (onlyRun.size === 0) return true
-  if (onlyRun.get(name) === undefined) return false
-
-  const cases = onlyRun.get(name)
-  if (cases.length === 0) return true
-
-  if (cases.includes(testname)) {
-    return true
-  } else {
-    return false
-  }
-}
-
-// Return an array of hedCode values extracted from an issues list.
-function extractHedCodes(issues) {
-  const errors = []
-  for (const issue of issues) {
-    if (issue instanceof BidsHedIssue) {
-      errors.push(`${issue.hedIssue.hedCode}`)
-    } else {
-      errors.push(`${issue.hedCode}`)
-    }
-  }
-  return errors
 }
 
 describe('BIDS validation', () => {
@@ -156,7 +129,7 @@ describe('BIDS validation', () => {
 
     if (tests && tests.length > 0) {
       test.each(tests)('$testname: $explanation ', (test) => {
-        if (shouldRun(name, test.testname)) {
+        if (shouldRun(name, test.testname, onlyRun)) {
           validate(test, itemLog)
         } else {
           itemLog.push(`----Skipping ${name}: ${test.testname}`)

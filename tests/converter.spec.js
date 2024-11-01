@@ -40,6 +40,7 @@ describe('HED string conversion', () => {
         return validatorBase(testStrings, expectedResults, expectedIssues, converter.convertHedStringToShort)
       }
 
+      // TODO: Remove this test - Test now implemented as valid-long-to-short in conversionTestsData
       it('should convert basic HED tags to short form', () => {
         const testStrings = {
           singleLevel: 'Event',
@@ -65,6 +66,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
+      // TODO: Remove this test - Test now implemented as valid-long-to-short in conversionTestsData - note not values
       it('should convert HED tags with values to short form', () => {
         const testStrings = {
           uniqueValue: 'Item/Sound/Environmental-sound/Unique Value',
@@ -84,6 +86,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
+      // TODO: Remove this test - Test now implemented as valid-long-to-short in conversionTestsData
       it('should raise an issue if a "value" is an already valid node', () => {
         const testStrings = {
           singleLevel: 'Item/Sound/Environmental-sound/Event',
@@ -103,6 +106,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
+      //TODO: This is a repeat of the tags with values (which are tags with extensions) Remove this.
       it('should convert HED tags with extensions to short form', () => {
         const testStrings = {
           singleLevel: 'Item/Object/extended lvl1',
@@ -122,6 +126,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
+      //TODO: Remove this -- shouldn't parse when invalid -- the rest is tested for
       it('should raise an issue if an "extension" is already a valid node', () => {
         const testStrings = {
           validThenInvalid: 'Item/Object/valid extension followed by invalid/Event',
@@ -162,6 +167,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
+      //TODO: Remove -- these cases are handled by stringParserTests
       it('should raise an issue if an invalid node is found', () => {
         const testStrings = {
           invalidParentWithExistingGrandchild: 'InvalidItem/Object/Visual-presentation',

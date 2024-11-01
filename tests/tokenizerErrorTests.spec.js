@@ -2,30 +2,19 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
+
 import { HedStringTokenizer } from '../parser/tokenizer'
+import { shouldRun, extractHedCodes } from './testUtilities'
 import { errorTests } from './testData/tokenizerErrorData'
-const displayLog = process.env.DISPLAY_LOG === 'true'
 const fs = require('fs')
+
+const displayLog = process.env.DISPLAY_LOG === 'true'
 
 // Ability to select individual tests to run
 const runAll = true
 let onlyRun = new Map()
 if (!runAll) {
   onlyRun = new Map([['extra-slash-in-various-places', ['group-leading-slash']]])
-}
-
-function shouldRun(name, testname) {
-  if (onlyRun.size === 0) return true
-  if (onlyRun.get(name) === undefined) return false
-
-  const cases = onlyRun.get(name)
-  if (cases.length === 0) return true
-
-  if (cases.includes(testname)) {
-    return true
-  } else {
-    return false
-  }
 }
 
 describe('Tokenizer validation using JSON tests', () => {
@@ -92,7 +81,7 @@ describe('Tokenizer validation using JSON tests', () => {
 
     if (tests && tests.length > 0) {
       test.each(tests)('$testname: $explanation ', (test) => {
-        if (shouldRun(name, test.testname)) {
+        if (shouldRun(name, test.testname, onlyRun)) {
           stringTokenizer(test, itemLog)
         } else {
           itemLog.push(`----Skipping ${name}: ${test.testname}`)

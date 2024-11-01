@@ -7,9 +7,9 @@ import { generateIssue } from '../common/issues/issues'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { buildBidsSchemas, parseSchemasSpec } from '../bids/schema'
 import { BidsDataset, BidsHedIssue, BidsIssue, validateBidsDataset } from '../bids'
-import { bidsDatasetDescriptions, bidsSidecars, bidsTsvFiles } from './bids.spec.data'
+import { bidsDatasetDescriptions, bidsSidecars, bidsTsvFiles } from './testData/bids.spec.data'
 import { parseHedString } from '../parser/parser'
-import { BidsHedTsvParser } from '../bids/validator/bidsHedTsvValidator'
+import { BidsHedTsvParser } from '../bids/validator/tsvValidator'
 
 describe('BIDS datasets', () => {
   /**

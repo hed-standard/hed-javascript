@@ -47,11 +47,11 @@ export const bidsTestData = [
     ],
   },
   {
-    name: 'valid-json-invalid-tsv',
+    name: 'invalid-tag-tests',
     description: 'JSON is valid but tsv is invalid',
     tests: [
       {
-        testname: 'valid-sidecar-bad-tag-tsv',
+        testname: 'invalid-bad-tag-in-tsv',
         explanation: 'Unrelated sidecar is valid but HED column tag is invalid',
         schemaVersion: '8.3.0',
         sidecar: {
@@ -66,16 +66,68 @@ export const bidsTestData = [
         eventsOnlyErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidTag', { tag: 'Baloney' }),
-            { relativePath: 'valid-sidecar-bad-tag-tsv.tsv' },
+            { relativePath: 'invalid-bad-tag-in-tsv.tsv' },
             { tsvLine: 2 },
           ),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidTag', { tag: 'Baloney' }),
-            { path: 'valid-sidecar-bad-tag-tsv.tsv', relativePath: 'valid-sidecar-bad-tag-tsv.tsv' },
+            { path: 'invalid-bad-tag-in-tsv.tsv', relativePath: 'invalid-bad-tag-in-tsv.tsv' },
             { tsvLine: 2 },
           ),
+        ],
+      },
+      {
+        testname: 'invalid-bad-tag-in-JSON',
+        explanation: 'Sidecar has a bad tag but tsv HED column tag is valid',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Red, Blue), Baloney',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\n' + '7\t4\tface\tGreen',
+        sidecarOnlyErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
+            path: 'invalid-bad-tag-in-JSON.json',
+            relativePath: 'invalid-bad-tag-in-JSON.json',
+          }),
+        ],
+        eventsOnlyErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
+            path: 'invalid-bad-tag-in-JSON.tsv',
+            relativePath: 'invalid-bad-tag-in-JSON.tsv',
+          }),
+        ],
+      },
+      {
+        testname: 'invalid-bad-tag-in-JSON',
+        explanation: 'Bad tag in JSON',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Red, Blue), (Green, (Yellow)), Baloney',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tHED\n' + '7\t4\tGreen',
+        sidecarOnlyErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
+            path: 'invalid-bad-tag-in-JSON.json',
+            relativePath: 'invalid-bad-tag-in-JSON.json',
+          }),
+        ],
+        eventsOnlyErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
+            path: 'invalid-bad-tag-in-JSON.tsv',
+            relativePath: 'invalid-bad-tag-in-JSON.tsv',
+          }),
         ],
       },
       {
@@ -559,6 +611,81 @@ export const bidsTestData = [
             },
           ),
         ],
+      },
+    ],
+  },
+  {
+    name: 'placeholder-tests',
+    description: 'Various placeholder tests',
+    tests: [
+      {
+        testname: 'valid-placeholder-used-in-tsv',
+        explanation: 'The sidecar has a placeholder that is used in the tsv',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          vehicle: {
+            HED: {
+              car: 'Car',
+              train: 'Train',
+            },
+          },
+          speed: {
+            HED: 'Speed/# mph',
+          },
+        },
+        eventsString: 'onset\tduration\tvehicle\tspeed\n' + '19\t6\tcar\t5\n',
+        sidecarOnlyErrors: [],
+        eventsOnlyErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-placeholder-not-used',
+        explanation: 'The sidecar has a placeholder that is not used in the tsv',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          vehicle: {
+            HED: {
+              car: 'Car',
+              train: 'Train',
+            },
+          },
+          speed: {
+            HED: 'Speed/# mph',
+          },
+        },
+        eventsString: 'onset\tduration\tvehicle\n' + '19\t6\tcar\n',
+        sidecarOnlyErrors: [],
+        eventsOnlyErrors: [],
+        comboErrors: [],
+      },
+
+      {
+        testname: 'invalid-no-placeholder-value-column',
+        explanation: 'The sidecar has a value column with no placeholder tag',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          vehicle: {
+            HED: {
+              car: 'Car',
+              train: 'Train',
+            },
+          },
+          speed: {
+            HED: 'Blue,Speed',
+          },
+        },
+        eventsString: 'onset\tduration\tvehicle\tspeed\n' + '19\t6\ttrain\t5\n',
+        sidecarOnlyErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingPlaceholder', { string: 'Blue,Speed', sidecarKey: 'speed' }),
+            {
+              path: 'invalid-no-placeholder-value-column.json',
+              relativePath: 'invalid-no-placeholder-value-column.json',
+            },
+          ),
+        ],
+        eventsOnlyErrors: [],
+        comboErrors: [],
       },
     ],
   },

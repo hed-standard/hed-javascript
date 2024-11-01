@@ -8,12 +8,13 @@ import { generateIssue } from '../common/issues/issues'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { buildBidsSchemas, parseSchemasSpec } from '../bids/schema'
 import { BidsDataset, BidsHedIssue, BidsIssue, validateBidsDataset } from '../bids'
-import { bidsDatasetDescriptions, bidsSidecars, bidsTsvFiles } from './bids.spec.data'
+import { bidsDatasetDescriptions, bidsSidecars, bidsTsvFiles } from './testData/bids.spec.data'
 import { parseHedString } from '../parser/parser'
-import { BidsHedTsvParser } from '../bids/validator/bidsHedTsvValidator'
+import { BidsHedTsvParser } from '../bids/validator/tsvValidator'
 import { buildSchemas } from '../validator/schema/init'
-import { BidsEventFile, BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
+import { BidsEventFile, TsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
 
+import { shouldRun, extractHedCodes } from './testUtilities'
 import { eventTestData } from './testData/eventTests.data'
 import parseTSV from '../bids/tsvParser'
 const fs = require('fs')
@@ -27,20 +28,6 @@ const runAll = true
 let onlyRun = new Map()
 if (!runAll) {
   onlyRun = new Map([['duplicate-tag-test', []]])
-}
-
-function shouldRun(name, testname) {
-  if (onlyRun.size === 0) return true
-  if (onlyRun.get(name) === undefined) return false
-
-  const cases = onlyRun.get(name)
-  if (cases.length === 0) return true
-
-  if (cases.includes(testname)) {
-    return true
-  } else {
-    return false
-  }
 }
 
 describe('Event level testing', () => {

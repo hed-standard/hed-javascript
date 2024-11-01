@@ -3,7 +3,7 @@ const assert = chai.assert
 const difference = require('lodash/difference')
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
-import { BidsHedIssue } from '../bids/types/issues'
+
 import { buildSchemas } from '../validator/schema/init'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { TsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
