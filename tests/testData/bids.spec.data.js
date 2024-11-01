@@ -1,5 +1,5 @@
-import { BidsEventFile, BidsJsonFile, BidsSidecar } from '../bids'
-import { recursiveMap } from '../utils/array'
+import { BidsEventFile, BidsJsonFile, BidsSidecar } from '../../bids'
+import { recursiveMap } from '../../utils/array'
 
 const sidecars = [
   // sub01 - Valid sidecars

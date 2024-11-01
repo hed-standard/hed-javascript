@@ -3,13 +3,15 @@ const assert = chai.assert
 const difference = require('lodash/difference')
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
-import { BidsHedIssue } from '../bids/types/issues'
+
 import { buildSchemas } from '../validator/schema/init'
 import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { TsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
+import parseTSV from '../bids/tsvParser'
 
 import { bidsTestData } from './testData/bidsTests.data'
-import parseTSV from '../bids/tsvParser'
+import { shouldRun, extractHedCodes } from './testUtilities'
+
 const fs = require('fs')
 
 //const displayLog = process.env.DISPLAY_LOG === 'true'
@@ -20,29 +22,6 @@ const runAll = true
 let onlyRun = new Map()
 if (!runAll) {
   onlyRun = new Map([['invalid-tag-tests', ['invalid-bad-tag-in-JSON']]])
-}
-
-function shouldRun(name, testname) {
-  if (onlyRun.size === 0) return true
-  if (onlyRun.get(name) === undefined) return false
-
-  const cases = onlyRun.get(name)
-  if (cases.length === 0) return true
-
-  return !!cases.includes(testname)
-}
-
-// Return an array of hedCode values extracted from an issues list.
-function extractHedCodes(issues) {
-  const errors = []
-  for (const issue of issues) {
-    if (issue instanceof BidsHedIssue) {
-      errors.push(`${issue.hedIssue.hedCode}`)
-    } else {
-      errors.push(`${issue.hedCode}`)
-    }
-  }
-  return errors
 }
 
 describe('BIDS validation', () => {
@@ -167,7 +146,7 @@ describe('BIDS validation', () => {
 
     if (tests && tests.length > 0) {
       test.each(tests)('$testname: $explanation ', (test) => {
-        if (shouldRun(name, test.testname)) {
+        if (shouldRun(name, test.testname, onlyRun)) {
           validate(test, itemLog)
         } else {
           itemLog.push(`----Skipping ${name}: ${test.testname}`)

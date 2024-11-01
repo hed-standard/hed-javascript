@@ -2,11 +2,13 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
+
 import { buildBidsSchemas } from '../bids/schema'
 import { BidsHedIssue } from '../bids/types/issues'
-import { Schema, Schemas } from '../common/schema/types'
+import { Schemas } from '../common/schema/types'
 import { BidsJsonFile } from '../bids'
 
+import { shouldRun } from './testUtilities'
 import { schemaBuildTestData } from './testData/schemaBuildTests.data'
 const fs = require('fs')
 
@@ -15,33 +17,12 @@ const displayLog = true
 
 // Ability to select individual tests to run
 const runAll = true
-let onlyRun = new Map()
+let onlyRun = new Map([['invalid-schemas', ['lazy-partnered-with conflicting-tags-build']]])
 if (!runAll) {
   onlyRun = new Map([])
 }
 
-function shouldRun(name, testname) {
-  if (onlyRun.size === 0) return true
-  if (onlyRun.get(name) === undefined) return false
-
-  const cases = onlyRun.get(name)
-  if (cases.length === 0) return true
-
-  return !!cases.includes(testname)
-}
-
-// Return an array of hedCode values extracted from an issues list.
-function extractHedCode(issue) {
-  const errors = []
-  if (issue instanceof BidsHedIssue) {
-    errors.push(`${issue.hedIssue.hedCode}`)
-  } else {
-    errors.push(`${issue.hedCode}`)
-  }
-  return errors
-}
-
-describe('Schema validation', () => {
+describe('Schema build validation', () => {
   const badLog = []
   let totalTests
   let wrongErrors
@@ -107,9 +88,9 @@ describe('Schema validation', () => {
     }
 
     if (tests && tests.length > 0) {
-      test.each(tests)('$testname: $explanation ', (test) => {
-        if (shouldRun(name, test.testname)) {
-          testSchema(test, itemLog)
+      test.each(tests)('$testname: $explanation ', async (test) => {
+        if (shouldRun(name, test.testname, onlyRun)) {
+          await testSchema(test, itemLog)
         } else {
           itemLog.push(`----Skipping ${name}: ${test.testname}`)
         }

@@ -1,10 +1,12 @@
 import chai from 'chai'
 const assert = chai.assert
-
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
+
 import { buildSchemasSpec } from '../bids/schema'
 import { BidsJsonFile } from '../bids'
+
+import { shouldRun } from './testUtilities'
 import { schemaSpecTestData } from './testData/schemaBuildTests.data'
 
 const fs = require('fs')
@@ -17,16 +19,6 @@ const runAll = true
 let onlyRun = new Map()
 if (!runAll) {
   onlyRun = new Map([])
-}
-
-function shouldRun(name, testname) {
-  if (onlyRun.size === 0) return true
-  if (onlyRun.get(name) === undefined) return false
-
-  const cases = onlyRun.get(name)
-  if (cases.length === 0) return true
-
-  return !!cases.includes(testname)
 }
 
 describe('Schema validation', () => {
@@ -98,7 +90,7 @@ describe('Schema validation', () => {
 
     if (tests && tests.length > 0) {
       test.each(tests)('$testname: $explanation ', (test) => {
-        if (shouldRun(name, test.testname)) {
+        if (shouldRun(name, test.testname, onlyRun)) {
           validateSpec(test, itemLog)
         } else {
           itemLog.push(`----Skipping ${name}: ${test.testname}`)
