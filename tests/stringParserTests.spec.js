@@ -10,16 +10,11 @@ import { SchemaSpec, SchemasSpec } from '../common/schema/types'
 import { conversionTestData } from './testData/stringParserTests.data'
 import { shouldRun, getHedString } from './testUtilities'
 
-const fs = require('fs')
-
-//const displayLog = process.env.DISPLAY_LOG === 'true'
-const displayLog = true
-
 // Ability to select individual tests to run
 const runAll = true
 let onlyRun = new Map()
 if (!runAll) {
-  onlyRun = new Map([['invalid-long-to-short', []]])
+  onlyRun = new Map([['invalid-long-to-short', ['single-level-extension-already-a-tag']]])
 }
 
 describe('Parse HED string tests', () => {
@@ -27,10 +22,6 @@ describe('Parse HED string tests', () => {
     ['8.2.0', undefined],
     ['8.3.0', undefined],
   ])
-
-  const badLog = []
-  let totalTests
-  let wrongErrors
 
   beforeAll(async () => {
     const spec2 = new SchemaSpec('', '8.2.0', '', path.join(__dirname, '../tests/data/HED8.2.0.xml'))
@@ -41,26 +32,16 @@ describe('Parse HED string tests', () => {
     const schemas3 = await buildSchemas(specs3)
     schemaMap.set('8.2.0', schemas2)
     schemaMap.set('8.3.0', schemas3)
-    totalTests = 0
-    wrongErrors = 0
   })
 
-  afterAll(() => {
-    const outBad = path.join(__dirname, 'runLog.txt')
-    const summary = `Total tests:${totalTests} Wrong errors:${wrongErrors}\n`
-    if (displayLog) {
-      fs.writeFileSync(outBad, summary + badLog.join('\n'), 'utf8')
-    }
-  })
+  afterAll(() => {})
 
   describe.each(conversionTestData)('$name : $description', ({ name, tests }) => {
-    let itemLog
-
-    const convert = function (test, iLog) {
-      const header = `[${test.testname} (Expect pass)]`
-      iLog.push(header)
+    const convert = function (test) {
+      const status = test.errors.length === 0 ? 'Expect pass' : 'Expect fail'
+      const header = `[${test.testname} (${status})]`
       const thisSchema = schemaMap.get(test.schemaVersion)
-      assert.isDefined(thisSchema, `${test.schemaVersion} is not available in test ${test.name}`)
+      assert.isDefined(thisSchema, `header: ${test.schemaVersion} is not available in test ${test.name}`)
 
       // Parse the string before converting
       const [parsedString, errorIssues, warningIssues] = getHedString(test.stringIn, thisSchema)
@@ -75,15 +56,9 @@ describe('Parse HED string tests', () => {
         `${header}: expected ${warningIssues} warnings but received ${test.warnings}\n`,
       )
 
-      if (errorIssues.length !== 0) {
-        iLog.push('...Unable to convert to a parsedHedTag\n')
-        return
-      }
-      let resultString = ''
-      if (test.operation === 'toLong') {
-        resultString = parsedString.format(true)
-      } else if (test.operation === 'toShort') {
-        resultString = parsedString.format(false)
+      let resultString = null
+      if (parsedString !== null) {
+        resultString = parsedString.format(test.operation === 'toLong')
       }
       assert.strictEqual(
         resultString,
@@ -92,20 +67,16 @@ describe('Parse HED string tests', () => {
       )
     }
 
-    beforeAll(async () => {
-      itemLog = []
-    })
+    beforeAll(async () => {})
 
-    afterAll(() => {
-      badLog.push(itemLog.join('\n'))
-    })
+    afterAll(() => {})
 
     if (tests && tests.length > 0) {
       test.each(tests)('$testname: $explanation ', (test) => {
         if (shouldRun(name, test.testname, onlyRun)) {
-          convert(test, itemLog)
+          convert(test)
         } else {
-          itemLog.push(`----Skipping ${name}: ${test.testname}`)
+          console.log(`----Skipping ${name}: ${test.testname}`)
         }
       })
     }

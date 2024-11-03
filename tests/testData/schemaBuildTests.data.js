@@ -137,7 +137,7 @@ export const schemaBuildTestData = [
         schemaError: null,
       },
       {
-        testname: 'goodd-lazy-partnered-remote-schema-build',
+        testname: 'good-lazy-partnered-remote-schema-build',
         explanation: '["testlib_2.0.0", "testlib_3.0.0"] is lazy partnered and testlib_3.0.0 is remote',
         schemaVersion: { Name: 'GoodLazyPartnered', HEDVersion: ['testlib_2.0.0', 'testlib_3.0.0'] },
         schemaError: null,

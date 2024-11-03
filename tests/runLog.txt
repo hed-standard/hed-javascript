@@ -1,2 +1,0 @@
-Total tests:0 Wrong errors:0 MissingErrors:0
-[simple-tag (Expect pass)]

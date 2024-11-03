@@ -16,8 +16,8 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\n' + '7\t4',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
       {
@@ -30,8 +30,8 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\n  ',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
       {
@@ -40,8 +40,8 @@ export const bidsTestData = [
         schemaVersion: '8.3.0',
         sidecar: {},
         eventsString: '\n  \n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
     ],
@@ -62,13 +62,12 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tHED\n' + '7\t4\tBaloney',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTag', { tag: 'Baloney' }),
-            { relativePath: 'invalid-bad-tag-in-tsv.tsv' },
-            { tsvLine: 2 },
-          ),
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney', tsvLine: 2 }), {
+            path: 'invalid-bad-tag-in-tsv.tsv',
+            relativePath: 'invalid-bad-tag-in-tsv.tsv',
+          }),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
@@ -90,13 +89,13 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tHED\n' + '7\t4\tface\tGreen',
-        sidecarOnlyErrors: [
+        sidecarErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
             path: 'invalid-bad-tag-in-JSON.json',
             relativePath: 'invalid-bad-tag-in-JSON.json',
           }),
         ],
-        eventsOnlyErrors: [],
+        tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
             path: 'invalid-bad-tag-in-JSON.tsv',
@@ -116,13 +115,13 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tHED\n' + '7\t4\tGreen',
-        sidecarOnlyErrors: [
+        sidecarErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
             path: 'invalid-bad-tag-in-JSON.json',
             relativePath: 'invalid-bad-tag-in-JSON.json',
           }),
         ],
-        eventsOnlyErrors: [],
+        tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
             path: 'invalid-bad-tag-in-JSON.tsv',
@@ -142,13 +141,12 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tHED\n' + '7\t4\tface\tRed,{blue}',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInHedColumn', { column: '{blue}' }),
-            { relativePath: 'valid-sidecar-tsv-curly-brace.tsv' },
-            { tsvLine: 2 },
-          ),
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { column: '{blue}', tsvLine: 2 }), {
+            path: 'valid-sidecar-tsv-curly-brace.tsv',
+            relativePath: 'valid-sidecar-tsv-curly-brace.tsv',
+          }),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
@@ -189,8 +187,8 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tvehicle\ttransport\tspeed\n' + '19\t6\tboat\tboat\t5\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', { tag: 'Boat' }),
@@ -235,18 +233,16 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tvehicle\tHED\n' + '19\t6\tboat\t(Green, Blue),(Green, Blue)\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(Green, Blue)' }),
-            { relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv' },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(Green, Blue)' }),
-            { relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv' },
-            { tsvLine: 2 },
-          ),
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: '(Green, Blue)', tsvLine: 2 }), {
+            path: 'invalid-duplicate-groups-first-level-tsv.tsv',
+            relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv',
+          }),
+          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: '(Green, Blue)', tsvLine: 2 }), {
+            path: 'invalid-duplicate-groups-first-level-tsv.tsv',
+            relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv',
+          }),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
@@ -290,8 +286,8 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tbig-one\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
       {
@@ -313,8 +309,8 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tadvanced\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
       {
@@ -334,8 +330,8 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tn/a\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
       {
@@ -355,8 +351,8 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tball_type\tHED\n' + '19\t6\tball\tn/a\tPurple\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
       {
@@ -371,8 +367,25 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tball_type\tHED\n' + '19\t6\tball\tn/a\tn/a\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-HED-curly-brace-but-tsv-has-no-HED-column',
+        explanation: 'A {HED} column splice is used in a sidecar but the tsv has no HED column',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Red, Blue), (Green, (Yellow))',
+              ball: '{HED}, Black',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\n' + '19\t6\tball\n',
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
       {
@@ -388,13 +401,13 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tn/a\tPurple\n',
-        sidecarOnlyErrors: [
+        sidecarErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('undefinedCurlyBraces', { column: 'ball_type' }), {
             path: 'invalid-curly-brace-column-slice-has-no hed.json',
             relativePath: 'invalid-curly-brace-column-slice-has-no hed.json',
           }),
         ],
-        eventsOnlyErrors: [],
+        tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('undefinedCurlyBraces', { column: 'ball_type' }), {
             path: 'invalid-curly-brace-column-slice-has-no hed.tsv',
@@ -403,23 +416,6 @@ export const bidsTestData = [
         ],
       },
       {
-        testname: 'valid-HED-curly-brace-but-tsv-has-no-HED-column',
-        explanation: 'A {HED} column splice is used in a sidecar but the tsv has no HED column',
-        schemaVersion: '8.3.0',
-        sidecar: {
-          event_code: {
-            HED: {
-              face: '(Red, Blue), (Green, (Yellow))',
-              ball: '{HED}, Black',
-            },
-          },
-        },
-        eventsString: 'onset\tduration\tevent_code\n' + '19\t6\tball\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
-        comboErrors: [],
-      },
-      {
         testname: 'invalid-curly-brace-in-HED-tsv-column',
         explanation: 'Curly braces are used in the HED column of a tsv.',
         schemaVersion: '8.3.0',
@@ -432,49 +428,12 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tHED\n' + '19\t6\t{event_code}\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInHedColumn', { column: '{event_code}' }),
-            {
-              relativePath: 'invalid-curly-brace-in-HED-tsv-column.tsv',
-            },
-            { tsvLine: 2 },
-          ),
-        ],
-        comboErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInHedColumn', { column: '{event_code}' }),
-            {
-              path: 'invalid-curly-brace-in-HED-tsv-column.tsv',
-              relativePath: 'invalid-curly-brace-in-HED-tsv-column.tsv',
-            },
-            { tsvLine: 2 },
-          ),
-        ],
-      },
-      {
-        testname: 'invalid-curly-brace-in-HED-tsv-column',
-        explanation: 'Curly braces are used in the HED column of a tsv.',
-        schemaVersion: '8.3.0',
-        sidecar: {
-          event_code: {
-            HED: {
-              face: '(Red, Blue), (Green, (Yellow))',
-              ball: 'Black',
-            },
-          },
-        },
-        eventsString: 'onset\tduration\tHED\n' + '19\t6\t{event_code}\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInHedColumn', { column: '{event_code}' }),
-            {
-              relativePath: 'invalid-curly-brace-in-HED-tsv-column.tsv',
-            },
-            { tsvLine: 2 },
-          ),
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { column: '{event_code}', tsvLine: 2 }), {
+            path: 'invalid-curly-brace-in-HED-tsv-column.tsv',
+            relativePath: 'invalid-curly-brace-in-HED-tsv-column.tsv',
+          }),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
@@ -505,7 +464,7 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\n' + '19\t6\tball\n',
-        sidecarOnlyErrors: [
+        sidecarErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', { column: 'type', referrer: 'event_code' }),
             {
@@ -521,7 +480,7 @@ export const bidsTestData = [
             },
           ),
         ],
-        eventsOnlyErrors: [],
+        tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', { column: 'type', referrer: 'event_code' }),
@@ -552,7 +511,7 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\n' + '19\t6\tball\n',
-        sidecarOnlyErrors: [
+        sidecarErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', { column: 'event_code', referrer: 'event_code' }),
             {
@@ -561,7 +520,7 @@ export const bidsTestData = [
             },
           ),
         ],
-        eventsOnlyErrors: [],
+        tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', { column: 'event_code', referrer: 'event_code' }),
@@ -592,7 +551,7 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tball_type\tball_size\n' + '19\t6\tball\tadvanced\t10\n',
-        sidecarOnlyErrors: [
+        sidecarErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', { column: 'ball_type', referrer: 'event_code' }),
             {
@@ -601,7 +560,7 @@ export const bidsTestData = [
             },
           ),
         ],
-        eventsOnlyErrors: [],
+        tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', { column: 'ball_type', referrer: 'event_code' }),
@@ -634,8 +593,8 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tvehicle\tspeed\n' + '19\t6\tcar\t5\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
       {
@@ -654,8 +613,8 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tvehicle\n' + '19\t6\tcar\n',
-        sidecarOnlyErrors: [],
-        eventsOnlyErrors: [],
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
 
@@ -675,7 +634,7 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tvehicle\tspeed\n' + '19\t6\ttrain\t5\n',
-        sidecarOnlyErrors: [
+        sidecarErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('missingPlaceholder', { string: 'Blue,Speed', sidecarKey: 'speed' }),
             {
@@ -684,7 +643,7 @@ export const bidsTestData = [
             },
           ),
         ],
-        eventsOnlyErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
     ],

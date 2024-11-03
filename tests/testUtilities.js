@@ -34,5 +34,9 @@ export function getHedString(hedString, hedSchemas) {
     errorIssues = flattenedIssues.filter((obj) => obj.level === 'error')
     warningIssues = flattenedIssues.filter((obj) => obj.level !== 'error')
   }
-  return [parsedString, errorIssues, warningIssues]
+  if (errorIssues.length > 0) {
+    return [null, errorIssues, warningIssues]
+  } else {
+    return [parsedString, errorIssues, warningIssues]
+  }
 }
