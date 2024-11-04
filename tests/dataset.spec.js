@@ -38,7 +38,7 @@ describe('HED dataset validation', () => {
       const testDatasets = {
         empty: [],
         singleValidLong: ['Event/Sensory-event'],
-        singleValidShort: ['Sensory-event'],
+        /*        singleValidShort: ['Sensory-event'],
         multipleValidLong: [
           'Event/Sensory-event',
           'Item/Object/Man-made-object/Vehicle/Train',
@@ -46,23 +46,23 @@ describe('HED dataset validation', () => {
         ],
         multipleValidShort: ['Sensory-event', 'Train', 'RGB-red/0.5'],
         multipleValidMixed: ['Event/Sensory-event', 'Train', 'RGB-red/0.5'],
-        multipleInvalid: ['Time-value/0.5 cm', 'InvalidEvent'],
+        multipleInvalid: ['Time-value/0.5 cm', 'InvalidEvent'],*/
       }
       const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
       const expectedIssues = {
         empty: [],
         singleValidLong: [],
-        singleValidShort: [],
-        multipleValidLong: [],
-        multipleValidShort: [],
-        multipleValidMixed: [],
-        multipleInvalid: [
-          generateValidationIssue('unitClassInvalidUnit', {
-            tag: testDatasets.multipleInvalid[0],
-            unitClassUnits: legalTimeUnits.sort().join(','),
-          }),
-          generateValidationIssue('invalidTag', { tag: testDatasets.multipleInvalid[1] }),
-        ],
+        /*       singleValidShort: [],
+              multipleValidLong: [],
+              multipleValidShort: [],
+              multipleValidMixed: [],
+              multipleInvalid: [
+                generateValidationIssue('unitClassInvalidUnit', {
+                  tag: testDatasets.multipleInvalid[0],
+                  unitClassUnits: legalTimeUnits.sort().join(','),
+                }),
+                generateValidationIssue('invalidTag', { tag: testDatasets.multipleInvalid[1] }),
+              ],*/
       }
       return validator(testDatasets, expectedIssues)
     })

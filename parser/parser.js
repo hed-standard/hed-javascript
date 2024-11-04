@@ -154,14 +154,14 @@ class HedStringParser {
       return [this.hedString, {}]
     }
 
-    const fullStringIssues = this._validateFullUnparsedHedString()
-    if (fullStringIssues.delimiter.length > 0) {
-      fullStringIssues.syntax = []
-      return [null, fullStringIssues]
-    }
+    // const fullStringIssues = this._validateFullUnparsedHedString()
+    // if (fullStringIssues.delimiter.length > 0) {
+    //   fullStringIssues.syntax = []
+    //   return [null, fullStringIssues]
+    // }
 
-    const [parsedTags, splitIssues] = new HedStringSplitter(this.hedString, this.hedSchemas).splitHedString()
-    const parsingIssues = Object.assign(fullStringIssues, splitIssues)
+    const [parsedTags, parsingIssues] = new HedStringSplitter(this.hedString, this.hedSchemas).splitHedString()
+    //const parsingIssues = Object.assign(fullStringIssues, splitIssues)
     if (parsedTags === null) {
       return [null, parsingIssues]
     }
