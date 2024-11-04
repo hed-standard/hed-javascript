@@ -10,7 +10,7 @@ import { tokenizerTests } from './testData/tokenizerTests.data'
 const runAll = true
 let onlyRun = new Map()
 if (!runAll) {
-  onlyRun = new Map([['invalid-comma-missing-or-extra', ['missing-comma-before-close']]])
+  onlyRun = new Map([['invalid-commas', ['extra-comma-before-open-group']]])
 }
 
 describe('Tokenizer validation using JSON tests', () => {

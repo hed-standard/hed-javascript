@@ -1,7 +1,6 @@
 import { unicodeName } from 'unicode-name'
 
 import { generateIssue } from '../common/issues/issues'
-import { replaceTagNameWithPound } from '../utils/hedStrings'
 
 const CHARACTERS = {
   BLANK: ' ',
@@ -33,8 +32,6 @@ for (let i = 0x00; i <= 0x1f; i++) {
 for (let i = 0x7f; i <= 0x9f; i++) {
   invalidCharacters.add(String.fromCodePoint(i))
 }
-
-const invalidCharactersOutsideOfValues = new Set([':'])
 
 /**
  * A specification for a tokenized substring.
@@ -221,18 +218,14 @@ export class HedStringTokenizer {
   }
 
   handleComma(i) {
-    if (this.state.lastDelimiter[0] === undefined && this.hedString.slice(0, i).length === 0) {
-      // Start of string empty
-      this.pushIssue('emptyTagFound', i)
-      return
-    }
     const trimmed = this.hedString.slice(this.state.lastDelimiter[1] + 1, i).trim()
-    if (this.state.lastDelimiter[0] === CHARACTERS.COMMA && trimmed.length === 0) {
-      // empty token after a previous comma
-      this.pushIssue('emptyTagFound', this.state.lastDelimiter[1]) // Check for empty group between commas
+    if (
+      [CHARACTERS.OPENING_GROUP, CHARACTERS.COMMA, undefined].includes(this.state.lastDelimiter[0]) &&
+      trimmed.length === 0
+    ) {
+      this.pushIssue('emptyTagFound', i) // Empty tag Ex: ",x" or "(, x" or "y, ,x"
     } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
-      // Unclosed curly brace
-      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1]) // Unclosed curly brace Ex: "{ x,"
     }
     if (
       [CHARACTERS.CLOSING_GROUP, CHARACTERS.CLOSING_COLUMN].includes(this.state.lastDelimiter[0]) &&
@@ -250,15 +243,15 @@ export class HedStringTokenizer {
   handleSlash(i) {
     if (this.state.currentToken.trim().length === 0) {
       // Slash at beginning of tag.
-      this.pushIssue('extraSlash', i)
+      this.pushIssue('extraSlash', i) // Slash at beginning of tag.
     } else if (this.state.lastSlash >= 0 && this.hedString.slice(this.state.lastSlash + 1, i).trim().length === 0) {
       this.pushIssue('extraSlash', i) // Slashes with only blanks between
     } else if (i > 0 && this.hedString.charAt(i - 1) === CHARACTERS.BLANK) {
       this.pushIssue('extraBlank', i - 1) // Blank before slash such as slash in value
     } else if (i < this.hedString.length - 1 && this.hedString.charAt(i + 1) === CHARACTERS.BLANK) {
-      this.pushIssue('extraBlank', i + 1) //Blank after
+      this.pushIssue('extraBlank', i + 1) //Blank after a slash
     } else if (this.hedString.slice(i).trim().length === 0) {
-      this.pushIssue('extraSlash', this.state.startingIndex)
+      this.pushIssue('extraSlash', this.state.startingIndex) // Extra slash at the end
     } else {
       this.state.currentToken += CHARACTERS.SLASH
       this.state.lastSlash = i
@@ -267,11 +260,13 @@ export class HedStringTokenizer {
 
   handleOpeningGroup(i) {
     if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
-      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1]) // After open curly brace Ex: "{  ("
     } else if (this.state.lastDelimiter[0] === CHARACTERS.CLOSING_COLUMN) {
-      this.pushIssue('commaMissing', this.state.lastDelimiter[1])
+      this.pushIssue('commaMissing', this.state.lastDelimiter[1]) // After close curly brace Ex: "} ("
+    } else if (this.state.lastDelimiter[0] === CHARACTERS.CLOSING_GROUP) {
+      this.pushIssue('commaMissing', this.state.lastDelimiter[1] + 1) // After close group Ex: ") ("
     } else if (this.state.currentToken.trim().length > 0) {
-      this.pushInvalidTag('commaMissing', i, this.state.currentToken.trim())
+      this.pushInvalidTag('commaMissing', i, this.state.currentToken.trim()) // After tag Ex: "x ("
     } else {
       this.state.currentGroupStack.push([])
       this.state.parenthesesStack.push(new GroupSpec(i, undefined, []))
@@ -282,28 +277,25 @@ export class HedStringTokenizer {
   }
 
   handleClosingGroup(i) {
-    if ([CHARACTERS.OPENING_GROUP, CHARACTERS.COMMA].includes(this.state.lastDelimiter[0])) {
-      this.pushTag(i)
-    }
     if (this.state.groupDepth <= 0) {
-      // If the group depth is <= 0, it means there's no corresponding opening group.
-      this.pushIssue('unopenedParenthesis', i)
+      this.pushIssue('unopenedParenthesis', i) // No corresponding opening group
     } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
-      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
+      this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1]) // After open curly brace Ex: "{ )"
     } else {
-      // Close the group by updating its bounds and moving it to the parent group.
-      this.closeGroup(i)
+      if ([CHARACTERS.OPENING_GROUP, CHARACTERS.COMMA].includes(this.state.lastDelimiter[0])) {
+        // Should be a tag here
+        this.pushTag(i)
+      }
+      this.closeGroup(i) // Close the group by updating its bounds and moving it to the parent group.
       this.state.lastDelimiter = [CHARACTERS.CLOSING_GROUP, i]
     }
   }
 
   handleOpeningColumn(i) {
     if (this.state.currentToken.trim().length > 0) {
-      // In the middle of a token -- can't have an opening brace
-      this.pushInvalidCharacterIssue(CHARACTERS.OPENING_COLUMN, i)
+      this.pushInvalidCharacterIssue(CHARACTERS.OPENING_COLUMN, i) // Middle of a token Ex: "x {"
     } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
-      //
-      this.pushIssue('nestedCurlyBrace', i)
+      this.pushIssue('nestedCurlyBrace', i) // After open curly brace   Ex: "{x{"
     } else {
       this.state.lastDelimiter = [CHARACTERS.OPENING_COLUMN, i]
     }
@@ -311,11 +303,9 @@ export class HedStringTokenizer {
 
   handleClosingColumn(i) {
     if (this.state.lastDelimiter[0] !== CHARACTERS.OPENING_COLUMN) {
-      // Column splice not in progress
-      this.pushIssue('unopenedCurlyBrace', i)
+      this.pushIssue('unopenedCurlyBrace', i) // No matching open brace Ex: " x}"
     } else if (!this.state.currentToken.trim()) {
-      // Column slice cannot be empty
-      this.pushIssue('emptyCurlyBrace', i)
+      this.pushIssue('emptyCurlyBrace', i) // Column slice cannot be empty Ex: "{  }"
     } else {
       // Close column by updating bounds and moving it to the parent group, push a column splice on the stack.
       this.state.currentGroupStack[this.state.groupDepth].push(
@@ -328,10 +318,9 @@ export class HedStringTokenizer {
 
   handleColon(i) {
     if (this.state.librarySchema || this.state.currentToken.trim().includes(CHARACTERS.BLANK)) {
-      // If colon has not been seen, it is a library. Ignore other colons.
-      this.state.currentToken += CHARACTERS.COLON
+      this.state.currentToken += CHARACTERS.COLON // If colon has not been seen, it is a library. Ignore other colons.
     } else if (/[^A-Za-z]/.test(this.state.currentToken.trim())) {
-      this.pushIssue('invalidTagPrefix', i)
+      this.pushIssue('invalidTagPrefix', i) // Prefix not alphabetic Ex:  "1a:xxx"
     } else {
       const lib = this.state.currentToken.trimStart()
       this.resetToken(i)
@@ -370,23 +359,11 @@ export class HedStringTokenizer {
     const groupSpec = this.state.parenthesesStack.pop()
     groupSpec.bounds[1] = i + 1
     if (this.hedString.slice(groupSpec.bounds[0] + 1, i).trim().length === 0) {
-      //The group is empty
-      this.pushIssue('emptyTagFound', i)
+      this.pushIssue('emptyTagFound', i) //The group is empty
     }
     this.state.parenthesesStack[this.state.groupDepth - 1].children.push(groupSpec)
     this.state.currentGroupStack[this.state.groupDepth - 1].push(this.state.currentGroupStack.pop())
     this.state.groupDepth--
-    //this.resetToken(i)
-  }
-
-  checkValueTagForInvalidCharacters() {
-    const formToCheck = replaceTagNameWithPound(this.state.currentToken)
-    for (let i = 0; i < formToCheck.length; i++) {
-      const character = formToCheck.charAt(i)
-      if (invalidCharactersOutsideOfValues.has(character)) {
-        this.pushInvalidCharacterIssue(character, this.state.startingIndex + i)
-      }
-    }
   }
 
   pushIssue(issueCode, index) {
