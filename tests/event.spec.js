@@ -61,7 +61,8 @@ describe('HED string and event validation', () => {
     describe('Full HED Strings', () => {
       const validatorSyntactic = validatorSyntacticBase
 
-      it('should not have mismatched parentheses', () => {
+      //TODO: Remove this test -- the separate test for mismatched parentheses is no longer performed.
+      it.skip('should not have mismatched parentheses', () => {
         const testStrings = {
           extraOpening:
             'Action/Reach/To touch,((Attribute/Object side/Left,Participant/Effect/Body part/Arm),Attribute/Location/Screen/Top/70 px,Attribute/Location/Screen/Left/23 px',
@@ -84,7 +85,8 @@ describe('HED string and event validation', () => {
         validatorSyntactic(testStrings, expectedIssues, (validator) => {})
       })
 
-      it('should not have malformed delimiters', () => {
+      // TODO: This test is replaced by tokenizer tests and should be removed
+      it.skip('should not have malformed delimiters', () => {
         const testStrings = {
           missingOpeningComma:
             'Action/Reach/To touch(Attribute/Object side/Left,Participant/Effect/Body part/Arm),Attribute/Location/Screen/Top/70 px,Attribute/Location/Screen/Left/23 px',

@@ -179,6 +179,13 @@ export class HedStringTokenizer {
       this.pushIssue('emptyTagFound', this.state.lastDelimiter[1]) // Extra comma
     } else if (this.state.lastSlash >= 0 && this.hedString.slice(this.state.lastSlash + 1).trim().length === 0) {
       this.pushIssue('extraSlash', this.state.lastSlash) // Extra slash
+    }
+    if (
+      this.state.currentToken.trim().length > 0 &&
+      ![undefined, CHARACTERS.COMMA].includes(this.state.lastDelimiter[0])
+    ) {
+      // Missing comma
+      this.pushIssue('commaMissing', this.state.lastDelimiter[1] + 1)
     } else {
       if (this.state.currentToken.trim().length > 0) {
         this.pushTag(this.hedString.length)
@@ -261,6 +268,10 @@ export class HedStringTokenizer {
   handleOpeningGroup(i) {
     if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
       this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1])
+    } else if (this.state.lastDelimiter[0] === CHARACTERS.CLOSING_COLUMN) {
+      this.pushIssue('commaMissing', this.state.lastDelimiter[1])
+    } else if (this.state.currentToken.trim().length > 0) {
+      this.pushInvalidTag('commaMissing', i, this.state.currentToken.trim())
     } else {
       this.state.currentGroupStack.push([])
       this.state.parenthesesStack.push(new GroupSpec(i, undefined, []))
