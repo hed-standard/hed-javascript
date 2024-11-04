@@ -269,36 +269,6 @@ export const tokenizerTests = [
     ],
   },
   {
-    name: 'invalid-empty-tag-in-various-places',
-    description: 'Empty tags in various places (empty groups are allowed).',
-    tests: [
-      {
-        testname: 'end-in-comma',
-        explanation: 'Cannot end in a comma',
-        string: 'x,y,',
-        tagSpecs: [],
-        groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '3', string: 'x,y,' })],
-      },
-      {
-        testname: 'double-in-comma',
-        explanation: 'Cannot have double commas',
-        string: 'x,,y,',
-        tagSpecs: [],
-        groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '1', string: 'x,,y,' })],
-      },
-      {
-        testname: 'leading-comma',
-        string: ',x,y',
-        explanation: 'Cannot have a leading comma',
-        tagSpecs: [],
-        groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '0', string: ',x,y' })],
-      },
-    ],
-  },
-  {
     name: 'invalid-extra-slash-in-various-places',
     description: 'Tags cannot have leading or trailing, or extra slashes',
     tests: [
@@ -353,9 +323,33 @@ export const tokenizerTests = [
     ],
   },
   {
-    name: 'invalid-comma-missing-or-extra',
+    name: 'invalid-commas',
     description: 'Commas must separate tags and groups',
     tests: [
+      {
+        testname: 'end-in-comma',
+        explanation: 'Cannot end in a comma',
+        string: 'x,y,',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('emptyTagFound', { index: '3', string: 'x,y,' })],
+      },
+      {
+        testname: 'double-in-comma',
+        explanation: 'Cannot have double commas',
+        string: 'x,,y,',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('emptyTagFound', { index: '1', string: 'x,,y,' })],
+      },
+      {
+        testname: 'leading-comma',
+        string: ',x,y',
+        explanation: 'Cannot have a leading comma',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('emptyTagFound', { index: '0', string: ',x,y' })],
+      },
       {
         testname: 'missing-comma-before-open',
         explanation: 'Must have a comma before open parentheses',
