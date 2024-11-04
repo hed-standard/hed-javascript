@@ -5,7 +5,7 @@ import { Schemas } from '../../common/schema/types'
 const NAME_CLASS_REGEX = /^[\w\-\u0080-\uFFFF]+$/
 const uniqueType = 'unique'
 const requiredType = 'required'
-const specialTags = require('./specialTags.json')
+const specialTags = require('../../data/json/specialTags.json')
 
 // Validation tests
 /**
