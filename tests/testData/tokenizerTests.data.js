@@ -1,7 +1,7 @@
-//import { TagSpec, GroupSpec, ColumnSpliceSpec } from '../parser/tokenizerNew'
-import { TagSpec, GroupSpec, ColumnSpliceSpec } from '../../parser/tokenizer'
+import { generateIssue } from '../../common/issues/issues'
+import { ColumnSpliceSpec, GroupSpec, TagSpec } from '../../parser/tokenizer'
 
-export const passingTests = [
+export const tokenizerTests = [
   {
     name: 'valid-single-tags',
     description: 'Single tags with no groups.',
@@ -10,9 +10,10 @@ export const passingTests = [
       {
         testname: 'simple-tag-no-blanks',
         string: 'xy',
-        explanation: 'Should have bounds 0, 2',
+        explanation: 'Should have correct bounds',
         tagSpecs: [new TagSpec('xy', 0, 2, '')],
         groupSpec: new GroupSpec(0, 2, []),
+        errors: [],
       },
       {
         testname: 'internal-blank',
@@ -20,6 +21,7 @@ export const passingTests = [
         explanation: 'Can have internal blank',
         tagSpecs: [new TagSpec('x y', 0, 3, '')],
         groupSpec: new GroupSpec(0, 3, []),
+        errors: [],
       },
       {
         testname: 'extra-blanks-simple',
@@ -27,6 +29,7 @@ export const passingTests = [
         explanation: 'Can have extra blanks',
         tagSpecs: [new TagSpec('xy', 1, 3, '')],
         groupSpec: new GroupSpec(0, 5, []),
+        errors: [],
       },
       {
         testname: 'tag-with-slashes',
@@ -34,6 +37,7 @@ export const passingTests = [
         explanation: 'Can have multiple slashes',
         tagSpecs: [new TagSpec('x/y/z', 0, 5, '')],
         groupSpec: new GroupSpec(0, 5, []),
+        errors: [],
       },
       {
         testname: 'tag-in-column-spec',
@@ -41,6 +45,7 @@ export const passingTests = [
         explanation: 'Single column spec',
         tagSpecs: [new ColumnSpliceSpec('xy', 0, 3, '')],
         groupSpec: new GroupSpec(0, 4, []),
+        errors: [],
       },
       {
         testname: 'tag-in-column-spec-multiple-blanks',
@@ -48,6 +53,7 @@ export const passingTests = [
         explanation: 'Single column spec with multiple blanks',
         tagSpecs: [new ColumnSpliceSpec('xy', 2, 8, '')],
         groupSpec: new GroupSpec(0, 10, []),
+        errors: [],
       },
       {
         testname: 'tag-with-colons-no-blanks',
@@ -55,6 +61,7 @@ export const passingTests = [
         explanation: 'Tag with a single colon and no blanks',
         tagSpecs: [new TagSpec('wz', 3, 5, 'xy')],
         groupSpec: new GroupSpec(0, 5, []),
+        errors: [],
       },
       {
         testname: 'tag-with-multiple-colons',
@@ -62,6 +69,7 @@ export const passingTests = [
         explanation: 'Tag with one colon marking library and another as part of a value',
         tagSpecs: [new TagSpec('wz x:y', 3, 9, 'xy')],
         groupSpec: new GroupSpec(0, 9, []),
+        errors: [],
       },
       {
         testname: 'tags-with-one-value column',
@@ -69,11 +77,12 @@ export const passingTests = [
         explanation: 'Tag with one colon as part of a value',
         tagSpecs: [new TagSpec('xy x:y', 0, 6, '')],
         groupSpec: new GroupSpec(0, 6, []),
+        errors: [],
       },
     ],
   },
   {
-    name: 'multiple-tags-no-groups',
+    name: 'valid-multiple-tags-no-groups',
     description: 'multiple tags with no groups.',
     warning: false,
     tests: [
@@ -83,6 +92,7 @@ export const passingTests = [
         explanation: 'Multiple tags with no blanks',
         tagSpecs: [new TagSpec('xy', 0, 2, ''), new TagSpec('zy', 3, 5, ''), new TagSpec('wy', 6, 8, '')],
         groupSpec: new GroupSpec(0, 8, []),
+        errors: [],
       },
       {
         testname: 'multiple-tags-with-blanks',
@@ -90,6 +100,7 @@ export const passingTests = [
         explanation: 'Can have extra blanks',
         tagSpecs: [new TagSpec('xy', 1, 3, ''), new TagSpec('zy', 6, 8, ''), new TagSpec('wy', 11, 13, '')],
         groupSpec: new GroupSpec(0, 15, []),
+        errors: [],
       },
       {
         testname: 'multiple-tags-with-blanks',
@@ -97,11 +108,12 @@ export const passingTests = [
         explanation: 'Can have extra blanks',
         tagSpecs: [new TagSpec('xy', 1, 3, ''), new TagSpec('zy', 6, 8, ''), new TagSpec('wy', 11, 13, '')],
         groupSpec: new GroupSpec(0, 15, []),
+        errors: [],
       },
     ],
   },
   {
-    name: 'un-nested-groups',
+    name: 'valid-un-nested-groups',
     description: 'Groups with no nesting',
     warning: false,
     tests: [
@@ -111,6 +123,7 @@ export const passingTests = [
         explanation: 'Single group',
         tagSpecs: [[new TagSpec('xy', 1, 3, '')]],
         groupSpec: new GroupSpec(0, 4, [new GroupSpec(0, 4, [])]),
+        errors: [],
       },
       {
         testname: 'tag-after-group',
@@ -118,6 +131,7 @@ export const passingTests = [
         explanation: 'A tag after a group.',
         tagSpecs: [[new TagSpec('x', 1, 2, '')], new TagSpec('p', 5, 6, '')],
         groupSpec: new GroupSpec(0, 6, [new GroupSpec(0, 3, [])]),
+        errors: [],
       },
       {
         testname: 'multiple-tags-in-group',
@@ -125,6 +139,7 @@ export const passingTests = [
         explanation: 'Multiple tags in one group.',
         tagSpecs: [[new TagSpec('x', 1, 2, ''), new TagSpec('y', 3, 4, '')]],
         groupSpec: new GroupSpec(0, 5, [new GroupSpec(0, 5, [])]),
+        errors: [],
       },
       {
         testname: 'multiple-unnested-groups',
@@ -137,6 +152,7 @@ export const passingTests = [
           new TagSpec('p', 19, 20, ''),
         ],
         groupSpec: new GroupSpec(0, 20, [new GroupSpec(3, 7, []), new GroupSpec(9, 17, [])]),
+        errors: [],
       },
       {
         testname: 'tag-after-group',
@@ -144,11 +160,12 @@ export const passingTests = [
         explanation: 'A tag after a group.',
         tagSpecs: [new TagSpec('x/y', 0, 3, ''), [new TagSpec('r', 5, 6, ''), new TagSpec('v', 7, 8, '')]],
         groupSpec: new GroupSpec(0, 9, [new GroupSpec(4, 9, [])]),
+        errors: [],
       },
     ],
   },
   {
-    name: 'Nested groups',
+    name: 'valid-nested groups',
     description: 'Nested groups with complex nesting',
     warning: false,
     tests: [
@@ -158,6 +175,7 @@ export const passingTests = [
         explanation: 'Single group with deep nesting',
         tagSpecs: [[[[new TagSpec('xy', 3, 5, '')]]]],
         groupSpec: new GroupSpec(0, 8, [new GroupSpec(0, 8, [new GroupSpec(1, 7, [new GroupSpec(2, 6, [])])])]),
+        errors: [],
       },
       {
         testname: 'Single-nested-group-with-trailing-tag',
@@ -165,6 +183,7 @@ export const passingTests = [
         explanation: 'Nested group with trailing tag',
         tagSpecs: [[[new TagSpec('xy', 2, 4, '')]], new TagSpec('g', 8, 9, '')],
         groupSpec: new GroupSpec(0, 9, [new GroupSpec(0, 6, [new GroupSpec(1, 5, [])])]),
+        errors: [],
       },
       {
         testname: 'Single-nested-group-with-leading-tag',
@@ -172,6 +191,7 @@ export const passingTests = [
         explanation: 'Nested group with trailing tag',
         tagSpecs: [new TagSpec('g', 1, 2, ''), [[new TagSpec('xy', 6, 8, '')]]],
         groupSpec: new GroupSpec(0, 10, [new GroupSpec(4, 10, [new GroupSpec(5, 9, [])])]),
+        errors: [],
       },
       {
         testname: 'Single-nested-group-with-splice',
@@ -179,6 +199,7 @@ export const passingTests = [
         explanation: 'A single nested group with a column splice.',
         tagSpecs: [[[[new ColumnSpliceSpec('xy', 3, 6)]]]],
         groupSpec: new GroupSpec(0, 10, [new GroupSpec(0, 10, [new GroupSpec(1, 9, [new GroupSpec(2, 8, [])])])]),
+        errors: [],
       },
       {
         testname: 'Complex-nested-group-1',
@@ -196,6 +217,7 @@ export const passingTests = [
             new GroupSpec(7, 24, [new GroupSpec(14, 23, [new GroupSpec(15, 22, [])])]),
           ]),
         ]),
+        errors: [],
       },
       {
         testname: 'Complex-nested-group-2',
@@ -203,6 +225,7 @@ export const passingTests = [
         explanation: 'Nested group with trailing tag',
         tagSpecs: [[[new TagSpec('xy', 2, 4, '')], new TagSpec('g', 7, 8, '')], new TagSpec('h', 11, 12, '')],
         groupSpec: new GroupSpec(0, 12, [new GroupSpec(0, 9, [new GroupSpec(1, 5, [])])]),
+        errors: [],
       },
       {
         testname: 'Complex-nested-group-3',
@@ -221,6 +244,7 @@ export const passingTests = [
             new GroupSpec(7, 24, [new GroupSpec(14, 23, [new GroupSpec(15, 22, [])])]),
           ]),
         ]),
+        errors: [],
       },
       {
         name: 'Complex-nested-group-4',
@@ -240,6 +264,137 @@ export const passingTests = [
             new GroupSpec(7, 24, [new GroupSpec(14, 23, [new GroupSpec(15, 22, [])])]),
           ]),
         ]),
+        errors: [],
+      },
+    ],
+  },
+  {
+    name: 'invalid-empty-tag-in-various-places',
+    description: 'Empty tags in various places (empty groups are allowed).',
+    tests: [
+      {
+        testname: 'end-in-comma',
+        explanation: 'Cannot end in a comma',
+        string: 'x,y,',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('emptyTagFound', { index: '3', string: 'x,y,' })],
+      },
+      {
+        testname: 'double-in-comma',
+        explanation: 'Cannot have double commas',
+        string: 'x,,y,',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('emptyTagFound', { index: '1', string: 'x,,y,' })],
+      },
+      {
+        testname: 'leading-comma',
+        string: ',x,y',
+        explanation: 'Cannot have a leading comma',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('emptyTagFound', { index: '0', string: ',x,y' })],
+      },
+    ],
+  },
+  {
+    name: 'invalid-extra-slash-in-various-places',
+    description: 'Tags cannot have leading or trailing, or extra slashes',
+    tests: [
+      {
+        testname: 'leading-slash',
+        explanation: 'Cannot have a leading slash',
+        string: '/x',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('extraSlash', { index: '0', string: '/x' })],
+      },
+      {
+        testname: 'double-slash',
+        explanation: 'Cannot have double slash',
+        string: 'x//y',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('extraSlash', { index: '2', string: 'x//y' })],
+      },
+      {
+        testname: 'triple-slash',
+        string: 'x///y',
+        explanation: 'Cannot have double slash',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('extraSlash', { index: '2', string: 'x///y' })],
+      },
+      {
+        testname: 'trailing-slash',
+        explanation: 'Cannot have ending slash',
+        string: 'x/y/',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('extraSlash', { index: '3', string: 'x/y/' })],
+      },
+      {
+        testname: 'value-slash',
+        explanation: 'Cannot have extra blanks before slash',
+        string: 'x /y',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('extraBlank', { index: '1', string: 'x /y' })],
+      },
+      {
+        testname: 'group-leading-slash',
+        explanation: 'Cannot slash after group',
+        string: '(/x)',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('extraSlash', { index: '1', string: '(/x)' })],
+      },
+    ],
+  },
+  {
+    name: 'invalid-improper-curly-braces',
+    description: 'Curly braces cannot have commas or parentheses or other curly braces',
+    tests: [
+      {
+        testname: 'leading-close-brace',
+        explanation: 'Cannot have a leading slash',
+        string: '}x',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('unopenedCurlyBrace', { index: '0', string: '}x' })],
+      },
+      {
+        testname: 'parenthesis-after-open-brace',
+        explanation: 'Cannot parentheses inside curly braces',
+        string: 'x, {y(z)}',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('unclosedCurlyBrace', { index: '3', string: 'x, {y(z)}' })],
+      },
+      {
+        testname: 'comma-inside-curly-brace',
+        explanation: 'Cannot have a comma inside curly brace',
+        string: 'x, {y,z}',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('unclosedCurlyBrace', { index: '3', string: 'x, {y,z}' })],
+      },
+      {
+        testname: 'unclosed-curly-brace',
+        explanation: 'Open curly braces must be matched with closing curly braces',
+        string: 'x, {y, z',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('unclosedCurlyBrace', { index: '3', string: 'x, {y, z' })],
+      },
+      {
+        testname: 'nested-curly-brace',
+        explanation: 'Curly braces cannot be nested',
+        string: '{x}, {{y, z}}',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [generateIssue('nestedCurlyBrace', { index: '6', string: '{x}, {{y, z}}' })],
       },
     ],
   },

@@ -141,19 +141,18 @@ export class HedStringTokenizer {
     // Empty strings cannot be tokenized
     if (this.hedString.trim().length === 0) {
       this.pushIssue('emptyTagFound', 0)
-      return [null, null, { syntax: this.issues }]
+      return [[], null, { syntax: this.issues }]
     }
     for (let i = 0; i < this.hedString.length; i++) {
       const character = this.hedString.charAt(i)
       this.handleCharacter(i, character)
-      //this.tokenizeCharacter(i, character)
       if (this.issues.length > 0) {
-        return [null, null, { syntax: this.issues }]
+        return [[], null, { syntax: this.issues }]
       }
     }
     this.finalizeTokenizer()
     if (this.issues.length > 0) {
-      return [null, null, { syntax: this.issues }]
+      return [[], null, { syntax: this.issues }]
     } else {
       return [this.state.currentGroupStack.pop(), this.state.parenthesesStack.pop(), { syntax: [] }]
     }
