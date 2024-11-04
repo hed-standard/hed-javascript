@@ -1,4 +1,4 @@
-import specialTags from './specialTags.json'
+import specialTags from '../../data/json/specialTags.json'
 import { ParsedHedGroup } from '../../parser/parsedHedGroup'
 import { ParsedHedTag } from '../../parser/parsedHedTag'
 
