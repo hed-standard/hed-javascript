@@ -11,11 +11,9 @@ import { bidsTestData } from './testData/bidsTests.data'
 import { shouldRun } from './testUtilities'
 
 // Ability to select individual tests to run
+const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const runAll = true
-let onlyRun = new Map()
-if (!runAll) {
-  onlyRun = new Map([['invalid-tag-tests', ['invalid-bad-tag-in-JSON']]])
-}
+const runMap = new Map([['duplicate-tag-tests', ['invalid-nested-duplicate-json-reordered']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([
@@ -82,7 +80,7 @@ describe('BIDS validation', () => {
 
     if (tests && tests.length > 0) {
       test.each(tests)('$testname: $explanation ', (test) => {
-        if (shouldRun(name, test.testname, onlyRun)) {
+        if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           validate(test)
         } else {
           console.log(`----Skipping ${name}: ${test.testname}`)

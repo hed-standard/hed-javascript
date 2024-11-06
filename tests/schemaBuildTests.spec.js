@@ -12,11 +12,9 @@ import { shouldRun } from './testUtilities'
 import { schemaBuildTestData } from './testData/schemaBuildTests.data'
 
 // Ability to select individual tests to run
+const skipMap = new Map()
 const runAll = true
-let onlyRun = new Map([])
-if (!runAll) {
-  onlyRun = new Map([['invalid-schemas', ['lazy-partnered-with conflicting-tags-build']]])
-}
+const runMap = new Map([['invalid-schemas', ['lazy-partnered-with conflicting-tags-build']]])
 
 describe('Schema build validation', () => {
   beforeAll(async () => {})
@@ -62,7 +60,7 @@ describe('Schema build validation', () => {
 
     if (tests && tests.length > 0) {
       test.each(tests)('$testname: $explanation ', async (test) => {
-        if (shouldRun(name, test.testname, onlyRun)) {
+        if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           await testSchema(test)
         } else {
           console.log(`----Skipping ${name}: ${test.testname}`)

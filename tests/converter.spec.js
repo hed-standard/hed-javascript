@@ -218,7 +218,8 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should handle leading and trailing spaces correctly', () => {
+      // TODO: This test is handled by tokenizer and should be removed.
+      it.skip('(REMOVE)should handle leading and trailing spaces correctly', () => {
         const testStrings = {
           leadingSpace: ' Item/Sound/Environmental-sound/Unique Value',
           trailingSpace: 'Item/Sound/Environmental-sound/Unique Value ',
@@ -234,7 +235,8 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it.skip('should strip leading and trailing slashes', () => {
+      // TODO: Remove as these are now errors
+      it.skip('(REMOVE)should strip leading and trailing slashes', () => {
         const testStrings = {
           leadingSingle: '/Event',
           leadingExtension: '/Event/Extension',

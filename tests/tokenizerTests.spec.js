@@ -7,11 +7,9 @@ import { shouldRun } from './testUtilities'
 import { tokenizerTests } from './testData/tokenizerTests.data'
 
 // Ability to select individual tests to run
+const skipMap = new Map()
 const runAll = true
-let onlyRun = new Map()
-if (!runAll) {
-  onlyRun = new Map([['invalid-commas', ['extra-comma-before-open-group']]])
-}
+const runMap = new Map([['invalid-commas', ['extra-comma-before-open-group']]])
 
 describe('Tokenizer validation using JSON tests', () => {
   beforeAll(async () => {})
@@ -36,7 +34,7 @@ describe('Tokenizer validation using JSON tests', () => {
 
     if (tests && tests.length > 0) {
       test.each(tests)('$testname: $explanation for "$string"', (test) => {
-        if (shouldRun(name, test.testname, onlyRun)) {
+        if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           stringTokenizer(test)
         } else {
           console.log(`----Skipping ${name}: ${test.testname}`)

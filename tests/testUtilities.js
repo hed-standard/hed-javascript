@@ -1,14 +1,18 @@
 import { BidsHedIssue } from '../bids/types/issues'
 import { parseHedString } from '../parser/parser'
 
-export function shouldRun(name, testname, runMap) {
-  if (runMap.size === 0) return true
+export function shouldRun(name, testname, runAll, runMap, skipMap) {
+  if (runAll) {
+    // Run everything except what is in skipMap
+    if (skipMap.get(name) === undefined) return true
+    const cases = skipMap.get(name)
+    return !cases.includes(testname)
+  }
+
   if (runMap.get(name) === undefined) return false
-
-  const cases = runMap.get(name)
-  if (cases.length === 0) return true
-
-  return !!cases.includes(testname)
+  const runCases = runMap.get(name)
+  if (runCases.length === 0) return true
+  return !!runCases.includes(testname)
 }
 
 // Return an array of hedCode values extracted from an issues list.

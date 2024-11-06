@@ -9,11 +9,9 @@ import { shouldRun } from './testUtilities'
 import { schemaSpecTestData } from './testData/schemaBuildTests.data'
 
 // Ability to select individual tests to run
+const skipMap = new Map()
 const runAll = true
-let onlyRun = new Map()
-if (!runAll) {
-  onlyRun = new Map([])
-}
+const runMap = new Map([])
 
 describe('Schema validation', () => {
   beforeAll(async () => {})
@@ -51,7 +49,7 @@ describe('Schema validation', () => {
 
     if (tests && tests.length > 0) {
       test.each(tests)('$testname: $explanation ', (test) => {
-        if (shouldRun(name, test.testname, onlyRun)) {
+        if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           validateSpec(test)
         } else {
           console.log(`----Skipping ${name}: ${test.testname}`)
