@@ -163,50 +163,42 @@ export const bidsTestData = [
     description: 'Duplicate tags can appear in isolation or in combination',
     tests: [
       {
-        testname: 'invalid-first-level-duplicate-json-tsv',
-        explanation: 'Each is okay but when combined, duplicate tag',
+        testname: 'valid-no-duplicate-tsv',
+        explanation: 'No duplicates in tsv, no groups, no JSON',
+        schemaVersion: '8.3.0',
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tEvent/Sensory-event,Item/Object, Purple\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-duplicate-tsv',
+        explanation: 'Duplicate at different level in tsv',
         schemaVersion: '8.3.0',
         sidecar: {
-          vehicle: {
+          event_code: {
             HED: {
-              car: 'Car',
-              train: 'Train',
-              boat: 'Boat',
-            },
-          },
-          speed: {
-            HED: 'Speed/# mph',
-          },
-          transport: {
-            HED: {
-              car: 'Car',
-              train: 'Train',
-              boat: 'Boat',
-              maglev: 'Vehicle',
+              ball: '(Item/Object, Sensory-event)',
             },
           },
         },
-        eventsString: 'onset\tduration\tvehicle\ttransport\tspeed\n' + '19\t6\tboat\tboat\t5\n',
+        eventsString:
+          'onset\tduration\tevent_code\tHED\n' +
+          '19\t6\tball\tEvent/Sensory-event,Item/Object, Purple, (Item/Object, Purple)\n',
         sidecarErrors: [],
         tsvErrors: [],
-        comboErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: 'Boat' }),
-            {
-              path: 'invalid-first-level-duplicate-json-tsv.tsv',
-              relativePath: 'invalid-first-level-duplicate-json-tsv.tsv',
-            },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: 'Boat' }),
-            {
-              path: 'invalid-first-level-duplicate-json-tsv.tsv',
-              relativePath: 'invalid-first-level-duplicate-json-tsv.tsv',
-            },
-            { tsvLine: 2 },
-          ),
-        ],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-repeats-different-nesting-tsv',
+        explanation: 'Duplicate groups not at same level in tsv',
+        schemaVersion: '8.3.0',
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\t(Red, Blue, (Green)), (Red, Blue, ((Green)))\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
       },
       {
         testname: 'invalid-duplicate-groups-first-level-tsv',
@@ -218,17 +210,6 @@ export const bidsTestData = [
               car: 'Car',
               train: 'Train',
               boat: 'Boat',
-            },
-          },
-          speed: {
-            HED: 'Speed/# mph',
-          },
-          transport: {
-            HED: {
-              car: 'Car',
-              train: 'Train',
-              boat: 'Boat',
-              maglev: 'Vehicle',
             },
           },
         },
@@ -258,6 +239,279 @@ export const bidsTestData = [
             {
               path: 'invalid-duplicate-groups-first-level-tsv.tsv',
               relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-different-forms-same-tag-tsv',
+        explanation: 'Duplicate tags in different forms',
+        schemaVersion: '8.3.0',
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tTrain,Vehicle/Train\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: 'Train', tsvLine: 2 }), {
+            path: 'invalid-different-forms-same-tag-tsv.tsv',
+            relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
+          }),
+          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: 'Vehicle/Train', tsvLine: 2 }), {
+            path: 'invalid-different-forms-same-tag-tsv.tsv',
+            relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
+          }),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: 'Train' }),
+            {
+              path: 'invalid-different-forms-same-tag-tsv.tsv',
+              relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: 'Vehicle/Train' }),
+            {
+              path: 'invalid-different-forms-same-tag-tsv.tsv',
+              relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-repeated-nested-groups-tsv',
+        explanation: 'The HED string has first level repeated nested groups',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          vehicle: {
+            HED: {
+              car: 'Car',
+              train: 'Train',
+              boat: 'Boat',
+            },
+          },
+        },
+        eventsString:
+          'onset\tduration\tvehicle\tHED\n' +
+          '19\t6\tboat\t(Red, (Blue, Green, (Yellow)), Red, (Blue, Green, (Yellow)))\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: 'Red', tsvLine: 2 }), {
+            path: 'invalid-repeated-nested-groups-tsv.tsv',
+            relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
+          }),
+          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: 'Red', tsvLine: 2 }), {
+            path: 'invalid-repeated-nested-groups-tsv.tsv',
+            relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
+          }),
+          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: '(Blue, Green, (Yellow))', tsvLine: 2 }), {
+            path: 'invalid-repeated-nested-groups-tsv.tsv',
+            relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
+          }),
+          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: '(Blue, Green, (Yellow))', tsvLine: 2 }), {
+            path: 'invalid-repeated-nested-groups-tsv.tsv',
+            relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
+          }),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: 'Red' }),
+            {
+              path: 'invalid-repeated-nested-groups-tsv.tsv',
+              relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: 'Red' }),
+            {
+              path: 'invalid-repeated-nested-groups-tsv.tsv',
+              relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: '(Blue, Green, (Yellow))' }),
+            {
+              path: 'invalid-repeated-nested-groups-tsv.tsv',
+              relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: '(Blue, Green, (Yellow))' }),
+            {
+              path: 'invalid-repeated-nested-groups-tsv.tsv',
+              relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-first-level-duplicate-combo',
+        explanation: 'Each is okay but when combined, duplicate tag',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          vehicle: {
+            HED: {
+              car: 'Car',
+              train: 'Train',
+              boat: 'Boat',
+            },
+          },
+          speed: {
+            HED: 'Speed/# mph',
+          },
+          transport: {
+            HED: {
+              car: 'Car',
+              train: 'Train',
+              boat: 'Boat',
+              maglev: 'Vehicle',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tvehicle\ttransport\tspeed\n' + '19\t6\tboat\tboat\t5\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: 'Boat' }),
+            {
+              path: 'invalid-first-level-duplicate-combo.tsv',
+              relativePath: 'invalid-first-level-duplicate-combo.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: 'Boat' }),
+            {
+              path: 'invalid-first-level-duplicate-combo.tsv',
+              relativePath: 'invalid-first-level-duplicate-combo.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-first-level-duplicate-combo-reordered',
+        explanation: 'Each is okay but when combined, duplicate group in different order',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          event_code: {
+            HED: {
+              ball: '(Green, Purple), Blue, Orange',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\n' + '19\t6\tball\tWhite,(Purple, Green), (Orange)\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: '(Green, Purple)' }),
+            {
+              path: 'invalid-first-level-duplicate-combo-reordered.tsv',
+              relativePath: 'invalid-first-level-duplicate-combo-reordered.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: '(Purple, Green)' }),
+            {
+              path: 'invalid-first-level-duplicate-combo-reordered.tsv',
+              relativePath: 'invalid-first-level-duplicate-combo-reordered.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-nested-duplicate-json-reordered',
+        explanation: 'Deeply nested duplicates in JSON entry reordered',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          event_code: {
+            HED: {
+              ball: '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange, (White, (((Purple, Black), Blue, Orange)),  Green)',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\n' + '19\t6\tball\tSensory-event\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              sidecarKey: 'event_code',
+              tag: '(Green, ((Blue, Orange, (Black, Purple))), White)',
+            }),
+            {
+              path: 'invalid-nested-duplicate-json-reordered.json',
+              relativePath: 'invalid-nested-duplicate-json-reordered.json',
+            },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              sidecarKey: 'event_code',
+              tag: '(White, (((Purple, Black), Blue, Orange)),  Green)',
+            }),
+            {
+              path: 'invalid-nested-duplicate-json-reordered.json',
+              relativePath: 'invalid-nested-duplicate-json-reordered.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: '(Green, ((Blue, Orange, (Black, Purple))), White)' }),
+            {
+              path: 'invalid-nested-duplicate-json-reordered.tsv',
+              relativePath: 'invalid-nested-duplicate-json-reordered.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: '(White, (((Purple, Black), Blue, Orange)),  Green)' }),
+            {
+              path: 'invalid-nested-duplicate-json-reordered.tsv',
+              relativePath: 'invalid-nested-duplicate-json-reordered.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-nested-duplicate-combo-reordered',
+        explanation: 'Deeply nested duplicates reordered',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          event_code: {
+            HED: {
+              ball: '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange',
+            },
+          },
+        },
+        eventsString:
+          'onset\tduration\tevent_code\tHED\n' + '19\t6\tball\t(White, (((Purple, Black), Blue, Orange)),  Green)\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: '(Green, ((Blue, Orange, (Black, Purple))), White)' }),
+            {
+              path: 'invalid-nested-duplicate-combo-reordered.tsv',
+              relativePath: 'invalid-nested-duplicate-combo-reordered.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tag: '(White, (((Purple, Black), Blue, Orange)),  Green)' }),
+            {
+              path: 'invalid-nested-duplicate-combo-reordered.tsv',
+              relativePath: 'invalid-nested-duplicate-combo-reordered.tsv',
             },
             { tsvLine: 2 },
           ),
@@ -645,6 +899,183 @@ export const bidsTestData = [
         ],
         tsvErrors: [],
         comboErrors: [],
+      },
+    ],
+  },
+  {
+    name: 'unit-tests',
+    description: 'Various unit tests (limited for now)',
+    tests: [
+      {
+        testname: 'valid-units-on-a-placeholder',
+        explanation: 'The sidecar has invalid units on a placeholder',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph',
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'wrong-units-on-a-placeholder',
+        explanation: 'The sidecar has wrong units on a placeholder',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# Hz',
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('unitClassInvalidUnit', {
+              sidecarKey: 'speed',
+              tag: 'Speed/# Hz',
+              unitClassUnits: 'kph,m-per-s,mph',
+            }),
+            {
+              path: 'wrong-units-on-a-placeholder.json',
+              relativePath: 'wrong-units-on-a-placeholder.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('unitClassInvalidUnit', { tag: 'Speed/5 Hz', unitClassUnits: 'kph,m-per-s,mph' }),
+            {
+              path: 'wrong-units-on-a-placeholder.tsv',
+              relativePath: 'wrong-units-on-a-placeholder.tsv',
+            },
+            { tsvLine: 2 },
+          ),
+        ],
+      },
+    ],
+  },
+  {
+    name: 'definition-tests',
+    description: 'Various definition tests (limited for now)',
+    tests: [
+      {
+        testname: 'valid-definition-no-placeholder',
+        explanation: 'Sidecar has a simple valid definition',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, Def/TrainDef',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/TrainDef, (Train))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-definition-with-placeholder',
+        explanation: 'The sidecar with definition with placeholder',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, Def/GreenDef/0.5',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/GreenDef/#, (RGB-green/#, Triangle))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-definition-no-group',
+        explanation: 'The sidecar with definition that has no internal group.',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, Def/BlueDef',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/BlueDef)',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'invalid-missing-definition-for-def',
+        explanation: 'The sidecar uses a def with no definition',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, Def/InvalidDef',
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          /*          BidsHedIssue.fromHedIssue(
+            generateIssue('missingDefinition',
+              {definition: 'InvalidDef'}),
+            {
+              path: 'invalid-missing-definition-for-def.json',
+              relativePath: 'invalid-missing-definition-for-def.json',
+            }
+          ),*/
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          // BidsHedIssue.fromHedIssue(
+          //   generateIssue('missingDefinition', {definition: 'InvalidDef'}),
+          //   {
+          //     path: 'invalid-missing-definition-for-def.tsv',
+          //     relativePath: 'invalid-missing-definition-for-def.tsv',
+          //   },
+          //   { tsvLine: 2 },
+          // ),
+        ],
+      },
+      {
+        testname: 'invalid-nested-definition',
+        explanation: 'The sidecar has a definition inside a definition',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, Def/NestedDef',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/NestedDef, (Definition/Junk, (Blue)))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          /*           BidsHedIssue.fromHedIssue(generateIssue('nestedDefinition',{definition: 'NestedDef', sidecarKey: "mydefs"}),
+           {path: 'invalid-nested-definition.json', relativePath: 'invalid-nested-definition.json'}),*/
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('nestedDefinition', { definition: 'NestedDef', sidecarKey: 'mydefs' }),
+            { path: 'invalid-nested-definition.json', relativePath: 'invalid-nested-definition.json' },
+          ),
+        ],
       },
     ],
   },

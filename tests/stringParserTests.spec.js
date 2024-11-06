@@ -7,15 +7,13 @@ import { BidsHedIssue } from '../bids/types/issues'
 import { buildSchemas } from '../schema/init'
 import { SchemaSpec, SchemasSpec } from '../schema/specs'
 
-import { conversionTestData } from './testData/stringParserTests.data'
+import { parseTestData } from './testData/stringParserTests.data'
 import { shouldRun, getHedString } from './testUtilities'
 
 // Ability to select individual tests to run
+const skipMap = new Map()
 const runAll = true
-let onlyRun = new Map()
-if (!runAll) {
-  onlyRun = new Map([['invalid-long-to-short', ['single-level-extension-already-a-tag']]])
-}
+const runMap = new Map([['valid-mixed-groups', []]])
 
 describe('Parse HED string tests', () => {
   const schemaMap = new Map([
@@ -36,8 +34,8 @@ describe('Parse HED string tests', () => {
 
   afterAll(() => {})
 
-  describe.each(conversionTestData)('$name : $description', ({ name, tests }) => {
-    const convert = function (test) {
+  describe.each(parseTestData)('$name : $description', ({ name, tests }) => {
+    const testConvert = function (test) {
       const status = test.errors.length === 0 ? 'Expect pass' : 'Expect fail'
       const header = `[${test.testname} (${status})]`
       const thisSchema = schemaMap.get(test.schemaVersion)
@@ -45,25 +43,37 @@ describe('Parse HED string tests', () => {
 
       // Parse the string before converting
       const [parsedString, errorIssues, warningIssues] = getHedString(test.stringIn, thisSchema)
+
+      // Check for errors
       assert.deepStrictEqual(
         errorIssues,
         test.errors,
         `${header}: expected ${errorIssues} errors but received ${test.errors}\n`,
       )
+      // Check if warning match
       assert.deepStrictEqual(
         warningIssues,
         test.warnings,
         `${header}: expected ${warningIssues} warnings but received ${test.warnings}\n`,
       )
-
-      let resultString = null
-      if (parsedString !== null) {
-        resultString = parsedString.format(test.operation === 'toLong')
+      if (parsedString === null) {
+        return
       }
+
+      // Check the conversion to long
+      const longString = parsedString.format(true)
       assert.strictEqual(
-        resultString,
-        test.stringOut,
-        `${header} [${test.operation}]: expected ${test.stringOut} but received ${resultString}`,
+        longString,
+        test.stringLong,
+        `${header}: expected ${test.stringLong} but received ${longString}`,
+      )
+
+      // Check the conversion to short
+      const shortString = parsedString.format(false)
+      assert.strictEqual(
+        shortString,
+        test.stringShort,
+        `${header}: expected ${test.stringShort} but received ${shortString}`,
       )
     }
 
@@ -73,8 +83,8 @@ describe('Parse HED string tests', () => {
 
     if (tests && tests.length > 0) {
       test.each(tests)('$testname: $explanation ', (test) => {
-        if (shouldRun(name, test.testname, onlyRun)) {
-          convert(test)
+        if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
+          testConvert(test)
         } else {
           console.log(`----Skipping ${name}: ${test.testname}`)
         }

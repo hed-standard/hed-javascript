@@ -64,7 +64,7 @@ describe('HED string and event validation', () => {
       const validatorSyntactic = validatorSyntacticBase
 
       //TODO: Remove this test -- the separate test for mismatched parentheses is no longer performed.
-      it.skip('should not have mismatched parentheses', () => {
+      it.skip('(REMOVE) should not have mismatched parentheses', () => {
         const testStrings = {
           extraOpening:
             'Action/Reach/To touch,((Attribute/Object side/Left,Participant/Effect/Body part/Arm),Attribute/Location/Screen/Top/70 px,Attribute/Location/Screen/Left/23 px',
@@ -88,7 +88,7 @@ describe('HED string and event validation', () => {
       })
 
       // TODO: This test is replaced by tokenizer tests and should be removed
-      it.skip('should not have malformed delimiters', () => {
+      it.skip('(REMOVE) should not have malformed delimiters', () => {
         const testStrings = {
           missingOpeningComma:
             'Action/Reach/To touch(Attribute/Object side/Left,Participant/Effect/Body part/Arm),Attribute/Location/Screen/Top/70 px,Attribute/Location/Screen/Left/23 px',
@@ -177,7 +177,8 @@ describe('HED string and event validation', () => {
         validatorSyntactic(testStrings, expectedIssues, (validator) => {})
       })
 
-      it('should not have invalid characters', () => {
+      // TODO: This test will be replaced by invalid character tests based on value classes
+      it.skip('should not have invalid characters', () => {
         const testStrings = {
           openingBrace: 'Attribute/Object side/Left,Participant/Effect{Body part/Arm',
           closingBrace: 'Attribute/Object side/Left,Participant/Effect}/Body part/Arm',
@@ -276,8 +277,8 @@ describe('HED string and event validation', () => {
         )
       }
 
-      // TODO: Fix
-      it.skip('should not contain duplicates', () => {
+      // TODO: Remove test as repeated in bidsTests
+      it.skip('(REMOVE) should not contain duplicates - now in bidsTests', () => {
         const testStrings = {
           noDuplicate: 'Event/Category/Experimental stimulus,Item/Object/Vehicle/Train,Attribute/Visual/Color/Purple',
           legalDuplicate: 'Item/Object/Vehicle/Train,(Item/Object/Vehicle/Train,Event/Category/Experimental stimulus)',
@@ -354,11 +355,11 @@ describe('HED string and event validation', () => {
   })
 
   describe('HED-3G validation', () => {
-    const hedSchemaFile = 'tests/data/HED8.2.0.xml'
+    const hedSchemaFile = 'tests/data/HED8.3.0.xml'
     let hedSchemas
 
     beforeAll(async () => {
-      const spec3 = new SchemaSpec('', '8.2.0', '', hedSchemaFile)
+      const spec3 = new SchemaSpec('', '8.3.0', '', hedSchemaFile)
       const specs = new SchemasSpec().addSchemaSpec(spec3)
       hedSchemas = await buildSchemas(specs)
     })
@@ -405,7 +406,8 @@ describe('HED string and event validation', () => {
     describe('Full HED Strings', () => {
       const validatorSemantic = validatorSemanticBase
 
-      it('properly validate short tags', () => {
+      // TODO: Remove - Units moved to bidsTests rest to stringParser tests
+      it.skip('REMOVE properly validate short tags', () => {
         const testStrings = {
           simple: 'Car',
           groupAndValues: '(Train/Maglev,Age/15,RGB-red/0.5),Operate',
@@ -422,7 +424,7 @@ describe('HED string and event validation', () => {
             generateIssue('unitClassInvalidUnit', {
               tag: 'Time-value/20 cm',
               unitClassUnits: legalTimeUnits.sort().join(','),
-            }),
+            }), //Now in bidsTests
           ],
           duplicateSame: [
             generateIssue('duplicateTag', {
@@ -451,6 +453,7 @@ describe('HED string and event validation', () => {
         })
       })
 
+      // TODO: The testing of units should be in the stringParser
       it('should not validate strings with short-to-long conversion errors', () => {
         const testStrings = {
           // Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
@@ -567,7 +570,8 @@ describe('HED string and event validation', () => {
         )
       }
 
-      it('should exist in the schema or be an allowed extension', () => {
+      // TODO: Already covered in stringParserTests -- units still to move down.
+      it.skip('REMOVE should exist in the schema or be an allowed extension', () => {
         const testStrings = {
           takesValue: 'Time-value/3 ms',
           full: 'Left-side-of',
@@ -613,6 +617,7 @@ describe('HED string and event validation', () => {
         )
       })
 
+      // TODO: Wait to generate tests until detection moved to stringParser.
       it('should have a proper unit when required', () => {
         const testStrings = {
           correctUnit: 'Time-value/3 ms',
@@ -635,8 +640,6 @@ describe('HED string and event validation', () => {
           /*properTime: 'Clockface/08:30',
         invalidTime: 'Clockface/54:54',*/
         }
-        const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
-        // const legalClockTimeUnits = ['hour:min', 'hour:min:sec']
         const legalFrequencyUnits = ['Hz', 'hertz']
         const legalSpeedUnits = ['m-per-s', 'kph', 'mph']
         const expectedIssues = {
@@ -656,7 +659,7 @@ describe('HED string and event validation', () => {
           incorrectUnit: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectUnit,
-              unitClassUnits: legalTimeUnits.sort().join(','),
+              unitClassUnits: 'day,hour,minute,month,s,second,year',
             }),
           ],
           incorrectNonNumericValue: [
@@ -685,7 +688,7 @@ describe('HED string and event validation', () => {
           incorrectNonSIUnitModifier: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectNonSIUnitModifier,
-              unitClassUnits: legalTimeUnits.sort().join(','),
+              unitClassUnits: 'day,hour,minute,month,s,second,year',
             }),
           ],
           incorrectNonSIUnitSymbolModifier: [
@@ -717,6 +720,7 @@ describe('HED string and event validation', () => {
         )
       })
 
+      // TODO: BIDS sidecar validation does not detect missing definitions (under definition-tests in bidsTests)
       it('should not contain undefined definitions', () => {
         const testDefinitions = {
           greenTriangle: '(Definition/GreenTriangleDefinition/#, (RGB-green/#, Triangle))',
@@ -743,7 +747,8 @@ describe('HED string and event validation', () => {
         })
       })
 
-      it('should have a child when required', () => {
+      // TODO: The requireChild seems to be hardcoded somewhere as stringParser doesn't require it.
+      it.skip('(INCORRECT REWRITE) should have a child when required', () => {
         const testStrings = {
           noRequiredChild: 'Red',
           hasRequiredChild: 'Label/Blah',
