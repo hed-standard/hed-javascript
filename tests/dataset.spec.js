@@ -3,9 +3,9 @@ const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
 import * as hed from '../validator/dataset'
-import { buildSchemas } from '../validator/schema/init'
+import { buildSchemas } from '../schema/init'
 import { generateIssue as generateValidationIssue } from '../common/issues/issues'
-import { SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { SchemaSpec, SchemasSpec } from '../schema/specs'
 
 describe('HED dataset validation', () => {
   const hedSchemaFile = 'tests/data/HED8.2.0.xml'

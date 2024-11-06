@@ -1,11 +1,6 @@
 // Temporary XPath implementation until the xml2js-xpath package adds needed functionality.
 
 const childToParent = {
-  // HED 2
-  // TODO: Remove in 4.0.0.
-  unitClass: 'unitClasses',
-  unitModifier: 'unitModifiers',
-  // HED 3
   unitClassDefinition: 'unitClassDefinitions',
   unitModifierDefinition: 'unitModifierDefinitions',
   valueClassDefinition: 'valueClassDefinitions',

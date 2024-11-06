@@ -1,14 +1,14 @@
-import { generateIssue, IssueError } from '../common/issues/issues'
-import { Schema } from '../common/schema/types'
-import { getTagLevels, replaceTagNameWithPound } from '../utils/hedStrings'
+import { IssueError } from '../common/issues/issues'
+import { getTagLevels } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
-import { SchemaValueTag } from '../validator/schema/types'
+import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
+import { Schema } from '../schema/containers'
 
 /**
  * A parsed HED tag.
  */
-export class ParsedHedTag extends ParsedHedSubstring {
+export default class ParsedHedTag extends ParsedHedSubstring {
   /**
    * The formatted canonical version of the HED tag.
    * @type {string}
@@ -24,20 +24,88 @@ export class ParsedHedTag extends ParsedHedSubstring {
    * @type {Schema}
    */
   schema
+  /**
+   * The schema's representation of this tag.
+   *
+   * @type {SchemaTag}
+   * @private
+   */
+  _schemaTag
+  /**
+   * The remaining part of the tag after the portion actually in the schema.
+   *
+   * @type {string}
+   * @private
+   */
+  _remainder
 
   /**
    * Constructor.
    *
-   * @param {string} originalTag The original HED tag.
-   * @param {number[]} originalBounds The bounds of the HED tag in the original HED string.
+   * @param {TagSpec} tagSpec The token for this tag.
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string} hedString The original HED string.
    * @throws {IssueError} If tag conversion or parsing fails.
    */
-  constructor(originalTag, originalBounds) {
-    super(originalTag, originalBounds)
+  constructor(tagSpec, hedSchemas, hedString) {
+    super(tagSpec.tag, tagSpec.bounds)
 
-    this.canonicalTag = this.originalTag
+    this._convertTag(hedSchemas, hedString, tagSpec)
 
     this.formattedTag = this._formatTag()
+  }
+
+  /**
+   * Convert this tag to long form.
+   *
+   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string} hedString The original HED string.
+   * @param {TagSpec} tagSpec The token for this tag.
+   * @throws {IssueError} If tag conversion or parsing fails.
+   */
+  _convertTag(hedSchemas, hedString, tagSpec) {
+    const schemaName = tagSpec.library
+    this.schema = hedSchemas.getSchema(schemaName)
+    if (this.schema === undefined) {
+      if (schemaName !== '') {
+        IssueError.generateAndThrow('unmatchedLibrarySchema', {
+          tag: this.originalTag,
+          library: schemaName,
+        })
+      } else {
+        IssueError.generateAndThrow('unmatchedBaseSchema', {
+          tag: this.originalTag,
+        })
+      }
+    }
+
+    const [schemaTag, remainder] = new TagConverter(tagSpec, hedSchemas).convert()
+    this._schemaTag = schemaTag
+    this._remainder = remainder
+    this.canonicalTag = this._schemaTag.longExtend(remainder)
+  }
+
+  /**
+   * Nicely format this tag.
+   *
+   * @param {boolean} long Whether the tags should be in long form.
+   * @returns {string} The nicely formatted version of this tag.
+   */
+  format(long = true) {
+    let tagName
+    if (long) {
+      tagName = this._schemaTag?.longExtend(this._remainder)
+    } else {
+      tagName = this._schemaTag?.extend(this._remainder)
+    }
+    if (tagName === undefined) {
+      tagName = this.originalTag
+    }
+    if (this.schema?.prefix) {
+      return this.schema.prefix + ':' + tagName
+    } else {
+      return tagName
+    }
   }
 
   /**
@@ -51,17 +119,6 @@ export class ParsedHedTag extends ParsedHedSubstring {
     } else {
       return this.originalTag
     }
-  }
-
-  /**
-   * Nicely format this tag.
-   *
-   * @param {boolean} long Whether the tags should be in long form.
-   * @returns {string} The nicely formatted version of this tag.
-   */
-  // eslint-disable-next-line no-unused-vars
-  format(long = true) {
-    return this.toString()
   }
 
   /**
@@ -262,96 +319,6 @@ export class ParsedHedTag extends ParsedHedSubstring {
    */
   equivalent(other) {
     return other instanceof ParsedHedTag && this.formattedTag === other.formattedTag && this.schema === other.schema
-  }
-}
-
-/**
- * A parsed HED-3G tag.
- */
-export class ParsedHed3Tag extends ParsedHedTag {
-  /**
-   * The schema's representation of this tag.
-   *
-   * @type {SchemaTag}
-   * @private
-   */
-  _schemaTag
-  /**
-   * The remaining part of the tag after the portion actually in the schema.
-   *
-   * @type {string}
-   * @private
-   */
-  _remainder
-
-  /**
-   * Constructor.
-   *
-   * @param {TagSpec} tagSpec The token for this tag.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {string} hedString The original HED string.
-   * @throws {IssueError} If tag conversion or parsing fails.
-   */
-  constructor(tagSpec, hedSchemas, hedString) {
-    super(tagSpec.tag, tagSpec.bounds)
-
-    this._convertTag(hedSchemas, hedString, tagSpec)
-
-    this.formattedTag = this._formatTag()
-  }
-
-  /**
-   * Convert this tag to long form.
-   *
-   * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {string} hedString The original HED string.
-   * @param {TagSpec} tagSpec The token for this tag.
-   * @throws {IssueError} If tag conversion or parsing fails.
-   */
-  _convertTag(hedSchemas, hedString, tagSpec) {
-    const schemaName = tagSpec.library
-    this.schema = hedSchemas.getSchema(schemaName)
-    if (this.schema === undefined) {
-      this.canonicalTag = this.originalTag
-      if (schemaName !== '') {
-        IssueError.generateAndThrow('unmatchedLibrarySchema', {
-          tag: this.originalTag,
-          library: schemaName,
-        })
-      } else {
-        IssueError.generateAndThrow('unmatchedBaseSchema', {
-          tag: this.originalTag,
-        })
-      }
-    }
-
-    const [schemaTag, remainder] = new TagConverter(tagSpec, hedSchemas).convert()
-    this._schemaTag = schemaTag
-    this._remainder = remainder
-    this.canonicalTag = this._schemaTag.longExtend(remainder)
-  }
-
-  /**
-   * Nicely format this tag.
-   *
-   * @param {boolean} long Whether the tags should be in long form.
-   * @returns {string} The nicely formatted version of this tag.
-   */
-  format(long = true) {
-    let tagName
-    if (long) {
-      tagName = this._schemaTag?.longExtend(this._remainder)
-    } else {
-      tagName = this._schemaTag?.extend(this._remainder)
-    }
-    if (tagName === undefined) {
-      tagName = this.originalTag
-    }
-    if (this.schema?.prefix) {
-      return this.schema.prefix + ':' + tagName
-    } else {
-      return tagName
-    }
   }
 
   /**

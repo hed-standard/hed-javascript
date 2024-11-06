@@ -2,8 +2,8 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
-import { buildSchemas } from '../validator/schema/init'
-import { SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { buildSchemas } from '../schema/init'
+import { SchemaSpec, SchemasSpec } from '../schema/specs'
 import { TsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
 import parseTSV from '../bids/tsvParser'
 

@@ -4,8 +4,8 @@ import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 
 import { BidsHedIssue } from '../bids/types/issues'
-import { buildSchemas } from '../validator/schema/init'
-import { SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { buildSchemas } from '../schema/init'
+import { SchemaSpec, SchemasSpec } from '../schema/specs'
 
 import { conversionTestData } from './testData/stringParserTests.data'
 import { shouldRun, getHedString } from './testUtilities'

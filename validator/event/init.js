@@ -1,11 +1,9 @@
 import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
-import { Schemas } from '../../common/schema/types'
 
-import { HedValidator } from './validator'
-import { Hed2Validator } from '../hed2/event/hed2Validator'
-import { Hed3Validator } from './hed3'
+import HedValidator from './validator'
 import { Issue } from '../../common/issues/issues'
+import { Schemas } from '../../schema/containers'
 
 /**
  * Perform initial validation on a HED string and parse it so further validation can be performed.
@@ -34,17 +32,7 @@ const initiallyValidateHedString = function (hedString, hedSchemas, options, def
   } else if (parsingIssues.syntax.length > 0) {
     hedSchemas = new Schemas(null)
   }
-  let hedValidator
-  switch (hedSchemas.generation) {
-    case 0:
-      hedValidator = new HedValidator(parsedString, hedSchemas, options)
-      break
-    case 2:
-      hedValidator = new Hed2Validator(parsedString, hedSchemas, options)
-      break
-    case 3:
-      hedValidator = new Hed3Validator(parsedString, hedSchemas, definitions, options)
-  }
+  const hedValidator = new HedValidator(parsedString, hedSchemas, definitions, options)
   const allParsingIssues = [].concat(...Object.values(parsingIssues))
   return [parsedString, allParsingIssues, hedValidator]
 }
