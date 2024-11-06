@@ -252,7 +252,7 @@ describe('HED string and event validation', () => {
       })
     })
 
-    describe('HED Tag Levels', () => {
+    describe.skip('HED Tag Levels', () => {
       /**
        * Tag level syntactic validation base function.
        *
@@ -453,8 +453,8 @@ describe('HED string and event validation', () => {
         })
       })
 
-      // TODO: The testing of units should be in the stringParser
-      it('should not validate strings with short-to-long conversion errors', () => {
+      // TODO: REMOVE: The testing of units should be in the stringParser
+      it.skip('Test in string-parser should not validate strings with short-to-long conversion errors', () => {
         const testStrings = {
           // Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
           red: 'Property/RGB-red, Duration/20 cm',

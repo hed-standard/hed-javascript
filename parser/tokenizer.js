@@ -11,6 +11,7 @@ const CHARACTERS = {
   COMMA: ',',
   COLON: ':',
   SLASH: '/',
+  PLACEHOLDER: '#',
 }
 
 function getTrimmedBounds(originalString) {
@@ -231,11 +232,12 @@ export class HedStringTokenizer {
       [CHARACTERS.CLOSING_GROUP, CHARACTERS.CLOSING_COLUMN].includes(this.state.lastDelimiter[0]) &&
       trimmed.length > 0
     ) {
+      // A tag followed a group or column with no comma Ex:  (x) yz
       this.pushIssue('invalidTag', i, trimmed)
     } else if (trimmed.length > 0) {
-      this.pushTag(i)
+      this.pushTag(i) // Tag has just finished
     } else {
-      this.resetToken(i)
+      this.resetToken(i) // After a group or column
     }
     this.state.lastDelimiter = [CHARACTERS.COMMA, i]
   }
@@ -341,6 +343,8 @@ export class HedStringTokenizer {
   pushTag(i) {
     if (this.state.currentToken.trim().length == 0) {
       this.pushIssue('emptyTagFound', i)
+    } else if (this.checkForBadPlaceholderIssues(i)) {
+      this.pushInvalidTag('invalidPlaceholder', i, this.state.currentToken)
     } else {
       const bounds = getTrimmedBounds(this.state.currentToken)
       this.state.currentGroupStack[this.state.groupDepth].push(
@@ -354,6 +358,57 @@ export class HedStringTokenizer {
       this.resetToken(i)
     }
   }
+
+  // pushTag(i) {
+  //   if (this.state.currentToken.trim().length == 0) { // empty tag,
+  //     this.pushIssue('emptyTagFound', i)
+  //   } else if (!this.checkNoPlaceholderIssues(i)) {
+  //     const bounds = getTrimmedBounds(this.state.currentToken)
+  //     this.state.currentGroupStack[this.state.groupDepth].push(
+  //       new TagSpec(
+  //         this.state.currentToken.trim(),
+  //         this.state.startingIndex + bounds[0],
+  //         this.state.startingIndex + bounds[1],
+  //         this.state.librarySchema,
+  //       ),
+  //     )
+  //   }
+  //   this.resetToken(i)
+  // }
+
+  checkForBadPlaceholderIssues(i) {
+    const tokenSplit = this.state.currentToken.split(CHARACTERS.PLACEHOLDER)
+    if (tokenSplit.length === 1) {
+      // No placeholders to worry about for this tag
+      return false
+    } else if (tokenSplit.length > 2) {
+      // Multiple placeholders
+      return true
+    } else if (!tokenSplit[0].endsWith(CHARACTERS.SLASH)) {
+      // A placeholder must come immediately after a slash
+      return true
+    } else if (tokenSplit[1].trim().length > 0 && tokenSplit[1][0] !== CHARACTERS.BLANK) {
+      // If units, blank must follow placehoder
+      return true
+    }
+    return false
+  }
+
+  // checkNoPlaceholderIssues(i) {
+  //   const tokenSplit = this.state.currentToken.split(CHARACTERS.PLACEHOLDER);
+  //   if (tokenSplit.length === 1) { // No placeholders to worry about for this tag
+  //     return true
+  //   }
+  //   if (tokenSplit.length > 2 || this.state.lastDelimiter[0] !== CHARACTERS.SLASH ||
+  //      this.state.lastDelimiter[1] !== i - 1 || !tokenSplit[1].includes(CHARACTERS.SLASH)) {
+  //     this.pushInvalidTag('invalidPlaceholder', i, this.state.currentToken)
+  //     return false  // Placeholder has a slash after or doesn't immediately follow a slash or
+  //   } else if (tokenSplit[1].trim().length > 0 && tokenSplit[1][0] !== CHARACTERS.BLANK) {
+  //     this.pushInvalidTag('invalidPlaceholder', i, this.state.currentToken) // Units must have blank before
+  //     return false
+  //   }
+  //   return true
+  // }
 
   closeGroup(i) {
     const groupSpec = this.state.parenthesesStack.pop()
