@@ -1,4 +1,4 @@
-import { ParsedHedTag } from './parsedHedTag'
+import ParsedHedTag from './parsedHedTag'
 import ParsedHedGroup from './parsedHedGroup'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 

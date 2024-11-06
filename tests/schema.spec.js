@@ -3,9 +3,10 @@ const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
 import { generateIssue } from '../common/issues/issues'
-import { PartneredSchema, SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { PartneredSchema } from '../schema/containers'
+import { buildSchemas } from '../schema/init'
+import { SchemaSpec, SchemasSpec } from '../schema/specs'
 import { parseSchemaSpec, parseSchemasSpec } from '../bids/schema'
-import { buildSchemas } from '../validator/schema/init'
 
 describe('HED schemas', () => {
   describe('Schema loading', () => {
@@ -83,14 +84,14 @@ describe('HED schemas', () => {
 
     describe('Local HED schemas', () => {
       it('a standard schema can be loaded from a path', async () => {
-        const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
-        const localHedSchemaVersion = '7.1.1'
+        const localHedSchemaFile = 'tests/data/HED8.0.0.xml'
+        const localHedSchemaVersion = '8.0.0'
         const schemaSpec = new SchemaSpec('', '', '', localHedSchemaFile)
         const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
 
         const hedSchemas = await buildSchemas(schemasSpec)
 
-        assert.strictEqual(hedSchemas.generation, 2, 'Schema collection has wrong generation')
+        assert.strictEqual(hedSchemas.generation, 3, 'Schema collection has wrong generation')
         const hedSchemaVersion = hedSchemas.baseSchema.version
         assert.strictEqual(hedSchemaVersion, localHedSchemaVersion, 'Schema has wrong version number')
       })
@@ -114,7 +115,7 @@ describe('HED schemas', () => {
     })
   })
 
-  describe('HED-2G schemas', () => {
+  describe.skip('HED-2G schemas', () => {
     const localHedSchemaFile = 'tests/data/HED7.1.1.xml'
     let hedSchemas
 

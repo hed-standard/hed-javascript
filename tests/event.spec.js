@@ -3,12 +3,14 @@ const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
 import * as hed from '../validator/event'
-import { buildSchemas } from '../validator/schema/init'
+import { buildSchemas } from '../schema/init'
 import { parseHedString } from '../parser/parser'
-import { ParsedHedTag } from '../parser/parsedHedTag'
-import { HedValidator, Hed2Validator, Hed3Validator } from '../validator/event'
+import ParsedHedTag from '../parser/parsedHedTag'
+import { HedValidator } from '../validator/event'
 import { generateIssue } from '../common/issues/issues'
-import { Schemas, SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { SchemaSpec, SchemasSpec } from '../schema/specs'
+import { Schemas } from '../schema/containers'
+import { TagSpec } from '../parser/tokenizer'
 
 describe('HED string and event validation', () => {
   /**
@@ -377,7 +379,7 @@ describe('HED string and event validation', () => {
       for (const [testStringKey, testString] of Object.entries(testStrings)) {
         assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
         const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
-        const validator = new Hed3Validator(parsedTestString, hedSchemas, null, testOptions)
+        const validator = new HedValidator(parsedTestString, hedSchemas, null, testOptions)
         const flattenedParsingIssues = Object.values(parsingIssues).flat()
         if (flattenedParsingIssues.length === 0) {
           testFunction(validator)
@@ -390,11 +392,11 @@ describe('HED string and event validation', () => {
     /**
      * HED 3 semantic validation base function.
      *
-     * This base function uses the HED 3-specific {@link Hed3Validator} validator class.
+     * This base function uses the HED 3-specific {@link HedValidator} validator class.
      *
      * @param {Object<string, string>} testStrings A mapping of test strings.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
-     * @param {function(Hed3Validator): void} testFunction A test-specific function that executes the required validation check.
+     * @param {function(HedValidator): void} testFunction A test-specific function that executes the required validation check.
      * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
      */
     const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
@@ -512,7 +514,7 @@ describe('HED string and event validation', () => {
        *
        * @param {Object<string, string>} testStrings A mapping of test strings.
        * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
-       * @param {function(Hed3Validator, ParsedHedTag, ParsedHedTag): void} testFunction A test-specific function that executes the required validation check.
+       * @param {function(HedValidator, ParsedHedTag, ParsedHedTag): void} testFunction A test-specific function that executes the required validation check.
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions) {
@@ -520,7 +522,7 @@ describe('HED string and event validation', () => {
           testStrings,
           expectedIssues,
           (validator) => {
-            let previousTag = new ParsedHedTag('', '', [0, 0], validator.hedSchemas)
+            let previousTag = new ParsedHedTag(new TagSpec('Sad', 0, 3, ''), validator.hedSchemas, 'Sad')
             for (const tag of validator.parsedString.tags) {
               testFunction(validator, tag, previousTag)
               previousTag = tag
@@ -536,7 +538,7 @@ describe('HED string and event validation', () => {
        * @param {Object<string, string>} testStrings A mapping of test strings.
        * @param {Object<string, string>} testDefinitions A mapping of test definitions.
        * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
-       * @param {function(Hed3Validator, ParsedHedTag): void} testFunction A test-specific function that executes the required validation check.
+       * @param {function(HedValidator, ParsedHedTag): void} testFunction A test-specific function that executes the required validation check.
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemanticWithDefinitions = function (
@@ -779,7 +781,7 @@ describe('HED string and event validation', () => {
        *
        * @param {Object<string, string>} testStrings A mapping of test strings.
        * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
-       * @param {function(Hed3Validator, ParsedHedGroup): void} testFunction A test-specific function that executes the required validation check.
+       * @param {function(HedValidator, ParsedHedGroup): void} testFunction A test-specific function that executes the required validation check.
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
@@ -1331,7 +1333,7 @@ describe('HED string and event validation', () => {
       for (const [testStringKey, testString] of Object.entries(testStrings)) {
         assert.property(expectedIssues, testStringKey, testStringKey + ' is not in expectedIssues')
         const [parsedTestString, parsingIssues] = parseHedString(testString, hedSchemas)
-        const validator = new Hed3Validator(parsedTestString, hedSchemas, null, testOptions)
+        const validator = new HedValidator(parsedTestString, hedSchemas, null, testOptions)
         const flattenedParsingIssues = Object.values(parsingIssues).flat()
         if (flattenedParsingIssues.length === 0) {
           testFunction(validator)
@@ -1344,11 +1346,11 @@ describe('HED string and event validation', () => {
     /**
      * HED 3 semantic validation base function.
      *
-     * This base function uses the HED 3-specific {@link Hed3Validator} validator class.
+     * This base function uses the HED 3-specific {@link HedValidator} validator class.
      *
      * @param {Object<string, string>} testStrings A mapping of test strings.
      * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
-     * @param {function(Hed3Validator): void} testFunction A test-specific function that executes the required validation check.
+     * @param {function(HedValidator): void} testFunction A test-specific function that executes the required validation check.
      * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
      */
     const validatorSemanticBase = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
@@ -1361,11 +1363,11 @@ describe('HED string and event validation', () => {
       /**
        * HED 3 semantic validation function using the alternative schema collection.
        *
-       * This base function uses the HED 3-specific {@link Hed3Validator} validator class.
+       * This base function uses the HED 3-specific {@link HedValidator} validator class.
        *
        * @param {Object<string, string>} testStrings A mapping of test strings.
        * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
-       * @param {function(Hed3Validator): void} testFunction A test-specific function that executes the required validation check.
+       * @param {function(HedValidator): void} testFunction A test-specific function that executes the required validation check.
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemantic2 = function (testStrings, expectedIssues, testFunction, testOptions = {}) {
@@ -1411,7 +1413,7 @@ describe('HED string and event validation', () => {
        *
        * @param {Object<string, string>} testStrings A mapping of test strings.
        * @param {Object<string, Issue[]>} expectedIssues The expected issues for each test string.
-       * @param {function(Hed3Validator, ParsedHedGroup): void} testFunction A test-specific function that executes the required validation check.
+       * @param {function(HedValidator, ParsedHedGroup): void} testFunction A test-specific function that executes the required validation check.
        * @param {Object<string, boolean>?} testOptions Any needed custom options for the validator.
        */
       const validatorSemantic = function (testStrings, expectedIssues, testFunction, testOptions = {}) {

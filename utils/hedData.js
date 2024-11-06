@@ -1,6 +1,6 @@
 import lt from 'semver/functions/lt'
 
-import { ParsedHed3Tag } from '../parser/parsedHedTag'
+import ParsedHedTag from '../parser/parsedHedTag'
 import { TagSpec } from '../parser/tokenizer'
 
 /**
@@ -36,7 +36,7 @@ export const getParsedParentTags = function (hedSchemas, shortTag) {
   const parentTags = new Map()
   for (const [schemaNickname, schema] of hedSchemas.schemas) {
     try {
-      const parentTag = new ParsedHed3Tag(
+      const parentTag = new ParsedHedTag(
         new TagSpec(shortTag, 0, shortTag.length - 1, schemaNickname),
         hedSchemas,
         shortTag,

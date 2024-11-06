@@ -1,12 +1,12 @@
+import flattenDeep from 'lodash/flattenDeep'
 import zip from 'lodash/zip'
 import semver from 'semver'
 
 // TODO: Switch require once upstream bugs are fixed.
 // import xpath from 'xml2js-xpath'
 // Temporary
-import * as xpath from '../../utils/xpath'
+import * as xpath from '../utils/xpath'
 
-import { SchemaParser } from './parser'
 import {
   nodeProperty,
   SchemaAttribute,
@@ -21,14 +21,19 @@ import {
   SchemaUnitModifier,
   SchemaValueClass,
   SchemaValueTag,
-} from './types'
-import { generateIssue, IssueError } from '../../common/issues/issues'
+} from './entries'
+import { IssueError } from '../common/issues/issues'
 
-const specialTags = require('../../data/json/specialTags.json')
+const specialTags = require('../data/json/specialTags.json')
 
 const lc = (str) => str.toLowerCase()
 
-export class Hed3SchemaParser extends SchemaParser {
+export default class SchemaParser {
+  /**
+   * The root XML element.
+   * @type {Object}
+   */
+  rootElement
   /**
    * @type {Map<string, SchemaProperty>}
    */
@@ -59,8 +64,20 @@ export class Hed3SchemaParser extends SchemaParser {
   tags
 
   constructor(rootElement) {
-    super(rootElement)
-    this._versionDefinitions = {}
+    this.rootElement = rootElement
+    this._versionDefinitions = {
+      typeProperties: new Set(['boolProperty']),
+      categoryProperties: new Set([
+        'elementProperty',
+        'nodeProperty',
+        'schemaAttributeProperty',
+        'unitProperty',
+        'unitClassProperty',
+        'unitModifierProperty',
+        'valueClassProperty',
+      ]),
+      roleProperties: new Set(['recursiveProperty', 'isInheritedProperty', 'annotationProperty']),
+    }
   }
 
   parse() {
@@ -76,19 +93,52 @@ export class Hed3SchemaParser extends SchemaParser {
     this.parseTags()
   }
 
-  static attributeFilter(propertyName) {
-    return (element) => {
-      const validProperty = propertyName
-      if (!element.property) {
-        return false
-      }
-      for (const property of element.property) {
-        if (property.name[0]._ === validProperty) {
-          return true
-        }
-      }
-      return false
+  getAllChildTags(parentElement, elementName = 'node', excludeTakeValueTags = true) {
+    if (excludeTakeValueTags && this.getElementTagName(parentElement) === '#') {
+      return []
     }
+    const tagElementChildren = this.getElementsByName(elementName, parentElement)
+    const childTags = flattenDeep(
+      tagElementChildren.map((child) => this.getAllChildTags(child, elementName, excludeTakeValueTags)),
+    )
+    childTags.push(parentElement)
+    return childTags
+  }
+
+  getElementsByName(elementName = 'node', parentElement = this.rootElement) {
+    return xpath.find(parentElement, '//' + elementName)
+  }
+
+  getParentTagName(tagElement) {
+    const parentTagElement = tagElement.$parent
+    if (parentTagElement && parentTagElement.$parent) {
+      return this.getElementTagName(parentTagElement)
+    } else {
+      return ''
+    }
+  }
+
+  /**
+   * Extract the name of an XML element.
+   *
+   * NOTE: This method cannot be merged into {@link getElementTagValue} because it is used as a first-class object.
+   *
+   * @param {object} element An XML element.
+   * @returns {string} The name of the element.
+   */
+  getElementTagName(element) {
+    return element.name[0]._
+  }
+
+  /**
+   * Extract a value from an XML element.
+   *
+   * @param {object} element An XML element.
+   * @param {string} tagName The tag value to extract.
+   * @returns {string} The value of the tag in the element.
+   */
+  getElementTagValue(element, tagName) {
+    return element[tagName][0]._
   }
 
   /**
@@ -415,33 +465,6 @@ export class Hed3SchemaParser extends SchemaParser {
   }
 
   _addCustomAttributes() {
-    // No-op
-  }
-
-  _addCustomProperties() {
-    // No-op
-  }
-}
-
-export class HedV8SchemaParser extends Hed3SchemaParser {
-  constructor(rootElement) {
-    super(rootElement)
-    this._versionDefinitions = {
-      typeProperties: new Set(['boolProperty']),
-      categoryProperties: new Set([
-        'elementProperty',
-        'nodeProperty',
-        'schemaAttributeProperty',
-        'unitProperty',
-        'unitClassProperty',
-        'unitModifierProperty',
-        'valueClassProperty',
-      ]),
-      roleProperties: new Set(['recursiveProperty', 'isInheritedProperty', 'annotationProperty']),
-    }
-  }
-
-  _addCustomAttributes() {
     const isInheritedProperty = this.properties.get('isInheritedProperty')
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
     if (this.rootElement.$.library === undefined && semver.lt(this.rootElement.$.version, '8.2.0')) {
@@ -458,157 +481,5 @@ export class HedV8SchemaParser extends Hed3SchemaParser {
       const recursiveProperty = new SchemaProperty('isInheritedProperty', 'roleProperty')
       this.properties.set('isInheritedProperty', recursiveProperty)
     }
-  }
-}
-
-export class Hed3PartneredSchemaMerger {
-  /**
-   * The source of data to be merged.
-   * @type {Hed3Schema}
-   */
-  source
-  /**
-   * The destination of data to be merged.
-   * @type {Hed3Schema}
-   */
-  destination
-
-  /**
-   * Constructor.
-   *
-   * @param {Hed3Schema} source The source of data to be merged.
-   * @param {Hed3Schema} destination The destination of data to be merged.
-   */
-  constructor(source, destination) {
-    this._validate(source, destination)
-
-    this.source = source
-    this.destination = destination
-  }
-
-  /**
-   * Pre-validate the partnered schemas.
-   *
-   * @param {Hed3Schema} source The source of data to be merged.
-   * @param {Hed3Schema} destination The destination of data to be merged.
-   * @private
-   */
-  _validate(source, destination) {
-    if (source.generation < 3 || destination.generation < 3) {
-      IssueError.generateAndThrow('internalConsistencyError', { message: 'Partnered schemas must be HED-3G schemas' })
-    }
-
-    if (source.withStandard !== destination.withStandard) {
-      IssueError.generateAndThrow('differentWithStandard', {
-        first: source.withStandard,
-        second: destination.withStandard,
-      })
-    }
-  }
-
-  /**
-   * The source schema's tag collection.
-   *
-   * @return {SchemaTagManager}
-   */
-  get sourceTags() {
-    return this.source.entries.tags
-  }
-
-  /**
-   * The destination schema's tag collection.
-   *
-   * @return {SchemaTagManager}
-   */
-  get destinationTags() {
-    return this.destination.entries.tags
-  }
-
-  /**
-   * Merge two lazy partnered schemas.
-   *
-   * @returns {Hed3Schema} The merged partnered schema, for convenience.
-   */
-  mergeData() {
-    this.mergeTags()
-    return this.destination
-  }
-
-  /**
-   * Merge the tags from two lazy partnered schemas.
-   */
-  mergeTags() {
-    for (const tag of this.sourceTags.values()) {
-      this._mergeTag(tag)
-    }
-  }
-
-  /**
-   * Merge a tag from one schema to another.
-   *
-   * @param {SchemaTag} tag The tag to copy.
-   * @private
-   */
-  _mergeTag(tag) {
-    if (!tag.getNamedAttributeValue('inLibrary')) {
-      return
-    }
-
-    const shortName = tag.name
-    if (this.destinationTags.hasEntry(shortName.toLowerCase())) {
-      IssueError.generateAndThrow('lazyPartneredSchemasShareTag', { tag: shortName })
-    }
-
-    const rootedTagShortName = tag.getNamedAttributeValue('rooted')
-    if (rootedTagShortName) {
-      const parentTag = tag.parent
-      if (parentTag?.name?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
-        IssueError.generateAndThrow('internalError', { message: `Node ${shortName} is improperly rooted.` })
-      }
-    }
-
-    this._copyTagToSchema(tag)
-  }
-
-  /**
-   * Copy a tag from one schema to another.
-   *
-   * @param {SchemaTag} tag The tag to copy.
-   * @private
-   */
-  _copyTagToSchema(tag) {
-    const booleanAttributes = new Set()
-    const valueAttributes = new Map()
-
-    for (const attribute of tag.booleanAttributes) {
-      booleanAttributes.add(this.destination.entries.attributes.getEntry(attribute.name) ?? attribute)
-    }
-    for (const [key, value] of tag.valueAttributes) {
-      valueAttributes.set(this.destination.entries.attributes.getEntry(key.name) ?? key, value)
-    }
-
-    /**
-     * @type {SchemaUnitClass[]}
-     */
-    const unitClasses = tag.unitClasses.map(
-      (unitClass) => this.destination.entries.unitClasses.getEntry(unitClass.name) ?? unitClass,
-    )
-
-    let newTag
-    if (tag instanceof SchemaValueTag) {
-      newTag = new SchemaValueTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
-    } else {
-      newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
-    }
-    const destinationParentTag = this.destinationTags.getEntry(tag.parent?.name?.toLowerCase())
-    if (destinationParentTag) {
-      newTag._parent = destinationParentTag
-      if (newTag instanceof SchemaValueTag) {
-        newTag.parent._valueTag = newTag
-      }
-    }
-
-    this.destinationTags._definitions.set(newTag.name.toLowerCase(), newTag)
-    this.destinationTags._definitionsByLongName.set(newTag.longName.toLowerCase(), newTag)
   }
 }

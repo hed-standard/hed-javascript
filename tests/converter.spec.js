@@ -4,8 +4,8 @@ import { beforeAll, describe, it } from '@jest/globals'
 
 import * as converter from '../converter/converter'
 import { generateIssue } from '../common/issues/issues'
-import { SchemaSpec, SchemasSpec } from '../common/schema/types'
-import { buildSchemas } from '../validator/schema/init'
+import { SchemaSpec, SchemasSpec } from '../schema/specs'
+import { buildSchemas } from '../schema/init'
 
 describe('HED string conversion', () => {
   const hedSchemaFile = 'tests/data/HED8.0.0.xml'

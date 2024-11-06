@@ -5,11 +5,11 @@ import path from 'path'
 
 import { buildBidsSchemas } from '../bids/schema'
 import { BidsHedIssue } from '../bids/types/issues'
-import { Schemas } from '../common/schema/types'
 import { BidsJsonFile } from '../bids'
 
 import { shouldRun } from './testUtilities'
 import { schemaBuildTestData } from './testData/schemaBuildTests.data'
+import { Schemas } from '../schema/containers'
 
 // Ability to select individual tests to run
 const skipMap = new Map()

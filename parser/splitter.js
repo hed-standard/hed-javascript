@@ -1,23 +1,11 @@
-import { ParsedHed3Tag, ParsedHedTag } from './parsedHedTag'
+import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
-import { Schemas } from '../common/schema/types'
 import { recursiveMap } from '../utils/array'
 import { mergeParsingIssues } from '../utils/hedData'
-import { ParsedHed2Tag } from '../validator/hed2/parser/parsedHed2Tag'
 import { HedStringTokenizer, ColumnSpliceSpec, TagSpec } from './tokenizer'
 import { generateIssue, IssueError } from '../common/issues/issues'
-
-const generationToClass = [
-  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
-    new ParsedHedTag(originalTag, originalBounds),
-  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
-    new ParsedHedTag(originalTag, originalBounds), // Generation 1 is not supported by this validator.
-  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
-    new ParsedHed2Tag(originalTag, hedString, originalBounds, hedSchemas, schemaName),
-  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
-    new ParsedHed3Tag(tagSpec, hedSchemas, hedString),
-]
+import { Schemas } from '../schema/containers'
 
 export default class HedStringSplitter {
   /**
@@ -40,11 +28,6 @@ export default class HedStringSplitter {
    * @type {Issue[]}
    */
   syntaxIssues
-  /**
-   * The constructor to be used to build the parsed HED tags.
-   * @type {function (string, string, number[], Schemas, string, TagSpec): ParsedHedTag}
-   */
-  ParsedHedTagConstructor
 
   /**
    * Constructor.
@@ -57,7 +40,6 @@ export default class HedStringSplitter {
     this.hedSchemas = hedSchemas
     this.conversionIssues = []
     this.syntaxIssues = []
-    this.ParsedHedTagConstructor = generationToClass[hedSchemas.generation]
   }
 
   /**
@@ -104,14 +86,7 @@ export default class HedStringSplitter {
   _createParsedTag(tagSpec) {
     if (tagSpec instanceof TagSpec) {
       try {
-        return this.ParsedHedTagConstructor(
-          tagSpec.tag,
-          this.hedString,
-          tagSpec.bounds,
-          this.hedSchemas,
-          tagSpec.library,
-          tagSpec,
-        )
+        return new ParsedHedTag(tagSpec, this.hedSchemas, this.hedString)
       } catch (issueError) {
         this._handleIssueError(issueError)
         return null

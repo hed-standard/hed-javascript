@@ -1,16 +1,15 @@
 import differenceWith from 'lodash/differenceWith'
 
-import { generateIssue, IssueError } from '../common/issues/issues'
-import { getParsedParentTags } from '../utils/hedData'
+import { IssueError } from '../common/issues/issues'
 import { getTagName } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
-import { ParsedHed3Tag, ParsedHedTag } from './parsedHedTag'
+import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 
 /**
  * A parsed HED tag group.
  */
-export class ParsedHedGroup extends ParsedHedSubstring {
+export default class ParsedHedGroup extends ParsedHedSubstring {
   static SPECIAL_SHORT_TAGS = new Set(['Definition', 'Def', 'Def-expand', 'Onset', 'Offset', 'Inset'])
 
   /**
@@ -74,7 +73,7 @@ export class ParsedHedGroup extends ParsedHedSubstring {
       return undefined
     }
     const tags = group.tags.filter((tag) => {
-      if (!(tag instanceof ParsedHed3Tag)) {
+      if (!(tag instanceof ParsedHedTag)) {
         return false
       }
       const schemaTag = tag.schemaTag
@@ -540,5 +539,3 @@ export class ParsedHedGroup extends ParsedHedSubstring {
     }
   }
 }
-
-export default ParsedHedGroup

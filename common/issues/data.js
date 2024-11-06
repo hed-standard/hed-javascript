@@ -317,6 +317,11 @@ export default {
     level: 'error',
     message: stringTemplate`Lazy partnered schemas are incompatible because they share the short tag "${'tag'}". These schemas require different prefixes.`,
   },
+  deprecatedStandardSchemaVersion: {
+    hedCode: 'VERSION_DEPRECATED',
+    level: 'error',
+    message: stringTemplate`HED standard schema version ${'version'} is deprecated. Please upgrade to a newer version.`,
+  },
   // BIDS issues
   sidecarKeyMissing: {
     hedCode: 'SIDECAR_KEY_MISSING',

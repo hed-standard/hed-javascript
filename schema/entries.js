@@ -1,9 +1,7 @@
 import pluralize from 'pluralize'
-import { Memoizer } from '../../utils/types'
+import Memoizer from '../utils/memoizer'
 
 pluralize.addUncountableRule('hertz')
-
-// Old-style types
 
 /**
  * SchemaEntries class
@@ -42,7 +40,7 @@ export class SchemaEntries extends Memoizer {
 
   /**
    * Constructor.
-   * @param {Hed3SchemaParser} schemaParser A constructed schema parser.
+   * @param {SchemaParser} schemaParser A constructed schema parser.
    */
   constructor(schemaParser) {
     super()
@@ -98,8 +96,6 @@ export class SchemaEntries extends Memoizer {
     return this.tags.getLongNameEntry(tag).hasAttributeName(tagAttribute)
   }
 }
-
-// New-style types
 
 /**
  * A manager of {@link SchemaEntry} objects.

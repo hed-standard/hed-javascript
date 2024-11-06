@@ -3,12 +3,12 @@ const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
 import * as hed from '../validator/event'
-import { buildSchemas } from '../validator/schema/init'
+import { buildSchemas } from '../schema/init'
 import { parseHedString } from '../parser/parser'
-import { ParsedHedTag } from '../parser/parsedHedTag'
-import { HedValidator, Hed2Validator, Hed3Validator } from '../validator/event'
+import ParsedHedTag from '../parser/parsedHedTag'
 import { generateIssue } from '../common/issues/issues'
-import { Schemas, SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { SchemaSpec, SchemasSpec } from '../schema/specs'
+import { Schemas } from '../schema/containers'
 
 describe('HED string and event validation', () => {
   /**
