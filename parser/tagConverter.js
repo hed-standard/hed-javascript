@@ -1,6 +1,6 @@
 import { IssueError } from '../common/issues/issues'
 import { getTagSlashIndices } from '../utils/hedStrings'
-import { SchemaValueTag } from '../validator/schema/types'
+import { SchemaValueTag } from '../schema/entries'
 
 /**
  * Converter from a tag specification to a schema-based tag object.

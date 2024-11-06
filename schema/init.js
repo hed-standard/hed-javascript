@@ -1,12 +1,14 @@
 import zip from 'lodash/zip'
 import semver from 'semver'
 
-import { Schema, Schemas, Hed2Schema, Hed3Schema, SchemasSpec, PartneredSchema } from '../../common/schema/types'
-import loadSchema from '../../common/schema/loader'
-import { setParent } from '../../utils/xml2js'
+import { SchemasSpec } from './specs'
+import loadSchema from './loader'
+import { setParent } from '../utils/xml2js'
 
-import { Hed2SchemaParser } from '../hed2/schema/hed2SchemaParser'
-import { HedV8SchemaParser, Hed3PartneredSchemaMerger } from './hed3'
+import SchemaParser from './parser'
+import PartneredSchemaMerger from './schemaMerger'
+import { IssueError } from '../common/issues/issues'
+import { Schema, Schemas } from './containers'
 
 /**
  * Determine whether a HED schema is based on the HED 3 spec.
@@ -19,34 +21,19 @@ const isHed3Schema = function (xmlData) {
 }
 
 /**
- * Build a schema attributes object from schema XML data.
- *
- * @param {object} xmlData The schema XML data.
- * @returns {SchemaAttributes|SchemaEntries} The schema attributes object.
- */
-export const buildSchemaAttributesObject = function (xmlData) {
-  const rootElement = xmlData.HED
-  setParent(rootElement, null)
-  if (isHed3Schema(xmlData)) {
-    return new HedV8SchemaParser(rootElement).parse()
-  } else {
-    return new Hed2SchemaParser(rootElement).parse()
-  }
-}
-
-/**
  * Build a single schema container object from an XML file.
  *
  * @param {object} xmlData The schema's XML data
  * @returns {Schema} The HED schema object.
  */
 const buildSchemaObject = function (xmlData) {
-  const schemaAttributes = buildSchemaAttributesObject(xmlData)
-  if (isHed3Schema(xmlData)) {
-    return new Hed3Schema(xmlData, schemaAttributes)
-  } else {
-    return new Hed2Schema(xmlData, schemaAttributes)
+  if (!isHed3Schema(xmlData)) {
+    IssueError.generateAndThrow('deprecatedStandardSchemaVersion', { version: xmlData.HED.$.version })
   }
+  const rootElement = xmlData.HED
+  setParent(rootElement, null)
+  const schemaEntries = new SchemaParser(rootElement).parse()
+  return new Schema(xmlData, schemaEntries)
 }
 
 /**
@@ -60,11 +47,8 @@ const buildSchemaObjects = function (xmlData) {
   if (schemas.length === 1) {
     return schemas[0]
   }
-  const partneredSchema = new PartneredSchema(schemas[0])
-  for (const additionalSchema of schemas.slice(1)) {
-    new Hed3PartneredSchemaMerger(additionalSchema, partneredSchema).mergeData()
-  }
-  return partneredSchema
+  const partneredSchemaMerger = new PartneredSchemaMerger(schemas)
+  return partneredSchemaMerger.mergeSchemas()
 }
 
 /**

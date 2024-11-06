@@ -1,9 +1,9 @@
 import castArray from 'lodash/castArray'
 import semver from 'semver'
 
-import { buildSchemas } from '../validator/schema/init'
+import { buildSchemas } from '../schema/init'
 import { generateIssue, IssueError } from '../common/issues/issues'
-import { SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { SchemaSpec, SchemasSpec } from '../schema/specs'
 
 const alphabeticRegExp = new RegExp('^[a-zA-Z]+$')
 

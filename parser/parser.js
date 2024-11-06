@@ -1,12 +1,6 @@
 import { mergeParsingIssues } from '../utils/hedData'
-import { generateIssue } from '../common/issues/issues'
 import ParsedHedString from './parsedHedString'
 import HedStringSplitter from './splitter'
-import { getCharacterCount, stringIsEmpty } from '../utils/string'
-
-const openingGroupCharacter = '('
-const closingGroupCharacter = ')'
-const delimiters = new Set([','])
 
 /**
  * A parser for HED strings.

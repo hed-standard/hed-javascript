@@ -3,8 +3,8 @@
 /* Imports */
 import xml2js from 'xml2js'
 
-import * as files from '../../utils/files'
-import { IssueError } from '../issues/issues'
+import * as files from '../utils/files'
+import { IssueError } from '../common/issues/issues'
 
 import { localSchemaList } from './config'
 
@@ -52,9 +52,9 @@ async function loadPromise(schemaDef) {
 function loadRemoteSchema(schemaDef) {
   let url
   if (schemaDef.library) {
-    url = `https://raw.githubusercontent.com/hed-standard/hed-schemas/main/library_schemas/${schemaDef.library}/hedxml/HED_${schemaDef.library}_${schemaDef.version}.xml`
+    url = `https://raw.githubusercontent.com/hed-standard/hed-schemas/refs/heads/main/library_schemas/${schemaDef.library}/hedxml/HED_${schemaDef.library}_${schemaDef.version}.xml`
   } else {
-    url = `https://raw.githubusercontent.com/hed-standard/hed-schemas/main/standard_schema/hedxml/HED${schemaDef.version}.xml`
+    url = `https://raw.githubusercontent.com/hed-standard/hed-schemas/refs/heads/main/standard_schema/hedxml/HED${schemaDef.version}.xml`
   }
   return loadSchemaFile(files.readHTTPSFile(url), 'remoteSchemaLoadFailed', { spec: JSON.stringify(schemaDef) })
 }

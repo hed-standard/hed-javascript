@@ -5,7 +5,7 @@ import { IssueError } from '../common/issues/issues'
 /**
  * Superclass for property memoization until we can get away with private fields.
  */
-export class Memoizer {
+export default class Memoizer {
   /**
    * Map containing memoized properties.
    *

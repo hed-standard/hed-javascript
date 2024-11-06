@@ -1,4 +1,4 @@
-import { Memoizer } from '../utils/types'
+import Memoizer from '../utils/memoizer'
 
 /**
  * A parsed HED substring.
@@ -34,7 +34,6 @@ export class ParsedHedSubstring extends Memoizer {
    *
    * @param {ParsedHedTag|string} parent The possible parent tag.
    * @return {boolean} Whether {@code parent} is the parent tag of this tag.
-   * @abstract
    */
   // eslint-disable-next-line no-unused-vars
   isDescendantOf(parent) {
@@ -50,6 +49,7 @@ export class ParsedHedSubstring extends Memoizer {
    * @returns {string}
    * @abstract
    */
+  // eslint-disable-next-line no-unused-vars
   format(long = true) {}
 
   /**

@@ -1,6 +1,6 @@
 import specialTags from '../../data/json/specialTags.json'
-import { ParsedHedGroup } from '../../parser/parsedHedGroup'
-import { ParsedHedTag } from '../../parser/parsedHedTag'
+import ParsedHedGroup from '../../parser/parsedHedGroup'
+import ParsedHedTag from '../../parser/parsedHedTag'
 
 export class SpecialTagValidator {
   /**

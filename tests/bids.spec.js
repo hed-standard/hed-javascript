@@ -4,7 +4,7 @@ import { beforeAll, describe, it } from '@jest/globals'
 import cloneDeep from 'lodash/cloneDeep'
 
 import { generateIssue } from '../common/issues/issues'
-import { SchemaSpec, SchemasSpec } from '../common/schema/types'
+import { SchemaSpec, SchemasSpec } from '../schema/specs'
 import { buildBidsSchemas, parseSchemasSpec } from '../bids/schema'
 import { BidsDataset, BidsHedIssue, BidsIssue, validateBidsDataset } from '../bids'
 import { bidsDatasetDescriptions, bidsSidecars, bidsTsvFiles } from './testData/bids.spec.data'
@@ -337,7 +337,7 @@ describe('BIDS datasets', () => {
               generateIssue('remoteSchemaLoadFailed', {
                 spec: JSON.stringify(new SchemaSpec('ts', '1.0.2', 'badlib')),
                 error:
-                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schemas/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404: Not Found',
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schemas/refs/heads/main/library_schemas/badlib/hedxml/HED_badlib_1.0.2.xml with status code 404: Not Found',
               }),
               badDatasetDescriptions[0].file,
             ),
@@ -389,7 +389,7 @@ describe('BIDS datasets', () => {
               generateIssue('remoteSchemaLoadFailed', {
                 spec: JSON.stringify(new SchemaSpec('ts', '1.800.2', 'testlib')),
                 error:
-                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schemas/main/library_schemas/testlib/hedxml/HED_testlib_1.800.2.xml with status code 404: Not Found',
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schemas/refs/heads/main/library_schemas/testlib/hedxml/HED_testlib_1.800.2.xml with status code 404: Not Found',
               }),
               badDatasetDescriptions[8].file,
             ),
@@ -399,7 +399,7 @@ describe('BIDS datasets', () => {
               generateIssue('remoteSchemaLoadFailed', {
                 spec: JSON.stringify(new SchemaSpec('', '8.828.0', '')),
                 error:
-                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schemas/main/standard_schema/hedxml/HED8.828.0.xml with status code 404: Not Found',
+                  'Server responded to https://raw.githubusercontent.com/hed-standard/hed-schemas/refs/heads/main/standard_schema/hedxml/HED8.828.0.xml with status code 404: Not Found',
               }),
               badDatasetDescriptions[9].file,
             ),
