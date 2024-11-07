@@ -9,7 +9,7 @@ import { tokenizerTests } from './testData/tokenizerTests.data'
 // Ability to select individual tests to run
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['invalid-commas', ['extra-comma-before-open-group']]])
+const runMap = new Map([['valid-placeholders', []]])
 
 describe('Tokenizer validation using JSON tests', () => {
   beforeAll(async () => {})
@@ -20,7 +20,7 @@ describe('Tokenizer validation using JSON tests', () => {
     const stringTokenizer = function (test) {
       const status = test.errors.length > 0 ? 'Expect fail' : 'Expect pass'
       const tokenizer = new HedStringTokenizer(test.string)
-      const header = `\n[${test.testname}](${status})\t"${tokenizer.hedString}" ${test.explanation}`
+      const header = `\n[${test.testname}](${status}): ${test.explanation}`
       const [tagSpecs, groupSpec, tokenizingIssues] = tokenizer.tokenize()
       const issues = Object.values(tokenizingIssues).flat()
       assert.sameDeepMembers(issues, test.errors, `${header} should have the same errors`)

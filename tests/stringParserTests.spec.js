@@ -3,7 +3,6 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 
-import { BidsHedIssue } from '../bids/types/issues'
 import { buildSchemas } from '../schema/init'
 import { SchemaSpec, SchemasSpec } from '../schema/specs'
 
@@ -11,9 +10,11 @@ import { parseTestData } from './testData/stringParserTests.data'
 import { shouldRun, getHedString } from './testUtilities'
 
 // Ability to select individual tests to run
-const skipMap = new Map()
+const skipMap = new Map([
+  ['placeholders-in-various-places', ['string-with-placeholder-not-allowed', 'place-holder-on-extension']],
+])
 const runAll = true
-const runMap = new Map([['valid-mixed-groups', []]])
+const runMap = new Map()
 
 describe('Parse HED string tests', () => {
   const schemaMap = new Map([

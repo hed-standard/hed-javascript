@@ -11,6 +11,7 @@ const CHARACTERS = {
   COMMA: ',',
   COLON: ':',
   SLASH: '/',
+  PLACEHOLDER: '#',
 }
 
 function getTrimmedBounds(originalString) {
@@ -231,11 +232,12 @@ export class HedStringTokenizer {
       [CHARACTERS.CLOSING_GROUP, CHARACTERS.CLOSING_COLUMN].includes(this.state.lastDelimiter[0]) &&
       trimmed.length > 0
     ) {
+      // A tag followed a group or column with no comma Ex:  (x) yz
       this.pushIssue('invalidTag', i, trimmed)
     } else if (trimmed.length > 0) {
-      this.pushTag(i)
+      this.pushTag(i) // Tag has just finished
     } else {
-      this.resetToken(i)
+      this.resetToken(i) // After a group or column
     }
     this.state.lastDelimiter = [CHARACTERS.COMMA, i]
   }
@@ -341,6 +343,8 @@ export class HedStringTokenizer {
   pushTag(i) {
     if (this.state.currentToken.trim().length == 0) {
       this.pushIssue('emptyTagFound', i)
+    } else if (this.checkForBadPlaceholderIssues(i)) {
+      this.pushInvalidTag('invalidPlaceholder', i, this.state.currentToken)
     } else {
       const bounds = getTrimmedBounds(this.state.currentToken)
       this.state.currentGroupStack[this.state.groupDepth].push(
@@ -353,6 +357,23 @@ export class HedStringTokenizer {
       )
       this.resetToken(i)
     }
+  }
+
+  checkForBadPlaceholderIssues() {
+    const tokenSplit = this.state.currentToken.split(CHARACTERS.PLACEHOLDER)
+    if (tokenSplit.length === 1) {
+      // No placeholders to worry about for this tag
+      return false
+    }
+    if (
+      tokenSplit.length > 2 ||
+      !tokenSplit[0].endsWith(CHARACTERS.SLASH) || // A placeholder must be after a slash
+      (tokenSplit[1].trim().length > 0 && tokenSplit[1][0] !== CHARACTERS.BLANK)
+    ) {
+      // If units, blank after placeholder
+      return true
+    }
+    return false
   }
 
   closeGroup(i) {

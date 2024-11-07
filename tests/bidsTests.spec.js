@@ -11,9 +11,10 @@ import { bidsTestData } from './testData/bidsTests.data'
 import { shouldRun } from './testUtilities'
 
 // Ability to select individual tests to run
-const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
+//const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
+const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['duplicate-tag-tests', ['invalid-nested-duplicate-json-reordered']]])
+const runMap = new Map([['definition-tests', []]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([

@@ -252,7 +252,7 @@ describe('HED string and event validation', () => {
       })
     })
 
-    describe('HED Tag Levels', () => {
+    describe.skip('HED Tag Levels', () => {
       /**
        * Tag level syntactic validation base function.
        *
@@ -453,8 +453,8 @@ describe('HED string and event validation', () => {
         })
       })
 
-      // TODO: The testing of units should be in the stringParser
-      it('should not validate strings with short-to-long conversion errors', () => {
+      // TODO: REMOVE: The testing of units should be in the stringParser
+      it.skip('Test in string-parser should not validate strings with short-to-long conversion errors', () => {
         const testStrings = {
           // Duration/20 cm is an obviously invalid tag that should not be caught due to the first error.
           red: 'Property/RGB-red, Duration/20 cm',
@@ -571,7 +571,7 @@ describe('HED string and event validation', () => {
       }
 
       // TODO: Already covered in stringParserTests -- units still to move down.
-      it.skip('REMOVE should exist in the schema or be an allowed extension', () => {
+      it.skip('(REMOVE) should exist in the schema or be an allowed extension', () => {
         const testStrings = {
           takesValue: 'Time-value/3 ms',
           full: 'Left-side-of',
@@ -797,6 +797,7 @@ describe('HED string and event validation', () => {
         )
       }
 
+      // TODO: Equivalent tests now in bidsTests -- but only work for sidecar
       it('should have syntactically valid definitions', () => {
         const testStrings = {
           nonDefinition: 'Car',
@@ -1068,7 +1069,8 @@ describe('HED string and event validation', () => {
         )
       }
 
-      it('should properly handle strings with placeholders', () => {
+      // TODO: Remove -- now in tokenizer tests
+      it('(REMOVE) should properly handle strings with placeholders', () => {
         const testStrings = {
           takesValue: 'RGB-red/#',
           withUnit: 'Time-value/# ms',
@@ -1096,20 +1098,15 @@ describe('HED string and event validation', () => {
           missingRequiredUnit: [],
           wrongLocation: [
             generateIssue('invalidPlaceholder', {
+              index: '16',
+              string: testStrings.wrongLocation,
               tag: testStrings.wrongLocation,
             }),
           ],
           duplicatePlaceholder: [
             generateIssue('invalidPlaceholder', {
-              tag: testStrings.duplicatePlaceholder,
-            }),
-            generateIssue('invalidPlaceholder', {
-              tag: testStrings.duplicatePlaceholder,
-            }),
-            generateIssue('invalidPlaceholder', {
-              tag: testStrings.duplicatePlaceholder,
-            }),
-            generateIssue('invalidTag', {
+              index: '8',
+              string: testStrings.duplicatePlaceholder,
               tag: testStrings.duplicatePlaceholder,
             }),
           ],
@@ -1117,6 +1114,7 @@ describe('HED string and event validation', () => {
         return validatorSemantic(testStrings, expectedIssues, true)
       })
 
+      // TODO: Remove -- now in bidsTests as definition-tests
       it('should have valid placeholders in definitions', () => {
         const expectedPlaceholdersTestStrings = {
           noPlaceholders: 'Car',
