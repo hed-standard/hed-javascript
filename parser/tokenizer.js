@@ -359,19 +359,18 @@ export class HedStringTokenizer {
     }
   }
 
-  checkForBadPlaceholderIssues(i) {
+  checkForBadPlaceholderIssues() {
     const tokenSplit = this.state.currentToken.split(CHARACTERS.PLACEHOLDER)
     if (tokenSplit.length === 1) {
       // No placeholders to worry about for this tag
       return false
-    } else if (tokenSplit.length > 2) {
-      // Multiple placeholders
-      return true
-    } else if (!tokenSplit[0].endsWith(CHARACTERS.SLASH)) {
-      // A placeholder must come immediately after a slash
-      return true
-    } else if (tokenSplit[1].trim().length > 0 && tokenSplit[1][0] !== CHARACTERS.BLANK) {
-      // If units, blank must follow placeholder
+    }
+    if (
+      tokenSplit.length > 2 ||
+      !tokenSplit[0].endsWith(CHARACTERS.SLASH) || // A placeholder must be after a slash
+      (tokenSplit[1].trim().length > 0 && tokenSplit[1][0] !== CHARACTERS.BLANK)
+    ) {
+      // If units, blank after placeholder
       return true
     }
     return false
