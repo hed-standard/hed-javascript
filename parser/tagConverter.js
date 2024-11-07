@@ -60,6 +60,7 @@ export default class TagConverter {
     this.tagString = tagSpec.tag
     this.tagLevels = this.tagString.split('/')
     this.tagSlashes = getTagSlashIndices(this.tagString)
+    this.remainder = undefined
   }
 
   /**
@@ -117,6 +118,7 @@ export default class TagConverter {
 
   _getSchemaTag(tagLevelIndex) {
     let tagLevel = this.tagLevels[tagLevelIndex].toLowerCase()
+    // TODO: These two checks should probably be removed as the tokenizer handles this.
     if (tagLevelIndex === 0) {
       tagLevel = tagLevel.trimLeft()
     }
