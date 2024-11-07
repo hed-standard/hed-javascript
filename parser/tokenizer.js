@@ -371,7 +371,7 @@ export class HedStringTokenizer {
       // A placeholder must come immediately after a slash
       return true
     } else if (tokenSplit[1].trim().length > 0 && tokenSplit[1][0] !== CHARACTERS.BLANK) {
-      // If units, blank must follow placehoder
+      // If units, blank must follow placeholder
       return true
     }
     return false
