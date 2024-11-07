@@ -26,6 +26,8 @@ import { IssueError } from '../common/issues/issues'
 
 const specialTags = require('../data/json/specialTags.json')
 
+import classRegex from '../data/json/class_regex.json'
+
 const lc = (str) => str.toLowerCase()
 
 export default class SchemaParser {
@@ -90,6 +92,7 @@ export default class SchemaParser {
     this.parseAttributes()
     this.parseUnitModifiers()
     this.parseUnitClasses()
+    this.parseValueClasses()
     this.parseTags()
   }
 
@@ -200,12 +203,26 @@ export default class SchemaParser {
     this._addCustomAttributes()
   }
 
+  _getValueClassChars(name) {
+    let classChars
+    if (Array.isArray(classRegex.class_chars[name]) && classRegex.class_chars[name].length > 0) {
+      classChars =
+        '^(?:' + classRegex.class_chars[name].map((charClass) => classRegex.char_regex[charClass]).join('|') + ')+$'
+    } else {
+      classChars = '^.+$' // Any non-empty line or string.
+    }
+    return new RegExp(classChars)
+  }
+
   parseValueClasses() {
     const valueClasses = new Map()
     const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('valueClass')
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
-      valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes))
+      //valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes))
+      const charClassRegex = this._getValueClassChars(name)
+      const wordRegex = new RegExp(classRegex.class_words[name] ?? '^.+$')
+      valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes, charClassRegex, wordRegex))
     }
     this.valueClasses = new SchemaEntryManager(valueClasses)
   }

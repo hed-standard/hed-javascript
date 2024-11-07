@@ -662,8 +662,43 @@ export class SchemaUnitModifier extends SchemaEntryWithAttributes {
  * SchemaValueClass class
  */
 export class SchemaValueClass extends SchemaEntryWithAttributes {
-  constructor(name, booleanAttributes, valueAttributes) {
+  /**
+   * The character class-based regular expression.
+   * @type {RegExp}
+   * @private
+   */
+  _charClassRegex
+  /**
+   * The "word form"-based regular expression.
+   * @type {RegExp}
+   * @private
+   */
+  _wordRegex
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this value class.
+   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this value class.
+   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this value class.
+   * @param {RegExp} charClassRegex The character class-based regular expression for this value class.
+   * @param {RegExp} wordRegex The "word form"-based regular expression for this value class.
+   */
+
+  constructor(name, booleanAttributes, valueAttributes, charClassRegex, wordRegex) {
     super(name, booleanAttributes, valueAttributes)
+    this._charClassRegex = charClassRegex
+    this._wordRegex = wordRegex
+  }
+
+  /**
+   * Determine if a value is valid according to this value class.
+   *
+   * @param {string} value A HED value.
+   * @returns {boolean} Whether the value conforms to this value class.
+   */
+  validateValue(value) {
+    return this._wordRegex.test(value) && this._charClassRegex.test(value)
   }
 }
 
@@ -683,6 +718,14 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @private
    */
   _unitClasses
+
+  /**
+   * This tag's value-classes
+   * @type {SchemaValueClass[]}
+   * @private
+   */
+  _valueClasses
+
   /**
    * This tag's value-taking child.
    * @type {SchemaValueTag}
@@ -697,11 +740,13 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this tag.
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this tag.
    * @param {SchemaUnitClass[]} unitClasses The unit classes for this tag.
+   * @param {SchemaValueClass[]} valueClasses The value classes for this tag.
    * @constructor
    */
-  constructor(name, booleanAttributes, valueAttributes, unitClasses) {
+  constructor(name, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
     super(name, booleanAttributes, valueAttributes)
     this._unitClasses = unitClasses ?? []
+    this._valueClasses = valueClasses ?? []
   }
 
   /**
@@ -717,7 +762,23 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @returns {boolean}
    */
   get hasUnitClasses() {
-    return this.unitClasses.length !== 0
+    return this._unitClasses.length !== 0
+  }
+
+  /**
+   * This tag's value classes.
+   * @type {SchemaValueClass[]}
+   */
+  get valueClasses() {
+    return this._valueClasses.slice()
+  }
+
+  /**
+   * Whether this tag has any value classes.
+   * @returns {boolean}
+   */
+  get hasValueClasses() {
+    return this._valueClasses.length !== 0
   }
 
   /**
