@@ -253,7 +253,7 @@ export const parseTestData = [
     ],
   },
   {
-    name: 'Placeholders-in-various-places',
+    name: 'placeholders-in-various-places',
     description: 'HED strings with placeholders',
     tests: [
       {
@@ -261,7 +261,8 @@ export const parseTestData = [
         explanation: '"Label/#, Red" is okay',
         schemaVersion: '8.3.0',
         stringIn: 'Label/#, Red',
-        stringLong: 'Label/#, Red',
+        stringLong:
+          'Property/Informational-property/Label/#, Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red',
         stringShort: 'Label/#, Red',
         errors: [],
         warnings: [],
@@ -271,9 +272,10 @@ export const parseTestData = [
         explanation: '"Time-value/# ms, Red" is okay',
         schemaVersion: '8.3.0',
         stringIn: 'Time-value/# ms, Red',
-        stringLong: 'Time-value/# ms, Red',
+        stringLong:
+          'Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Time-value/# ms, Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red',
         stringShort: 'Time-value/# ms, Red',
-        errors: [generateIssue('childRequired', { tag: 'Duration' })],
+        errors: [],
         warnings: [],
       },
       {
@@ -303,7 +305,9 @@ export const parseTestData = [
         stringIn: 'Label/#/Blech, Red',
         stringLong: null,
         stringShort: null,
-        errors: [generateIssue('childRequired', { tag: 'Duration' })],
+        errors: [
+          generateIssue('invalidPlaceholder', { index: '13', string: 'Label/#/Blech, Red', tag: 'Label/#/Blech' }),
+        ],
         warnings: [],
       },
       {
@@ -313,7 +317,7 @@ export const parseTestData = [
         stringIn: 'Label/##, Red',
         stringLong: null,
         stringShort: null,
-        errors: [generateIssue('childRequired', { tag: 'Duration' })],
+        errors: [generateIssue('invalidPlaceholder', { index: '8', string: 'Label/##, Red', tag: 'Label/##' })],
         warnings: [],
       },
     ],

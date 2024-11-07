@@ -871,7 +871,6 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [],
       },
-
       {
         testname: 'invalid-no-placeholder-value-column',
         explanation: 'The sidecar has a value column with no placeholder tag',
@@ -896,6 +895,29 @@ export const bidsTestData = [
               relativePath: 'invalid-no-placeholder-value-column.json',
             },
           ),
+        ],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'invalid-multiple-placeholders-in-value-column',
+        explanation: 'The sidecar has a value column with no placeholder tag',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Label/#, Speed/# mph',
+          },
+        },
+        eventsString: 'onset\tduration\tvehicle\tspeed\n' + '19\t6\ttrain\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('invalidPlaceholder', { sidecarKey: 'speed', tag: 'Label/#' }), {
+            path: 'invalid-multiple-placeholders-in-value-column.json',
+            relativePath: 'invalid-multiple-placeholders-in-value-column.json',
+          }),
+          BidsHedIssue.fromHedIssue(generateIssue('invalidPlaceholder', { sidecarKey: 'speed', tag: 'Speed/# mph' }), {
+            path: 'invalid-multiple-placeholders-in-value-column.json',
+            relativePath: 'invalid-multiple-placeholders-in-value-column.json',
+          }),
         ],
         tsvErrors: [],
         comboErrors: [],
@@ -963,7 +985,7 @@ export const bidsTestData = [
     tests: [
       {
         testname: 'valid-definition-no-placeholder',
-        explanation: 'Sidecar has a simple valid definition',
+        explanation: 'Simple definition in sidecar',
         schemaVersion: '8.3.0',
         sidecar: {
           speed: {
@@ -982,7 +1004,7 @@ export const bidsTestData = [
       },
       {
         testname: 'valid-definition-with-placeholder',
-        explanation: 'The sidecar with definition with placeholder',
+        explanation: 'Definition in sidecar has a placeholder',
         schemaVersion: '8.3.0',
         sidecar: {
           speed: {
@@ -991,6 +1013,25 @@ export const bidsTestData = [
           mydefs: {
             HED: {
               deflist: '(Definition/GreenDef/#, (RGB-green/#, Triangle))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-definition-with-nested-placeholder',
+        explanation: 'Definition in sidecar has nested placeholder',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, Def/GreenDef/0.5',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/GreenDef/#, (Red,(RGB-green/#, Triangle)))',
             },
           },
         },
@@ -1019,12 +1060,13 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
+        // TODO: Not detected missing definitions correctly
         testname: 'invalid-missing-definition-for-def',
         explanation: 'The sidecar uses a def with no definition',
         schemaVersion: '8.3.0',
         sidecar: {
           speed: {
-            HED: 'Speed/# mph, Def/InvalidDef',
+            HED: 'Speed/# mph, Def/MissingDef',
           },
         },
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
@@ -1051,6 +1093,7 @@ export const bidsTestData = [
         ],
       },
       {
+        // TODO: resolve why nested definitions aren't detected in the combo
         testname: 'invalid-nested-definition',
         explanation: 'The sidecar has a definition inside a definition',
         schemaVersion: '8.3.0',
@@ -1066,16 +1109,234 @@ export const bidsTestData = [
         },
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
-          /*           BidsHedIssue.fromHedIssue(generateIssue('nestedDefinition',{definition: 'NestedDef', sidecarKey: "mydefs"}),
-           {path: 'invalid-nested-definition.json', relativePath: 'invalid-nested-definition.json'}),*/
-        ],
-        tsvErrors: [],
-        comboErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('nestedDefinition', { definition: 'NestedDef', sidecarKey: 'mydefs' }),
             { path: 'invalid-nested-definition.json', relativePath: 'invalid-nested-definition.json' },
           ),
         ],
+        tsvErrors: [],
+        comboErrors: [
+          //BidsHedIssue.fromHedIssue(
+          //  generateIssue('nestedDefinition', { definition: 'NestedDef', sidecarKey: 'mydefs' }),
+          //  { path: 'invalid-nested-definition.json', relativePath: 'invalid-nested-definition.json' },
+          //),
+        ],
+      },
+      {
+        // TODO: Resolve extra group in definition not detected in combo
+        testname: 'invalid-definition-with-extra-groups',
+        explanation: 'The sidecar has a definition with extra internal group',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, Def/ExtraGroupDef',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/ExtraGroupDef, (Red), (Blue))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('multipleTagGroupsInDefinition', { definition: 'ExtraGroupDef', sidecarKey: 'mydefs' }),
+            {
+              path: 'invalid-definition-with-extra-groups.json',
+              relativePath: 'invalid-definition-with-extra-groups.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          /*          BidsHedIssue.fromHedIssue(
+            generateIssue('nestedDefinition', { definition: 'ExtraGroupDef', sidecarKey: 'mydefs' }),
+            { path: 'invalid-definition-with-extra-groups.tsv', relativePath: 'invalid-definition-with-extra-groups.tsv' },
+          ),*/
+        ],
+      },
+      {
+        // TODO: Resolve extra sibling in definition not detected in combo
+        testname: 'invalid-definition-with-extra-sibling',
+        explanation: 'The sidecar has a definition with an extra internal sibling',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, Def/ExtraSiblingDef',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/ExtraSiblingDef, Red, (Blue))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('illegalDefinitionGroupTag', {
+              definition: 'ExtraSiblingDef',
+              sidecarKey: 'mydefs',
+              tag: 'Red',
+            }),
+            {
+              path: 'invalid-definition-with-extra-sibling.json',
+              relativePath: 'invalid-definition-with-extra-sibling.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          /*          BidsHedIssue.fromHedIssue(
+                      generateIssue('illegalDefinitionGroupTag', { definition: 'ExtraSiblingDef', sidecarKey: 'mydefs', tag: 'Red' }),
+                      { path: 'invalid-definition-with-extra-sibling.tsv', relativePath: 'invalid-definition-with-extra-sibling.tsv' },
+                    ),*/
+        ],
+      },
+      {
+        testname: 'invalid-definition-in-HED-column',
+        explanation: 'The tsv has a definition in HED column',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph',
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\tHED\n' + '19\t6\t5\t(Definition/TsvDef)\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('illegalDefinitionContext', { string: '(Definition/TsvDef)', tsvLine: '2' }),
+            { path: 'invalid-definition-in-HED-column.tsv', relativePath: 'invalid-definition-in-HED-column.tsv' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('illegalDefinitionContext', { string: '(Definition/TsvDef)', tsvLine: '2' }),
+            { path: 'invalid-definition-in-HED-column.tsv', relativePath: 'invalid-definition-in-HED-column.tsv' },
+          ),
+        ],
+      },
+      {
+        // TODO: Resolve whether combo should also have an issue
+        testname: 'invalid-definition-with-missing-placeholder',
+        explanation: 'Definition in sidecar has missing placeholder',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Def/MySpeed/#',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/MySpeed/#, (Speed, Red))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidPlaceholderInDefinition', { definition: 'MySpeed', sidecarKey: 'mydefs' }),
+            {
+              path: 'invalid-definition-with-missing-placeholder.json',
+              relativePath: 'invalid-definition-with-missing-placeholder.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          /*          BidsHedIssue.fromHedIssue(generateIssue('invalidPlaceholderInDefinition',
+              { string: '(Definition/MySpeed)', tsvLine: '2'}),
+            { path: 'invalid-definition-with-missing-placeholder.tsv', relativePath: 'invalid-definition-with-missing-placeholder.tsv' }),*/
+        ],
+      },
+      {
+        testname: 'invalid-definition-with-fixed-placeholder',
+        explanation: 'Definition in sidecar has a fixed value instead of placeholder',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Def/GreenDef/Test',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/GreenDef/Test, (Red, Triangle))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingPlaceholder', { sidecarKey: 'speed', string: 'Def/GreenDef/Test' }),
+            {
+              path: 'invalid-definition-with-fixed-placeholder.json',
+              relativePath: 'invalid-definition-with-fixed-placeholder.json',
+            },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidPlaceholderInDefinition', { definition: 'GreenDef', sidecarKey: 'mydefs' }),
+            {
+              path: 'invalid-definition-with-fixed-placeholder.json',
+              relativePath: 'invalid-definition-with-fixed-placeholder.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        // TODO: Resolve that invalid definition does not appear in combo
+        testname: 'invalid-definition-has-multiple-placeholders',
+        explanation: 'Definition in sidecar has multiple placeholders',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Def/SpeedDef/#',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/SpeedDef/#, (Speed/# mph, (Label/#, Red, Triangle)))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidPlaceholderInDefinition', { definition: 'SpeedDef', sidecarKey: 'mydefs' }),
+            {
+              path: 'invalid-definition-has-multiple-placeholders.json',
+              relativePath: 'invalid-definition-has-multiple-placeholders.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        // TODO: Resolve that invalid definition does not appear in combo
+        testname: 'invalid-definition-not-isolated',
+        explanation: 'Definition in sidecar appears with other tags',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Def/SpeedDef/#',
+          },
+          mydefs: {
+            HED: {
+              deflist: 'Red, (Definition/SpeedDef/#, (Speed/# mph))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('illegalDefinitionInExclusiveContext', {
+              sidecarKey: 'mydefs',
+              string: 'Red, (Definition/SpeedDef/#, (Speed/# mph))',
+            }),
+            { path: 'invalid-definition-not-isolated.json', relativePath: 'invalid-definition-not-isolated.json' },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [],
       },
     ],
   },

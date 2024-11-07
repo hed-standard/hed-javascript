@@ -359,23 +359,6 @@ export class HedStringTokenizer {
     }
   }
 
-  // pushTag(i) {
-  //   if (this.state.currentToken.trim().length == 0) { // empty tag,
-  //     this.pushIssue('emptyTagFound', i)
-  //   } else if (!this.checkNoPlaceholderIssues(i)) {
-  //     const bounds = getTrimmedBounds(this.state.currentToken)
-  //     this.state.currentGroupStack[this.state.groupDepth].push(
-  //       new TagSpec(
-  //         this.state.currentToken.trim(),
-  //         this.state.startingIndex + bounds[0],
-  //         this.state.startingIndex + bounds[1],
-  //         this.state.librarySchema,
-  //       ),
-  //     )
-  //   }
-  //   this.resetToken(i)
-  // }
-
   checkForBadPlaceholderIssues(i) {
     const tokenSplit = this.state.currentToken.split(CHARACTERS.PLACEHOLDER)
     if (tokenSplit.length === 1) {
@@ -393,22 +376,6 @@ export class HedStringTokenizer {
     }
     return false
   }
-
-  // checkNoPlaceholderIssues(i) {
-  //   const tokenSplit = this.state.currentToken.split(CHARACTERS.PLACEHOLDER);
-  //   if (tokenSplit.length === 1) { // No placeholders to worry about for this tag
-  //     return true
-  //   }
-  //   if (tokenSplit.length > 2 || this.state.lastDelimiter[0] !== CHARACTERS.SLASH ||
-  //      this.state.lastDelimiter[1] !== i - 1 || !tokenSplit[1].includes(CHARACTERS.SLASH)) {
-  //     this.pushInvalidTag('invalidPlaceholder', i, this.state.currentToken)
-  //     return false  // Placeholder has a slash after or doesn't immediately follow a slash or
-  //   } else if (tokenSplit[1].trim().length > 0 && tokenSplit[1][0] !== CHARACTERS.BLANK) {
-  //     this.pushInvalidTag('invalidPlaceholder', i, this.state.currentToken) // Units must have blank before
-  //     return false
-  //   }
-  //   return true
-  // }
 
   closeGroup(i) {
     const groupSpec = this.state.parenthesesStack.pop()
