@@ -40,7 +40,7 @@ describe('Parse HED string tests', () => {
       const status = test.errors.length === 0 ? 'Expect pass' : 'Expect fail'
       const header = `[${test.testname} (${status})]`
       const thisSchema = schemaMap.get(test.schemaVersion)
-      assert.isDefined(thisSchema, `header: ${test.schemaVersion} is not available in test ${test.name}`)
+      assert.isDefined(thisSchema, `header: ${test.schemaVersion} is not available in test ${test.testname}`)
 
       // Parse the string before converting
       const [parsedString, errorIssues, warningIssues] = getHedString(test.stringIn, thisSchema)

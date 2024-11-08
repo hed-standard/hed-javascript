@@ -1,5 +1,5 @@
 import { IssueError } from '../common/issues/issues'
-import { getTagLevels } from '../utils/hedStrings'
+import { getParentTag, getTagLevels, getTagName } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
@@ -48,15 +48,15 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @throws {IssueError} If tag conversion or parsing fails.
    */
   constructor(tagSpec, hedSchemas, hedString) {
-    super(tagSpec.tag, tagSpec.bounds)
-
-    this._convertTag(hedSchemas, hedString, tagSpec)
-
-    this.formattedTag = this._formatTag()
+    super(tagSpec.tag, tagSpec.bounds) // Sets originalTag and originalBounds
+    this._convertTag(hedSchemas, hedString, tagSpec) // Sets various parameters
+    //this._checkTagAttributes()  // Checks various aspects like requireChild or extensionAllowed.
+    //this.formattedTag = this._formatTag()
+    //this.formattedTag = this.canonicalTag.toLowerCase()
   }
 
   /**
-   * Convert this tag to long form.
+   * Convert this tag to its various forms
    *
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} hedString The original HED string.
@@ -83,6 +83,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     this._schemaTag = schemaTag
     this._remainder = remainder
     this.canonicalTag = this._schemaTag.longExtend(remainder)
+    this.formattedTag = this.canonicalTag.toLowerCase()
   }
 
   /**
@@ -119,23 +120,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     } else {
       return this.originalTag
     }
-  }
-
-  /**
-   * Format this HED tag by removing newlines and double quotes.
-   *
-   * @returns {string} The formatted version of this tag.
-   */
-  _formatTag() {
-    this.originalTag = this.originalTag.replace('\n', ' ')
-    let hedTagString = this.canonicalTag.trim()
-    if (hedTagString.startsWith('"')) {
-      hedTagString = hedTagString.slice(1)
-    }
-    if (hedTagString.endsWith('"')) {
-      hedTagString = hedTagString.slice(0, -1)
-    }
-    return hedTagString.toLowerCase()
   }
 
   /**
@@ -439,5 +423,59 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       }
       return units
     })
+  }
+
+  /**
+   * Validate a unit and strip it from the value.
+   *
+   * @param {ParsedHedTag} tag A HED tag.
+   * @returns {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
+   */
+  validateUnits(tag) {
+    const originalTagUnitValue = tag.originalTagName
+    const tagUnitClassUnits = tag.validUnits
+    const validUnits = tag.schema.entries.allUnits
+    const unitStrings = Array.from(validUnits.keys())
+    unitStrings.sort((first, second) => {
+      return second.length - first.length
+    })
+    let actualUnit = getTagName(originalTagUnitValue, ' ')
+    let noUnitFound = false
+    if (actualUnit === originalTagUnitValue) {
+      actualUnit = ''
+      noUnitFound = true
+    }
+    let foundUnit, foundWrongCaseUnit, strippedValue
+    for (const unitName of unitStrings) {
+      const unit = validUnits.get(unitName)
+      const isPrefixUnit = unit.isPrefixUnit
+      const isUnitSymbol = unit.isUnitSymbol
+      for (const derivativeUnit of unit.derivativeUnits()) {
+        if (isPrefixUnit && originalTagUnitValue.startsWith(derivativeUnit)) {
+          foundUnit = true
+          noUnitFound = false
+          strippedValue = originalTagUnitValue.substring(derivativeUnit.length).trim()
+        }
+        if (actualUnit === derivativeUnit) {
+          foundUnit = true
+          strippedValue = getParentTag(originalTagUnitValue, ' ')
+        } else if (actualUnit.toLowerCase() === derivativeUnit.toLowerCase()) {
+          if (isUnitSymbol) {
+            foundWrongCaseUnit = true
+          } else {
+            foundUnit = true
+          }
+          strippedValue = getParentTag(originalTagUnitValue, ' ')
+        }
+        if (foundUnit) {
+          const unitIsValid = tagUnitClassUnits.has(unit)
+          return [true, unitIsValid, strippedValue]
+        }
+      }
+      if (foundWrongCaseUnit) {
+        return [true, false, strippedValue]
+      }
+    }
+    return [!noUnitFound, false, originalTagUnitValue]
   }
 }

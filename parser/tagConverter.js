@@ -119,12 +119,12 @@ export default class TagConverter {
   _getSchemaTag(tagLevelIndex) {
     let tagLevel = this.tagLevels[tagLevelIndex].toLowerCase()
     // TODO: These two checks should probably be removed as the tokenizer handles this.
-    if (tagLevelIndex === 0) {
-      tagLevel = tagLevel.trimLeft()
-    }
-    if (tagLevel === '' || tagLevel !== tagLevel.trim()) {
-      IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
-    }
+    // if (tagLevelIndex === 0) {
+    //   tagLevel = tagLevel.trimLeft()
+    // }
+    // if (tagLevel === '' || tagLevel !== tagLevel.trim()) {
+    //   IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
+    // }
     return this.tagMapping.getEntry(tagLevel)
   }
 
