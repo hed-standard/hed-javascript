@@ -164,7 +164,7 @@ export const parseTestData = [
         stringIn: 'Item/Sound/Event',
         stringLong: null,
         stringShort: null,
-        errors: [generateIssue('invalidParentNode', { tag: 'Event', parentTag: 'Event' })],
+        errors: [generateIssue('invalidParentNode', { tag: 'Event', parentTag: 'Item/Sound' })],
         warnings: [],
       },
       {
@@ -174,7 +174,7 @@ export const parseTestData = [
         stringIn: 'Item/Sound/Environmental-sound/Event/Sensory-event',
         stringLong: null,
         stringShort: null,
-        errors: [generateIssue('invalidParentNode', { parentTag: 'Event', tag: 'Event' })],
+        errors: [generateIssue('invalidParentNode', { parentTag: 'Item/Sound/Environmental-sound', tag: 'Event' })],
         warnings: [],
       },
       {
@@ -184,17 +184,7 @@ export const parseTestData = [
         stringIn: 'Item/Sound/Event/Sensory-event/Environmental-sound',
         stringLong: null,
         stringShort: null,
-        errors: [generateIssue('invalidParentNode', { parentTag: 'Event', tag: 'Event' })],
-        warnings: [],
-      },
-      {
-        testname: 'mixed-extension-path',
-        explanation: '"Sensory-event" in "Item/Sound/Event/Sensory-event/Environmental-sound"',
-        schemaVersion: '8.3.0',
-        stringIn: 'Item/Sound/Event/Sensory-event/Environmental-sound',
-        stringLong: null,
-        stringShort: null,
-        errors: [generateIssue('invalidParentNode', { parentTag: 'Event', tag: 'Event' })],
+        errors: [generateIssue('invalidParentNode', { parentTag: 'Item/Sound', tag: 'Event' })],
         warnings: [],
       },
       {
@@ -235,9 +225,7 @@ export const parseTestData = [
         stringIn: 'Item/Object/Junk/Geometric-object/2D-shape',
         stringLong: null,
         stringShort: null,
-        errors: [
-          generateIssue('invalidParentNode', { parentTag: 'Item/Object/Geometric-object', tag: 'Geometric-object' }),
-        ],
+        errors: [generateIssue('invalidParentNode', { parentTag: 'Item/Object/Junk', tag: 'Geometric-object' })],
         warnings: [],
       },
       {

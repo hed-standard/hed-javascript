@@ -3,7 +3,9 @@ import { getParentTag, getTagLevels, getTagName } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
-import { Schema } from '../schema/containers'
+import { getRegExp } from './tempRegex'
+
+import RegexClass from '../schema/regExps'
 
 /**
  * A parsed HED tag.
@@ -40,6 +42,30 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   _remainder
 
   /**
+   * The extension if any
+   *
+   * @type {string}
+   * @private
+   */
+  _extension
+
+  /**
+   * The value if any
+   *
+   * @type {string}
+   * @private
+   */
+  _value
+
+  /**
+   * The units if any
+   *
+   * @type {string}
+   * @private
+   */
+  _units
+
+  /**
    * Constructor.
    *
    * @param {TagSpec} tagSpec The token for this tag.
@@ -49,7 +75,8 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    */
   constructor(tagSpec, hedSchemas, hedString) {
     super(tagSpec.tag, tagSpec.bounds) // Sets originalTag and originalBounds
-    this._convertTag(hedSchemas, hedString, tagSpec) // Sets various parameters
+    this._convertTag(hedSchemas, hedString, tagSpec) // Sets various forms of the tag.
+    this._handleRemainder()
     //this._checkTagAttributes()  // Checks various aspects like requireChild or extensionAllowed.
     //this.formattedTag = this._formatTag()
     //this.formattedTag = this.canonicalTag.toLowerCase()
@@ -85,6 +112,45 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     this.canonicalTag = this._schemaTag.longExtend(remainder)
     this.formattedTag = this.canonicalTag.toLowerCase()
   }
+
+  /**
+   * Handle the remainder portion
+   *
+   * @throws {IssueError} If parsing the remainder section fails.
+   */
+  _handleRemainder() {
+    if (this._remainder === '') {
+      return
+    }
+    // if (this.allowsExtensions) {
+    //   this._handleExtension()
+    // } else if (this.takesValue) { // Its a value tag
+    //   return
+    // } else {
+    //   //IssueError.generateAndThrow('invalidTag', {tag: this.originalTag})
+    // }
+  }
+
+  /**
+   * Handle potenial extensions
+   *
+   * @throws {IssueError} If parsing the remainder section fails.
+   */
+  _handleExtension() {
+    this._extension = this._remainder
+    const testReg = getRegExp('nameClass')
+    if (!testReg.test(this._extension)) {
+      IssueError.generateAndThrow('invalidExtension', { tag: this.originalTag })
+    }
+  }
+
+  // _handleExtension() {
+  //   this._extension = this._remainder
+  //   const testit = RegexClass.testRegex('nameClass', this._extension)
+  //   if (!RegexClass.testRegex('nameClass', this._extension)) {
+  //     IssueError.generateAndThrow('invalidExtension', {tag: this.originalTag})
+  //   }
+  // }
 
   /**
    * Nicely format this tag.
