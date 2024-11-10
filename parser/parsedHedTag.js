@@ -132,7 +132,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Handle potenial extensions
+   * Handle potential extensions
    *
    * @throws {IssueError} If parsing the remainder section fails.
    */
@@ -143,14 +143,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       IssueError.generateAndThrow('invalidExtension', { tag: this.originalTag })
     }
   }
-
-  // _handleExtension() {
-  //   this._extension = this._remainder
-  //   const testit = RegexClass.testRegex('nameClass', this._extension)
-  //   if (!RegexClass.testRegex('nameClass', this._extension)) {
-  //     IssueError.generateAndThrow('invalidExtension', {tag: this.originalTag})
-  //   }
-  // }
 
   /**
    * Nicely format this tag.
