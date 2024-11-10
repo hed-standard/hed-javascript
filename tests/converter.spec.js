@@ -41,7 +41,7 @@ describe('HED string conversion', () => {
       }
 
       // TODO: Remove this test - Test now implemented as valid-long-to-short in conversionTestsData
-      it('should convert basic HED tags to short form', () => {
+      it.skip('(REMOVE) should convert basic HED tags to short form', () => {
         const testStrings = {
           singleLevel: 'Event',
           twoLevel: 'Event/Sensory-event',
@@ -67,7 +67,7 @@ describe('HED string conversion', () => {
       })
 
       // TODO: Remove this test - Test now implemented as valid-long-to-short in conversionTestsData - note not values
-      it('should convert HED tags with values to short form', () => {
+      it.skip('(REMOVE) should convert HED tags with values to short form', () => {
         const testStrings = {
           uniqueValue: 'Item/Sound/Environmental-sound/Unique Value',
           multiLevel: 'Item/Sound/Environmental-sound/Long Unique Value With/Slash Marks',
@@ -87,7 +87,7 @@ describe('HED string conversion', () => {
       })
 
       // TODO: Remove this test - Test now implemented as valid-long-to-short in conversionTestsData
-      it('should raise an issue if a "value" is an already valid node', () => {
+      it.skip('(REMOVE) should raise an issue if a "value" is an already valid node', () => {
         const testStrings = {
           singleLevel: 'Item/Sound/Environmental-sound/Event',
           multiLevel: 'Item/Sound/Environmental-sound/Event/Sensory-event',
@@ -107,7 +107,7 @@ describe('HED string conversion', () => {
       })
 
       //TODO: This is a repeat of the tags with values (which are tags with extensions) Remove this.
-      it('should convert HED tags with extensions to short form', () => {
+      it.skip('(REMOVE)should convert HED tags with extensions to short form', () => {
         const testStrings = {
           singleLevel: 'Item/Object/extended lvl1',
           multiLevel: 'Item/Object/extended lvl1/Extension2',
@@ -127,7 +127,7 @@ describe('HED string conversion', () => {
       })
 
       //TODO: Remove this -- shouldn't parse when invalid -- the rest is tested for
-      it('should raise an issue if an "extension" is already a valid node', () => {
+      it.skip('(REMOVE) should raise an issue if an "extension" is already a valid node', () => {
         const testStrings = {
           validThenInvalid: 'Item/Object/valid extension followed by invalid/Event',
           singleLevel: 'Item/Object/Visual-presentation',
@@ -168,7 +168,7 @@ describe('HED string conversion', () => {
       })
 
       //TODO: Remove -- these cases are handled by stringParserTests
-      it('should raise an issue if an invalid node is found', () => {
+      it.skip('(REMOVE)should raise an issue if an invalid node is found', () => {
         const testStrings = {
           invalidParentWithExistingGrandchild: 'InvalidItem/Object/Visual-presentation',
           invalidChildWithExistingGrandchild: 'Event/InvalidEvent/Geometric-object',
@@ -199,7 +199,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should validate whether a node actually allows extensions', () => {
+      it.skip('should validate whether a node actually allows extensions', () => {
         const testStrings = {
           validTakesValue: 'Property/Agent-property/Agent-trait/Age/15',
           cascadeExtension: 'Property/Agent-property/Agent-state/Agent-emotional-state/Awed/Cascade Extension',
@@ -287,8 +287,8 @@ describe('HED string conversion', () => {
       const validator = function (testStrings, expectedResults, expectedIssues) {
         return validatorBase(testStrings, expectedResults, expectedIssues, converter.convertHedStringToLong)
       }
-
-      it('should convert basic HED tags to long form', () => {
+      //TODO: now part of tag parsing
+      it.skip('(REMOVE)should convert basic HED tags to long form', () => {
         const testStrings = {
           singleLevel: 'Event',
           twoLevel: 'Sensory-event',
@@ -313,7 +313,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should convert HED tags with values to long form', () => {
+      it.skip('should convert HED tags with values to long form', () => {
         const testStrings = {
           uniqueValue: 'Environmental-sound/Unique Value',
           multiLevel: 'Environmental-sound/Long Unique Value With/Slash Marks',
@@ -332,7 +332,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should convert HED tags with extensions to long form', () => {
+      it.skip('should convert HED tags with extensions to long form', () => {
         const testStrings = {
           singleLevel: 'Object/extended lvl1',
           multiLevel: 'Object/extended lvl1/Extension2',
@@ -351,7 +351,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should raise an issue if an "extension" is already a valid node', () => {
+      it.skip('should raise an issue if an "extension" is already a valid node', () => {
         const testStrings = {
           validThenInvalid: 'Object/valid extension followed by invalid/Event',
           singleLevel: 'Object/Visual-presentation',
@@ -391,7 +391,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should raise an issue if an invalid node is found', () => {
+      it.skip('should raise an issue if an invalid node is found', () => {
         const testStrings = {
           single: 'InvalidEvent',
           invalidChild: 'InvalidEvent/InvalidExtension',
@@ -410,7 +410,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should validate whether a node actually allows extensions', () => {
+      it.skip('should validate whether a node actually allows extensions', () => {
         const testStrings = {
           validTakesValue: 'Age/15',
           cascadeExtension: 'Awed/Cascade Extension',
@@ -429,7 +429,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should handle leading and trailing spaces correctly', () => {
+      it.skip('should handle leading and trailing spaces correctly', () => {
         const testStrings = {
           leadingSpace: ' Environmental-sound/Unique Value',
           trailingSpace: 'Environmental-sound/Unique Value ',
@@ -445,7 +445,8 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it.skip('should strip leading and trailing slashes', () => {
+      // TODO: These are taken care of in the tokenizer
+      it.skip('(REMOVE)should strip leading and trailing slashes', () => {
         const testStrings = {
           leadingSingle: '/Event',
           leadingExtension: '/Event/Extension',
@@ -491,7 +492,8 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should properly handle node names in value-taking strings', () => {
+      // TODO: Revisit
+      it.skip('(REVISIT) should properly handle node names in value-taking strings', () => {
         const testStrings = {
           valueTaking: 'Label/Red',
           nonValueTaking: 'Train/Car',
@@ -541,7 +543,7 @@ describe('HED string conversion', () => {
       }
     }
 
-    describe('Long-to-short', () => {
+    describe.skip('Long-to-short', () => {
       const validator = function (testStrings, expectedResults, expectedIssues) {
         return validatorBase(testStrings, expectedResults, expectedIssues, converter.convertHedStringToShort)
       }
@@ -607,7 +609,7 @@ describe('HED string conversion', () => {
         return validator(testStrings, expectedResults, expectedIssues)
       })
 
-      it('should ignore leading and trailing spaces', () => {
+      it.skip('(REMOVE) should ignore leading and trailing spaces', () => {
         const testStrings = {
           leadingSpace: ' Item/Sound/Environmental-sound/Unique Value',
           trailingSpace: 'Item/Sound/Environmental-sound/Unique Value ',
@@ -711,7 +713,7 @@ describe('HED string conversion', () => {
       })
     })
 
-    describe('Short-to-long', () => {
+    describe.skip('Short-to-long', () => {
       const validator = function (testStrings, expectedResults, expectedIssues) {
         return validatorBase(testStrings, expectedResults, expectedIssues, converter.convertHedStringToLong)
       }

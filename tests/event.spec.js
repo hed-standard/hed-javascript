@@ -1070,7 +1070,7 @@ describe('HED string and event validation', () => {
       }
 
       // TODO: Remove -- now in tokenizer tests
-      it('(REMOVE) should properly handle strings with placeholders', () => {
+      it.skip('(REMOVE) should properly handle strings with placeholders', () => {
         const testStrings = {
           takesValue: 'RGB-red/#',
           withUnit: 'Time-value/# ms',

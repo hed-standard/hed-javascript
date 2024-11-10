@@ -1,12 +1,12 @@
-import flattenDeep from 'lodash/flattenDeep'
 import zip from 'lodash/zip'
 import semver from 'semver'
 
 // TODO: Switch require once upstream bugs are fixed.
 // import xpath from 'xml2js-xpath'
 // Temporary
-import * as xpath from '../utils/xpath'
+import * as xpath from '../../utils/xpath'
 
+import { SchemaParser } from './parser'
 import {
   nodeProperty,
   SchemaAttribute,
@@ -21,21 +21,14 @@ import {
   SchemaUnitModifier,
   SchemaValueClass,
   SchemaValueTag,
-} from './entries'
-import { IssueError } from '../common/issues/issues'
+} from './types'
+import { generateIssue, IssueError } from '../../common/issues/issues'
 
-const specialTags = require('../data/json/specialTags.json')
-
-import classRegex from '../data/json/class_regex.json'
+import classRegex from './class_regex.json'
 
 const lc = (str) => str.toLowerCase()
 
-export default class SchemaParser {
-  /**
-   * The root XML element.
-   * @type {Object}
-   */
-  rootElement
+export class Hed3SchemaParser extends SchemaParser {
   /**
    * @type {Map<string, SchemaProperty>}
    */
@@ -66,20 +59,8 @@ export default class SchemaParser {
   tags
 
   constructor(rootElement) {
-    this.rootElement = rootElement
-    this._versionDefinitions = {
-      typeProperties: new Set(['boolProperty']),
-      categoryProperties: new Set([
-        'elementProperty',
-        'nodeProperty',
-        'schemaAttributeProperty',
-        'unitProperty',
-        'unitClassProperty',
-        'unitModifierProperty',
-        'valueClassProperty',
-      ]),
-      roleProperties: new Set(['recursiveProperty', 'isInheritedProperty', 'annotationProperty']),
-    }
+    super(rootElement)
+    this._versionDefinitions = {}
   }
 
   parse() {
@@ -90,58 +71,25 @@ export default class SchemaParser {
   populateDictionaries() {
     this.parseProperties()
     this.parseAttributes()
+    this.parseValueClasses()
     this.parseUnitModifiers()
     this.parseUnitClasses()
-    this.parseValueClasses()
     this.parseTags()
   }
 
-  getAllChildTags(parentElement, elementName = 'node', excludeTakeValueTags = true) {
-    if (excludeTakeValueTags && this.getElementTagName(parentElement) === '#') {
-      return []
+  static attributeFilter(propertyName) {
+    return (element) => {
+      const validProperty = propertyName
+      if (!element.property) {
+        return false
+      }
+      for (const property of element.property) {
+        if (property.name[0]._ === validProperty) {
+          return true
+        }
+      }
+      return false
     }
-    const tagElementChildren = this.getElementsByName(elementName, parentElement)
-    const childTags = flattenDeep(
-      tagElementChildren.map((child) => this.getAllChildTags(child, elementName, excludeTakeValueTags)),
-    )
-    childTags.push(parentElement)
-    return childTags
-  }
-
-  getElementsByName(elementName = 'node', parentElement = this.rootElement) {
-    return xpath.find(parentElement, '//' + elementName)
-  }
-
-  getParentTagName(tagElement) {
-    const parentTagElement = tagElement.$parent
-    if (parentTagElement && parentTagElement.$parent) {
-      return this.getElementTagName(parentTagElement)
-    } else {
-      return ''
-    }
-  }
-
-  /**
-   * Extract the name of an XML element.
-   *
-   * NOTE: This method cannot be merged into {@link getElementTagValue} because it is used as a first-class object.
-   *
-   * @param {object} element An XML element.
-   * @returns {string} The name of the element.
-   */
-  getElementTagName(element) {
-    return element.name[0]._
-  }
-
-  /**
-   * Extract a value from an XML element.
-   *
-   * @param {object} element An XML element.
-   * @param {string} tagName The tag value to extract.
-   * @returns {string} The value of the tag in the element.
-   */
-  getElementTagValue(element, tagName) {
-    return element[tagName][0]._
   }
 
   /**
@@ -163,19 +111,22 @@ export default class SchemaParser {
     this.properties = new Map()
     for (const definition of propertyDefinitions) {
       const propertyName = this.getElementTagName(definition)
-      if (this._versionDefinitions.categoryProperties?.has(propertyName)) {
+      if (
+        this._versionDefinitions.categoryProperties &&
+        this._versionDefinitions.categoryProperties.has(propertyName)
+      ) {
         this.properties.set(
           propertyName,
           // TODO: Switch back to class constant once upstream bug is fixed.
           new SchemaProperty(propertyName, 'categoryProperty'),
         )
-      } else if (this._versionDefinitions.typeProperties?.has(propertyName)) {
+      } else if (this._versionDefinitions.typeProperties && this._versionDefinitions.typeProperties.has(propertyName)) {
         this.properties.set(
           propertyName,
           // TODO: Switch back to class constant once upstream bug is fixed.
           new SchemaProperty(propertyName, 'typeProperty'),
         )
-      } else if (this._versionDefinitions.roleProperties?.has(propertyName)) {
+      } else if (this._versionDefinitions.roleProperties && this._versionDefinitions.roleProperties.has(propertyName)) {
         this.properties.set(
           propertyName,
           // TODO: Switch back to class constant once upstream bug is fixed.
@@ -196,22 +147,11 @@ export default class SchemaParser {
       if (propertyElements === undefined) {
         properties = []
       } else {
-        properties = propertyElements.map((element) => this.properties.get(this.getElementTagName(element)))
+        properties = propertyElements.map((element) => this.properties.get(element.name[0]._))
       }
       this.attributes.set(attributeName, new SchemaAttribute(attributeName, properties))
     }
     this._addCustomAttributes()
-  }
-
-  _getValueClassChars(name) {
-    let classChars
-    if (Array.isArray(classRegex.class_chars[name]) && classRegex.class_chars[name].length > 0) {
-      classChars =
-        '^(?:' + classRegex.class_chars[name].map((charClass) => classRegex.char_regex[charClass]).join('|') + ')+$'
-    } else {
-      classChars = '^.+$' // Any non-empty line or string.
-    }
-    return new RegExp(classChars)
   }
 
   parseValueClasses() {
@@ -219,10 +159,19 @@ export default class SchemaParser {
     const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('valueClass')
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
-      //valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes))
-      const charRegex = this._getValueClassChars(name)
-      const wordRegex = new RegExp(classRegex.class_words[name] ?? '^.+$')
-      valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes, charRegex, wordRegex))
+      let classChars
+      if (Array.isArray(classRegex.class_chars[name]) && classRegex.class_chars[name].length > 0) {
+        classChars =
+          '^(?:' + classRegex.class_chars[name].map((charClass) => classRegex.char_regex[charClass]).join('|') + ')+$'
+      } else {
+        classChars = '^.+$'
+      }
+      const classCharsRegex = new RegExp(classChars)
+      const classWordRegex = new RegExp(classRegex.class_words[name] ?? '^.+$')
+      valueClasses.set(
+        name,
+        new SchemaValueClass(name, booleanAttributes, valueAttributes, classCharsRegex, classWordRegex),
+      )
     }
     this.valueClasses = new SchemaEntryManager(valueClasses)
   }
@@ -272,46 +221,8 @@ export default class SchemaParser {
     return unitClassUnits
   }
 
-  // Tag parsing
-
-  /**
-   * Parse the schema's tags.
-   */
   parseTags() {
     const tags = this.getAllTags()
-    const shortTags = this._getShortTags(tags)
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseAttributeElements(
-      tags.keys(),
-      (element) => shortTags.get(element),
-    )
-
-    const tagUnitClassDefinitions = this._processTagUnitClasses(shortTags, valueAttributeDefinitions)
-    this._processRecursiveAttributes(shortTags, booleanAttributeDefinitions)
-
-    const tagEntries = this._createSchemaTags(
-      booleanAttributeDefinitions,
-      valueAttributeDefinitions,
-      tagUnitClassDefinitions,
-    )
-
-    this._injectTagFields(tags, shortTags, tagEntries)
-
-    const longNameTagEntries = new Map()
-    for (const tag of tagEntries.values()) {
-      longNameTagEntries.set(lc(tag.longName), tag)
-    }
-
-    this.tags = new SchemaTagManager(tagEntries, longNameTagEntries)
-  }
-
-  /**
-   * Generate the map from tag elements to shortened tag names.
-   *
-   * @param {Map<Object, string>} tags The map from tag elements to tag strings.
-   * @returns {Map<Object, string>} The map from tag elements to shortened tag names.
-   * @private
-   */
-  _getShortTags(tags) {
     const shortTags = new Map()
     for (const tagElement of tags.keys()) {
       const shortKey =
@@ -320,22 +231,20 @@ export default class SchemaParser {
           : this.getElementTagName(tagElement)
       shortTags.set(tagElement, shortKey)
     }
-    return shortTags
-  }
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseAttributeElements(
+      tags.keys(),
+      (element) => shortTags.get(element),
+    )
 
-  /**
-   * Process unit classes in tags.
-   *
-   * @param {Map<Object, string>} shortTags The map from tag elements to shortened tag names.
-   * @param {Map<string, Map<SchemaAttribute, *>>} valueAttributeDefinitions The map from shortened tag names to their value schema attributes.
-   * @returns {Map<string, SchemaUnitClass[]>} The map from shortened tag names to their unit classes.
-   * @private
-   */
-  _processTagUnitClasses(shortTags, valueAttributeDefinitions) {
+    const recursiveAttributes = this._getRecursiveAttributes()
     const tagUnitClassAttribute = this.attributes.get('unitClass')
-    const tagUnitClassDefinitions = new Map()
+    const tagValueClassAttribute = this.attributes.get('valueClass')
+    const tagTakesValueAttribute = this.attributes.get('takesValue')
 
-    for (const tagName of shortTags.values()) {
+    const tagUnitClassDefinitions = new Map()
+    const tagValueClassDefinitions = new Map()
+    const recursiveChildren = new Map()
+    for (const [tagElement, tagName] of shortTags) {
       const valueAttributes = valueAttributeDefinitions.get(tagName)
       if (valueAttributes.has(tagUnitClassAttribute)) {
         tagUnitClassDefinitions.set(
@@ -346,85 +255,66 @@ export default class SchemaParser {
         )
         valueAttributes.delete(tagUnitClassAttribute)
       }
-    }
-
-    return tagUnitClassDefinitions
-  }
-
-  /**
-   * Process recursive schema attributes.
-   *
-   * @param {Map<Object, string>} shortTags The map from tag elements to shortened tag names.
-   * @param {Map<string, Set<SchemaAttribute>>} booleanAttributeDefinitions The map from shortened tag names to their boolean schema attributes. Passed by reference.
-   * @private
-   */
-  _processRecursiveAttributes(shortTags, booleanAttributeDefinitions) {
-    const recursiveAttributes = this._getRecursiveAttributes()
-
-    for (const [tagElement, tagName] of shortTags) {
+      if (valueAttributes.has(tagValueClassAttribute)) {
+        tagValueClassDefinitions.set(
+          tagName,
+          valueAttributes.get(tagValueClassAttribute).map((valueClassName) => {
+            return this.valueClasses.getEntry(valueClassName)
+          }),
+        )
+        valueAttributes.delete(tagValueClassAttribute)
+      }
       for (const attribute of recursiveAttributes) {
+        const children = recursiveChildren.get(attribute) ?? []
         if (booleanAttributeDefinitions.get(tagName).has(attribute)) {
-          for (const childTag of this.getAllChildTags(tagElement)) {
-            const childTagName = this.getElementTagName(childTag)
-            booleanAttributeDefinitions.get(childTagName).add(attribute)
-          }
+          children.push(...this.getAllChildTags(tagElement))
         }
+        recursiveChildren.set(attribute, children)
       }
     }
-  }
 
-  /**
-   * Create the {@link SchemaTag} objects.
-   *
-   * @param {Map<string, Set<SchemaAttribute>>} booleanAttributeDefinitions The map from shortened tag names to their boolean schema attributes.
-   * @param {Map<string, Map<SchemaAttribute, *>>} valueAttributeDefinitions The map from shortened tag names to their value schema attributes.
-   * @param {Map<string, SchemaUnitClass[]>} tagUnitClassDefinitions The map from shortened tag names to their unit classes.
-   * @returns {Map<string, SchemaTag>} The map from lowercase shortened tag names to their tag objects.
-   * @private
-   */
-  _createSchemaTags(booleanAttributeDefinitions, valueAttributeDefinitions, tagUnitClassDefinitions) {
-    const tagTakesValueAttribute = this.attributes.get('takesValue')
+    for (const [attribute, childTagElements] of recursiveChildren) {
+      for (const tagElement of childTagElements) {
+        const tagName = this.getElementTagName(tagElement)
+        booleanAttributeDefinitions.get(tagName).add(attribute)
+      }
+    }
+
     const tagEntries = new Map()
-
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       if (tagEntries.has(name)) {
         IssueError.generateAndThrow('duplicateTagsInSchema')
       }
-
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       const unitClasses = tagUnitClassDefinitions.get(name)
-
+      const valueClasses = tagValueClassDefinitions.get(name)
       if (booleanAttributes.has(tagTakesValueAttribute)) {
-        tagEntries.set(lc(name), new SchemaValueTag(name, booleanAttributes, valueAttributes, unitClasses))
+        tagEntries.set(
+          lc(name),
+          new SchemaValueTag(name, booleanAttributes, valueAttributes, unitClasses, valueClasses),
+        )
       } else {
-        tagEntries.set(lc(name), new SchemaTag(name, booleanAttributes, valueAttributes, unitClasses))
+        tagEntries.set(lc(name), new SchemaTag(name, booleanAttributes, valueAttributes, unitClasses, valueClasses))
       }
     }
 
-    return tagEntries
-  }
-
-  /**
-   * Inject special tag fields into the {@link SchemaTag} objects.
-   *
-   * @param {Map<Object, string>} tags The map from tag elements to tag strings.
-   * @param {Map<Object, string>} shortTags The map from tag elements to shortened tag names.
-   * @param {Map<string, SchemaTag>} tagEntries The map from shortened tag names to tag objects.
-   * @private
-   */
-  _injectTagFields(tags, shortTags, tagEntries) {
     for (const tagElement of tags.keys()) {
       const tagName = shortTags.get(tagElement)
       const parentTagName = shortTags.get(tagElement.$parent)
-
       if (parentTagName) {
         tagEntries.get(lc(tagName))._parent = tagEntries.get(lc(parentTagName))
       }
-
       if (this.getElementTagName(tagElement) === '#') {
         tagEntries.get(lc(parentTagName))._valueTag = tagEntries.get(lc(tagName))
       }
     }
+
+    const longNameTagEntries = new Map()
+    for (const tag of tagEntries.values()) {
+      longNameTagEntries.set(lc(tag.longName), tag)
+    }
+
+    this.tags = new SchemaTagManager(tagEntries, longNameTagEntries)
   }
 
   _parseDefinitions(category) {
@@ -482,6 +372,33 @@ export default class SchemaParser {
   }
 
   _addCustomAttributes() {
+    // No-op
+  }
+
+  _addCustomProperties() {
+    // No-op
+  }
+}
+
+export class HedV8SchemaParser extends Hed3SchemaParser {
+  constructor(rootElement) {
+    super(rootElement)
+    this._versionDefinitions = {
+      typeProperties: new Set(['boolProperty']),
+      categoryProperties: new Set([
+        'elementProperty',
+        'nodeProperty',
+        'schemaAttributeProperty',
+        'unitProperty',
+        'unitClassProperty',
+        'unitModifierProperty',
+        'valueClassProperty',
+      ]),
+      roleProperties: new Set(['recursiveProperty', 'isInheritedProperty', 'annotationProperty']),
+    }
+  }
+
+  _addCustomAttributes() {
     const isInheritedProperty = this.properties.get('isInheritedProperty')
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
     if (this.rootElement.$.library === undefined && semver.lt(this.rootElement.$.version, '8.2.0')) {
@@ -498,5 +415,163 @@ export default class SchemaParser {
       const recursiveProperty = new SchemaProperty('isInheritedProperty', 'roleProperty')
       this.properties.set('isInheritedProperty', recursiveProperty)
     }
+  }
+}
+
+export class Hed3PartneredSchemaMerger {
+  /**
+   * The source of data to be merged.
+   * @type {Hed3Schema}
+   */
+  source
+  /**
+   * The destination of data to be merged.
+   * @type {Hed3Schema}
+   */
+  destination
+
+  /**
+   * Constructor.
+   *
+   * @param {Hed3Schema} source The source of data to be merged.
+   * @param {Hed3Schema} destination The destination of data to be merged.
+   */
+  constructor(source, destination) {
+    this._validate(source, destination)
+
+    this.source = source
+    this.destination = destination
+  }
+
+  /**
+   * Pre-validate the partnered schemas.
+   *
+   * @param {Hed3Schema} source The source of data to be merged.
+   * @param {Hed3Schema} destination The destination of data to be merged.
+   * @private
+   */
+  _validate(source, destination) {
+    if (source.generation < 3 || destination.generation < 3) {
+      IssueError.generateAndThrow('internalConsistencyError', { message: 'Partnered schemas must be HED-3G schemas' })
+    }
+
+    if (source.withStandard !== destination.withStandard) {
+      IssueError.generateAndThrow('differentWithStandard', {
+        first: source.withStandard,
+        second: destination.withStandard,
+      })
+    }
+  }
+
+  /**
+   * The source schema's tag collection.
+   *
+   * @return {SchemaTagManager}
+   */
+  get sourceTags() {
+    return this.source.entries.tags
+  }
+
+  /**
+   * The destination schema's tag collection.
+   *
+   * @return {SchemaTagManager}
+   */
+  get destinationTags() {
+    return this.destination.entries.tags
+  }
+
+  /**
+   * Merge two lazy partnered schemas.
+   *
+   * @returns {Hed3Schema} The merged partnered schema, for convenience.
+   */
+  mergeData() {
+    this.mergeTags()
+    return this.destination
+  }
+
+  /**
+   * Merge the tags from two lazy partnered schemas.
+   */
+  mergeTags() {
+    for (const tag of this.sourceTags.values()) {
+      this._mergeTag(tag)
+    }
+  }
+
+  /**
+   * Merge a tag from one schema to another.
+   *
+   * @param {SchemaTag} tag The tag to copy.
+   * @private
+   */
+  _mergeTag(tag) {
+    if (!tag.getNamedAttributeValue('inLibrary')) {
+      return
+    }
+
+    const shortName = tag.name
+    if (this.destinationTags.hasEntry(shortName.toLowerCase())) {
+      IssueError.generateAndThrow('lazyPartneredSchemasShareTag', { tag: shortName })
+    }
+
+    const rootedTagShortName = tag.getNamedAttributeValue('rooted')
+    if (rootedTagShortName) {
+      const parentTag = tag.parent
+      if (parentTag?.name?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
+        IssueError.generateAndThrow('internalError', { message: `Node ${shortName} is improperly rooted.` })
+      }
+    }
+
+    this._copyTagToSchema(tag)
+  }
+
+  /**
+   * Copy a tag from one schema to another.
+   *
+   * @param {SchemaTag} tag The tag to copy.
+   * @private
+   */
+  _copyTagToSchema(tag) {
+    const booleanAttributes = new Set()
+    const valueAttributes = new Map()
+
+    for (const attribute of tag.booleanAttributes) {
+      booleanAttributes.add(this.destination.entries.attributes.getEntry(attribute.name) ?? attribute)
+    }
+    for (const [key, value] of tag.valueAttributes) {
+      valueAttributes.set(this.destination.entries.attributes.getEntry(key.name) ?? key, value)
+    }
+
+    /**
+     * @type {SchemaUnitClass[]}
+     */
+    const unitClasses = tag.unitClasses.map(
+      (unitClass) => this.destination.entries.unitClasses.getEntry(unitClass.name) ?? unitClass,
+    )
+    /**
+     * @type {SchemaValueClass[]}
+     */
+    const valueClasses = tag.valueClasses.map(
+      (valueClass) => this.destination.entries.valueClasses.getEntry(valueClass.name) ?? valueClass,
+    )
+
+    let newTag
+    if (tag instanceof SchemaValueTag) {
+      newTag = new SchemaValueTag(tag.name, booleanAttributes, valueAttributes, unitClasses, valueClasses)
+    } else {
+      newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses, valueClasses)
+    }
+    const destinationParentTag = this.destinationTags.getEntry(tag.parent?.name?.toLowerCase())
+    if (destinationParentTag) {
+      newTag._parent = destinationParentTag
+      if (newTag instanceof SchemaValueTag) {
+        newTag.parent._valueTag = newTag
+      }
+    }
+
+    this.destinationTags._definitions.set(newTag.name.toLowerCase(), newTag)
+    this.destinationTags._definitionsByLongName.set(newTag.longName.toLowerCase(), newTag)
   }
 }

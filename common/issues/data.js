@@ -208,7 +208,7 @@ export default {
   invalidExtension: {
     hedCode: 'TAG_EXTENSION_INVALID',
     level: 'error',
-    message: stringTemplate`"${'tag'}" appears as an extension of "${'parentTag'}", which does not allow tag extensions.`,
+    message: stringTemplate`"${'tag'}" appears as an extension of "${'parentTag'}", which does not allow this tag extension.`,
   },
   emptyTagFound: {
     hedCode: 'TAG_EMPTY',
