@@ -132,6 +132,20 @@ export const parsedHedTagTests = [
         error: generateIssue('childRequired', { tag: 'Duration' }),
       },
       {
+        //TODO: Special tag Event-context is unique and doesn't allow extension although parent does
+        testname: 'invalid-tag-does-not-allow-extension',
+        explanation: '"Sensory-event/Blech" should not have a child no recursive-extension allowed.',
+        schemaVersion: '8.3.0',
+        fullString: 'Duration',
+        tagSpec: new TagSpec('Sensory-event/Blech', 0, 19, ''),
+        tagLong: undefined,
+        tagShort: undefined,
+        formattedTag: undefined,
+        canonicalTag: undefined,
+        takesValue: true,
+        error: generateIssue('invalidExtension', { parentTag: 'Sensory-event', tag: 'Blech' }),
+      },
+      {
         testname: 'invalid-tag-with-blank-in-extension',
         explanation: '" Object/blec h " has a blank in the tag extension',
         schemaVersion: '8.3.0',
