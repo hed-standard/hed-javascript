@@ -1,10 +1,8 @@
 import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
-import path from 'path'
 
 import { buildBidsSchemas } from '../bids/schema'
-import { BidsHedIssue } from '../bids/types/issues'
 import { BidsJsonFile } from '../bids'
 
 import { shouldRun } from './testUtilities'
@@ -21,7 +19,7 @@ describe('Schema build validation', () => {
 
   afterAll(() => {})
 
-  const assertErrors = function (test, caughtError, schema, iLog) {
+  const assertErrors = function (test, caughtError, schema) {
     const status = test.schemaError === null ? 'Expect pass' : 'Expect fail'
     const header = `[${test.testname} (${status})]`
 
@@ -29,7 +27,6 @@ describe('Schema build validation', () => {
 
     const expectedErrorCode = test.schemaError === null ? null : test.schemaError.issue.hedCode
     const expectedErrorString = test.schemaError === null ? '' : `${JSON.stringify(test.schemaError.issue)}`
-    const caughtErrorCode = caughtError === null ? null : caughtError.issue.hedCode
     const caughtErrorString = caughtError === null ? '' : `${JSON.stringify(caughtError.issue)}`
 
     assert.strictEqual(caughtErrorString, expectedErrorString, header)
