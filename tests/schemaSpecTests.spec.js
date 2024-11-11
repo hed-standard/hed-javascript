@@ -18,7 +18,7 @@ describe('Schema validation', () => {
 
   afterAll(() => {})
 
-  const assertErrors = function (test, caughtError, schemaSpec) {
+  const assertErrors = function (test, caughtError) {
     const status = test.schemaError === null ? 'Expect pass' : 'Expect fail'
     const header = `[${test.testname} (${status})]`
 

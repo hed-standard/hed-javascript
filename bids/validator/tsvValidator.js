@@ -1,4 +1,4 @@
-import SidecarValidator from './sidecarValidator'
+import BidsHedSidecarValidator from './sidecarValidator'
 import { BidsHedIssue, BidsIssue } from '../types/issues'
 import { BidsTsvEvent, BidsTsvRow } from '../types/tsv'
 import { parseHedString } from '../../parser/parser'
@@ -12,7 +12,7 @@ import { validateHedString } from '../../validator/event/init'
 /**
  * Validator for HED data in BIDS TSV files.
  */
-export class TsvValidator {
+export class BidsHedTsvValidator {
   /**
    * The BIDS TSV file being validated.
    * @type {BidsTsvFile}
@@ -55,7 +55,10 @@ export class TsvValidator {
     if (BidsIssue.anyAreErrors(parsingIssues)) {
       return this.issues
     }
-    const curlyBraceIssues = new SidecarValidator(this.tsvFile.mergedSidecar, this.hedSchemas).validateCurlyBraces()
+    const curlyBraceIssues = new BidsHedSidecarValidator(
+      this.tsvFile.mergedSidecar,
+      this.hedSchemas,
+    ).validateCurlyBraces()
     const hedColumnIssues = this._validateHedColumn()
     this.issues.push(...curlyBraceIssues, ...hedColumnIssues)
     if (BidsIssue.anyAreErrors(this.issues)) {
@@ -383,4 +386,4 @@ export class BidsHedTsvParser {
   }
 }
 
-export default TsvValidator
+export default BidsHedTsvValidator

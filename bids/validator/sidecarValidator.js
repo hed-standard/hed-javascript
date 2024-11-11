@@ -7,7 +7,7 @@ import { generateIssue, IssueError } from '../../common/issues/issues'
 /**
  * Validator for HED data in BIDS JSON sidecars.
  */
-export class SidecarValidator {
+export class BidsHedSidecarValidator {
   /**
    * The BIDS sidecar being validated.
    * @type {BidsSidecar}
@@ -143,4 +143,4 @@ export class SidecarValidator {
   }
 }
 
-export default SidecarValidator
+export default BidsHedSidecarValidator
