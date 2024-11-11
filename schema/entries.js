@@ -598,6 +598,28 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
   get isUnitSymbol() {
     return this.hasAttributeName('unitSymbol')
   }
+
+  /**
+   * Determine if a value has this unit.
+   *
+   * @param {string} value -- either the whole value or the part after a blank (if not a prefix unit)
+   * @returns {boolean} Whether the value has these units.
+   */
+  validateUnit(value) {
+    if (value == null || value === '') {
+      return false
+    }
+    if (this.isPrefixUnit) {
+      return value.startsWith(this.name)
+    }
+
+    for (const dUnit of this.derivativeUnits()) {
+      if (value === dUnit) {
+        return true
+      }
+    }
+    return false
+  }
 }
 
 /**
@@ -638,6 +660,49 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
    */
   get defaultUnit() {
     return this._units.get(this.getNamedAttributeValue('defaultUnits'))
+  }
+
+  /**
+   * Extracts the Unit class and remainder
+   * @returns {Unit, string, string} unit class, unit string, and value string
+   */
+  extractUnit(value) {
+    let actualUnit = null // The Unit class of the value
+    let actualValueString = null // The actual value part of the value
+    let actualUnitString = null
+    let lastPart = null
+    let firstPart = null
+    const index = value.indexOf(' ')
+    if (index !== -1) {
+      lastPart = value.slice(index + 1)
+      firstPart = value.slice(0, index)
+    } else {
+      // no blank -- there are no units
+      return [null, null, value]
+    }
+    actualValueString = firstPart
+    actualUnitString = lastPart
+    for (const unit of this._units.values()) {
+      if (!unit.isPrefixUnit && unit.validateUnit(lastPart)) {
+        // Checking if it is non-prefixed unit
+        actualValueString = firstPart
+        actualUnitString = lastPart
+        actualUnit = unit
+        break
+      } else if (!unit.isPrefixUnit) {
+        continue
+      }
+      if (!unit.validateUnit(firstPart)) {
+        // If it got here, can only be a prefix Unit
+        continue
+      } else {
+        actualUnit = unit
+        actualValueString = value.substring(unit.name.length + 1)
+        actualUnitString = unit.name
+        break
+      }
+    }
+    return [actualUnit, actualUnitString, actualValueString]
   }
 }
 

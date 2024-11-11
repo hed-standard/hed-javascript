@@ -42,14 +42,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   _remainder
 
   /**
-   * The extension if any
-   *
-   * @type {string}
-   * @private
-   */
-  _extension
-
-  /**
    * The value if any
    *
    * @type {string}
@@ -76,10 +68,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   constructor(tagSpec, hedSchemas, hedString) {
     super(tagSpec.tag, tagSpec.bounds) // Sets originalTag and originalBounds
     this._convertTag(hedSchemas, hedString, tagSpec) // Sets various forms of the tag.
-    this._handleRemainder()
-    //this._checkTagAttributes()  // Checks various aspects like requireChild or extensionAllowed.
-    //this.formattedTag = this._formatTag()
-    //this.formattedTag = this.canonicalTag.toLowerCase()
   }
 
   /**
@@ -111,6 +99,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     this._remainder = remainder
     this.canonicalTag = this._schemaTag.longExtend(remainder)
     this.formattedTag = this.canonicalTag.toLowerCase()
+    this._handleRemainder(schemaTag, remainder)
   }
 
   /**
@@ -118,17 +107,28 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    *
    * @throws {IssueError} If parsing the remainder section fails.
    */
-  _handleRemainder() {
-    if (this._remainder === '') {
+  _handleRemainder(schemaTag, remainder) {
+    if (this._remainder === '' || !(schemaTag instanceof SchemaValueTag)) {
+      this._extension = remainder
       return
     }
-    // if (this.allowsExtensions) {
-    //   this._handleExtension()
-    // } else if (this.takesValue) { // Its a value tag
-    //   return
-    // } else {
-    //   //IssueError.generateAndThrow('invalidTag', {tag: this.originalTag})
-    // }
+    const unitClasses = schemaTag.unitClasses
+    let actualUnit = null
+    let actualUnitString = null
+    let actualValueString = null
+    for (let i = 0; i < unitClasses.length; i++) {
+      ;[actualUnit, actualUnitString, actualValueString] = unitClasses[i].extractUnit(remainder)
+      if (actualUnit !== null) {
+        // found the unit
+        break
+      }
+    }
+    this._units = actualUnit
+    this._value = actualValueString
+
+    if (actualUnit === null && actualUnitString !== null) {
+      IssueError.generateAndThrow('unitClassInvalidUnit', { tag: this.originalTag })
+    }
   }
 
   /**

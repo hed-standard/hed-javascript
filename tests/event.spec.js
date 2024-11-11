@@ -625,9 +625,8 @@ describe('HED string and event validation', () => {
           correctSingularUnit: 'Time-value/1 millisecond',
           correctPluralUnit: 'Time-value/3 milliseconds',
           correctNoPluralUnit: 'Frequency/3 hertz',
-          correctNonSymbolCapitalizedUnit: 'Time-value/3 MilliSeconds',
+          incorrectNonSymbolCapitalizedUnit: 'Time-value/3 MilliSeconds',
           correctSymbolCapitalizedUnit: 'Frequency/3 kHz',
-          missingRequiredUnit: 'Time-value/3',
           incorrectUnit: 'Time-value/3 cm',
           incorrectNonNumericValue: 'Time-value/A ms',
           incorrectPluralUnit: 'Frequency/3 hertzs',
@@ -637,29 +636,22 @@ describe('HED string and event validation', () => {
           incorrectNonSIUnitSymbolModifier: 'Speed/100 Mkph',
           notRequiredNumber: 'RGB-red/0.5',
           notRequiredScientific: 'RGB-red/5e-1',
-          /*properTime: 'Clockface/08:30',
-        invalidTime: 'Clockface/54:54',*/
         }
-        const legalFrequencyUnits = ['Hz', 'hertz']
-        const legalSpeedUnits = ['m-per-s', 'kph', 'mph']
         const expectedIssues = {
           correctUnit: [],
           correctUnitScientific: [],
           correctSingularUnit: [],
           correctPluralUnit: [],
           correctNoPluralUnit: [],
-          correctNonSymbolCapitalizedUnit: [],
-          correctSymbolCapitalizedUnit: [],
-          missingRequiredUnit: [
-            generateIssue('unitClassDefaultUsed', {
-              defaultUnit: 's',
-              tag: testStrings.missingRequiredUnit,
+          incorrectNonSymbolCapitalizedUnit: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.incorrectNonSymbolCapitalizedUnit,
             }),
           ],
+          correctSymbolCapitalizedUnit: [],
           incorrectUnit: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectUnit,
-              unitClassUnits: 'day,hour,minute,month,s,second,year',
             }),
           ],
           incorrectNonNumericValue: [
@@ -670,44 +662,30 @@ describe('HED string and event validation', () => {
           incorrectPluralUnit: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectPluralUnit,
-              unitClassUnits: legalFrequencyUnits.sort().join(','),
             }),
           ],
           incorrectSymbolCapitalizedUnit: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectSymbolCapitalizedUnit,
-              unitClassUnits: legalFrequencyUnits.sort().join(','),
             }),
           ],
           incorrectSymbolCapitalizedUnitModifier: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectSymbolCapitalizedUnitModifier,
-              unitClassUnits: legalFrequencyUnits.sort().join(','),
             }),
           ],
           incorrectNonSIUnitModifier: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectNonSIUnitModifier,
-              unitClassUnits: 'day,hour,minute,month,s,second,year',
             }),
           ],
           incorrectNonSIUnitSymbolModifier: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectNonSIUnitSymbolModifier,
-              unitClassUnits: legalSpeedUnits.sort().join(','),
             }),
           ],
           notRequiredNumber: [],
           notRequiredScientific: [],
-          /*
-          properTime: [],
-          invalidTime: [
-            generateIssue('unitClassInvalidUnit', {
-              tag: testStrings.invalidTime,
-              unitClassUnits: legalClockTimeUnits.sort().join(','),
-            }),
-          ],
-          */
         }
         return validatorSemantic(
           testStrings,
