@@ -598,6 +598,24 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
   get isUnitSymbol() {
     return this.hasAttributeName('unitSymbol')
   }
+
+  /**
+   * Determine if a value has this unit.
+   *
+   * @param {string} value -- either the whole value or the part after a blank (if not a prefix unit)
+   * @returns {boolean} Whether the value has these units.
+   */
+  validateUnit(value) {
+    if (this.isPrefixUnit) {
+      return value.startsWith(this.name)
+    }
+    for (const derivativeUnit of this.derivativeUnits()) {
+      if (value === derivativeUnit) {
+        return true
+      }
+    }
+    return false
+  }
 }
 
 /**
