@@ -74,16 +74,18 @@ export default class TagConverter {
     let parentTag = undefined
     for (let tagLevelIndex = 0; tagLevelIndex < this.tagLevels.length; tagLevelIndex++) {
       if (parentTag?.valueTag) {
+        // Its a value tag
         this._setSchemaTag(parentTag.valueTag, tagLevelIndex)
         return [this.schemaTag, this.remainder]
       }
       const childTag = this._validateChildTag(parentTag, tagLevelIndex)
       if (childTag === undefined) {
+        // It is an extended tag and the rest is undefined
         this._setSchemaTag(parentTag, tagLevelIndex)
       }
       parentTag = childTag
     }
-    this._setSchemaTag(parentTag, this.tagLevels.length + 1)
+    this._setSchemaTag(parentTag, this.tagLevels.length + 1) // Fix the ending
     return [this.schemaTag, this.remainder]
   }
 
@@ -92,10 +94,12 @@ export default class TagConverter {
     if (childTag === undefined) {
       // This is an extended tag
       if (tagLevelIndex === 0) {
+        // Top level tags can't be extensions
         IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
       }
       if (parentTag !== undefined && !parentTag.hasAttributeName('extensionAllowed')) {
         IssueError.generateAndThrow('invalidExtension', {
+          // The parent doesn't allow extension
           tag: this.tagLevels[tagLevelIndex],
           parentTag: this.tagLevels.slice(0, tagLevelIndex).join('/'),
         })
@@ -106,6 +110,7 @@ export default class TagConverter {
 
     if (tagLevelIndex > 0 && (childTag.parent === undefined || childTag.parent !== parentTag)) {
       IssueError.generateAndThrow('invalidParentNode', {
+        //
         tag: this.tagLevels[tagLevelIndex],
         parentTag: this.tagLevels.slice(0, tagLevelIndex).join('/'),
       })

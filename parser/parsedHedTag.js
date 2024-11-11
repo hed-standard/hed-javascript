@@ -113,31 +113,31 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     this.formattedTag = this.canonicalTag.toLowerCase()
   }
 
-  /**
-   * Handle the remainder portion
-   *
-   * @throws {IssueError} If parsing the remainder section fails.
-   */
-  _handleRemainder() {
-    if (this._remainder === '') {
-      return
-    }
-    // if (this.allowsExtensions) {
-    //   this._handleExtension()
-    // } else if (this.takesValue) { // Its a value tag
-    //   return
-    // } else {
-    //   //IssueError.generateAndThrow('invalidTag', {tag: this.originalTag})
-    // }
-  }
+  // checkIfTagUnitClassUnitsAreValid(tag) {
+  //   if (!tag.takesValue || !tag.hasUnitClass || tag._remainder) {
+  //     return
+  //   }
+  //   //const [foundUnit, validUnit, value] = this.validateUnits(tag)
+  //   //const [foundUnit, validUnit, value] = this._getUnits()
+  //   if (!validUnit) {
+  //     const tagUnitClassUnits = Array.from(tag.validUnits).map((unit) => unit.name)
+  //     this.pushIssue('unitClassInvalidUnit', {
+  //       tag: tag,
+  //       unitClassUnits: tagUnitClassUnits.sort().join(','),
+  //     })
+  //   }
+  // }
 
   /**
    * Handle potential extensions
    *
    * @throws {IssueError} If parsing the remainder section fails.
    */
-  _handleExtension() {
-    this._extension = this._remainder
+  static handleExtension(tag) {
+    if (!tag.takesValue || tag._remainder !== '') {
+      tag._extension = tag._remainder
+      return
+    }
     const testReg = getRegExp('nameClass')
     if (!testReg.test(this._extension)) {
       IssueError.generateAndThrow('invalidExtension', { tag: this.originalTag })
@@ -489,7 +489,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @param {ParsedHedTag} tag A HED tag.
    * @returns {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
    */
-  validateUnits(tag) {
+  static setUnits(tag) {
     const originalTagUnitValue = tag.originalTagName
     const tagUnitClassUnits = tag.validUnits
     const validUnits = tag.schema.entries.allUnits

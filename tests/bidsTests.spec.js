@@ -4,7 +4,7 @@ import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 import { buildSchemas } from '../schema/init'
 import { SchemaSpec, SchemasSpec } from '../schema/specs'
-import { TsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
+import { BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
 import parseTSV from '../bids/tsvParser'
 
 import { bidsTestData } from './testData/bidsTests.data'
@@ -62,7 +62,7 @@ describe('BIDS validation', () => {
 
       // Validate the events file with no sidecar
       const bidsTsv = new BidsTsvFile(test.testname, parsedTsv, { relativePath: eventName, path: eventName }, [], {})
-      const validatorNoSide = new TsvValidator(bidsTsv, thisSchema)
+      const validatorNoSide = new BidsHedTsvValidator(bidsTsv, thisSchema)
       validatorNoSide.validate()
       assertErrors(test, 'Events', test.tsvErrors, validatorNoSide.issues)
 
@@ -74,7 +74,7 @@ describe('BIDS validation', () => {
         [],
         test.sidecar,
       )
-      const validatorWithSide = new TsvValidator(bidsTsvSide, thisSchema)
+      const validatorWithSide = new BidsHedTsvValidator(bidsTsvSide, thisSchema)
       validatorWithSide.validate()
       assertErrors(test, 'Events+side', test.comboErrors, validatorWithSide.issues)
     }

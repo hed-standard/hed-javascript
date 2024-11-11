@@ -15,7 +15,7 @@ import TagConverter from '../parser/tagConverter'
 // Ability to select individual tests to run
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['valid-tags', ['valid-tag-with-extension']]])
+const runMap = new Map([['valid-tags', ['valid-tag-with-value-no-units']]])
 
 describe('TagSpec converter tests using JSON tests', () => {
   const schemaMap = new Map([
@@ -37,7 +37,7 @@ describe('TagSpec converter tests using JSON tests', () => {
   afterAll(() => {})
 
   describe('TagConverter tests', () => {
-    /*    it('should be able to convert', () => {
+    it('should be able to convert', () => {
       const thisSchema = schemaMap.get('8.3.0')
       assert.isDefined(thisSchema, 'yes')
 
@@ -48,13 +48,13 @@ describe('TagSpec converter tests using JSON tests', () => {
       //const spec = new TagSpec('Item/Blech', 0, 10, '');
 
       //const spec = new TagSpec('Item/Junk/Object', 0, 16, '');
-      const spec = new TagSpec('object/Junk/baloney/Red', 0, 22, '')
+      //const spec = new TagSpec('object/Junk/baloney/Red', 0, 22, '')
+      const spec = new TagSpec('Label/3', 0, 8, '')
       const myCon = new TagConverter(spec, thisSchema)
-      const [tag, remainder] = myCon.convert();
+      const [tag, remainder] = myCon.convert()
       assert.instanceOf(tag, SchemaTag, 'A schema tag comes back')
       //assert.instanceOf(remainder, String, 'A string comes back')
-
-    })*/
+    })
   })
 
   describe.each(parsedHedTagTests)('$name : $description', ({ name, tests }) => {

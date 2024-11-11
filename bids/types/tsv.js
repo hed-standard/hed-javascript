@@ -4,7 +4,7 @@ import { BidsFile } from './basic'
 import { convertParsedTSVData, parseTSV } from '../tsvParser'
 import { BidsSidecar } from './json'
 import ParsedHedString from '../../parser/parsedHedString'
-import TsvValidator from '../validator/tsvValidator'
+import BidsHedTsvValidator from '../validator/tsvValidator'
 import { IssueError } from '../../common/issues/issues'
 
 /**
@@ -49,7 +49,7 @@ export class BidsTsvFile extends BidsFile {
    * @param {object} mergedDictionary The merged sidecar data.
    */
   constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}) {
-    super(name, file, TsvValidator)
+    super(name, file, BidsHedTsvValidator)
 
     if (typeof tsvData === 'string') {
       this.parsedTsv = parseTSV(tsvData)
