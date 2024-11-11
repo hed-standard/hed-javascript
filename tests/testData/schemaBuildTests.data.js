@@ -1,4 +1,3 @@
-import { BidsHedIssue } from '../../bids'
 import { generateIssue, IssueError } from '../../common/issues/issues'
 
 export const schemaSpecTestData = [
