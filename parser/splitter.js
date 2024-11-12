@@ -84,11 +84,9 @@ export default class HedStringSplitter {
    * @returns {ParsedHedTag|ParsedHedColumnSplice|null} The parsed HED tag or column splice.
    */
   _createParsedTag(tagSpec) {
-    let tag = null
     if (tagSpec instanceof TagSpec) {
       try {
-        tag = new ParsedHedTag(tagSpec, this.hedSchemas, this.hedString)
-        ParsedHedTag.handleExtension(tag)
+        return new ParsedHedTag(tagSpec, this.hedSchemas, this.hedString)
       } catch (issueError) {
         this._handleIssueError(issueError)
         return null

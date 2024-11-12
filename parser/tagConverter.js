@@ -110,7 +110,6 @@ export default class TagConverter {
 
     if (tagLevelIndex > 0 && (childTag.parent === undefined || childTag.parent !== parentTag)) {
       IssueError.generateAndThrow('invalidParentNode', {
-        //
         tag: this.tagLevels[tagLevelIndex],
         parentTag: this.tagLevels.slice(0, tagLevelIndex).join('/'),
       })
@@ -153,12 +152,8 @@ export default class TagConverter {
 
   _checkNameClass(index) {
     // Check whether the tagLevel is a valid name class
-    // TODO: this test should be in the schema and the RegExp only created once.
     const valueClasses = this.hedSchemas.getSchema(this.tagSpec.library).entries.valueClasses
-    const myRex = valueClasses._definitions.get('nameClass')?._charClassRegex
-    const my = new RegExp(myRex)
-    if (!my.test(this.tagLevels[index])) {
-      // An extension is not name class
+    if (!valueClasses._definitions.get('nameClass').validateValue(this.tagLevels[index])) {
       IssueError.generateAndThrow('invalidExtension', {
         tag: this.tagLevels[index],
         parentTag: this.tagLevels.slice(0, index).join('/'),

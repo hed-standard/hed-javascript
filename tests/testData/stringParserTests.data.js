@@ -319,7 +319,7 @@ export const parseTestData = [
         explanation: '"Age/5" has a valid value with no units',
         schemaVersion: '8.3.0',
         stringIn: 'Age',
-        stringLong: 'Age',
+        stringLong: 'Property/Agent-property/Agent-trait/Age',
         stringShort: 'Age',
         errors: [],
         warnings: [],
