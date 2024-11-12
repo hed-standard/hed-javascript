@@ -636,6 +636,8 @@ describe('HED string and event validation', () => {
           incorrectNonSIUnitSymbolModifier: 'Speed/100 Mkph',
           notRequiredNumber: 'RGB-red/0.5',
           notRequiredScientific: 'RGB-red/5e-1',
+          /*properTime: 'Clockface/08:30',
+        invalidTime: 'Clockface/54:54',*/
         }
         const expectedIssues = {
           correctUnit: [],

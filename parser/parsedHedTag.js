@@ -6,7 +6,10 @@ import TagConverter from './tagConverter'
 import { getRegExp } from './tempRegex'
 
 import RegexClass from '../schema/regExps'
+const allowedRegEx = /^[^{}\,]*$/
 
+//TODO This is temporary until special tag handling is available.
+const threeLevelTags = ['Definition', 'Def', 'Def-expand']
 /**
  * A parsed HED tag.
  */
@@ -48,6 +51,14 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @private
    */
   _value
+
+  /**
+   * If definition
+   *
+   * @type {Array}
+   * @private
+   */
+  _splitValue
 
   /**
    * The units if any
@@ -108,26 +119,52 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @throws {IssueError} If parsing the remainder section fails.
    */
   _handleRemainder(schemaTag, remainder) {
-    if (this._remainder === '' || !(schemaTag instanceof SchemaValueTag)) {
+    if (remainder === '' || !(schemaTag instanceof SchemaValueTag)) {
       this._extension = remainder
       return
     }
-    const unitClasses = schemaTag.unitClasses
-    let actualUnit = null
-    let actualUnitString = null
-    let actualValueString = null
-    for (let i = 0; i < unitClasses.length; i++) {
-      ;[actualUnit, actualUnitString, actualValueString] = unitClasses[i].extractUnit(remainder)
-      if (actualUnit !== null) {
-        // found the unit
-        break
-      }
+    if (threeLevelTags.includes(this.schemaTag.name)) {
+      this._handleSpecial(remainder)
+      return
     }
+    this._splitValue = null
+
+    const [actualUnit, actualUnitString, actualValueString] = this._separateUnits(schemaTag, remainder)
     this._units = actualUnit
     this._value = actualValueString
 
     if (actualUnit === null && actualUnitString !== null) {
       IssueError.generateAndThrow('unitClassInvalidUnit', { tag: this.originalTag })
+    }
+    if (!this.checkValue(actualValueString)) {
+      IssueError.generateAndThrow('invalidValue', { tag: this.originalTag })
+    }
+  }
+
+  _separateUnits(schemaTag, remainder) {
+    const unitClasses = schemaTag.unitClasses
+    let actualUnit = null
+    let actualUnitString = null
+    let actualValueString = remainder // If no unit class, the remainder is the value
+    for (let i = 0; i < unitClasses.length; i++) {
+      ;[actualUnit, actualUnitString, actualValueString] = unitClasses[i].extractUnit(remainder)
+      if (actualUnit !== null) {
+        break // found the unit
+      }
+    }
+    return [actualUnit, actualUnitString, actualValueString]
+  }
+
+  /**
+   * Handle special -- handles special three-level tags
+   */
+  _handleSpecial(remainder) {
+    const splitValue = remainder.split('/', 2)
+    const entryManager = this.schema.entries.valueClasses
+    if (entryManager.getEntry('nameClass').validateValue(splitValue[0])) {
+      this._splitValue = splitValue
+    } else {
+      IssueError.generateAndThrow('invalidValue', { tag: this.originalTag })
     }
   }
 
@@ -484,56 +521,30 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Validate a unit and strip it from the value.
+   * Check if value is a valid value for this tag.
    *
-   * @param {ParsedHedTag} tag A HED tag.
-   * @returns {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
+   * @param {string} The value to be checked
+   * @returns {boolean} The result of check -- false if not a valid value
    */
-  validateUnits(tag) {
-    const originalTagUnitValue = tag.originalTagName
-    const tagUnitClassUnits = tag.validUnits
-    const validUnits = tag.schema.entries.allUnits
-    const unitStrings = Array.from(validUnits.keys())
-    unitStrings.sort((first, second) => {
-      return second.length - first.length
-    })
-    let actualUnit = getTagName(originalTagUnitValue, ' ')
-    let noUnitFound = false
-    if (actualUnit === originalTagUnitValue) {
-      actualUnit = ''
-      noUnitFound = true
+
+  checkValue(value) {
+    if (!this.takesValue) {
+      return false
     }
-    let foundUnit, foundWrongCaseUnit, strippedValue
-    for (const unitName of unitStrings) {
-      const unit = validUnits.get(unitName)
-      const isPrefixUnit = unit.isPrefixUnit
-      const isUnitSymbol = unit.isUnitSymbol
-      for (const derivativeUnit of unit.derivativeUnits()) {
-        if (isPrefixUnit && originalTagUnitValue.startsWith(derivativeUnit)) {
-          foundUnit = true
-          noUnitFound = false
-          strippedValue = originalTagUnitValue.substring(derivativeUnit.length).trim()
-        }
-        if (actualUnit === derivativeUnit) {
-          foundUnit = true
-          strippedValue = getParentTag(originalTagUnitValue, ' ')
-        } else if (actualUnit.toLowerCase() === derivativeUnit.toLowerCase()) {
-          if (isUnitSymbol) {
-            foundWrongCaseUnit = true
-          } else {
-            foundUnit = true
-          }
-          strippedValue = getParentTag(originalTagUnitValue, ' ')
-        }
-        if (foundUnit) {
-          const unitIsValid = tagUnitClassUnits.has(unit)
-          return [true, unitIsValid, strippedValue]
-        }
-      }
-      if (foundWrongCaseUnit) {
-        return [true, false, strippedValue]
-      }
+    if (value === '#') {
+      // Placeholders work
+      return true
     }
-    return [!noUnitFound, false, originalTagUnitValue]
+    const valueAttributeNames = this._schemaTag.valueAttributeNames
+    const valueClassNames = valueAttributeNames?.get('valueClass')
+    if (!valueClassNames) {
+      // No specified value classes
+      return allowedRegEx.test(value)
+    }
+    const entryManager = this.schema.entries.valueClasses
+    for (let i = 0; i < valueClassNames.length; i++) {
+      if (entryManager.getEntry(valueClassNames[i]).validateValue(value)) return true
+    }
+    return false
   }
 }

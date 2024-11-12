@@ -1054,7 +1054,6 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
-        // TODO: Not detected missing definitions correctly
         testname: 'invalid-missing-definition-for-def',
         explanation: 'The sidecar uses a def with no definition',
         schemaVersion: '8.3.0',
@@ -1064,30 +1063,20 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
-        sidecarErrors: [
-          /*          BidsHedIssue.fromHedIssue(
-            generateIssue('missingDefinition',
-              {definition: 'InvalidDef'}),
-            {
-              path: 'invalid-missing-definition-for-def.json',
-              relativePath: 'invalid-missing-definition-for-def.json',
-            }
-          ),*/
-        ],
+        sidecarErrors: [],
         tsvErrors: [],
         comboErrors: [
-          // BidsHedIssue.fromHedIssue(
-          //   generateIssue('missingDefinition', {definition: 'InvalidDef'}),
-          //   {
-          //     path: 'invalid-missing-definition-for-def.tsv',
-          //     relativePath: 'invalid-missing-definition-for-def.tsv',
-          //   },
-          //   { tsvLine: 2 },
-          // ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingDefinition', { definition: 'MissingDef' }),
+            {
+              path: 'invalid-missing-definition-for-def.tsv',
+              relativePath: 'invalid-missing-definition-for-def.tsv',
+            },
+            { tsvLine: 2 },
+          ),
         ],
       },
       {
-        // TODO: resolve why nested definitions aren't detected in the combo
         testname: 'invalid-nested-definition',
         explanation: 'The sidecar has a definition inside a definition',
         schemaVersion: '8.3.0',
@@ -1109,15 +1098,9 @@ export const bidsTestData = [
           ),
         ],
         tsvErrors: [],
-        comboErrors: [
-          //BidsHedIssue.fromHedIssue(
-          //  generateIssue('nestedDefinition', { definition: 'NestedDef', sidecarKey: 'mydefs' }),
-          //  { path: 'invalid-nested-definition.json', relativePath: 'invalid-nested-definition.json' },
-          //),
-        ],
+        comboErrors: [],
       },
       {
-        // TODO: Resolve extra group in definition not detected in combo
         testname: 'invalid-definition-with-extra-groups',
         explanation: 'The sidecar has a definition with extra internal group',
         schemaVersion: '8.3.0',
@@ -1142,15 +1125,9 @@ export const bidsTestData = [
           ),
         ],
         tsvErrors: [],
-        comboErrors: [
-          /*          BidsHedIssue.fromHedIssue(
-            generateIssue('nestedDefinition', { definition: 'ExtraGroupDef', sidecarKey: 'mydefs' }),
-            { path: 'invalid-definition-with-extra-groups.tsv', relativePath: 'invalid-definition-with-extra-groups.tsv' },
-          ),*/
-        ],
+        comboErrors: [],
       },
       {
-        // TODO: Resolve extra sibling in definition not detected in combo
         testname: 'invalid-definition-with-extra-sibling',
         explanation: 'The sidecar has a definition with an extra internal sibling',
         schemaVersion: '8.3.0',
@@ -1179,12 +1156,7 @@ export const bidsTestData = [
           ),
         ],
         tsvErrors: [],
-        comboErrors: [
-          /*          BidsHedIssue.fromHedIssue(
-                      generateIssue('illegalDefinitionGroupTag', { definition: 'ExtraSiblingDef', sidecarKey: 'mydefs', tag: 'Red' }),
-                      { path: 'invalid-definition-with-extra-sibling.tsv', relativePath: 'invalid-definition-with-extra-sibling.tsv' },
-                    ),*/
-        ],
+        comboErrors: [],
       },
       {
         testname: 'invalid-definition-in-HED-column',
@@ -1211,7 +1183,6 @@ export const bidsTestData = [
         ],
       },
       {
-        // TODO: Resolve whether combo should also have an issue
         testname: 'invalid-definition-with-missing-placeholder',
         explanation: 'Definition in sidecar has missing placeholder',
         schemaVersion: '8.3.0',
@@ -1236,11 +1207,7 @@ export const bidsTestData = [
           ),
         ],
         tsvErrors: [],
-        comboErrors: [
-          /*          BidsHedIssue.fromHedIssue(generateIssue('invalidPlaceholderInDefinition',
-              { string: '(Definition/MySpeed)', tsvLine: '2'}),
-            { path: 'invalid-definition-with-missing-placeholder.tsv', relativePath: 'invalid-definition-with-missing-placeholder.tsv' }),*/
-        ],
+        comboErrors: [],
       },
       {
         testname: 'invalid-definition-with-fixed-placeholder',
@@ -1277,7 +1244,6 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
-        // TODO: Resolve that invalid definition does not appear in combo
         testname: 'invalid-definition-has-multiple-placeholders',
         explanation: 'Definition in sidecar has multiple placeholders',
         schemaVersion: '8.3.0',
@@ -1305,7 +1271,6 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
-        // TODO: Resolve that invalid definition does not appear in combo
         testname: 'invalid-definition-not-isolated',
         explanation: 'Definition in sidecar appears with other tags',
         schemaVersion: '8.3.0',

@@ -312,8 +312,18 @@ export const parseTestData = [
   },
   {
     name: 'value-tags',
-    description: 'Invalid tags with/without values and units',
+    description: 'Tags with/without values and units',
     tests: [
+      {
+        testname: 'single-valid-tag-with-value',
+        explanation: '"Age/5" has a valid value with no units',
+        schemaVersion: '8.3.0',
+        stringIn: 'Age',
+        stringLong: 'Property/Agent-property/Agent-trait/Age',
+        stringShort: 'Age',
+        errors: [],
+        warnings: [],
+      },
       {
         testname: 'single-level-missing-required-value',
         explanation: '"Duration" must have a value',

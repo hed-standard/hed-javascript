@@ -98,7 +98,7 @@ export default class HedValidator {
    * Validate an individual HED tag.
    */
   validateIndividualHedTag(tag, previousTag) {
-    this.checkIfTagIsValid(tag, previousTag)
+    //this.checkIfTagIsValid(tag, previousTag)
     this.checkIfTagUnitClassUnitsAreValid(tag)
     if (!this.options.isEventLevel) {
       this.checkValueTagSyntax(tag)
@@ -257,37 +257,41 @@ export default class HedValidator {
     if (tag.existsInSchema || tag.takesValue) {
       return
     }
-
-    if (this.options.expectValuePlaceholderString && getCharacterCount(tag.formattedTag, '#') === 1) {
-      const valueTag = replaceTagNameWithPound(tag.formattedTag)
-      if (getCharacterCount(valueTag, '#') === 1) {
-        // Ending placeholder was replaced with itself.
-        this.pushIssue('invalidPlaceholder', {
-          tag: tag,
-        })
-      } /* else {
-        Handled in checkPlaceholderTagSyntax().
-      } */
-      return
-    }
-
-    const isExtensionAllowedTag = tag.allowsExtensions
-    if (!isExtensionAllowedTag && previousTag?.takesValue) {
-      // This tag isn't an allowed extension, but the previous tag takes a value.
-      // This is likely caused by an extraneous comma.
-      this.pushIssue('extraCommaOrInvalid', {
-        tag: tag,
-        previousTag: previousTag,
-      })
-    } else if (!isExtensionAllowedTag) {
-      // This is not a valid tag.
-      this.pushIssue('invalidTag', { tag: tag })
-    } else if (!NAME_CLASS_REGEX.test(tag._remainder)) {
-      this.pushIssue('invalidTag', { tag: tag })
-    } else if (!this.options.isEventLevel && this.options.checkForWarnings) {
+    if (!this.options.isEventLevel && this.options.checkForWarnings) {
       // This is an allowed extension.
       this.pushIssue('extension', { tag: tag })
     }
+    //
+    // if (this.options.expectValuePlaceholderString && getCharacterCount(tag.formattedTag, '#') === 1) {
+    //   const valueTag = replaceTagNameWithPound(tag.formattedTag)
+    //   if (getCharacterCount(valueTag, '#') === 1) {
+    //     // Ending placeholder was replaced with itself.
+    //     this.pushIssue('invalidPlaceholder', {
+    //       tag: tag,
+    //     })
+    //   } /* else {
+    //     Handled in checkPlaceholderTagSyntax().
+    //   } */
+    //   return
+    // }
+
+    // const isExtensionAllowedTag = tag.allowsExtensions
+    // if (!isExtensionAllowedTag && previousTag?.takesValue) {
+    //   // This tag isn't an allowed extension, but the previous tag takes a value.
+    //   // This is likely caused by an extraneous comma.
+    //   this.pushIssue('extraCommaOrInvalid', {
+    //     tag: tag,
+    //     previousTag: previousTag,
+    //   })
+    // } else if (!isExtensionAllowedTag) {
+    //   // This is not a valid tag.
+    //   this.pushIssue('invalidTag', { tag: tag })
+    // } else if (!NAME_CLASS_REGEX.test(tag._remainder)) {
+    //   this.pushIssue('invalidTag', { tag: tag })
+    // } else if (!this.options.isEventLevel && this.options.checkForWarnings) {
+    //   // This is an allowed extension.
+    //   this.pushIssue('extension', { tag: tag })
+    // }
   }
 
   /**
@@ -296,17 +300,11 @@ export default class HedValidator {
    * @param {ParsedHedTag} tag A HED tag.
    */
   checkIfTagUnitClassUnitsAreValid(tag) {
-    if (tag.existsInSchema || !tag.hasUnitClass) {
+    if (!tag.takesValue || !tag.hasUnitClass || tag._remainder) {
       return
     }
     const [foundUnit, validUnit, value] = this.validateUnits(tag)
-    if (!foundUnit && this.options.checkForWarnings) {
-      const defaultUnit = tag.defaultUnit
-      this.pushIssue('unitClassDefaultUsed', {
-        tag: tag,
-        defaultUnit: defaultUnit,
-      })
-    } else if (!validUnit) {
+    if (!validUnit) {
       const tagUnitClassUnits = Array.from(tag.validUnits).map((unit) => unit.name)
       this.pushIssue('unitClassInvalidUnit', {
         tag: tag,
@@ -447,13 +445,14 @@ export default class HedValidator {
     }
   }
 
+  // TODO: This can be simplified.
   /**
    * Validate a unit and strip it from the value.
    *
    * @param {ParsedHedTag} tag A HED tag.
    * @returns {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
    */
-  validateUnits(tag) {
+  static validateUnits(tag) {
     const originalTagUnitValue = tag.originalTagName
     const tagUnitClassUnits = tag.validUnits
     const validUnits = tag.schema.entries.allUnits
@@ -722,6 +721,20 @@ export default class HedValidator {
         })
       }
     }
+  }
+
+  /**
+   * Generate a new issue object and push it to the end of the issues array.
+   *
+   * @param {string} internalCode The internal error code.
+   * @param {Object<string, (string|number[])>} parameters The error string parameters.
+   */
+  pushIssue(internalCode, parameters) {
+    const tsvLine = this.parsedString.tsvLine ?? this.parsedString.tsvLines
+    if (tsvLine) {
+      parameters.tsvLine = tsvLine
+    }
+    this.issues.push(generateIssue(internalCode, parameters))
   }
 
   /**

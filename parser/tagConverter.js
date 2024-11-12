@@ -74,16 +74,18 @@ export default class TagConverter {
     let parentTag = undefined
     for (let tagLevelIndex = 0; tagLevelIndex < this.tagLevels.length; tagLevelIndex++) {
       if (parentTag?.valueTag) {
+        // Its a value tag
         this._setSchemaTag(parentTag.valueTag, tagLevelIndex)
         return [this.schemaTag, this.remainder]
       }
       const childTag = this._validateChildTag(parentTag, tagLevelIndex)
       if (childTag === undefined) {
+        // It is an extended tag and the rest is undefined
         this._setSchemaTag(parentTag, tagLevelIndex)
       }
       parentTag = childTag
     }
-    this._setSchemaTag(parentTag, this.tagLevels.length + 1)
+    this._setSchemaTag(parentTag, this.tagLevels.length + 1) // Fix the ending
     return [this.schemaTag, this.remainder]
   }
 
@@ -92,10 +94,12 @@ export default class TagConverter {
     if (childTag === undefined) {
       // This is an extended tag
       if (tagLevelIndex === 0) {
+        // Top level tags can't be extensions
         IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
       }
       if (parentTag !== undefined && !parentTag.hasAttributeName('extensionAllowed')) {
         IssueError.generateAndThrow('invalidExtension', {
+          // The parent doesn't allow extension
           tag: this.tagLevels[tagLevelIndex],
           parentTag: this.tagLevels.slice(0, tagLevelIndex).join('/'),
         })
@@ -148,12 +152,8 @@ export default class TagConverter {
 
   _checkNameClass(index) {
     // Check whether the tagLevel is a valid name class
-    // TODO: this test should be in the schema and the RegExp only created once.
     const valueClasses = this.hedSchemas.getSchema(this.tagSpec.library).entries.valueClasses
-    const myRex = valueClasses._definitions.get('nameClass')?._charClassRegex
-    const my = new RegExp(myRex)
-    if (!my.test(this.tagLevels[index])) {
-      // An extension is not name class
+    if (!valueClasses._definitions.get('nameClass').validateValue(this.tagLevels[index])) {
       IssueError.generateAndThrow('invalidExtension', {
         tag: this.tagLevels[index],
         parentTag: this.tagLevels.slice(0, index).join('/'),
