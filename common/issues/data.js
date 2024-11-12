@@ -91,7 +91,7 @@ export default {
   unitClassInvalidUnit: {
     hedCode: 'UNITS_INVALID',
     level: 'error',
-    message: stringTemplate`Invalid unit - "${'tag'}" - valid units are "${'unitClassUnits'}".`,
+    message: stringTemplate`Invalid unit - "${'tag'}".`,
   },
   invalidValue: {
     hedCode: 'VALUE_INVALID',

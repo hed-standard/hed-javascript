@@ -42,14 +42,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   _remainder
 
   /**
-   * The extension if any
-   *
-   * @type {string}
-   * @private
-   */
-  _extension
-
-  /**
    * The value if any
    *
    * @type {string}
@@ -76,10 +68,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   constructor(tagSpec, hedSchemas, hedString) {
     super(tagSpec.tag, tagSpec.bounds) // Sets originalTag and originalBounds
     this._convertTag(hedSchemas, hedString, tagSpec) // Sets various forms of the tag.
-    this._handleRemainder()
-    //this._checkTagAttributes()  // Checks various aspects like requireChild or extensionAllowed.
-    //this.formattedTag = this._formatTag()
-    //this.formattedTag = this.canonicalTag.toLowerCase()
   }
 
   /**
@@ -111,33 +99,45 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     this._remainder = remainder
     this.canonicalTag = this._schemaTag.longExtend(remainder)
     this.formattedTag = this.canonicalTag.toLowerCase()
+    this._handleRemainder(schemaTag, remainder)
   }
 
-  // checkIfTagUnitClassUnitsAreValid(tag) {
-  //   if (!tag.takesValue || !tag.hasUnitClass || tag._remainder) {
-  //     return
-  //   }
-  //   //const [foundUnit, validUnit, value] = this.validateUnits(tag)
-  //   //const [foundUnit, validUnit, value] = this._getUnits()
-  //   if (!validUnit) {
-  //     const tagUnitClassUnits = Array.from(tag.validUnits).map((unit) => unit.name)
-  //     this.pushIssue('unitClassInvalidUnit', {
-  //       tag: tag,
-  //       unitClassUnits: tagUnitClassUnits.sort().join(','),
-  //     })
-  //   }
-  // }
+  /**
+   * Handle the remainder portion
+   *
+   * @throws {IssueError} If parsing the remainder section fails.
+   */
+  _handleRemainder(schemaTag, remainder) {
+    if (this._remainder === '' || !(schemaTag instanceof SchemaValueTag)) {
+      this._extension = remainder
+      return
+    }
+    const unitClasses = schemaTag.unitClasses
+    let actualUnit = null
+    let actualUnitString = null
+    let actualValueString = null
+    for (let i = 0; i < unitClasses.length; i++) {
+      ;[actualUnit, actualUnitString, actualValueString] = unitClasses[i].extractUnit(remainder)
+      if (actualUnit !== null) {
+        // found the unit
+        break
+      }
+    }
+    this._units = actualUnit
+    this._value = actualValueString
+
+    if (actualUnit === null && actualUnitString !== null) {
+      IssueError.generateAndThrow('unitClassInvalidUnit', { tag: this.originalTag })
+    }
+  }
 
   /**
    * Handle potential extensions
    *
    * @throws {IssueError} If parsing the remainder section fails.
    */
-  static handleExtension(tag) {
-    if (!tag.takesValue || tag._remainder !== '') {
-      tag._extension = tag._remainder
-      return
-    }
+  _handleExtension() {
+    this._extension = this._remainder
     const testReg = getRegExp('nameClass')
     if (!testReg.test(this._extension)) {
       IssueError.generateAndThrow('invalidExtension', { tag: this.originalTag })
@@ -489,7 +489,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @param {ParsedHedTag} tag A HED tag.
    * @returns {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
    */
-  static setUnits(tag) {
+  validateUnits(tag) {
     const originalTagUnitValue = tag.originalTagName
     const tagUnitClassUnits = tag.validUnits
     const validUnits = tag.schema.entries.allUnits

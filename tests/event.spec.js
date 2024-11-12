@@ -570,52 +570,52 @@ describe('HED string and event validation', () => {
         )
       }
 
-      // // TODO: Already covered in stringParserTests -- units still to move down.
-      // it.skip('(REMOVE) should exist in the schema or be an allowed extension', () => {
-      //   const testStrings = {
-      //     takesValue: 'Time-value/3 ms',
-      //     full: 'Left-side-of',
-      //     extensionAllowed: 'Human/Driver',
-      //     leafExtension: 'Sensory-event/Something',
-      //     nonExtensionAllowed: 'Event/Nonsense',
-      //     illegalComma: 'Label/This_is_a_label,This/Is/A/Tag',
-      //     placeholder: 'Train/#',
-      //   }
-      //   const expectedIssues = {
-      //     takesValue: [],
-      //     full: [],
-      //     extensionAllowed: [generateIssue('extension', { tag: testStrings.extensionAllowed })],
-      //     leafExtension: [generateIssue('invalidExtension', { tag: 'Something', parentTag: 'Event/Sensory-event' })],
-      //     nonExtensionAllowed: [
-      //       generateIssue('invalidExtension', {
-      //         tag: 'Nonsense',
-      //         parentTag: 'Event',
-      //       }),
-      //     ],
-      //     illegalComma: [
-      //       generateIssue('invalidTag', { tag: 'This/Is/A/Tag' }),
-      //       /* Intentionally not thrown (validation ends at parsing stage)
-      //       generateIssue('extraCommaOrInvalid', {
-      //         previousTag: 'Label/This_is_a_label',
-      //         tag: 'This/Is/A/Tag',
-      //       }),
-      //      */
-      //     ],
-      //     placeholder: [
-      //       generateIssue('invalidTag', {
-      //         tag: testStrings.placeholder,
-      //       }),
-      //     ],
-      //   }
-      //   return validatorSemantic(
-      //     testStrings,
-      //     expectedIssues,
-      //     (validator, tag, previousTag) => {
-      //       validator.checkIfTagIsValid(tag, previousTag)
-      //     },
-      //     { checkForWarnings: true },
-      //   )
-      // })
+      // TODO: Already covered in stringParserTests -- units still to move down.
+      it.skip('(REMOVE) should exist in the schema or be an allowed extension', () => {
+        const testStrings = {
+          takesValue: 'Time-value/3 ms',
+          full: 'Left-side-of',
+          extensionAllowed: 'Human/Driver',
+          leafExtension: 'Sensory-event/Something',
+          nonExtensionAllowed: 'Event/Nonsense',
+          illegalComma: 'Label/This_is_a_label,This/Is/A/Tag',
+          placeholder: 'Train/#',
+        }
+        const expectedIssues = {
+          takesValue: [],
+          full: [],
+          extensionAllowed: [generateIssue('extension', { tag: testStrings.extensionAllowed })],
+          leafExtension: [generateIssue('invalidExtension', { tag: 'Something', parentTag: 'Event/Sensory-event' })],
+          nonExtensionAllowed: [
+            generateIssue('invalidExtension', {
+              tag: 'Nonsense',
+              parentTag: 'Event',
+            }),
+          ],
+          illegalComma: [
+            generateIssue('invalidTag', { tag: 'This/Is/A/Tag' }),
+            /* Intentionally not thrown (validation ends at parsing stage)
+            generateIssue('extraCommaOrInvalid', {
+              previousTag: 'Label/This_is_a_label',
+              tag: 'This/Is/A/Tag',
+            }),
+           */
+          ],
+          placeholder: [
+            generateIssue('invalidTag', {
+              tag: testStrings.placeholder,
+            }),
+          ],
+        }
+        return validatorSemantic(
+          testStrings,
+          expectedIssues,
+          (validator, tag, previousTag) => {
+            validator.checkIfTagIsValid(tag, previousTag)
+          },
+          { checkForWarnings: true },
+        )
+      })
 
       // TODO: Wait to generate tests until detection moved to stringParser.
       it('should have a proper unit when required', () => {
@@ -625,9 +625,8 @@ describe('HED string and event validation', () => {
           correctSingularUnit: 'Time-value/1 millisecond',
           correctPluralUnit: 'Time-value/3 milliseconds',
           correctNoPluralUnit: 'Frequency/3 hertz',
-          correctNonSymbolCapitalizedUnit: 'Time-value/3 MilliSeconds',
+          incorrectNonSymbolCapitalizedUnit: 'Time-value/3 MilliSeconds',
           correctSymbolCapitalizedUnit: 'Frequency/3 kHz',
-          // missingRequiredUnit: 'Time-value/3',
           incorrectUnit: 'Time-value/3 cm',
           incorrectNonNumericValue: 'Time-value/A ms',
           incorrectPluralUnit: 'Frequency/3 hertzs',
@@ -640,26 +639,21 @@ describe('HED string and event validation', () => {
           /*properTime: 'Clockface/08:30',
         invalidTime: 'Clockface/54:54',*/
         }
-        const legalFrequencyUnits = ['Hz', 'hertz']
-        const legalSpeedUnits = ['m-per-s', 'kph', 'mph']
         const expectedIssues = {
           correctUnit: [],
           correctUnitScientific: [],
           correctSingularUnit: [],
           correctPluralUnit: [],
           correctNoPluralUnit: [],
-          correctNonSymbolCapitalizedUnit: [],
-          correctSymbolCapitalizedUnit: [],
-          /*      missingRequiredUnit: [
-            generateIssue('unitClassDefaultUsed', {
-              defaultUnit: 's',
-              tag: testStrings.missingRequiredUnit,
+          incorrectNonSymbolCapitalizedUnit: [
+            generateIssue('unitClassInvalidUnit', {
+              tag: testStrings.incorrectNonSymbolCapitalizedUnit,
             }),
-          ],*/
+          ],
+          correctSymbolCapitalizedUnit: [],
           incorrectUnit: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectUnit,
-              unitClassUnits: 'day,hour,minute,month,s,second,year',
             }),
           ],
           incorrectNonNumericValue: [
@@ -670,44 +664,30 @@ describe('HED string and event validation', () => {
           incorrectPluralUnit: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectPluralUnit,
-              unitClassUnits: legalFrequencyUnits.sort().join(','),
             }),
           ],
           incorrectSymbolCapitalizedUnit: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectSymbolCapitalizedUnit,
-              unitClassUnits: legalFrequencyUnits.sort().join(','),
             }),
           ],
           incorrectSymbolCapitalizedUnitModifier: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectSymbolCapitalizedUnitModifier,
-              unitClassUnits: legalFrequencyUnits.sort().join(','),
             }),
           ],
           incorrectNonSIUnitModifier: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectNonSIUnitModifier,
-              unitClassUnits: 'day,hour,minute,month,s,second,year',
             }),
           ],
           incorrectNonSIUnitSymbolModifier: [
             generateIssue('unitClassInvalidUnit', {
               tag: testStrings.incorrectNonSIUnitSymbolModifier,
-              unitClassUnits: legalSpeedUnits.sort().join(','),
             }),
           ],
           notRequiredNumber: [],
           notRequiredScientific: [],
-          /*
-          properTime: [],
-          invalidTime: [
-            generateIssue('unitClassInvalidUnit', {
-              tag: testStrings.invalidTime,
-              unitClassUnits: legalClockTimeUnits.sort().join(','),
-            }),
-          ],
-          */
         }
         return validatorSemantic(
           testStrings,
@@ -1114,8 +1094,8 @@ describe('HED string and event validation', () => {
         return validatorSemantic(testStrings, expectedIssues, true)
       })
 
-      // TODO: Remove -- now in bidsTests as definition-tests - check on singlePlaceholderWithValidDefinitionPlaceholder
-      it.skip('(NOT all of these are working now)should have valid placeholders in definitions', () => {
+      // TODO: Remove -- now in bidsTests as definition-tests
+      it('should have valid placeholders in definitions', () => {
         const expectedPlaceholdersTestStrings = {
           noPlaceholders: 'Car',
           noPlaceholderGroup: '(Train, Age/15, RGB-red/0.5)',
@@ -1125,8 +1105,8 @@ describe('HED string and event validation', () => {
           definitionPlaceholder: '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
           definitionPlaceholderWithFixedValue: '(Definition/FixedPlaceholderDefinition/Test, (RGB-green/#))',
           definitionPlaceholderWithTag: 'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
-          // singlePlaceholderWithValidDefinitionPlaceholder:
-          //   'Time-value/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
+          singlePlaceholderWithValidDefinitionPlaceholder:
+            'Time-value/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
           nestedDefinitionPlaceholder:
             '(Definition/NestedPlaceholderDefinition/#, (Touchscreen, (Square, RGB-blue/#)))',
           threePlaceholderDefinition: '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',
@@ -1147,8 +1127,8 @@ describe('HED string and event validation', () => {
           definitionPlaceholder: '(Definition/PlaceholderDefinition/#, (RGB-green/#))',
           definitionPlaceholderWithFixedValue: '(Definition/FixedPlaceholderDefinition/Test, (RGB-green/#))',
           definitionPlaceholderWithTag: 'Car, (Definition/PlaceholderWithTagDefinition/#, (RGB-green/#))',
-          /*singlePlaceholderWithValidDefinitionPlaceholder:
-            'Time-value/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',*/
+          singlePlaceholderWithValidDefinitionPlaceholder:
+            'Time-value/#, (Definition/SinglePlaceholderWithValidPlaceholderDefinition/#, (RGB-green/#))',
           nestedDefinitionPlaceholder:
             '(Definition/NestedPlaceholderDefinition/#, (Touchscreen, (Square, RGB-blue/#)))',
           threePlaceholderDefinition: '(Definition/ThreePlaceholderDefinition/#, (RGB-green/#, RGB-blue/#))',

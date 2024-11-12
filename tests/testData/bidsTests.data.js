@@ -955,9 +955,7 @@ export const bidsTestData = [
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('unitClassInvalidUnit', {
-              sidecarKey: 'speed',
               tag: 'Speed/# Hz',
-              unitClassUnits: 'kph,m-per-s,mph',
             }),
             {
               path: 'wrong-units-on-a-placeholder.json',
@@ -967,14 +965,10 @@ export const bidsTestData = [
         ],
         tsvErrors: [],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('unitClassInvalidUnit', { tag: 'Speed/5 Hz', unitClassUnits: 'kph,m-per-s,mph' }),
-            {
-              path: 'wrong-units-on-a-placeholder.tsv',
-              relativePath: 'wrong-units-on-a-placeholder.tsv',
-            },
-            { tsvLine: 2 },
-          ),
+          BidsHedIssue.fromHedIssue(generateIssue('unitClassInvalidUnit', { tag: 'Speed/# Hz' }), {
+            path: 'wrong-units-on-a-placeholder.tsv',
+            relativePath: 'wrong-units-on-a-placeholder.tsv',
+          }),
         ],
       },
     ],

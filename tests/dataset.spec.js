@@ -48,7 +48,7 @@ describe('HED dataset validation', () => {
         multipleValidMixed: ['Event/Sensory-event', 'Train', 'RGB-red/0.5'],
         multipleInvalid: ['Time-value/0.5 cm', 'InvalidEvent'],
       }
-      const legalTimeUnits = ['s', 'second', 'day', 'minute', 'hour']
+
       const expectedIssues = {
         empty: [],
         singleValidLong: [],
@@ -59,7 +59,6 @@ describe('HED dataset validation', () => {
         multipleInvalid: [
           generateValidationIssue('unitClassInvalidUnit', {
             tag: testDatasets.multipleInvalid[0],
-            unitClassUnits: legalTimeUnits.sort().join(','),
           }),
           generateValidationIssue('invalidTag', { tag: testDatasets.multipleInvalid[1] }),
         ],
@@ -108,7 +107,6 @@ describe('HED dataset validation', () => {
         multipleInvalid: [
           generateValidationIssue('unitClassInvalidUnit', {
             tag: testDatasets.multipleInvalid[0],
-            unitClassUnits: legalTimeUnits.sort().join(','),
           }),
           generateValidationIssue('invalidTag', { tag: testDatasets.multipleInvalid[1] }),
         ],
