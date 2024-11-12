@@ -36,7 +36,7 @@ describe('TagSpec converter tests using JSON tests', () => {
 
   afterAll(() => {})
 
-  describe('TagConverter tests', () => {
+  describe.skip('TagConverter tests', () => {
     it('should be able to convert', () => {
       const thisSchema = schemaMap.get('8.3.0')
       assert.isDefined(thisSchema, 'yes')

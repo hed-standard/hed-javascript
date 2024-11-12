@@ -617,8 +617,8 @@ describe('HED string and event validation', () => {
         )
       })
 
-      // TODO: Wait to generate tests until detection moved to stringParser.
-      it('should have a proper unit when required', () => {
+      // TODO: REMOVE as these tests have been moved to tagParserTests
+      it.skip('(REMOVE) now in tagParserTests - should have a proper unit when required', () => {
         const testStrings = {
           correctUnit: 'Time-value/3 ms',
           correctUnitScientific: 'Time-value/3.5e1 ms',
@@ -727,25 +727,25 @@ describe('HED string and event validation', () => {
         })
       })
 
-      // TODO: The requireChild seems to be hardcoded somewhere as stringParser doesn't require it.
-      it.skip('(INCORRECT REWRITE) should have a child when required', () => {
+      // TODO: This has been fixed
+      it('should have a child when required', () => {
         const testStrings = {
           noRequiredChild: 'Red',
-          hasRequiredChild: 'Label/Blah',
-          missingChild: 'Label',
-          longMissingChild: 'Property/Informational-property/Label',
+          hasRequiredChild: '(Duration/5)',
+          missingChild: '(Duration)',
+          longMissingChild: '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Duration)',
         }
         const expectedIssues = {
           noRequiredChild: [],
           hasRequiredChild: [],
           missingChild: [
             generateIssue('childRequired', {
-              tag: testStrings.missingChild,
+              tag: 'Duration',
             }),
           ],
           longMissingChild: [
             generateIssue('childRequired', {
-              tag: testStrings.longMissingChild,
+              tag: 'Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Duration',
             }),
           ],
         }
