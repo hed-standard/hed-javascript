@@ -1,11 +1,9 @@
 import { IssueError } from '../common/issues/issues'
-import { getParentTag, getTagLevels, getTagName } from '../utils/hedStrings'
+import { getTagLevels } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
-import { getRegExp } from './tempRegex'
 
-import RegexClass from '../schema/regExps'
 const allowedRegEx = /^[^{}\,]*$/
 
 //TODO This is temporary until special tag handling is available.
@@ -165,19 +163,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       this._splitValue = splitValue
     } else {
       IssueError.generateAndThrow('invalidValue', { tag: this.originalTag })
-    }
-  }
-
-  /**
-   * Handle potential extensions
-   *
-   * @throws {IssueError} If parsing the remainder section fails.
-   */
-  _handleExtension() {
-    this._extension = this._remainder
-    const testReg = getRegExp('nameClass')
-    if (!testReg.test(this._extension)) {
-      IssueError.generateAndThrow('invalidExtension', { tag: this.originalTag })
     }
   }
 

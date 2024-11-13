@@ -611,13 +611,13 @@ describe('HED string and event validation', () => {
           testStrings,
           expectedIssues,
           (validator, tag, previousTag) => {
-            validator.checkIfTagIsValid(tag, previousTag)
+            validator.checkIfTagIsValid(tag)
           },
           { checkForWarnings: true },
         )
       })
 
-      // TODO: REMOVE as these tests have been moved to tagParserTests
+      /*// TODO: REMOVE as these tests have been moved to tagParserTests
       it.skip('(REMOVE) now in tagParserTests - should have a proper unit when required', () => {
         const testStrings = {
           correctUnit: 'Time-value/3 ms',
@@ -636,8 +636,8 @@ describe('HED string and event validation', () => {
           incorrectNonSIUnitSymbolModifier: 'Speed/100 Mkph',
           notRequiredNumber: 'RGB-red/0.5',
           notRequiredScientific: 'RGB-red/5e-1',
-          /*properTime: 'Clockface/08:30',
-        invalidTime: 'Clockface/54:54',*/
+          /!*properTime: 'Clockface/08:30',
+        invalidTime: 'Clockface/54:54',*!/
         }
         const expectedIssues = {
           correctUnit: [],
@@ -698,7 +698,7 @@ describe('HED string and event validation', () => {
           },
           { checkForWarnings: true },
         )
-      })
+      })*/
 
       // TODO: BIDS sidecar validation does not detect missing definitions (under definition-tests in bidsTests)
       it('should not contain undefined definitions', () => {
