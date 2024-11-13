@@ -153,17 +153,32 @@ export default class HedValidator {
    * Validate the top-level HED tags in a parsed HED string.
    */
   validateTopLevelTags() {
-    if (this.options.checkForWarnings) {
-      this.checkForRequiredTags()
+    for (const topLevelTag of this.parsedString.topLevelTags) {
+      if (
+        !hedStringIsAGroup(topLevelTag.formattedTag) &&
+        (topLevelTag.hasAttribute(tagGroupType) || topLevelTag.parentHasAttribute(tagGroupType))
+      ) {
+        this.pushIssue('invalidTopLevelTag', {
+          tag: topLevelTag,
+        })
+      }
     }
-    this.checkForInvalidTopLevelTags()
   }
 
   /**
    * Validate the top-level HED tag groups in a parsed HED string.
    */
   validateTopLevelTagGroups() {
-    this.checkForInvalidTopLevelTagGroupTags()
+    for (const tag of this.parsedString.tags) {
+      if (!tag.hasAttribute(topLevelTagGroupType) && !tag.parentHasAttribute(topLevelTagGroupType)) {
+        continue
+      }
+      if (!this.parsedString.topLevelTagGroups.some((topLevelTagGroup) => topLevelTagGroup.includes(tag))) {
+        this.pushIssue('invalidTopLevelTagGroupTag', {
+          tag: tag,
+        })
+      }
+    }
   }
 
   /**
@@ -202,6 +217,7 @@ export default class HedValidator {
     })
   }
 
+  // TODO:  Doesn't seem to be working correctly
   /**
    * Check for multiple instances of a unique tag.
    */
@@ -211,19 +227,6 @@ export default class HedValidator {
       if (actualTagList.filter((tag) => tag.formattedTag.startsWith(uniqueTagPrefix)).length > 1) {
         this.pushIssue('multipleUniqueTags', {
           tag: uniqueTagPrefix,
-        })
-      }
-    })
-  }
-
-  /**
-   * Check that all required tags are present.
-   */
-  checkForRequiredTags() {
-    this._checkForTagAttribute(requiredType, (requiredTagPrefix) => {
-      if (!this.parsedString.topLevelTags.some((tag) => tag.formattedTag.startsWith(requiredTagPrefix))) {
-        this.pushIssue('requiredPrefixMissing', {
-          tagPrefix: requiredTagPrefix,
         })
       }
     })
@@ -245,9 +248,10 @@ export default class HedValidator {
     }
   }
 
-  /**
+  // TODO: Checking for extensions is being removed temporarily -- well have to add it back eventually.
+  /*  /!**
    * Check if an individual HED tag is in the schema or is an allowed extension.
-   */
+   *!/
   checkIfTagIsValid(tag) {
     if (tag.existsInSchema || tag.takesValue) {
       return
@@ -256,7 +260,7 @@ export default class HedValidator {
       // This is an allowed extension.
       this.pushIssue('extension', { tag: tag })
     }
-  }
+  }*/
 
   /**
    * Check basic placeholder tag syntax.
@@ -264,6 +268,7 @@ export default class HedValidator {
    * @param {ParsedHedTag} tag A HED tag.
    */
   checkPlaceholderTagSyntax(tag) {
+    // TODO: Refactor or eliminate after column splicing completed
     const placeholderCount = getCharacterCount(tag.formattedTag, '#')
     if (placeholderCount === 1) {
       const valueTag = replaceTagNameWithPound(tag.formattedTag)
@@ -366,61 +371,6 @@ export default class HedValidator {
       })
       standalonePlaceholders.issueGenerated = true
     }
-  }
-
-  // TODO: This can be simplified.
-  /**
-   * Validate a unit and strip it from the value.
-   *
-   * @param {ParsedHedTag} tag A HED tag.
-   * @returns {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
-   */
-  static validateUnits(tag) {
-    const originalTagUnitValue = tag.originalTagName
-    const tagUnitClassUnits = tag.validUnits
-    const validUnits = tag.schema.entries.allUnits
-    const unitStrings = Array.from(validUnits.keys())
-    unitStrings.sort((first, second) => {
-      return second.length - first.length
-    })
-    let actualUnit = getTagName(originalTagUnitValue, ' ')
-    let noUnitFound = false
-    if (actualUnit === originalTagUnitValue) {
-      actualUnit = ''
-      noUnitFound = true
-    }
-    let foundUnit, foundWrongCaseUnit, strippedValue
-    for (const unitName of unitStrings) {
-      const unit = validUnits.get(unitName)
-      const isPrefixUnit = unit.isPrefixUnit
-      const isUnitSymbol = unit.isUnitSymbol
-      for (const derivativeUnit of unit.derivativeUnits()) {
-        if (isPrefixUnit && originalTagUnitValue.startsWith(derivativeUnit)) {
-          foundUnit = true
-          noUnitFound = false
-          strippedValue = originalTagUnitValue.substring(derivativeUnit.length).trim()
-        }
-        if (actualUnit === derivativeUnit) {
-          foundUnit = true
-          strippedValue = getParentTag(originalTagUnitValue, ' ')
-        } else if (actualUnit.toLowerCase() === derivativeUnit.toLowerCase()) {
-          if (isUnitSymbol) {
-            foundWrongCaseUnit = true
-          } else {
-            foundUnit = true
-          }
-          strippedValue = getParentTag(originalTagUnitValue, ' ')
-        }
-        if (foundUnit) {
-          const unitIsValid = tagUnitClassUnits.has(unit)
-          return [true, unitIsValid, strippedValue]
-        }
-      }
-      if (foundWrongCaseUnit) {
-        return [true, false, strippedValue]
-      }
-    }
-    return [!noUnitFound, false, originalTagUnitValue]
   }
 
   /**
@@ -590,38 +540,6 @@ export default class HedValidator {
       if (e instanceof IssueError) {
         this.issues.push(e.issue)
         return 'Multiple definition tags found'
-      }
-    }
-  }
-
-  /**
-   * Check for invalid top-level tags.
-   */
-  checkForInvalidTopLevelTags() {
-    for (const topLevelTag of this.parsedString.topLevelTags) {
-      if (
-        !hedStringIsAGroup(topLevelTag.formattedTag) &&
-        (topLevelTag.hasAttribute(tagGroupType) || topLevelTag.parentHasAttribute(tagGroupType))
-      ) {
-        this.pushIssue('invalidTopLevelTag', {
-          tag: topLevelTag,
-        })
-      }
-    }
-  }
-
-  /**
-   * Check for tags marked with the topLevelTagGroup attribute that are not in top-level tag groups.
-   */
-  checkForInvalidTopLevelTagGroupTags() {
-    for (const tag of this.parsedString.tags) {
-      if (!tag.hasAttribute(topLevelTagGroupType) && !tag.parentHasAttribute(topLevelTagGroupType)) {
-        continue
-      }
-      if (!this.parsedString.topLevelTagGroups.some((topLevelTagGroup) => topLevelTagGroup.includes(tag))) {
-        this.pushIssue('invalidTopLevelTagGroupTag', {
-          tag: tag,
-        })
       }
     }
   }

@@ -571,7 +571,7 @@ describe('HED string and event validation', () => {
       }
 
       // TODO: Already covered in stringParserTests -- units still to move down.
-      it.skip('(REMOVE) should exist in the schema or be an allowed extension', () => {
+      /*it.skip('(REMOVE) should exist in the schema or be an allowed extension', () => {
         const testStrings = {
           takesValue: 'Time-value/3 ms',
           full: 'Left-side-of',
@@ -594,12 +594,12 @@ describe('HED string and event validation', () => {
           ],
           illegalComma: [
             generateIssue('invalidTag', { tag: 'This/Is/A/Tag' }),
-            /* Intentionally not thrown (validation ends at parsing stage)
+            /!* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',
               tag: 'This/Is/A/Tag',
             }),
-           */
+           *!/
           ],
           placeholder: [
             generateIssue('invalidTag', {
@@ -615,7 +615,7 @@ describe('HED string and event validation', () => {
           },
           { checkForWarnings: true },
         )
-      })
+      })*/
 
       /*// TODO: REMOVE as these tests have been moved to tagParserTests
       it.skip('(REMOVE) now in tagParserTests - should have a proper unit when required', () => {
@@ -968,7 +968,7 @@ describe('HED string and event validation', () => {
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator) => {
-          validator.checkForInvalidTopLevelTags()
+          validator.validateTopLevelTags()
         })
       })
     })
@@ -1032,7 +1032,7 @@ describe('HED string and event validation', () => {
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator) => {
-          validator.checkForInvalidTopLevelTagGroupTags()
+          validator.validateTopLevelTagGroups()
         })
       })
     })
