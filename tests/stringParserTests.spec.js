@@ -5,16 +5,46 @@ import path from 'path'
 
 import { buildSchemas } from '../schema/init'
 import { SchemaSpec, SchemasSpec } from '../schema/specs'
-
+import { generateIssue } from '../common/issues/issues'
+import { parseHedString, parseHedStrings } from '../parser/parser'
 import { parseTestData } from './testData/stringParserTests.data'
 import { shouldRun, getHedString } from './testUtilities'
 
-// Ability to select individual tests to run
-const skipMap = new Map([
-  ['placeholders-in-various-places', ['string-with-placeholder-not-allowed', 'place-holder-on-extension']],
-])
+const skipMap = new Map()
 const runAll = true
-const runMap = new Map()
+const runMap = new Map([['placeholders-in-various-places', ['string-with-placeholder-not-allowed']]])
+
+describe('Null schema objects should cause parsing to bail', () => {
+  it('Should not proceed if no schema and valid string', () => {
+    const stringIn = 'Item, Red'
+    const [parsedString, errorIssues, warningIssues] = getHedString(stringIn, null)
+    assert.isNull(parsedString, `Parsed HED string of ${stringIn} is null although string is valid`)
+    const expectedIssues = [generateIssue('missingSchemaSpecification', {})]
+    assert.deepStrictEqual(errorIssues, expectedIssues, `A SCHEMA_LOAD_FAILED issue should be generated`)
+    const [directParsed, directIssues] = parseHedString(stringIn, null)
+    assert.isNull(directParsed, `Parsed HED string of ${stringIn} is null for invalid string`)
+    assert.deepStrictEqual(directIssues.syntaxIssues, expectedIssues)
+  })
+
+  it('Should not proceed if no schema and invalid string', () => {
+    const stringIn = 'Item/#, Red'
+    const [parsedString, errorIssues, warningIssues] = getHedString(stringIn, null)
+    assert.isNull(parsedString, `Parsed HED string of ${stringIn} is null for invalid string`)
+    const expectedIssues = [generateIssue('missingSchemaSpecification', {})]
+    assert.deepStrictEqual(errorIssues, expectedIssues, `A SCHEMA_LOAD_FAILED issue should be generated`)
+    const [directParsed, directIssues] = parseHedString(stringIn, null)
+    assert.isNull(directParsed, `Parsed HED string of ${stringIn} is null for invalid string`)
+    assert.deepStrictEqual(directIssues.syntaxIssues, expectedIssues)
+  })
+
+  it('Should not proceed if no schema and valid array of strings', () => {
+    const arrayIn = new Array('Item, Red', 'Blue')
+    const expectedIssues = [generateIssue('missingSchemaSpecification', {})]
+    const [directParsed, directIssues] = parseHedStrings(arrayIn, null)
+    assert.isNull(directParsed, `Parsed HED string of ${arrayIn} is null for invalid string`)
+    assert.deepStrictEqual(directIssues.syntaxIssues, expectedIssues)
+  })
+})
 
 describe('Parse HED string tests', () => {
   const schemaMap = new Map([
@@ -87,7 +117,7 @@ describe('Parse HED string tests', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           testConvert(test)
         } else {
-          console.log(`----Skipping ${name}: ${test.testname}`)
+          console.log(`----Skipping stringParserTest ${name}: ${test.testname}`)
         }
       })
     }

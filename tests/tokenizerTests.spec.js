@@ -37,7 +37,7 @@ describe('Tokenizer validation using JSON tests', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           stringTokenizer(test)
         } else {
-          console.log(`----Skipping ${name}: ${test.testname}`)
+          console.log(`----Skipping tokenizerTest ${name}: ${test.testname}`)
         }
       })
     }

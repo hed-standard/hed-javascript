@@ -20,8 +20,9 @@ const initiallyValidateHedString = function (hedString, hedSchemas, options, def
     hedSchemas = new Schemas(null)
   }
   let parsedString, parsingIssues
-  // Skip parsing if we're passed an already-parsed string.
+
   if (hedString instanceof ParsedHedString) {
+    // Skip parsing if we're passed an already-parsed string.
     parsedString = hedString
     parsingIssues = { syntax: [], delimiter: [] }
   } else {
