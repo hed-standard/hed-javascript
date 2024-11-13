@@ -36,7 +36,8 @@ describe('TagSpec converter tests using JSON tests', () => {
 
   afterAll(() => {})
 
-  describe('TagConverter tests', () => {
+  // TODO: Remove after refactoring of validation complete
+  describe.skip('TagConverter experiments', () => {
     it('should be able to convert', () => {
       const thisSchema = schemaMap.get('8.3.0')
       assert.isDefined(thisSchema, 'yes')
@@ -120,7 +121,7 @@ describe('TagSpec converter tests using JSON tests', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           hedTagTest(test)
         } else {
-          console.log(`----Skipping ${name}: ${test.testname}`)
+          console.log(`----Skipping tagParserTest ${name}: ${test.testname}`)
         }
       })
     }

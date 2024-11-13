@@ -1,9 +1,6 @@
 import { parseHedString } from '../../parser/parser'
-import ParsedHedString from '../../parser/parsedHedString'
-
 import HedValidator from './validator'
 import { Issue } from '../../common/issues/issues'
-import { Schemas } from '../../schema/containers'
 
 /**
  * Perform initial validation on a HED string and parse it so further validation can be performed.
@@ -15,22 +12,9 @@ import { Schemas } from '../../schema/containers'
  * @returns {[ParsedHedString, Issue[], HedValidator]} The parsed HED string, the actual HED schema collection to use, any issues found, and whether to perform semantic validation.
  */
 const initiallyValidateHedString = function (hedString, hedSchemas, options, definitions = null) {
-  const doSemanticValidation = hedSchemas instanceof Schemas
-  if (!doSemanticValidation) {
-    hedSchemas = new Schemas(null)
-  }
-  let parsedString, parsingIssues
-  // Skip parsing if we're passed an already-parsed string.
-  if (hedString instanceof ParsedHedString) {
-    parsedString = hedString
-    parsingIssues = { syntax: [], delimiter: [] }
-  } else {
-    ;[parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
-  }
+  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
   if (parsedString === null) {
     return [null, [].concat(...Object.values(parsingIssues)), null]
-  } else if (parsingIssues.syntax.length > 0) {
-    hedSchemas = new Schemas(null)
   }
   const hedValidator = new HedValidator(parsedString, hedSchemas, definitions, options)
   const allParsingIssues = [].concat(...Object.values(parsingIssues))
@@ -47,6 +31,7 @@ const initiallyValidateHedString = function (hedString, hedSchemas, options, def
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  * @deprecated
  */
+
 export const validateHedString = function (hedString, hedSchemas, ...args) {
   let settings
   const settingsArg = args[0]

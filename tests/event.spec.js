@@ -571,7 +571,7 @@ describe('HED string and event validation', () => {
       }
 
       // TODO: Already covered in stringParserTests -- units still to move down.
-      it.skip('(REMOVE) should exist in the schema or be an allowed extension', () => {
+      /*it.skip('(REMOVE) should exist in the schema or be an allowed extension', () => {
         const testStrings = {
           takesValue: 'Time-value/3 ms',
           full: 'Left-side-of',
@@ -594,12 +594,12 @@ describe('HED string and event validation', () => {
           ],
           illegalComma: [
             generateIssue('invalidTag', { tag: 'This/Is/A/Tag' }),
-            /* Intentionally not thrown (validation ends at parsing stage)
+            /!* Intentionally not thrown (validation ends at parsing stage)
             generateIssue('extraCommaOrInvalid', {
               previousTag: 'Label/This_is_a_label',
               tag: 'This/Is/A/Tag',
             }),
-           */
+           *!/
           ],
           placeholder: [
             generateIssue('invalidTag', {
@@ -611,14 +611,14 @@ describe('HED string and event validation', () => {
           testStrings,
           expectedIssues,
           (validator, tag, previousTag) => {
-            validator.checkIfTagIsValid(tag, previousTag)
+            validator.checkIfTagIsValid(tag)
           },
           { checkForWarnings: true },
         )
-      })
+      })*/
 
-      // TODO: Wait to generate tests until detection moved to stringParser.
-      it('should have a proper unit when required', () => {
+      /*// TODO: REMOVE as these tests have been moved to tagParserTests
+      it.skip('(REMOVE) now in tagParserTests - should have a proper unit when required', () => {
         const testStrings = {
           correctUnit: 'Time-value/3 ms',
           correctUnitScientific: 'Time-value/3.5e1 ms',
@@ -636,8 +636,8 @@ describe('HED string and event validation', () => {
           incorrectNonSIUnitSymbolModifier: 'Speed/100 Mkph',
           notRequiredNumber: 'RGB-red/0.5',
           notRequiredScientific: 'RGB-red/5e-1',
-          /*properTime: 'Clockface/08:30',
-        invalidTime: 'Clockface/54:54',*/
+          /!*properTime: 'Clockface/08:30',
+        invalidTime: 'Clockface/54:54',*!/
         }
         const expectedIssues = {
           correctUnit: [],
@@ -698,7 +698,7 @@ describe('HED string and event validation', () => {
           },
           { checkForWarnings: true },
         )
-      })
+      })*/
 
       // TODO: BIDS sidecar validation does not detect missing definitions (under definition-tests in bidsTests)
       it('should not contain undefined definitions', () => {
@@ -727,25 +727,25 @@ describe('HED string and event validation', () => {
         })
       })
 
-      // TODO: The requireChild seems to be hardcoded somewhere as stringParser doesn't require it.
-      it.skip('(INCORRECT REWRITE) should have a child when required', () => {
+      // TODO: This has been fixed
+      it('should have a child when required', () => {
         const testStrings = {
           noRequiredChild: 'Red',
-          hasRequiredChild: 'Label/Blah',
-          missingChild: 'Label',
-          longMissingChild: 'Property/Informational-property/Label',
+          hasRequiredChild: '(Duration/5)',
+          missingChild: '(Duration)',
+          longMissingChild: '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Duration)',
         }
         const expectedIssues = {
           noRequiredChild: [],
           hasRequiredChild: [],
           missingChild: [
             generateIssue('childRequired', {
-              tag: testStrings.missingChild,
+              tag: 'Duration',
             }),
           ],
           longMissingChild: [
             generateIssue('childRequired', {
-              tag: testStrings.longMissingChild,
+              tag: 'Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Duration',
             }),
           ],
         }
@@ -968,7 +968,7 @@ describe('HED string and event validation', () => {
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator) => {
-          validator.checkForInvalidTopLevelTags()
+          validator.validateTopLevelTags()
         })
       })
     })
@@ -1032,7 +1032,7 @@ describe('HED string and event validation', () => {
           ],
         }
         return validatorSemantic(testStrings, expectedIssues, (validator) => {
-          validator.checkForInvalidTopLevelTagGroupTags()
+          validator.validateTopLevelTagGroups()
         })
       })
     })

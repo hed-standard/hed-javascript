@@ -1,6 +1,5 @@
 import { generateIssue } from '../../common/issues/issues'
 
-export const convertSchemaVersionsToPreload = ['8.3.0']
 export const parseTestData = [
   {
     name: 'valid-tags',
@@ -273,7 +272,7 @@ export const parseTestData = [
         stringIn: 'Object/#, Red',
         stringLong: null,
         stringShort: null,
-        errors: [generateIssue('childRequired', { tag: 'Duration' })],
+        errors: [generateIssue('invalidExtension', { tag: '#', parentTag: 'Object' })],
         warnings: [],
       },
       {
@@ -283,7 +282,7 @@ export const parseTestData = [
         stringIn: 'Object/Thingie/#, Red',
         stringLong: null,
         stringShort: null,
-        errors: [generateIssue('childRequired', { tag: 'Duration' })],
+        errors: [generateIssue('invalidExtension', { parentTag: 'Object/Thingie', tag: '#' })],
         warnings: [],
       },
       {
@@ -318,9 +317,9 @@ export const parseTestData = [
         testname: 'single-valid-tag-with-value',
         explanation: '"Age/5" has a valid value with no units',
         schemaVersion: '8.3.0',
-        stringIn: 'Age',
-        stringLong: 'Property/Agent-property/Agent-trait/Age',
-        stringShort: 'Age',
+        stringIn: 'Age/5',
+        stringLong: 'Property/Agent-property/Agent-trait/Age/5',
+        stringShort: 'Age/5',
         errors: [],
         warnings: [],
       },
@@ -342,6 +341,22 @@ export const parseTestData = [
         stringLong:
           '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Time-value/20 ms), Action/Perform/Operate',
         stringShort: '(Time-value/20 ms), Operate',
+        errors: [],
+        warnings: [],
+      },
+    ],
+  },
+  {
+    name: 'multiple-tags',
+    description: 'Multiple tags',
+    tests: [
+      {
+        testname: 'multiple-valid-tags',
+        explanation: '"Age, Perform/Operate" is a valid HED string',
+        schemaVersion: '8.3.0',
+        stringIn: 'Age, Perform/Operate',
+        stringLong: 'Property/Agent-property/Agent-trait/Age, Action/Perform/Operate',
+        stringShort: 'Age, Operate',
         errors: [],
         warnings: [],
       },

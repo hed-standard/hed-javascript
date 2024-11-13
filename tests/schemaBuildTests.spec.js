@@ -60,7 +60,7 @@ describe('Schema build validation', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           await testSchema(test)
         } else {
-          console.log(`----Skipping ${name}: ${test.testname}`)
+          console.log(`----Skipping schemaBuildTest ${name}: ${test.testname}`)
         }
       })
     }

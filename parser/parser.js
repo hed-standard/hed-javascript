@@ -1,6 +1,7 @@
 import { mergeParsingIssues } from '../utils/hedData'
 import ParsedHedString from './parsedHedString'
 import HedStringSplitter from './splitter'
+import { generateIssue } from '../common/issues/issues'
 
 /**
  * A parser for HED strings.
@@ -37,6 +38,9 @@ class HedStringParser {
     if (this.hedString instanceof ParsedHedString) {
       return [this.hedString, {}]
     }
+    if (!this.hedSchemas) {
+      return [null, { syntaxIssues: [generateIssue('missingSchemaSpecification', {})] }]
+    }
 
     const [parsedTags, parsingIssues] = new HedStringSplitter(this.hedString, this.hedSchemas).splitHedString()
     if (parsedTags === null) {
@@ -55,9 +59,11 @@ class HedStringParser {
    * @returns {[ParsedHedString[], Object<string, Issue[]>]} The parsed HED strings and any issues found.
    */
   static parseHedStrings(hedStrings, hedSchemas) {
+    if (!hedSchemas) {
+      return [null, { syntaxIssues: [generateIssue('missingSchemaSpecification', {})] }]
+    }
     const parsedStrings = []
     const cumulativeIssues = {}
-
     for (const hedString of hedStrings) {
       const [parsedString, currentIssues] = new HedStringParser(hedString, hedSchemas).parseHedString()
       parsedStrings.push(parsedString)

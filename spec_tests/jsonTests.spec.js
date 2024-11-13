@@ -99,7 +99,7 @@ describe('HED validation using JSON tests', () => {
 
   describe.each(testInfo)(
     '$error_code $name : $description',
-    ({ error_code, alt_codes, name, schema, warning, definitions, tests }) => {
+    ({ error_code, alt_codes, name, schema, definitions, tests }) => {
       let hedSchema
       let defs
       let expectedErrors

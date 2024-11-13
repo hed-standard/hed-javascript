@@ -84,7 +84,7 @@ describe('BIDS validation', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           validate(test)
         } else {
-          console.log(`----Skipping ${name}: ${test.testname}`)
+          console.log(`----Skipping bidsTest ${name}: ${test.testname}`)
         }
       })
     }

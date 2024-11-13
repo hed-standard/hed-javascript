@@ -52,7 +52,7 @@ describe('Schema validation', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           validateSpec(test)
         } else {
-          console.log(`----Skipping ${name}: ${test.testname}`)
+          console.log(`----Skipping schemaSpecTest ${name}: ${test.testname}`)
         }
       })
     }

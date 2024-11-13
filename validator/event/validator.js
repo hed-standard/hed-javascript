@@ -1,7 +1,7 @@
 import differenceWith from 'lodash/differenceWith'
 import isEqual from 'lodash/isEqual'
 
-import { IssueError, generateIssue, Issue } from '../../common/issues/issues'
+import { IssueError, generateIssue } from '../../common/issues/issues'
 import ParsedHedGroup from '../../parser/parsedHedGroup'
 import ParsedHedTag from '../../parser/parsedHedTag'
 import ParsedHedColumnSplice from '../../parser/parsedHedColumnSplice'
@@ -12,7 +12,6 @@ import { getCharacterCount, isNumber } from '../../utils/string'
 const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
 
-const NAME_CLASS_REGEX = /^[\w\-\u0080-\uFFFF]+$/
 const uniqueType = 'unique'
 const requiredType = 'required'
 const specialTags = require('../../data/json/specialTags.json')
@@ -87,21 +86,19 @@ export default class HedValidator {
    * Validate the individual HED tags in a parsed HED string object.
    */
   validateIndividualHedTags() {
-    let previousTag = null
     for (const tag of this.parsedString.tags) {
-      this.validateIndividualHedTag(tag, previousTag)
-      previousTag = tag
+      this.validateIndividualHedTag(tag)
     }
   }
 
   /**
    * Validate an individual HED tag.
    */
-  validateIndividualHedTag(tag, previousTag) {
+  validateIndividualHedTag(tag) {
     //this.checkIfTagIsValid(tag, previousTag)
-    this.checkIfTagUnitClassUnitsAreValid(tag)
+    //this.checkIfTagUnitClassUnitsAreValid(tag)
     if (!this.options.isEventLevel) {
-      this.checkValueTagSyntax(tag)
+      //this.checkValueTagSyntax(tag)
     }
     if (this.definitions !== null) {
       this.checkForMissingDefinitions(tag, 'Def')
@@ -128,9 +125,7 @@ export default class HedValidator {
    * Validate a HED tag level.
    */
   validateHedTagLevel(tagList) {
-    if (this.hedSchemas.generation > 0) {
-      this.checkForMultipleUniqueTags(tagList)
-    }
+    this.checkForMultipleUniqueTags(tagList)
     this.checkForDuplicateTags(tagList)
   }
 
@@ -158,17 +153,32 @@ export default class HedValidator {
    * Validate the top-level HED tags in a parsed HED string.
    */
   validateTopLevelTags() {
-    if (this.options.checkForWarnings) {
-      this.checkForRequiredTags()
+    for (const topLevelTag of this.parsedString.topLevelTags) {
+      if (
+        !hedStringIsAGroup(topLevelTag.formattedTag) &&
+        (topLevelTag.hasAttribute(tagGroupType) || topLevelTag.parentHasAttribute(tagGroupType))
+      ) {
+        this.pushIssue('invalidTopLevelTag', {
+          tag: topLevelTag,
+        })
+      }
     }
-    this.checkForInvalidTopLevelTags()
   }
 
   /**
    * Validate the top-level HED tag groups in a parsed HED string.
    */
   validateTopLevelTagGroups() {
-    this.checkForInvalidTopLevelTagGroupTags()
+    for (const tag of this.parsedString.tags) {
+      if (!tag.hasAttribute(topLevelTagGroupType) && !tag.parentHasAttribute(topLevelTagGroupType)) {
+        continue
+      }
+      if (!this.parsedString.topLevelTagGroups.some((topLevelTagGroup) => topLevelTagGroup.includes(tag))) {
+        this.pushIssue('invalidTopLevelTagGroupTag', {
+          tag: tag,
+        })
+      }
+    }
   }
 
   /**
@@ -207,6 +217,7 @@ export default class HedValidator {
     })
   }
 
+  // TODO:  Doesn't seem to be working correctly
   /**
    * Check for multiple instances of a unique tag.
    */
@@ -216,19 +227,6 @@ export default class HedValidator {
       if (actualTagList.filter((tag) => tag.formattedTag.startsWith(uniqueTagPrefix)).length > 1) {
         this.pushIssue('multipleUniqueTags', {
           tag: uniqueTagPrefix,
-        })
-      }
-    })
-  }
-
-  /**
-   * Check that all required tags are present.
-   */
-  checkForRequiredTags() {
-    this._checkForTagAttribute(requiredType, (requiredTagPrefix) => {
-      if (!this.parsedString.topLevelTags.some((tag) => tag.formattedTag.startsWith(requiredTagPrefix))) {
-        this.pushIssue('requiredPrefixMissing', {
-          tagPrefix: requiredTagPrefix,
         })
       }
     })
@@ -250,10 +248,11 @@ export default class HedValidator {
     }
   }
 
-  /**
+  // TODO: Checking for extensions is being removed temporarily -- well have to add it back eventually.
+  /*  /!**
    * Check if an individual HED tag is in the schema or is an allowed extension.
-   */
-  checkIfTagIsValid(tag, previousTag) {
+   *!/
+  checkIfTagIsValid(tag) {
     if (tag.existsInSchema || tag.takesValue) {
       return
     }
@@ -261,62 +260,7 @@ export default class HedValidator {
       // This is an allowed extension.
       this.pushIssue('extension', { tag: tag })
     }
-    //
-    // if (this.options.expectValuePlaceholderString && getCharacterCount(tag.formattedTag, '#') === 1) {
-    //   const valueTag = replaceTagNameWithPound(tag.formattedTag)
-    //   if (getCharacterCount(valueTag, '#') === 1) {
-    //     // Ending placeholder was replaced with itself.
-    //     this.pushIssue('invalidPlaceholder', {
-    //       tag: tag,
-    //     })
-    //   } /* else {
-    //     Handled in checkPlaceholderTagSyntax().
-    //   } */
-    //   return
-    // }
-
-    // const isExtensionAllowedTag = tag.allowsExtensions
-    // if (!isExtensionAllowedTag && previousTag?.takesValue) {
-    //   // This tag isn't an allowed extension, but the previous tag takes a value.
-    //   // This is likely caused by an extraneous comma.
-    //   this.pushIssue('extraCommaOrInvalid', {
-    //     tag: tag,
-    //     previousTag: previousTag,
-    //   })
-    // } else if (!isExtensionAllowedTag) {
-    //   // This is not a valid tag.
-    //   this.pushIssue('invalidTag', { tag: tag })
-    // } else if (!NAME_CLASS_REGEX.test(tag._remainder)) {
-    //   this.pushIssue('invalidTag', { tag: tag })
-    // } else if (!this.options.isEventLevel && this.options.checkForWarnings) {
-    //   // This is an allowed extension.
-    //   this.pushIssue('extension', { tag: tag })
-    // }
-  }
-
-  /**
-   * Check that the unit is valid for the tag's unit class.
-   *
-   * @param {ParsedHedTag} tag A HED tag.
-   */
-  checkIfTagUnitClassUnitsAreValid(tag) {
-    if (!tag.takesValue || !tag.hasUnitClass || tag._remainder) {
-      return
-    }
-    const [foundUnit, validUnit, value] = this.validateUnits(tag)
-    if (!validUnit) {
-      const tagUnitClassUnits = Array.from(tag.validUnits).map((unit) => unit.name)
-      this.pushIssue('unitClassInvalidUnit', {
-        tag: tag,
-        unitClassUnits: tagUnitClassUnits.sort().join(','),
-      })
-    } else {
-      const validValue = this.validateValue(value, true)
-      if (!validValue) {
-        this.pushIssue('invalidValue', { tag: tag })
-      }
-    }
-  }
+  }*/
 
   /**
    * Check basic placeholder tag syntax.
@@ -324,6 +268,7 @@ export default class HedValidator {
    * @param {ParsedHedTag} tag A HED tag.
    */
   checkPlaceholderTagSyntax(tag) {
+    // TODO: Refactor or eliminate after column splicing completed
     const placeholderCount = getCharacterCount(tag.formattedTag, '#')
     if (placeholderCount === 1) {
       const valueTag = replaceTagNameWithPound(tag.formattedTag)
@@ -426,98 +371,6 @@ export default class HedValidator {
       })
       standalonePlaceholders.issueGenerated = true
     }
-  }
-
-  /**
-   * Check the syntax of tag values.
-   *
-   * @param {ParsedHedTag} tag A HED tag.
-   */
-  checkValueTagSyntax(tag) {
-    if (tag.takesValue && !tag.hasUnitClass) {
-      const isValidValue = this.validateValue(
-        tag.formattedTagName,
-        tag.takesValueTag.hasAttributeName('isNumeric'), // Always false
-      )
-      if (!isValidValue) {
-        this.pushIssue('invalidValue', { tag: tag })
-      }
-    }
-  }
-
-  // TODO: This can be simplified.
-  /**
-   * Validate a unit and strip it from the value.
-   *
-   * @param {ParsedHedTag} tag A HED tag.
-   * @returns {[boolean, boolean, string]} Whether a unit was found, whether it was valid, and the stripped value.
-   */
-  static validateUnits(tag) {
-    const originalTagUnitValue = tag.originalTagName
-    const tagUnitClassUnits = tag.validUnits
-    const validUnits = tag.schema.entries.allUnits
-    const unitStrings = Array.from(validUnits.keys())
-    unitStrings.sort((first, second) => {
-      return second.length - first.length
-    })
-    let actualUnit = getTagName(originalTagUnitValue, ' ')
-    let noUnitFound = false
-    if (actualUnit === originalTagUnitValue) {
-      actualUnit = ''
-      noUnitFound = true
-    }
-    let foundUnit, foundWrongCaseUnit, strippedValue
-    for (const unitName of unitStrings) {
-      const unit = validUnits.get(unitName)
-      const isPrefixUnit = unit.isPrefixUnit
-      const isUnitSymbol = unit.isUnitSymbol
-      for (const derivativeUnit of unit.derivativeUnits()) {
-        if (isPrefixUnit && originalTagUnitValue.startsWith(derivativeUnit)) {
-          foundUnit = true
-          noUnitFound = false
-          strippedValue = originalTagUnitValue.substring(derivativeUnit.length).trim()
-        }
-        if (actualUnit === derivativeUnit) {
-          foundUnit = true
-          strippedValue = getParentTag(originalTagUnitValue, ' ')
-        } else if (actualUnit.toLowerCase() === derivativeUnit.toLowerCase()) {
-          if (isUnitSymbol) {
-            foundWrongCaseUnit = true
-          } else {
-            foundUnit = true
-          }
-          strippedValue = getParentTag(originalTagUnitValue, ' ')
-        }
-        if (foundUnit) {
-          const unitIsValid = tagUnitClassUnits.has(unit)
-          return [true, unitIsValid, strippedValue]
-        }
-      }
-      if (foundWrongCaseUnit) {
-        return [true, false, strippedValue]
-      }
-    }
-    return [!noUnitFound, false, originalTagUnitValue]
-  }
-
-  /**
-   * Determine if a stripped value is valid.
-   *
-   * @param {string} value The stripped value.
-   * @param {boolean} isNumeric Whether the tag is numeric.
-   * @returns {boolean} Whether the stripped value is valid.
-   * @todo This function is a placeholder until support for value classes is implemented.
-   */
-  validateValue(value, isNumeric) {
-    if (value === '#') {
-      return true
-    }
-    // TODO: Replace with full value class-based implementation.
-    if (isNumeric) {
-      return isNumber(value)
-    }
-    // TODO: Placeholder.
-    return true
   }
 
   /**
@@ -689,52 +542,6 @@ export default class HedValidator {
         return 'Multiple definition tags found'
       }
     }
-  }
-
-  /**
-   * Check for invalid top-level tags.
-   */
-  checkForInvalidTopLevelTags() {
-    for (const topLevelTag of this.parsedString.topLevelTags) {
-      if (
-        !hedStringIsAGroup(topLevelTag.formattedTag) &&
-        (topLevelTag.hasAttribute(tagGroupType) || topLevelTag.parentHasAttribute(tagGroupType))
-      ) {
-        this.pushIssue('invalidTopLevelTag', {
-          tag: topLevelTag,
-        })
-      }
-    }
-  }
-
-  /**
-   * Check for tags marked with the topLevelTagGroup attribute that are not in top-level tag groups.
-   */
-  checkForInvalidTopLevelTagGroupTags() {
-    for (const tag of this.parsedString.tags) {
-      if (!tag.hasAttribute(topLevelTagGroupType) && !tag.parentHasAttribute(topLevelTagGroupType)) {
-        continue
-      }
-      if (!this.parsedString.topLevelTagGroups.some((topLevelTagGroup) => topLevelTagGroup.includes(tag))) {
-        this.pushIssue('invalidTopLevelTagGroupTag', {
-          tag: tag,
-        })
-      }
-    }
-  }
-
-  /**
-   * Generate a new issue object and push it to the end of the issues array.
-   *
-   * @param {string} internalCode The internal error code.
-   * @param {Object<string, (string|number[])>} parameters The error string parameters.
-   */
-  pushIssue(internalCode, parameters) {
-    const tsvLine = this.parsedString.tsvLine ?? this.parsedString.tsvLines
-    if (tsvLine) {
-      parameters.tsvLine = tsvLine
-    }
-    this.issues.push(generateIssue(internalCode, parameters))
   }
 
   /**
