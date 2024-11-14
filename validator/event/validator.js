@@ -6,8 +6,8 @@ import ParsedHedGroup from '../../parser/parsedHedGroup'
 import ParsedHedTag from '../../parser/parsedHedTag'
 import ParsedHedColumnSplice from '../../parser/parsedHedColumnSplice'
 import { getParsedParentTags } from '../../utils/hedData'
-import { getParentTag, getTagName, hedStringIsAGroup, replaceTagNameWithPound } from '../../utils/hedStrings'
-import { getCharacterCount, isNumber } from '../../utils/string'
+import { hedStringIsAGroup, replaceTagNameWithPound } from '../../utils/hedStrings'
+import { getCharacterCount } from '../../utils/string'
 
 const tagGroupType = 'tagGroup'
 const topLevelTagGroupType = 'topLevelTagGroup'
@@ -249,7 +249,7 @@ export default class HedValidator {
   }
 
   // TODO: Checking for extensions is being removed temporarily -- well have to add it back eventually.
-  /*  /!**
+  /*
    * Check if an individual HED tag is in the schema or is an allowed extension.
    *!/
   checkIfTagIsValid(tag) {

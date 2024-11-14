@@ -215,6 +215,11 @@ export default {
     level: 'error',
     message: stringTemplate`Empty tag at index ${'index'} cannot be converted.`,
   },
+  invalidTagString: {
+    hedCode: 'TAG_INVALID',
+    level: 'error',
+    message: stringTemplate`Tag string is null or undefined.`,
+  },
   duplicateTagsInSchema: {
     hedCode: 'SCHEMA_DUPLICATE_NODE',
     level: 'error',

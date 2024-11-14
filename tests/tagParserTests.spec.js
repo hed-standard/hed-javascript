@@ -11,11 +11,12 @@ import { buildSchemas } from '../schema/init'
 import { SchemaTag, SchemaValueTag } from '../schema/entries'
 import { TagSpec } from '../parser/tokenizer'
 import TagConverter from '../parser/tagConverter'
+import { BidsTsvFile } from '../bids'
 
 // Ability to select individual tests to run
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['invalid-tags', ['invalid-tag-value-no-units']]])
+const runMap = new Map([['valid-tags', ['valid-numeric-scientific-value']]])
 
 describe('TagSpec converter tests using JSON tests', () => {
   const schemaMap = new Map([
@@ -35,6 +36,22 @@ describe('TagSpec converter tests using JSON tests', () => {
   })
 
   afterAll(() => {})
+
+  describe('BIDS experiments', () => {
+    it('should be able to convert', () => {
+      const thisSchema = schemaMap.get('8.3.0')
+      assert.isDefined(thisSchema, 'yes')
+      const hTsv = `HED\nRed\n`
+      let stringIssues = []
+      try {
+        const bidsTsv = new BidsTsvFile(`events`, hTsv, { relativePath: 'string test tsv' }, [], {})
+        stringIssues = bidsTsv.validate(thisSchema)
+        console.log(stringIssues)
+      } catch (e) {
+        console.log(stringIssues)
+      }
+    })
+  })
 
   // TODO: Remove after refactoring of validation complete
   describe.skip('TagConverter experiments', () => {
