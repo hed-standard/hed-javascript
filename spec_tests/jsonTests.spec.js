@@ -182,7 +182,7 @@ describe('HED validation using JSON tests', () => {
       }
 
       const stringValidator = function (str, expectedErrors) {
-        const status = expectedErrors.size === 0 ? 'Expect fail' : 'Expect pass'
+        const status = expectedErrors.size === 0 ? 'Expect pass' : 'Expect fail'
         const header = `\n[${error_code} ${name}](${status})\tSTRING: "${str}"`
         const hTsv = `HED\n${str}\n`
         let stringIssues = []
@@ -211,7 +211,11 @@ describe('HED validation using JSON tests', () => {
 
       beforeAll(async () => {
         hedSchema = schemaMap.get(schema)
-        defs = { definitions: { HED: { defList: definitions.join(',') } } }
+        if (definitions.length === 0) {
+          defs = {}
+        } else {
+          defs = { definitions: { HED: { defList: definitions.join(',') } } }
+        }
         expectedErrors = new Set(alt_codes)
         expectedErrors.add(error_code)
       })

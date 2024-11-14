@@ -71,7 +71,8 @@ export class BidsSidecar extends BidsJsonFile {
    */
   constructor(name, sidecarData = {}, file) {
     super(name, sidecarData, file)
-
+    this.columnSpliceMapping = new Map()
+    this.columnSpliceReferences = new Set()
     this._filterHedStrings()
     this._categorizeHedStrings()
   }
@@ -167,9 +168,6 @@ export class BidsSidecar extends BidsJsonFile {
    * @private
    */
   _generateSidecarColumnSpliceMap() {
-    this.columnSpliceMapping = new Map()
-    this.columnSpliceReferences = new Set()
-
     for (const [sidecarKey, hedData] of this.parsedHedData) {
       if (hedData === null) {
         // Skipped

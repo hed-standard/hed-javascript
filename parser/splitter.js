@@ -48,6 +48,12 @@ export default class HedStringSplitter {
    * @returns {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
    */
   splitHedString() {
+    if (this.hedString === null || this.hedString === undefined || typeof this.hedString !== 'string') {
+      return [null, { syntax: [generateIssue('invalidTagString', {})] }]
+    }
+    if (this.hedString.length === 0) {
+      return [[], {}]
+    }
     const [tagSpecs, groupBounds, tokenizingIssues] = new HedStringTokenizer(this.hedString).tokenize()
     if (tokenizingIssues.syntax.length > 0) {
       return [null, tokenizingIssues]
