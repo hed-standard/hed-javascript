@@ -1,6 +1,7 @@
 import specialTags from '../data/json/specialTags.json'
 import ParsedHedGroup from './parsedHedGroup'
 import ParsedHedTag from './parsedHedTag'
+import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import { generateIssue } from '../common/issues/issues'
 import { TagSpec } from './tokenizer'
 //import fs from 'fs'
@@ -15,6 +16,7 @@ export class SpecialChecker {
    * @type {Object<string,*>}
    */
   specialMap
+  specialNames
   exclusiveTags
   noSpliceInGroup
 
@@ -30,6 +32,10 @@ export class SpecialChecker {
       return SpecialChecker.instance
     }
     this.specialMap = specialMap
+    this.specialNames = Array.from(specialMap.keys())
+    this.specialGroupTags = Array.from(this.specialMap.entries())
+      .filter(([key, value]) => value.tagGroup === true)
+      .map(([key, value]) => key)
     this.exclusiveTags = Array.from(this.specialMap.entries())
       .filter(([key, value]) => value.exclusive === true)
       .map(([key, value]) => key)
@@ -48,11 +54,23 @@ export class SpecialChecker {
    */
   checkHedString(hedString, fullCheck) {
     let issues = this.spliceCheck(hedString, fullCheck)
+    if (fullCheck) {
+      // Make sure all tags that should be in groups are.
+      for (const tag of hedString.topLevelTags) {
+        if (this.hasGroupAttribute(tag)) {
+          issues.push(generateIssue('invalidGroupTag', { tag: tag.originalTag, string: hedString.hedString }))
+        }
+      }
+    }
+    issues.push(...this.checkUnique(hedString))
     if (issues.length > 0) {
-      // Splices make this invalid
       return issues
     }
 
+    // Now get down to checking special tags
+    if (!fullCheck && !hedString.tags.some((tag) => this.specialNames.includes(tag.schemaTag.name))) {
+      return []
+    }
     issues = this.checkTopLevelGroupTags(hedString, fullCheck)
     if (issues.length > 0) {
       return issues
@@ -61,8 +79,7 @@ export class SpecialChecker {
     if (issues.length > 0) {
       return issues
     }
-
-    issues = this.checkUnique(hedString)
+    issues = this.checkGroups(hedString, fullCheck)
     if (issues.length > 0) {
       return issues
     }
@@ -104,7 +121,9 @@ export class SpecialChecker {
           //Tag is in a top-level tag group
           return
         } else if (!hedString.topLevelTags.includes(tag) || (fullCheck && hedString.topLevelTags.includes(tag))) {
-          issues.push(generateIssue('invalidTopLevelTagGroupTag', { tag: tag.originalTag }))
+          issues.push(
+            generateIssue('invalidTopLevelTagGroupTag', { tag: tag.originalTag, string: hedString.hedString }),
+          )
           return
         }
       }
@@ -133,7 +152,7 @@ export class SpecialChecker {
     if (hedString.topLevelTags.length > 0) {
       return [
         generateIssue('illegalInExclusiveContext', {
-          tag: exclusiveTags[0].originalTagName,
+          tag: exclusiveTags[0].originalTag,
           string: hedString.hedString,
         }),
       ]
@@ -142,40 +161,75 @@ export class SpecialChecker {
     // Make sure that all the objects in exclusiveTags have same schema tag name - not an issue currently
     const badList = exclusiveTags.filter((obj) => obj.schemaTag._name != exclusiveTags[0].schemaTag._name)
     if (badList.length > 0) {
+      return [generateIssue('illegalExclusiveContext', { tag: badList[0].originalTag, string: hedString.hedString })]
+    }
+    return []
+  }
+
+  checkGroups(hedString) {
+    const issues = []
+    const topGroups = hedString.tagGroups
+    for (const group of topGroups) {
+      if (!group.isDefExpandGroup) {
+        issues.push(...this.checkSpecialGroupTagRequirements(group))
+      }
+    }
+    return issues
+  }
+
+  checkSpecialGroupTagRequirements(group) {
+    // Check the right elements are at top level in the group
+    const tags = group.tags.filter((obj) => obj instanceof ParsedHedTag)
+    const specialTags = tags.filter((obj) => this.specialGroupTags.includes(obj.schemaTag._name))
+    if (specialTags.length === 0) {
+      return []
+    } else if (tags.length > 2) {
+      // This assumes that special tags can have at most one other tag
+      return [generateIssue('invalidGroupTopTags', { tags: tags.map((tag) => tag.toString()).join(', ') })]
+    }
+    let maxSubgroups = specialTags[0].maxNumberSubgroups ?? Infinity // JSON doesn't have infinity -- uses null
+    let minSubgroups = specialTags[0].minNumberSubgroups // Will always have a value of at least 0.
+
+    if (specialTags.length === 2) {
+      // Check special tags are allowed together
+      const otherAllowed0 = this.getSpecialAttributeForTag(specialTags[0], 'otherAllowedTags')?.includes(
+        specialTags[1].schemaTag.name,
+      )
+      const otherAllowed1 = this.getSpecialAttributeForTag(specialTags[1], 'otherAllowedTags')?.includes(
+        specialTags[0].schemaTag.name,
+      )
+      if (!otherAllowed0 || !otherAllowed1) {
+        return [generateIssue('invalidGroupTopTags', { tags: specialTags.map((tag) => tag.toString()).join(', ') })]
+      }
+      maxSubgroups = Math.min(maxSubgroups, specialTags[1].maxNumberSubgroups ?? Infinity)
+      minSubgroups = Math.max(minSubgroups, specialTags[1].minNumberSubgroups)
+    }
+
+    // Check that the maximum number of groups make sense
+    const subgroups = group.tags.filter((obj) => obj instanceof ParsedHedGroup)
+    if (maxSubgroups < minSubgroups || subgroups.length > maxSubgroups) {
       return [
-        generateIssue('illegalExclusiveContext', { tag: badList[0].schemaTag._name, string: hedString.hedString }),
+        generateIssue('invalidNumberOfSubgroups', {
+          tags: specialTags.map((tag) => tag.originalTag.join(', ')),
+          string: group.format(),
+        }),
+      ]
+    }
+
+    // Check that the minimum number of groups make sense
+    const columnSplices = group.tags.filter((obj) => obj instanceof ParsedHedColumnSplice)
+    if (columnSplices.length === 0 && subgroups.length < minSubgroups) {
+      return [
+        generateIssue('invalidNumberOfSubgroups', {
+          tags: specialTags.map((tag) => tag.originalTag.join(', ')),
+          string: group.format(),
+        }),
       ]
     }
     return []
   }
 
-  checkGroupsTopRequirements(hedString, fullCheck) {
-    const issues = []
-    const topGroupsTags = hedString.topLevelGroupTags
-    for (const tags of topGroupsTags) {
-      this.checkGroupTopTagRequirements(tags)
-    }
-    return issues
-  }
-
-  checkGroupTopTagRequirements(tags) {
-    // Check the right elements are at top level in the group
-    for (let i = 0; i <= tags.length; ++i) {
-      if (
-        !this.isSpecialTag(tags[i]) ||
-        this.specialMap.get(tags[i].otherAllowedTags === null) ||
-        tags[i].length === 1
-      ) {
-        // Nothing to check -- it is not special or only one or has no restrictions
-        continue
-      } else if (
-        tags[i].length > 2 ||
-        (this.specialMap.get(tags[i].otherAllowedTags).length === 0 && tags[i].length > 1)
-      ) {
-        // If no other allowed tags can only have 1 tag in the list
-        return generateIssue('invalidGroupTopTags', { tags: tags.map((tag) => tag.toString()).join(', ') })
-      }
-    }
+  checkDefExpandGroup(group, issues) {
     return []
   }
 
@@ -185,16 +239,16 @@ export class SpecialChecker {
    * @returns {Issue[]|*[]}
    */
   checkUnique(hedString) {
-    const uniqueTags = hedString.tags.filter((tag) => tag.hasAttribute('isUnique'))
-    if (uniqueTags.length <= 2) {
+    const uniqueTags = hedString.tags.filter((tag) => tag.hasAttribute('unique'))
+    if (uniqueTags.length < 2) {
       return []
     }
-    const uniqueNames = Set()
+    const uniqueNames = new Set()
     for (const tag of uniqueTags) {
       if (uniqueNames.has(tag.schemaTag._name)) {
-        return [generateIssue('multipleUniqueTags', { tag: tag.schemaTag._name })]
+        return [generateIssue('multipleUniqueTags', { tag: tag.originalTag, string: hedString.hedString })]
       }
-      uniqueNames.add(tag.name)
+      uniqueNames.add(tag.schemaTag._name)
     }
     return []
   }
@@ -206,9 +260,19 @@ export class SpecialChecker {
     )
   }
 
+  /**
+   * Returns the value of a special attribute if special tag, otherwise undefined
+   * @param {ParsedHedTag} tag
+   * @param {string} attributeName
+   * @returns value of the property or undefined
+   */
+  getSpecialAttributeForTag(tag, attributeName) {
+    return this.specialMap.get(tag.schemaTag.name)?.[attributeName]
+  }
+
   hasGroupAttribute(tag) {
     return (
-      tag.hasAttribute('topGroup') ||
+      tag.hasAttribute('tagGroup') ||
       (this.specialMap.has(tag.schemaTag.name) && this.specialMap.get(tag.schemaTag.name).tagGroup)
     )
   }

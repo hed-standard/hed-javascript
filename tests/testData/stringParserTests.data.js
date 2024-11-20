@@ -462,20 +462,39 @@ export const parseTestData = [
         stringLong: null,
         stringShort: null,
         fullCheck: false,
-        errors: [generateIssue('invalidTopLevelTagGroupTag', { tag: 'Definition/Green1' })],
+        errors: [
+          generateIssue('invalidTopLevelTagGroupTag', {
+            tag: 'Definition/Green1',
+            string: '((Definition/Green1, (Green)))',
+          }),
+        ],
         warnings: [],
       },
       {
         testname: 'definition-at-top-level-but-slices',
-        explanation: '"Definition/Green1, (Green)" is not in group (not allowed to be in a slice',
+        explanation: '"Definition/Green1, (Green)" is not in group (not allowed to be in a slice)',
         schemaVersion: '8.3.0',
         stringIn: 'Definition/Green1, (Green)',
         stringLong: null,
         stringShort: null,
         fullCheck: false,
         errors: [
-          generateIssue('illegalInExclusiveContext', { tag: 'Definition', string: 'Definition/Green1, (Green)' }),
+          generateIssue('illegalInExclusiveContext', {
+            tag: 'Definition/Green1',
+            string: 'Definition/Green1, (Green)',
+          }),
         ],
+        warnings: [],
+      },
+      {
+        testname: 'definition-group-with-multiple-definition-tags',
+        explanation: '"(Definition/Apple, Definition/Banana, (Blue))" has two definition tags in the same group.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Definition/Apple, Definition/Banana, (Blue))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [generateIssue('invalidGroupTopTags', { tags: 'Definition/Apple, Definition/Banana' })],
         warnings: [],
       },
       {
@@ -486,7 +505,9 @@ export const parseTestData = [
         stringLong: null,
         stringShort: null,
         fullCheck: true,
-        errors: [generateIssue('missingTagGroup', { tag: 'Def-expand/Green1' })],
+        errors: [
+          generateIssue('invalidGroupTag', { tag: 'Def-expand/Green1', string: 'Def-expand/Green1, (Red, Blue)' }),
+        ],
         warnings: [],
       },
       {
@@ -499,6 +520,54 @@ export const parseTestData = [
         stringShort: 'Item, (Red, Blue, (Item, (Def-expand/Blech, (Green, Orange))))',
         fullCheck: true,
         errors: [],
+        warnings: [],
+      },
+      {
+        testname: 'event-context-in-subgroup',
+        explanation: '"(Red, (Event-context, (Blue)))" has Event-context not in a top-level-tag group',
+        schemaVersion: '8.3.0',
+        stringIn: '(Red, (Event-context, (Blue)))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidTopLevelTagGroupTag', {
+            tag: 'Event-context',
+            string: '(Red, (Event-context, (Blue)))',
+          }),
+        ],
+        warnings: [],
+      },
+      {
+        testname: 'definition-with-event-context-in-subgroup',
+        explanation: '"(Definition/Blech, (Event-context, (Blue)))" is a invalid because of Event-context',
+        schemaVersion: '8.3.0',
+        stringIn: '(Definition/Blech, (Event-context, (Blue)))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidTopLevelTagGroupTag', {
+            tag: 'Event-context',
+            string: '(Definition/Blech, (Event-context, (Blue)))',
+          }),
+        ],
+        warnings: [],
+      },
+      {
+        testname: 'multiple-unique-tags-in-same-string',
+        explanation: '"(Event-context, (Red, Blue)), (Event-context, (Green, Yellow))" has two event contexts',
+        schemaVersion: '8.3.0',
+        stringIn: '(Event-context, (Red, Blue)), (Event-context, (Green, Yellow))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('multipleUniqueTags', {
+            tag: 'Event-context',
+            string: '(Event-context, (Red, Blue)), (Event-context, (Green, Yellow))',
+          }),
+        ],
         warnings: [],
       },
     ],

@@ -312,7 +312,7 @@ export class BidsSidecarKey {
           file: this.sidecar.deref()?.file?.relativePath,
         })
       }
-      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas)
+      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas, false)
       this.parsedCategoryMap.set(value, parsedString)
       issues.push(...Object.values(parsingIssues).flat())
     }

@@ -47,6 +47,42 @@ export const bidsTestData = [
     ],
   },
   {
+    name: 'invalid-syntax',
+    description: 'Syntax errors in various places',
+    tests: [
+      {
+        testname: 'mismatched-parentheses-in-tsv',
+        explanation: 'HED column has mismatched parentheses',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Red, Blue), (Green, (Yellow))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tHED\n' + '7\t4\t(Red, Def/MyColor',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('unclosedParenthesis', { index: '0', string: '(Red, Def/MyColor', tsvLine: 2 }),
+            {
+              path: 'mismatched-parentheses-in-tsv.tsv',
+              relativePath: 'mismatched-parentheses-in-tsv.tsv',
+            },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('unclosedParenthesis', { index: '0', string: '(Red, Def/MyColor', tsvLine: 2 }),
+            { path: 'mismatched-parentheses-in-tsv.tsv', relativePath: 'mismatched-parentheses-in-tsv.tsv' },
+            { tsvLine: 2 },
+          ),
+        ],
+      },
+    ],
+  },
+  {
     name: 'invalid-tag-tests',
     description: 'JSON is valid but tsv is invalid',
     tests: [
@@ -1092,17 +1128,64 @@ export const bidsTestData = [
         },
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('invalidTopLevelTagGroupTag', { tag: 'Definition/Junk' }), {
-            path: 'invalid-nested-definition.json',
-            relativePath: 'invalid-nested-definition.json',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Definition/Junk',
+              string: '(Definition/NestedDef, (Definition/Junk, (Blue)))',
+            }),
+            {
+              path: 'invalid-nested-definition.json',
+              relativePath: 'invalid-nested-definition.json',
+            },
+          ),
         ],
         tsvErrors: [],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('invalidTopLevelTagGroupTag', { tag: 'Definition/Junk' }), {
-            path: 'invalid-nested-definition.tsv',
-            relativePath: 'invalid-nested-definition.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Definition/Junk',
+              string: '(Definition/NestedDef, (Definition/Junk, (Blue)))',
+            }),
+            {
+              path: 'invalid-nested-definition.tsv',
+              relativePath: 'invalid-nested-definition.tsv',
+            },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-multiple-definition-tags',
+        explanation: 'The sidecar has multiple definition tags in same definition',
+        schemaVersion: '8.3.0',
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, Def/Apple',
+          },
+          mydefs: {
+            HED: {
+              deflist: '(Definition/Apple, Definition/Banana, (Blue))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidGroupTopTags', { tags: 'Definition/Apple, Definition/Banana' }),
+            {
+              path: 'invalid-multiple-definition-tags.json',
+              relativePath: 'invalid-multiple-definition-tags.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidGroupTopTags', { tags: 'Definition/Apple, Definition/Banana' }),
+            {
+              path: 'invalid-multiple-definition-tags.tsv',
+              relativePath: 'invalid-multiple-definition-tags.tsv',
+            },
+          ),
         ],
       },
       {
@@ -1295,13 +1378,20 @@ export const bidsTestData = [
             generateIssue('illegalInExclusiveContext', {
               tag: 'Definition/SpeedDef/#',
               string: 'Red, (Definition/SpeedDef/#, (Speed/# mph))',
-              sidecarKey: 'myDefs',
             }),
             { path: 'invalid-definition-not-isolated.json', relativePath: 'invalid-definition-not-isolated.json' },
           ),
         ],
         tsvErrors: [],
-        comboErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('illegalInExclusiveContext', {
+              tag: 'Definition/SpeedDef/#',
+              string: 'Red, (Definition/SpeedDef/#, (Speed/# mph))',
+            }),
+            { path: 'invalid-definition-not-isolated.tsv', relativePath: 'invalid-definition-not-isolated.tsv' },
+          ),
+        ],
       },
     ],
   },

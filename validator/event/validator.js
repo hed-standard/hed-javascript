@@ -176,6 +176,7 @@ export default class HedValidator {
       if (!this.parsedString.topLevelGroupTags.some((topLevelTagGroup) => topLevelTagGroup.includes(tag))) {
         this.pushIssue('invalidTopLevelTagGroupTag', {
           tag: tag,
+          string: this.parsedString.hedString,
         })
       }
     }

@@ -14,7 +14,7 @@ import { TagSpec } from '../parser/tokenizer'
 import ParsedHedTag from '../parser/parsedHedTag'
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['valid-tags', ['single-tag-single-level']]])
+const runMap = new Map([['special-tag-group-tests', ['multiple-unique-tags-in-same-string']]])
 
 describe('Null schema objects should cause parsing to bail', () => {
   it('Should not proceed if no schema and valid string', () => {

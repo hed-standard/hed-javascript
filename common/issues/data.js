@@ -192,7 +192,7 @@ export default {
   invalidTopLevelTagGroupTag: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`Tag "${'tag'}" is only allowed inside of a top-level tag group.`,
+    message: stringTemplate`Tag "${'tag'}" is only allowed inside of a top-level tag group, but is not at top level in "${'string'}".`,
   },
   invalidGroupTopTags: {
     hedCode: 'TAG_GROUP_ERROR',
@@ -204,10 +204,20 @@ export default {
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" found in top-level tag group where "${'otherTag'}" was already defined.`,
   },
+  invalidNumberOfSubgroups: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`The tags "${'tags'} in "${'string'} require groups that do not agree or are not present in their group .`,
+  },
   invalidTopLevelTag: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is only allowed inside of a tag group.`,
+  },
+  invalidGroupTag: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" should be in a group in "${'string'}" but is not.`,
   },
   // Tag conversion issues
   invalidParentNode: {

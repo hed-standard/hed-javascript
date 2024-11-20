@@ -119,7 +119,7 @@
     "exclusive": false,
     "tagGroup": true,
     "topLevelTagGroup": true,
-    "maxNumberSubgroups": 0,
+    "maxNumberSubgroups": 1,
     "minNumberSubgroups": 0,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
     "noSpliceInGroup": false,
