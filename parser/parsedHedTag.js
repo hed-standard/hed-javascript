@@ -34,6 +34,15 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @private
    */
   _schemaTag
+
+  /**
+   * The extension part if it has an extension rather than a value
+   *
+   * @type {string}
+   * @private
+   */
+  _extension
+
   /**
    * The remaining part of the tag after the portion actually in the schema.
    *
@@ -153,6 +162,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     return [actualUnit, actualUnitString, actualValueString]
   }
 
+  // TODO:  Fix this
   /**
    * Handle special -- handles special three-level tags
    */

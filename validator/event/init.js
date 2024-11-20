@@ -2,24 +2,24 @@ import { parseHedString } from '../../parser/parser'
 import HedValidator from './validator'
 import { Issue } from '../../common/issues/issues'
 
-/**
- * Perform initial validation on a HED string and parse it so further validation can be performed.
- *
- * @param {string|ParsedHedString} hedString The HED string to validate.
- * @param {Schemas} hedSchemas The HED schemas to validate against.
- * @param {Object<string, boolean>} options Any validation options passed in.
- * @param {Map<string, ParsedHedGroup>?} definitions The definitions for this HED dataset.
- * @returns {[ParsedHedString, Issue[], HedValidator]} The parsed HED string, the actual HED schema collection to use, any issues found, and whether to perform semantic validation.
- */
-const initiallyValidateHedString = function (hedString, hedSchemas, options, definitions = null) {
-  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
-  if (parsedString === null) {
-    return [null, [].concat(...Object.values(parsingIssues)), null]
-  }
-  const hedValidator = new HedValidator(parsedString, hedSchemas, definitions, options)
-  const allParsingIssues = [].concat(...Object.values(parsingIssues))
-  return [parsedString, allParsingIssues, hedValidator]
-}
+// /**
+//  * Perform initial validation on a HED string and parse it so further validation can be performed.
+//  *
+//  * @param {string|ParsedHedString} hedString The HED string to validate.
+//  * @param {Schemas} hedSchemas The HED schemas to validate against.
+//  * @param {Object<string, boolean>} options Any validation options passed in.
+//  * @param {Map<string, ParsedHedGroup>?} definitions The definitions for this HED dataset.
+//  * @returns {[ParsedHedString, Issue[], HedValidator]} The parsed HED string, the actual HED schema collection to use, any issues found, and whether to perform semantic validation.
+//  */
+// const initiallyValidateHedString = function (hedString, hedSchemas, options, definitions = null) {
+//   const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
+//   if (parsedString === null) {
+//     return [null, [].concat(...Object.values(parsingIssues)), null]
+//   }
+//   const hedValidator = new HedValidator(parsedString, hedSchemas, definitions, options)
+//   const allParsingIssues = [].concat(...Object.values(parsingIssues))
+//   return [parsedString, allParsingIssues, hedValidator]
+// }
 
 /**
  * Validate a HED string.
@@ -48,13 +48,18 @@ export const validateHedString = function (hedString, hedSchemas, ...args) {
       definitionsAllowed: 'yes',
     }
   }
-  const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, settings)
+  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
   if (parsedString === null) {
-    return [false, parsedStringIssues]
+    return [false, [].concat(...Object.values(parsingIssues))]
   }
-
+  // const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, settings)
+  //
+  // if (parsedString === null) {
+  //   return [false, parsedStringIssues]
+  // }
+  const hedValidator = new HedValidator(parsedString, hedSchemas, null, settings)
   hedValidator.validateStringLevel()
-  const issues = [].concat(parsedStringIssues, hedValidator.issues)
+  const issues = [].concat(...Object.values(parsingIssues), hedValidator.issues)
 
   return Issue.issueListWithValidStatus(issues)
 }
@@ -79,14 +84,14 @@ export const validateHedEvent = function (hedString, hedSchemas, ...args) {
       checkForWarnings: args[0] ?? false,
     }
   }
-  const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, settings)
+  //const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, settings)
+  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
   if (parsedString === null) {
-    return [false, parsedStringIssues]
+    return [false, [].concat(...Object.values(parsingIssues))]
   }
-
+  const hedValidator = new HedValidator(parsedString, hedSchemas, null, settings)
   hedValidator.validateEventLevel()
-  const issues = [].concat(parsedStringIssues, hedValidator.issues)
-
+  const issues = [].concat(...Object.values(parsingIssues), hedValidator.issues)
   return Issue.issueListWithValidStatus(issues)
 }
 
@@ -110,18 +115,16 @@ export const validateHedEventWithDefinitions = function (hedString, hedSchemas, 
       checkForWarnings: args[0] ?? false,
     }
   }
-  const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(
-    hedString,
-    hedSchemas,
-    settings,
-    definitions,
-  )
+  //const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(
+  //  hedString, hedSchemas, settings, definitions,)
+  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
   if (parsedString === null) {
-    return [false, parsedStringIssues]
+    return [false, [].concat(...Object.values(parsingIssues))]
   }
+  const hedValidator = new HedValidator(parsedString, hedSchemas, definitions, settings)
 
   hedValidator.validateEventLevel()
-  const issues = [].concat(parsedStringIssues, hedValidator.issues)
+  const issues = [].concat(...Object.values(parsingIssues), hedValidator.issues)
 
   return Issue.issueListWithValidStatus(issues)
 }

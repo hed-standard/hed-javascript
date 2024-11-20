@@ -17,7 +17,7 @@ export class ParsedHedString {
    */
   parseTree
   /**
-   * The tag groups in the string.
+   * The tag groups in the string (top-level).
    * @type {ParsedHedGroup[]}
    */
   tagGroups
@@ -27,12 +27,12 @@ export class ParsedHedString {
    */
   topLevelTags
   /**
-   * All the tags in the string.
+   * All the tags in the string at all levels
    * @type {ParsedHedTag[]}
    */
   tags
   /**
-   * All the column splices in the string.
+   * All the column splices in the string at all levels.
    * @type {ParsedHedColumnSplice[]}
    */
   columnSplices
@@ -40,17 +40,23 @@ export class ParsedHedString {
    * The top-level tag groups in the string, split into arrays.
    * @type {ParsedHedTag[][]}
    */
-  topLevelTagGroups
+  topLevelGroupTags
   /**
-   * The definition tag groups in the string.
+   * The top-level definition tag groups in the string.
    * @type {ParsedHedGroup[]}
    */
   definitionGroups
   /**
-   * The context in which this string was defined.
+   * The context in which this string was defined. Applicable definitions.
    * @type {Map<string, *>}
    */
   context
+
+  /**
+   * A list of the special tags that are in the string
+   * @type {ParsedHedTag[]}
+   */
+  specialTags
 
   /**
    * Constructor.
@@ -62,9 +68,6 @@ export class ParsedHedString {
     this.parseTree = parsedTags
     this.tagGroups = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedGroup)
     this.topLevelTags = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)
-    /**
-     * @type {ParsedHedColumnSplice[]}
-     */
     const topLevelColumnSplices = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedColumnSplice)
 
     const subgroupTags = this.tagGroups.flatMap((tagGroup) => Array.from(tagGroup.tagIterator()))
@@ -73,7 +76,7 @@ export class ParsedHedString {
     const subgroupColumnSplices = this.tagGroups.flatMap((tagGroup) => Array.from(tagGroup.columnSpliceIterator()))
     this.columnSplices = topLevelColumnSplices.concat(subgroupColumnSplices)
 
-    this.topLevelTagGroups = this.tagGroups.map((tagGroup) =>
+    this.topLevelGroupTags = this.tagGroups.map((tagGroup) =>
       tagGroup.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag),
     )
     this.definitionGroups = this.tagGroups.filter((group) => {
@@ -84,7 +87,7 @@ export class ParsedHedString {
   }
 
   /**
-   * Nicely format this HED string.
+   * Nicely format this HED string. (Doesn't allow column splices).
    *
    * @param {boolean} long Whether the tags should be in long form.
    * @returns {string}

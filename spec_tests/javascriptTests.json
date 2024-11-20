@@ -415,7 +415,7 @@
   },
   {
     "error_code": "DEFINITION_INVALID",
-    "alt_codes": ["TAG_GROUP_ERROR"],
+    "alt_codes": ["TAG_GROUP_ERROR", "TAG_INVALID"],
     "name": "definition-invalid-tag-group",
     "description": "A Definition tag does not appear in a tag group at the top level in an annotation.",
     "warning": false,
@@ -1013,7 +1013,7 @@
   },
   {
     "error_code": "DEFINITION_INVALID",
-    "alt_codes": [],
+    "alt_codes": ["TAG_GROUP_ERROR"],
     "name": "definition-invalid-content-has-top-level-tag",
     "description": "A tag with a required or unique attribute appears in a definition.",
     "warning": false,
@@ -1088,7 +1088,7 @@
   },
   {
     "error_code": "DEFINITION_INVALID",
-    "alt_codes": [],
+    "alt_codes": ["TAG_INVALID"],
     "name": "definition-not-allowed-here",
     "description": "A definition appears in an unexpected place such as an events file or sidecar.",
     "warning": false,
@@ -2123,7 +2123,7 @@
           "((Red, ((Blue, Green), Yellow))",
           "((Red, ((Blue), Green)), (Yellow)"
         ],
-        "passes": ["(Def/Acc/5.3 m-per-s^2, (Red))"]
+        "passes": ["(Def/Acc/5.3, (Red))"]
       },
       "sidecar_tests": {
         "fails": [
@@ -2141,7 +2141,7 @@
           {
             "event_code": {
               "HED": {
-                "face": "(Def/Acc/5.3 m-per-s^2, (Red))"
+                "face": "(Def/Acc/5.3, (Red))"
               }
             }
           }
@@ -2159,7 +2159,7 @@
         "passes": [
           [
             ["onset", "duration", "HED"],
-            [4.5, 0, "(Def/Acc/5.3 m-per-s^2, (Red))"]
+            [4.5, 0, "(Def/Acc/5.3, (Red))"]
           ]
         ]
       },
@@ -2169,8 +2169,8 @@
             "sidecar": {
               "event_code": {
                 "HED": {
-                  "face": "Acceleration/banana",
-                  "ball": "Def/Acc/apple3, Blue"
+                  "face": "Acceleration/5",
+                  "ball": "Def/Acc/6, Blue"
                 }
               }
             },
@@ -3331,7 +3331,7 @@
             "sidecar": {
               "event_code": {
                 "HED": {
-                  "face": "Acceleration/banana",
+                  "face": "Acceleration/5",
                   "ball": "Black, Blue"
                 }
               }
@@ -4112,7 +4112,7 @@
   },
   {
     "error_code": "TAG_GROUP_ERROR",
-    "alt_codes": ["TEMPORAL_TAG_ERROR"],
+    "alt_codes": ["TEMPORAL_TAG_ERROR", "TAG_INVALID"],
     "name": "tag-group-error-missing",
     "description": "A tag has tagGroup or topLevelTagGroup attribute, but is not enclosed in parentheses.",
     "warning": false,
@@ -4128,8 +4128,8 @@
           "Delay/3.0 s"
         ],
         "passes": [
-          "(Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red))",
-          "((Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red)), Onset)",
+          "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))",
+          "((Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red)), Onset)",
           "(Duration/3.0 s, (Event))",
           "(Duration/3.0 s, Delay/2.0 s, (Event))"
         ]
@@ -4139,8 +4139,8 @@
           {
             "event_code": {
               "HED": {
-                "face": "Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red)",
-                "ball": "(Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red)), Onset"
+                "face": "Def-expand/Acc/4.5, (Acceleration/4.5, Red)",
+                "ball": "(Def-expand/Acc/4.5, (Acceleration/4.5, Red)), Onset"
               }
             }
           }
@@ -4149,8 +4149,8 @@
           {
             "event_code": {
               "HED": {
-                "face": "(Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red))",
-                "ball": "((Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red)), Onset)"
+                "face": "(Def-expand/Acc/4.5, (Acceleration/4.5, Red))",
+                "ball": "((Def-expand/Acc/4.5, (Acceleration/4.5, Red)), Onset)"
               }
             }
           }
@@ -4160,15 +4160,15 @@
         "fails": [
           [
             ["onset", "duration", "HED"],
-            [4.5, 0, "Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red)"],
-            [5.5, 0, "(Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red)), Onset"]
+            [4.5, 0, "Def-expand/Acc/4.5, (Acceleration/4.5, Red)"],
+            [5.5, 0, "(Def-expand/Acc/4.5, (Acceleration/4.5, Red)), Onset"]
           ]
         ],
         "passes": [
           [
             ["onset", "duration", "HED"],
-            [4.5, 0, "(Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red))"],
-            [5.5, 0, "((Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red)), Onset)"]
+            [4.5, 0, "(Def-expand/Acc/4.5, (Acceleration/4.5, Red))"],
+            [5.5, 0, "((Def-expand/Acc/4.5, (Acceleration/4.5, Red)), Onset)"]
           ]
         ]
       },
@@ -4178,8 +4178,8 @@
             "sidecar": {
               "event_code": {
                 "HED": {
-                  "face": "Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red)",
-                  "ball": "(Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5 m-per-s^2, Red)), Onset"
+                  "face": "Def-expand/Acc/4.5, (Acceleration/4.5, Red)",
+                  "ball": "(Def-expand/Acc/4.5, (Acceleration/4.5, Red)), Onset"
                 }
               }
             },
@@ -4391,7 +4391,7 @@
   },
   {
     "error_code": "TAG_INVALID",
-    "alt_codes": [],
+    "alt_codes": ["PLACEHOLDER_INVALID"],
     "name": "tag-invalid-in-schema",
     "description": "The tag is not valid in the schema it is associated with.",
     "warning": false,

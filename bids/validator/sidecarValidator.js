@@ -75,8 +75,10 @@ export class BidsHedSidecarValidator {
 
     for (const [sidecarKey, hedData] of this.sidecar.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
+        // Value options have HED as string
         issues.push(...this._validateString(sidecarKey, hedData, valueOptions))
       } else if (hedData instanceof Map) {
+        // Categorical options have HED as a Map
         for (const valueString of hedData.values()) {
           issues.push(...this._validateString(sidecarKey, valueString, categoricalOptions))
         }

@@ -149,10 +149,10 @@ export default {
     level: 'error',
     message: stringTemplate`Definitions were found in string "${'string'}" in a context where definitions are not allowed.`,
   },
-  illegalDefinitionInExclusiveContext: {
-    hedCode: 'DEFINITION_INVALID',
+  illegalInExclusiveContext: {
+    hedCode: 'TAG_INVALID',
     level: 'error',
-    message: stringTemplate`Mixed definition and non-definition tags or tag groups were found in string "${'string'}" in a context where only one type is allowed.`,
+    message: stringTemplate`"${'tag'}" can only appear in groups of the same type but "${'string'}" has other groups or tags.`,
   },
   inactiveOnset: {
     hedCode: 'TEMPORAL_TAG_ERROR',
@@ -184,20 +184,40 @@ export default {
     level: 'error',
     message: stringTemplate`HED event string "${'string'}" has onset/offset tags with duplicated definition "${'definition'}".`,
   },
+  missingTagGroup: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" must appear in a tag group.`,
+  },
   invalidTopLevelTagGroupTag: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`Tag "${'tag'}" is only allowed inside of a top-level tag group.`,
+    message: stringTemplate`Tag "${'tag'}" is only allowed inside of a top-level tag group, but is not at top level in "${'string'}".`,
+  },
+  invalidGroupTopTags: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`Tags "${'tags'}" cannot be at the same level in a group.`,
   },
   multipleTopLevelTagGroupTags: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" found in top-level tag group where "${'otherTag'}" was already defined.`,
   },
+  invalidNumberOfSubgroups: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`The tags "${'tags'} in "${'string'} require groups that do not agree or are not present in their group .`,
+  },
   invalidTopLevelTag: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is only allowed inside of a tag group.`,
+  },
+  invalidGroupTag: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" should be in a group in "${'string'}" but is not.`,
   },
   // Tag conversion issues
   invalidParentNode: {
@@ -255,6 +275,11 @@ export default {
     hedCode: 'CHARACTER_INVALID',
     level: 'error',
     message: stringTemplate`Curly brace expression "${'column'}" found in the HED column of a TSV file.`,
+  },
+  curlyBracesNotAllowed: {
+    hedCode: 'CHARACTER_INVALID',
+    level: 'error',
+    message: stringTemplate`Curly brace expression not allowed in "${'string'}".`,
   },
   recursiveCurlyBraces: {
     hedCode: 'SIDECAR_BRACES_INVALID',

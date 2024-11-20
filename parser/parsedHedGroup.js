@@ -10,15 +10,25 @@ import ParsedHedColumnSplice from './parsedHedColumnSplice'
  * A parsed HED tag group.
  */
 export default class ParsedHedGroup extends ParsedHedSubstring {
-  static SPECIAL_SHORT_TAGS = new Set(['Definition', 'Def', 'Def-expand', 'Onset', 'Offset', 'Inset'])
+  static SPECIAL_SHORT_TAGS = new Set([
+    'Definition',
+    'Def',
+    'Def-expand',
+    'Onset',
+    'Offset',
+    'Inset',
+    'Delay',
+    'Duration',
+    'Event-context',
+  ])
 
   /**
-   * The parsed HED tags in the HED tag group.
+   * The parsed HED tags or parsedHedGroups or parsedColumnSplices in the HED tag group at the top level
    * @type {ParsedHedSubstring[]}
    */
   tags
   /**
-   * Any HED tags with special handling.
+   * Any HED tags with special handling. This only covers top-level tags in the group
    * @type {Map<string, ParsedHedTag[]>}
    */
   specialTags
@@ -35,7 +45,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Constructor.
-   * @param {ParsedHedSubstring[]} parsedHedTags The parsed HED tags in the HED tag group.
+   * @param {ParsedHedSubstring[]} parsedHedTags The parsed HED tags, groups or column splices in the HED tag group.
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {string} hedString The original HED string.
    * @param {number[]} originalBounds The bounds of the HED tag in the original HED string.
@@ -69,9 +79,6 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @returns {null|ParsedHedTag[]} The tag(s) matching the short tag.
    */
   static findGroupTags(group, hedSchemas, shortTag) {
-    if (!hedSchemas.isHed3) {
-      return undefined
-    }
     const tags = group.tags.filter((tag) => {
       if (!(tag instanceof ParsedHedTag)) {
         return false
@@ -221,6 +228,17 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
         default:
           throw new Error(`Single ${parentTag} tag asserted, but multiple ${parentTag} tags found.`)
       }
+    })
+  }
+
+  /**
+   * The trailing portion of {@link canonicalTag}.
+   *
+   * @returns {string} The "name" portion of the canonical tag.
+   */
+  get allColumnSplices() {
+    return this._memoize('allColumnSplices', () => {
+      return Array.from(this.columnSpliceIterator())
     })
   }
 

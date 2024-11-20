@@ -14,7 +14,7 @@ import { shouldRun } from './testUtilities'
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['definition-tests', []]])
+const runMap = new Map([['definition-tests', ['valid-definition-no-placeholder']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([

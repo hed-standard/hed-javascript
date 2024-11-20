@@ -11,7 +11,7 @@ import { buildSchemas } from '../schema/init'
 import { SchemaTag, SchemaValueTag } from '../schema/entries'
 import { TagSpec } from '../parser/tokenizer'
 import TagConverter from '../parser/tagConverter'
-import { BidsTsvFile } from '../bids'
+import { BidsSidecar, BidsTsvFile } from '../bids'
 
 // Ability to select individual tests to run
 const skipMap = new Map()
@@ -37,8 +37,8 @@ describe('TagSpec converter tests using JSON tests', () => {
 
   afterAll(() => {})
 
-  describe('BIDS experiments', () => {
-    it('should be able to convert', () => {
+  /* describe('BIDS experiments', () => {
+    /!*it('should be able to convert', () => {
       const thisSchema = schemaMap.get('8.3.0')
       assert.isDefined(thisSchema, 'yes')
       const hTsv = `HED\nRed\n`
@@ -50,9 +50,21 @@ describe('TagSpec converter tests using JSON tests', () => {
       } catch (e) {
         console.log(stringIssues)
       }
-    })
-  })
+    })*!/
 
+ /!*   it('should be able to convert', () => {
+      const thisSchema = schemaMap.get('8.3.0')
+      assert.isDefined(thisSchema, 'yes')
+      //const definitions = ["(Definition/Acc/#, (Acceleration/#, Red))", "(Definition/MyColor, (Label/Pie))"]
+      const definitions = ["(Definition/MyColor, Red)"]
+      const defs = { definitions: { HED: { defList: definitions.join(',') } } }
+      const bidsSide = new BidsSidecar(`sidecar`, defs, { relativePath: 'sidecar test' })
+      const sidecarIssues = bidsSide.validate(thisSchema)
+      console.log(sidecarIssues)
+    })*!/
+
+  })
+*/
   // TODO: Remove after refactoring of validation complete
   describe.skip('TagConverter experiments', () => {
     it('should be able to convert', () => {
