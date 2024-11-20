@@ -173,7 +173,7 @@ export default class HedValidator {
       if (!tag.hasAttribute(topLevelTagGroupType) && !tag.parentHasAttribute(topLevelTagGroupType)) {
         continue
       }
-      if (!this.parsedString.topLevelTagGroups.some((topLevelTagGroup) => topLevelTagGroup.includes(tag))) {
+      if (!this.parsedString.topLevelGroupTags.some((topLevelTagGroup) => topLevelTagGroup.includes(tag))) {
         this.pushIssue('invalidTopLevelTagGroupTag', {
           tag: tag,
         })
@@ -247,20 +247,6 @@ export default class HedValidator {
       }
     }
   }
-
-  // TODO: Checking for extensions is being removed temporarily -- well have to add it back eventually.
-  /*
-   * Check if an individual HED tag is in the schema or is an allowed extension.
-   *!/
-  checkIfTagIsValid(tag) {
-    if (tag.existsInSchema || tag.takesValue) {
-      return
-    }
-    if (!this.options.isEventLevel && this.options.checkForWarnings) {
-      // This is an allowed extension.
-      this.pushIssue('extension', { tag: tag })
-    }
-  }*/
 
   /**
    * Check basic placeholder tag syntax.
@@ -391,7 +377,7 @@ export default class HedValidator {
           !isEqual(this.parsedString.definitionGroups, this.parsedString.tagGroups) ||
           this.parsedString.topLevelTags.length > 0
         ) {
-          this.pushIssue('illegalDefinitionInExclusiveContext', {
+          this.pushIssue('illegalInExclusiveContext', {
             string: this.parsedString.hedString,
           })
         }

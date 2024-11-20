@@ -489,9 +489,9 @@ describe('BIDS datasets', () => {
             defSidecars[2].file,
           ),
           BidsHedIssue.fromHedIssue(
-            generateIssue('illegalDefinitionInExclusiveContext', {
+            generateIssue('illegalInExclusiveContext', {
               string: 'Red, Blue, (Definition/myDef, (Label/Red, Blue))',
-              sidecarKey: 'event_code',
+              tag: 'Definition/myDef',
             }),
             defSidecars[3].file,
           ),
@@ -534,18 +534,14 @@ describe('BIDS datasets', () => {
         ],
         sidecars: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInDefinition', {
-              definition: 'Acc/#',
-              column: 'event_code',
-              sidecarKey: 'defs',
+            generateIssue('curlyBracesNotAllowed', {
+              string: '(Definition/Acc/#, {event_code}, (Acceleration/#, Red))',
             }),
             standaloneSidecars[1].file,
           ),
           BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInDefinition', {
-              definition: 'MyColor',
-              column: 'response_time',
-              sidecarKey: 'defs',
+            generateIssue('curlyBracesNotAllowed', {
+              string: '(Definition/MyColor, (Label/Pie, {response_time}))',
             }),
             standaloneSidecars[1].file,
           ),

@@ -151,7 +151,7 @@ export const validateHedDataset = function (hedStrings, hedSchemas, ...args) {
   if (hedStrings.length === 0) {
     return [true, []]
   }
-  const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas)
+  const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas, false)
   const [definitions, definitionIssues] = parseDefinitions(parsedHedStrings)
   const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, settings)
   let datasetIssues = []
@@ -188,8 +188,8 @@ export const validateHedDatasetWithContext = function (hedStrings, contextHedStr
   if (hedStrings.length + contextHedStrings.length === 0) {
     return [true, []]
   }
-  const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas)
-  const [parsedContextHedStrings, contextParsingIssues] = parseHedStrings(contextHedStrings, hedSchemas)
+  const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas, false)
+  const [parsedContextHedStrings, contextParsingIssues] = parseHedStrings(contextHedStrings, hedSchemas, false)
   const combinedParsedHedStrings = parsedHedStrings.concat(parsedContextHedStrings)
   const [definitions, definitionIssues] = parseDefinitions(combinedParsedHedStrings)
   const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, settings)

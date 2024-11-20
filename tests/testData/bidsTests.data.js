@@ -1092,13 +1092,18 @@ export const bidsTestData = [
         },
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('nestedDefinition', { definition: 'NestedDef', sidecarKey: 'mydefs' }),
-            { path: 'invalid-nested-definition.json', relativePath: 'invalid-nested-definition.json' },
-          ),
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTopLevelTagGroupTag', { tag: 'Definition/Junk' }), {
+            path: 'invalid-nested-definition.json',
+            relativePath: 'invalid-nested-definition.json',
+          }),
         ],
         tsvErrors: [],
-        comboErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTopLevelTagGroupTag', { tag: 'Definition/Junk' }), {
+            path: 'invalid-nested-definition.tsv',
+            relativePath: 'invalid-nested-definition.tsv',
+          }),
+        ],
       },
       {
         testname: 'invalid-definition-with-extra-groups',
@@ -1287,9 +1292,10 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('illegalDefinitionInExclusiveContext', {
-              sidecarKey: 'mydefs',
+            generateIssue('illegalInExclusiveContext', {
+              tag: 'Definition/SpeedDef/#',
               string: 'Red, (Definition/SpeedDef/#, (Speed/# mph))',
+              sidecarKey: 'myDefs',
             }),
             { path: 'invalid-definition-not-isolated.json', relativePath: 'invalid-definition-not-isolated.json' },
           ),

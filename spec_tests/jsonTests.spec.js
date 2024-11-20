@@ -99,7 +99,7 @@ describe('HED validation using JSON tests', () => {
 
   describe.each(testInfo)(
     '$error_code $name : $description',
-    ({ error_code, alt_codes, name, schema, definitions, tests }) => {
+    ({ error_code, alt_codes, name, schema, definitions, warning, tests }) => {
       let hedSchema
       let defs
       let expectedErrors
@@ -222,7 +222,7 @@ describe('HED validation using JSON tests', () => {
 
       afterAll(() => {})
 
-      if (error_code in skippedErrors || name in skippedErrors) {
+      if (error_code in skippedErrors || name in skippedErrors || warning) {
         test.skip(`Skipping tests ${error_code} skipped because ${skippedErrors['error_code']}`, () => {})
       } else {
         test('it should have HED schema defined', () => {

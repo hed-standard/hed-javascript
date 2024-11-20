@@ -28,9 +28,9 @@ export function extractHedCodes(issues) {
   return errors
 }
 
-// Parse the hed string
-export function getHedString(hedString, hedSchemas) {
-  const [parsedString, issues] = parseHedString(hedString, hedSchemas)
+// Parse the HED string
+export function getHedString(hedString, hedSchemas, fullCheck) {
+  const [parsedString, issues] = parseHedString(hedString, hedSchemas, fullCheck)
   const flattenedIssues = Object.values(issues).flat()
   let errorIssues = []
   let warningIssues = []

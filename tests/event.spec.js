@@ -801,8 +801,8 @@ describe('HED string and event validation', () => {
             }),
           ],
           nestedDefinition: [
-            generateIssue('nestedDefinition', {
-              definition: 'NestedDefinition',
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Definition/InnerDefinition',
             }),
           ],
           multipleTagGroupDefinition: [
@@ -996,7 +996,7 @@ describe('HED string and event validation', () => {
           validOnset: [],
           validOffset: [],
           topLevelDefinition: [
-            generateIssue('invalidTopLevelTagGroupTag', {
+            generateIssue('illegalInExclusiveContext', {
               tag: testStrings.topLevelDefinition,
             }),
           ],
@@ -1432,8 +1432,8 @@ describe('HED string and event validation', () => {
             }),
           ],
           nestedDefinition: [
-            generateIssue('nestedDefinition', {
-              definition: 'NestedDefinition',
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Definition/InnerDefinition',
             }),
           ],
           multipleTagGroupDefinition: [
