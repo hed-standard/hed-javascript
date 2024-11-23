@@ -125,7 +125,7 @@ export default class HedValidator {
    * Validate a HED tag level.
    */
   validateHedTagLevel(tagList) {
-    this.checkForMultipleUniqueTags(tagList)
+    //this.checkForMultipleUniqueTags(tagList)
     this.checkForDuplicateTags(tagList)
   }
 
@@ -226,9 +226,7 @@ export default class HedValidator {
     const actualTagList = tagList.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)
     this._checkForTagAttribute(uniqueType, (uniqueTagPrefix) => {
       if (actualTagList.filter((tag) => tag.formattedTag.startsWith(uniqueTagPrefix)).length > 1) {
-        this.pushIssue('multipleUniqueTags', {
-          tag: uniqueTagPrefix,
-        })
+        this.pushIssue('multipleUniqueTags', { tag: uniqueTagPrefix, string: '' })
       }
     })
   }
