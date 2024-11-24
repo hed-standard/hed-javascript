@@ -203,14 +203,20 @@ export class SpecialChecker {
     for (const subGroup of group.subParsedGroupIterator()) {
       // Iterator includes this group
       // Nothing to check
-      if (subGroup.allTags.filter((obj) => this.specialGroupTags.includes(obj.schemaTag._name)).length == 0) {
+
+      const specialTags = subGroup.topTags.filter((obj) => this.specialGroupTags.includes(obj.schemaTag.name))
+      if (specialTags.length === 0) {
         continue
       }
-      let issues = this.checkSpecialGroupNumbers(subGroup, fullCheck)
+
+      let issues = this.checkSpecialGroupNumbers(subGroup, specialTags, fullCheck)
       if (issues.length > 0) {
         return issues
       }
-      issues = this.checkSpecialTopTags(subGroup, fullCheck)
+
+      if (subGroup.allTags.length > 1) {
+        issues = this.checkSpecialTopTags(subGroup, specialTags)
+      }
       if (issues.length > 0) {
         return issues
       }
@@ -221,13 +227,10 @@ export class SpecialChecker {
   /**
    * Checks the top tags in a special group for right number and value
    * @param {ParsedHedGroup} group  group to check that special top tags are okay together
+   * @param {ParsedHedTag []} specialTags - the special tags at the top level in this group
    * @param fullCheck
    */
-  checkSpecialTopTags(group, fullCheck) {
-    const specialTags = group.topTags.filter((obj) => this.specialGroupTags.includes(obj.schemaTag.name))
-    if (specialTags.length === 0) {
-      return []
-    }
+  checkSpecialTopTags(group, specialTags) {
     if (group.topTags.length > 2) {
       return [
         generateIssue('invalidGroupTags', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
@@ -235,6 +238,9 @@ export class SpecialChecker {
     }
     for (const specialTag of specialTags) {
       const otherTags = group.topTags.filter((obj) => obj !== specialTag)
+      if (otherTags.length === 0) {
+        return []
+      }
       if (otherTags.length > 1) {
         return [
           generateIssue('invalidGroupTags', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
