@@ -189,6 +189,11 @@ export default {
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" must appear in a tag group.`,
   },
+  invalidTagGroup: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`"${'tagGroup'}" has invalid group tags or invalid number of subgroups.`,
+  },
   invalidTopLevelTagGroupTag: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',

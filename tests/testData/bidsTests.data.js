@@ -1170,7 +1170,10 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidGroupTopTags', { tags: 'Definition/Apple, Definition/Banana' }),
+            generateIssue('invalidTagGroup', {
+              tags: 'Definition/Apple, Definition/Banana',
+              string: '(Definition/Apple, Definition/Banana, (Blue))',
+            }),
             {
               path: 'invalid-multiple-definition-tags.json',
               relativePath: 'invalid-multiple-definition-tags.json',
@@ -1180,7 +1183,10 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidGroupTopTags', { tags: 'Definition/Apple, Definition/Banana' }),
+            generateIssue('invalidTagGroup', {
+              tags: 'Definition/Apple, Definition/Banana',
+              string: '(Definition/Apple, Definition/Banana, (Blue))',
+            }),
             {
               path: 'invalid-multiple-definition-tags.tsv',
               relativePath: 'invalid-multiple-definition-tags.tsv',
@@ -1205,7 +1211,10 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('multipleTagGroupsInDefinition', { definition: 'ExtraGroupDef', sidecarKey: 'mydefs' }),
+            generateIssue('invalidTagGroup', {
+              tags: 'Definition/ExtraGroupDef',
+              string: '(Definition/ExtraGroupDef, (Red), (Blue))',
+            }),
             {
               path: 'invalid-definition-with-extra-groups.json',
               relativePath: 'invalid-definition-with-extra-groups.json',
@@ -1213,7 +1222,18 @@ export const bidsTestData = [
           ),
         ],
         tsvErrors: [],
-        comboErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTagGroup', {
+              tags: 'Definition/ExtraGroupDef',
+              string: '(Definition/ExtraGroupDef, (Red), (Blue))',
+            }),
+            {
+              path: 'invalid-definition-with-extra-groups.tsv',
+              relativePath: 'invalid-definition-with-extra-groups.tsv',
+            },
+          ),
+        ],
       },
       {
         testname: 'invalid-definition-with-extra-sibling',
@@ -1232,10 +1252,9 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('illegalDefinitionGroupTag', {
-              definition: 'ExtraSiblingDef',
-              sidecarKey: 'mydefs',
-              tag: 'Red',
+            generateIssue('invalidTagGroup', {
+              string: '(Definition/ExtraSiblingDef, Red, (Blue))',
+              tags: 'Definition/ExtraSiblingDef, Red',
             }),
             {
               path: 'invalid-definition-with-extra-sibling.json',
@@ -1244,7 +1263,18 @@ export const bidsTestData = [
           ),
         ],
         tsvErrors: [],
-        comboErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTagGroup', {
+              string: '(Definition/ExtraSiblingDef, Red, (Blue))',
+              tags: 'Definition/ExtraSiblingDef, Red',
+            }),
+            {
+              path: 'invalid-definition-with-extra-sibling.tsv',
+              relativePath: 'invalid-definition-with-extra-sibling.tsv',
+            },
+          ),
+        ],
       },
       {
         testname: 'invalid-definition-in-HED-column',

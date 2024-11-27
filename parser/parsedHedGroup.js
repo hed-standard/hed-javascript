@@ -254,6 +254,12 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     })
   }
 
+  get topColumnSplices() {
+    return this._memoize('topColumnSplices', () => {
+      return this.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedColumnSplice)
+    })
+  }
+
   get topTags() {
     return this._memoize('topTags', () => {
       return this.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)

@@ -18,6 +18,7 @@ export class SpecialChecker {
   specialMap
   specialNames
   specialGroupTags
+  specialTopGroupTags
   exclusiveTags
   noSpliceInGroup
   hasForbiddenSubgroupTags
@@ -37,6 +38,9 @@ export class SpecialChecker {
     this.specialNames = Array.from(specialMap.keys())
     this.specialGroupTags = Array.from(this.specialMap.values())
       .filter((value) => value.tagGroup === true)
+      .map((value) => value.name)
+    this.specialTopGroupTags = Array.from(this.specialMap.values())
+      .filter((value) => value.topLevelTagGroup === true)
       .map((value) => value.name)
     this.exclusiveTags = Array.from(this.specialMap.values())
       .filter((value) => value.exclusive === true)
@@ -81,12 +85,17 @@ export class SpecialChecker {
     if (issues.length > 0) {
       return issues
     }
-    issues = this.checkSpecialGroups(hedString, fullCheck)
+    issues = this.checkSpecialTopGroups(hedString, fullCheck)
     if (issues.length > 0) {
       return issues
     }
-    issues = this.checkForbiddenGroups(hedString.tagGroups)
-    return issues
+
+    issues = this.checkNoSpliceInGroupTags(hedString)
+    if (issues.length > 0) {
+      return issues
+    }
+
+    return this.checkForbiddenGroups(hedString.tagGroups)
   }
 
   /**
@@ -172,92 +181,92 @@ export class SpecialChecker {
   }
 
   /**
-   * Check the group conditions of the special tags.
+   * Check the group conditions of the special tags. The top-level has already been verified
    * @param {ParsedHedString }hedString
-   * @param {boolean} fullCheck -- if true no column splices-- internal or external
    * @returns {Issues[]|[]}
    *
    * Notes: These include the number of groups and top tag compatibility in the group
    */
-  checkSpecialGroups(hedString, fullCheck) {
+  checkSpecialTopGroups(hedString) {
     const issues = []
     for (const group of hedString.tagGroups) {
-      const nextIssues = this.checkSpecialGroup(group, fullCheck)
+      const nextIssues = this.checkSpecialTopGroup(group)
       issues.push(...nextIssues)
     }
     return issues
   }
 
   /**
-   * Check special groups for requirements
+   * Check special group requirements for special top-level tags
    * @param {ParsedHedGroup} group to be checked for requirements
-   * @param {boolean} fullCheck if true all column splices have been resolved
    * @returns {Issue[]|[]}
+   *
+   * Note:  This is a top-group check only
    */
-  checkSpecialGroup(group, fullCheck) {
-    // Check the right elements are at top level in the group
-    if (group.specialTagList.length === 0) {
-      // Nothing to check
+  checkSpecialTopGroup(group) {
+    const specialTags = group.topTags.filter((obj) => this.specialTopGroupTags.includes(obj.schemaTag.name))
+    if (specialTags.length === 0) {
       return []
+    } else if (specialTags.length >= group.topTags.length + 1) {
+      // ASSUME that groups with special tags can only have other tags which are special or a Def //TODO fix when map is removed from specialTags
+      return [
+        generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
+      ]
+    } else if (group.isDefExpandGroup && group.topTags.length === 1 && group.topGroups.length <= 1) {
+      // This group is a valid Def-expand group, and we don't have to check it further
+      return []
+    } else if (group.isDefExpandGroup || (group.hasDefExpandChildren && group.defExpandChildren.length > 1)) {
+      // It is an invalid Def-expand group  or too many Def-expand subgroups
+      return [
+        generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
+      ]
+    } else if (group.hasDefExpandChildren && group.topTags.some((obj) => obj.schemaTag.name === 'Def')) {
+      // It has both a Def tag and a Def-expand group --- which currently are not allowed
+      return [
+        generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
+      ]
     }
-    for (const subGroup of group.subParsedGroupIterator()) {
-      // Iterator includes this group
-      // Nothing to check
-
-      const specialTags = subGroup.topTags.filter((obj) => this.specialGroupTags.includes(obj.schemaTag.name))
-      if (specialTags.length === 0) {
-        continue
-      }
-
-      let issues = this.checkSpecialGroupNumbers(subGroup, specialTags, fullCheck)
-      if (issues.length > 0) {
-        return issues
-      }
-
-      if (subGroup.allTags.length > 1) {
-        issues = this.checkSpecialTopTags(subGroup, specialTags)
-      }
-      if (issues.length > 0) {
-        return issues
-      }
-    }
-    return []
+    return this._checkSpecialTopGroup(group, specialTags)
   }
 
   /**
-   * Checks the top tags in a special group for right number and value
-   * @param {ParsedHedGroup} group  group to check that special top tags are okay together
-   * @param {ParsedHedTag []} specialTags - the special tags at the top level in this group
-   * @param fullCheck
+   * Check the details after the guard conditions have been handled
+   * @param group
+   * @returns {[]|[Issue]}
+   * @private
    */
-  checkSpecialTopTags(group, specialTags) {
-    if (group.topTags.length > 2) {
-      return [
-        generateIssue('invalidGroupTags', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
-      ]
-    }
-    for (const specialTag of specialTags) {
-      const otherTags = group.topTags.filter((obj) => obj !== specialTag)
-      if (otherTags.length === 0) {
-        return []
-      }
-      if (otherTags.length > 1) {
+  _checkSpecialTopGroup(group, specialTags) {
+    const hasDef = group.topTags.some((obj) => obj.schemaTag.name === 'Def') || group.hasDefExpandChildren
+    for (const sTag of specialTags) {
+      const sTagReqs = this.specialMap.get(sTag.schemaTag.name)
+      const otherTags = group.topTags.filter((obj) => obj !== sTag)
+      const notAllowed = otherTags.filter((obj) => !sTagReqs.otherAllowedTags?.includes(obj.schemaTag.name))
+      if (notAllowed.length > 0 || this.hasDuplicateNames(otherTags)) {
+        // Make sure that there are not any duplicates in the allowed tags
         return [
-          generateIssue('invalidGroupTags', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
+          generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
         ]
       }
-      if (!this.specialMap.get(specialTag.schemaTag.name).otherAllowedTags.includes(otherTags[0].schemaTag.name)) {
-        return [
-          generateIssue('invalidGroupTags', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
-        ]
-      }
-    }
-    return []
-  }
 
-  checkSpecialGroupNumbers(subGroup, fullCheck) {
-    //let maxSubgroups = specialTags[0].maxNumberSubgroups ?? Infinity // JSON doesn't have infinity -- uses null
-    //let minSubgroups = specialTags[0].minNumberSubgroups // Will always have a value of at least 0.
+      if (!hasDef && sTagReqs.defTagRequired && group.topColumnSplices.length === 0) {
+        // Make sure that the tag has a required definition grouped with it
+        return [generateIssue('temporalWithoutDefinition', { tag: sTag.schemaTag.name, tagGroup: group.originalTag })]
+      }
+
+      const defExpandCount = sTagReqs.defTagRequired && group.hasDefExpandChildren ? 1 : 0
+      const maxReq = (sTagReqs.maxNonDefSubgroups ?? Infinity) + defExpandCount
+      if (group.topGroups.length > maxReq) {
+        return [
+          generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
+        ]
+      }
+      if (group.topColumnSplices.length === 0 && group.topGroups.length < sTagReqs.minNonDefSubgroups) {
+        // If no column splices, the minimum number is known
+        return [
+          generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
+        ]
+      }
+    }
     return []
   }
 
@@ -322,17 +331,16 @@ export class SpecialChecker {
    * Notes: Currently these are Definition and Def-expand
    */
 
+  /**
+   * Check that no splice in group tags are not at the top level
+   * @param hedString
+   * @returns {Issue[]|[]}
+   */
   checkNoSpliceInGroupTags(hedString) {
-    const spliceTags = hedString.tags.filter((obj) => this.noSpliceInGroup.includes(obj.schemaTag._name))
-    if (spliceTags.length === 0) {
-      return []
+    const spliceTags = hedString.topLevelTags.filter((obj) => this.noSpliceInGroup.includes(obj.schemaTag._name))
+    if (spliceTags.length > 0) {
+      return [generateIssue('missingTagGroup', { tag: spliceTags[0].originalTag, string: hedString.hedString })]
     }
-    let issues = []
-    //if string doesn't have any of these splice-group-tags return
-    return []
-  }
-
-  getAllTagsInSubgroups(group) {
     return []
   }
 
@@ -377,6 +385,17 @@ export class SpecialChecker {
       tag.hasAttribute('tagGroup') ||
       (this.specialMap.has(tag.schemaTag.name) && this.specialMap.get(tag.schemaTag.name).tagGroup)
     )
+  }
+
+  hasDuplicateNames(list) {
+    const seen = new Set()
+    for (const obj of list) {
+      if (seen.has(obj.schemaTag.name)) {
+        return true // Duplicate found
+      }
+      seen.add(obj.schemaTag.name)
+    }
+    return false // No duplicates
   }
 
   /**
