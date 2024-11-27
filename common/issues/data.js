@@ -66,7 +66,7 @@ export default {
   multipleUniqueTags: {
     hedCode: 'TAG_NOT_UNIQUE',
     level: 'error',
-    message: stringTemplate`Multiple unique tags with prefix - "${'tag'}".`,
+    message: stringTemplate`Multiple unique "${'tag'}" tags in "${'string'}".`,
   },
   childRequired: {
     hedCode: 'TAG_REQUIRES_CHILD',
@@ -189,15 +189,25 @@ export default {
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" must appear in a tag group.`,
   },
+  invalidTagGroup: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`"${'tagGroup'}" has invalid group tags or invalid number of subgroups.`,
+  },
   invalidTopLevelTagGroupTag: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is only allowed inside of a top-level tag group, but is not at top level in "${'string'}".`,
   },
+  invalidGroupTags: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`Tags "${'tags'}" in "${'string'}" cannot be in a subgroups together.`,
+  },
   invalidGroupTopTags: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`Tags "${'tags'}" cannot be at the same level in a group.`,
+    message: stringTemplate`Tags "${'tags'}" cannot be at the same level in group "${'string'}".`,
   },
   multipleTopLevelTagGroupTags: {
     hedCode: 'TAG_GROUP_ERROR',

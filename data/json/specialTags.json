@@ -1,5 +1,6 @@
 {
   "Def": {
+    "name": "Def",
     "allowExtension": false,
     "allowValue": true,
     "allowTwoLevelValue": true,
@@ -7,15 +8,17 @@
     "exclusive": false,
     "tagGroup": false,
     "topLevelTagGroup": false,
-    "maxNumberSubgroups": -1,
-    "minNumberSubgroups": -1,
+    "maxNonDefSubgroups": -1,
+    "minNonDefSubgroups": -1,
     "ERROR_CODE": "DEF_INVALID",
     "noSpliceInGroup": false,
     "forbiddenSubgroupTags": [],
     "defTagRequired": false,
-    "otherAllowedTags": null
+    "otherAllowedTags": null,
+    "otherAllowedGroups": null
   },
   "Def-expand": {
+    "name": "Def-expand",
     "allowExtension": false,
     "allowValue": true,
     "allowTwoLevelValue": true,
@@ -23,15 +26,17 @@
     "exclusive": false,
     "tagGroup": true,
     "topLevelTagGroup": false,
-    "maxNumberSubgroups": 1,
-    "minNumberSubgroups": 0,
+    "maxNonDefSubgroups": 1,
+    "minNonDefSubgroups": 0,
     "ERROR_CODE": "DEF_EXPAND_INVALID",
     "noSpliceInGroup": true,
-    "forbiddenSubgroupTags": ["Def", "Def-expand"],
+    "forbiddenSubgroupTags": ["Def", "Def-expand", "Definition"],
     "defTagRequired": false,
-    "otherAllowedTags": []
+    "otherAllowedTags": [],
+    "otherAllowedGroups": []
   },
   "Definition": {
+    "name": "Definition",
     "allowExtension": false,
     "allowValue": true,
     "allowTwoLevelValue": true,
@@ -39,15 +44,17 @@
     "exclusive": true,
     "tagGroup": true,
     "topLevelTagGroup": true,
-    "maxNumberSubgroups": 1,
-    "minNumberSubgroups": 0,
+    "maxNonDefSubgroups": 1,
+    "minNonDefSubgroups": 0,
     "ERROR_CODE": "DEFINITION_INVALID",
     "noSpliceInGroup": true,
-    "forbiddenSubgroupTags": ["Def", "Def-expand"],
+    "forbiddenSubgroupTags": ["Def", "Def-expand", "Definition"],
     "defTagRequired": false,
-    "otherAllowedTags": []
+    "otherAllowedTags": [],
+    "otherAllowedGroups": []
   },
   "Delay": {
+    "name": "Delay",
     "allowExtension": false,
     "allowValue": true,
     "allowTwoLevelValue": false,
@@ -55,15 +62,17 @@
     "exclusive": false,
     "tagGroup": true,
     "topLevelTagGroup": true,
-    "maxNumberSubgroups": 1,
-    "minNumberSubgroups": 1,
+    "maxNonDefSubgroups": 1,
+    "minNonDefSubgroups": 0,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
     "noSpliceInGroup": false,
     "forbiddenSubgroupTags": [],
     "defTagRequired": false,
-    "otherAllowedTags": ["Duration"]
+    "otherAllowedTags": ["Duration", "Onset", "Offset", "Inset", "Def"],
+    "otherAllowedGroups": ["Def-expand"]
   },
   "Duration": {
+    "name": "Duration",
     "allowExtension": false,
     "allowValue": true,
     "allowTwoLevelValue": false,
@@ -71,15 +80,17 @@
     "exclusive": false,
     "tagGroup": true,
     "topLevelTagGroup": true,
-    "maxNumberSubgroups": 1,
-    "minNumberSubgroups": 1,
+    "maxNonDefSubgroups": 1,
+    "minNonDefSubgroups": 1,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
     "noSpliceInGroup": false,
     "forbiddenSubgroupTags": [],
     "defTagRequired": false,
-    "otherAllowedTags": ["Delay"]
+    "otherAllowedTags": ["Delay"],
+    "otherAllowedGroups": []
   },
   "Event-context": {
+    "name": "Event-context",
     "allowExtension": false,
     "allowValue": false,
     "allowTwoLevelValue": false,
@@ -87,15 +98,17 @@
     "exclusive": false,
     "tagGroup": true,
     "topLevelTagGroup": true,
-    "maxNumberSubgroups": null,
-    "minNumberSubgroups": 0,
+    "maxNonDefSubgroups": null,
+    "minNonDefSubgroups": 0,
     "ERROR_CODE": "TAG_GROUP_ERROR",
     "noSpliceInGroup": true,
     "forbiddenSubgroupTags": [],
     "defTagRequired": false,
-    "otherAllowedTags": []
+    "otherAllowedTags": [],
+    "otherAllowedGroups": []
   },
   "Inset": {
+    "name": "Inset",
     "allowExtension": false,
     "allowValue": false,
     "allowTwoLevelValue": false,
@@ -103,15 +116,17 @@
     "exclusive": false,
     "tagGroup": true,
     "topLevelTagGroup": true,
-    "maxNumberSubgroups": 1,
-    "minNumberSubgroups": 0,
+    "maxNonDefSubgroups": 1,
+    "minNonDefSubgroups": 0,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
     "noSpliceInGroup": false,
     "forbiddenSubgroupTags": [],
     "defTagRequired": true,
-    "otherAllowedTags": []
+    "otherAllowedTags": ["Def", "Delay"],
+    "otherAllowedGroups": ["Def-expand"]
   },
   "Offset": {
+    "name": "Offset",
     "allowExtension": false,
     "allowValue": false,
     "allowTwoLevelValue": false,
@@ -119,15 +134,17 @@
     "exclusive": false,
     "tagGroup": true,
     "topLevelTagGroup": true,
-    "maxNumberSubgroups": 1,
-    "minNumberSubgroups": 0,
+    "maxNonDefSubgroups": 1,
+    "minNonDefSubgroups": 0,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
     "noSpliceInGroup": false,
     "forbiddenSubgroupTags": [],
     "defTagRequired": true,
-    "otheAllowedTags": ["Def"]
+    "otherAllowedTags": ["Def", "Delay"],
+    "otherAllowedGroups": ["Def-expand"]
   },
   "Onset": {
+    "name": "Onset",
     "allowExtension": false,
     "allowValue": false,
     "allowTwoLevelValue": false,
@@ -135,12 +152,13 @@
     "exclusive": false,
     "tagGroup": true,
     "topLevelTagGroup": true,
-    "maxNumberSubgroups": 1,
-    "minNumberSubgroups": 0,
+    "maxNonDefSubgroups": 1,
+    "minNonDefSubgroups": 0,
     "ERROR_CODE": "TEMPORAL_TAG_ERROR",
     "noSpliceInGroup": false,
     "forbiddenSubgroupTags": [],
     "defTagRequired": true,
-    "otherAllowedTags": []
+    "otherAllowedTags": ["Def", "Delay"],
+    "otherAllowedGroups": ["Def-expand"]
   }
 }

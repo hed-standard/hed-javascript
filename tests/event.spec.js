@@ -709,10 +709,10 @@ describe('HED string and event validation', () => {
         }
         const testStrings = {
           greenTriangleDef: '(Def/GreenTriangleDefinition/0.5, Width/15 cm)',
-          trainDefExpand: '(Def-expand/TrainDefinition, Age/20)',
+          trainDefExpand: '(Def-expand/TrainDefinition, (Age/20))',
           yellowCubeDef: '(Def/CubeDefinition, Volume/50 m^3)',
           invalidDef: '(Def/InvalidDefinition, Square)',
-          invalidDefExpand: '(Def-expand/InvalidDefExpand, Circle)',
+          invalidDefExpand: '(Def-expand/InvalidDefExpand, (Circle))',
         }
         const expectedIssues = {
           greenTriangleDef: [],
@@ -731,7 +731,7 @@ describe('HED string and event validation', () => {
       it('should have a child when required', () => {
         const testStrings = {
           noRequiredChild: 'Red',
-          hasRequiredChild: '(Duration/5)',
+          hasRequiredChild: '(Duration/5, (Red))',
           missingChild: '(Duration)',
           longMissingChild: '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Duration)',
         }
@@ -964,8 +964,9 @@ describe('HED string and event validation', () => {
           validDef: [],
           validDefExpand: [],
           invalidDefExpand: [
-            generateIssue('invalidTopLevelTag', {
+            generateIssue('missingTagGroup', {
               tag: testStrings.invalidDefExpand,
+              string: testStrings.invalidDefExpand,
             }),
           ],
         }

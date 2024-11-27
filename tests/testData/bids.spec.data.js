@@ -234,7 +234,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: 'Red, Blue, (Definition/myDef, (Label/Red, Blue))',
-          ball: 'Def/Acc/5.4 m-per-s^2',
+          ball: 'Def/Acc/5.4',
         },
       },
     },
@@ -243,7 +243,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Definition/myDef, (Label/Red, Blue))',
-          ball: 'Def/Acc/4.5 m-per-s^2',
+          ball: 'Def/Acc/4.5',
         },
       },
     },
@@ -254,7 +254,7 @@ const sidecars = [
       // Valid definitions
       defs: {
         HED: {
-          def1: '(Definition/Acc/#, (Acceleration/#, Red))',
+          def1: '(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))',
           def2: '(Definition/MyColor, (Label/Pie))',
         },
       },
@@ -273,7 +273,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{response_time}, (Def/Acc/3.5)',
         },
       },
       response_time: {
@@ -286,7 +286,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{HED}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{HED}, (Def/Acc/3.5)',
         },
       },
       response_action: {
@@ -298,7 +298,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2), ({HED})',
+          ball: '{response_time}, (Def/Acc/3.5), ({HED})',
         },
       },
       response_time: {
@@ -311,7 +311,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{response_time}, (Def/Acc/3.5)',
         },
       },
       response_time: {
@@ -328,7 +328,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow)), {HED}',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{response_time}, (Def/Acc/3.5)',
         },
       },
       response_time: {
@@ -362,7 +362,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow)), {HED}',
-          ball: '{HED}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{HED}, (Def/Acc/3.5)',
         },
       },
       response_time: {
@@ -374,7 +374,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}{, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{response_time}{, (Def/Acc/3.5)',
         },
       },
       event_code2: {
@@ -386,7 +386,7 @@ const sidecars = [
       event_code3: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{response_time}}, (Def/Acc/3.5)',
         },
       },
       event_code4: {
@@ -407,7 +407,7 @@ const sidecars = [
       // Valid definitions
       defs: {
         HED: {
-          def1: '(Definition/Acc/#, (Acceleration/#, Red))',
+          def1: '(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))',
           def2: '(Definition/MyColor, (Label/Pie))',
         },
       },
@@ -416,7 +416,7 @@ const sidecars = [
       // Invalid definitions
       defs: {
         HED: {
-          def1: '(Definition/Acc/#, {event_code}, (Acceleration/#, Red))',
+          def1: '(Definition/Acc/#, {event_code}, (Acceleration/# m-per-s^2, Red))',
           def2: '(Definition/MyColor, (Label/Pie, {response_time}))',
         },
       },
@@ -426,7 +426,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{response_time}, (Def/Acc/3.5)',
         },
       },
       response_time: {
@@ -439,7 +439,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{HED}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{HED}, (Def/Acc/3.5)',
         },
       },
       response_action: {
@@ -451,7 +451,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2), ({HED})',
+          ball: '{response_time}, (Def/Acc/3.5), ({HED})',
         },
       },
       response_time: {
@@ -464,7 +464,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{response_time}, (Def/Acc/3.5)',
         },
       },
       response_time: {
@@ -476,7 +476,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{response_time}, (Def/Acc/3.5)',
         },
       },
       response_action: {
@@ -488,7 +488,7 @@ const sidecars = [
       event_code: {
         HED: {
           face: '(Red, Blue), (Green, (Yellow))',
-          ball: '{response_time}, {response_time}, (Def/Acc/3.5 m-per-s^2)',
+          ball: '{response_time}, {response_time}, (Def/Acc/3.5)',
         },
       },
       response_time: {

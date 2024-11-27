@@ -5,6 +5,7 @@ import { getTagName } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
+import { SpecialChecker } from './special'
 
 /**
  * A parsed HED tag group.
@@ -53,7 +54,6 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   constructor(parsedHedTags, hedSchemas, hedString, originalBounds) {
     const originalTag = hedString.substring(...originalBounds)
     super(originalTag, originalBounds)
-
     this.tags = parsedHedTags
     this._findSpecialGroups(hedSchemas)
   }
@@ -232,9 +232,62 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
-   * The trailing portion of {@link canonicalTag}.
+   * A list of all tags in the group
+   * @returns {ParsedHedTag[]}
+   */
+  get allTags() {
+    return this._memoize('allTags', () => {
+      const tagGroups = this.tags.filter((obj) => obj instanceof ParsedHedGroup)
+      const subgroupTags = tagGroups.flatMap((tagGroup) => tagGroup.allTags)
+      return this.topTags.concat(subgroupTags)
+    })
+  }
+
+  /**
+   * A list of all tags in the subgroups
+   * @returns {ParsedHedTag[]}
+   */
+  get allSubgroupTags() {
+    return this._memoize('allSubgroupTags', () => {
+      const tagGroups = this.tags.filter((obj) => obj instanceof ParsedHedGroup)
+      return tagGroups.flatMap((tagGroup) => tagGroup.allTags)
+    })
+  }
+
+  get topColumnSplices() {
+    return this._memoize('topColumnSplices', () => {
+      return this.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedColumnSplice)
+    })
+  }
+
+  get topTags() {
+    return this._memoize('topTags', () => {
+      return this.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)
+    })
+  }
+
+  get topGroups() {
+    return this._memoize('topGroups', () => {
+      return this.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedGroup)
+    })
+  }
+
+  get specialTagList() {
+    return this._memoize('specialTagList', () => {
+      const special = new SpecialChecker()
+      return this.allTags.filter((obj) => special.specialNames.includes(obj.schemaTag.name))
+    })
+  }
+
+  get hasForbiddenSubgroupTags() {
+    return this._memoize('hasForbiddenSubgroupTags', () => {
+      return this.allTags.some((obj) => new SpecialChecker().hasForbiddenSubgroupTags.includes(obj.schemaTag.name))
+    })
+  }
+  /**
+   * A list of all column splices at all levels
    *
-   * @returns {string} The "name" portion of the canonical tag.
+   * @returns {ParsedHedColumnSplice[]} The "name" portion of the canonical tag.
    */
   get allColumnSplices() {
     return this._memoize('allColumnSplices', () => {
