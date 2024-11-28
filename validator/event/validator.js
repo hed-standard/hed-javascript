@@ -145,7 +145,7 @@ export default class HedValidator {
    */
   // eslint-disable-next-line no-unused-vars
   validateHedTagGroup(parsedTagGroup) {
-    this.checkDefinitionGroupSyntax(parsedTagGroup)
+    //this.checkDefinitionGroupSyntax(parsedTagGroup)
     this.checkTemporalSyntax(parsedTagGroup)
   }
 
@@ -215,19 +215,6 @@ export default class HedValidator {
           addIssue(secondTag)
         }
       })
-    })
-  }
-
-  // TODO:  Doesn't seem to be working correctly
-  /**
-   * Check for multiple instances of a unique tag.
-   */
-  checkForMultipleUniqueTags(tagList) {
-    const actualTagList = tagList.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)
-    this._checkForTagAttribute(uniqueType, (uniqueTagPrefix) => {
-      if (actualTagList.filter((tag) => tag.formattedTag.startsWith(uniqueTagPrefix)).length > 1) {
-        this.pushIssue('multipleUniqueTags', { tag: uniqueTagPrefix, string: '' })
-      }
     })
   }
 
@@ -456,7 +443,8 @@ export default class HedValidator {
     }
     const defName = ParsedHedGroup.findDefinitionName(tag.canonicalTag, defShortTag)
     if (!this.definitions.has(defName)) {
-      this.pushIssue('missingDefinition', { definition: defName })
+      const code = defShortTag === 'Def' ? 'missingDefinitionForDef' : 'missingDefinitionForDefExpand'
+      this.pushIssue(code, { definition: defName })
     }
   }
 

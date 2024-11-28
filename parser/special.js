@@ -1,13 +1,6 @@
 import specialTags from '../data/json/specialTags.json'
-import ParsedHedGroup from './parsedHedGroup'
-import ParsedHedTag from './parsedHedTag'
-import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import { generateIssue } from '../common/issues/issues'
-import { TagSpec } from './tokenizer'
-//import fs from 'fs'
 
-//const readFileSync = fs.readFileSync
-//const specialJson = readFileSync('../data/json/specialTags.json', 'utf8')
 const specialMap = new Map(Object.entries(specialTags))
 
 export class SpecialChecker {
@@ -17,17 +10,13 @@ export class SpecialChecker {
    */
   specialMap
   specialNames
+  requireValueTags
+  allowTwoLevelValueTags
   specialGroupTags
   specialTopGroupTags
   exclusiveTags
   noSpliceInGroup
   hasForbiddenSubgroupTags
-
-  /**
-   * Array of the special tags in this HED string
-   * @type {ParsedHedTag []}
-   */
-  specialTags
 
   constructor() {
     if (SpecialChecker.instance) {
@@ -36,23 +25,23 @@ export class SpecialChecker {
     }
     this.specialMap = specialMap
     this.specialNames = Array.from(specialMap.keys())
-    this.specialGroupTags = Array.from(this.specialMap.values())
-      .filter((value) => value.tagGroup === true)
-      .map((value) => value.name)
-    this.specialTopGroupTags = Array.from(this.specialMap.values())
-      .filter((value) => value.topLevelTagGroup === true)
-      .map((value) => value.name)
-    this.exclusiveTags = Array.from(this.specialMap.values())
-      .filter((value) => value.exclusive === true)
-      .map((value) => value.name)
-    this.noSpliceInGroup = Array.from(this.specialMap.values())
-      .filter((value) => value.noSpliceInGroup === true)
-      .map((value) => value.name)
+    this.requireValueTags = this._getSpecialTags('requireValue')
+    this.allowTwoLevelValueTags = this._getSpecialTags('allowTwoLevelValue')
+    this.specialGroupTags = this._getSpecialTags('tagGroup')
+    this.specialTopGroupTags = this._getSpecialTags('topLevelTagGroup')
+    this.exclusiveTags = this._getSpecialTags('exclusive')
+    this.noSpliceInGroup = this._getSpecialTags('noSpliceInGroup')
     this.hasForbiddenSubgroupTags = Array.from(this.specialMap.values())
       .filter((value) => value.forbiddenSubgroupTags.length > 0)
       .map((value) => value.name)
     // eslint-disable-next-line no-constructor-return
     return this
+  }
+
+  _getSpecialTags(tagProperty) {
+    return Array.from(this.specialMap.values())
+      .filter((value) => value[tagProperty] === true)
+      .map((value) => value.name)
   }
 
   /**
@@ -100,7 +89,7 @@ export class SpecialChecker {
 
   /**
    *  Check whether column splices are allowed
-   *  @param {ParsedHedString} - hed string to be checked for splice conflicts
+   *  @param {ParsedHedString} hedString - to be checked for splice conflicts
    *  @param {boolean} fullCheck - if true, then column splices should have been resolved
    *  @returns {Issue[]|[]} - issues with splices that can be detected
    */
@@ -151,7 +140,7 @@ export class SpecialChecker {
 
   /**
    * Check the exclusive property (so far only for Definitions) - only groups of same kind allowed in string
-   * @param hedString {parsedHedString} - the object to be checked
+   * @param hedString {ParsedHedString} - the object to be checked
    * @returns {Issue[]|[]}
    *
    * Notes:  Can only be in a top group and with other top groups of the same kind
@@ -209,29 +198,24 @@ export class SpecialChecker {
       return []
     } else if (specialTags.length >= group.topTags.length + 1) {
       // ASSUME that groups with special tags can only have other tags which are special or a Def //TODO fix when map is removed from specialTags
-      return [
-        generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
-      ]
+      return [generateIssue('invalidTagGroup', { tagGroup: group.originalTag })]
     } else if (group.isDefExpandGroup && group.topTags.length === 1 && group.topGroups.length <= 1) {
       // This group is a valid Def-expand group, and we don't have to check it further
       return []
     } else if (group.isDefExpandGroup || (group.hasDefExpandChildren && group.defExpandChildren.length > 1)) {
       // It is an invalid Def-expand group  or too many Def-expand subgroups
-      return [
-        generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
-      ]
+      return [generateIssue('invalidTagGroup', { tagGroup: group.originalTag })]
     } else if (group.hasDefExpandChildren && group.topTags.some((obj) => obj.schemaTag.name === 'Def')) {
       // It has both a Def tag and a Def-expand group --- which currently are not allowed
-      return [
-        generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
-      ]
+      return [generateIssue('invalidTagGroup', { tagGroup: group.originalTag })]
     }
     return this._checkSpecialTopGroup(group, specialTags)
   }
 
   /**
    * Check the details after the guard conditions have been handled
-   * @param group
+   * @param {ParsedHedGroup} group whose special tags are to be checked
+   * @param {ParsedHedTag[]} specialTags tags in this group with special properties
    * @returns {[]|[Issue]}
    * @private
    */
@@ -243,9 +227,7 @@ export class SpecialChecker {
       const notAllowed = otherTags.filter((obj) => !sTagReqs.otherAllowedTags?.includes(obj.schemaTag.name))
       if (notAllowed.length > 0 || this.hasDuplicateNames(otherTags)) {
         // Make sure that there are not any duplicates in the allowed tags
-        return [
-          generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
-        ]
+        return [generateIssue('invalidTagGroup', { tagGroup: group.originalTag })]
       }
 
       if (!hasDef && sTagReqs.defTagRequired && group.topColumnSplices.length === 0) {
@@ -256,15 +238,11 @@ export class SpecialChecker {
       const defExpandCount = sTagReqs.defTagRequired && group.hasDefExpandChildren ? 1 : 0
       const maxReq = (sTagReqs.maxNonDefSubgroups ?? Infinity) + defExpandCount
       if (group.topGroups.length > maxReq) {
-        return [
-          generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
-        ]
+        return [generateIssue('invalidTagGroup', { tagGroup: group.originalTag })]
       }
       if (group.topColumnSplices.length === 0 && group.topGroups.length < sTagReqs.minNonDefSubgroups) {
         // If no column splices, the minimum number is known
-        return [
-          generateIssue('invalidTagGroup', { tags: this.getTagListString(group.topTags), string: group.originalTag }),
-        ]
+        return [generateIssue('invalidTagGroup', { tagGroup: group.originalTag })]
       }
     }
     return []
@@ -346,7 +324,7 @@ export class SpecialChecker {
 
   /**
    * Check for tags with the unique attribute
-   * @param {HedString} hedString
+   * @param {ParsedHedString} hedString
    * @returns {Issue[]|*[]}
    */
   checkUnique(hedString) {

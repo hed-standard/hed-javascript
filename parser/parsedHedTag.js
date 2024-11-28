@@ -3,6 +3,7 @@ import { getTagLevels } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
+import { SpecialChecker } from './special'
 
 const allowedRegEx = /^[^{}\,]*$/
 

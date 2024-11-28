@@ -73,7 +73,7 @@ export default class TagConverter {
     let parentTag = undefined
     for (let tagLevelIndex = 0; tagLevelIndex < this.tagLevels.length; tagLevelIndex++) {
       if (parentTag?.valueTag) {
-        // Its a value tag
+        // It is a value tag
         this._setSchemaTag(parentTag.valueTag, tagLevelIndex)
         return [this.schemaTag, this.remainder]
       }

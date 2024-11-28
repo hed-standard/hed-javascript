@@ -471,8 +471,8 @@ export const parseTestData = [
         warnings: [],
       },
       {
-        testname: 'definition-at-top-level-but-slices',
-        explanation: '"Definition/Green1, (Green)" is not in group (not allowed to be in a slice)',
+        testname: 'definition-at-top-level-but-splices',
+        explanation: '"Definition/Green1, (Green)" is not in group (not allowed to be in a splice)',
         schemaVersion: '8.3.0',
         stringIn: 'Definition/Green1, (Green)',
         stringLong: null,
@@ -487,6 +487,71 @@ export const parseTestData = [
         warnings: [],
       },
       {
+        testname: 'definition-with-extra-tags',
+        explanation: '"(Definition/IllegalSibling, Train, (Circle))" should not have an extra tag in definition',
+        schemaVersion: '8.3.0',
+        stringIn: '(Definition/IllegalSibling, Train, (Circle))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidTagGroup', {
+            tagGroup: '(Definition/IllegalSibling, Train, (Circle))',
+          }),
+        ],
+        warnings: [],
+      },
+      {
+        testname: 'definition-with-def-inside',
+        explanation: '"(Definition/DefNestedInDefinition, (Def/Nested, Triangle))" cannot have Def in definition',
+        schemaVersion: '8.3.0',
+        stringIn: '(Definition/DefNestedInDefinition, (Def/Nested, Triangle))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidGroupTags', {
+            string: '(Definition/DefNestedInDefinition, (Def/Nested, Triangle))',
+            tags: 'Def/Nested',
+          }),
+        ],
+        warnings: [],
+      },
+
+      {
+        testname: 'definition-with-nested-definition',
+        explanation:
+          '"(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))" should not have an extra tag in definition',
+        schemaVersion: '8.3.0',
+        stringIn: '(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidTopLevelTagGroupTag', {
+            string: '(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))',
+            tag: 'Definition/InnerDefinition',
+          }),
+        ],
+        warnings: [],
+      },
+      {
+        testname: 'definition-with-multiple-groups',
+        explanation:
+          '"(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))" should only have 1 inner group',
+        schemaVersion: '8.3.0',
+        stringIn: '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidTagGroup', {
+            tagGroup: '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
+          }),
+        ],
+        warnings: [],
+      },
+      {
         testname: 'definition-group-with-multiple-definition-tags',
         explanation: '"(Definition/Apple, Definition/Banana, (Blue))" has two definition tags in the same group.',
         schemaVersion: '8.3.0',
@@ -496,8 +561,7 @@ export const parseTestData = [
         fullCheck: false,
         errors: [
           generateIssue('invalidTagGroup', {
-            tags: 'Definition/Apple, Definition/Banana',
-            string: '(Definition/Apple, Definition/Banana, (Blue))',
+            tagGroup: '(Definition/Apple, Definition/Banana, (Blue))',
           }),
         ],
         warnings: [],
@@ -620,7 +684,7 @@ export const parseTestData = [
         stringLong: null,
         stringShort: null,
         fullCheck: false,
-        errors: [generateIssue('invalidTagGroup', { tags: 'Offset, Item', string: '(Offset, Item)' })],
+        errors: [generateIssue('invalidTagGroup', { tagGroup: '(Offset, Item)' })],
         warnings: [],
       },
       {
@@ -672,6 +736,18 @@ export const parseTestData = [
         warnings: [],
       },
       {
+        testname: 'def-expand-with-value',
+        explanation: '"(Def-expand/Acc/4.5, (Acceleration/4.5, Red))" is okay.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Def-expand/Acc/4.5, (Acceleration/4.5, Red))',
+        stringLong:
+          '(Property/Organizational-property/Def-expand/Acc/4.5, (Property/Data-property/Data-value/Spatiotemporal-value/Rate-of-change/Acceleration/4.5, Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red))',
+        stringShort: '(Def-expand/Acc/4.5, (Acceleration/4.5, Red))',
+        fullCheck: false,
+        errors: [],
+        warnings: [],
+      },
+      {
         testname: 'def-expand-not-in-group-fullcheck',
         explanation: '"Def-expand/Acc/4.5, (Acceleration/4.5, Red)" needs a group on full-check.',
         schemaVersion: '8.3.0',
@@ -716,17 +792,16 @@ export const parseTestData = [
         warnings: [],
       },
       {
-        testname: 'offset-group-has-other-tag',
-        explanation: '"((Def-expand/MyColor, (Label/Pie)), Offset, Blue)" should not have an extra tag.',
+        testname: 'inset-group-has-other-tag',
+        explanation: '"((Def-expand/MyColor, (Label/Pie)), Inset, Blue)" should not have an extra tag.',
         schemaVersion: '8.3.0',
-        stringIn: '((Def-expand/MyColor, (Label/Pie)), Offset, Blue)',
+        stringIn: '((Def-expand/MyColor, (Label/Pie)), Inset, Blue)',
         stringLong: null,
         stringShort: null,
         fullCheck: false,
         errors: [
           generateIssue('invalidTagGroup', {
-            tags: 'Offset, Blue',
-            string: '((Def-expand/MyColor, (Label/Pie)), Offset, Blue)',
+            tagGroup: '((Def-expand/MyColor, (Label/Pie)), Inset, Blue)',
           }),
         ],
         warnings: [],
