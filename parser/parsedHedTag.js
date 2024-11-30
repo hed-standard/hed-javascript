@@ -1,5 +1,4 @@
 import { IssueError } from '../common/issues/issues'
-import { getTagLevels } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
@@ -7,8 +6,6 @@ import { SpecialChecker } from './special'
 
 const allowedRegEx = /^[^{}\,]*$/
 
-//TODO This is temporary until special tag handling is available.
-const threeLevelTags = ['Definition', 'Def', 'Def-expand']
 /**
  * A parsed HED tag.
  */
@@ -61,9 +58,9 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   _value
 
   /**
-   * If definition
+   * If definition this is the second value if
    *
-   * @type {Array}
+   * @type {string}
    * @private
    */
   _splitValue
@@ -122,22 +119,30 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Handle the remainder portion
+   * Handle the remainder portion for value tag (converter handles others)
    *
+   * @param (SchemaTag) schemaTag - the part of the tag that is in the schema
+   * @param {string} remainder - the leftover part
    * @throws {IssueError} If parsing the remainder section fails.
    */
   _handleRemainder(schemaTag, remainder) {
-    if (remainder === '' || !(schemaTag instanceof SchemaValueTag)) {
-      this._extension = remainder
+    if (!(schemaTag instanceof SchemaValueTag)) {
       return
     }
-    if (threeLevelTags.includes(this.schemaTag.name)) {
-      this._handleSpecial(remainder)
-      return
+    // Check that there is a value if required
+    const special = SpecialChecker.getInstance()
+    if (
+      (schemaTag.hasAttributeName('requireChild') || special.requireValueTags.includes(schemaTag.name)) &&
+      remainder === ''
+    ) {
+      IssueError.generateAndThrow('valueRequired', { tag: this.originalTag })
     }
-    this._splitValue = null
+    // Check if this could have a two-level value
+    const [value, rest] = this._getSplitValue(remainder, special)
+    this._splitValue = rest
 
-    const [actualUnit, actualUnitString, actualValueString] = this._separateUnits(schemaTag, remainder)
+    // Resolve the units and check
+    const [actualUnit, actualUnitString, actualValueString] = this._separateUnits(schemaTag, value)
     this._units = actualUnit
     this._value = actualValueString
 
@@ -163,18 +168,18 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     return [actualUnit, actualUnitString, actualValueString]
   }
 
-  // TODO:  Fix this
   /**
-   * Handle special -- handles special three-level tags
+   * Handle special three-level tags
+   * @param {string} remainder - the remainder of the tag string after schema tag
+   * @param {SpecialChecker} special - the special checker for checking the special tag properties
    */
-  _handleSpecial(remainder) {
-    const splitValue = remainder.split('/', 2)
-    const entryManager = this.schema.entries.valueClasses
-    if (entryManager.getEntry('nameClass').validateValue(splitValue[0])) {
-      this._splitValue = splitValue
-    } else {
-      IssueError.generateAndThrow('invalidValue', { tag: this.originalTag })
+  _getSplitValue(remainder, special) {
+    if (!special.allowTwoLevelValueTags.includes(this.schemaTag.name)) {
+      return [remainder, null]
     }
+    const split = remainder.split('/', 2)
+    const rest = split.length > 1 ? split[1] : null
+    return [split[0], rest]
   }
 
   /**
@@ -248,27 +253,29 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     }
   }
 
-  /**
+  /*
+  /!**
    * The trailing portion of {@link canonicalTag}.
    *
    * @returns {string} The "name" portion of the canonical tag.
-   */
+   *!/
   get canonicalTagName() {
     return this._memoize('canonicalTagName', () => {
       return ParsedHedTag.getTagName(this.canonicalTag)
     })
-  }
+  }*/
 
-  /**
+  /*
+  /!**
    * The trailing portion of {@link formattedTag}.
    *
    * @returns {string} The "name" portion of the formatted tag.
-   */
+   *!/
   get formattedTagName() {
     return this._memoize('formattedTagName', () => {
       return ParsedHedTag.getTagName(this.formattedTag)
     })
-  }
+  }*/
 
   /**
    * The trailing portion of {@link originalTag}.
@@ -318,16 +325,17 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     })
   }
 
-  /**
+  /*
+  /!**
    * The parent portion of {@link originalTag}.
    *
    * @returns {string} The "parent" portion of the original tag.
-   */
+   *!/
   get parentOriginalTag() {
     return this._memoize('parentOriginalTag', () => {
       return ParsedHedTag.getParentTag(this.originalTag)
     })
-  }
+  }*/
 
   /**
    * Iterate through a tag's ancestor tag strings.
@@ -364,11 +372,12 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     return false
   }
 
-  /**
+  /*
+  /!**
    * Check if any level of this HED tag allows extensions.
    *
    * @returns {boolean} Whether any level of this HED tag allows extensions.
-   */
+   *!/
   get allowsExtensions() {
     return this._memoize('allowsExtensions', () => {
       if (this.originalTagName === '#') {
@@ -382,7 +391,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
         this.schema?.tagHasAttribute(tagSubstring, extensionAllowedAttribute),
       )
     })
-  }
+  }*/
 
   /**
    * Determine if this HED tag is equivalent to another HED tag.

@@ -1,7 +1,7 @@
 {
   "Def": {
     "name": "Def",
-    "allowExtension": false,
+    "noExtension": true,
     "allowValue": true,
     "allowTwoLevelValue": true,
     "requireValue": true,
@@ -19,7 +19,7 @@
   },
   "Def-expand": {
     "name": "Def-expand",
-    "allowExtension": false,
+    "noExtension": true,
     "allowValue": true,
     "allowTwoLevelValue": true,
     "requireValue": true,
@@ -37,7 +37,7 @@
   },
   "Definition": {
     "name": "Definition",
-    "allowExtension": false,
+    "noExtension": true,
     "allowValue": true,
     "allowTwoLevelValue": true,
     "requireValue": true,
@@ -55,7 +55,7 @@
   },
   "Delay": {
     "name": "Delay",
-    "allowExtension": false,
+    "noExtension": true,
     "allowValue": true,
     "allowTwoLevelValue": false,
     "requireValue": true,
@@ -73,7 +73,7 @@
   },
   "Duration": {
     "name": "Duration",
-    "allowExtension": false,
+    "noExtension": true,
     "allowValue": true,
     "allowTwoLevelValue": false,
     "requireValue": true,
@@ -91,7 +91,7 @@
   },
   "Event-context": {
     "name": "Event-context",
-    "allowExtension": false,
+    "noExtension": true,
     "allowValue": false,
     "allowTwoLevelValue": false,
     "requireValue": false,
@@ -109,7 +109,7 @@
   },
   "Inset": {
     "name": "Inset",
-    "allowExtension": false,
+    "noExtension": true,
     "allowValue": false,
     "allowTwoLevelValue": false,
     "requireValue": false,
@@ -127,7 +127,7 @@
   },
   "Offset": {
     "name": "Offset",
-    "allowExtension": false,
+    "noExtension": true,
     "allowValue": false,
     "allowTwoLevelValue": false,
     "requireValue": false,
@@ -145,7 +145,7 @@
   },
   "Onset": {
     "name": "Onset",
-    "allowExtension": false,
+    "noExtension": true,
     "allowValue": false,
     "allowTwoLevelValue": false,
     "requireValue": false,

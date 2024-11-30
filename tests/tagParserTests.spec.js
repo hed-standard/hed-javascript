@@ -16,7 +16,7 @@ import { BidsSidecar, BidsTsvFile } from '../bids'
 // Ability to select individual tests to run
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['valid-tags', ['valid-numeric-scientific-value']]])
+const runMap = new Map([['valid-tags', ['valid-tag-with-extension']]])
 
 describe('TagSpec converter tests using JSON tests', () => {
   const schemaMap = new Map([
@@ -36,80 +36,6 @@ describe('TagSpec converter tests using JSON tests', () => {
   })
 
   afterAll(() => {})
-
-  /* describe('BIDS experiments', () => {
-    /!*it('should be able to convert', () => {
-      const thisSchema = schemaMap.get('8.3.0')
-      assert.isDefined(thisSchema, 'yes')
-      const hTsv = `HED\nRed\n`
-      let stringIssues = []
-      try {
-        const bidsTsv = new BidsTsvFile(`events`, hTsv, { relativePath: 'string test tsv' }, [], {})
-        stringIssues = bidsTsv.validate(thisSchema)
-        console.log(stringIssues)
-      } catch (e) {
-        console.log(stringIssues)
-      }
-    })*!/
-
- /!*   it('should be able to convert', () => {
-      const thisSchema = schemaMap.get('8.3.0')
-      assert.isDefined(thisSchema, 'yes')
-      //const definitions = ["(Definition/Acc/#, (Acceleration/#, Red))", "(Definition/MyColor, (Label/Pie))"]
-      const definitions = ["(Definition/MyColor, Red)"]
-      const defs = { definitions: { HED: { defList: definitions.join(',') } } }
-      const bidsSide = new BidsSidecar(`sidecar`, defs, { relativePath: 'sidecar test' })
-      const sidecarIssues = bidsSide.validate(thisSchema)
-      console.log(sidecarIssues)
-    })*!/
-
-  })
-*/
-  // TODO: Remove after refactoring of validation complete
-  describe.skip('TagConverter experiments', () => {
-    it('should be able to convert', () => {
-      const thisSchema = schemaMap.get('8.3.0')
-      assert.isDefined(thisSchema, 'yes')
-
-      // const spec = new TagSpec('Length/5 m', 0, 10, '')
-      // const pTag = new ParsedHedTag(spec, thisSchema, 'Length/5 m')
-
-      const spec = new TagSpec('Def/Apple/5', 0, 11, '')
-      const pTag = new ParsedHedTag(spec, thisSchema, 'Def/Apple/5')
-      assert.instanceOf(pTag, ParsedHedTag)
-      const valueAttributeNames = pTag._schemaTag.valueAttributeNames
-      const valueClassNames = valueAttributeNames.get('valueClass', [])
-      console.log(pTag)
-      assert.instanceOf(pTag, ParsedHedTag)
-      console.log(valueAttributeNames)
-      console.log(valueClassNames)
-      const valueClasses = pTag.schema.entries.valueClasses
-      console.log(valueClasses)
-      const vClass = valueClasses.hasEntry('numericClass')
-      console.log(vClass)
-      const tClass = valueClasses.getEntry('numericClass')
-      console.log(tClass)
-      const okay = tClass.validateValue('3')
-      console.log(okay)
-      const notOkay = tClass.validateValue('ab')
-      console.log(notOkay)
-      // const spec = new TagSpec('Length/5 m', 0, 10, '')
-      // const myCon = new TagConverter(spec, thisSchema)
-      // const [tag, remainder] = myCon.convert();
-      // assert.instanceOf(tag, SchemaTag, 'A schema tag comes back')
-      // //assert.instanceOf(remainder, String, 'A string comes back')
-      // const unitClasses = tag.unitClasses
-      // let actualUnit = null
-      // let actualValue = null
-      // for (let i = 0; i < unitClasses.length; i++) {
-      //   [actualUnit, actualValue] = unitClasses[i].extractUnits(remainder)
-      //   if (actualUnit !== null || actualValue !== null) {
-      //     break
-      //   }
-      // }
-      // console.log(`actualUnit = ${actualUnit?.name} actualValue = ${actualValue}`)
-    })
-  })
 
   describe.each(parsedHedTagTests)('$name : $description', ({ name, tests }) => {
     const hedTagTest = function (test) {

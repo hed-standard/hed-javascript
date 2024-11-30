@@ -182,14 +182,14 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tevent_code\tHED\n' + '7\t4\tface\tRed,{blue}',
         sidecarErrors: [],
         tsvErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { column: '{blue}', tsvLine: 2 }), {
+          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesNotAllowed', { string: 'Red,{blue}', tsvLine: 2 }), {
             path: 'valid-sidecar-tsv-curly-brace.tsv',
             relativePath: 'valid-sidecar-tsv-curly-brace.tsv',
           }),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInHedColumn', { column: '{blue}' }),
+            generateIssue('curlyBracesNotAllowed', { string: 'Red,{blue}' }),
             { path: 'valid-sidecar-tsv-curly-brace.tsv', relativePath: 'valid-sidecar-tsv-curly-brace.tsv' },
             { tsvLine: 2 },
           ),
@@ -725,14 +725,14 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tHED\n' + '19\t6\t{event_code}\n',
         sidecarErrors: [],
         tsvErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { column: '{event_code}', tsvLine: 2 }), {
+          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesNotAllowed', { string: '{event_code}', tsvLine: 2 }), {
             path: 'invalid-curly-brace-in-HED-tsv-column.tsv',
             relativePath: 'invalid-curly-brace-in-HED-tsv-column.tsv',
           }),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInHedColumn', { column: '{event_code}' }),
+            generateIssue('curlyBracesNotAllowed', { string: '{event_code}' }),
             {
               path: 'invalid-curly-brace-in-HED-tsv-column.tsv',
               relativePath: 'invalid-curly-brace-in-HED-tsv-column.tsv',

@@ -73,6 +73,11 @@ export default {
     level: 'error',
     message: stringTemplate`Descendant tag required - "${'tag'}".`,
   },
+  valueRequired: {
+    hedCode: 'TAG_REQUIRES_CHILD',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" requires a value.`,
+  },
   childForbidden: {
     hedCode: 'TAG_INVALID',
     level: 'error',

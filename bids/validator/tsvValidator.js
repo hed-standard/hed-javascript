@@ -111,7 +111,7 @@ export class BidsHedTsvValidator {
       definitionsAllowed: 'no',
     }
 
-    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
+    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, true)
     issues.push(
       ...BidsHedIssue.fromHedIssues(Object.values(parsingIssues).flat(), this.tsvFile.file, { tsvLine: rowIndex }),
     )

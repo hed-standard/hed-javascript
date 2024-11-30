@@ -293,7 +293,7 @@ export class BidsSidecarKey {
   }
 
   _parseValueString(hedSchemas) {
-    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas)
+    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas, false)
     const flatIssues = Object.values(parsingIssues).flat()
     this.parsedValueString = parsedString
     return flatIssues

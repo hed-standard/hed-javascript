@@ -48,7 +48,7 @@ class HedStringParser {
       return [null, parsingIssues]
     }
     const parsedString = new ParsedHedString(this.hedString, parsedTags)
-    const checkIssues = new SpecialChecker().checkHedString(parsedString, fullCheck)
+    const checkIssues = SpecialChecker.getInstance().checkHedString(parsedString, fullCheck)
     mergeParsingIssues(parsingIssues, { syntaxIssues: checkIssues })
     if (checkIssues.length > 0) {
       return [null, parsingIssues]

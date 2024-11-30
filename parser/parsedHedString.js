@@ -53,12 +53,6 @@ export class ParsedHedString {
   context
 
   /**
-   * A list of the special tags that are in the string
-   * @type {ParsedHedTag[]}
-   */
-  specialTags
-
-  /**
    * Constructor.
    * @param {string} hedString The original HED string.
    * @param {ParsedHedSubstring[]} parsedTags The nested list of parsed HED tags and groups.

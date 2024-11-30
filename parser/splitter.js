@@ -5,7 +5,7 @@ import { recursiveMap } from '../utils/array'
 import { mergeParsingIssues } from '../utils/hedData'
 import { HedStringTokenizer, ColumnSpliceSpec, TagSpec } from './tokenizer'
 import { generateIssue, IssueError } from '../common/issues/issues'
-import { Schemas } from '../schema/containers'
+import { SpecialChecker } from './special'
 
 export default class HedStringSplitter {
   /**
@@ -40,6 +40,7 @@ export default class HedStringSplitter {
     this.hedSchemas = hedSchemas
     this.conversionIssues = []
     this.syntaxIssues = []
+    this.special = SpecialChecker.getInstance()
   }
 
   /**
