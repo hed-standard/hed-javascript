@@ -471,8 +471,8 @@ export const parseTestData = [
         warnings: [],
       },
       {
-        testname: 'definition-at-top-level-but-slices',
-        explanation: '"Definition/Green1, (Green)" is not in group (not allowed to be in a slice)',
+        testname: 'definition-at-top-level-but-splices',
+        explanation: '"Definition/Green1, (Green)" is not in group (not allowed to be in a splice)',
         schemaVersion: '8.3.0',
         stringIn: 'Definition/Green1, (Green)',
         stringLong: null,
@@ -487,6 +487,73 @@ export const parseTestData = [
         warnings: [],
       },
       {
+        testname: 'definition-with-extra-tags',
+        explanation: '"(Definition/IllegalSibling, Train, (Circle))" should not have an extra tag in definition',
+        schemaVersion: '8.3.0',
+        stringIn: '(Definition/IllegalSibling, Train, (Circle))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidTagGroup', {
+            tagGroup: '(Definition/IllegalSibling, Train, (Circle))',
+          }),
+        ],
+        warnings: [],
+      },
+
+      {
+        testname: 'definition-with-deep-defs-inside',
+        explanation:
+          '"(Definition/DefNested, (Def/Nested, (Red, Blue, (Def/Blech)), Triangle))" cannot have Def in definition',
+        schemaVersion: '8.3.0',
+        stringIn: '(Definition/DefNested, (Def/Nested, (Red, Blue, (Def/Blech)), Triangle))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidGroupTags', {
+            string: '(Definition/DefNested, (Def/Nested, (Red, Blue, (Def/Blech)), Triangle))',
+            tags: 'Def/Nested, Def/Blech',
+          }),
+        ],
+        warnings: [],
+      },
+
+      {
+        testname: 'definition-with-nested-definition',
+        explanation:
+          '"(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))" should not have an extra tag in definition',
+        schemaVersion: '8.3.0',
+        stringIn: '(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidTopLevelTagGroupTag', {
+            string: '(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))',
+            tag: 'Definition/InnerDefinition',
+          }),
+        ],
+        warnings: [],
+      },
+      {
+        testname: 'definition-with-multiple-groups',
+        explanation:
+          '"(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))" should only have 1 inner group',
+        schemaVersion: '8.3.0',
+        stringIn: '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidTagGroup', {
+            tagGroup: '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
+          }),
+        ],
+        warnings: [],
+      },
+      {
         testname: 'definition-group-with-multiple-definition-tags',
         explanation: '"(Definition/Apple, Definition/Banana, (Blue))" has two definition tags in the same group.',
         schemaVersion: '8.3.0',
@@ -496,8 +563,7 @@ export const parseTestData = [
         fullCheck: false,
         errors: [
           generateIssue('invalidTagGroup', {
-            tags: 'Definition/Apple, Definition/Banana',
-            string: '(Definition/Apple, Definition/Banana, (Blue))',
+            tagGroup: '(Definition/Apple, Definition/Banana, (Blue))',
           }),
         ],
         warnings: [],
@@ -538,6 +604,23 @@ export const parseTestData = [
         stringShort: 'Item, (Event, Object, (Item, (Def-expand/Blech, (Agent-action, Item))))',
         fullCheck: true,
         errors: [],
+        warnings: [],
+      },
+      {
+        testname: 'def-expand-with-inner-def-expand',
+        explanation:
+          '"Item, (Event, Object, (Item, (Def-expand/Blech, (Agent-action, Item))))" has a Def-expand inside a Def-expand',
+        schemaVersion: '8.3.0',
+        stringIn: 'Item, (Event, Object, (Item, (Def-expand/Blech, (Agent-action, (Def-expand/Temp), Item))))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidGroupTags', {
+            tags: 'Def-expand/Temp',
+            string: '(Def-expand/Blech, (Agent-action, (Def-expand/Temp), Item))',
+          }),
+        ],
         warnings: [],
       },
       {
@@ -620,7 +703,7 @@ export const parseTestData = [
         stringLong: null,
         stringShort: null,
         fullCheck: false,
-        errors: [generateIssue('invalidTagGroup', { tags: 'Offset, Item', string: '(Offset, Item)' })],
+        errors: [generateIssue('invalidTagGroup', { tagGroup: '(Offset, Item)' })],
         warnings: [],
       },
       {
@@ -660,6 +743,114 @@ export const parseTestData = [
         warnings: [],
       },
       {
+        testname: 'onset-delay-no-def',
+        explanation: '"(Onset, Delay/5 s)" does not have a Def for Onset.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Onset, Delay/5 s)',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [generateIssue('temporalWithoutDefinition', { tagGroup: '(Onset, Delay/5 s)', tag: 'Onset' })],
+        warnings: [],
+      },
+      {
+        testname: 'onset-delay-with-def',
+        explanation: '"(Onset, Delay/5 s, Def/myDef)" has an Onset, Delay and Def.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Onset, Delay/5 s, Def/myDef)',
+        stringLong:
+          '(Property/Data-property/Data-marker/Temporal-marker/Onset, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5 s, Property/Organizational-property/Def/myDef)',
+        stringShort: '(Onset, Delay/5 s, Def/myDef)',
+        fullCheck: false,
+        errors: [],
+        warnings: [],
+      },
+      {
+        testname: 'inset-with delay-no-def',
+        explanation: '"(Inset, Delay/5 s)" does not have a Def for Inset.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Inset, Delay/5 s)',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [generateIssue('temporalWithoutDefinition', { tagGroup: '(Inset, Delay/5 s)', tag: 'Inset' })],
+        warnings: [],
+      },
+      {
+        testname: 'inset-delay-with-def',
+        explanation: '"(Inset, Delay/5 s, Def/myDef)" has an Inset, Delay and Def.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Inset, Delay/5 s, Def/myDef)',
+        stringLong:
+          '(Property/Data-property/Data-marker/Temporal-marker/Inset, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5 s, Property/Organizational-property/Def/myDef)',
+        stringShort: '(Inset, Delay/5 s, Def/myDef)',
+        fullCheck: false,
+        errors: [],
+        warnings: [],
+      },
+      {
+        testname: 'inset-with-def-and-group',
+        explanation: '"(Inset, Def/myDef, (Def/Blech, Item))" has a def and a grpi[.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Inset, Def/myDef, (Def/Blech, Item))',
+        stringLong:
+          '(Property/Data-property/Data-marker/Temporal-marker/Inset, Property/Organizational-property/Def/myDef, (Property/Organizational-property/Def/Blech, Item))',
+        stringShort: '(Inset, Def/myDef, (Def/Blech, Item))',
+        fullCheck: false,
+        errors: [],
+        warnings: [],
+      },
+      {
+        testname: 'inset-with-def-expand-and-group',
+        explanation: '"(Inset, (Def-expand/myDef), (Def/Blech, Item))" has a Def-expand and a group.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Inset, (Def-expand/myDef), (Def/Blech, Item))',
+        stringLong:
+          '(Property/Data-property/Data-marker/Temporal-marker/Inset, (Property/Organizational-property/Def-expand/myDef), (Property/Organizational-property/Def/Blech, Item))',
+        stringShort: '(Inset, (Def-expand/myDef), (Def/Blech, Item))',
+        fullCheck: false,
+        errors: [],
+        warnings: [],
+      },
+      {
+        testname: 'inset-with-bad-def-expand-and-group',
+        explanation:
+          '"(Inset, (Def-expand/myDef, (Item,(Def/Temp))), (Def/Blech, Item))" has a bad Def-expand and a group.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Inset, (Def-expand/myDef, (Item,(Def/Temp))), (Def/Blech, Item))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [
+          generateIssue('invalidGroupTags', { string: '(Def-expand/myDef, (Item,(Def/Temp)))', tags: 'Def/Temp' }),
+        ],
+        warnings: [],
+      },
+      {
+        testname: 'Offset-with delay-no-def',
+        explanation: '"(Offset, Delay/5 s)" does not have a Def for Inset.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Offset, Delay/5 s)',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        errors: [generateIssue('temporalWithoutDefinition', { tagGroup: '(Offset, Delay/5 s)', tag: 'Offset' })],
+        warnings: [],
+      },
+      {
+        testname: 'offset-delay-with-def',
+        explanation: '"(Offset, Delay/5 s, Def/myDef)" has an Offset, Delay and Def.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Offset, Delay/5 s, Def/myDef)',
+        stringLong:
+          '(Property/Data-property/Data-marker/Temporal-marker/Offset, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5 s, Property/Organizational-property/Def/myDef)',
+        stringShort: '(Offset, Delay/5 s, Def/myDef)',
+        fullCheck: false,
+        errors: [],
+        warnings: [],
+      },
+
+      {
         testname: 'onset-with-def-expand',
         explanation: '"(Onset, (Def-expand/MyColor, (Label/Pie)), (Red))" is okay.',
         schemaVersion: '8.3.0',
@@ -667,6 +858,18 @@ export const parseTestData = [
         stringLong:
           '(Property/Data-property/Data-marker/Temporal-marker/Onset, (Property/Organizational-property/Def-expand/MyColor, (Property/Informational-property/Label/Pie)), (Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red))',
         stringShort: '(Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
+        fullCheck: false,
+        errors: [],
+        warnings: [],
+      },
+      {
+        testname: 'def-expand-with-value',
+        explanation: '"(Def-expand/Acc/4.5, (Acceleration/4.5, Red))" is okay.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Def-expand/Acc/4.5, (Acceleration/4.5, Red))',
+        stringLong:
+          '(Property/Organizational-property/Def-expand/Acc/4.5, (Property/Data-property/Data-value/Spatiotemporal-value/Rate-of-change/Acceleration/4.5, Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red))',
+        stringShort: '(Def-expand/Acc/4.5, (Acceleration/4.5, Red))',
         fullCheck: false,
         errors: [],
         warnings: [],
@@ -716,17 +919,16 @@ export const parseTestData = [
         warnings: [],
       },
       {
-        testname: 'offset-group-has-other-tag',
-        explanation: '"((Def-expand/MyColor, (Label/Pie)), Offset, Blue)" should not have an extra tag.',
+        testname: 'inset-group-has-other-tag',
+        explanation: '"((Def-expand/MyColor, (Label/Pie)), Inset, Blue)" should not have an extra tag.',
         schemaVersion: '8.3.0',
-        stringIn: '((Def-expand/MyColor, (Label/Pie)), Offset, Blue)',
+        stringIn: '((Def-expand/MyColor, (Label/Pie)), Inset, Blue)',
         stringLong: null,
         stringShort: null,
         fullCheck: false,
         errors: [
           generateIssue('invalidTagGroup', {
-            tags: 'Offset, Blue',
-            string: '((Def-expand/MyColor, (Label/Pie)), Offset, Blue)',
+            tagGroup: '((Def-expand/MyColor, (Label/Pie)), Inset, Blue)',
           }),
         ],
         warnings: [],

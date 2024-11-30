@@ -341,7 +341,7 @@ export class HedStringTokenizer {
   }
 
   pushTag(i) {
-    if (this.state.currentToken.trim().length == 0) {
+    if (this.state.currentToken.trim().length === 0) {
       this.pushIssue('emptyTagFound', i)
     } else if (this.checkForBadPlaceholderIssues(i)) {
       this.pushInvalidTag('invalidPlaceholder', i, this.state.currentToken)
@@ -365,15 +365,11 @@ export class HedStringTokenizer {
       // No placeholders to worry about for this tag
       return false
     }
-    if (
+    return (
       tokenSplit.length > 2 ||
       !tokenSplit[0].endsWith(CHARACTERS.SLASH) || // A placeholder must be after a slash
       (tokenSplit[1].trim().length > 0 && tokenSplit[1][0] !== CHARACTERS.BLANK)
-    ) {
-      // If units, blank after placeholder
-      return true
-    }
-    return false
+    )
   }
 
   closeGroup(i) {

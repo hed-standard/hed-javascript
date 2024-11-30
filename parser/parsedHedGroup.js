@@ -5,7 +5,6 @@ import { getTagName } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
-import { SpecialChecker } from './special'
 
 /**
  * A parsed HED tag group.
@@ -272,28 +271,29 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     })
   }
 
-  get specialTagList() {
+  /*  get specialTagList() {
     return this._memoize('specialTagList', () => {
       const special = new SpecialChecker()
       return this.allTags.filter((obj) => special.specialNames.includes(obj.schemaTag.name))
     })
-  }
+  }*/
 
-  get hasForbiddenSubgroupTags() {
+  /* get hasForbiddenSubgroupTags() {
     return this._memoize('hasForbiddenSubgroupTags', () => {
       return this.allTags.some((obj) => new SpecialChecker().hasForbiddenSubgroupTags.includes(obj.schemaTag.name))
     })
-  }
-  /**
+  }*/
+
+  /*  /!**
    * A list of all column splices at all levels
    *
    * @returns {ParsedHedColumnSplice[]} The "name" portion of the canonical tag.
-   */
+   *!/
   get allColumnSplices() {
     return this._memoize('allColumnSplices', () => {
       return Array.from(this.columnSpliceIterator())
     })
-  }
+  }*/
 
   /**
    * Determine the name of this group's definition.

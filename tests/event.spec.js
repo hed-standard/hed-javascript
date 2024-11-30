@@ -718,8 +718,8 @@ describe('HED string and event validation', () => {
           greenTriangleDef: [],
           trainDefExpand: [],
           yellowCubeDef: [],
-          invalidDef: [generateIssue('missingDefinition', { definition: 'InvalidDefinition' })],
-          invalidDefExpand: [generateIssue('missingDefinition', { definition: 'InvalidDefExpand' })],
+          invalidDef: [generateIssue('missingDefinitionForDef', { definition: 'InvalidDefinition' })],
+          invalidDefExpand: [generateIssue('missingDefinitionForDefExpand', { definition: 'InvalidDefExpand' })],
         }
         return validatorSemanticWithDefinitions(testStrings, testDefinitions, expectedIssues, (validator, tag) => {
           validator.checkForMissingDefinitions(tag, 'Def')
@@ -778,8 +778,8 @@ describe('HED string and event validation', () => {
         )
       }
 
-      // TODO: Equivalent tests now in bidsTests -- but only work for sidecar
-      it('should have syntactically valid definitions', () => {
+      // TODO: (REMOVE) Equivalent tests now in stringParser
+      it.skip('should have syntactically valid definitions', () => {
         const testStrings = {
           nonDefinition: 'Car',
           nonDefinitionGroup: '(Train/Maglev, Age/15, RGB-red/0.5)',

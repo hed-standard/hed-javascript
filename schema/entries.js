@@ -819,7 +819,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaUnitClass[]}
    */
   get unitClasses() {
-    return this._unitClasses.slice()
+    return this._unitClasses.slice() // The slice prevents modification
   }
 
   /**

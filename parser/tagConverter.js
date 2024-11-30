@@ -1,5 +1,6 @@
 import { IssueError } from '../common/issues/issues'
 import { getTagSlashIndices } from '../utils/hedStrings'
+import { SpecialChecker } from './special'
 
 /**
  * Converter from a tag specification to a schema-based tag object.
@@ -61,6 +62,7 @@ export default class TagConverter {
     this.tagLevels = this.tagString.split('/')
     this.tagSlashes = getTagSlashIndices(this.tagString)
     this.remainder = undefined
+    this.special = SpecialChecker.getInstance()
   }
 
   /**
@@ -73,7 +75,7 @@ export default class TagConverter {
     let parentTag = undefined
     for (let tagLevelIndex = 0; tagLevelIndex < this.tagLevels.length; tagLevelIndex++) {
       if (parentTag?.valueTag) {
-        // Its a value tag
+        // It is a value tag
         this._setSchemaTag(parentTag.valueTag, tagLevelIndex)
         return [this.schemaTag, this.remainder]
       }
@@ -96,9 +98,11 @@ export default class TagConverter {
         // Top level tags can't be extensions
         IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
       }
-      if (parentTag !== undefined && !parentTag.hasAttributeName('extensionAllowed')) {
+      if (
+        parentTag !== undefined &&
+        (!parentTag.hasAttributeName('extensionAllowed') || this.special.noExtensionTags.includes(parentTag.name))
+      ) {
         IssueError.generateAndThrow('invalidExtension', {
-          // The parent doesn't allow extension
           tag: this.tagLevels[tagLevelIndex],
           parentTag: this.tagLevels.slice(0, tagLevelIndex).join('/'),
         })
@@ -125,13 +129,30 @@ export default class TagConverter {
       if (child !== undefined) {
         // A schema tag showed up after a non-schema tag
         IssueError.generateAndThrow('invalidParentNode', {
-          tag: this.tagLevels[index],
+          tag: child.name,
           parentTag: this.tagLevels.slice(0, index).join('/'),
         })
       }
       this._checkNameClass(index)
     }
   }
+
+  /*  /!**
+   * Handle the case where it does not allow an extension or if it requires a child and doesn't have one.
+   * @param {int} tagLevelIndex index of the tag
+   * @throws {IssueError} If the tag has an extension that is not allowed.
+   *!/
+  _checkExtensionRequirements(tagLevelIndex) {
+    // Check allow extension or requires a child
+    const schemaTag = this.getSchemaTag(tagLevelIndex - 1)
+    const remainder = this.tagLevels.slice(tagLevelIndex).join('/')
+    if (this.special.noExtension.includes(schemaTag.name) && remainder !== '') {
+      IssueError.generateAndThrow('invalidExtension',{tag: remainder, parentTag: schemaTag.name})
+    }
+    if (remainder === '' && schemaTag.hasAttributeName('requireChild')) (
+      IssueError.generateAndThrow('childRequired', {tag:schemaTag.name})
+    )
+  }*/
 
   _getSchemaTag(tagLevelIndex) {
     const tagLevel = this.tagLevels[tagLevelIndex].toLowerCase()

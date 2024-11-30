@@ -9,12 +9,10 @@ import { generateIssue } from '../common/issues/issues'
 import { parseHedString, parseHedStrings } from '../parser/parser'
 import { parseTestData } from './testData/stringParserTests.data'
 import { shouldRun, getHedString } from './testUtilities'
-import { SpecialChecker } from '../parser/special'
-import { TagSpec } from '../parser/tokenizer'
-import ParsedHedTag from '../parser/parsedHedTag'
+
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['special-tag-group-tests', ['onset-with-def-expand']]])
+const runMap = new Map([['special-tag-group-tests', ['definition-with-deep-defs-inside']]])
 
 describe('Null schema objects should cause parsing to bail', () => {
   it('Should not proceed if no schema and valid string', () => {
@@ -66,45 +64,6 @@ describe('Parse HED string tests', () => {
   })
 
   afterAll(() => {})
-
-  describe('testExperiment', () => {
-    /*it('Should give experiment', () => {
-      const thisSchema = schemaMap.get('8.3.0')
-      // const w = new TagSpec('Speed/5 mph', 0, 10, '')
-      // const g = new ParsedHedTag(w, thisSchema, 'Speed/5 mph')
-      // console.log(g)
-      // const x =[g]
-      // // Check top-level-tag-group-tags
-      // const y = x.includes(g)
-      // let p = g.unitClasses
-      // console.log(p)
-      //const z = x.includes(g)
-      assert.isDefined(thisSchema, `should be defined`)
-      const stringIn = 'Item, Sensory-event, (Red, Blue, {help}, (Definition/Blech, (Green, Black))), (Orange, ((Definition/Blech1, (White))))'
-      //const stringIn = 'Item, ((Def-expand/Apple, (Purple)), (((Def-expand/Banana, (Orange)), Item)), Sensory-event), Red'
-      //const stringIn = 'Item/Object, (Length/5 m, (Green)), (Green, Object), (Sensory-event, Green), Red'
-      const [parsedString, issues] = parseHedString(stringIn, thisSchema)
-      console.log(issues)
-*/
-  })
-
-  // it('Should give experiment 2', () => {
-  //   const thisSchema = schemaMap.get('8.3.0')
-  //   assert.isDefined(thisSchema, `should be defined`)
-  //   const [sParsed, errors, warnings] =  getHedString('Red, Blue', thisSchema, true
-  //   //const stringIn = 'Item, Sensory-event, (Red, Blue, {help}, (Definition/Blech, (Green, Black))), (Orange, ((Definition/Blech1, (White))))'
-  //   //const stringIn = '((Def-expand/Apple, (Purple)), (((Def-expand/Banana, (Orange)), Item)), Sensory-event)'
-  //   // const stringIn = 'Item, Sensory-event, (Red, Blue, {help}, (Definition/Blech, (Green, Black))), (Definition/Banana)'
-  //   // const [parsedString, issues] = parseHedString(stringIn, thisSchema)
-  //   // console.log(parsedString)
-  //   // const special = new SpecialChecker(parsedString)
-  //   // const tagList = special.getSpecialTags(parsedString)
-  //   // const group = special.getTagGroup(tagList[1])
-  //   //const [parsedString, errorIssues, warningIssues] = getHedString(stringIn, thisSchema)
-  //   console.log(sParsed)
-  //
-  //   })
-  // })
 
   describe.each(parseTestData)('$name : $description', ({ name, tests }) => {
     const testConvert = function (test) {

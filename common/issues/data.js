@@ -73,6 +73,11 @@ export default {
     level: 'error',
     message: stringTemplate`Descendant tag required - "${'tag'}".`,
   },
+  valueRequired: {
+    hedCode: 'TAG_REQUIRES_CHILD',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" requires a value.`,
+  },
   childForbidden: {
     hedCode: 'TAG_INVALID',
     level: 'error',
@@ -124,10 +129,15 @@ export default {
     level: 'error',
     message: stringTemplate`Illegal nested definition in tag group for definition "${'definition'}".`,
   },
-  missingDefinition: {
+  missingDefinitionForDef: {
     hedCode: 'DEF_INVALID',
     level: 'error',
     message: stringTemplate`Def tag found for definition name "${'definition'}" does not correspond to an existing definition.`,
+  },
+  missingDefinitionForDefExpand: {
+    hedCode: 'DEF_EXPAND_INVALID',
+    level: 'error',
+    message: stringTemplate`Def-expand tag found for definition name "${'definition'}" does not correspond to an existing definition.`,
   },
   duplicateDefinition: {
     hedCode: 'DEFINITION_INVALID',
