@@ -3,7 +3,7 @@ import ParsedHedString from '../../parser/parsedHedString'
 // IMPORTANT: This import cannot be shortened to '../../validator', as this creates a circular dependency until v4.0.0.
 import { validateHedString } from '../../validator/event/init'
 import { generateIssue, IssueError } from '../../common/issues/issues'
-
+import { getCharacterCount } from '../../utils/string.js'
 /**
  * Validator for HED data in BIDS JSON sidecars.
  */
@@ -28,9 +28,9 @@ export class BidsHedSidecarValidator {
    * Constructor.
    *
    * @param {BidsSidecar} sidecar The BIDS sidecar being validated.
-   * @param {Schemas} hedSchemas The HED schema collection being validated against.
+   * @param {Schemas|null} hedSchemas The HED schema collection being validated against.
    */
-  constructor(sidecar, hedSchemas) {
+  constructor(sidecar, hedSchemas = null) {
     this.sidecar = sidecar
     this.hedSchemas = hedSchemas
     this.issues = []
@@ -39,9 +39,23 @@ export class BidsHedSidecarValidator {
   /**
    * Validate a BIDS JSON sidecar file. This method returns the complete issue list for convenience.
    *
+   * @param {Schemas} schemas -
    * @returns {BidsIssue[]} Any issues found during validation of this sidecar file.
    */
-  validate() {
+  validate(schemas = null) {
+    // Allow schema to be set a validation time
+    if (!schemas) {
+      this.hedSchemas = schemas
+    }
+    if (!this.hedSchemas) {
+      BidsHedIssue.fromHedIssues(
+        generateIssue('genericError', {
+          message: 'Sidecar validation requires a HED schema, but the schema received was null.',
+        }),
+        { path: this.sidecar.file, relativePath: this.sidecar.file },
+      )
+    }
+
     const sidecarParsingIssues = BidsHedIssue.fromHedIssues(
       this.sidecar.parseHedStrings(this.hedSchemas),
       this.sidecar.file,
@@ -62,25 +76,14 @@ export class BidsHedSidecarValidator {
   _validateStrings() {
     const issues = []
 
-    const categoricalOptions = {
-      checkForWarnings: true,
-      expectValuePlaceholderString: false,
-      definitionsAllowed: 'exclusive',
-    }
-    const valueOptions = {
-      checkForWarnings: true,
-      expectValuePlaceholderString: true,
-      definitionsAllowed: 'no',
-    }
-
-    for (const [sidecarKey, hedData] of this.sidecar.parsedHedData) {
+    for (const [sidecarKeyName, hedData] of this.sidecar.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
         // Value options have HED as string
-        issues.push(...this._validateString(sidecarKey, hedData, valueOptions))
+        issues.push(...this._checkDetails(sidecarKeyName, hedData))
       } else if (hedData instanceof Map) {
         // Categorical options have HED as a Map
         for (const valueString of hedData.values()) {
-          issues.push(...this._validateString(sidecarKey, valueString, categoricalOptions))
+          issues.push(...this._checkDetails(sidecarKeyName, valueString))
         }
       } else {
         IssueError.generateAndThrow('internalConsistencyError', {
@@ -88,27 +91,52 @@ export class BidsHedSidecarValidator {
         })
       }
     }
-
     return issues
   }
 
-  /**
-   * Validate an individual string in this sidecar.
-   *
-   * @param {string} sidecarKey The sidecar key this string belongs to.
-   * @param {ParsedHedString} sidecarString The parsed sidecar HED string.
-   * @param {Object} options Options specific to this validation run to pass to {@link validateHedString}.
-   * @returns {BidsIssue[]} All issues found.
-   * @private
-   */
-  _validateString(sidecarKey, sidecarString, options) {
-    // Parsing issues already pushed in validateSidecars()
-    if (sidecarString === null) {
-      return []
-    }
+  _checkDetails(sidecarKeyName, hedString) {
+    const issues = this._checkDefs(sidecarKeyName, hedString)
+    issues.push(...this._checkPlaceholders(sidecarKeyName, hedString))
+    return issues
+  }
 
-    const [, hedIssues] = validateHedString(sidecarString, this.hedSchemas, options)
-    return BidsHedIssue.fromHedIssues(hedIssues, this.sidecar.file, { sidecarKey })
+  _checkDefs(sidecarKeyName, sidecarString) {
+    if (sidecarString !== null && !this.sidecar.sidecarKeys.get(sidecarKeyName).hasDefinitions) {
+      const hedIssues = this.sidecar.definitions.checkDefs(sidecarString.tags)
+      if (hedIssues.length > 0) {
+        return BidsHedIssue.fromHedIssues(hedIssues, this.sidecar.file, { sidecarKeyName: sidecarKeyName })
+      }
+    }
+    return []
+  }
+
+  _checkPlaceholders(sidecarKeyName, hedString) {
+    const numberPlaceholders = getCharacterCount(hedString.hedString, '#')
+    const sidecarKey = this.sidecar.sidecarKeys.get(sidecarKeyName)
+    if (!sidecarKey.valueString && !sidecarKey.hasDefinitions && numberPlaceholders > 0) {
+      return [
+        BidsHedIssue.fromHedIssue(
+          generateIssue('invalidSidecarPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
+          this.sidecar.file,
+        ),
+      ]
+    } else if (sidecarKey.valueString && numberPlaceholders === 0) {
+      return [
+        BidsHedIssue.fromHedIssue(
+          generateIssue('missingPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
+          this.sidecar.file,
+        ),
+      ]
+    }
+    if (sidecarKey.valueString && numberPlaceholders > 1) {
+      return [
+        BidsHedIssue.fromHedIssue(
+          generateIssue('invalidSidecarPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
+          this.sidecar.file,
+        ),
+      ]
+    }
+    return []
   }
 
   /**

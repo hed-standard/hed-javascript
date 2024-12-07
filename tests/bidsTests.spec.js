@@ -6,15 +6,17 @@ import { buildSchemas } from '../schema/init'
 import { SchemaSpec, SchemasSpec } from '../schema/specs'
 import { BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
 import parseTSV from '../bids/tsvParser'
-
+import { IssueError } from '../common/issues/issues'
 import { bidsTestData } from './testData/bidsTests.data'
 import { shouldRun } from './testUtilities'
+import { DefinitionManager } from '../parser/definitionManager'
+import { parseHedString } from '../parser/parser'
 
 // Ability to select individual tests to run
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['definition-tests', ['valid-definition-no-placeholder']]])
+const runMap = new Map([['definition-tests', ['invalid-definition-with-missing-placeholder']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([
@@ -48,31 +50,66 @@ describe('BIDS validation', () => {
       const thisSchema = schemaMap.get(test.schemaVersion)
       assert.isDefined(thisSchema, `${header}:${test.schemaVersion} is not available in test ${test.name}`)
 
+      // const defManager = new DefinitionManager()
+      // for (const def of test.definitions) {
+      //   const [parsedGroup, issueObjs] = parseHedString(def, thisSchema, true, true )
+      //   if ( Object.values( issueObjs).flat().length > 0 || !parsedGroup) {
+      //     IssueError.generateAndThrow('internalError', { message: 'Bad input definition "${def}" in the test data' })
+      //   }
+      //   defManager.addDefinition(parsedGroup.tagGroups[0])
+      // }
+
       //Validate the sidecar by itself
+      let issues
+      let defList
+
+      ;[defList, issues] = DefinitionManager.createDefinitions(test.definitions, thisSchema)
+      assert.equal(issues.length, 0, `${header}: input definitions "${test.definitions}" have errors "${issues}"`)
+      let defManager = new DefinitionManager()
+      issues = defManager.addDefinitions(defList)
+      assert.equal(issues.length, 0, `${header}: input definitions "${test.definitions}" have conflicts "${issues}"`)
+
       const sidecarName = test.testname + '.json'
-      const bidsSidecar = new BidsSidecar('thisOne', test.sidecar, { relativePath: sidecarName, path: sidecarName })
+      const bidsSidecar = new BidsSidecar(
+        'thisOne',
+        test.sidecar,
+        { relativePath: sidecarName, path: sidecarName },
+        defManager,
+      )
       assert.instanceOf(bidsSidecar, BidsSidecar, 'Test')
       const sidecarIssues = bidsSidecar.validate(thisSchema)
       assertErrors(test, 'Sidecar only', test.sidecarErrors, sidecarIssues)
 
       // Parse the events file
       const eventName = test.testname + '.tsv'
+      defManager = new DefinitionManager()
+      defManager.addDefinitions(defList)
       const parsedTsv = parseTSV(test.eventsString)
       assert.instanceOf(parsedTsv, Map, `${eventName} cannot be parsed`)
 
       // Validate the events file with no sidecar
-      const bidsTsv = new BidsTsvFile(test.testname, parsedTsv, { relativePath: eventName, path: eventName }, [], {})
+      const bidsTsv = new BidsTsvFile(
+        test.testname,
+        parsedTsv,
+        { relativePath: eventName, path: eventName },
+        [],
+        {},
+        defManager,
+      )
       const validatorNoSide = new BidsHedTsvValidator(bidsTsv, thisSchema)
       validatorNoSide.validate()
       assertErrors(test, 'Events', test.tsvErrors, validatorNoSide.issues)
 
       // Validate the events file with the sidecar
+      defManager = new DefinitionManager()
+      defManager.addDefinitions(defList)
       const bidsTsvSide = new BidsTsvFile(
         test.testname,
         parsedTsv,
         { relativePath: eventName, path: eventName },
         [],
         test.sidecar,
+        defManager,
       )
       const validatorWithSide = new BidsHedTsvValidator(bidsTsvSide, thisSchema)
       validatorWithSide.validate()

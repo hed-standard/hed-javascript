@@ -9,7 +9,7 @@ import { parseHedString } from '../parser/parser'
  * @returns {[string, Issue[]]} The converted string and any issues.
  */
 const convertHedString = function (hedSchemas, hedString, long) {
-  const [parsedString, issues] = parseHedString(hedString, hedSchemas)
+  const [parsedString, issues] = parseHedString(hedString, hedSchemas, true, false)
   const flattenedIssues = Object.values(issues).flat()
   if (flattenedIssues.some((issue) => issue.level === 'error')) {
     return [hedString, flattenedIssues]

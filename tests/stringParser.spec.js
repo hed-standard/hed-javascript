@@ -81,33 +81,27 @@ describe.skip('HED string parsing', () => {
         tilde: null,
       }
       const expectedIssues = {
-        openingSquare: {
-          syntax: [
-            generateIssue('invalidCharacter', {
-              character: 'LEFT SQUARE BRACKET',
-              index: 56,
-              string: testStrings.openingSquare,
-            }),
-          ],
-        },
-        closingSquare: {
-          syntax: [
-            generateIssue('invalidCharacter', {
-              character: 'RIGHT SQUARE BRACKET',
-              index: 56,
-              string: testStrings.closingSquare,
-            }),
-          ],
-        },
-        tilde: {
-          syntax: [
-            generateIssue('invalidCharacter', {
-              character: 'TILDE',
-              index: 56,
-              string: testStrings.tilde,
-            }),
-          ],
-        },
+        openingSquare: [
+          generateIssue('invalidCharacter', {
+            character: 'LEFT SQUARE BRACKET',
+            index: 56,
+            string: testStrings.openingSquare,
+          }),
+        ],
+        closingSquare: [
+          generateIssue('invalidCharacter', {
+            character: 'RIGHT SQUARE BRACKET',
+            index: 56,
+            string: testStrings.closingSquare,
+          }),
+        ],
+        tilde: [
+          generateIssue('invalidCharacter', {
+            character: 'TILDE',
+            index: 56,
+            string: testStrings.tilde,
+          }),
+        ],
       }
       for (const [testStringKey, testString] of Object.entries(testStrings)) {
         assert.property(expectedResults, testStringKey, testStringKey + ' is not in expectedResults')

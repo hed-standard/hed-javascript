@@ -8,6 +8,7 @@ import { SchemaSpec, SchemasSpec } from '../schema/specs'
 import { splitterTestData } from './testData/splitterTests.data'
 import { shouldRun } from './testUtilities'
 import ParsedHedGroup from '../parser/parsedHedGroup'
+import { filterByClass } from '../parser/parseUtils'
 import HedStringSplitter from '../parser/splitter'
 const skipMap = new Map()
 const runAll = true
@@ -52,9 +53,9 @@ describe('Parse HED string tests', () => {
       assert.isDefined(thisSchema, `header: ${test.schemaVersion} is not available in test ${test.testname}`)
 
       const [parsedTags, parsingIssues] = new HedStringSplitter(test.stringIn, thisSchema).splitHedString()
-      assert.isEmpty([...parsingIssues.syntax, ...parsingIssues.conversion], `${header} expects no splitting issues`)
+      assert.isEmpty([...parsingIssues], `${header} expects no splitting issues`)
 
-      const parsedGroups = parsedTags.filter((obj) => obj instanceof ParsedHedGroup)
+      const parsedGroups = filterByClass(parsedTags, ParsedHedGroup)
       assert.equal(parsedGroups.length, test.allSubgroupCount, `[${header}] should have correct number of subgroups)`)
       for (let i = 0; i < parsedGroups.length; i++) {
         assert.equal(

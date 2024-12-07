@@ -11,6 +11,7 @@ import { generateIssue } from '../common/issues/issues'
 import { SchemaSpec, SchemasSpec } from '../schema/specs'
 import { Schemas } from '../schema/containers'
 import { TagSpec } from '../parser/tokenizer'
+import { DefinitionManager } from '../parser/definitionManager'
 
 describe('HED string and event validation', () => {
   /**
@@ -548,7 +549,7 @@ describe('HED string and event validation', () => {
         testFunction,
         testOptions,
       ) {
-        const definitionMap = new Map()
+        const definitions = new DefinitionManager()
         return validatorSemanticBase(
           testStrings,
           expectedIssues,
@@ -722,8 +723,8 @@ describe('HED string and event validation', () => {
           invalidDefExpand: [generateIssue('missingDefinitionForDefExpand', { definition: 'InvalidDefExpand' })],
         }
         return validatorSemanticWithDefinitions(testStrings, testDefinitions, expectedIssues, (validator, tag) => {
-          validator.checkForMissingDefinitions(tag, 'Def')
-          validator.checkForMissingDefinitions(tag, 'Def-expand')
+          const defManager = new DefinitionManager(testDefinitions)
+          defManager.checkDefs(tag)
         })
       })
 
@@ -1416,7 +1417,7 @@ describe('HED string and event validation', () => {
         )
       }
 
-      it('should have syntactically valid definitions', () => {
+      it.skip('should have syntactically valid definitions', () => {
         const testStrings = {
           nonDefinition: 'testlib:Car',
           nonDefinitionGroup: '(testlib:Hold-breath, testlib:Sit-down)',

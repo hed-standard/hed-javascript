@@ -52,7 +52,7 @@ export default class HedValidator {
    *
    * @param {ParsedHedString} parsedString The parsed HED string to be validated.
    * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {Map<string, ParsedHedGroup>} definitions The parsed definitions.
+   * @param {DefinitionManager} definitions The parsed definitions.
    * @param {Object<string, boolean>} options The validation options.
    */
   constructor(parsedString, hedSchemas, definitions, options) {
@@ -101,8 +101,7 @@ export default class HedValidator {
       //this.checkValueTagSyntax(tag)
     }
     if (this.definitions !== null) {
-      this.checkForMissingDefinitions(tag, 'Def')
-      this.checkForMissingDefinitions(tag, 'Def-expand')
+      this.issues.push(...this.definitions.checkDef(tag))
     }
     if (this.options.expectValuePlaceholderString) {
       this.checkPlaceholderTagSyntax(tag)
@@ -146,7 +145,7 @@ export default class HedValidator {
   // eslint-disable-next-line no-unused-vars
   validateHedTagGroup(parsedTagGroup) {
     //this.checkDefinitionGroupSyntax(parsedTagGroup)
-    this.checkTemporalSyntax(parsedTagGroup)
+    //this.checkTemporalSyntax(parsedTagGroup)
   }
 
   /**
@@ -187,7 +186,7 @@ export default class HedValidator {
    */
   validateFullParsedHedString() {
     this.checkPlaceholderStringSyntax()
-    this.checkDefinitionStringSyntax()
+    //this.checkDefinitionStringSyntax()
   } // Individual checks
 
   /**
@@ -218,12 +217,12 @@ export default class HedValidator {
     })
   }
 
-  /**
+  /* /!**
    * Validation check based on a tag attribute.
    *
    * @param {string} attribute The name of the attribute.
    * @param {function (string): void} fn The actual validation code.
-   */
+   *!/
   _checkForTagAttribute(attribute, fn) {
     const schemas = this.hedSchemas.schemas.values()
     for (const schema of schemas) {
@@ -232,7 +231,7 @@ export default class HedValidator {
         fn(tag.longName)
       }
     }
-  }
+  }*/
 
   /**
    * Check basic placeholder tag syntax.
@@ -345,98 +344,12 @@ export default class HedValidator {
     }
   }
 
-  /**
-   * Check full-string Definition syntax.
-   */
-  checkDefinitionStringSyntax() {
-    if (this.parsedString.definitionGroups.length === 0) {
-      return
-    }
-    switch (this.options.definitionsAllowed) {
-      case 'no':
-        this.pushIssue('illegalDefinitionContext', {
-          string: this.parsedString.hedString,
-        })
-        break
-      case 'exclusive':
-        if (
-          !isEqual(this.parsedString.definitionGroups, this.parsedString.tagGroups) ||
-          this.parsedString.topLevelTags.length > 0
-        ) {
-          this.pushIssue('illegalInExclusiveContext', {
-            string: this.parsedString.hedString,
-          })
-        }
-        break
-    }
-  }
-
-  /**
-   * Check the syntax of HED 3 definitions.
-   *
-   * @param {ParsedHedGroup} tagGroup The tag group.
-   */
-  checkDefinitionGroupSyntax(tagGroup) {
-    if (!tagGroup.isDefinitionGroup) {
-      return
-    }
-
-    const definitionShortTag = 'Definition'
-    const defExpandShortTag = 'Def-expand'
-    const defShortTag = 'Def'
-
-    const definitionName = tagGroup.definitionNameAndValue
-
-    let tagGroupValidated = false
-    let tagGroupIssueGenerated = false
-    for (const tag of tagGroup.tags) {
-      if (tag instanceof ParsedHedGroup) {
-        if (tagGroupValidated && !tagGroupIssueGenerated) {
-          this.pushIssue('multipleTagGroupsInDefinition', {
-            definition: definitionName,
-          })
-          tagGroupIssueGenerated = true
-          continue
-        }
-        tagGroupValidated = true
-        for (const columnSplice of tag.columnSpliceIterator()) {
-          this.pushIssue('curlyBracesInDefinition', {
-            definition: definitionName,
-            column: columnSplice.originalTag,
-          })
-        }
-        for (const innerTag of tag.tagIterator()) {
-          const nestedDefinitionParentTags = [definitionShortTag, defExpandShortTag, defShortTag]
-          if (
-            nestedDefinitionParentTags.some((parentTag) => {
-              return innerTag.schemaTag?.name === parentTag
-            })
-          ) {
-            this.pushIssue('nestedDefinition', {
-              definition: definitionName,
-            })
-          }
-        }
-      } else if (tag instanceof ParsedHedColumnSplice) {
-        this.pushIssue('curlyBracesInDefinition', {
-          definition: definitionName,
-          column: tag.originalTag,
-        })
-      } else if (tag.schemaTag?.name !== 'Definition') {
-        this.pushIssue('illegalDefinitionGroupTag', {
-          tag: tag,
-          definition: definitionName,
-        })
-      }
-    }
-  }
-
-  /**
+  /* /!**
    * Check for missing HED 3 definitions.
    *
    * @param {ParsedHedTag} tag The HED tag.
    * @param {string} defShortTag The short tag to check for.
-   */
+   *!/
   checkForMissingDefinitions(tag, defShortTag = 'Def') {
     if (tag.schemaTag?.name !== defShortTag) {
       return
@@ -447,6 +360,7 @@ export default class HedValidator {
       this.pushIssue(code, { definition: defName })
     }
   }
+*/
 
   /**
    * Check the syntax of HED 3 onsets and offsets.
@@ -460,7 +374,7 @@ export default class HedValidator {
     const definitionName = this._getTemporalDefinitionName(tagGroup)
 
     const defExpandChildren = tagGroup.defExpandChildren
-    const defTags = tagGroup.defTags ?? []
+    const defTags = tagGroup.getSpecial('Def')
     if (tagGroup.defCount === 0) {
       this.pushIssue('temporalWithoutDefinition', {
         tagGroup: tagGroup,

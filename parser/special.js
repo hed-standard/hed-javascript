@@ -22,13 +22,14 @@ export class SpecialChecker {
   }
 
   _initializeSpecialTags() {
-    this.specialNames = [...SpecialChecker.specialMap.keys()]
+    this.specialNames = SpecialChecker._getSpecialTagsByProperty('name')
     this.requireValueTags = SpecialChecker._getSpecialTagsByProperty('requireValue')
     this.noExtensionTags = SpecialChecker._getSpecialTagsByProperty('noExtension')
     this.allowTwoLevelValueTags = SpecialChecker._getSpecialTagsByProperty('allowTwoLevelValue')
     this.specialGroupTags = SpecialChecker._getSpecialTagsByProperty('tagGroup')
     this.specialTopGroupTags = SpecialChecker._getSpecialTagsByProperty('topLevelTagGroup')
     this.exclusiveTags = SpecialChecker._getSpecialTagsByProperty('exclusive')
+    this.defRequiredTags = SpecialChecker._getSpecialTagsByProperty('defTagRequired')
     this.noSpliceInGroup = SpecialChecker._getSpecialTagsByProperty('noSpliceInGroup')
     this.hasForbiddenSubgroupTags = new Set(
       [...SpecialChecker.specialMap.values()]
@@ -43,15 +44,44 @@ export class SpecialChecker {
       .map((value) => value.name)
   }
 
+  /*
+  /!**
+   * Return the name of some tag in tags that matches a name in the list represented by propertyName
+   *
+   * @param {string} propertyName - Name of a SpecialChecker property corresponding to a list of strings
+   * @param {ParsedHedTag[]} tags - A list of HED tags to search
+   * @returns {string|null} The name of the first match or null
+   *!/
+  findMatch(propertyName, tags) {
+    if (!this[propertyName] || !Array.isArray(this[propertyName])) {
+      throw new Error(`Property ${propertyName} is not an array or does not exist.`);
+    }
+    for (const tag of tags) {
+      console.log(tag._schemaTag._name)
+    }
+    return null
+
+    const thisTag =  tags.find(tag =>
+      this[propertyName].includes(tag._schemaTag._name))
+    return thisTag ? thisTag.schemaTag.name : null
+/!*    console.log(theseTags)
+    console.log(this[propertyName])
+    return tags.find(tag =>
+      this[propertyName].some(name => name === tag.schemaTag._name)
+    )?.schemaTag._name || null;*!/
+  }*/
+
   /**
    * Perform syntactical checks on the provided HED string to detect violations.
    *
    * @param {ParsedHedString} hedString - The HED string to be checked.
    * @param {boolean} fullCheck - If true, assumes that all splices have been resolved.
+   * @param {boolean} definitionsAllowed - True if definitions are allowed
    * @returns {Issue[]} An array of issues if violations are found otherwise, an empty array.
    */
-  checkHedString(hedString, fullCheck) {
+  checkHedString(hedString, fullCheck, definitionsAllowed) {
     const checks = [
+      () => this.definitionsAllowedCheck(hedString, definitionsAllowed),
       () => this.spliceCheck(hedString, fullCheck),
       () => this.checkTagGroupLevels(hedString, fullCheck),
       () => this.checkUnique(hedString),
@@ -60,7 +90,6 @@ export class SpecialChecker {
       () => this.checkNoSpliceInGroupTags(hedString),
       () => this.checkForbiddenGroups(hedString),
     ]
-
     for (const check of checks) {
       const issues = check()
       if (issues.length > 0) {
@@ -71,11 +100,27 @@ export class SpecialChecker {
   }
 
   /**
-   *  Check whether column splices are allowed
+   * Check whether there are definitions where they are not allowed
    *
-   *  @param {ParsedHedString} hedString - The HED string to check for splice conflicts.
-   *  @param {boolean} fullCheck - If true, then column splices should have been resolved.
-   *  @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
+   * @param {ParsedHedString} hedString - The HED string to check for definitions.
+   * @param {boolean} definitionsAllowed - True if definitions are allowed
+   * @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
+   */
+  definitionsAllowedCheck(hedString, definitionsAllowed) {
+    // If definitions are not allowed and the string has Definition tags
+    if (!definitionsAllowed && hedString.tags.filter((tag) => tag.schemaTag._name === 'Definition').length > 0) {
+      return [generateIssue('illegalDefinitionContext', { string: hedString.hedString })]
+    }
+
+    return []
+  }
+
+  /**
+   * Check whether column splices are allowed
+   *
+   * @param {ParsedHedString} hedString - The HED string to check for splice conflicts.
+   * @param {boolean} fullCheck - If true, then column splices should have been resolved.
+   * @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
    */
   spliceCheck(hedString, fullCheck) {
     if (hedString.columnSplices.length === 0) {

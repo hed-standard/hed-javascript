@@ -39,16 +39,16 @@ export const validateHedString = function (hedString, hedSchemas, ...args) {
     settings = {
       checkForWarnings: settingsArg.checkForWarnings ?? false,
       expectValuePlaceholderString: settingsArg.expectValuePlaceholderString ?? false,
-      definitionsAllowed: settingsArg.definitionsAllowed ?? 'yes',
+      definitionsAllowed: settingsArg.definitionsAllowed ?? true,
     }
   } else {
     settings = {
       checkForWarnings: args[0] ?? false,
       expectValuePlaceholderString: args[1] ?? false,
-      definitionsAllowed: 'yes',
+      definitionsAllowed: true,
     }
   }
-  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
+  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas, false, settings.definitionsAllowed)
   if (parsedString === null) {
     return [false, [].concat(...Object.values(parsingIssues))]
   }
@@ -85,7 +85,7 @@ export const validateHedEvent = function (hedString, hedSchemas, ...args) {
     }
   }
   //const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(hedString, hedSchemas, settings)
-  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
+  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas, true, false)
   if (parsedString === null) {
     return [false, [].concat(...Object.values(parsingIssues))]
   }
@@ -117,7 +117,7 @@ export const validateHedEventWithDefinitions = function (hedString, hedSchemas, 
   }
   //const [parsedString, parsedStringIssues, hedValidator] = initiallyValidateHedString(
   //  hedString, hedSchemas, settings, definitions,)
-  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas)
+  const [parsedString, parsingIssues] = parseHedString(hedString, hedSchemas, true, false)
   if (parsedString === null) {
     return [false, [].concat(...Object.values(parsingIssues))]
   }

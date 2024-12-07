@@ -108,21 +108,36 @@ export default {
     level: 'warning',
     message: stringTemplate`Tag extension found - "${'tag'}".`,
   },
+  invalidSidecarPlaceholder: {
+    hedCode: 'PLACEHOLDER_INVALID',
+    level: 'error',
+    message: stringTemplate`"${'string'}" of column "${'column'}" has an invalid # placeholder.`,
+  },
   // HED 3-specific validation issues
   invalidPlaceholder: {
     hedCode: 'PLACEHOLDER_INVALID',
     level: 'error',
-    message: stringTemplate`Invalid placeholder - "${'tag'}".`,
+    message: stringTemplate`Invalid # placeholder - "${'tag'}".`,
   },
   missingPlaceholder: {
     hedCode: 'PLACEHOLDER_INVALID',
     level: 'error',
-    message: stringTemplate`HED value string "${'string'}" is missing a required placeholder.`,
+    message: stringTemplate`HED value string "${'string'}" is missing a required # placeholder for column "${'column'}".`,
+  },
+  extraPlaceholder: {
+    hedCode: 'PLACEHOLDER_INVALID',
+    level: 'error',
+    message: stringTemplate`HED value string "${'string'}" has too many placeholders in column "${'column'}".`,
   },
   invalidPlaceholderInDefinition: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Invalid placeholder in definition - "${'definition'}".`,
+    message: stringTemplate`Invalid placeholder or missing placeholder in definition - "${'definition'}".`,
+  },
+  invalidDefinition: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Invalid definition - "${'definition'}".`,
   },
   nestedDefinition: {
     hedCode: 'DEFINITION_INVALID',
@@ -143,6 +158,16 @@ export default {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Definition "${'definition'}" is declared multiple times. This instance's tag group is "${'tagGroup'}".`,
+  },
+  conflictingDefinitions: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Definition "${'definition1'}" and "${'definition2'}' conflict.`,
+  },
+  duplicateDefinitionNames: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Definition "${'definition1'}" and "${'definition2'}" have same name but are not equivalent.`,
   },
   multipleTagGroupsInDefinition: {
     hedCode: 'DEFINITION_INVALID',
@@ -294,7 +319,7 @@ export default {
   curlyBracesInHedColumn: {
     hedCode: 'CHARACTER_INVALID',
     level: 'error',
-    message: stringTemplate`Curly brace expression "${'column'}" found in the HED column of a TSV file.`,
+    message: stringTemplate`Curly brace expression "${'string'}" found in the HED column of a TSV file.`,
   },
   curlyBracesNotAllowed: {
     hedCode: 'CHARACTER_INVALID',

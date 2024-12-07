@@ -5,6 +5,8 @@ import { getTagName } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
+import { SpecialChecker } from './special'
+import { filterByClass } from './parseUtils'
 
 /**
  * A parsed HED tag group.
@@ -27,6 +29,12 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @type {ParsedHedSubstring[]}
    */
   tags
+
+  topTags
+
+  topGroups
+
+  allTags
   /**
    * Any HED tags with special handling. This only covers top-level tags in the group
    * @type {Map<string, ParsedHedTag[]>}
@@ -37,11 +45,22 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @type {boolean}
    */
   hasDefExpandChildren
+
+  /**
+   * The tag name of its top-level temporal tag requiring a Def if any
+   * @type {string | null}
+   */
+  temporalGroupType
+
   /**
    * The top-level child subgroups containing Def-expand tags.
    * @type {ParsedHedGroup[]}
    */
   defExpandChildren
+
+  isDefExpandGroup
+
+  isDefinitionGroup
 
   /**
    * Constructor.
@@ -54,19 +73,43 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     const originalTag = hedString.substring(...originalBounds)
     super(originalTag, originalBounds)
     this.tags = parsedHedTags
-    this._findSpecialGroups(hedSchemas)
+    this.topGroups = filterByClass(parsedHedTags, ParsedHedGroup)
+    this.topTags = filterByClass(parsedHedTags, ParsedHedTag)
+    this.allTags = this._getAllTags()
+    this._initializeGroups(hedSchemas)
   }
 
-  _findSpecialGroups(hedSchemas) {
+  _getAllTags() {
+    const subgroupTags = this.topGroups.flatMap((tagGroup) => tagGroup.allTags)
+    return this.topTags.concat(subgroupTags)
+  }
+
+  _initializeGroups(hedSchemas) {
+    const special = SpecialChecker.getInstance()
     this.specialTags = new Map()
-    for (const shortTag of ParsedHedGroup.SPECIAL_SHORT_TAGS) {
+    for (const shortTag of special.specialNames) {
       const tags = ParsedHedGroup.findGroupTags(this, hedSchemas, shortTag)
       if (tags !== undefined) {
         this.specialTags.set(shortTag, tags)
       }
     }
-    this.defExpandChildren = Array.from(this.topLevelGroupIterator()).filter((subgroup) => subgroup.isDefExpandGroup)
+    // this.temporalGroupType = special.findMatch('defRequiredTags', this.tags)
+    this.defExpandChildren = this.filterSubgroupsByTagName('Def-expand')
     this.hasDefExpandChildren = this.defExpandChildren.length !== 0
+    this.isDefExpandGroup = this.topTags.some((tag) => tag.schemaTag.name === 'Def-expand')
+    this.isDefinitionGroup = this.topTags.some((tag) => tag.schemaTag.name === 'Definition')
+  }
+
+  /**
+   * Filter subgroups that include a tag with a specific schemaTag name at the top-level of the group
+   *
+   * @param {string} tagName - The schemaTag name to filter by.
+   * @returns {Array} - Array of subgroups containing the specified tag.
+   */
+  filterSubgroupsByTagName(tagName) {
+    return Array.from(this.topLevelGroupIterator()).filter((subgroup) =>
+      subgroup.topTags.some((tag) => tag.schemaTag.name === tagName),
+    )
   }
 
   /**
@@ -103,12 +146,17 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     return '(' + this.tags.map((substring) => substring.format(long)).join(', ') + ')'
   }
 
-  /**
+  /*
+  /!**
    * The {@code Definition} tags associated with this HED tag group.
    * @returns {ParsedHedTag[]}
-   */
+   *!/
   get definitionTags() {
     return this.specialTags.get('Definition')
+  }*/
+
+  getSpecial(tagName) {
+    return this.specialTags.get(tagName) ?? []
   }
 
   /**
@@ -127,13 +175,13 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     return this.specialTags.get('Def-expand')
   }
 
-  /**
-   * Whether this HED tag group is a definition group.
-   * @returns {boolean}
-   */
-  get isDefinitionGroup() {
-    return this.specialTags.has('Definition')
-  }
+  // /**
+  //  * Whether this HED tag group is a definition group.
+  //  * @returns {boolean}
+  //  */
+  // get isDefinitionGroup() {
+  //   return this.specialTags.has('Definition')
+  // }
 
   /**
    * Whether this HED tag group has a {@code Def} tag.
@@ -143,13 +191,13 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     return this.specialTags.has('Def')
   }
 
-  /**
-   * Whether this HED tag group has a {@code Def-expand} tag.
-   * @returns {boolean}
-   */
-  get isDefExpandGroup() {
-    return this.specialTags.has('Def-expand')
-  }
+  // /**
+  //  * Whether this HED tag group has a {@code Def-expand} tag.
+  //  * @returns {boolean}
+  //  */
+  // get isDefExpandGroup() {
+  //   return this.specialTags.has('Def-expand')
+  // }
 
   /**
    * Whether this HED tag group is an onset group.
@@ -236,38 +284,28 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   get allTags() {
     return this._memoize('allTags', () => {
-      const tagGroups = this.tags.filter((obj) => obj instanceof ParsedHedGroup)
-      const subgroupTags = tagGroups.flatMap((tagGroup) => tagGroup.allTags)
+      const subgroupTags = this.tagGroups.flatMap((tagGroup) => tagGroup.allTags)
       return this.topTags.concat(subgroupTags)
     })
   }
 
-  /**
+  /*
+
+  /!**
    * A list of all tags in the subgroups
    * @returns {ParsedHedTag[]}
-   */
+   *!/
   get allSubgroupTags() {
     return this._memoize('allSubgroupTags', () => {
       const tagGroups = this.tags.filter((obj) => obj instanceof ParsedHedGroup)
       return tagGroups.flatMap((tagGroup) => tagGroup.allTags)
     })
   }
+*/
 
   get topColumnSplices() {
     return this._memoize('topColumnSplices', () => {
-      return this.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedColumnSplice)
-    })
-  }
-
-  get topTags() {
-    return this._memoize('topTags', () => {
-      return this.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)
-    })
-  }
-
-  get topGroups() {
-    return this._memoize('topGroups', () => {
-      return this.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedGroup)
+      return filterByClass(this.tags, ParsedHedColumnSplice)
     })
   }
 
@@ -367,22 +405,24 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     })
   }
 
-  /**
+  /*  /!**
    * Determine the name and value of this group's definition.
    * @returns {string|null}
-   */
+   *!/
   get definitionNameAndValue() {
     return this.getSingleDefinitionNameAndValue('definition', 'Definition')
-  }
+  }*/
 
-  /**
+  /*
+  /!**
    * Determine the name and value of this group's definition.
    * @returns {string|null}
-   */
+   *!/
   get defExpandNameAndValue() {
     return this.getSingleDefinitionNameAndValue('defExpand', 'Def-expand')
-  }
+  }*/
 
+  /*
   getSingleDefinitionNameAndValue(fieldName, parentTag) {
     return this._memoize(fieldName + 'NameAndValue', () => {
       if (!this.specialTags.has(parentTag)) {
@@ -398,6 +438,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
       }
     })
   }
+*/
 
   /**
    * Determine the name(s) of this group's definition.

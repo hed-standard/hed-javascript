@@ -31,11 +31,6 @@ export class BidsTsvFile extends BidsFile {
    * @type {BidsSidecar}
    */
   mergedSidecar
-  /**
-   * The extracted HED data for the merged pseudo-sidecar.
-   * @type {Map<string, string|Object<string, string>>}
-   */
-  sidecarHedData
 
   /**
    * Constructor.
@@ -47,8 +42,9 @@ export class BidsTsvFile extends BidsFile {
    * @param {object} file The file object representing this file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
    * @param {object} mergedDictionary The merged sidecar data.
+   * @param {DefinitionManager} defManager
    */
-  constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}) {
+  constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}, defs) {
     super(name, file, BidsHedTsvValidator)
 
     if (typeof tsvData === 'string') {
@@ -62,8 +58,7 @@ export class BidsTsvFile extends BidsFile {
     }
 
     this.potentialSidecars = potentialSidecars
-    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, this.file)
-    this.sidecarHedData = this.mergedSidecar.hedData
+    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, this.file, defs)
     this._parseHedColumn()
   }
 
@@ -94,46 +89,6 @@ export class BidsTsvFile extends BidsFile {
    */
   get isTimelineFile() {
     return this.parsedTsv.has('onset')
-  }
-}
-
-/**
- * A BIDS events.tsv file.
- *
- * @deprecated Use {@link BidsTsvFile}. Will be removed in version 4.0.0.
- */
-export class BidsEventFile extends BidsTsvFile {
-  /**
-   * Constructor.
-   *
-   * @param {string} name The name of the event TSV file.
-   * @param {string[]} potentialSidecars The list of potential JSON sidecars.
-   * @param {object} mergedDictionary The merged sidecar data.
-   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
-   * @param {object} file The file object representing this file.
-   */
-  constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
-    super(name, tsvData, file, potentialSidecars, mergedDictionary)
-  }
-}
-
-/**
- * A BIDS TSV file other than an events.tsv file.
- *
- * @deprecated Use {@link BidsTsvFile}. Will be removed in version 4.0.0.
- */
-export class BidsTabularFile extends BidsTsvFile {
-  /**
-   * Constructor.
-   *
-   * @param {string} name The name of the TSV file.
-   * @param {string[]} potentialSidecars The list of potential JSON sidecars.
-   * @param {object} mergedDictionary The merged sidecar data.
-   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
-   * @param {object} file The file object representing this file.
-   */
-  constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
-    super(name, tsvData, file, potentialSidecars, mergedDictionary)
   }
 }
 
@@ -173,7 +128,6 @@ export class BidsTsvRow extends ParsedHedString {
   constructor(parsedString, rowCells, tsvFile, tsvLine) {
     super(parsedString.hedString, parsedString.parseTree)
     this.parsedString = parsedString
-    this.context = parsedString.context
     this.rowCells = rowCells
     this.tsvFile = tsvFile
     this.tsvLine = tsvLine
@@ -247,5 +201,25 @@ export class BidsTsvEvent extends ParsedHedString {
    */
   toString() {
     return super.toString() + ` in TSV file "${this.tsvFile.name}" at line(s) ${this.tsvLines}`
+  }
+}
+
+/**
+ * A BIDS events.tsv file.
+ *
+ * @deprecated Use {@link BidsTsvFile}. Will be removed in version 4.0.0.
+ */
+export class BidsEventFile extends BidsTsvFile {
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of the event TSV file.
+   * @param {string[]} potentialSidecars The list of potential JSON sidecars.
+   * @param {object} mergedDictionary The merged sidecar data.
+   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
+   * @param {object} file The file object representing this file.
+   */
+  constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
+    super(name, tsvData, file, potentialSidecars, mergedDictionary)
   }
 }

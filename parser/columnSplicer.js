@@ -184,7 +184,7 @@ export class ColumnSplicer {
    * @private
    */
   _reparseAndSpliceString(replacementString) {
-    const [newParsedString, parsingIssues] = parseHedString(replacementString, this.hedSchemas)
+    const [newParsedString, parsingIssues] = parseHedString(replacementString, this.hedSchemas, true, false)
     const flatParsingIssues = Object.values(parsingIssues).flat()
     if (flatParsingIssues.length > 0) {
       this.issues.push(...flatParsingIssues)

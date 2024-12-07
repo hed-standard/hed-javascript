@@ -1181,7 +1181,7 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": ["(Def-expand/Acc2/4.5, (Acceleration/4.5 m-per-s^2, Red))", "(Def-expand/MyColor2, (Label/Pie))"],
+        "fails": ["(Def-expand/MyColor2, (Label/Pie))"],
         "passes": ["(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"]
       },
       "sidecar_tests": {
@@ -5990,7 +5990,7 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": ["((Delay/5.0 s, Delay/7.0 s (Def/MyColor)), Red)"],
+        "fails": ["((Delay/5.0 s, Delay/7.0 s, (Def/MyColor)), Red)"],
         "passes": ["(Onset, Delay/6 s, (Def/MyColor)), Red"]
       },
       "sidecar_tests": {

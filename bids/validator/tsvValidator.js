@@ -1,4 +1,3 @@
-import BidsHedSidecarValidator from './sidecarValidator'
 import { BidsHedIssue, BidsIssue } from '../types/issues'
 import { BidsTsvEvent, BidsTsvRow } from '../types/tsv'
 import { parseHedString } from '../../parser/parser'
@@ -44,27 +43,38 @@ export class BidsHedTsvValidator {
   /**
    * Validate a BIDS TSV file. This method returns the complete issue list for convenience.
    *
+   * @param {Schemas} schemas
    * @returns {BidsIssue[]} Any issues found during validation of this TSV file.
    */
-  validate() {
-    const parsingIssues = BidsHedIssue.fromHedIssues(
-      this.tsvFile.mergedSidecar.parseHedStrings(this.hedSchemas),
-      this.tsvFile.file,
-    )
-    this.issues.push(...parsingIssues)
-    if (BidsIssue.anyAreErrors(parsingIssues)) {
-      return this.issues
+  validate(schemas = null) {
+    let hedSchemas = schemas
+    if (!schemas) {
+      this.hedSchemas = schemas
     }
-    const curlyBraceIssues = new BidsHedSidecarValidator(
-      this.tsvFile.mergedSidecar,
-      this.hedSchemas,
-    ).validateCurlyBraces()
+    if (!this.hedSchemas) {
+      BidsHedIssue.fromHedIssue(
+        generateIssue('genericError', {
+          message: 'Event validation requires a HED schema, but the schema received was null.',
+        }),
+        { path: this.tsvFile.file, relativePath: this.tsvFile.file },
+      )
+    }
+    if (this.tsvFile.mergedSidecar) {
+      const sidecarIssues = this.tsvFile.mergedSidecar.validate(this.hedSchemas)
+      this.issues.push(...sidecarIssues)
+      if (BidsIssue.anyAreErrors(sidecarIssues)) {
+        return this.issues
+      }
+    }
+
+    // Valid Hed column
     const hedColumnIssues = this._validateHedColumn()
-    this.issues.push(...curlyBraceIssues, ...hedColumnIssues)
+    this.issues.push(...hedColumnIssues)
     if (BidsIssue.anyAreErrors(this.issues)) {
       return this.issues
     }
 
+    // Now do a full validation
     const bidsHedTsvParser = new BidsHedTsvParser(this.tsvFile, this.hedSchemas)
     const hedStrings = bidsHedTsvParser.parse()
     this.issues.push(...bidsHedTsvParser.issues)
@@ -108,10 +118,10 @@ export class BidsHedTsvValidator {
     const options = {
       checkForWarnings: true,
       expectValuePlaceholderString: false,
-      definitionsAllowed: 'no',
+      definitionsAllowed: false,
     }
 
-    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, true)
+    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false)
     issues.push(
       ...BidsHedIssue.fromHedIssues(Object.values(parsingIssues).flat(), this.tsvFile.file, { tsvLine: rowIndex }),
     )
@@ -124,7 +134,7 @@ export class BidsHedTsvValidator {
       issues.push(
         BidsHedIssue.fromHedIssue(
           generateIssue('curlyBracesInHedColumn', {
-            column: parsedString.columnSplices[0].format(),
+            string: parsedString.hedString,
             tsvLine: rowIndex,
           }),
           this.tsvFile.file,
@@ -146,15 +156,10 @@ export class BidsHedTsvValidator {
    * @param {ParsedHedString[]} hedStrings The HED strings in the data collection.
    */
   validateCombinedDataset(hedStrings) {
-    const [, hedIssues] = validateHedDatasetWithContext(
-      hedStrings,
-      this.tsvFile.mergedSidecar.hedStrings,
-      this.hedSchemas,
-      {
-        checkForWarnings: true,
-        validateDatasetLevel: this.tsvFile.isTimelineFile,
-      },
-    )
+    const [, hedIssues] = validateHedDatasetWithContext(hedStrings, this.tsvFile.mergedSidecar, this.hedSchemas, {
+      checkForWarnings: true,
+      validateDatasetLevel: this.tsvFile.isTimelineFile,
+    })
     this.issues.push(...BidsHedIssue.fromHedIssues(hedIssues, this.tsvFile.file))
   }
 }
@@ -212,7 +217,7 @@ export class BidsHedTsvParser {
    */
   _generateHedRows() {
     const tsvHedColumns = Array.from(this.tsvFile.parsedTsv.entries()).filter(
-      ([header]) => this.tsvFile.sidecarHedData.has(header) || header === 'HED' || header === 'onset',
+      ([header]) => this.tsvFile.mergedSidecar.hedData.has(header) || header === 'HED' || header === 'onset',
     )
 
     const tsvHedRows = []
@@ -297,7 +302,7 @@ export class BidsHedTsvParser {
   _parseHedRowString(rowCells, tsvLine, hedString) {
     const columnSpliceMapping = this._generateColumnSpliceMapping(rowCells)
 
-    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas)
+    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, true, false)
     const flatParsingIssues = Object.values(parsingIssues).flat()
     if (flatParsingIssues.length > 0) {
       this.issues.push(...BidsHedIssue.fromHedIssues(flatParsingIssues, this.tsvFile.file, { tsvLine }))
@@ -359,7 +364,7 @@ export class BidsHedTsvParser {
     if (columnName === 'HED') {
       return cellValue
     }
-    const sidecarHedData = this.tsvFile.sidecarHedData.get(columnName)
+    const sidecarHedData = this.tsvFile.mergedSidecar.hedData.get(columnName)
     if (!sidecarHedData) {
       return null
     }

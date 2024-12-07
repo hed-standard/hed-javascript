@@ -1,6 +1,7 @@
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedGroup from './parsedHedGroup'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
+import { filterByClass } from './parseUtils'
 
 /**
  * A parsed HED string.
@@ -45,12 +46,7 @@ export class ParsedHedString {
    * The top-level definition tag groups in the string.
    * @type {ParsedHedGroup[]}
    */
-  definitionGroups
-  /**
-   * The context in which this string was defined. Applicable definitions.
-   * @type {Map<string, *>}
-   */
-  context
+  definitions
 
   /**
    * Constructor.
@@ -60,9 +56,9 @@ export class ParsedHedString {
   constructor(hedString, parsedTags) {
     this.hedString = hedString
     this.parseTree = parsedTags
-    this.tagGroups = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedGroup)
-    this.topLevelTags = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)
-    const topLevelColumnSplices = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedColumnSplice)
+    this.tagGroups = filterByClass(parsedTags, ParsedHedGroup)
+    this.topLevelTags = filterByClass(parsedTags, ParsedHedTag)
+    const topLevelColumnSplices = filterByClass(parsedTags, ParsedHedColumnSplice)
 
     const subgroupTags = this.tagGroups.flatMap((tagGroup) => Array.from(tagGroup.tagIterator()))
     this.tags = this.topLevelTags.concat(subgroupTags)
@@ -70,14 +66,8 @@ export class ParsedHedString {
     const subgroupColumnSplices = this.tagGroups.flatMap((tagGroup) => Array.from(tagGroup.columnSpliceIterator()))
     this.columnSplices = topLevelColumnSplices.concat(subgroupColumnSplices)
 
-    this.topLevelGroupTags = this.tagGroups.map((tagGroup) =>
-      tagGroup.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag),
-    )
-    this.definitionGroups = this.tagGroups.filter((group) => {
-      return group.isDefinitionGroup
-    })
-
-    this.context = new Map()
+    this.topLevelGroupTags = this.tagGroups.map((tagGroup) => filterByClass(tagGroup.tags, ParsedHedTag))
+    this.definitions = this.tagGroups.filter((group) => group.isDefinitionGroup)
   }
 
   /**
@@ -88,12 +78,6 @@ export class ParsedHedString {
    */
   format(long = true) {
     return this.parseTree.map((substring) => substring.format(long)).join(', ')
-  }
-
-  get definitions() {
-    return this.definitionGroups.map((group) => {
-      return [group.definitionName, group]
-    })
   }
 
   /**

@@ -477,7 +477,6 @@ describe('BIDS datasets', () => {
           BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionContext', {
               string: bidsSidecars[5][2].hedData.get('event_code'),
-              sidecarKey: 'event_code',
             }),
             defSidecars[2].file,
           ),
@@ -528,7 +527,7 @@ describe('BIDS datasets', () => {
       const expectedIssues = {
         tsv: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInHedColumn', { column: '{response_time}' }),
+            generateIssue('curlyBracesInHedColumn', { string: '{response_time}' }),
             standaloneTsvFiles[1].file,
             { tsvLine: 2 },
           ),
@@ -652,7 +651,7 @@ describe('BIDS datasets', () => {
         ],
         hedColumn: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('curlyBracesInHedColumn', { column: '{response_time}' }),
+            generateIssue('curlyBracesInHedColumn', { string: '{response_time}' }),
             hedColumnDatasets[0].file,
             { tsvLine: 2 },
           ),
