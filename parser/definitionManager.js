@@ -56,7 +56,8 @@ export class Definition {
   checkDef(tag) {
     // One is three level and one is not.
     if (!!this.defTag._splitValue !== !!tag._splitValue) {
-      return [generateIssue('missingDefinitionForDef', { definition: tag._value })]
+      const errorType = tag.schemaTag.name === 'Def' ? 'missingDefinitionForDef' : 'missingDefinitionForDefExpand'
+      return [generateIssue(errorType, { definition: tag._value })]
     }
     return []
   }

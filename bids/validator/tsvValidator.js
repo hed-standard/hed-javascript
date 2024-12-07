@@ -32,33 +32,20 @@ export class BidsHedTsvValidator {
    * Constructor.
    *
    * @param {BidsTsvFile} tsvFile The BIDS TSV file being validated.
-   * @param {Schemas} hedSchemas The HED schema collection being validated against.
+   * @param {Schemas} hedSchemas
    */
   constructor(tsvFile, hedSchemas) {
     this.tsvFile = tsvFile
-    this.hedSchemas = hedSchemas
+    this.hedSchemas = hedSchemas // Will be set when the file is validated
     this.issues = []
   }
 
   /**
    * Validate a BIDS TSV file. This method returns the complete issue list for convenience.
    *
-   * @param {Schemas} schemas
    * @returns {BidsIssue[]} Any issues found during validation of this TSV file.
    */
-  validate(schemas = null) {
-    let hedSchemas = schemas
-    if (!schemas) {
-      this.hedSchemas = schemas
-    }
-    if (!this.hedSchemas) {
-      BidsHedIssue.fromHedIssue(
-        generateIssue('genericError', {
-          message: 'Event validation requires a HED schema, but the schema received was null.',
-        }),
-        { path: this.tsvFile.file, relativePath: this.tsvFile.file },
-      )
-    }
+  validate() {
     if (this.tsvFile.mergedSidecar) {
       const sidecarIssues = this.tsvFile.mergedSidecar.validate(this.hedSchemas)
       this.issues.push(...sidecarIssues)
@@ -301,8 +288,7 @@ export class BidsHedTsvParser {
    */
   _parseHedRowString(rowCells, tsvLine, hedString) {
     const columnSpliceMapping = this._generateColumnSpliceMapping(rowCells)
-
-    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, true, false)
+    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false)
     const flatParsingIssues = Object.values(parsingIssues).flat()
     if (flatParsingIssues.length > 0) {
       this.issues.push(...BidsHedIssue.fromHedIssues(flatParsingIssues, this.tsvFile.file, { tsvLine }))
@@ -329,6 +315,9 @@ export class BidsHedTsvParser {
    */
   _generateColumnSpliceMapping(rowCells) {
     const columnSpliceMapping = new Map()
+    if (!this.tsvFile.mergedSidecar.hasHedData()) {
+      return columnSpliceMapping
+    }
 
     for (const [columnName, columnValue] of rowCells.entries()) {
       if (columnValue === 'n/a' || columnValue === '') {

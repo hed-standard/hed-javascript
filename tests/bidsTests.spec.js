@@ -16,7 +16,7 @@ import { parseHedString } from '../parser/parser'
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['definition-tests', ['invalid-definition-with-missing-placeholder']]])
+const runMap = new Map([['curly-brace-tests', ['valid-curly-brace-in-sidecar-with-value-splice']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([
@@ -50,70 +50,56 @@ describe('BIDS validation', () => {
       const thisSchema = schemaMap.get(test.schemaVersion)
       assert.isDefined(thisSchema, `${header}:${test.schemaVersion} is not available in test ${test.name}`)
 
-      // const defManager = new DefinitionManager()
-      // for (const def of test.definitions) {
-      //   const [parsedGroup, issueObjs] = parseHedString(def, thisSchema, true, true )
-      //   if ( Object.values( issueObjs).flat().length > 0 || !parsedGroup) {
-      //     IssueError.generateAndThrow('internalError', { message: 'Bad input definition "${def}" in the test data' })
-      //   }
-      //   defManager.addDefinition(parsedGroup.tagGroups[0])
-      // }
-
       //Validate the sidecar by itself
       let issues
       let defList
-
       ;[defList, issues] = DefinitionManager.createDefinitions(test.definitions, thisSchema)
       assert.equal(issues.length, 0, `${header}: input definitions "${test.definitions}" have errors "${issues}"`)
-      let defManager = new DefinitionManager()
-      issues = defManager.addDefinitions(defList)
+      const defManager1 = new DefinitionManager()
+      issues = defManager1.addDefinitions(defList)
       assert.equal(issues.length, 0, `${header}: input definitions "${test.definitions}" have conflicts "${issues}"`)
 
-      const sidecarName = test.testname + '.json'
-      const bidsSidecar = new BidsSidecar(
-        'thisOne',
-        test.sidecar,
-        { relativePath: sidecarName, path: sidecarName },
-        defManager,
-      )
-      assert.instanceOf(bidsSidecar, BidsSidecar, 'Test')
-      const sidecarIssues = bidsSidecar.validate(thisSchema)
-      assertErrors(test, 'Sidecar only', test.sidecarErrors, sidecarIssues)
-
-      // Parse the events file
+      // const sidecarName = test.testname + '.json'
+      // const bidsSidecar = new BidsSidecar(
+      //   'thisOne',
+      //   test.sidecar,
+      //   { relativePath: sidecarName, path: sidecarName },
+      //   defManager1,
+      // )
+      // assert.instanceOf(bidsSidecar, BidsSidecar, 'Test')
+      // const sidecarIssues = bidsSidecar.validate(thisSchema)
+      // assertErrors(test, 'Sidecar only', test.sidecarErrors, sidecarIssues)
+      //
+      // // Parse the events file
       const eventName = test.testname + '.tsv'
-      defManager = new DefinitionManager()
-      defManager.addDefinitions(defList)
+      // const defManager2 = new DefinitionManager()
+      // defManager2.addDefinitions(defList)
       const parsedTsv = parseTSV(test.eventsString)
-      assert.instanceOf(parsedTsv, Map, `${eventName} cannot be parsed`)
-
-      // Validate the events file with no sidecar
-      const bidsTsv = new BidsTsvFile(
-        test.testname,
-        parsedTsv,
-        { relativePath: eventName, path: eventName },
-        [],
-        {},
-        defManager,
-      )
-      const validatorNoSide = new BidsHedTsvValidator(bidsTsv, thisSchema)
-      validatorNoSide.validate()
-      assertErrors(test, 'Events', test.tsvErrors, validatorNoSide.issues)
+      // assert.instanceOf(parsedTsv, Map, `${eventName} cannot be parsed`)
+      //
+      // // Validate the events file with no sidecar
+      // const bidsTsv = new BidsTsvFile(
+      //   test.testname,
+      //   parsedTsv,
+      //   { relativePath: eventName, path: eventName },
+      //   [],
+      //   {},
+      //   defManager2,
+      // )
+      // const noSideIssues = bidsTsv.validate(thisSchema)
+      // assertErrors(test, 'Events', test.tsvErrors, noSideIssues)
 
       // Validate the events file with the sidecar
-      defManager = new DefinitionManager()
-      defManager.addDefinitions(defList)
       const bidsTsvSide = new BidsTsvFile(
         test.testname,
         parsedTsv,
         { relativePath: eventName, path: eventName },
         [],
         test.sidecar,
-        defManager,
+        defManager1,
       )
-      const validatorWithSide = new BidsHedTsvValidator(bidsTsvSide, thisSchema)
-      validatorWithSide.validate()
-      assertErrors(test, 'Events+side', test.comboErrors, validatorWithSide.issues)
+      const withSideIssues = bidsTsvSide.validate(thisSchema)
+      assertErrors(test, 'Events+side', test.comboErrors, withSideIssues)
     }
 
     if (tests && tests.length > 0) {

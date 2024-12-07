@@ -100,7 +100,7 @@ export const validateHedEvent = function (hedString, hedSchemas, ...args) {
  *
  * @param {string|ParsedHedString} hedString The HED event string to validate.
  * @param {Schemas} hedSchemas The HED schemas to validate against.
- * @param {Map<string, ParsedHedGroup>} definitions The dataset's parsed definitions.
+ * @param {DefinitionManager} definitions The dataset's parsed definitions.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @returns {[boolean, Issue[]]} Whether the HED string is valid and any issues found.
  */

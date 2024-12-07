@@ -43,7 +43,7 @@ export default class HedValidator {
   /**
    * The parsed definitions.
    *
-   * @type {Map<string, ParsedHedGroup>}
+   * @type {DefinitionManager}
    */
   definitions
 

@@ -1,7 +1,7 @@
 import { BidsHedIssue } from '../types/issues'
 import ParsedHedString from '../../parser/parsedHedString'
 // IMPORTANT: This import cannot be shortened to '../../validator', as this creates a circular dependency until v4.0.0.
-import { validateHedString } from '../../validator/event/init'
+//import { validateHedString } from '../../validator/event/init'
 import { generateIssue, IssueError } from '../../common/issues/issues'
 import { getCharacterCount } from '../../utils/string.js'
 /**
@@ -28,9 +28,9 @@ export class BidsHedSidecarValidator {
    * Constructor.
    *
    * @param {BidsSidecar} sidecar The BIDS sidecar being validated.
-   * @param {Schemas|null} hedSchemas The HED schema collection being validated against.
+   * @param {Schemas} hedSchemas
    */
-  constructor(sidecar, hedSchemas = null) {
+  constructor(sidecar, hedSchemas) {
     this.sidecar = sidecar
     this.hedSchemas = hedSchemas
     this.issues = []
@@ -39,23 +39,10 @@ export class BidsHedSidecarValidator {
   /**
    * Validate a BIDS JSON sidecar file. This method returns the complete issue list for convenience.
    *
-   * @param {Schemas} schemas -
    * @returns {BidsIssue[]} Any issues found during validation of this sidecar file.
    */
-  validate(schemas = null) {
-    // Allow schema to be set a validation time
-    if (!schemas) {
-      this.hedSchemas = schemas
-    }
-    if (!this.hedSchemas) {
-      BidsHedIssue.fromHedIssues(
-        generateIssue('genericError', {
-          message: 'Sidecar validation requires a HED schema, but the schema received was null.',
-        }),
-        { path: this.sidecar.file, relativePath: this.sidecar.file },
-      )
-    }
-
+  validate() {
+    // Allow schema to be set a validation time -- this is checked by the superclass of BIDS file
     const sidecarParsingIssues = BidsHedIssue.fromHedIssues(
       this.sidecar.parseHedStrings(this.hedSchemas),
       this.sidecar.file,
