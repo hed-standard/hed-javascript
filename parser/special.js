@@ -26,10 +26,10 @@ export class SpecialChecker {
     this.requireValueTags = SpecialChecker._getSpecialTagsByProperty('requireValue')
     this.noExtensionTags = SpecialChecker._getSpecialTagsByProperty('noExtension')
     this.allowTwoLevelValueTags = SpecialChecker._getSpecialTagsByProperty('allowTwoLevelValue')
-    this.specialGroupTags = SpecialChecker._getSpecialTagsByProperty('tagGroup')
     this.specialTopGroupTags = SpecialChecker._getSpecialTagsByProperty('topLevelTagGroup')
+    this.specialGroupTags = SpecialChecker._getSpecialTagsByProperty('tagGroup')
+    this.specialGroupTags = new Set([...this.specialGroupTags].filter((item) => !this.specialTopGroupTags.has(item)))
     this.exclusiveTags = SpecialChecker._getSpecialTagsByProperty('exclusive')
-    this.defRequiredTags = SpecialChecker._getSpecialTagsByProperty('defTagRequired')
     this.noSpliceInGroup = SpecialChecker._getSpecialTagsByProperty('noSpliceInGroup')
     this.hasForbiddenSubgroupTags = new Set(
       [...SpecialChecker.specialMap.values()]
@@ -39,37 +39,10 @@ export class SpecialChecker {
   }
 
   static _getSpecialTagsByProperty(property) {
-    return [...SpecialChecker.specialMap.values()]
-      .filter((value) => value[property] === true)
-      .map((value) => value.name)
+    return new Set(
+      [...SpecialChecker.specialMap.values()].filter((value) => value[property] === true).map((value) => value.name),
+    )
   }
-
-  /*
-  /!**
-   * Return the name of some tag in tags that matches a name in the list represented by propertyName
-   *
-   * @param {string} propertyName - Name of a SpecialChecker property corresponding to a list of strings
-   * @param {ParsedHedTag[]} tags - A list of HED tags to search
-   * @returns {string|null} The name of the first match or null
-   *!/
-  findMatch(propertyName, tags) {
-    if (!this[propertyName] || !Array.isArray(this[propertyName])) {
-      throw new Error(`Property ${propertyName} is not an array or does not exist.`);
-    }
-    for (const tag of tags) {
-      console.log(tag._schemaTag._name)
-    }
-    return null
-
-    const thisTag =  tags.find(tag =>
-      this[propertyName].includes(tag._schemaTag._name))
-    return thisTag ? thisTag.schemaTag.name : null
-/!*    console.log(theseTags)
-    console.log(this[propertyName])
-    return tags.find(tag =>
-      this[propertyName].some(name => name === tag.schemaTag._name)
-    )?.schemaTag._name || null;*!/
-  }*/
 
   /**
    * Perform syntactical checks on the provided HED string to detect violations.
@@ -88,7 +61,7 @@ export class SpecialChecker {
       () => this.checkExclusive(hedString),
       () => this.checkSpecialTopGroups(hedString),
       () => this.checkNoSpliceInGroupTags(hedString),
-      () => this.checkForbiddenGroups(hedString),
+      () => this.checkGroups(hedString),
     ]
     for (const check of checks) {
       const issues = check()
@@ -129,7 +102,7 @@ export class SpecialChecker {
     }
 
     // If doing a full-check, column splices should be resolved
-    if (fullCheck || hedString.tags.some((tag) => this.exclusiveTags.includes(tag.schemaTag._name))) {
+    if (fullCheck || hedString.tags.some((tag) => this.exclusiveTags.has(tag.schemaTag._name))) {
       return [generateIssue('curlyBracesNotAllowed', { string: hedString.hedString })]
     }
     return []
@@ -179,7 +152,7 @@ export class SpecialChecker {
    * Notes:  Can only be in a top group and with other top groups of the same kind
    */
   checkExclusive(hedString) {
-    const exclusiveTags = hedString.tags.filter((tag) => this.exclusiveTags.includes(tag.schemaTag._name))
+    const exclusiveTags = hedString.tags.filter((tag) => this.exclusiveTags.has(tag.schemaTag._name))
     if (exclusiveTags.length === 0) {
       return []
     }
@@ -233,7 +206,7 @@ export class SpecialChecker {
    * Note:  This is a top-group check only
    */
   _checkSpecialTopGroup(group) {
-    const specialTags = group.topTags.filter((tag) => this.specialTopGroupTags.includes(tag.schemaTag.name))
+    const specialTags = group.topTags.filter((tag) => this.specialTopGroupTags.has(tag.schemaTag.name))
 
     // If there are no special tags, there are no issues to check
     if (specialTags.length === 0) {
@@ -335,12 +308,15 @@ export class SpecialChecker {
    * @param {ParsedHedString} hedString - the HED string to be checked.
    * @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
    */
-  checkForbiddenGroups(hedString) {
+  checkGroups(hedString) {
     const issues = []
     for (const group of hedString.tagGroups) {
       // Only check the group if there are tags with forbidden subgroup tags
       if (group.allTags.some((tag) => this.hasForbiddenSubgroupTags.has(tag.schemaTag.name))) {
-        issues.push(...this.checkForbiddenGroup(group))
+        issues.push(...this._checkForbiddenGroup(group))
+      }
+      if (group.allTags.some((tag) => this.specialGroupTags.has(tag.schemaTag.name))) {
+        issues.push(...this._checkSpecialGroup(group))
       }
     }
     return issues
@@ -354,7 +330,7 @@ export class SpecialChecker {
    *
    * Note: Returns in a given group as soon as it finds a conflict
    */
-  checkForbiddenGroup(group) {
+  _checkForbiddenGroup(group) {
     for (const subGroup of group.subParsedGroupIterator()) {
       // if this group does not have top tags with forbidden subgroups -- must go deeper
       const forbiddenTags = subGroup.topTags.filter((tag) => this.hasForbiddenSubgroupTags.has(tag.schemaTag._name))
@@ -382,6 +358,14 @@ export class SpecialChecker {
     return []
   }
 
+  _checkSpecialGroup(group) {
+    const groupTags = group.topTags.some((tag) => this.specialGroupTags.has(tag.schemaTag.name))
+    for (const groupTag of groupTags) {
+      const requirements = this.special.g
+    }
+    return []
+  }
+
   /**
    * Check for special tags that have no splice in group that no forbidden tags are in their subgroup.
    *
@@ -398,7 +382,7 @@ export class SpecialChecker {
    * @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
    */
   checkNoSpliceInGroupTags(hedString) {
-    const spliceTags = hedString.topLevelTags.filter((tag) => this.noSpliceInGroup.includes(tag.schemaTag._name))
+    const spliceTags = hedString.topLevelTags.filter((tag) => this.noSpliceInGroup.has(tag.schemaTag._name))
     if (spliceTags.length > 0) {
       return [generateIssue('missingTagGroup', { tag: spliceTags[0].originalTag, string: hedString.hedString })]
     }

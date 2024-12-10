@@ -132,7 +132,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     // Check that there is a value if required
     const special = SpecialChecker.getInstance()
     if (
-      (schemaTag.hasAttributeName('requireChild') || special.requireValueTags.includes(schemaTag.name)) &&
+      (schemaTag.hasAttributeName('requireChild') || special.requireValueTags.has(schemaTag.name)) &&
       remainder === ''
     ) {
       IssueError.generateAndThrow('valueRequired', { tag: this.originalTag })
@@ -174,12 +174,11 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @param {SpecialChecker} special - the special checker for checking the special tag properties
    */
   _getSplitValue(remainder, special) {
-    if (!special.allowTwoLevelValueTags.includes(this.schemaTag.name)) {
+    if (!special.allowTwoLevelValueTags.has(this.schemaTag.name)) {
       return [remainder, null]
     }
-    const split = remainder.split('/', 2)
-    const rest = split.length > 1 ? split[1] : null
-    return [split[0], rest]
+    const [first, ...rest] = remainder.split('/')
+    return [first, rest.join('/')]
   }
 
   /**

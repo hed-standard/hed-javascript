@@ -101,11 +101,12 @@ export default class HedValidator {
       //this.checkValueTagSyntax(tag)
     }
     if (this.definitions !== null) {
-      this.issues.push(...this.definitions.checkDef(tag))
+      const [definition, missingIssues] = this.definitions.findDefinition(tag)
+      this.issues.push(...missingIssues)
     }
-    if (this.options.expectValuePlaceholderString) {
-      this.checkPlaceholderTagSyntax(tag)
-    }
+    // if (this.options.expectValuePlaceholderString) {
+    //   this.checkPlaceholderTagSyntax(tag)
+    // }
   }
 
   /**
@@ -238,7 +239,7 @@ export default class HedValidator {
    *
    * @param {ParsedHedTag} tag A HED tag.
    */
-  checkPlaceholderTagSyntax(tag) {
+  /* checkPlaceholderTagSyntax(tag) {
     // TODO: Refactor or eliminate after column splicing completed
     const placeholderCount = getCharacterCount(tag.formattedTag, '#')
     if (placeholderCount === 1) {
@@ -254,7 +255,7 @@ export default class HedValidator {
         tag: tag,
       })
     }
-  }
+  }*/
 
   /**
    * Check full-string placeholder syntax.

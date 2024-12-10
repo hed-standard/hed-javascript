@@ -13,7 +13,7 @@ import { DefinitionManager } from '../parser/definitionManager'
 
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['def-or-def-expand', ['invalid-def-extra-level']]])
+const runMap = new Map([['def-or-def-expand', ['invalid-def-invalid-value']]])
 
 describe('DefinitionManager tests', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
@@ -50,16 +50,9 @@ describe('DefinitionManager tests', () => {
       const status = test.errors.length === 0 ? 'Expect pass' : 'Expect fail'
       const header = `[${test.testname} (${status})]`
       assert.isDefined(thisSchema, `header: ${test.schemaVersion} is not available in test ${test.testname}`)
-
+      const issues = defManager.validateHedString(test.stringIn, thisSchema)
       // Parse the string before converting
-      const [parsedString, errorIssues, warningIssues] = getHedString(test.stringIn, thisSchema, test.fullCheck, false)
-      const defIssues = defManager.checkDef(parsedString.topLevelTags[0])
-
-      assert.deepStrictEqual(
-        defIssues,
-        test.errors,
-        `${header}: expected ${errorIssues} errors but received ${test.errors}\n`,
-      )
+      assert.deepStrictEqual(issues, test.errors, `${header}: expected ${issues} errors but received ${test.errors}\n`)
     }
 
     test.each(tests)('$testname: $explanation ', (test) => {

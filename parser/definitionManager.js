@@ -1,6 +1,7 @@
 import { generateIssue, IssueError } from '../common/issues/issues'
 import { parseHedString } from './parser'
-import { filterNonEqualDuplicates } from '../utils/map'
+//import { filterNonEqualDuplicates } from './parseUtils'
+import { filterByTagName } from './parseUtils'
 
 export class Definition {
   /**
@@ -23,11 +24,12 @@ export class Definition {
 
   /**
    * The definition contents group)
-   * @type {string}
+   * @type {ParsedHedGroup}
    */
   defContents
 
   placeholder
+
   /**
    * A single definition
    *
@@ -53,7 +55,7 @@ export class Definition {
    * @param {ParsedHedTag} - tag to be checked
    * @returns Issue[] - if there is an error.
    */
-  checkDef(tag) {
+  checkDefinition(tag) {
     // One is three level and one is not.
     if (!!this.defTag._splitValue !== !!tag._splitValue) {
       const errorType = tag.schemaTag.name === 'Def' ? 'missingDefinitionForDef' : 'missingDefinitionForDefExpand'
@@ -67,10 +69,44 @@ export class Definition {
    * @param {ParsedHedGroup} group - tag to be checked
    * @returns Issue[] - errors encountered
    */
-  checkDefGroup(group) {
+  /* checkDefGroup(group) {
     // One is three level and one is not.
-    return this.checkDef(group.topTags[0])
+    return this.checkDefinition(group.topTags[0])
     //TODO contents must also be checked
+  }*/
+
+  /**
+   * Return the evaluated definition contents
+   * @param {ParsedHedTag} tag - parsed HEd tag whose details should be checked.
+   * @param {Schemas} hedSchema
+   * @param {string} splitValue - second part of the definition's value or an empty string
+   * @returns {Issue[]}
+   */
+  validateTag(tag, hedSchema) {
+    // We found the matching definition name when this is called, so only need to check second-level value
+    if (!!this.defTag._splitValue !== !!tag._splitValue) {
+      const errorType = tag.schemaTag.name === 'Def' ? 'missingDefinitionForDef' : 'missingDefinitionForDefExpand'
+      return [generateIssue(errorType, { definition: tag._value })]
+    }
+    if (!this.defTag._splitValue) {
+      return []
+    }
+    const [parsedString, parseIssues] = this.evaluateDef(tag, hedSchema)
+    return parseIssues
+  }
+
+  /**
+   * Evaluate this Def based on the value of tag.
+   * @param {ParsedHedTag} tag - tag whose value is to be used to evaluate the tag.
+   * @param {Schemas} hedSchema
+   * @returns {[ParsedHedGroup,Issue[]]}
+   */
+  evaluateDef(tag, hedSchema) {
+    if (!this.defTag._splitValue) {
+      return [this.defTag.defContents, []]
+    }
+    const evalString = this.defContents.originalTag.replace('#', tag._splitValue)
+    return parseHedString(evalString, hedSchema, true, false)
   }
 
   equivalent(other) {
@@ -160,54 +196,88 @@ export class DefinitionManager {
   }
 
   /**
-   * Check a list of parsed HED tags for missing definitions
+   * Check a list of parsed HED tags for missing definitions or invalid usage
    * @param {ParsedHedTag[]} - list of tags to be checked
-   * @returns Issue [] - if there is no matching definition
+   * @param {Schemas} hedSchemas - schemas to validate against
+   * @returns Issue [] - if there is no matching definition or definition applied incorrectly.
    */
-  checkDefs(tags) {
+  validateTags(tags, hedSchemas) {
     const issues = []
     for (const tag of tags) {
-      issues.push(...this.checkDef(tag))
+      const [definition, missingIssues] = this.findDefinition(tag)
+      if (missingIssues.length > 0) {
+        issues.push(...missingIssues)
+      } else if (definition) issues.push(...definition.validateTag(tag, hedSchemas))
     }
     return issues
   }
 
   /**
-   * Check a Def Parsed HED tag to make sure it corresponds to a definition
-   * @param {ParsedHedTag} - tag to be checked
-   * @returns Issue [] - if there is no matching definition
+   * Validate a HED string against the definitions in this manager
+   * @param {ParsedHedString} hedString - HED string to be checked
+   * @param {Schemas} hedSchemas - HED schemas to check
+   * @returns Issue [] - if there are errors in the definitions or their values
    */
-  checkDef(tag) {
+  validateHedString(hedString, hedSchemas) {
+    const issues = []
+    const [parsedHed, parsingIssues] = parseHedString(hedString, hedSchemas, true, false)
+    issues.push(...parsingIssues)
+    if (parsingIssues.length > 0) {
+      return issues
+    }
+    const defTags = filterByTagName(parsedHed.tags, 'Def')
+    issues.push(...this.validateTags(defTags, hedSchemas))
+    const defExpandTags = filterByTagName(hedString.tags, 'Def-expand')
+    if (defExpandTags.length === 0) {
+      return issues
+    }
+    issues.push(...this.validateTags(defExpandTags, hedSchemas))
+    // TODO:  must check that the actual Def-expand text is equivalent
+    return issues
+  }
+
+  /**
+   * Find the definition associated with a tag, if any
+   * @param {ParsedHedTag} - tag to be checked
+   * @returns {Definition, Issue []} - if there is no matching definition
+   */
+  findDefinition(tag) {
     if (tag.schemaTag._name !== 'Def' && tag.schemaTag.name !== 'Def-expand') {
-      return []
+      return [null, []]
     }
     const name = tag._value.toLowerCase()
     const existingDefinition = this.definitions.get(name)
+    const errorType = tag.schemaTag.name === 'Def' ? 'missingDefinitionForDef' : 'missingDefinitionForDefExpand'
     if (!existingDefinition) {
-      return [generateIssue('missingDefinitionForDef', { definition: name })]
+      return [null, [generateIssue(errorType, { definition: name })]]
     }
-    return existingDefinition.checkDef(tag)
+    if (!!existingDefinition.defTag._splitValue !== !!tag._splitValue) {
+      return [null, [generateIssue(errorType, { definition: tag._value })]]
+    }
+    return [existingDefinition, []]
   }
 
   /**
    * Check Def-expand groups for a corresponding definition or skip if not a Def-expand group.
    * @param {ParsedHedGroup[]} - group to be checked
+   * @param {Schemas} hedSchemas - HED schemas to used in the check
    * @returns Issue[] - errors if no matching definitions
    */
-  checkDefExpands(groups) {
+  /* checkDefExpands(groups, hedSchemas) {
     const issues = []
     for (const group of groups) {
-      issues.push(...this.checkDefExpand(group))
+      issues.push(...this.checkDefExpand(group, hedSchemas))
     }
     return issues
-  }
+  }*/
 
   /**
    * Check this Def-expand group for a corresponding definition or skip if not a Def tag.
    * @param {ParsedHedGroup} group - tag to be checked
+   * @param {Schemas} hedSchemas - HED schemas to used in the check
    * @returns Issue - if there is no matching definition
    */
-  checkDefExpand(group) {
+  /* checkDefExpand(group, hedSchemas) {
     if (!group.isDefExpandGroup) {
       return []
     }
@@ -218,8 +288,8 @@ export class DefinitionManager {
       return [generateIssue('missingDefinitionForDef', { definition: name })]
     }
 
-    return existingDefinition.checkDefGroup(group)
-  }
+    return existingDefinition.checkDefGroup(group, hedSchemas)
+  }*/
 
   /**
    * Create a list of Definition objects from a list of strings

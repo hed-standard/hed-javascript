@@ -88,11 +88,9 @@ export class BidsHedSidecarValidator {
   }
 
   _checkDefs(sidecarKeyName, sidecarString) {
-    if (sidecarString !== null && !this.sidecar.sidecarKeys.get(sidecarKeyName).hasDefinitions) {
-      const hedIssues = this.sidecar.definitions.checkDefs(sidecarString.tags)
-      if (hedIssues.length > 0) {
-        return BidsHedIssue.fromHedIssues(hedIssues, this.sidecar.file, { sidecarKeyName: sidecarKeyName })
-      }
+    const hedIssues = this.sidecar.definitions.validateHedString(sidecarString, this.hedSchemas)
+    if (hedIssues.length > 0) {
+      return BidsHedIssue.fromHedIssues(hedIssues, this.sidecar.file, { sidecarKeyName: sidecarKeyName })
     }
     return []
   }

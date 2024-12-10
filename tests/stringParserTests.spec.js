@@ -11,8 +11,8 @@ import { parseTestData } from './testData/stringParserTests.data'
 import { shouldRun, getHedString } from './testUtilities'
 
 const skipMap = new Map()
-const runAll = true
-const runMap = new Map([['special-tag-group-tests', ['inset-with-def-expand-and-group']]])
+const runAll = false
+const runMap = new Map([['special-tag-group-tests', ['def-expand-tag-with-extra-group-tag']]])
 
 describe('Null schema objects should cause parsing to bail', () => {
   it('Should not proceed if no schema and valid string', () => {

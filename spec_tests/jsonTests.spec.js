@@ -8,6 +8,8 @@ import { SchemaSpec, SchemasSpec } from '../schema/specs'
 import path from 'path'
 import { BidsSidecar, BidsTsvFile } from '../bids'
 import { generateIssue, IssueError } from '../common/issues/issues'
+import { DefinitionManager } from '../parser/definitionManager'
+import parseTSV from '../bids/tsvParser'
 const fs = require('fs')
 
 const skippedErrors = {
@@ -30,10 +32,6 @@ function comboListToStrings(items) {
     comboItems.push(nextItem)
   }
   return comboItems
-}
-
-function getMergedSidecar(side1, side2) {
-  return Object.assign({}, JSON.parse(side1), side2)
 }
 
 function loadTestData() {
@@ -66,6 +64,11 @@ function tsvListToStrings(eventList) {
 }
 
 function tsvToString(events) {
+  // console.log(events)
+  // const result = events.map((row) => Array.isArray(row) ? row.join('\t') : row);
+  // console.log(result)
+  // const thisString = events.map((row) => row.join('\t')).join('\n')
+  // console.log(thisString)
   return events.map((row) => row.join('\t')).join('\n')
 }
 
@@ -101,9 +104,9 @@ describe('HED validation using JSON tests', () => {
     '$error_code $name : $description',
     ({ error_code, alt_codes, name, schema, definitions, warning, tests }) => {
       let hedSchema
-      let defs
+      let defList
       let expectedErrors
-      const noErrors = new Set()
+      let noErrors
 
       const failedSidecars = stringifyList(tests.sidecar_tests.fails)
       const passedSidecars = stringifyList(tests.sidecar_tests.passes)
@@ -133,33 +136,39 @@ describe('HED validation using JSON tests', () => {
       }
 
       const comboValidator = function (side, events, expectedErrors) {
-        const status = expectedErrors.size === 0 ? 'Expect fail' : 'Expect pass'
+        const status = expectedErrors.size === 0 ? 'Expect pass' : 'Expect fail'
         const header = `\n[${error_code} ${name}](${status})\tCOMBO\t"${side}"\n"${events}"`
-        const mergedSide = getMergedSidecar(side, defs)
-        let sidecarIssues = []
+        let issues
         try {
-          const bidsSide = new BidsSidecar(`sidecar`, mergedSide, { relativePath: 'combo test sidecar' })
-          sidecarIssues = bidsSide.validate(hedSchema)
+          const defManager = new DefinitionManager()
+          defManager.addDefinitions(defList)
+          const parsedTsv = parseTSV(events)
+          assert.instanceOf(parsedTsv, Map, `${events} cannot be parsed`)
+          const bidsTsv = new BidsTsvFile(
+            `events`,
+            parsedTsv,
+            { relativePath: 'combo test tsv' },
+            [],
+            JSON.parse(side),
+            defManager,
+          )
+          issues = bidsTsv.validate(hedSchema)
         } catch (e) {
-          sidecarIssues = [convertIssue(e)]
+          issues = [convertIssue(e)]
         }
-        let eventsIssues = []
-        try {
-          const bidsTsv = new BidsTsvFile(`events`, events, { relativePath: 'combo test tsv' }, [side], mergedSide)
-          eventsIssues = bidsTsv.validate(hedSchema)
-        } catch (e) {
-          eventsIssues = [convertIssue(e)]
-        }
-        const allIssues = [...sidecarIssues, ...eventsIssues]
-        assertErrors(expectedErrors, allIssues, header)
+        assertErrors(expectedErrors, issues, header)
       }
 
       const eventsValidator = function (events, expectedErrors) {
-        const status = expectedErrors.size === 0 ? 'Expect fail' : 'Expect pass'
+        const status = expectedErrors.size === 0 ? 'Expect pass' : 'Expect fail'
         const header = `\n[${error_code} ${name}](${status})\tEvents:\n"${events}"`
-        let eventsIssues = []
+        let eventsIssues
         try {
-          const bidsTsv = new BidsTsvFile(`events`, events, { relativePath: 'events test' }, [], defs)
+          const defManager = new DefinitionManager()
+          defManager.addDefinitions(defList)
+          const parsedTsv = parseTSV(events)
+          assert.instanceOf(parsedTsv, Map, `${events} cannot be parsed`)
+          const bidsTsv = new BidsTsvFile(`events`, parsedTsv, { relativePath: 'events test' }, [], {}, defManager)
           eventsIssues = bidsTsv.validate(hedSchema)
         } catch (e) {
           eventsIssues = [convertIssue(e)]
@@ -168,26 +177,31 @@ describe('HED validation using JSON tests', () => {
       }
 
       const sideValidator = function (side, expectedErrors) {
-        const status = expectedErrors.size === 0 ? 'Expect fail' : 'Expect pass'
+        const status = expectedErrors.size === 0 ? 'Expect pass' : 'Expect fail'
         const header = `\n[${error_code} ${name}](${status})\tSIDECAR "${side}"`
-        const side1 = getMergedSidecar(side, defs)
-        let sidecarIssues = []
+        let issues
         try {
-          const bidsSide = new BidsSidecar(`sidecar`, side1, { relativePath: 'sidecar test' })
-          sidecarIssues = bidsSide.validate(hedSchema)
+          const defManager = new DefinitionManager()
+          defManager.addDefinitions(defList)
+          const bidsSide = new BidsSidecar(`sidecar`, JSON.parse(side), { relativePath: 'sidecar test' }, defManager)
+          issues = bidsSide.validate(hedSchema)
         } catch (e) {
-          sidecarIssues = [convertIssue(e)]
+          issues = [convertIssue(e)]
         }
-        assertErrors(expectedErrors, sidecarIssues, header)
+        assertErrors(expectedErrors, issues, header)
       }
 
       const stringValidator = function (str, expectedErrors) {
         const status = expectedErrors.size === 0 ? 'Expect pass' : 'Expect fail'
         const header = `\n[${error_code} ${name}](${status})\tSTRING: "${str}"`
         const hTsv = `HED\n${str}\n`
-        let stringIssues = []
+        let stringIssues
         try {
-          const bidsTsv = new BidsTsvFile(`events`, hTsv, { relativePath: 'string test tsv' }, [], defs)
+          const defManager = new DefinitionManager()
+          defManager.addDefinitions(defList)
+          const parsedTsv = parseTSV(hTsv)
+          assert.instanceOf(parsedTsv, Map, `${str} cannot be parsed`)
+          const bidsTsv = new BidsTsvFile(`string`, parsedTsv, { relativePath: 'string test tsv' }, [], {}, defManager)
           stringIssues = bidsTsv.validate(hedSchema)
         } catch (e) {
           stringIssues = [convertIssue(e)]
@@ -211,13 +225,12 @@ describe('HED validation using JSON tests', () => {
 
       beforeAll(async () => {
         hedSchema = schemaMap.get(schema)
-        if (definitions.length === 0) {
-          defs = {}
-        } else {
-          defs = { definitions: { HED: { defList: definitions.join(',') } } }
-        }
+        let defIssues
+        ;[defList, defIssues] = DefinitionManager.createDefinitions(definitions, hedSchema)
+        assert.equal(defIssues.length, 0, `${name}: input definitions "${definitions}" have errors "${defIssues}"`)
         expectedErrors = new Set(alt_codes)
         expectedErrors.add(error_code)
+        noErrors = new Set()
       })
 
       afterAll(() => {})
@@ -231,7 +244,7 @@ describe('HED validation using JSON tests', () => {
 
         if (tests.string_tests.passes.length > 0) {
           test.each(tests.string_tests.passes)('Valid string: %s', (str) => {
-            stringValidator(str, noErrors)
+            stringValidator(str, new Set())
           })
         }
 

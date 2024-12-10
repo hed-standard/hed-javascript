@@ -130,10 +130,9 @@ export class BidsHedTsvValidator {
       return issues
     }
 
-    const [, hedIssues] = validateHedString(parsedString, this.hedSchemas, options)
-    const convertedIssues = BidsHedIssue.fromHedIssues(hedIssues, this.tsvFile.file, { tsvLine: rowIndex })
+    const defIssues = this.tsvFile.mergedSidecar.definitions.validateHedString(parsedString, this.hedSchemas)
+    const convertedIssues = BidsHedIssue.fromHedIssues(defIssues, this.tsvFile.file, { tsvLine: rowIndex })
     issues.push(...convertedIssues)
-
     return issues
   }
 

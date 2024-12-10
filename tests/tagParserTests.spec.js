@@ -1,6 +1,6 @@
 import chai from 'chai'
 const assert = chai.assert
-import { beforeAll, describe, afterAll, it } from '@jest/globals'
+import { beforeAll, describe, afterAll } from '@jest/globals'
 
 import ParsedHedTag from '../parser/parsedHedTag'
 import { shouldRun } from './testUtilities'
@@ -8,15 +8,12 @@ import { parsedHedTagTests } from './testData/tagParserTests.data'
 import { SchemaSpec, SchemasSpec } from '../schema/specs'
 import path from 'path'
 import { buildSchemas } from '../schema/init'
-import { SchemaTag, SchemaValueTag } from '../schema/entries'
-import { TagSpec } from '../parser/tokenizer'
-import TagConverter from '../parser/tagConverter'
-import { BidsSidecar, BidsTsvFile } from '../bids'
+import { SchemaValueTag } from '../schema/entries'
 
 // Ability to select individual tests to run
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['valid-tags', ['valid-tag-with-extension']]])
+const runMap = new Map([['valid-tags', ['valid-tag-with-extension-and-blanks']]])
 
 describe('TagSpec converter tests using JSON tests', () => {
   const schemaMap = new Map([

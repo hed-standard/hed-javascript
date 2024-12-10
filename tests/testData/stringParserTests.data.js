@@ -501,7 +501,6 @@ export const parseTestData = [
         ],
         warnings: [],
       },
-
       {
         testname: 'definition-with-deep-defs-inside',
         explanation:
@@ -519,7 +518,6 @@ export const parseTestData = [
         ],
         warnings: [],
       },
-
       {
         testname: 'definition-with-nested-definition',
         explanation:
@@ -576,6 +574,19 @@ export const parseTestData = [
         stringLong: null,
         stringShort: null,
         fullCheck: true,
+        errors: [
+          generateIssue('missingTagGroup', { tag: 'Def-expand/Green1', string: 'Def-expand/Green1, (Red, Blue)' }),
+        ],
+        warnings: [],
+      },
+      {
+        testname: 'def-expand-tag-with-extra-group-tag',
+        explanation: '"(Def-expand/Acc/5.4, (Acceleration/5.4 m-per-s^2, Red), Blue)" has an extra tag in the group',
+        schemaVersion: '8.3.0',
+        stringIn: '(Def-expand/Acc/5.4, (Acceleration/5.4 m-per-s^2, Red), Blue)',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
         errors: [
           generateIssue('missingTagGroup', { tag: 'Def-expand/Green1', string: 'Def-expand/Green1, (Red, Blue)' }),
         ],
@@ -849,7 +860,6 @@ export const parseTestData = [
         errors: [],
         warnings: [],
       },
-
       {
         testname: 'onset-with-def-expand',
         explanation: '"(Onset, (Def-expand/MyColor, (Label/Pie)), (Red))" is okay.',
@@ -914,6 +924,19 @@ export const parseTestData = [
         stringLong:
           '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5.0 s, Property/Data-property/Data-marker/Temporal-marker/Onset, Property/Organizational-property/Def/MyColor)',
         stringShort: '(Delay/5.0 s, Onset, Def/MyColor)',
+        fullCheck: false,
+        errors: [],
+        warnings: [],
+      },
+      {
+        testname: 'onset-delay-def-expand-in-same-group',
+        explanation:
+          '"(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Red))" does not have group detected if not full check.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
+        stringLong:
+          '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5.0 s, Property/Data-property/Data-marker/Temporal-marker/Onset, Property/Organizational-property/Def/MyColor)',
+        stringShort: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
         fullCheck: false,
         errors: [],
         warnings: [],

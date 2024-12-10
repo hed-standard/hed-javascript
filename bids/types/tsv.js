@@ -44,7 +44,7 @@ export class BidsTsvFile extends BidsFile {
    * @param {object} mergedDictionary The merged sidecar data.
    * @param {DefinitionManager} defManager
    */
-  constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}, defs) {
+  constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}, defManager) {
     super(name, file, BidsHedTsvValidator)
 
     if (typeof tsvData === 'string') {
@@ -58,7 +58,7 @@ export class BidsTsvFile extends BidsFile {
     }
 
     this.potentialSidecars = potentialSidecars
-    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, this.file, defs)
+    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, this.file, defManager)
     this._parseHedColumn()
   }
 

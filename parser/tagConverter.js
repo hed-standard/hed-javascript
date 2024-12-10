@@ -100,7 +100,7 @@ export default class TagConverter {
       }
       if (
         parentTag !== undefined &&
-        (!parentTag.hasAttributeName('extensionAllowed') || this.special.noExtensionTags.includes(parentTag.name))
+        (!parentTag.hasAttributeName('extensionAllowed') || this.special.noExtensionTags.has(parentTag.name))
       ) {
         IssueError.generateAndThrow('invalidExtension', {
           tag: this.tagLevels[tagLevelIndex],
