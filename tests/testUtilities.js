@@ -29,8 +29,14 @@ export function extractHedCodes(issues) {
 }
 
 // Parse the HED string
-export function getHedString(hedString, hedSchemas, fullCheck, definitionsAllowed) {
-  const [parsedString, issues] = parseHedString(hedString, hedSchemas, fullCheck, definitionsAllowed)
+export function getHedString(hedString, hedSchemas, fullCheck, definitionsAllowed, placeholdersAllowed) {
+  const [parsedString, issues] = parseHedString(
+    hedString,
+    hedSchemas,
+    fullCheck,
+    definitionsAllowed,
+    placeholdersAllowed,
+  )
   let errorIssues = []
   let warningIssues = []
   if (issues.length !== 0) {

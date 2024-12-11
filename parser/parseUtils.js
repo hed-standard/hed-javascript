@@ -28,6 +28,36 @@ export function filterByTagName(tags, tagName) {
   return tags.filter((tag) => tag instanceof ParsedHedTag && tag.schemaTag?.name === tagName)
 }
 
+/**
+ * Return a string of original tag names for error messages.
+ * @param {ParsedHedTag} tagList - The HED tags whose string representations should be put in a comma-separated list.
+ * @returns {string} A comma separated list of original tag names for tags in tagList.
+ */
+export function getTagListString(tagList) {
+  return tagList.map((tag) => tag.toString()).join(', ')
+}
+
+/**
+ * Create a map of the ParsedHedTags by type
+ * @param { ParsedHedTag[] } tagList
+ * @param {Set} tagNames
+ * @returns {Map<string, ParsedHedTag[]>}
+ */
+export function categorizeTagsByName(tagList, tagNames = []) {
+  // Initialize the map with keys from tagNames and an "other" key
+  const resultMap = new Map()
+
+  // Iterate through A and categorize
+  tagList.forEach((tag) => {
+    if (!tagNames || tagNames.has(tag.schemaTag.name)) {
+      const tagList = resultMap.get(tag.schemaTag.name) || []
+      tagList.push(tag)
+      resultMap.set(tag.schemaTag.name, tagList) // Add to matching key list
+    }
+  })
+  return resultMap
+}
+
 /*function normalize(hedString) {
   return hedString.parsedTags.map(normalizeItem).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
 }

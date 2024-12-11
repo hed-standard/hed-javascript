@@ -39,10 +39,10 @@ export const parseDefinitions = function (parsedHedStrings) {
  * @returns {Issue[]} Any issues found.
  */
 const checkGroupForTemporalOrder = (parsedGroup, activeScopes) => {
-  if (parsedGroup.isOnsetGroup) {
+  if (parsedGroup.isSpecialGroup('Onset')) {
     activeScopes.add(parsedGroup.defNameAndValue)
   }
-  if (parsedGroup.isInsetGroup && !activeScopes.has(parsedGroup.defNameAndValue)) {
+  if (parsedGroup.isSpecialGroup('Inset') && !activeScopes.has(parsedGroup.defNameAndValue)) {
     return [
       generateIssue('inactiveOnset', {
         definition: parsedGroup.defNameAndValue,
@@ -50,7 +50,7 @@ const checkGroupForTemporalOrder = (parsedGroup, activeScopes) => {
       }),
     ]
   }
-  if (parsedGroup.isOffsetGroup && !activeScopes.delete(parsedGroup.defNameAndValue)) {
+  if (parsedGroup.isSpecialGroup('Offset') && !activeScopes.delete(parsedGroup.defNameAndValue)) {
     return [
       generateIssue('inactiveOnset', {
         definition: parsedGroup.defNameAndValue,

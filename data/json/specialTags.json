@@ -30,7 +30,7 @@
     "minNonDefSubgroups": 0,
     "ERROR_CODE": "DEF_EXPAND_INVALID",
     "noSpliceInGroup": true,
-    "forbiddenSubgroupTags": ["Def", "Def-expand", "Definition"],
+    "forbiddenSubgroupTags": ["Def", "Def-expand"],
     "defTagRequired": false,
     "otherAllowedTags": [],
     "otherAllowedGroups": []
@@ -48,7 +48,7 @@
     "minNonDefSubgroups": 0,
     "ERROR_CODE": "DEFINITION_INVALID",
     "noSpliceInGroup": true,
-    "forbiddenSubgroupTags": ["Def", "Def-expand", "Definition"],
+    "forbiddenSubgroupTags": ["Def", "Def-expand"],
     "defTagRequired": false,
     "otherAllowedTags": [],
     "otherAllowedGroups": []

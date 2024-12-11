@@ -392,7 +392,7 @@ export default class HedValidator {
       ...defTags,
     ]
     const remainingTags = differenceWith(tagGroup.tags, allowedTags, (ours, theirs) => ours.equivalent(theirs))
-    const allowedTagGroups = tagGroup.isOnsetGroup || tagGroup.isInsetGroup ? 1 : 0
+    const allowedTagGroups = tagGroup.isSpecialGroup('Onset') || tagGroup.isSpecialGroup('Inset') ? 1 : 0
     if (
       remainingTags.length > allowedTagGroups ||
       remainingTags.filter((tag) => tag instanceof ParsedHedTag).length > 0

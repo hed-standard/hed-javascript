@@ -205,7 +205,7 @@ export class ColumnSplicer {
     if (newData.length === 0) {
       return null
     }
-    return new ParsedHedGroup(newData, this.hedSchemas, this.parsedString.hedString, group.originalBounds)
+    return new ParsedHedGroup(newData, this.parsedString.hedString, group.originalBounds)
   }
 }
 

@@ -108,6 +108,11 @@ export default {
     level: 'warning',
     message: stringTemplate`Tag extension found - "${'tag'}".`,
   },
+  invalidPlaceholderContext: {
+    hedCode: 'PLACEHOLDER_INVALID',
+    level: 'error',
+    message: stringTemplate`"${'string'}" has "#" placeholders, which are not allowed in this context.`,
+  },
   invalidSidecarPlaceholder: {
     hedCode: 'PLACEHOLDER_INVALID',
     level: 'error',
@@ -182,7 +187,7 @@ export default {
   illegalDefinitionContext: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Definitions were found in string "${'string'}" in a context where definitions are not allowed.`,
+    message: stringTemplate`Definitions "${'definitions'}" were found in string "${'string'}" in a context where definitions are not allowed.`,
   },
   illegalInExclusiveContext: {
     hedCode: 'TAG_INVALID',
@@ -243,6 +248,11 @@ export default {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
     message: stringTemplate`Tags "${'tags'}" cannot be at the same level in group "${'string'}".`,
+  },
+  tooManyGroupTopTags: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`Group "${'string'}" has too many or too few tags at the top level.`,
   },
   multipleTopLevelTagGroupTags: {
     hedCode: 'TAG_GROUP_ERROR',

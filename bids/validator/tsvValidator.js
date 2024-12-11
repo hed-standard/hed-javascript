@@ -102,13 +102,7 @@ export class BidsHedTsvValidator {
     }
 
     const issues = []
-    const options = {
-      checkForWarnings: true,
-      expectValuePlaceholderString: false,
-      definitionsAllowed: false,
-    }
-
-    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false)
+    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false, false)
     issues.push(
       ...BidsHedIssue.fromHedIssues(Object.values(parsingIssues).flat(), this.tsvFile.file, { tsvLine: rowIndex }),
     )
@@ -287,7 +281,7 @@ export class BidsHedTsvParser {
    */
   _parseHedRowString(rowCells, tsvLine, hedString) {
     const columnSpliceMapping = this._generateColumnSpliceMapping(rowCells)
-    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false)
+    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false, false)
     const flatParsingIssues = Object.values(parsingIssues).flat()
     if (flatParsingIssues.length > 0) {
       this.issues.push(...BidsHedIssue.fromHedIssues(flatParsingIssues, this.tsvFile.file, { tsvLine }))

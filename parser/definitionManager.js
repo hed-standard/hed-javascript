@@ -106,7 +106,7 @@ export class Definition {
       return [this.defTag.defContents, []]
     }
     const evalString = this.defContents.originalTag.replace('#', tag._splitValue)
-    return parseHedString(evalString, hedSchema, true, false)
+    return parseHedString(evalString, hedSchema, true, false, false)
   }
 
   equivalent(other) {
@@ -132,7 +132,7 @@ export class Definition {
    * @returns { Definition[], Issue[]} - The Definition list and any issues found
    */
   static createDefinition(hedString, hedSchemas) {
-    const [parsedString, issues] = parseHedString(hedString, hedSchemas, true, true)
+    const [parsedString, issues] = parseHedString(hedString, hedSchemas, true, true, true)
     if (issues.length > 0) {
       return [null, issues]
     }
@@ -220,7 +220,7 @@ export class DefinitionManager {
    */
   validateHedString(hedString, hedSchemas) {
     const issues = []
-    const [parsedHed, parsingIssues] = parseHedString(hedString, hedSchemas, true, false)
+    const [parsedHed, parsingIssues] = parseHedString(hedString, hedSchemas, true, false, false)
     issues.push(...parsingIssues)
     if (parsingIssues.length > 0) {
       return issues

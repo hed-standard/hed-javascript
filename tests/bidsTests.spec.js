@@ -16,7 +16,7 @@ import { parseHedString } from '../parser/parser'
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['curly-brace-tests', ['valid-curly-brace-in-sidecar-with-value-splice']]])
+const runMap = new Map([['definition-tests', ['valid-definition-no-placeholder']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([

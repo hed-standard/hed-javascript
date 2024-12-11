@@ -149,7 +149,6 @@ describe.skip('HED string parsing', () => {
             new ParsedHedTag('Action/Move/Bend', [57, 73]),
             new ParsedHedTag('Upper-extremity/Elbow', [74, 95]),
           ],
-          nullSchema,
           hedString,
           [17, 96],
         ),

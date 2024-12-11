@@ -1,7 +1,7 @@
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
-import { recursiveMap, recursiveMapNew } from '../utils/array'
+import { recursiveMap } from '../utils/array'
 import { HedStringTokenizer, ColumnSpliceSpec, TagSpec } from './tokenizer'
 import { generateIssue, IssueError } from '../common/issues/issues'
 import { SpecialChecker } from './special'
@@ -70,26 +70,6 @@ export default class HedStringSplitter {
     return [parsedTagsWithGroups, this.issues]
   }
 
-  /* /!**
-   * Create a parsed tag object based on the tag specification.
-   *
-   * @param {TagSpec|ColumnSpliceSpec} tagSpec The tag or column splice specification.
-   * @param {Issue[]}
-   * @returns {ParsedHedTag|ParsedHedColumnSplice|null} The parsed HED tag or column splice.
-   *!/
-  _createParsedTag(tagSpec, issues) {
-    if (tagSpec instanceof TagSpec) {
-      try {
-        return new ParsedHedTag(tagSpec, this.hedSchemas, this.hedString)
-      } catch (issueError) {
-        issues.push(this._handleIssueError(issueError))
-        return null
-      }
-    } else if (tagSpec instanceof ColumnSpliceSpec) {
-      return new ParsedHedColumnSplice(tagSpec.columnName, tagSpec.bounds)
-    }
-  }*/
-
   _createParsedTag(tagSpec) {
     if (tagSpec instanceof TagSpec) {
       try {
@@ -131,12 +111,7 @@ export default class HedStringSplitter {
       if (Array.isArray(tag)) {
         const groupSpec = groupSpecs[index]
         tagGroups.push(
-          new ParsedHedGroup(
-            this._createParsedGroups(tag, groupSpec.children),
-            this.hedSchemas,
-            this.hedString,
-            groupSpec.bounds,
-          ),
+          new ParsedHedGroup(this._createParsedGroups(tag, groupSpec.children), this.hedString, groupSpec.bounds),
         )
         index++
       } else if (tag !== null) {

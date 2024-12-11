@@ -337,7 +337,7 @@ export class BidsSidecarKey {
    * Note: value strings cannot contain definitions
    */
   _parseValueString(hedSchemas) {
-    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas, false, false)
+    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas, false, false, true)
     this.parsedValueString = parsedString
     return parsingIssues
   }
@@ -361,7 +361,7 @@ export class BidsSidecarKey {
           file: this.sidecar?.file?.relativePath,
         })
       }
-      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas, false, true)
+      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas, false, true, true)
       this.parsedCategoryMap.set(value, parsedString)
       issues.push(...parsingIssues)
       if (parsingIssues.length === 0) {
