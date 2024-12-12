@@ -124,7 +124,7 @@ export class BidsHedTsvValidator {
       return issues
     }
 
-    const defIssues = this.tsvFile.mergedSidecar.definitions.validateHedString(parsedString, this.hedSchemas)
+    const defIssues = this.tsvFile.mergedSidecar.definitions.validateDefs(parsedString, this.hedSchemas)
     const convertedIssues = BidsHedIssue.fromHedIssues(defIssues, this.tsvFile.file, { tsvLine: rowIndex })
     issues.push(...convertedIssues)
     return issues

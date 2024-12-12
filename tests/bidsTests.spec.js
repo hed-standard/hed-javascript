@@ -4,19 +4,17 @@ import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 import { buildSchemas } from '../schema/init'
 import { SchemaSpec, SchemasSpec } from '../schema/specs'
-import { BidsHedTsvValidator, BidsSidecar, BidsTsvFile } from '../bids'
+import { BidsSidecar, BidsTsvFile } from '../bids'
 import parseTSV from '../bids/tsvParser'
-import { IssueError } from '../common/issues/issues'
 import { bidsTestData } from './testData/bidsTests.data'
 import { shouldRun } from './testUtilities'
 import { DefinitionManager } from '../parser/definitionManager'
-import { parseHedString } from '../parser/parser'
 
 // Ability to select individual tests to run
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['definition-tests', ['valid-definition-no-placeholder']]])
+const runMap = new Map([['definition-tests', ['invalid-definition-in-HED-column']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([

@@ -5,15 +5,14 @@ import path from 'path'
 
 import { buildSchemas } from '../schema/init'
 import { SchemaSpec, SchemasSpec } from '../schema/specs'
-import { generateIssue, IssueError } from '../common/issues/issues'
-import { parseHedString, parseHedStrings } from '../parser/parser'
+import { parseHedString } from '../parser/parser'
 import { definitionTestData } from './testData/definitionManagerTests.data'
-import { shouldRun, getHedString } from './testUtilities'
+import { shouldRun } from './testUtilities'
 import { DefinitionManager } from '../parser/definitionManager'
 
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['def-or-def-expand', ['invalid-def-invalid-value']]])
+const runMap = new Map([['def-or-def-expand', ['invalid-def-extra-level']]])
 
 describe('DefinitionManager tests', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
@@ -50,8 +49,19 @@ describe('DefinitionManager tests', () => {
       const status = test.errors.length === 0 ? 'Expect pass' : 'Expect fail'
       const header = `[${test.testname} (${status})]`
       assert.isDefined(thisSchema, `header: ${test.schemaVersion} is not available in test ${test.testname}`)
-      const issues = defManager.validateHedString(test.stringIn, thisSchema)
-      // Parse the string before converting
+
+      let thisDefManager
+      if (!test.definition) {
+        thisDefManager = defManager
+      } else {
+        thisDefManager = new DefinitionManager()
+        const [defsToAdd, defIssues] = DefinitionManager.createDefinitions([test.definition], thisSchema)
+        thisDefManager.addDefinitions(defsToAdd)
+      }
+      const [parsedHed, issues] = parseHedString(test.stringIn, thisSchema, true, false, false)
+      if (parsedHed !== null) {
+        issues.push(...thisDefManager.validateDefs(parsedHed, thisSchema))
+      }
       assert.deepStrictEqual(issues, test.errors, `${header}: expected ${issues} errors but received ${test.errors}\n`)
     }
 

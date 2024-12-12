@@ -467,6 +467,7 @@ describe('BIDS datasets', () => {
         bad_tsv: [
           BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionContext', {
+              definition: 'Definition/myDef',
               string: '(Definition/myDef, (Label/Red, Green))',
               tsvLine: 2,
             }),
@@ -477,6 +478,7 @@ describe('BIDS datasets', () => {
           BidsHedIssue.fromHedIssue(
             generateIssue('illegalDefinitionContext', {
               string: bidsSidecars[5][2].hedData.get('event_code'),
+              definition: '',
             }),
             defSidecars[2].file,
           ),

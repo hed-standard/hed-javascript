@@ -34,6 +34,10 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   hasDefExpandChildren
 
+  defExpandChildren
+
+  topSplices
+
   /**
    * The top-level child subgroups containing Def-expand tags.
    * @type {ParsedHedGroup[]}
@@ -56,6 +60,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     this.tags = parsedHedTags
     this.topGroups = filterByClass(parsedHedTags, ParsedHedGroup)
     this.topTags = filterByClass(parsedHedTags, ParsedHedTag)
+    this.topSplices = filterByClass(parsedHedTags, ParsedHedColumnSplice)
     this.allTags = this._getAllTags()
     this._initializeGroups()
   }

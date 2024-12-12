@@ -573,8 +573,8 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: true,
         errors: [
-          generateIssue('invalidTagGroup', {
-            tagGroup: '(Definition/IllegalSibling, Train, (Circle))',
+          generateIssue('tooManyGroupTopTags', {
+            string: '(Definition/IllegalSibling, Train, (Circle))',
           }),
         ],
         warnings: [],
@@ -629,8 +629,9 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: true,
         errors: [
-          generateIssue('invalidTagGroup', {
-            tagGroup: '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
+          generateIssue('invalidNumberOfSubgroups', {
+            tag: 'Definition/MultipleTagGroupDefinition',
+            string: '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
           }),
         ],
         warnings: [],
@@ -646,8 +647,8 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: true,
         errors: [
-          generateIssue('invalidTagGroup', {
-            tagGroup: '(Definition/Apple, Definition/Banana, (Blue))',
+          generateIssue('tooManyGroupTopTags', {
+            string: '(Definition/Apple, Definition/Banana, (Blue))',
           }),
         ],
         warnings: [],
@@ -678,7 +679,9 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: true,
         errors: [
-          generateIssue('missingTagGroup', { tag: 'Def-expand/Green1', string: 'Def-expand/Green1, (Red, Blue)' }),
+          generateIssue('tooManyGroupTopTags', {
+            string: '(Def-expand/Acc/5.4, (Acceleration/5.4 m-per-s^2, Red), Blue)',
+          }),
         ],
         warnings: [],
       },
@@ -728,6 +731,19 @@ export const parseTestData = [
             string: '(Def-expand/Blech, (Agent-action, (Def-expand/Temp), Item))',
           }),
         ],
+        warnings: [],
+      },
+      {
+        testname: 'event-context-in-group',
+        explanation: '"(Event-context, (Item))" is a valid event context',
+        schemaVersion: '8.3.0',
+        stringIn: '(Event-context, (Item))',
+        stringLong: '(Property/Organizational-property/Event-context, (Item))',
+        stringShort: '(Event-context, (Item))',
+        fullCheck: false,
+        placeholdersAllowed: true,
+        definitionsAllowed: true,
+        errors: [],
         warnings: [],
       },
       {
@@ -822,7 +838,7 @@ export const parseTestData = [
         fullCheck: false,
         placeholdersAllowed: false,
         definitionsAllowed: false,
-        errors: [generateIssue('invalidTagGroup', { tagGroup: '(Offset, Item)' })],
+        errors: [generateIssue('tooManyGroupTopTags', { string: '(Offset, Item)' })],
         warnings: [],
       },
       {
@@ -988,7 +1004,12 @@ export const parseTestData = [
         fullCheck: false,
         placeholdersAllowed: false,
         definitionsAllowed: false,
-        errors: [generateIssue('temporalWithoutDefinition', { tagGroup: '(Offset, Delay/5 s)', tag: 'Offset' })],
+        errors: [
+          generateIssue('invalidNumberOfSubgroups', {
+            string: '((Def-expand/MyColor, (Label/Pie)), Offset, (Red))',
+            tag: 'Offset',
+          }),
+        ],
         warnings: [],
       },
       {
@@ -1086,12 +1107,12 @@ export const parseTestData = [
       {
         testname: 'onset-delay-def-expand-in-same-group',
         explanation:
-          '"(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Red))" does not have group detected if not full check.',
+          '"(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)))" does not have group detected if not full check.',
         schemaVersion: '8.3.0',
-        stringIn: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
+        stringIn: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)))',
         stringLong:
-          '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5.0 s, Property/Data-property/Data-marker/Temporal-marker/Onset, Property/Organizational-property/Def/MyColor)',
-        stringShort: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
+          '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5.0 s, Property/Data-property/Data-marker/Temporal-marker/Onset, (Property/Organizational-property/Def-expand/MyColor, (Property/Informational-property/Label/Pie)))',
+        stringShort: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)))',
         fullCheck: false,
         placeholdersAllowed: false,
         definitionsAllowed: false,
@@ -1109,8 +1130,8 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         errors: [
-          generateIssue('invalidTagGroup', {
-            tagGroup: '((Def-expand/MyColor, (Label/Pie)), Inset, Blue)',
+          generateIssue('tooManyGroupTopTags', {
+            string: '((Def-expand/MyColor, (Label/Pie)), Inset, Blue)',
           }),
         ],
         warnings: [],
@@ -1150,7 +1171,7 @@ export const parseTestData = [
       },
       {
         testname: 'column-splice-in-definition',
-        explanation: '"(Definition/Blech, ({event_code}, Blue))" is not allowed if full check',
+        explanation: '"(Definition/Blech, ({event_code}, Blue))" cannot have a column splice in definition',
         schemaVersion: '8.3.0',
         stringIn: '(Definition/Blech, ({event_code}, Blue))',
         stringLong: null,
@@ -1159,6 +1180,40 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: true,
         errors: [generateIssue('curlyBracesNotAllowed', { string: '(Definition/Blech, ({event_code}, Blue))' })],
+        warnings: [],
+      },
+      {
+        testname: 'column-splice-in-deep-def-expand',
+        explanation:
+          '"(Red, ((Def-expand/Blech, ({event_code}, Label/Pie)), (Blue))), Green))" cannot have a column splice in def-expand',
+        schemaVersion: '8.3.0',
+        stringIn: '(Red, ((Def-expand/Blech, ({event_code}, Label/Pie), (Blue))), Green)',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        placeholdersAllowed: true,
+        definitionsAllowed: true,
+        errors: [
+          generateIssue('curlyBracesNotAllowed', {
+            string: '(Red, ((Def-expand/Blech, ({event_code}, Label/Pie), (Blue))), Green)',
+          }),
+        ],
+        warnings: [],
+      },
+      {
+        testname: 'column-splice-with-def-expand',
+        explanation:
+          '"(Red, ((Def-expand/Blech, ({event_code}, Label/Pie))))" cannot have a column splice with def-expand',
+        schemaVersion: '8.3.0',
+        stringIn: '(Red, ((Def-expand/Blech, ({event_code}, Label/Pie))))',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        placeholdersAllowed: true,
+        definitionsAllowed: true,
+        errors: [
+          generateIssue('curlyBracesNotAllowed', { string: '(Red, ((Def-expand/Blech, ({event_code}, Label/Pie))))' }),
+        ],
         warnings: [],
       },
     ],

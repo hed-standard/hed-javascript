@@ -87,8 +87,8 @@ export class BidsHedSidecarValidator {
     return issues
   }
 
-  _checkDefs(sidecarKeyName, sidecarString) {
-    const hedIssues = this.sidecar.definitions.validateHedString(sidecarString, this.hedSchemas)
+  _checkDefs(sidecarKeyName, sidecarString, placeholdersAllowed) {
+    const hedIssues = this.sidecar.definitions.validateDefs(sidecarString, this.hedSchemas, placeholdersAllowed)
     if (hedIssues.length > 0) {
       return BidsHedIssue.fromHedIssues(hedIssues, this.sidecar.file, { sidecarKeyName: sidecarKeyName })
     }

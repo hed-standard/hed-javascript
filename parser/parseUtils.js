@@ -43,7 +43,7 @@ export function getTagListString(tagList) {
  * @param {Set} tagNames
  * @returns {Map<string, ParsedHedTag[]>}
  */
-export function categorizeTagsByName(tagList, tagNames = []) {
+export function categorizeTagsByName(tagList, tagNames = null) {
   // Initialize the map with keys from tagNames and an "other" key
   const resultMap = new Map()
 

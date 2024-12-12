@@ -179,6 +179,7 @@ export class DefinitionManager {
    * @returns {Issue[]}
    */
   addDefinition(definition) {
+    let name = definition.name
     const lowerName = definition.name.toLowerCase()
     const existingDefinition = this.definitions.get(lowerName)
     if (existingDefinition && !existingDefinition.equivalent(definition)) {
@@ -218,15 +219,9 @@ export class DefinitionManager {
    * @param {Schemas} hedSchemas - HED schemas to check
    * @returns Issue [] - if there are errors in the definitions or their values
    */
-  validateHedString(hedString, hedSchemas) {
-    const issues = []
-    const [parsedHed, parsingIssues] = parseHedString(hedString, hedSchemas, true, false, false)
-    issues.push(...parsingIssues)
-    if (parsingIssues.length > 0) {
-      return issues
-    }
-    const defTags = filterByTagName(parsedHed.tags, 'Def')
-    issues.push(...this.validateTags(defTags, hedSchemas))
+  validateDefs(hedString, hedSchemas) {
+    const defTags = filterByTagName(hedString.tags, 'Def')
+    const issues = this.validateTags(defTags, hedSchemas)
     const defExpandTags = filterByTagName(hedString.tags, 'Def-expand')
     if (defExpandTags.length === 0) {
       return issues
@@ -252,7 +247,7 @@ export class DefinitionManager {
       return [null, [generateIssue(errorType, { definition: name })]]
     }
     if (!!existingDefinition.defTag._splitValue !== !!tag._splitValue) {
-      return [null, [generateIssue(errorType, { definition: tag._value })]]
+      return [null, [generateIssue(errorType, { definition: name })]]
     }
     return [existingDefinition, []]
   }

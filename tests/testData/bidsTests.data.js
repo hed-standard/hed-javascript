@@ -1227,8 +1227,8 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTagGroup', {
-              tagGroup: '(Definition/Apple, Definition/Banana, (Blue))',
+            generateIssue('tooManyGroupTopTags', {
+              string: '(Definition/Apple, Definition/Banana, (Blue))',
             }),
             {
               path: 'invalid-multiple-definition-tags.json',
@@ -1239,8 +1239,8 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTagGroup', {
-              tagGroup: '(Definition/Apple, Definition/Banana, (Blue))',
+            generateIssue('tooManyGroupTopTags', {
+              string: '(Definition/Apple, Definition/Banana, (Blue))',
             }),
             {
               path: 'invalid-multiple-definition-tags.tsv',
@@ -1267,8 +1267,9 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTagGroup', {
-              tagGroup: '(Definition/ExtraGroupDef, (Red), (Blue))',
+            generateIssue('invalidNumberOfSubgroups', {
+              tag: 'Definition/ExtraGroupDef',
+              string: '(Definition/ExtraGroupDef, (Red), (Blue))',
             }),
             {
               path: 'invalid-definition-with-extra-groups.json',
@@ -1279,8 +1280,9 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTagGroup', {
-              tagGroup: '(Definition/ExtraGroupDef, (Red), (Blue))',
+            generateIssue('invalidNumberOfSubgroups', {
+              tag: 'Definition/ExtraGroupDef',
+              string: '(Definition/ExtraGroupDef, (Red), (Blue))',
             }),
             {
               path: 'invalid-definition-with-extra-groups.tsv',
@@ -1307,8 +1309,8 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTagGroup', {
-              tagGroup: '(Definition/ExtraSiblingDef, Red, (Blue))',
+            generateIssue('tooManyGroupTopTags', {
+              string: '(Definition/ExtraSiblingDef, Red, (Blue))',
             }),
             {
               path: 'invalid-definition-with-extra-sibling.json',
@@ -1319,8 +1321,8 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTagGroup', {
-              tagGroup: '(Definition/ExtraSiblingDef, Red, (Blue))',
+            generateIssue('tooManyGroupTopTags', {
+              string: '(Definition/ExtraSiblingDef, Red, (Blue))',
             }),
             {
               path: 'invalid-definition-with-extra-sibling.tsv',
@@ -1343,13 +1345,21 @@ export const bidsTestData = [
         sidecarErrors: [],
         tsvErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('illegalDefinitionContext', { string: '(Definition/TsvDef)', tsvLine: '2' }),
+            generateIssue('illegalDefinitionContext', {
+              definition: 'Definition/TsvDef',
+              string: '(Definition/TsvDef)',
+              tsvLine: '2',
+            }),
             { path: 'invalid-definition-in-HED-column.tsv', relativePath: 'invalid-definition-in-HED-column.tsv' },
           ),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('illegalDefinitionContext', { string: '(Definition/TsvDef)', tsvLine: '2' }),
+            generateIssue('illegalDefinitionContext', {
+              definition: 'Definition/TsvDef',
+              string: '(Definition/TsvDef)',
+              tsvLine: '2',
+            }),
             { path: 'invalid-definition-in-HED-column.tsv', relativePath: 'invalid-definition-in-HED-column.tsv' },
           ),
         ],

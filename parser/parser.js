@@ -91,7 +91,7 @@ class HedStringParser {
     if (definitionTags.length > 0) {
       return [
         generateIssue('illegalDefinitionContext', {
-          definitions: getTagListString(definitionTags),
+          definition: getTagListString(definitionTags),
           string: parsedString.hedString,
         }),
       ]

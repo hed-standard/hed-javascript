@@ -187,7 +187,7 @@ export default {
   illegalDefinitionContext: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Definitions "${'definitions'}" were found in string "${'string'}" in a context where definitions are not allowed.`,
+    message: stringTemplate`Definition "${'definition'}" was found in string "${'string'}" in a context where definitions are not allowed.`,
   },
   illegalInExclusiveContext: {
     hedCode: 'TAG_INVALID',
@@ -262,7 +262,7 @@ export default {
   invalidNumberOfSubgroups: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`The tags "${'tags'} in "${'string'} require groups that do not agree or are not present in their group .`,
+    message: stringTemplate`The tag "${'tag'} is in a "${'string'} with too many or too few subgroups.`,
   },
   invalidTopLevelTag: {
     hedCode: 'TAG_GROUP_ERROR',

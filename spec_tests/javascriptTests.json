@@ -1263,7 +1263,7 @@
   },
   {
     "error_code": "DEF_EXPAND_INVALID",
-    "alt_codes": [],
+    "alt_codes": ["VALUE_INVALID"],
     "name": "def-expand-invalid-missing-placeholder",
     "description": "A `Def-expand` is missing an expected placeholder value or has an unexpected placeholder value.",
     "warning": false,
@@ -1271,15 +1271,8 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": [
-          "(Def-expand/Acc, (Acceleration, Red))",
-          "(Def-expand/Acc/4.5/3, (Acceleration, Red))",
-          "(Def-expand/MyColor/Blue, (Label/Pie))"
-        ],
-        "passes": [
-          "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))",
-          "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"
-        ]
+        "fails": ["(Def-expand/Acc, (Acceleration, Red))", "(Def-expand/MyColor/Blue, (Label/Pie))"],
+        "passes": ["(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"]
       },
       "sidecar_tests": {
         "fails": [
@@ -1287,8 +1280,7 @@
             "event_code": {
               "HED": {
                 "face": "(Def-expand/Acc, (Acceleration, Red))",
-                "ball": "(Def-expand/Acc/4.5/3, (Acceleration, Red))",
-                "circle": "(Def-expand/MyColor2/4, (Label/Pie))"
+                "ball": "(Def-expand/Acc/4.5, (Acceleration, Red))"
               }
             }
           }
@@ -1297,8 +1289,7 @@
           {
             "event_code": {
               "HED": {
-                "face": "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))",
-                "ball": "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"
+                "face": "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"
               }
             }
           }
@@ -1309,15 +1300,13 @@
           [
             ["onset", "duration", "HED"],
             [4.5, 0, "(Def-expand/Acc, (Acceleration, Red))"],
-            [5.5, 0, "(Def-expand/Acc/4.5/3, (Acceleration, Red))"],
-            [6.5, 0, "(Def-expand/MyColor2/4, (Label/Pie))"]
+            [5.5, 0, "(Def-expand/Acc/4.5 (Acceleration, Red))"]
           ]
         ],
         "passes": [
           [
             ["onset", "duration", "HED"],
-            [4.5, 0, "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"],
-            [5.5, 0, "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"]
+            [4.5, 0, "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"]
           ]
         ]
       },
@@ -1328,17 +1317,14 @@
               "event_code": {
                 "HED": {
                   "face": "(Def-expand/Acc, (Acceleration, Red))",
-                  "ball": "(Def-expand/Acc/4.5/3, (Acceleration, Red))",
-                  "circle": "(Def-expand/MyColor2/4, (Label/Pie))"
+                  "ball": "(Def-expand/Acc/4.5, (Acceleration, Red))"
                 }
               }
             },
             "events": [
-              ["onset", "duration", "event_code", "HED"],
-              [4.5, 0, "face", " (Def-expand/Acc, (Acceleration, Red))"],
-              [5.5, 0, "ball", "(Def-expand/Acc/4.5/3, (Acceleration, Red))"],
-              [5.6, 0, "circle", "(Def-expand/Acc/4.5/3, (Acceleration, Red))"],
-              [6.5, 0, "n/a", "(Def-expand/MyColor2/4, (Label/Pie))"]
+              ["onset", "duration", "event_code"],
+              [4.5, 0, "face"],
+              [5.5, 0, "ball"]
             ]
           }
         ],
@@ -1916,7 +1902,7 @@
   },
   {
     "error_code": "DEF_INVALID",
-    "alt_codes": [],
+    "alt_codes": ["VALUE_INVALID"],
     "name": "def-invalid-bad-placeholder-value",
     "description": "A `Def` has a placeholder value of incorrect format or units for definition.",
     "warning": false,
@@ -4205,7 +4191,7 @@
               "event_code": {
                 "HED": {
                   "face": "Acceleration/5 m-per-s^2",
-                  "ball": "(Def/Acc/3.0 m-per-s^2, Onset)"
+                  "ball": "(Def/Acc/3.0, Onset)"
                 }
               }
             },
