@@ -87,19 +87,15 @@ export class ParsedHedString {
    * @returns {string}
    */
   _getNormalized() {
-    // if (this.normalized) {
-    //   return this._normalized
-    // }
-    // Recursively normalize each item in the group
+    // This is an implicit recursion as the items have the same call.
     const normalizedItems = this.parseTree.map((item) => item.normalized)
 
     // Sort normalized items to ensure order independence
     const sortedNormalizedItems = normalizedItems.sort()
     const duplicates = getDuplicates(sortedNormalizedItems)
     if (duplicates.length > 0) {
-      IssueError.generateAndThrow('duplicateTag', { tags: duplicates.join(','), string: this.hedString })
+      IssueError.generateAndThrow('duplicateTag', { tags: '[' + duplicates.join('],[') + ']', string: this.hedString })
     }
-    this._normalized = sortedNormalizedItems.join(',')
     // Return the normalized group as a string
     return `${sortedNormalizedItems.join(',')}` // Using curly braces to indicate unordered group
   }

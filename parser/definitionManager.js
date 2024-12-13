@@ -179,7 +179,6 @@ export class DefinitionManager {
    * @returns {Issue[]}
    */
   addDefinition(definition) {
-    let name = definition.name
     const lowerName = definition.name.toLowerCase()
     const existingDefinition = this.definitions.get(lowerName)
     if (existingDefinition && !existingDefinition.equivalent(definition)) {
@@ -227,8 +226,22 @@ export class DefinitionManager {
       return issues
     }
     issues.push(...this.validateTags(defExpandTags, hedSchemas))
+    if (issues.length > 0) {
+      return issues
+    }
     // TODO:  must check that the actual Def-expand text is equivalent
     return issues
+  }
+
+  _validateDefExpandContents(hedString, hedSchemas) {
+    const issues = []
+    for (const topGroup of hedString.topGroups) {
+      issues.push(...this._checkDefExpandGroup(topGroup, hedSchemas))
+    }
+  }
+
+  _checkDefExpandGroup(topGroup, hedSchemas) {
+    return []
   }
 
   /**

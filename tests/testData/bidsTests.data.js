@@ -263,31 +263,21 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tvehicle\tHED\n' + '19\t6\tboat\t(Green, Blue),(Green, Blue)\n',
         sidecarErrors: [],
         tsvErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: '(Green, Blue)', tsvLine: 2 }), {
-            path: 'invalid-duplicate-groups-first-level-tsv.tsv',
-            relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv',
-          }),
-          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: '(Green, Blue)', tsvLine: 2 }), {
-            path: 'invalid-duplicate-groups-first-level-tsv.tsv',
-            relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[(Blue,Green)]', string: '(Green, Blue),(Green, Blue)' }),
+            {
+              path: 'invalid-duplicate-groups-first-level-tsv.tsv',
+              relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv',
+            },
+          ),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(Green, Blue)' }),
+            generateIssue('duplicateTag', { tags: '[(Blue,Green)]', string: '(Green, Blue),(Green, Blue)' }),
             {
               path: 'invalid-duplicate-groups-first-level-tsv.tsv',
               relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv',
             },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(Green, Blue)' }),
-            {
-              path: 'invalid-duplicate-groups-first-level-tsv.tsv',
-              relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv',
-            },
-            { tsvLine: 2 },
           ),
         ],
       },
@@ -300,32 +290,16 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tHED\n' + '19\t6\tTrain,Vehicle/Train\n',
         sidecarErrors: [],
         tsvErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: 'Train', tsvLine: 2 }), {
-            path: 'invalid-different-forms-same-tag-tsv.tsv',
-            relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
-          }),
-          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: 'Vehicle/Train', tsvLine: 2 }), {
+          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }), {
             path: 'invalid-different-forms-same-tag-tsv.tsv',
             relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
           }),
         ],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: 'Train' }),
-            {
-              path: 'invalid-different-forms-same-tag-tsv.tsv',
-              relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
-            },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: 'Vehicle/Train' }),
-            {
-              path: 'invalid-different-forms-same-tag-tsv.tsv',
-              relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
-            },
-            { tsvLine: 2 },
-          ),
+          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }), {
+            path: 'invalid-different-forms-same-tag-tsv.tsv',
+            relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
+          }),
         ],
       },
       {
@@ -347,55 +321,27 @@ export const bidsTestData = [
           '19\t6\tboat\t(Red, (Blue, Green, (Yellow)), Red, (Blue, Green, (Yellow)))\n',
         sidecarErrors: [],
         tsvErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: 'Red', tsvLine: 2 }), {
-            path: 'invalid-repeated-nested-groups-tsv.tsv',
-            relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
-          }),
-          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: 'Red', tsvLine: 2 }), {
-            path: 'invalid-repeated-nested-groups-tsv.tsv',
-            relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
-          }),
-          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: '(Blue, Green, (Yellow))', tsvLine: 2 }), {
-            path: 'invalid-repeated-nested-groups-tsv.tsv',
-            relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
-          }),
-          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tag: '(Blue, Green, (Yellow))', tsvLine: 2 }), {
-            path: 'invalid-repeated-nested-groups-tsv.tsv',
-            relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              tags: '[((Yellow),Blue,Green)],[Red]',
+              string: '(Red, (Blue, Green, (Yellow)), Red, (Blue, Green, (Yellow)))',
+            }),
+            {
+              path: 'invalid-repeated-nested-groups-tsv.tsv',
+              relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
+            },
+          ),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: 'Red' }),
+            generateIssue('duplicateTag', {
+              tags: '[((Yellow),Blue,Green)],[Red]',
+              string: '(Red, (Blue, Green, (Yellow)), Red, (Blue, Green, (Yellow)))',
+            }),
             {
               path: 'invalid-repeated-nested-groups-tsv.tsv',
               relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
             },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: 'Red' }),
-            {
-              path: 'invalid-repeated-nested-groups-tsv.tsv',
-              relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
-            },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(Blue, Green, (Yellow))' }),
-            {
-              path: 'invalid-repeated-nested-groups-tsv.tsv',
-              relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
-            },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(Blue, Green, (Yellow))' }),
-            {
-              path: 'invalid-repeated-nested-groups-tsv.tsv',
-              relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
-            },
-            { tsvLine: 2 },
           ),
         ],
       },
@@ -429,20 +375,11 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: 'Boat' }),
+            generateIssue('duplicateTag', { tags: '[Boat]', string: 'Boat,Boat,Speed/5 mph' }),
             {
               path: 'invalid-first-level-duplicate-combo.tsv',
               relativePath: 'invalid-first-level-duplicate-combo.tsv',
             },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: 'Boat' }),
-            {
-              path: 'invalid-first-level-duplicate-combo.tsv',
-              relativePath: 'invalid-first-level-duplicate-combo.tsv',
-            },
-            { tsvLine: 2 },
           ),
         ],
       },
@@ -463,20 +400,14 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(Green, Purple)' }),
+            generateIssue('duplicateTag', {
+              tags: '[(Green,Purple)]',
+              string: '(Green, Purple), Blue, Orange,White,(Purple, Green), (Orange)',
+            }),
             {
               path: 'invalid-first-level-duplicate-combo-reordered.tsv',
               relativePath: 'invalid-first-level-duplicate-combo-reordered.tsv',
             },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(Purple, Green)' }),
-            {
-              path: 'invalid-first-level-duplicate-combo-reordered.tsv',
-              relativePath: 'invalid-first-level-duplicate-combo-reordered.tsv',
-            },
-            { tsvLine: 2 },
           ),
         ],
       },
@@ -496,18 +427,9 @@ export const bidsTestData = [
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
-              column: 'event_code',
-              tag: '(Green, ((Blue, Orange, (Black, Purple))), White)',
-            }),
-            {
-              path: 'invalid-nested-duplicate-json-reordered.json',
-              relativePath: 'invalid-nested-duplicate-json-reordered.json',
-            },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', {
-              column: 'event_code',
-              tag: '(White, (((Purple, Black), Blue, Orange)),  Green)',
+              tags: '[((((Black,Purple),Blue,Orange)),Green,White)]',
+              string:
+                '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange, (White, (((Purple, Black), Blue, Orange)),  Green)',
             }),
             {
               path: 'invalid-nested-duplicate-json-reordered.json',
@@ -518,20 +440,15 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(Green, ((Blue, Orange, (Black, Purple))), White)' }),
+            generateIssue('duplicateTag', {
+              tags: '[((((Black,Purple),Blue,Orange)),Green,White)]',
+              string:
+                '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange, (White, (((Purple, Black), Blue, Orange)),  Green)',
+            }),
             {
               path: 'invalid-nested-duplicate-json-reordered.tsv',
               relativePath: 'invalid-nested-duplicate-json-reordered.tsv',
             },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(White, (((Purple, Black), Blue, Orange)),  Green)' }),
-            {
-              path: 'invalid-nested-duplicate-json-reordered.tsv',
-              relativePath: 'invalid-nested-duplicate-json-reordered.tsv',
-            },
-            { tsvLine: 2 },
           ),
         ],
       },
@@ -553,20 +470,15 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(Green, ((Blue, Orange, (Black, Purple))), White)' }),
+            generateIssue('duplicateTag', {
+              tags: '[((((Black,Purple),Blue,Orange)),Green,White)]',
+              string:
+                '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange,(White, (((Purple, Black), Blue, Orange)),  Green)',
+            }),
             {
               path: 'invalid-nested-duplicate-combo-reordered.tsv',
               relativePath: 'invalid-nested-duplicate-combo-reordered.tsv',
             },
-            { tsvLine: 2 },
-          ),
-          BidsHedIssue.fromHedIssue(
-            generateIssue('duplicateTag', { tag: '(White, (((Purple, Black), Blue, Orange)),  Green)' }),
-            {
-              path: 'invalid-nested-duplicate-combo-reordered.tsv',
-              relativePath: 'invalid-nested-duplicate-combo-reordered.tsv',
-            },
-            { tsvLine: 2 },
           ),
         ],
       },

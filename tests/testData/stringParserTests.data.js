@@ -520,6 +520,27 @@ export const parseTestData = [
         errors: [generateIssue('invalidTagString', {})],
         warnings: [],
       },
+      {
+        testname: 'multiple-complex-duplicates',
+        explanation:
+          '"(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange, (White, (((Purple, Black), Blue, Orange)),  Green)" is a complex group with multiple duplicates',
+        schemaVersion: '8.3.0',
+        stringIn:
+          '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange, (White, (((Purple, Black), Blue, Orange)),  Green)',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: true,
+        placeholdersAllowed: false,
+        definitionsAllowed: false,
+        errors: [
+          generateIssue('duplicateTag', {
+            tags: '[((((Black,Purple),Blue,Orange)),Green,White)]',
+            string:
+              '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange, (White, (((Purple, Black), Blue, Orange)),  Green)',
+          }),
+        ],
+        warnings: [],
+      },
     ],
   },
   {

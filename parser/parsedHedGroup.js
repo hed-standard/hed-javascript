@@ -1,12 +1,11 @@
 import differenceWith from 'lodash/differenceWith'
 
 import { IssueError } from '../common/issues/issues'
-import { getTagName } from '../utils/hedStrings'
 import ParsedHedSubstring from './parsedHedSubstring'
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import { SpecialChecker } from './special'
-import { filterByClass, categorizeTagsByName, getDuplicates, getTagListString } from './parseUtils'
+import { filterByClass, categorizeTagsByName, getDuplicates, filterByTagName } from './parseUtils'
 
 /**
  * A parsed HED tag group.
@@ -86,30 +85,6 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   _filterSubgroupsByTagName(tagName) {
     return Array.from(this.topLevelGroupIterator()).filter((subgroup) => subgroup.specialTags.has(tagName))
-  }
-
-  /**
-   * Determine a parsed HED tag group's special tags.
-   *
-   * @param {ParsedHedGroup} group The parsed HED tag group.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {string} shortTag The short tag to search for.
-   * @returns {null|ParsedHedTag[]} The tag(s) matching the short tag.
-   */
-  static findGroupTags(group, hedSchemas, shortTag) {
-    const tags = group.tags.filter((tag) => {
-      if (!(tag instanceof ParsedHedTag)) {
-        return false
-      }
-      const schemaTag = tag.schemaTag
-      return schemaTag.name === shortTag
-    })
-    switch (tags.length) {
-      case 0:
-        return undefined
-      default:
-        return tags
-    }
   }
 
   /**
@@ -199,7 +174,10 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
     const duplicates = getDuplicates(sortedNormalizedItems)
     if (duplicates.length > 0) {
-      IssueError.generateAndThrow('duplicateTags', { tags: getTagListString(duplicates), string: this.hedString })
+      IssueError.generateAndThrow('duplicateTag', {
+        tags: '[' + duplicates.join('],[') + ']',
+        string: this.originalTag,
+      })
     }
     this._normalized = sortedNormalizedItems.join(',')
     // Return the normalized group as a string
@@ -222,14 +200,16 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Iterator over the ParsedHedGroup objects in this HED tag group.
-   *
+   * @param
    * @yields {ParsedHedGroup} This object and the ParsedHedGroup objects belonging to this tag group.
    */
-  *subParsedGroupIterator() {
-    yield this
+  *subParsedGroupIterator(tagName = null) {
+    if (!tagName || filterByTagName(this.topTags, tagName)) {
+      yield this
+    }
     for (const innerTag of this.tags) {
       if (innerTag instanceof ParsedHedGroup) {
-        yield* innerTag.subParsedGroupIterator()
+        yield* innerTag.subParsedGroupIterator(tagName)
       }
     }
   }

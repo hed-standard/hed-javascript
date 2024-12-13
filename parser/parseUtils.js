@@ -61,63 +61,17 @@ export function categorizeTagsByName(tagList, tagNames = null) {
 /**
  * Return a list of duplicate strings
  * @param { string[] } itemList - A list of strings to look for duplicates in
- * @returns {string []} - a list of duplicate strings
+ * @returns {string []} - a list of unique duplicate strings (multiple copies not repeated
  */
 export function getDuplicates(itemList) {
+  const checkSet = new Set()
   const dupSet = new Set()
-  const dupList = []
   for (const item of itemList) {
-    if (!dupSet.has(item)) {
+    if (!checkSet.has(item)) {
+      checkSet.add(item)
+    } else {
       dupSet.add(item)
-    } else {
-      dupList.push(item)
     }
   }
-  return dupList
+  return [...dupSet]
 }
-
-/*function normalize(hedString) {
-  return hedString.parsedTags.map(normalizeItem).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
-}
-
-function normalizeItem(item) {
-  if (item instanceof ParsedHedTag) {
-    return item.canonicalTag // Leaf items are strings
-  } else if (item instanceof ParsedHedColumnSplice) {
-    return item.originalTag
-  } else if (item instanceof ParsedHedGroup) {
-    return normalizeGroup(item.tags) // Recursively normalize the group
-  } else {
-    throw generateAndThrow('internal error', {message: `"${item}" was not parsed correctly in equivalence operation`})
-  }
-}
-
-function normalizeGroup(group) {
-  // Normalize each item in the group and sort to ensure order independence
-  return group.map(normalizeItem).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))););
-}
-
-export function areHedStringsEquivalent(hedStringA, hedStringB) {
-  const normalizedA = normalize(hedStringA)
-  const normalizedB = normalize(hedStringB)
-  return JSON.stringify(normalizedA) === JSON.stringify(normalizedB);
-}
-
-function _detectDuplicates(items) {
-  const seen = new Set();
-  const duplicates = [];
-
-  for (const item of items) {
-    const serialized = JSON.stringify(item);
-    if (seen.has(serialized)) {
-      duplicates.push(item);
-    } else {
-      seen.add(serialized);
-    }
-  }
-  return duplicates;
-}
-
-function detectDuplicates(items) {
-
-}*/
