@@ -12,7 +12,7 @@ import { filterByClass } from '../parser/parseUtils'
 import HedStringSplitter from '../parser/splitter'
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['valid-strings', ['multiple-nested-groups']]])
+const runMap = new Map([['valid-strings', ['empty-string']]])
 
 describe('Parse HED string tests', () => {
   const schemaMap = new Map([
@@ -32,19 +32,6 @@ describe('Parse HED string tests', () => {
   })
 
   afterAll(() => {})
-
-  describe('testExperiment', () => {
-    /*it('Should give experiment', () => {
-      const thisSchema = schemaMap.get('8.3.0')
-      // const w = new TagSpec('Speed/5 mph', 0, 10, '')
-      // const g = new ParsedHedTag(w, thisSchema, 'Speed/5 mph')
-      const stringIn = 'Item, Sensory-event, (Red, Blue, {help}, (Definition/Blech, (Green, Black))), (Orange, ((Definition/Blech1, (White))))'
-      //const stringIn = 'Item, ((Def-expand/Apple, (Purple)), (((Def-expand/Banana, (Orange)), Item)), Sensory-event), Red'
-      //const stringIn = 'Item/Object, (Length/5 m, (Green)), (Green, Object), (Sensory-event, Green), Red'
-      const [parsedString, issues] = parseHedString(stringIn, thisSchema)
-      console.log(issues)
-*/
-  })
 
   describe.each(splitterTestData)('$name : $description', ({ name, tests }) => {
     const testSplit = function (test) {

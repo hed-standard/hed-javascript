@@ -83,7 +83,8 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    */
   constructor(tagSpec, hedSchemas, hedString) {
     super(tagSpec.tag, tagSpec.bounds) // Sets originalTag and originalBounds
-    this._convertTag(hedSchemas, hedString, tagSpec) // Sets various forms of the tag.
+    this._convertTag(hedSchemas, hedString, tagSpec)
+    this._normalized = this.format(false) // Sets various forms of the tag.
   }
 
   /**
@@ -202,6 +203,10 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     } else {
       return tagName
     }
+  }
+
+  get normalized() {
+    return this._normalized
   }
 
   /**
@@ -324,18 +329,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     })
   }
 
-  /*
-  /!**
-   * The parent portion of {@link originalTag}.
-   *
-   * @returns {string} The "parent" portion of the original tag.
-   *!/
-  get parentOriginalTag() {
-    return this._memoize('parentOriginalTag', () => {
-      return ParsedHedTag.getParentTag(this.originalTag)
-    })
-  }*/
-
   /**
    * Iterate through a tag's ancestor tag strings.
    *
@@ -370,27 +363,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     }
     return false
   }
-
-  /*
-  /!**
-   * Check if any level of this HED tag allows extensions.
-   *
-   * @returns {boolean} Whether any level of this HED tag allows extensions.
-   *!/
-  get allowsExtensions() {
-    return this._memoize('allowsExtensions', () => {
-      if (this.originalTagName === '#') {
-        return false
-      }
-      const extensionAllowedAttribute = 'extensionAllowed'
-      if (this.hasAttribute(extensionAllowedAttribute)) {
-        return true
-      }
-      return getTagLevels(this.formattedTag).some((tagSubstring) =>
-        this.schema?.tagHasAttribute(tagSubstring, extensionAllowedAttribute),
-      )
-    })
-  }*/
 
   /**
    * Determine if this HED tag is equivalent to another HED tag.

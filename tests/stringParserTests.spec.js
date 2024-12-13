@@ -12,8 +12,8 @@ import { shouldRun, getHedString } from './testUtilities'
 
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['special-tag-group-tests', ['offset-with-extra-group']]])
-//const runMap = new Map([['tag-strings', ['invalid-null-string']]])
+//const runMap = new Map([['special-tag-group-tests', ['offset-with-extra-group']]])
+const runMap = new Map([['tag-strings', ['valid-empty-string']]])
 
 describe('Null schema objects should cause parsing to bail', () => {
   it('Should not proceed if no schema and valid string', () => {
@@ -94,12 +94,9 @@ describe('Parse HED string tests', () => {
         test.warnings,
         `${header}: expected ${warningIssues} warnings but received ${test.warnings}\n`,
       )
-      if (parsedString === null) {
-        return
-      }
 
       // Check the conversion to long
-      const longString = parsedString.format(true)
+      const longString = parsedString ? parsedString.format(true) : null
       assert.strictEqual(
         longString,
         test.stringLong,
@@ -107,7 +104,7 @@ describe('Parse HED string tests', () => {
       )
 
       // Check the conversion to short
-      const shortString = parsedString.format(false)
+      const shortString = parsedString ? parsedString.format(false) : null
       assert.strictEqual(
         shortString,
         test.stringShort,

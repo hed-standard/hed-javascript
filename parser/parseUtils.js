@@ -58,6 +58,24 @@ export function categorizeTagsByName(tagList, tagNames = null) {
   return resultMap
 }
 
+/**
+ * Return a list of duplicate strings
+ * @param { string[] } itemList - A list of strings to look for duplicates in
+ * @returns {string []} - a list of duplicate strings
+ */
+export function getDuplicates(itemList) {
+  const dupSet = new Set()
+  const dupList = []
+  for (const item of itemList) {
+    if (!dupSet.has(item)) {
+      dupSet.add(item)
+    } else {
+      dupList.push(item)
+    }
+  }
+  return dupList
+}
+
 /*function normalize(hedString) {
   return hedString.parsedTags.map(normalizeItem).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
 }

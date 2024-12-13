@@ -126,7 +126,7 @@ export default class HedValidator {
    */
   validateHedTagLevel(tagList) {
     //this.checkForMultipleUniqueTags(tagList)
-    this.checkForDuplicateTags(tagList)
+    //this.checkForDuplicateTags(tagList)
   }
 
   /**

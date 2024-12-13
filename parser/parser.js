@@ -49,9 +49,9 @@ class HedStringParser {
     if (this.hedString === null || this.hedString === undefined) {
       return [null, [generateIssue('invalidTagString', {})]]
     }
-    if (!this.hedString) {
-      return [null, []]
-    }
+    // if (!this.hedString) {
+    //   return [null, []]
+    // }
     const placeholderIssues = this._getPlaceholderCountIssues()
     if (placeholderIssues.length > 0) {
       return [null, placeholderIssues]

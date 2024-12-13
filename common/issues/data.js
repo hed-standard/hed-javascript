@@ -30,7 +30,7 @@ export default {
   duplicateTag: {
     hedCode: 'TAG_EXPRESSION_REPEATED',
     level: 'error',
-    message: stringTemplate`Duplicate tag - "${'tag'}".`,
+    message: stringTemplate`Duplicate tags - "${'tags'} in "${'string'}".`,
   },
   invalidCharacter: {
     hedCode: 'CHARACTER_INVALID',

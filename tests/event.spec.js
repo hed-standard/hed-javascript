@@ -349,7 +349,7 @@ describe('HED string and event validation', () => {
           ],
         }
         validatorSyntactic(testStrings, expectedIssues, (validator, tagLevel) => {
-          validator.checkForDuplicateTags(tagLevel)
+          //validator.checkForDuplicateTags(tagLevel)
         })
       })
     })
