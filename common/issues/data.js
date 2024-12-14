@@ -88,11 +88,6 @@ export default {
     level: 'warning',
     message: stringTemplate`Tag with prefix "${'tagPrefix'}" is required.`,
   },
-  unitClassDefaultUsed: {
-    hedCode: 'UNITS_MISSING',
-    level: 'warning',
-    message: stringTemplate`No unit specified. Using "${'defaultUnit'}" as the default - "${'tag'}".`,
-  },
   unitClassInvalidUnit: {
     hedCode: 'UNITS_INVALID',
     level: 'error',
@@ -158,6 +153,11 @@ export default {
     hedCode: 'DEF_EXPAND_INVALID',
     level: 'error',
     message: stringTemplate`Def-expand tag found for definition name "${'definition'}" does not correspond to an existing definition.`,
+  },
+  defExpandContentsInvalid: {
+    hedCode: 'DEF_EXPAND_INVALID',
+    level: 'error',
+    message: stringTemplate`Def-expand contents "${'contents'}" disagree with evaluated definition "${'contentsDef'}".`,
   },
   duplicateDefinition: {
     hedCode: 'DEFINITION_INVALID',

@@ -52,7 +52,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @param {number[]} originalBounds The bounds of the HED tag in the original HED string.
    */
   constructor(parsedHedTags, hedString, originalBounds) {
-    const originalTag = hedString.substring(...originalBounds)
+    const originalTag = hedString.substring(originalBounds[0], originalBounds[1])
     super(originalTag, originalBounds)
     this.tags = parsedHedTags
     this.topGroups = filterByClass(parsedHedTags, ParsedHedGroup)
@@ -165,9 +165,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
       return this._normalized
     }
     // Recursively normalize each item in the group
-    const normalizedItems = this.tags.map((item) => {
-      return item.normalized
-    })
+    const normalizedItems = this.tags.map((item) => item.normalized)
 
     // Sort normalized items to ensure order independence
     const sortedNormalizedItems = normalizedItems.sort()
@@ -179,7 +177,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
         string: this.originalTag,
       })
     }
-    this._normalized = sortedNormalizedItems.join(',')
+    this._normalized = '(' + sortedNormalizedItems.join(',') + ')'
     // Return the normalized group as a string
     return `(${sortedNormalizedItems.join(',')})` // Using curly braces to indicate unordered group
   }
@@ -200,8 +198,8 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Iterator over the ParsedHedGroup objects in this HED tag group.
-   * @param
-   * @yields {ParsedHedGroup} This object and the ParsedHedGroup objects belonging to this tag group.
+   * @param {string | null} tagName - The name of the tag whose groups are to be iterated over or null if all tags.
+   * @yields {ParsedHedGroup} - This object and the ParsedHedGroup objects belonging to this tag group.
    */
   *subParsedGroupIterator(tagName = null) {
     if (!tagName || filterByTagName(this.topTags, tagName)) {

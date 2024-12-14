@@ -36,6 +36,7 @@ describe('Tokenizer validation using JSON tests', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           stringTokenizer(test)
         } else {
+          // eslint-disable-next-line no-console
           console.log(`----Skipping tokenizerTest ${name}: ${test.testname}`)
         }
       })

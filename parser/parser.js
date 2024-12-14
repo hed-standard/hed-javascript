@@ -145,11 +145,11 @@ class HedStringParser {
  * Parse a HED string.
  *
  * @param {string|ParsedHedString} hedString A (possibly already parsed) HED string.
- * @param {Schemas} hedSchemas The collection of HED schemas.
- * @param {boolean} fullCheck If the string is in final form -- can be fully parsed
+ * @param {Schemas} hedSchemas - The collection of HED schemas.
+ * @param {boolean} fullCheck - If the string is in final form -- can be fully parsed
  * @param {boolean} definitionsAllowed - True if definitions are allowed
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed
- * @returns {[ParsedHedString, Issue[]]} The parsed HED string and any issues found.
+ * @returns {[ParsedHedString, Issue[]]} - The parsed HED string and any issues found.
  */
 export function parseHedString(hedString, hedSchemas, fullCheck, definitionsAllowed, placeholdersAllowed) {
   return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parseHedString(fullCheck)
@@ -159,8 +159,10 @@ export function parseHedString(hedString, hedSchemas, fullCheck, definitionsAllo
  * Parse a list of HED strings.
  *
  * @param {string[]|ParsedHedString[]} hedStrings A list of HED strings.
- * @param {Schemas} hedSchemas The collection of HED schemas.
- * @param {boolean} fullCheck If the strings is in final form -- can be fully parsed
+ * @param {Schemas} hedSchemas - The collection of HED schemas.
+ * @param {boolean} fullCheck - If the strings is in final form -- can be fully parsed
+ * @param {boolean} definitionsAllowed - True if definitions are allowed
+ * @param {boolean} placeholdersAllowed - True if placeholders are allowed
  * @returns {[ParsedHedString[], Issue[]]} The parsed HED strings and any issues found.
  */
 export function parseHedStrings(hedStrings, hedSchemas, fullCheck, definitionsAllowed, placeholdersAllowed) {

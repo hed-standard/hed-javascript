@@ -63,6 +63,7 @@ export class SpecialChecker {
       () => this.checkNoSpliceInGroupTags(hedString),
       () => this.checkSpecialTopGroupRequirements(hedString, fullCheck),
       () => this.checkForbiddenGroups(hedString),
+      () => this.checkNonTopGroups(hedString),
     ]
     for (const check of checks) {
       const issues = check()
@@ -221,6 +222,44 @@ export class SpecialChecker {
     return issues
   }
 
+  checkNonTopGroups(hedString, fullCheck) {
+    if (!hedString.tags.some((tag) => this.specialNonTopGroupTags.has(tag.schemaTag._name))) {
+      return []
+    }
+    const issues = []
+    for (const topGroup of hedString.tagGroups) {
+      for (const group of topGroup.subParsedGroupIterator()) {
+        const theseIssues = this._checkSpecialGroups(group, fullCheck)
+        issues.push(...theseIssues)
+        if (theseIssues.length > 0) {
+          break
+        }
+      }
+    }
+    return issues
+  }
+
+  _checkSpecialGroups(group, fullCheck) {
+    const specialTags = this._extractSpecialTags(group, this.specialNonTopGroupTags)
+    for (const specialTag of specialTags) {
+      const issues = this._checkGroupRequirements(specialTag, group, fullCheck)
+      if (issues.length > 0) {
+        return issues
+      }
+    }
+    return []
+  }
+
+  _extractSpecialTags(group, keyList) {
+    // Validate inputs
+    if (!group?.specialTags || !keyList || !Array.isArray(keyList)) {
+      return []
+    }
+
+    // Extract and flatten special tags
+    return keyList.flatMap((key) => group.specialTags.get(key) || [])
+  }
+
   /**
    * Check the group tag requirements of a special Tag
    * @param {ParsedHedTag} specialTag - a top-level special tag in group
@@ -278,8 +317,8 @@ export class SpecialChecker {
    *
    * @param {ParsedHedTag} specialTag - The special tag whose tag requirements are to be checked
    * @param {ParsedHedGroup} group - The enclosing tag group
+   * @param { Object } specialRequirements - The requirements for this special tag.
    * @param {boolean} fullCheck - If true, all splices have been resolved and everything should be there
-   * @param { string[] | null} allowedTags - The list of tags that are allowed with this tag
    * @returns {Issue[]|[]}
    * @private
    */
@@ -319,17 +358,17 @@ export class SpecialChecker {
     return []
   }
 
-  /**
+  /*  /!**
    * Get tags that are not allowed in the current group.
    *
    * @param {ParsedHedTag[]} tags - The HED tags to be evaluated.
    * @param {Object} specialTagRequirements - The requirements for the special tag.
    * @returns {ParsedHedTag[]} An array of tags that are not allowed.
    * @private
-   */
+   *!/
   _getDisallowedTags(tags, specialTagRequirements) {
     return tags.filter((tag) => !specialTagRequirements.otherAllowedTags?.includes(tag.schemaTag.name))
-  }
+  }*/
 
   /**
    * Check if there are conflicting subgroup tags.
@@ -344,9 +383,6 @@ export class SpecialChecker {
       if (group.allTags.some((tag) => this.hasForbiddenSubgroupTags.has(tag.schemaTag.name))) {
         issues.push(...this._checkForbiddenGroup(group))
       }
-      // if (group.allTags.some((tag) => this.specialGroupTags.has(tag.schemaTag.name))) {
-      //   issues.push(...this._checkSpecialGroup(group))
-      // }
     }
     return issues
   }
@@ -441,25 +477,27 @@ _checkSpecialTagsInGroup(group, specialTags) {
     return []
   }
 
-  /**
+  /*
+  /!**
    * Return the value of a special attribute if special tag, otherwise undefined.
    *
    * @param {ParsedHedTag} tag - The HED tag to be checked for the attribute
    * @param {string} attributeName - The name of the special attribute to check for.
    *
    * @returns value of the property or undefined.
-   */
+   *!/
   getSpecialAttributeForTag(tag, attributeName) {
     return this.specialMap.get(tag.schemaTag.name)?.[attributeName]
-  }
+  }*/
 
-  /**
+  /*
+  /!**
    * Return true if a list of tags has any duplicate names.
    *
    * @param {list} - A list of ParsedHedTag objects to be checked.
    * @returns {boolean} If true, indicates that there tags with duplicate names in the list.
    *
-   */
+   *!/
   hasDuplicateNames(list) {
     const seen = new Set()
     for (const obj of list) {
@@ -473,7 +511,7 @@ _checkSpecialTagsInGroup(group, specialTags) {
 
   _hasExclusiveTags(hedString) {
     return hedString.tags.some((tag) => this.exclusiveTags.includes(tag.schemaTag._name))
-  }
+  }*/
 
   /**
    * Indicate whether a tag should be a top-level tag.

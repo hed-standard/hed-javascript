@@ -1300,7 +1300,7 @@
           [
             ["onset", "duration", "HED"],
             [4.5, 0, "(Def-expand/Acc, (Acceleration, Red))"],
-            [5.5, 0, "(Def-expand/Acc/4.5 (Acceleration, Red))"]
+            [5.5, 0, "(Def-expand/Acc/4.5, (Acceleration, Red))"]
           ]
         ],
         "passes": [
@@ -1512,7 +1512,7 @@
                 "HED": {
                   "face": "(Def-expand/Acc/4.5, (Acceleration/6, Red))",
                   "ball": "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Blue))",
-                  "square": "(Def-expand/MyColor, (Label/Cake)))"
+                  "square": "(Def-expand/MyColor, (Label/Cake))"
                 }
               }
             },

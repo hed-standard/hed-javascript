@@ -24,6 +24,24 @@ export const definitionTestData = [
         errors: [],
       },
       {
+        testname: 'valid-def-no-group',
+        explanation: '"Def/Blech" has a definition without a group',
+        definition: '(Definition/Blech)',
+        stringIn: 'Def/Blech, (Red, Green)',
+        fullCheck: true,
+        errors: [],
+      },
+      {
+        testname: 'invalid-def-expand-should-have-a-group',
+        explanation: '"(Def-expand/Acc/4.5)" has a definition without a group',
+        definition: null,
+        stringIn: '(Def-expand/Acc/4.5)',
+        fullCheck: true,
+        errors: [
+          generateIssue('defExpandContentsInvalid', { contents: '', defContents: '(Acceleration/4.5 m-per-s^2,Red)' }),
+        ],
+      },
+      {
         testname: 'missing-definition',
         explanation: '"def/Blech" does not have a corresponding definition',
         definition: null,
@@ -55,6 +73,34 @@ export const definitionTestData = [
         stringIn: '(Def-expand/Acc/4.5/3, (Acceleration/4.5/3 m-per-s^2, Red))',
         fullCheck: true,
         errors: [generateIssue('invalidValue', { tag: 'Acceleration/4.5/3 m-per-s^2' })],
+      },
+      {
+        testname: 'invalid-def-expand-invalid-substitution',
+        explanation:
+          '"(Def-expand/Acc/4.5, (Acceleration/6 m-per-s^2, Red))" has def-expand tag with invalid substitution',
+        definition: null,
+        stringIn: '(Def-expand/Acc/4.5, (Acceleration/6 m-per-s^2, Red))',
+        fullCheck: true,
+        errors: [
+          generateIssue('defExpandContentsInvalid', {
+            contents: '(Acceleration/6 m-per-s^2,Red)',
+            defContents: '(Acceleration/4.5 m-per-s^2,Red)',
+          }),
+        ],
+      },
+      {
+        testname: 'invalid-def-expand-invalid-value',
+        explanation:
+          '"(Def-expand/Acc/Blech, (Acceleration/Blech m-per-s^2, Red))" is def-expand tag with invalid substitution',
+        definition: null,
+        stringIn: '(Def-expand/Acc/4.5, (Acceleration/6 m-per-s^2, Red))',
+        fullCheck: true,
+        errors: [
+          generateIssue('defExpandContentsInvalid', {
+            contents: '(Acceleration/6 m-per-s^2,Red)',
+            defContents: '(Acceleration/4.5 m-per-s^2,Red)',
+          }),
+        ],
       },
     ],
   },

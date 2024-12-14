@@ -1,6 +1,6 @@
 import { IssueError } from '../common/issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
-import { SchemaValueTag } from '../schema/entries'
+import { SchemaTag, SchemaValueTag, SchemaUnit } from '../schema/entries'
 import TagConverter from './tagConverter'
 import { SpecialChecker } from './special'
 
@@ -85,6 +85,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     super(tagSpec.tag, tagSpec.bounds) // Sets originalTag and originalBounds
     this._convertTag(hedSchemas, hedString, tagSpec)
     this._normalized = this.format(false) // Sets various forms of the tag.
+    this._validUnits = null
   }
 
   /**
@@ -122,7 +123,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Handle the remainder portion for value tag (converter handles others)
    *
-   * @param (SchemaTag) schemaTag - the part of the tag that is in the schema
+   * @param {SchemaTag} schemaTag - The part of the tag that is in the schema
    * @param {string} remainder - the leftover part
    * @throws {IssueError} If parsing the remainder section fails.
    */
@@ -155,6 +156,14 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     }
   }
 
+  /**
+   * Separate the remainder of the tag into three parts:
+   *
+   * @param {SchemaTag} schemaTag - The part of the tag that is in the schema
+   * @param {string} remainder - the leftover part
+   * @returns {[Unit, string, string]} - The actual Unit, the unit string and the value string.
+   * @throws {IssueError} If parsing the remainder section fails.
+   */
   _separateUnits(schemaTag, remainder) {
     const unitClasses = schemaTag.unitClasses
     let actualUnit = null
@@ -257,39 +266,13 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     }
   }
 
-  /*
-  /!**
-   * The trailing portion of {@link canonicalTag}.
-   *
-   * @returns {string} The "name" portion of the canonical tag.
-   *!/
-  get canonicalTagName() {
-    return this._memoize('canonicalTagName', () => {
-      return ParsedHedTag.getTagName(this.canonicalTag)
-    })
-  }*/
-
-  /*
-  /!**
-   * The trailing portion of {@link formattedTag}.
-   *
-   * @returns {string} The "name" portion of the formatted tag.
-   *!/
-  get formattedTagName() {
-    return this._memoize('formattedTagName', () => {
-      return ParsedHedTag.getTagName(this.formattedTag)
-    })
-  }*/
-
   /**
    * The trailing portion of {@link originalTag}.
    *
    * @returns {string} The "name" portion of the original tag.
    */
   get originalTagName() {
-    return this._memoize('originalTagName', () => {
-      return ParsedHedTag.getTagName(this.originalTag)
-    })
+    return ParsedHedTag.getTagName(this.originalTag)
   }
 
   /**
@@ -308,25 +291,12 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * The parent portion of {@link canonicalTag}.
-   *
-   * @returns {string} The "parent" portion of the canonical tag.
-   */
-  get parentCanonicalTag() {
-    return this._memoize('parentCanonicalTag', () => {
-      return ParsedHedTag.getParentTag(this.canonicalTag)
-    })
-  }
-
-  /**
    * The parent portion of {@link formattedTag}.
    *
    * @returns {string} The "parent" portion of the formatted tag.
    */
   get parentFormattedTag() {
-    return this._memoize('parentFormattedTag', () => {
-      return ParsedHedTag.getParentTag(this.formattedTag)
-    })
+    return ParsedHedTag.getParentTag(this.formattedTag)
   }
 
   /**
@@ -342,13 +312,14 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     }
     yield tagString
   }
+  /*
 
-  /**
+  /!**
    * Determine whether this tag is a descendant of another tag.
    *
    * @param {ParsedHedTag|string} parent The possible parent tag.
    * @returns {boolean} Whether {@link parent} is the parent tag of this tag.
-   */
+   *!/
   isDescendantOf(parent) {
     if (parent instanceof ParsedHedTag) {
       if (this.schema !== parent.schema) {
@@ -363,6 +334,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     }
     return false
   }
+*/
 
   /**
    * Determine if this HED tag is equivalent to another HED tag.
@@ -377,29 +349,16 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Determine if this HED tag is in the linked schema.
-   *
-   * @returns {boolean} Whether this HED tag is in the linked schema.
-   */
-  get existsInSchema() {
-    return this._memoize('existsInSchema', () => {
-      return this.schema?.entries?.tags?.hasLongNameEntry(this.formattedTag)
-    })
-  }
-
-  /**
    * Get the schema tag object for this tag.
    *
    * @returns {SchemaTag} The schema tag object for this tag.
    */
   get schemaTag() {
-    return this._memoize('takesValueTag', () => {
-      if (this._schemaTag instanceof SchemaValueTag) {
-        return this._schemaTag.parent
-      } else {
-        return this._schemaTag
-      }
-    })
+    if (this._schemaTag instanceof SchemaValueTag) {
+      return this._schemaTag.parent
+    } else {
+      return this._schemaTag
+    }
   }
 
   /**
@@ -408,13 +367,10 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @returns {SchemaValueTag} The schema tag object for this tag's value-taking form.
    */
   get takesValueTag() {
-    return this._memoize('takesValueTag', () => {
-      if (this._schemaTag instanceof SchemaValueTag) {
-        return this._schemaTag
-      } else {
-        return undefined
-      }
-    })
+    if (this._schemaTag instanceof SchemaValueTag) {
+      return this._schemaTag
+    }
+    return undefined
   }
 
   /**
@@ -423,9 +379,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @returns {boolean} Whether this HED tag has the {@code takesValue} attribute.
    */
   get takesValue() {
-    return this._memoize('takesValue', () => {
-      return this.takesValueTag !== undefined
-    })
+    return this.takesValueTag !== undefined
   }
 
   /**
@@ -434,12 +388,10 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @returns {boolean} Whether this HED tag has the {@code unitClass} attribute.
    */
   get hasUnitClass() {
-    return this._memoize('hasUnitClass', () => {
-      if (!this.takesValueTag) {
-        return false
-      }
-      return this.takesValueTag.hasUnitClasses
-    })
+    if (!this.takesValueTag) {
+      return false
+    }
+    return this.takesValueTag.hasUnitClasses
   }
 
   /**
@@ -448,33 +400,10 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @returns {SchemaUnitClass[]} The unit classes for this HED tag.
    */
   get unitClasses() {
-    return this._memoize('unitClasses', () => {
-      if (this.hasUnitClass) {
-        return this.takesValueTag.unitClasses
-      } else {
-        return []
-      }
-    })
-  }
-
-  /**
-   * Get the default unit for this HED tag.
-   *
-   * @returns {string} The default unit for this HED tag.
-   */
-  get defaultUnit() {
-    return this._memoize('defaultUnit', () => {
-      const defaultUnitsForUnitClassAttribute = 'defaultUnits'
-      if (!this.hasUnitClass) {
-        return ''
-      }
-      const tagDefaultUnit = this.takesValueTag.getNamedAttributeValue(defaultUnitsForUnitClassAttribute)
-      if (tagDefaultUnit) {
-        return tagDefaultUnit
-      }
-      const firstUnitClass = this.unitClasses[0]
-      return firstUnitClass.getNamedAttributeValue(defaultUnitsForUnitClassAttribute)
-    })
+    if (this.hasUnitClass) {
+      return this.takesValueTag.unitClasses
+    }
+    return []
   }
 
   /**
@@ -483,26 +412,26 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @returns {Set<SchemaUnit>} The legal units for this HED tag.
    */
   get validUnits() {
-    return this._memoize('validUnits', () => {
-      const tagUnitClasses = this.unitClasses
-      const units = new Set()
-      for (const unitClass of tagUnitClasses) {
-        const unitClassUnits = this.schema?.entries.unitClasses.getEntry(unitClass.name).units
-        for (const unit of unitClassUnits.values()) {
-          units.add(unit)
-        }
+    if (this._validUnits) {
+      return this._validUnits
+    }
+    const tagUnitClasses = this.unitClasses
+    this._validUnits = new Set()
+    for (const unitClass of tagUnitClasses) {
+      const unitClassUnits = this.schema?.entries.unitClasses.getEntry(unitClass.name).units
+      for (const unit of unitClassUnits.values()) {
+        this._validUnits.add(unit)
       }
-      return units
-    })
+    }
+    return this._validUnits
   }
 
   /**
    * Check if value is a valid value for this tag.
    *
-   * @param {string} The value to be checked
-   * @returns {boolean} The result of check -- false if not a valid value
+   * @param {string} value - The value to be checked.
+   * @returns {boolean} The result of check -- false if not a valid value.
    */
-
   checkValue(value) {
     if (!this.takesValue) {
       return false

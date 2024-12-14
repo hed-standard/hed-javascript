@@ -103,9 +103,7 @@ export class BidsHedTsvValidator {
 
     const issues = []
     const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false, false)
-    issues.push(
-      ...BidsHedIssue.fromHedIssues(Object.values(parsingIssues).flat(), this.tsvFile.file, { tsvLine: rowIndex }),
-    )
+    issues.push(...BidsHedIssue.fromHedIssues(parsingIssues, this.tsvFile.file, { tsvLine: rowIndex }))
 
     if (parsedString === null) {
       return issues
@@ -124,7 +122,10 @@ export class BidsHedTsvValidator {
       return issues
     }
 
-    const defIssues = this.tsvFile.mergedSidecar.definitions.validateDefs(parsedString, this.hedSchemas)
+    const defIssues = [
+      ...this.tsvFile.mergedSidecar.definitions.validateDefs(parsedString, this.hedSchemas),
+      ...this.tsvFile.mergedSidecar.definitions.validateDefExpands(parsedString, this.hedSchemas),
+    ]
     const convertedIssues = BidsHedIssue.fromHedIssues(defIssues, this.tsvFile.file, { tsvLine: rowIndex })
     issues.push(...convertedIssues)
     return issues

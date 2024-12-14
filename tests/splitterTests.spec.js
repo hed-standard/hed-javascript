@@ -15,19 +15,12 @@ const runAll = true
 const runMap = new Map([['valid-strings', ['empty-string']]])
 
 describe('Parse HED string tests', () => {
-  const schemaMap = new Map([
-    ['8.2.0', undefined],
-    ['8.3.0', undefined],
-  ])
+  const schemaMap = new Map([['8.3.0', undefined]])
 
   beforeAll(async () => {
-    const spec2 = new SchemaSpec('', '8.2.0', '', path.join(__dirname, '../tests/data/HED8.2.0.xml'))
-    const specs2 = new SchemasSpec().addSchemaSpec(spec2)
-    const schemas2 = await buildSchemas(specs2)
     const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../tests/data/HED8.3.0.xml'))
     const specs3 = new SchemasSpec().addSchemaSpec(spec3)
     const schemas3 = await buildSchemas(specs3)
-    schemaMap.set('8.2.0', schemas2)
     schemaMap.set('8.3.0', schemas3)
   })
 
@@ -62,6 +55,7 @@ describe('Parse HED string tests', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           testSplit(test)
         } else {
+          // eslint-disable-next-line no-console
           console.log(`----Skipping stringParserTest ${name}: ${test.testname}`)
         }
       })

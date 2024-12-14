@@ -5,8 +5,6 @@ import path from 'path'
 
 import { buildSchemas } from '../schema/init'
 import { SchemaSpec, SchemasSpec } from '../schema/specs'
-import { generateIssue } from '../common/issues/issues'
-import { parseHedString, parseHedStrings } from '../parser/parser'
 import { normalizerTestData } from './testData/normalizerTests.data'
 import { shouldRun, getHedString } from './testUtilities'
 
@@ -28,12 +26,11 @@ describe('Normalize HED string tests', () => {
 
   describe.each(normalizerTestData)('$name : $description', ({ name, tests }) => {
     const testConvert = function (test) {
-      console.log(test)
       const header = `${test.testname}`
       const thisSchema = schemaMap.get(test.schemaVersion)
       assert.isDefined(thisSchema, `header: ${test.schemaVersion} is not available in test ${test.testname}`)
 
-      let issues = []
+      let issues
       // Parse the string before converting
       try {
         const [parsedString, errorIssues, warningIssues] = getHedString(test.string, thisSchema, true, false, true)
@@ -59,6 +56,7 @@ describe('Normalize HED string tests', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           testConvert(test)
         } else {
+          // eslint-disable-next-line no-console
           console.log(`----Skipping stringParserTest ${name}: ${test.testname}`)
         }
       })

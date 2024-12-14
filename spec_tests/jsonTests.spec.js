@@ -10,7 +10,12 @@ import { BidsSidecar, BidsTsvFile } from '../bids'
 import { generateIssue, IssueError } from '../common/issues/issues'
 import { DefinitionManager } from '../parser/definitionManager'
 import parseTSV from '../bids/tsvParser'
+import { shouldRun } from '../tests/testUtilities'
 const fs = require('fs')
+
+const skipMap = new Map()
+const runAll = true
+const runMap = new Map([['DEF_EXPAND_INVALID', ['def-expand-invalid-missing-placeholder']]])
 
 const skippedErrors = {
   VERSION_DEPRECATED: 'Not handling in the spec tests',
@@ -235,6 +240,10 @@ describe('HED validation using JSON tests', () => {
 
       afterAll(() => {})
 
+      if (!shouldRun(error_code, name, runAll, runMap, skipMap)) {
+        console.log(`----Skipping JSON Spec tests ${error_code} [${name}]}`)
+        return
+      }
       if (error_code in skippedErrors || name in skippedErrors || warning) {
         test.skip(`Skipping tests ${error_code} skipped because ${skippedErrors['error_code']}`, () => {})
       } else {

@@ -12,7 +12,7 @@ import { DefinitionManager } from '../parser/definitionManager'
 
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['def-or-def-expand', ['invalid-def-extra-level']]])
+const runMap = new Map([['def-or-def-expand', ['invalid-def-expand-should-have-a-group']]])
 
 describe('DefinitionManager tests', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
@@ -56,12 +56,17 @@ describe('DefinitionManager tests', () => {
       } else {
         thisDefManager = new DefinitionManager()
         const [defsToAdd, defIssues] = DefinitionManager.createDefinitions([test.definition], thisSchema)
+        if (defIssues.length > 0) {
+          throw new Error(`Invalid test definitions: ${definitions}`)
+        }
         thisDefManager.addDefinitions(defsToAdd)
       }
       const [parsedHed, issues] = parseHedString(test.stringIn, thisSchema, true, false, false)
-      if (parsedHed !== null) {
-        issues.push(...thisDefManager.validateDefs(parsedHed, thisSchema))
+      if (parsedHed === null) {
+        return
       }
+      issues.push(...thisDefManager.validateDefs(parsedHed, thisSchema))
+      issues.push(...thisDefManager.validateDefExpands(parsedHed, thisSchema))
       assert.deepStrictEqual(issues, test.errors, `${header}: expected ${issues} errors but received ${test.errors}\n`)
     }
 
@@ -69,6 +74,7 @@ describe('DefinitionManager tests', () => {
       if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
         testDefinitions(test)
       } else {
+        // eslint-disable-next-line no-console
         console.log(`----Skipping stringParserTest ${name}: ${test.testname}`)
       }
     })

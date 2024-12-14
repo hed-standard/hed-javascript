@@ -1,7 +1,4 @@
 import ParsedHedTag from './parsedHedTag'
-import ParsedHedColumnSplice from './parsedHedColumnSplice'
-import ParsedHedGroup from './parsedHedGroup'
-import { generateIssue, generateAndThrow } from '../common/issues/issues'
 
 /**
  * Extract the items of a specified subtype from a list of ParsedHedSubstring
@@ -16,9 +13,9 @@ export function filterByClass(items, classType) {
 
 /**
  * Extract the ParsedHedTag tags with a specified tag name
- * @param {ParsedHedTag[]} tags - to be filtered by class type
+ * @param {ParsedHedTag[]} tags - to be filtered by name
  * @param {string} tagName - name of the tag to filter by
- * @returns {*|*[]}
+ * @returns {ParsedHedTag[]}
  */
 
 export function filterByTagName(tags, tagName) {
@@ -29,8 +26,22 @@ export function filterByTagName(tags, tagName) {
 }
 
 /**
- * Return a string of original tag names for error messages.
- * @param {ParsedHedTag} tagList - The HED tags whose string representations should be put in a comma-separated list.
+ * Extract the ParsedHedTag tags that have a name from a specified list of names
+ * @param {ParsedHedTag[]} tags - to be filtered by name
+ * @param {[string]} tagList - List of tag names to filter by.
+ * @returns {ParsedHedTag[]} - A list of tags whose
+ */
+
+export function filterByTagNames(tags, tagList) {
+  if (!tags || !tagList) {
+    return []
+  }
+  return tags.filter((tag) => tagList.includes(tag.schemaTag.name))
+}
+
+/**
+ * Convert a list of ParsedHedTag objects into a comma-separated string of their string representations.
+ * @param {ParsedHedTag []} tagList - The HED tags whose string representations should be put in a comma-separated list.
  * @returns {string} A comma separated list of original tag names for tags in tagList.
  */
 export function getTagListString(tagList) {
