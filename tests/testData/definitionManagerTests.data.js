@@ -13,6 +13,7 @@ export const definitionTestData = [
         definition: null,
         stringIn: 'Def/MyColor',
         fullCheck: true,
+        placeholderAllowed: false,
         errors: [],
       },
       {
@@ -21,6 +22,7 @@ export const definitionTestData = [
         definition: null,
         stringIn: 'def/myColor',
         fullCheck: true,
+        placeholderAllowed: false,
         errors: [],
       },
       {
@@ -29,7 +31,48 @@ export const definitionTestData = [
         definition: '(Definition/Blech)',
         stringIn: 'Def/Blech, (Red, Green)',
         fullCheck: true,
+        placeholderAllowed: false,
         errors: [],
+      },
+      {
+        testname: 'valid-def-with-placeholder',
+        explanation: '"def/Acc/#" is def tag with an allowed placeholder',
+        definition: null,
+        stringIn: 'def/Acc/#',
+        fullCheck: true,
+        placeholderAllowed: true,
+        errors: [],
+      },
+      {
+        testname: 'invalid-def-with-placeholder',
+        explanation: '"def/Acc/#" is def tag with disallowed placeholder',
+        definition: null,
+        stringIn: 'def/Acc/#',
+        fullCheck: true,
+        placeholderAllowed: false,
+        errors: [generateIssue('invalidPlaceholderContext', { string: 'def/Acc/#' })],
+      },
+      {
+        testname: 'valid-def-expand-with-placeholder',
+        explanation:
+          '"(Def-expand/Acc/#, (Acceleration/# m-per-s^2, Red))" is def-expand tag with an allowed placeholder',
+        definition: null,
+        stringIn: '(Def-expand/Acc/#, (Acceleration/# m-per-s^2, Red))',
+        fullCheck: true,
+        placeholderAllowed: true,
+        errors: [],
+      },
+      {
+        testname: 'invalid-def-with-placeholder',
+        explanation:
+          '"(Def-expand/Acc/#, (Acceleration/# m-per-s^2, Red))" is def-expand tag with disallowed placeholder',
+        definition: null,
+        stringIn: '(Def-expand/Acc/#, (Acceleration/# m-per-s^2, Red))',
+        fullCheck: true,
+        placeholderAllowed: false,
+        errors: [
+          generateIssue('invalidPlaceholderContext', { string: '(Def-expand/Acc/#, (Acceleration/# m-per-s^2, Red))' }),
+        ],
       },
       {
         testname: 'invalid-def-expand-should-have-a-group',
@@ -47,6 +90,7 @@ export const definitionTestData = [
         definition: null,
         stringIn: 'def/Blech',
         fullCheck: true,
+        placeholderAllowed: false,
         errors: [generateIssue('missingDefinitionForDef', { definition: 'blech' })],
       },
       {
@@ -55,6 +99,7 @@ export const definitionTestData = [
         definition: '(Definition/Blech, (Label/Cake))',
         stringIn: 'def/Blech/5',
         fullCheck: true,
+        placeholderAllowed: false,
         errors: [generateIssue('missingDefinitionForDef', { definition: 'blech' })],
       },
       {
@@ -63,6 +108,7 @@ export const definitionTestData = [
         definition: null,
         stringIn: 'def/Acc/4.5/3',
         fullCheck: true,
+        placeholderAllowed: false,
         errors: [generateIssue('invalidValue', { tag: 'Acceleration/4.5/3 m-per-s^2' })],
       },
       {
@@ -72,6 +118,7 @@ export const definitionTestData = [
         definition: null,
         stringIn: '(Def-expand/Acc/4.5/3, (Acceleration/4.5/3 m-per-s^2, Red))',
         fullCheck: true,
+        placeholderAllowed: false,
         errors: [generateIssue('invalidValue', { tag: 'Acceleration/4.5/3 m-per-s^2' })],
       },
       {
@@ -81,6 +128,7 @@ export const definitionTestData = [
         definition: null,
         stringIn: '(Def-expand/Acc/4.5, (Acceleration/6 m-per-s^2, Red))',
         fullCheck: true,
+        placeholderAllowed: false,
         errors: [
           generateIssue('defExpandContentsInvalid', {
             contents: '(Acceleration/6 m-per-s^2,Red)',
@@ -95,6 +143,7 @@ export const definitionTestData = [
         definition: null,
         stringIn: '(Def-expand/Acc/4.5, (Acceleration/6 m-per-s^2, Red))',
         fullCheck: true,
+        placeholderAllowed: false,
         errors: [
           generateIssue('defExpandContentsInvalid', {
             contents: '(Acceleration/6 m-per-s^2,Red)',

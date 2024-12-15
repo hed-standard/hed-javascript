@@ -25,19 +25,19 @@ export function filterByTagName(tags, tagName) {
   return tags.filter((tag) => tag instanceof ParsedHedTag && tag.schemaTag?.name === tagName)
 }
 
-/**
+/*/!**
  * Extract the ParsedHedTag tags that have a name from a specified list of names
  * @param {ParsedHedTag[]} tags - to be filtered by name
  * @param {[string]} tagList - List of tag names to filter by.
  * @returns {ParsedHedTag[]} - A list of tags whose
- */
+ *!/
 
 export function filterByTagNames(tags, tagList) {
   if (!tags || !tagList) {
     return []
   }
   return tags.filter((tag) => tagList.includes(tag.schemaTag.name))
-}
+}*/
 
 /**
  * Convert a list of ParsedHedTag objects into a comma-separated string of their string representations.

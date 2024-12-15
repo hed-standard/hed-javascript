@@ -664,7 +664,7 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
 
   /**
    * Extracts the Unit class and remainder
-   * @returns {Unit, string, string} unit class, unit string, and value string
+   * @returns {SchemaUnit, string, string} unit class, unit string, and value string
    */
   extractUnit(value) {
     let actualUnit = null // The Unit class of the value

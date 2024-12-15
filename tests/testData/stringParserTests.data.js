@@ -1141,6 +1141,21 @@ export const parseTestData = [
         warnings: [],
       },
       {
+        testname: 'onset-delay-def-expand-extra-tag-group',
+        explanation:
+          '"(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Item))" does not have group detected if not full check.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Item))',
+        stringLong:
+          '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5.0 s, Property/Data-property/Data-marker/Temporal-marker/Onset, (Property/Organizational-property/Def-expand/MyColor, (Property/Informational-property/Label/Pie)))',
+        stringShort: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Item))',
+        fullCheck: false,
+        placeholdersAllowed: false,
+        definitionsAllowed: false,
+        errors: [],
+        warnings: [],
+      },
+      {
         testname: 'inset-group-has-other-tag',
         explanation: '"((Def-expand/MyColor, (Label/Pie)), Inset, Blue)" should not have an extra tag.',
         schemaVersion: '8.3.0',

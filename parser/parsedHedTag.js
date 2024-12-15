@@ -1,6 +1,6 @@
 import { IssueError } from '../common/issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
-import { SchemaTag, SchemaValueTag, SchemaUnit } from '../schema/entries'
+import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
 import { SpecialChecker } from './special'
 
@@ -32,14 +32,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @private
    */
   _schemaTag
-
-  /**
-   * The extension part if it has an extension rather than a value
-   *
-   * @type {string}
-   * @private
-   */
-  _extension
 
   /**
    * The remaining part of the tag after the portion actually in the schema.
@@ -145,7 +137,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
 
     // Resolve the units and check
     const [actualUnit, actualUnitString, actualValueString] = this._separateUnits(schemaTag, value)
-    this._units = actualUnit
+    this._units = actualUnitString
     this._value = actualValueString
 
     if (actualUnit === null && actualUnitString !== null) {
@@ -161,7 +153,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    *
    * @param {SchemaTag} schemaTag - The part of the tag that is in the schema
    * @param {string} remainder - the leftover part
-   * @returns {[Unit, string, string]} - The actual Unit, the unit string and the value string.
+   * @returns {[SchemaUnit, string, string]} - The actual Unit, the unit string and the value string.
    * @throws {IssueError} If parsing the remainder section fails.
    */
   _separateUnits(schemaTag, remainder) {
@@ -339,10 +331,10 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Determine if this HED tag is equivalent to another HED tag.
    *
-   * HED tags are deemed equivalent if they have the same schema and formatted tag string.
+   * Note: HED tags are deemed equivalent if they have the same schema and normalized tag string.
    *
-   * @param {ParsedHedTag} other A HED tag.
-   * @returns {boolean} Whether {@link other} is equivalent to this HED tag.
+   * @param {ParsedHedTag} other - A HED tag to compare with this one.
+   * @returns {boolean} Whether {@link other} True, if other is equivalent to this HED tag.
    */
   equivalent(other) {
     return other instanceof ParsedHedTag && this.formattedTag === other.formattedTag && this.schema === other.schema

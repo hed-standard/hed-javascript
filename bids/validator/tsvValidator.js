@@ -6,7 +6,6 @@ import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../common/issues/issues'
 import { validateHedDatasetWithContext } from '../../validator/dataset'
 import { groupBy } from '../../utils/map'
-import { validateHedString } from '../../validator/event/init'
 
 /**
  * Validator for HED data in BIDS TSV files.
@@ -114,7 +113,7 @@ export class BidsHedTsvValidator {
         BidsHedIssue.fromHedIssue(
           generateIssue('curlyBracesInHedColumn', {
             string: parsedString.hedString,
-            tsvLine: rowIndex,
+            tsvLine: rowIndex.toString(),
           }),
           this.tsvFile.file,
         ),
@@ -123,8 +122,8 @@ export class BidsHedTsvValidator {
     }
 
     const defIssues = [
-      ...this.tsvFile.mergedSidecar.definitions.validateDefs(parsedString, this.hedSchemas),
-      ...this.tsvFile.mergedSidecar.definitions.validateDefExpands(parsedString, this.hedSchemas),
+      ...this.tsvFile.mergedSidecar.definitions.validateDefs(parsedString, this.hedSchemas, false),
+      ...this.tsvFile.mergedSidecar.definitions.validateDefExpands(parsedString, this.hedSchemas, false),
     ]
     const convertedIssues = BidsHedIssue.fromHedIssues(defIssues, this.tsvFile.file, { tsvLine: rowIndex })
     issues.push(...convertedIssues)

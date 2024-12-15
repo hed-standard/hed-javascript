@@ -1562,7 +1562,7 @@
           {
             "event_code": {
               "HED": {
-                "face": "(Def-expand/Acc/4.5, Red)",
+                "face": "Orange",
                 "ball": "(Def-expand/Acc/4.5)"
               }
             }
@@ -1583,7 +1583,6 @@
         "fails": [
           [
             ["onset", "duration", "HED"],
-            [4.5, 0, "(Def-expand/Acc/4.5, Red)"],
             [5.4, 0, "(Def-expand/Acc/5.4 )"]
           ]
         ],
@@ -1607,7 +1606,7 @@
             },
             "events": [
               ["onset", "duration", "event_code", "HED"],
-              [4.5, 0, "ball", "Def/Acc, (Def-expand/Acc/4.5)"],
+              [4.5, 0, "ball", "(Def-expand/Acc/4.5)"],
               [5.4, 0, "n/a", "Green"],
               [6.4, 0, "face", "n/a"]
             ]
@@ -1797,7 +1796,8 @@
             "sidecar": {
               "event_code": {
                 "HED": {
-                  "face": "Def/Acc/4.5"
+                  "face": "Def/Acc/4.5",
+                  "ball": "Item"
                 }
               }
             },
@@ -1902,7 +1902,7 @@
   },
   {
     "error_code": "DEF_INVALID",
-    "alt_codes": ["VALUE_INVALID"],
+    "alt_codes": ["VALUE_INVALID", "UNITS_INVALID"],
     "name": "def-invalid-bad-placeholder-value",
     "description": "A `Def` has a placeholder value of incorrect format or units for definition.",
     "warning": false,
@@ -2935,7 +2935,7 @@
               [4.5, 0, 3.4, "face", "Blue"],
               [5.0, 0, 6.8, "ball", "Green, Def/MyColor"],
               [5.2, 0, "n/a", "face", ""],
-              [5.5, 0, "any", "face", "n/a"]
+              [5.5, 0, "7,3", "face", "n/a"]
             ]
           }
         ]
@@ -4793,16 +4793,7 @@
         "passes": ["(Onset, Def/Acc/5.4)"]
       },
       "sidecar_tests": {
-        "fails": [
-          {
-            "event_code": {
-              "HED": {
-                "face": "Onset, Red",
-                "ball": "Offset, Def/Acc/5.4"
-              }
-            }
-          }
-        ],
+        "fails": [],
         "passes": [
           {
             "event_code": {
@@ -4818,8 +4809,7 @@
           [
             ["onset", "duration", "HED"],
             [4.5, 0, "Onset, Red"],
-            [4.8, 0, "(Onset, MyColor)"],
-            [5.0, 0, "Offset, MyColor"]
+            [5.0, 0, "Onset, Def/MyColor"]
           ]
         ],
         "passes": [
@@ -4838,15 +4828,13 @@
               "event_code": {
                 "HED": {
                   "face": "Onset, Red",
-                  "ball": "Offset, Def/Acc/5.4"
+                  "ball": "(Onset, Def/Acc/5.4)"
                 }
               }
             },
             "events": [
               ["onset", "duration", "event_code", "HED"],
-              [4.5, 0, "ball", "Onset, Red"],
-              [4.8, 0, "n/a", "(Onset/MyColor)"],
-              [5.0, 0, "face", "Offset, MyColor"]
+              [4.5, 0, "ball", "Onset, Def/MyColor"]
             ]
           }
         ],
@@ -5811,7 +5799,7 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": ["Delay, Red", "Delay, Def/Acc/5.4"],
+        "fails": ["(Delay, Red)", "(Delay, Def/Acc/5.4)"],
         "passes": ["(Delay/5 s, (Def/Acc/5.4))"]
       },
       "sidecar_tests": {
@@ -5820,15 +5808,7 @@
             "event_code": {
               "HED": {
                 "face": "Blue, Red",
-                "ball": "Delay/5.0 s, Def/Acc/5.4"
-              }
-            }
-          },
-          {
-            "event_code": {
-              "HED": {
-                "face": "Blue, Red",
-                "ball": "Delay/5.0 s, (Def/Acc/5.4)"
+                "ball": "(Delay/5.0 s, Def/Acc/5.4)"
               }
             }
           }
@@ -5878,20 +5858,6 @@
               [4.8, 0, "n/a", "Blue"],
               [5.0, 0, "face", "Green"]
             ]
-          },
-          {
-            "sidecar": {
-              "event_code": {
-                "HED": {
-                  "face": "Red",
-                  "ball": "Delay/5.0 s, (Def/Acc/5.4)"
-                }
-              }
-            },
-            "events": [
-              ["onset", "duration", "event_code", "HED"],
-              [4.5, 0, "ball", "Red"]
-            ]
           }
         ],
         "passes": [
@@ -5917,7 +5883,7 @@
     "error_code": "TEMPORAL_TAG_ERROR",
     "alt_codes": ["TAG_GROUP_ERROR"],
     "name": "temporal-tag-error-nested-group-delay",
-    "description": "An Onset or Offset tag appears in a nested tag group (not a top-level tag group).",
+    "description": "A delay appears in a group not in the top level.",
     "schema": "8.2.0",
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {

@@ -66,11 +66,12 @@ export class BidsHedSidecarValidator {
     for (const [sidecarKeyName, hedData] of this.sidecar.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
         // Value options have HED as string
-        issues.push(...this._checkDetails(sidecarKeyName, hedData))
+        issues.push(...this._checkDetails(sidecarKeyName, hedData, true))
       } else if (hedData instanceof Map) {
         // Categorical options have HED as a Map
         for (const valueString of hedData.values()) {
-          issues.push(...this._checkDetails(sidecarKeyName, valueString))
+          const placeholdersAllowed = this.sidecar.sidecarKeys.get(sidecarKeyName).hasDefinitions
+          issues.push(...this._checkDetails(sidecarKeyName, valueString, placeholdersAllowed))
         }
       } else {
         IssueError.generateAndThrow('internalConsistencyError', {
@@ -82,7 +83,7 @@ export class BidsHedSidecarValidator {
   }
 
   _checkDetails(sidecarKeyName, hedString) {
-    const issues = this._checkDefs(sidecarKeyName, hedString)
+    const issues = this._checkDefs(sidecarKeyName, hedString, true)
     issues.push(...this._checkPlaceholders(sidecarKeyName, hedString))
     return issues
   }

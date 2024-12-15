@@ -1,7 +1,7 @@
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedGroup from './parsedHedGroup'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
-import { filterByClass, getDuplicates, getTagListString } from './parseUtils'
+import { filterByClass, getDuplicates } from './parseUtils'
 import { IssueError } from '../common/issues/issues'
 
 /**

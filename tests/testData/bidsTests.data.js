@@ -69,7 +69,7 @@ export const bidsTestData = [
         sidecarErrors: [],
         tsvErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('unclosedParenthesis', { index: '0', string: '(Red, Def/MyColor', tsvLine: 2 }),
+            generateIssue('unclosedParenthesis', { index: '0', string: '(Red, Def/MyColor', tsvLine: '2' }),
             {
               path: 'mismatched-parentheses-in-tsv.tsv',
               relativePath: 'mismatched-parentheses-in-tsv.tsv',
@@ -78,7 +78,7 @@ export const bidsTestData = [
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('unclosedParenthesis', { index: '0', string: '(Red, Def/MyColor', tsvLine: 2 }),
+            generateIssue('unclosedParenthesis', { index: '0', string: '(Red, Def/MyColor', tsvLine: '2' }),
             { path: 'mismatched-parentheses-in-tsv.tsv', relativePath: 'mismatched-parentheses-in-tsv.tsv' },
             { tsvLine: 2 },
           ),
@@ -105,7 +105,7 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tHED\n' + '7\t4\tBaloney',
         sidecarErrors: [],
         tsvErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney', tsvLine: 2 }), {
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney', tsvLine: '2' }), {
             path: 'invalid-bad-tag-in-tsv.tsv',
             relativePath: 'invalid-bad-tag-in-tsv.tsv',
           }),
@@ -187,13 +187,13 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tevent_code\tHED\n' + '7\t4\tface\tRed,{blue}',
         sidecarErrors: [],
         tsvErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: 'Red,{blue}', tsvLine: 2 }), {
+          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: 'Red,{blue}', tsvLine: '2' }), {
             path: 'valid-sidecar-tsv-curly-brace.tsv',
             relativePath: 'valid-sidecar-tsv-curly-brace.tsv',
           }),
         ],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: 'Red,{blue}', tsvLine: 2 }), {
+          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: 'Red,{blue}', tsvLine: '2' }), {
             path: 'valid-sidecar-tsv-curly-brace.tsv',
             relativePath: 'valid-sidecar-tsv-curly-brace.tsv',
           }),
@@ -511,6 +511,29 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
+        testname: 'valid-curly-brace-in-sidecar-with-tsv-n/a',
+        explanation: 'Valid curly brace in sidecar and valid tsv with n/a',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Red, Blue), (Green, (Yellow)), ({HED})',
+              ball: '{response_time}, (Def/Acc/3.5)',
+            },
+          },
+          response_time: {
+            Description: 'Has description with HED',
+            HED: 'Parameter-value/#',
+          },
+        },
+        eventsString:
+          'onset\tduration\tresponse_time\tevent_code\tHED\n4.5\t 0\t3.4\tface\tBlue\n5.0\t0\t6.8\tball\tGreen, Def/MyColor\n5.2\t0\tn/a\tface\t\n5.5\t0\t7.3\tface\tn/a\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
         testname: 'valid-curly-brace-in-sidecar-with-category-splice',
         explanation: 'Valid curly brace in sidecar and valid value is spliced in',
         schemaVersion: '8.3.0',
@@ -657,7 +680,7 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tHED\n' + '19\t6\t{event_code}\n',
         sidecarErrors: [],
         tsvErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: '{event_code}', tsvLine: 2 }), {
+          BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: '{event_code}', tsvLine: '2' }), {
             path: 'invalid-curly-brace-in-HED-tsv-column.tsv',
             relativePath: 'invalid-curly-brace-in-HED-tsv-column.tsv',
           }),
@@ -1009,6 +1032,21 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
+        testname: 'valid-def-with-placeholder',
+        explanation: 'Def in sidecar has a placeholder',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          speed: {
+            HED: 'Def/Acc/#',
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
         testname: 'valid-definition-with-nested-placeholder',
         explanation: 'Definition in sidecar has nested placeholder',
         schemaVersion: '8.3.0',
@@ -1049,6 +1087,45 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
+        testname: 'invalid-def-expand-no-group',
+        explanation: 'The sidecar with definition that has no internal group.',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, (Def-expand/Acc/4.5)',
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('defExpandContentsInvalid', {
+              contents: '',
+              defContents: '(Acceleration/4.5 m-per-s^2,Red)',
+              sidecarKeyName: 'speed',
+            }),
+            {
+              path: 'invalid-def-expand-no-group.json',
+              relativePath: 'invalid-def-expand-no-group.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('defExpandContentsInvalid', {
+              contents: '',
+              defContents: '(Acceleration/4.5 m-per-s^2,Red)',
+              sidecarKeyName: 'speed',
+            }),
+            {
+              path: 'invalid-def-expand-no-group.tsv',
+              relativePath: 'invalid-def-expand-no-group.tsv',
+            },
+          ),
+        ],
+      },
+      {
         testname: 'invalid-missing-definition-for-def',
         explanation: 'The sidecar uses a def with no definition',
         schemaVersion: '8.3.0',
@@ -1075,6 +1152,37 @@ export const bidsTestData = [
             {
               path: 'invalid-missing-definition-for-def.tsv',
               relativePath: 'invalid-missing-definition-for-def.tsv',
+            },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-missing-definition-for-def-expand',
+        explanation: 'The sidecar uses a def-expand with no definition',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          speed: {
+            HED: 'Speed/# mph, (Def-expand/MissingDefExpand, (Red))',
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingDefinitionForDefExpand', { definition: 'missingdefexpand', sidecarKeyName: 'speed' }),
+            {
+              path: 'invalid-missing-definition-for-def-expand.json',
+              relativePath: 'invalid-missing-definition-for-def-expand.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingDefinitionForDefExpand', { definition: 'missingdefexpand', sidecarKeyName: 'speed' }),
+            {
+              path: 'invalid-missing-definition-for-def-expand.tsv',
+              relativePath: 'invalid-missing-definition-for-def-expand.tsv',
             },
           ),
         ],
