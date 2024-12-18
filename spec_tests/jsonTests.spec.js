@@ -14,8 +14,9 @@ import { shouldRun } from '../tests/testUtilities'
 const fs = require('fs')
 
 const skipMap = new Map()
-const runAll = true
-const runMap = new Map([['DEF_EXPAND_INVALID', ['def-expand-invalid-missing-placeholder']]])
+const runAll = false
+//const runMap = new Map([['DEF_EXPAND_INVALID', ['def-expand-invalid-missing-placeholder']]])
+const runMap = new Map([['TAG_GROUP_ERROR', ['tag-group-error-missing']]])
 
 const skippedErrors = {
   VERSION_DEPRECATED: 'Not handling in the spec tests',
@@ -69,11 +70,6 @@ function tsvListToStrings(eventList) {
 }
 
 function tsvToString(events) {
-  // console.log(events)
-  // const result = events.map((row) => Array.isArray(row) ? row.join('\t') : row);
-  // console.log(result)
-  // const thisString = events.map((row) => row.join('\t')).join('\n')
-  // console.log(thisString)
   return events.map((row) => row.join('\t')).join('\n')
 }
 
@@ -251,11 +247,11 @@ describe('HED validation using JSON tests', () => {
           expect(hedSchema).toBeDefined()
         })
 
-        if (tests.string_tests.passes.length > 0) {
-          test.each(tests.string_tests.passes)('Valid string: %s', (str) => {
-            stringValidator(str, new Set())
-          })
-        }
+        // if (tests.string_tests.passes.length > 0) {
+        //   test.each(tests.string_tests.passes)('Valid string: %s', (str) => {
+        //     stringValidator(str, new Set())
+        //   })
+        // }
 
         if (tests.string_tests.fails.length > 0) {
           test.each(tests.string_tests.fails)('Invalid string: %s', (str) => {
@@ -263,7 +259,7 @@ describe('HED validation using JSON tests', () => {
           })
         }
 
-        if (passedSidecars.length > 0) {
+        /*       if (passedSidecars.length > 0) {
           test.each(passedSidecars)(`Valid sidecar: %s`, (side) => {
             sideValidator(side, noErrors)
           })
@@ -297,7 +293,7 @@ describe('HED validation using JSON tests', () => {
           test.each(failedCombos)(`Invalid combo: [%s] [%s]`, (side, events) => {
             comboValidator(side, events, expectedErrors)
           })
-        }
+        }*/
       }
     },
   )

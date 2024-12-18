@@ -25,6 +25,25 @@ export function filterByTagName(tags, tagName) {
   return tags.filter((tag) => tag instanceof ParsedHedTag && tag.schemaTag?.name === tagName)
 }
 
+/**
+ * Extract the ParsedHedTag tags with a specified tag name.
+ * @param {Map<string, ParsedHedTag[]>} tagMap - The Map of parsed HED tags for extraction (must be defined).
+ * @param {string[]} tagNames - The names to use as keys for the filter.
+ * @returns {ParsedHedTag[]} - A list of temporal tags.
+ */
+export function filterTagMapByNames(tagMap, tagNames) {
+  if (!tagNames || tagMap.size === 0) {
+    return []
+  }
+
+  const keys = [...tagNames].filter((name) => tagMap.has(name))
+  if (keys.length === 0) {
+    return []
+  }
+
+  return keys.flatMap((key) => tagMap.get(key))
+}
+
 /*/!**
  * Extract the ParsedHedTag tags that have a name from a specified list of names
  * @param {ParsedHedTag[]} tags - to be filtered by name

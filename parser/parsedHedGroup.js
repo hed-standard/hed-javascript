@@ -5,7 +5,14 @@ import ParsedHedSubstring from './parsedHedSubstring'
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import { SpecialChecker } from './special'
-import { filterByClass, categorizeTagsByName, getDuplicates, filterByTagName } from './parseUtils'
+import {
+  filterByClass,
+  categorizeTagsByName,
+  getDuplicates,
+  filterByTagName,
+  filterTagMapByNames,
+  getTagListString,
+} from './parseUtils'
 
 /**
  * A parsed HED tag group.
@@ -45,6 +52,10 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   isDefinitionGroup
 
+  defCount
+
+  requiresDefTag
+
   /**
    * Constructor.
    * @param {ParsedHedSubstring[]} parsedHedTags The parsed HED tags, groups or column splices in the HED tag group.
@@ -75,6 +86,8 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     this.isDefinitionGroup = this.specialTags.has('Definition')
     this.defExpandChildren = this._filterSubgroupsByTagName('Def-expand')
     this.hasDefExpandChildren = this.defExpandChildren.length !== 0
+    this.defCount = this.getSpecial('Def').length + this.defExpandChildren.length
+    this.requiresDefTag = this._getRequiresDefTag(special.requiresDefTags)
   }
 
   /**
@@ -85,6 +98,43 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   _filterSubgroupsByTagName(tagName) {
     return Array.from(this.topLevelGroupIterator()).filter((subgroup) => subgroup.specialTags.has(tagName))
+  }
+
+  /**
+   * Return the unique requiresDef tag associated with this group (if any).
+   * @param {string[]} tagNames - The list of requiresDef tag names to use (based on the special tag requirements).
+   * @returns {ParsedHedTag | null} - The parsed requiresDef tag (if any) or null.
+   * @throws {IssueError} - If there are too many or too few defs or too many requiresDef tags in this group.
+   * @private
+   */
+  _getRequiresDefTag(tagNames) {
+    const requiresDefTags = filterTagMapByNames(this.specialTags, tagNames)
+    if (requiresDefTags.length > 1) {
+      IssueError.generateAndThrow('multipleRequiresDefTags', {
+        tags: getTagListString(requiresDefTags),
+        string: this.originalTag,
+      })
+    }
+    if (requiresDefTags.length === 0) {
+      return null
+    }
+    if (this.defCount > 1) {
+      return [
+        IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
+          tag: requiresDefTags[0].originalTag,
+          tagGroup: this.originalTag,
+        }),
+      ]
+    }
+    if (this.topSplices.length === 0 && this.defCount === 0) {
+      return [
+        IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
+          tag: requiresDefTags[0].originalTag,
+          tagGroup: this.originalTag,
+        }),
+      ]
+    }
+    return requiresDefTags[0]
   }
 
   /**

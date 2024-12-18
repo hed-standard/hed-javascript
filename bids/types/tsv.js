@@ -92,25 +92,47 @@ export class BidsTsvFile extends BidsFile {
   }
 }
 
-/**
- * A row in a BIDS TSV file.
- */
-export class BidsTsvRow extends ParsedHedString {
+export class BidsTsvElements {
   /**
-   * The parsed string representing this row.
-   * @type {ParsedHedString}
+   * The string representation of this row
+   * @type {string}
    */
-  parsedString
-  /**
-   * The column-to-value mapping for this row.
-   * @type {Map<string, string>}
-   */
-  rowCells
+  hedString
+
   /**
    * The file this row belongs to.
    * @type {BidsTsvFile}
    */
   tsvFile
+
+  /**
+   * Constructor.
+   *
+   * @param {hedString} string The parsed string representing this row.
+   * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
+   * @param {BidsTsvFile} tsvFile The file this row belongs to.
+   * @param {number} tsvLine The line number in {@link tsvFile} this line is located at.
+   */
+  constructor(hedString, tsvFile) {
+    this.hedString = hedString
+    this.tsvFile = tsvFile
+  }
+
+  /**
+   * Override of {@link Object.prototype.toString}.
+   *
+   * @returns {string}
+   */
+  toString() {
+    return this.hedString + ` in TSV file "${this.tsvFile.name}"`
+  }
+}
+
+/**
+ * A row in a BIDS TSV file.
+ */
+export class BidsTsvRow extends BidsTsvElements {
+  onset
   /**
    * The line number in {@link BidsTsvRow.tsvFile} this line is located at.
    * @type {number}
@@ -120,16 +142,14 @@ export class BidsTsvRow extends ParsedHedString {
   /**
    * Constructor.
    *
-   * @param {ParsedHedString} parsedString The parsed string representing this row.
+   * @param {hedString} string The parsed string representing this row.
    * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
    * @param {BidsTsvFile} tsvFile The file this row belongs to.
    * @param {number} tsvLine The line number in {@link tsvFile} this line is located at.
    */
-  constructor(parsedString, rowCells, tsvFile, tsvLine) {
-    super(parsedString.hedString, parsedString.parseTree)
-    this.parsedString = parsedString
-    this.rowCells = rowCells
-    this.tsvFile = tsvFile
+  constructor(hedString, tsvFile, tsvLine, rowCells) {
+    super(hedString, tsvFile)
+    this.onset = Number(this.rowCells.get('onset'))
     this.tsvLine = tsvLine
   }
 
@@ -139,39 +159,21 @@ export class BidsTsvRow extends ParsedHedString {
    * @returns {string}
    */
   toString() {
-    return super.toString() + ` in TSV file "${this.tsvFile.name}" at line ${this.tsvLine}`
-  }
-
-  /**
-   * The onset of this row.
-   *
-   * @return {number} The onset of this row.
-   */
-  get onset() {
-    const value = Number(this.rowCells.get('onset'))
-    if (Number.isNaN(value)) {
-      IssueError.generateAndThrow('internalError', {
-        message: 'Attempting to access the onset of a TSV row without one.',
-      })
-    }
-    return value
+    return this.hedString + ` in TSV file "${this.tsvFile.name}" at line ${this.tsvLine}`
   }
 }
 
 /**
  * An event in a BIDS TSV file.
  */
-export class BidsTsvEvent extends ParsedHedString {
-  /**
-   * The file this row belongs to.
-   * @type {BidsTsvFile}
-   */
-  tsvFile
+export class BidsTsvEvent extends BidsTsvElements {
   /**
    * The TSV rows making up this event.
    * @type {BidsTsvRow[]}
    */
   tsvRows
+
+  tsvLines
 
   /**
    * Constructor.
@@ -180,18 +182,8 @@ export class BidsTsvEvent extends ParsedHedString {
    * @param {BidsTsvRow[]} tsvRows The TSV rows making up this event.
    */
   constructor(tsvFile, tsvRows) {
-    super(tsvRows.map((tsvRow) => tsvRow.hedString).join(', '), tsvRows.map((tsvRow) => tsvRow.parseTree).flat())
-    this.tsvFile = tsvFile
-    this.tsvRows = tsvRows
-  }
-
-  /**
-   * The lines in the TSV file corresponding to this event.
-   *
-   * @return {string} The lines in the TSV file corresponding to this event.
-   */
-  get tsvLines() {
-    return this.tsvRows.map((tsvRow) => tsvRow.tsvLine).join(', ')
+    super(tsvRows.map((tsvRow) => tsvRow.hedString).join(', '), tsvFile)
+    this.tsvLines = tsvRows.map((tsvRow) => tsvRow.tsvLine).join(', ')
   }
 
   /**
@@ -200,7 +192,7 @@ export class BidsTsvEvent extends ParsedHedString {
    * @returns {string}
    */
   toString() {
-    return super.toString() + ` in TSV file "${this.tsvFile.name}" at line(s) ${this.tsvLines}`
+    return this.hedString + ` in TSV file "${this.tsvFile.name}" at line(s) ${this.tsvLines}`
   }
 }
 

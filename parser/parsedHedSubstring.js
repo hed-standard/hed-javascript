@@ -35,7 +35,7 @@ export class ParsedHedSubstring {
   format(long = true) {}
 
   /**
-   * Get the normalized version of the objet.
+   * Get the normalized version of the object.
    *
    * @returns {string}
    * @abstract

@@ -594,8 +594,9 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: true,
         errors: [
-          generateIssue('tooManyGroupTopTags', {
+          generateIssue('invalidGroupTopTags', {
             string: '(Definition/IllegalSibling, Train, (Circle))',
+            tags: 'Definition/IllegalSibling, Train',
           }),
         ],
         warnings: [],
@@ -668,8 +669,9 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: true,
         errors: [
-          generateIssue('tooManyGroupTopTags', {
+          generateIssue('invalidGroupTopTags', {
             string: '(Definition/Apple, Definition/Banana, (Blue))',
+            tags: 'Definition/Apple, Definition/Banana',
           }),
         ],
         warnings: [],
@@ -700,8 +702,9 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: true,
         errors: [
-          generateIssue('tooManyGroupTopTags', {
+          generateIssue('invalidGroupTopTags', {
             string: '(Def-expand/Acc/5.4, (Acceleration/5.4 m-per-s^2, Red), Blue)',
+            tags: 'Def-expand/Acc/5.4, Blue',
           }),
         ],
         warnings: [],
@@ -859,7 +862,7 @@ export const parseTestData = [
         fullCheck: false,
         placeholdersAllowed: false,
         definitionsAllowed: false,
-        errors: [generateIssue('tooManyGroupTopTags', { string: '(Offset, Item)' })],
+        errors: [generateIssue('temporalWithWrongNumberDefs', { tagGroup: '(Offset, Item)', tag: 'Offset' })],
         warnings: [],
       },
       {
@@ -911,20 +914,20 @@ export const parseTestData = [
         stringIn: '(Onset, Delay/5 s)',
         stringLong: null,
         stringShort: null,
-        fullCheck: false,
+        fullCheck: true,
         placeholdersAllowed: false,
         definitionsAllowed: false,
-        errors: [generateIssue('temporalWithoutDefinition', { tagGroup: '(Onset, Delay/5 s)', tag: 'Onset' })],
+        errors: [generateIssue('temporalWithWrongNumberDefs', { tagGroup: '(Onset, Delay/5 s)', tag: 'Onset' })],
         warnings: [],
       },
       {
-        testname: 'onset-delay-with-def',
-        explanation: '"(Onset, Delay/5 s, Def/myDef)" has an Onset, Delay and Def.',
+        testname: 'inset-delay-def',
+        explanation: '"(Inset, Delay/5 s, Def/myDef)" has an Inset, Delay and Def.',
         schemaVersion: '8.3.0',
-        stringIn: '(Onset, Delay/5 s, Def/myDef)',
+        stringIn: '(Inset, Delay/5 s, Def/myDef)',
         stringLong:
-          '(Property/Data-property/Data-marker/Temporal-marker/Onset, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5 s, Property/Organizational-property/Def/myDef)',
-        stringShort: '(Onset, Delay/5 s, Def/myDef)',
+          '(Property/Data-property/Data-marker/Temporal-marker/Inset, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5 s, Property/Organizational-property/Def/myDef)',
+        stringShort: '(Inset, Delay/5 s, Def/myDef)',
         fullCheck: false,
         placeholdersAllowed: false,
         definitionsAllowed: false,
@@ -941,7 +944,7 @@ export const parseTestData = [
         fullCheck: false,
         placeholdersAllowed: false,
         definitionsAllowed: false,
-        errors: [generateIssue('temporalWithoutDefinition', { tagGroup: '(Inset, Delay/5 s)', tag: 'Inset' })],
+        errors: [generateIssue('temporalWithWrongNumberDefs', { tagGroup: '(Inset, Delay/5 s)', tag: 'Inset' })],
         warnings: [],
       },
       {
@@ -1012,7 +1015,7 @@ export const parseTestData = [
         fullCheck: false,
         placeholdersAllowed: false,
         definitionsAllowed: false,
-        errors: [generateIssue('temporalWithoutDefinition', { tagGroup: '(Offset, Delay/5 s)', tag: 'Offset' })],
+        errors: [generateIssue('temporalWithWrongNumberDefs', { tagGroup: '(Offset, Delay/5 s)', tag: 'Offset' })],
         warnings: [],
       },
       {
@@ -1094,6 +1097,24 @@ export const parseTestData = [
         warnings: [],
       },
       {
+        testname: 'onset-offset-in-same-group',
+        explanation: '"(Def/MyColor, Onset, Offset)" has multiple temporal tags in same group.',
+        schemaVersion: '8.3.0',
+        stringIn: '(Def/MyColor, Onset, Offset)',
+        stringLong: null,
+        stringShort: null,
+        fullCheck: false,
+        placeholdersAllowed: false,
+        definitionsAllowed: false,
+        errors: [
+          generateIssue('multipleRequiresDefTags', {
+            string: '(Def/MyColor, Onset, Offset)',
+            tags: 'Offset, Onset',
+          }),
+        ],
+        warnings: [],
+      },
+      {
         testname: 'def-expand-not-in-group',
         explanation: '"Def-expand/Acc/4.5, (Acceleration/4.5, Red)" does not have group detected if not full check.',
         schemaVersion: '8.3.0',
@@ -1147,7 +1168,7 @@ export const parseTestData = [
         schemaVersion: '8.3.0',
         stringIn: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Item))',
         stringLong:
-          '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5.0 s, Property/Data-property/Data-marker/Temporal-marker/Onset, (Property/Organizational-property/Def-expand/MyColor, (Property/Informational-property/Label/Pie)))',
+          '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5.0 s, Property/Data-property/Data-marker/Temporal-marker/Onset, (Property/Organizational-property/Def-expand/MyColor, (Property/Informational-property/Label/Pie)), (Item))',
         stringShort: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Item))',
         fullCheck: false,
         placeholdersAllowed: false,
@@ -1166,8 +1187,9 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         errors: [
-          generateIssue('tooManyGroupTopTags', {
+          generateIssue('invalidGroupTopTags', {
             string: '((Def-expand/MyColor, (Label/Pie)), Inset, Blue)',
+            tags: 'Inset, Blue',
           }),
         ],
         warnings: [],

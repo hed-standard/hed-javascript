@@ -4045,9 +4045,9 @@
     "tests": {
       "string_tests": {
         "fails": [
+          "Onset",
           "Definition/Blech, (Red)",
           "Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5, Red)",
-          "Onset",
           "Duration/3.0 s",
           "Delay/3.0 s"
         ],

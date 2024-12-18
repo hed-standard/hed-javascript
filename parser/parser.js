@@ -125,7 +125,7 @@ class HedStringParser {
       return [null, [generateIssue('missingSchemaSpecification', {})]]
     }
     const parsedStrings = []
-    const cumulativeIssues = {}
+    const cumulativeIssues = []
     for (const hedString of hedStrings) {
       const [parsedString, currentIssues] = new HedStringParser(
         hedString,
@@ -134,7 +134,7 @@ class HedStringParser {
         placeholdersAllowed,
       ).parseHedString(fullCheck)
       parsedStrings.push(parsedString)
-      mergeParsingIssues(cumulativeIssues, currentIssues)
+      cumulativeIssues.push(currentIssues)
     }
 
     return [parsedStrings, cumulativeIssues]

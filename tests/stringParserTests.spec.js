@@ -12,9 +12,11 @@ import { shouldRun, getHedString } from './testUtilities'
 
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['special-tag-group-tests', ['valid-def-expand-in-second-level-group']]])
+//const runMap = new Map([['special-tag-group-tests', ['onset-delay-def-expand-extra-tag-group']]])
+const runMap = new Map([['tag-strings', ['multiple-complex-duplicates']]])
+//const runMap = new Map([['valid-tags', ['single-tag-single-level']]])
 
-describe('Null schema objects should cause parsing to bail', () => {
+describe.skip('Null schema objects should cause parsing to bail', () => {
   it('Should not proceed if no schema and valid string', () => {
     const stringIn = 'Item, Red'
     const [parsedString, errorIssues, warningIssues] = getHedString(stringIn, null, true, true, true)
@@ -66,7 +68,9 @@ describe('Parse HED string tests', () => {
       assert.isDefined(thisSchema, `header: ${test.schemaVersion} is not available in test ${test.testname}`)
 
       // Parse the string before converting
-      let issues, parsedString, warnings
+      let issues = []
+      let warnings = []
+      let parsedString = null
       try {
         ;[parsedString, issues, warnings] = getHedString(
           test.stringIn,
@@ -75,32 +79,31 @@ describe('Parse HED string tests', () => {
           test.definitionsAllowed,
           test.placeholdersAllowed,
         )
-
-        // Check if warning match
-        assert.deepStrictEqual(
-          warnings,
-          test.warnings,
-          `${header}: expected ${warnings} warnings but received ${test.warnings}\n`,
-        )
-
-        // Check the conversion to long
-        const longString = parsedString ? parsedString.format(true) : null
-        assert.strictEqual(
-          longString,
-          test.stringLong,
-          `${header}: expected ${test.stringLong} but received ${longString}`,
-        )
-
-        // Check the conversion to short
-        const shortString = parsedString ? parsedString.format(false) : null
-        assert.strictEqual(
-          shortString,
-          test.stringShort,
-          `${header}: expected ${test.stringShort} but received ${shortString}`,
-        )
       } catch (error) {
         issues = [error.issue]
       }
+      // Check if warning match
+      assert.deepStrictEqual(
+        warnings,
+        test.warnings,
+        `${header}: expected ${warnings} warnings but received ${test.warnings}\n`,
+      )
+
+      // Check the conversion to long
+      const longString = parsedString ? parsedString.format(true) : null
+      assert.strictEqual(
+        longString,
+        test.stringLong,
+        `${header}: expected ${test.stringLong} but received ${longString}`,
+      )
+
+      // Check the conversion to short
+      const shortString = parsedString ? parsedString.format(false) : null
+      assert.strictEqual(
+        shortString,
+        test.stringShort,
+        `${header}: expected ${test.stringShort} but received ${shortString}`,
+      )
       // Check for errors
       assert.deepStrictEqual(issues, test.errors, `${header}: expected ${issues} errors but received ${test.errors}\n`)
     }

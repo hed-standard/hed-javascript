@@ -1247,8 +1247,9 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('tooManyGroupTopTags', {
+            generateIssue('invalidGroupTopTags', {
               string: '(Definition/Apple, Definition/Banana, (Blue))',
+              tags: 'Definition/Apple, Definition/Banana',
             }),
             {
               path: 'invalid-multiple-definition-tags.json',
@@ -1259,8 +1260,9 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('tooManyGroupTopTags', {
+            generateIssue('invalidGroupTopTags', {
               string: '(Definition/Apple, Definition/Banana, (Blue))',
+              tags: 'Definition/Apple, Definition/Banana',
             }),
             {
               path: 'invalid-multiple-definition-tags.tsv',
@@ -1329,8 +1331,9 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('tooManyGroupTopTags', {
+            generateIssue('invalidGroupTopTags', {
               string: '(Definition/ExtraSiblingDef, Red, (Blue))',
+              tags: 'Definition/ExtraSiblingDef, Red',
             }),
             {
               path: 'invalid-definition-with-extra-sibling.json',
@@ -1341,8 +1344,9 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('tooManyGroupTopTags', {
+            generateIssue('invalidGroupTopTags', {
               string: '(Definition/ExtraSiblingDef, Red, (Blue))',
+              tags: 'Definition/ExtraSiblingDef, Red',
             }),
             {
               path: 'invalid-definition-with-extra-sibling.tsv',

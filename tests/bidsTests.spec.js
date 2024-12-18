@@ -13,7 +13,7 @@ import { DefinitionManager } from '../parser/definitionManager'
 // Ability to select individual tests to run
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
-const runAll = true
+const runAll = false
 const runMap = new Map([['curly-brace-tests', ['valid-curly-brace-in-sidecar-with-value-splice']]])
 
 describe('BIDS validation', () => {

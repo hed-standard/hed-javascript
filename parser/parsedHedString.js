@@ -67,7 +67,8 @@ export class ParsedHedString {
     const subgroupColumnSplices = this.tagGroups.flatMap((tagGroup) => Array.from(tagGroup.columnSpliceIterator()))
     this.columnSplices = topLevelColumnSplices.concat(subgroupColumnSplices)
 
-    this.topLevelGroupTags = this.tagGroups.map((tagGroup) => filterByClass(tagGroup.tags, ParsedHedTag))
+    //this.topLevelGroupTags = this.tagGroups.map((tagGroup) => filterByClass(tagGroup.tags, ParsedHedTag))
+    this.topLevelGroupTags = this.tagGroups.flatMap((tagGroup) => filterByClass(tagGroup.tags, ParsedHedTag))
     this.definitions = this.tagGroups.filter((group) => group.isDefinitionGroup)
     this.normalized = this._getNormalized()
   }

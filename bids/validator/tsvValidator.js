@@ -1,6 +1,6 @@
 import { BidsHedIssue, BidsIssue } from '../types/issues'
 import { BidsTsvEvent, BidsTsvRow } from '../types/tsv'
-import { parseHedString } from '../../parser/parser'
+import { parseHedString, parseHedStrings } from '../../parser/parser'
 import ColumnSplicer from '../../parser/columnSplicer'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../common/issues/issues'
@@ -59,15 +59,13 @@ export class BidsHedTsvValidator {
     if (BidsIssue.anyAreErrors(this.issues)) {
       return this.issues
     }
-
     // Now do a full validation
     const bidsHedTsvParser = new BidsHedTsvParser(this.tsvFile, this.hedSchemas)
-    const hedStrings = bidsHedTsvParser.parse()
+    const bidsEvents = bidsHedTsvParser.parse()
     this.issues.push(...bidsHedTsvParser.issues)
     if (!BidsIssue.anyAreErrors(this.issues)) {
-      this.validateCombinedDataset(hedStrings)
+      this.validateDataset(bidsEvents)
     }
-
     return this.issues
   }
 
@@ -133,14 +131,12 @@ export class BidsHedTsvValidator {
   /**
    * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
    *
-   * @param {ParsedHedString[]} hedStrings The HED strings in the data collection.
+   * @param {BidsTsvElements[]} bidsEvents The HED strings in the data collection.
    */
-  validateCombinedDataset(hedStrings) {
-    const [, hedIssues] = validateHedDatasetWithContext(hedStrings, this.tsvFile.mergedSidecar, this.hedSchemas, {
-      checkForWarnings: true,
-      validateDatasetLevel: this.tsvFile.isTimelineFile,
-    })
-    this.issues.push(...BidsHedIssue.fromHedIssues(hedIssues, this.tsvFile.file))
+  validateDataset(bidsEvents) {
+    const hedStrings = bidsEvents.map((event) => event.hedString)
+    const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, this.hedSchemas, true, false, false)
+    this.issues.push(...BidsHedIssue.fromHedIssues(parsingIssues, this.tsvFile.file))
   }
 }
 
@@ -252,124 +248,86 @@ export class BidsHedTsvParser {
    *
    * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
    * @param {number} tsvLine The index of this row in the TSV file.
-   * @return {BidsTsvRow} A parsed HED string.
+   * @returns {BidsTsvRow} A parsed HED string.
    * @private
    */
   _parseHedRow(rowCells, tsvLine) {
+    const nullSet = new Set([null, undefined, '', 'n/a'])
     const hedStringParts = []
+    const columnMap = this._getColumnMapping(rowCells)
+    this.spliceValues(columnMap)
+
     for (const [columnName, columnValue] of rowCells.entries()) {
-      const hedStringPart = this._parseRowCell(columnName, columnValue, tsvLine)
-      if (hedStringPart !== null && !this.tsvFile.mergedSidecar.columnSpliceReferences.has(columnName)) {
-        hedStringParts.push(hedStringPart)
+      // If a splice, it can't be used in an assembled HED string.
+      if (this.tsvFile.mergedSidecar.columnSpliceReferences.has(columnName) || nullSet.has(columnValue)) {
+        continue
+      }
+      if (columnMap.has(columnName) && !nullSet.has(columnMap.get(columnName))) {
+        hedStringParts.push(columnMap.get(columnName))
       }
     }
-    if (hedStringParts.length === 0) return null
-
     const hedString = hedStringParts.join(',')
-
-    return this._parseHedRowString(rowCells, tsvLine, hedString)
+    if (hedString === '') {
+      return null
+    }
+    return new BidsTsvRow(hedString, this.tsvFile, tsvLine, rowCells)
   }
 
   /**
-   * Parse a row's generated HED string in a TSV file.
+   * Generate a mapping from tsv columns to strings (may have splices in the strings)
    *
    * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
-   * @param {number} tsvLine The index of this row in the TSV file.
-   * @param {string} hedString The unparsed HED string for this row.
-   * @return {BidsTsvRow} A parsed HED string.
+   * @returns {Map<string, string>} A mapping of column names to their corresponding parsed sidecar strings.
    * @private
    */
-  _parseHedRowString(rowCells, tsvLine, hedString) {
-    const columnSpliceMapping = this._generateColumnSpliceMapping(rowCells)
-    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false, false)
-    const flatParsingIssues = Object.values(parsingIssues).flat()
-    if (flatParsingIssues.length > 0) {
-      this.issues.push(...BidsHedIssue.fromHedIssues(flatParsingIssues, this.tsvFile.file, { tsvLine }))
-      return null
-    }
-
-    const columnSplicer = new ColumnSplicer(parsedString, columnSpliceMapping, rowCells, this.hedSchemas)
-    const splicedParsedString = columnSplicer.splice()
-    const splicingIssues = columnSplicer.issues
-    if (splicingIssues.length > 0) {
-      this.issues.push(...BidsHedIssue.fromHedIssues(splicingIssues, this.tsvFile.file, { tsvLine }))
-      return null
-    }
-
-    return new BidsTsvRow(splicedParsedString, rowCells, this.tsvFile, tsvLine)
-  }
-
-  /**
-   * Generate the column splice mapping for a BIDS TSV file row.
-   *
-   * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
-   * @return {Map<string, ParsedHedString>} A mapping of column names to their corresponding parsed sidecar strings.
-   * @private
-   */
-  _generateColumnSpliceMapping(rowCells) {
-    const columnSpliceMapping = new Map()
+  _getColumnMapping(rowCells) {
+    const columnMap = new Map()
     if (!this.tsvFile.mergedSidecar.hasHedData()) {
-      return columnSpliceMapping
+      return columnMap
     }
 
-    for (const [columnName, columnValue] of rowCells.entries()) {
-      if (columnValue === 'n/a' || columnValue === '') {
-        columnSpliceMapping.set(columnName, null)
+    for (const [columnName, columnValues] of this.tsvFile.mergedSidecar.parsedHedData.entries()) {
+      if (!rowCells.has(columnName)) {
+        continue
+      }
+      const rowColumnValue = rowCells.get(columnName)
+      if (rowColumnValue === 'n/a' || rowColumnValue === '') {
+        columnMap.set(columnName, '')
         continue
       }
 
-      const sidecarEntry = this.tsvFile.mergedSidecar.parsedHedData.get(columnName)
-
-      if (sidecarEntry instanceof ParsedHedString) {
-        columnSpliceMapping.set(columnName, sidecarEntry)
-      } else if (sidecarEntry instanceof Map) {
-        columnSpliceMapping.set(columnName, sidecarEntry.get(columnValue))
+      if (columnValues instanceof ParsedHedString) {
+        const columnString = columnValues.hedString.replace('#', rowColumnValue)
+        columnMap.set(columnName, columnString)
+      } else if (columnValues instanceof Map) {
+        columnMap.set(columnName, columnValues.get(rowColumnValue).hedString)
       }
     }
+    if (rowCells.has('HED')) {
+      columnMap.set('HED', rowCells.get('HED'))
+    }
 
-    return columnSpliceMapping
+    return columnMap
   }
 
   /**
-   * Parse a sidecar column cell in a TSV file.
-   *
-   * @param {string} columnName The name of the column/sidecar key.
-   * @param {string} cellValue The value of the cell.
-   * @param {number} tsvLine The index of this row in the TSV file.
-   * @return {string|null} A HED substring, or null if none was found.
-   * @private
+   * Update the map to splice in the values for columns that have splices.
+   * @param columnMap
    */
-  _parseRowCell(columnName, cellValue, tsvLine) {
-    if (!cellValue || cellValue === 'n/a') {
-      return null
-    }
-    if (columnName === 'HED') {
-      return cellValue
-    }
-    const sidecarHedData = this.tsvFile.mergedSidecar.hedData.get(columnName)
-    if (!sidecarHedData) {
-      return null
-    }
-    if (typeof sidecarHedData === 'string') {
-      return sidecarHedData.replace('#', cellValue)
-    } else {
-      const sidecarHedString = sidecarHedData[cellValue]
-      if (sidecarHedString !== undefined) {
-        return sidecarHedString
+  spliceValues(columnMap) {
+    const regex = /\{([^{}]*?)\}/g
+    for (const [column, spliceList] of this.tsvFile.mergedSidecar.columnSpliceMapping) {
+      if (!columnMap.has(column)) {
+        continue
       }
+      const unspliced = columnMap.get(column)
+      const result = unspliced.replace(regex, (match, content) => {
+        return columnMap.has(content) ? columnMap.get(content) : ''
+      })
+      console.log(unspliced)
+      console.log(result)
+      columnMap.set(column, result)
     }
-    this.issues.push(
-      BidsHedIssue.fromHedIssue(
-        generateIssue('sidecarKeyMissing', {
-          key: cellValue,
-          column: columnName,
-          file: this.tsvFile.file.relativePath,
-        }),
-        this.tsvFile.file,
-        { tsvLine },
-      ),
-    )
-    return null
   }
 }
 

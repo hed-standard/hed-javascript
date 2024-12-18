@@ -204,25 +204,35 @@ export default {
     level: 'error',
     message: stringTemplate`${'tag'} found without an included inner top-level tag group. This instance's tag group is "${'tagGroup'}".`,
   },
-  temporalWithMultipleDefinitions: {
+  temporalWithWrongNumberDefs: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
-    message: stringTemplate`${'tag'} found with multiple included definitions. This instance's tag group is "${'tagGroup'}".`,
+    message: stringTemplate`${'tag'} found in tag group "${'tagGroup'}" with the wrong number of Def tags and Def-expand groups.`,
   },
   temporalWithoutDefinition: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
-    message: stringTemplate`${'tag'} found without an included definition. This instance's tag group is "${'tagGroup'}".`,
+    message: stringTemplate`${'tag'} found in tag group "${'tagGroup'}" without an included definition.`,
   },
   extraTagsInTemporal: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
-    message: stringTemplate`Extra non-definition top-level tags or tag groups found in onset or offset group with definition "${'definition'}".`,
+    message: stringTemplate`Extra top-level tags or tag groups found in onset, inset, or offset group "${'tagGroup'}" with definition "${'definition'}".`,
   },
   duplicateTemporal: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
-    message: stringTemplate`HED event string "${'string'}" has onset/offset tags with duplicated definition "${'definition'}".`,
+    message: stringTemplate`HED event string "${'string'}" has onset/offset/inset tags with duplicated definition "${'definition'}".`,
+  },
+  multipleTemporalTags: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`HED event string "${'string'}" has multiple temporal tags ${'tags'} in the same group.`,
+  },
+  multipleRequiresDefTags: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`HED event string "${'string'}" has multiple temporal tags ${'tags'} that require a definition in the same group.`,
   },
   missingTagGroup: {
     hedCode: 'TAG_GROUP_ERROR',
@@ -233,6 +243,11 @@ export default {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
     message: stringTemplate`"${'tagGroup'}" has invalid group tags or invalid number of subgroups.`,
+  },
+  forbiddenSubgroupTags: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" in "${'string'}" cannot have tags "${'tagList'}" in a subgroup.`,
   },
   invalidTopLevelTagGroupTag: {
     hedCode: 'TAG_GROUP_ERROR',

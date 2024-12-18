@@ -188,7 +188,7 @@ export const validateHedDatasetWithContext = function (hedStrings, context, hedS
   if (hedStrings.length + context.hedStrings.length === 0) {
     return [true, []]
   }
-  const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas, false)
+  const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas, true, false, false)
   //const [parsedContextHedStrings, contextParsingIssues] = parseHedStrings(contextHedStrings, hedSchemas, false)
   //const combinedParsedHedStrings = parsedHedStrings.concat(parsedContextHedStrings)
   //const [definitions, definitionIssues] = parseDefinitions(combinedParsedHedStrings)
