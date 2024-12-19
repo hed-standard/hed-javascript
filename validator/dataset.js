@@ -158,7 +158,7 @@ export const validateHedDataset = function (hedStrings, hedSchemas, ...args) {
   if (stringsValid && settings.validateDatasetLevel) {
     datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
   }
-  const issues = stringIssues.concat(...Object.values(parsingIssues), definitionIssues, datasetIssues)
+  const issues = [...parsingIssues, ...definitionIssues, ...stringIssues, ...datasetIssues]
 
   return Issue.issueListWithValidStatus(issues)
 }
@@ -188,16 +188,17 @@ export const validateHedDatasetWithContext = function (hedStrings, context, hedS
   if (hedStrings.length + context.hedStrings.length === 0) {
     return [true, []]
   }
-  const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas, true, false, false)
+  const [parsedHedStrings, issues] = parseHedStrings(hedStrings, hedSchemas, true, false, false)
   //const [parsedContextHedStrings, contextParsingIssues] = parseHedStrings(contextHedStrings, hedSchemas, false)
   //const combinedParsedHedStrings = parsedHedStrings.concat(parsedContextHedStrings)
   //const [definitions, definitionIssues] = parseDefinitions(combinedParsedHedStrings)
   const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, context.definitions, settings)
+  issues.push(...stringIssues)
   let datasetIssues = []
   if (stringsValid && settings.validateDatasetLevel) {
     datasetIssues = validateDataset(context.definitions, parsedHedStrings, hedSchemas)
   }
-  const issues = stringIssues.concat(...Object.values(parsingIssues), datasetIssues)
+  issues.push(...datasetIssues)
 
   return Issue.issueListWithValidStatus(issues)
 }

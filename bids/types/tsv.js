@@ -3,7 +3,6 @@ import isPlainObject from 'lodash/isPlainObject'
 import { BidsFile } from './basic'
 import { convertParsedTSVData, parseTSV } from '../tsvParser'
 import { BidsSidecar } from './json'
-import ParsedHedString from '../../parser/parsedHedString'
 import BidsHedTsvValidator from '../validator/tsvValidator'
 import { IssueError } from '../../common/issues/issues'
 
@@ -105,51 +104,21 @@ export class BidsTsvElements {
    */
   tsvFile
 
+  onset
+
+  tsvLine
   /**
    * Constructor.
    *
-   * @param {hedString} string The parsed string representing this row.
-   * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
+   * @param {string} hedString The HED string representing this row
    * @param {BidsTsvFile} tsvFile The file this row belongs to.
-   * @param {number} tsvLine The line number in {@link tsvFile} this line is located at.
+   * @param {number} onset - The onset for this element or undefined if none
+   * @param {string} tsvLine The line number(s) (string) corresponding to the lines in {@link tsvFile} this line is located at.
    */
-  constructor(hedString, tsvFile) {
+  constructor(hedString, tsvFile, onset, tsvLine) {
     this.hedString = hedString
     this.tsvFile = tsvFile
-  }
-
-  /**
-   * Override of {@link Object.prototype.toString}.
-   *
-   * @returns {string}
-   */
-  toString() {
-    return this.hedString + ` in TSV file "${this.tsvFile.name}"`
-  }
-}
-
-/**
- * A row in a BIDS TSV file.
- */
-export class BidsTsvRow extends BidsTsvElements {
-  onset
-  /**
-   * The line number in {@link BidsTsvRow.tsvFile} this line is located at.
-   * @type {number}
-   */
-  tsvLine
-
-  /**
-   * Constructor.
-   *
-   * @param {hedString} string The parsed string representing this row.
-   * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
-   * @param {BidsTsvFile} tsvFile The file this row belongs to.
-   * @param {number} tsvLine The line number in {@link tsvFile} this line is located at.
-   */
-  constructor(hedString, tsvFile, tsvLine, rowCells) {
-    super(hedString, tsvFile)
-    this.onset = Number(this.rowCells.get('onset'))
+    this.onset = onset
     this.tsvLine = tsvLine
   }
 
@@ -159,7 +128,28 @@ export class BidsTsvRow extends BidsTsvElements {
    * @returns {string}
    */
   toString() {
-    return this.hedString + ` in TSV file "${this.tsvFile.name}" at line ${this.tsvLine}`
+    const onsetString = this.onset ? ` with onset=${this.onset.toString()}` : ''
+    return this.hedString + ` in TSV file "${this.tsvFile.name}" at line(s) ${this.tsvLine}` + onsetString
+  }
+}
+
+/**
+ * A row in a BIDS TSV file.
+ */
+export class BidsTsvRow extends BidsTsvElements {
+  rowCells
+  /**
+   * Constructor.
+   *
+   * @param {string} hedString The parsed string representing this row.
+   * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
+   * @param {BidsTsvFile} tsvFile The file this row belongs to.
+   * @param {number} tsvLine The line number in {@link tsvFile} this line is located at.
+   */
+  constructor(hedString, tsvFile, tsvLine, rowCells) {
+    const onset = rowCells.has('onset') ? rowCells.get('onset') : undefined
+    super(hedString, tsvFile, onset, tsvLine.toString())
+    this.rowCells = rowCells
   }
 }
 
@@ -173,8 +163,6 @@ export class BidsTsvEvent extends BidsTsvElements {
    */
   tsvRows
 
-  tsvLines
-
   /**
    * Constructor.
    *
@@ -182,17 +170,14 @@ export class BidsTsvEvent extends BidsTsvElements {
    * @param {BidsTsvRow[]} tsvRows The TSV rows making up this event.
    */
   constructor(tsvFile, tsvRows) {
-    super(tsvRows.map((tsvRow) => tsvRow.hedString).join(', '), tsvFile)
-    this.tsvLines = tsvRows.map((tsvRow) => tsvRow.tsvLine).join(', ')
-  }
-
-  /**
-   * Override of {@link Object.prototype.toString}.
-   *
-   * @returns {string}
-   */
-  toString() {
-    return this.hedString + ` in TSV file "${this.tsvFile.name}" at line(s) ${this.tsvLines}`
+    const hedString = tsvRows.map((tsvRow) => tsvRow.hedString).join(', ')
+    const tsvLine = tsvRows
+      .map((tsvRow) => tsvRow.tsvLine)
+      .flat()
+      .join(', ')
+    const onset = tsvRows[0].onset ? tsvRows[0].onset : undefined
+    super(hedString, tsvFile, onset, tsvLine)
+    this.tsvRows = tsvRows
   }
 }
 

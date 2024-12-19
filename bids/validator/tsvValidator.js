@@ -1,10 +1,8 @@
 import { BidsHedIssue, BidsIssue } from '../types/issues'
 import { BidsTsvEvent, BidsTsvRow } from '../types/tsv'
 import { parseHedString, parseHedStrings } from '../../parser/parser'
-import ColumnSplicer from '../../parser/columnSplicer'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../common/issues/issues'
-import { validateHedDatasetWithContext } from '../../validator/dataset'
 import { groupBy } from '../../utils/map'
 
 /**
@@ -141,6 +139,12 @@ export class BidsHedTsvValidator {
 }
 
 export class BidsHedTsvParser {
+  static nullSet = new Set([null, undefined, '', 'n/a'])
+  static braceRegEx = /\{([^{}]*?)\}/g
+  static parenthesesRegEx = /\(\s*[,\s]*(\(\s*[,\s]*\))*[,\s]*\)/g
+  static internalCommaRegEx = /,\s*,/g
+  static leadingCommaRegEx = /^\s*,+\s*/
+  static trailingCommaRegEx = /\s*,+\s*$/
   /**
    * The BIDS TSV file being parsed.
    * @type {BidsTsvFile}
@@ -252,25 +256,27 @@ export class BidsHedTsvParser {
    * @private
    */
   _parseHedRow(rowCells, tsvLine) {
-    const nullSet = new Set([null, undefined, '', 'n/a'])
     const hedStringParts = []
     const columnMap = this._getColumnMapping(rowCells)
     this.spliceValues(columnMap)
 
     for (const [columnName, columnValue] of rowCells.entries()) {
       // If a splice, it can't be used in an assembled HED string.
-      if (this.tsvFile.mergedSidecar.columnSpliceReferences.has(columnName) || nullSet.has(columnValue)) {
+      if (
+        this.tsvFile.mergedSidecar.columnSpliceReferences.has(columnName) ||
+        BidsHedTsvParser.nullSet.has(columnValue)
+      ) {
         continue
       }
-      if (columnMap.has(columnName) && !nullSet.has(columnMap.get(columnName))) {
+      if (columnMap.has(columnName) && !BidsHedTsvParser.nullSet.has(columnMap.get(columnName))) {
         hedStringParts.push(columnMap.get(columnName))
       }
     }
     const hedString = hedStringParts.join(',')
-    if (hedString === '') {
+    if (hedString === '' || hedString === 'n/a') {
       return null
     }
-    return new BidsTsvRow(hedString, this.tsvFile, tsvLine, rowCells)
+    return new BidsTsvRow(hedString, this.tsvFile, tsvLine.toString(), rowCells)
   }
 
   /**
@@ -282,10 +288,16 @@ export class BidsHedTsvParser {
    */
   _getColumnMapping(rowCells) {
     const columnMap = new Map()
+
+    if (rowCells.has('HED')) {
+      columnMap.set('HED', rowCells.get('HED'))
+    }
+
     if (!this.tsvFile.mergedSidecar.hasHedData()) {
       return columnMap
     }
 
+    // Check for the columns with HED data in the sidecar
     for (const [columnName, columnValues] of this.tsvFile.mergedSidecar.parsedHedData.entries()) {
       if (!rowCells.has(columnName)) {
         continue
@@ -303,9 +315,6 @@ export class BidsHedTsvParser {
         columnMap.set(columnName, columnValues.get(rowColumnValue).hedString)
       }
     }
-    if (rowCells.has('HED')) {
-      columnMap.set('HED', rowCells.get('HED'))
-    }
 
     return columnMap
   }
@@ -315,19 +324,42 @@ export class BidsHedTsvParser {
    * @param columnMap
    */
   spliceValues(columnMap) {
-    const regex = /\{([^{}]*?)\}/g
-    for (const [column, spliceList] of this.tsvFile.mergedSidecar.columnSpliceMapping) {
+    // Only iterate over the column names that have splices
+    for (const column of this.tsvFile.mergedSidecar.columnSpliceMapping.keys()) {
       if (!columnMap.has(column)) {
         continue
       }
       const unspliced = columnMap.get(column)
-      const result = unspliced.replace(regex, (match, content) => {
-        return columnMap.has(content) ? columnMap.get(content) : ''
-      })
-      console.log(unspliced)
-      console.log(result)
+      const result = this._replaceSplices(unspliced, columnMap)
       columnMap.set(column, result)
     }
+  }
+
+  _replaceSplices(unspliced, columnMap) {
+    const result = unspliced.replace(BidsHedTsvParser.braceRegEx, (match, content) => {
+      // Resolve the replacement value
+      const resolved = columnMap.has(content) ? columnMap.get(content) : ''
+      // Replace with resolved value or empty string if in nullSet
+      return BidsHedTsvParser.nullSet.has(resolved) ? '' : resolved
+    })
+    return this._spliceCleanup(result)
+  }
+
+  _spliceCleanup(spliced) {
+    let result = spliced
+
+    // Remove extra internal empty parentheses due to empty splices
+    while (BidsHedTsvParser.parenthesesRegEx.test(result)) {
+      result = result.replace(BidsHedTsvParser.parenthesesRegEx, '')
+    }
+    // Remove leading commas
+    result = result.replace(BidsHedTsvParser.leadingCommaRegEx, '')
+
+    // Remove trailing commas
+    result = result.replace(BidsHedTsvParser.trailingCommaRegEx, '')
+
+    // Remove extra empty commas due to empty splices
+    return result.replace(BidsHedTsvParser.internalCommaRegEx, ',')
   }
 }
 
