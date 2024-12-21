@@ -13,8 +13,8 @@ import { DefinitionManager } from '../parser/definitionManager'
 // Ability to select individual tests to run
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
-const runAll = true
-const runMap = new Map([['curly-brace-tests', ['valid-curly-brace-in-sidecar-with-tsv-n/a']]])
+const runAll = false
+const runMap = new Map([['temporal-tests', ['simultaneous-temporal-onset']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([['8.3.0', undefined]])

@@ -1630,4 +1630,36 @@ export const bidsTestData = [
       },
     ],
   },
+  {
+    name: 'temporal-tests',
+    description: 'Dataset level tests with temporal groups.',
+    tests: [
+      {
+        testname: 'simultaneous-temporal-onset',
+        explanation: 'temporal onsets at same time',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n4.5\t0\t(Onset, Def/MyColor, (Red)),(Onset, Def/MyColor, (Blue))\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('simultaneousDuplicateEvents', {
+              onset1: '4.5',
+              onset2: '4.5',
+              tagGroup1: '(Onset, Def/MyColor, (Blue))',
+              tagGroup2: '(Onset, Def/MyColor, (Red))',
+              tsvLine1: '2',
+              tsvLine2: '2',
+            }),
+            {
+              path: 'simultaneous-temporal-onset.tsv',
+              relativePath: 'simultaneous-temporal-onset.tsv',
+            },
+          ),
+        ],
+        comboErrors: [],
+      },
+    ],
+  },
 ]

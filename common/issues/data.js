@@ -219,6 +219,11 @@ export default {
     level: 'error',
     message: stringTemplate`Extra top-level tags or tag groups found in onset, inset, or offset group "${'tagGroup'}" with definition "${'definition'}".`,
   },
+  temporalTagInNonTemporalContext: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`HED event string "${'string'}" has temporal tags on line(s) [${'tsvline'}] in a tsv file without an onset time.`,
+  },
   duplicateTemporal: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
@@ -233,6 +238,11 @@ export default {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
     message: stringTemplate`HED event string "${'string'}" has multiple temporal tags ${'tags'} that require a definition in the same group.`,
+  },
+  simultaneousDuplicateEvents: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`Temporal tag group "${'tagGroup1'}" at ${'onset1'} line ${'tsvLine1'} is simultaneous with "${'tagGroup2'}" at ${'onset2'} line ${'tsvLine2'}.`,
   },
   missingTagGroup: {
     hedCode: 'TAG_GROUP_ERROR',
@@ -282,12 +292,12 @@ export default {
   invalidTopLevelTag: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`Tag "${'tag'}" is only allowed inside of a tag group.`,
+    message: stringTemplate`Tag(s) "${'tag'}" should be in a top group in "${'string'}".`,
   },
   invalidGroupTag: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`Tag "${'tag'}" should be in a group in "${'string'}" but is not.`,
+    message: stringTemplate`Tag(s) "${'tag'}" should be in a group in "${'string'}".`,
   },
   // Tag conversion issues
   invalidParentNode: {

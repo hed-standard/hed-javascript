@@ -16,7 +16,9 @@ const fs = require('fs')
 const skipMap = new Map()
 const runAll = true
 //const runMap = new Map([['DEF_EXPAND_INVALID', ['def-expand-invalid-missing-placeholder']]])
+//const runMap = new Map([['TAG_GROUP_ERROR', ['tag-group-error-missing']]])
 const runMap = new Map([['TAG_GROUP_ERROR', ['tag-group-error-missing']]])
+const runOnly = new Set()
 
 const skippedErrors = {
   VERSION_DEPRECATED: 'Not handling in the spec tests',
@@ -195,7 +197,7 @@ describe('HED validation using JSON tests', () => {
       const stringValidator = function (str, expectedErrors) {
         const status = expectedErrors.size === 0 ? 'Expect pass' : 'Expect fail'
         const header = `\n[${error_code} ${name}](${status})\tSTRING: "${str}"`
-        const hTsv = `HED\n${str}\n`
+        const hTsv = `onset\tHED\n5.4\t${str}\n`
         let stringIssues
         try {
           const defManager = new DefinitionManager()
@@ -247,49 +249,49 @@ describe('HED validation using JSON tests', () => {
           expect(hedSchema).toBeDefined()
         })
 
-        if (tests.string_tests.passes.length > 0) {
+        if (tests.string_tests.passes.length > 0 && (runOnly.size === 0 || runOnly.has('stringPass'))) {
           test.each(tests.string_tests.passes)('Valid string: %s', (str) => {
             stringValidator(str, new Set())
           })
         }
 
-        if (tests.string_tests.fails.length > 0) {
+        if (tests.string_tests.fails.length > 0 && (runOnly.size === 0 || runOnly.has('stringFail'))) {
           test.each(tests.string_tests.fails)('Invalid string: %s', (str) => {
             stringValidator(str, expectedErrors)
           })
         }
 
-        if (passedSidecars.length > 0) {
+        if (passedSidecars.length > 0 && (runOnly.size === 0 || runOnly.has('sidecarPass'))) {
           test.each(passedSidecars)(`Valid sidecar: %s`, (side) => {
             sideValidator(side, noErrors)
           })
         }
 
-        if (failedSidecars.length > 0) {
+        if (failedSidecars.length > 0 && (runOnly.size === 0 || runOnly.has('sidecarFail'))) {
           test.each(failedSidecars)(`Invalid sidecar: %s`, (side) => {
             sideValidator(side, expectedErrors)
           })
         }
 
-        if (passedEvents.length > 0) {
+        if (passedEvents.length > 0 && (runOnly.size === 0 || runOnly.has('eventsPass'))) {
           test.each(passedEvents)(`Valid events: %s`, (events) => {
             eventsValidator(events, noErrors)
           })
         }
 
-        if (failedEvents.length > 0) {
+        if (failedEvents.length > 0 && (runOnly.size === 0 || runOnly.has('eventsFail'))) {
           test.each(failedEvents)(`Invalid events: %s`, (events) => {
             eventsValidator(events, expectedErrors)
           })
         }
 
-        if (passedCombos.length > 0) {
+        if (passedCombos.length > 0 && (runOnly.size === 0 || runOnly.has('combosPass'))) {
           test.each(passedCombos)(`Valid combo: [%s] [%s]`, (side, events) => {
             comboValidator(side, events, noErrors)
           })
         }
 
-        if (failedCombos.length > 0) {
+        if (failedCombos.length > 0 && (runOnly.size === 0 || runOnly.has('combosFail'))) {
           test.each(failedCombos)(`Invalid combo: [%s] [%s]`, (side, events) => {
             comboValidator(side, events, expectedErrors)
           })

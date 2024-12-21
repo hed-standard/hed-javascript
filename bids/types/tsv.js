@@ -91,12 +91,14 @@ export class BidsTsvFile extends BidsFile {
   }
 }
 
-export class BidsTsvElements {
+export class BidsTsvElement {
   /**
    * The string representation of this row
    * @type {string}
    */
   hedString
+
+  parsedHedString
 
   /**
    * The file this row belongs to.
@@ -117,6 +119,7 @@ export class BidsTsvElements {
    */
   constructor(hedString, tsvFile, onset, tsvLine) {
     this.hedString = hedString
+    this.parsedHedString = null
     this.tsvFile = tsvFile
     this.onset = onset
     this.tsvLine = tsvLine
@@ -136,7 +139,7 @@ export class BidsTsvElements {
 /**
  * A row in a BIDS TSV file.
  */
-export class BidsTsvRow extends BidsTsvElements {
+export class BidsTsvRow extends BidsTsvElement {
   rowCells
   /**
    * Constructor.
@@ -156,7 +159,7 @@ export class BidsTsvRow extends BidsTsvElements {
 /**
  * An event in a BIDS TSV file.
  */
-export class BidsTsvEvent extends BidsTsvElements {
+export class BidsTsvEvent extends BidsTsvElement {
   /**
    * The TSV rows making up this event.
    * @type {BidsTsvRow[]}

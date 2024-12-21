@@ -163,6 +163,14 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     return this.isSpecialGroup('Onset') || this.isSpecialGroup('Offset') || this.isSpecialGroup('Inset')
   }
 
+  get defTags() {
+    const tags = this.getSpecial('Def')
+    for (const group of this.defExpandChildren) {
+      tags.push(...group.getSpecial('Def-expand'))
+    }
+    return tags
+  }
+
   /**
    * Whether this HED tag group is an onset, offset, or inset group.
    * @returns {string}

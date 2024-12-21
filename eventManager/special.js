@@ -122,7 +122,7 @@ export class SpecialChecker {
     const topGroupTags = hedString.topLevelGroupTags
     hedString.tags.forEach((tag) => {
       // Check for top-level violations because tag is deep
-      if (this.hasTopLevelTagGroupAttribute(tag)) {
+      if (SpecialChecker.hasTopLevelTagGroupAttribute(tag)) {
         //Tag is in a top-level tag group
         if (topGroupTags.includes(tag)) {
           return
@@ -138,7 +138,7 @@ export class SpecialChecker {
       }
 
       // In final form --- if not in a group (not just a top group) but has the group tag attribute
-      if (fullCheck && hedString.topLevelTags.includes(tag) && this.hasGroupAttribute(tag)) {
+      if (fullCheck && hedString.topLevelTags.includes(tag) && SpecialChecker.hasGroupAttribute(tag)) {
         issues.push(generateIssue('missingTagGroup', { tag: tag.originalTag, string: hedString.hedString }))
       }
     })
@@ -431,7 +431,7 @@ export class SpecialChecker {
    * Note: This check both the special requirements and the 'topLevelTagGroup' attribute in the schema.
    *
    */
-  hasTopLevelTagGroupAttribute(tag) {
+  static hasTopLevelTagGroupAttribute(tag) {
     return (
       tag.hasAttribute('topLevelTagGroup') ||
       (SpecialChecker.specialMap.has(tag.schemaTag.name) &&
@@ -447,7 +447,7 @@ export class SpecialChecker {
    *
    * Note:  This checks both special and schema tag requirements.
    */
-  hasGroupAttribute(tag) {
+  static hasGroupAttribute(tag) {
     return (
       tag.hasAttribute('tagGroup') ||
       (SpecialChecker.specialMap.has(tag.schemaTag.name) && SpecialChecker.specialMap.get(tag.schemaTag.name).tagGroup)
