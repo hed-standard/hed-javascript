@@ -74,7 +74,7 @@ export default class PartneredSchemaMerger {
   /**
    * The destination schema's tag collection.
    *
-   * @return {SchemaTagManager}
+   * @returns {SchemaTagManager}
    */
   get destinationTags() {
     return this.destination.entries.tags

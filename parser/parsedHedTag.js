@@ -234,16 +234,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Determine whether this tag's parent tag has a given attribute.
-   *
-   * @param {string} attribute An attribute name.
-   * @returns {boolean} Whether this tag's parent tag has the named attribute.
-   */
-  parentHasAttribute(attribute) {
-    return this.schema?.tagHasAttribute(this.parentFormattedTag, attribute)
-  }
-
-  /**
    * Get the last part of a HED tag.
    *
    * @param {string} tagString A HED tag.
@@ -283,19 +273,10 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * The parent portion of {@link formattedTag}.
-   *
-   * @returns {string} The "parent" portion of the formatted tag.
-   */
-  get parentFormattedTag() {
-    return ParsedHedTag.getParentTag(this.formattedTag)
-  }
-
-  /**
    * Iterate through a tag's ancestor tag strings.
    *
-   * @param {string} tagString A tag string.
-   * @yields {string} The tag's ancestor tags.
+   * @param {string} tagString - A tag string.
+   * @yields {string} - The tag's ancestor tags.
    */
   static *ancestorIterator(tagString) {
     while (tagString.lastIndexOf('/') >= 0) {

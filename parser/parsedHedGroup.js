@@ -119,20 +119,16 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
       return null
     }
     if (this.defCount > 1) {
-      return [
-        IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
-          tag: requiresDefTags[0].originalTag,
-          tagGroup: this.originalTag,
-        }),
-      ]
+      IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
+        tag: requiresDefTags[0].originalTag,
+        tagGroup: this.originalTag,
+      })
     }
     if (this.topSplices.length === 0 && this.defCount === 0) {
-      return [
-        IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
-          tag: requiresDefTags[0].originalTag,
-          tagGroup: this.originalTag,
-        }),
-      ]
+      IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
+        tag: requiresDefTags[0].originalTag,
+        tagGroup: this.originalTag,
+      })
     }
     return requiresDefTags[0]
   }
@@ -171,22 +167,6 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     return tags
   }
 
-  /**
-   * Whether this HED tag group is an onset, offset, or inset group.
-   * @returns {string}
-   */
-  get temporalGroupName() {
-    if (this.isSpecialGroup('Onset')) {
-      return 'Onset'
-    } else if (this.isSpecialGroup('Offset')) {
-      return 'Offset'
-    } else if (this.isSpecialGroup('Inset')) {
-      return 'Inset'
-    } else {
-      return undefined
-    }
-  }
-
   equivalent(other) {
     if (!(other instanceof ParsedHedGroup)) {
       return false
@@ -203,15 +183,15 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @returns {ParsedHedTag[]}
    */
   nestedGroups() {
-    const currentGroup = []
+    const groups = []
     for (const innerTag of this.tags) {
       if (innerTag instanceof ParsedHedTag) {
-        currentGroup.push(innerTag)
+        groups.push(innerTag)
       } else if (innerTag instanceof ParsedHedGroup) {
-        currentGroup.push(innerTag.nestedGroups())
+        groups.push(innerTag.nestedGroups())
       }
     }
-    return currentGroup
+    return groups
   }
 
   /**

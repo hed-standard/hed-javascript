@@ -1,7 +1,4 @@
-import { generateIssue, IssueError } from '../common/issues/issues'
-import { parseHedString } from './parser'
-//import { filterNonEqualDuplicates } from './parseUtils'
-import { filterByTagName } from './parseUtils'
+import { generateIssue } from '../common/issues/issues'
 import { BidsHedIssue } from '../bids'
 
 export class Event {
@@ -10,12 +7,6 @@ export class Event {
    * @type {number}
    */
   onset
-
-  /**
-   * The name of the definition.
-   * @type {number}
-   */
-  endTime
 
   /**
    * The parsed HED group representing the definition
@@ -37,7 +28,8 @@ export class Event {
     this.type = eventType
     this.onset = onset
     this.group = group
-    this.element = element
+    this.file = element.file
+    this.tsvLine = element.tsvLine
   }
 
   /**
@@ -50,31 +42,32 @@ export class Event {
     if (!group.requiresDefTag) {
       return [null, []]
     }
-    const onset = Number(element.onset)
+    let onset = Number(element.onset)
     if (!Number.isFinite(onset)) {
       return [
         null,
         [
           BidsHedIssue.fromHedIssue(
             generateIssue('temporalTagInNonTemporalContext', { string: element.hedString }),
-            element.tsvFile,
+            element.file,
             { tsvLine: element.tsvLine },
           ),
         ],
       ]
     }
+    onset = onset + Event.extractDelay(group)
     const eventType = group.requiresDefTag.schemaTag.name
     let defName = null
     const defTags = group.defTags
     if (defTags.length === 1) {
-      defName = defTags[0].normalized
+      defName = defTags[0]._remainder.toLowerCase()
     } else {
       return [
         null,
         [
           BidsHedIssue.fromHedIssue(
             generateIssue('temporalWithWrongNumberDefs', { tagGroup: group.originalTag, tag: eventType }),
-            element.tsvFile,
+            element.file,
             { tsvLine: element.tsvLine },
           ),
         ],
@@ -83,10 +76,19 @@ export class Event {
     const event = new Event(defName, eventType, onset, group, element)
     return [event, []]
   }
+
+  static extractDelay(group) {
+    if (!group.specialTags.has('Delay')) {
+      return 0
+    }
+    const tags = group.specialTags.get('Delay')
+    const delay = Number(tags[0]._value)
+    return Number.isFinite(delay) ? delay : 0
+  }
 }
 
 export class EventManager {
-  static TOLERANCE = 10 - 7
+  static TOLERANCE = 1e-7
   constructor() {}
 
   /**
@@ -96,21 +98,23 @@ export class EventManager {
    */
   parseEvents(elements) {
     const eventList = []
-    const issues = []
     for (const element of elements) {
       if (!element.parsedHedString) {
         continue
       }
+
       for (const group of element.parsedHedString.tagGroups) {
         const [event, eventIssues] = Event.createEvent(group, element)
+        if (eventIssues.length > 0) {
+          return [null, eventIssues]
+        }
         if (event) {
           eventList.push(event)
         }
-        issues.push(...eventIssues)
       }
     }
     eventList.sort((a, b) => a.onset - b.onset)
-    return [eventList, issues]
+    return [eventList, []]
   }
 
   validate(eventList) {
@@ -121,9 +125,9 @@ export class EventManager {
           return [
             BidsHedIssue.fromHedIssue(
               generateIssue('inactiveOnset', { tag: event.type, definition: event.defName }),
-              event.element.tsvFile,
+              event.file,
+              { tsvLine: event.tsvLine },
             ),
-            { tsvLine: event.element.tsvLine },
           ]
         }
         currentMap.set(event.defName, event)
@@ -146,12 +150,12 @@ export class EventManager {
           generateIssue('simultaneousDuplicateEvents', {
             tagGroup1: event.group.originalTag,
             onset1: event.onset.toString(),
-            tsvLine1: event.element.tsvLine.toString(),
+            tsvLine1: event.tsvLine,
             tagGroup2: currentEvent.group.originalTag,
             onset2: currentEvent.onset.toString(),
-            tsvLine2: currentEvent.element.tsvLine.toString(),
+            tsvLine2: currentEvent.tsvLine,
           }),
-          event.element.tsvFile,
+          event.file,
         ),
       ]
     }
@@ -162,44 +166,22 @@ export class EventManager {
       currentMap.set(event.defName, event)
     } else if (event.type === 'Offset' && currentEvent.type !== 'Offset') {
       currentMap.set(event.defName, event)
-    } else {
-      return [
-        BidsHedIssue.fromHedIssue(
-          generateIssue('simultaneousDuplicateEvents', {
-            tagGroup1: event.group.originalTag,
-            onset1: event.onset.toString().toString(),
-            tsvLine1: event.element.tsvLine,
-            tagGroup2: currentEvent.group.originalTag,
-            onset2: currentEvent.onset.toString(),
-            tsvLine2: currentEvent.element.tsvLine.toString(),
-          }),
-          event.tsvFile,
-        ),
-      ]
+      // } else {
+      //   return [
+      //     BidsHedIssue.fromHedIssue(
+      //       generateIssue('simultaneousDuplicateEvents', {
+      //         tagGroup1: event.group.originalTag,
+      //         onset1: event.onset.toString(),
+      //         tsvLine1: event.element.tsvLine,
+      //         tagGroup2: currentEvent.group.originalTag,
+      //         onset2: currentEvent.onset.toString(),
+      //         tsvLine2: currentEvent.element.tsvLine,
+      //       }),
+      //       event.tsvFile,
+      //     ),
+      //   ]
     }
+
     return []
-  }
-
-  /**
-   * Add the non-null items to this manager
-   * @param {number} onset -
-   * @param {ParsedHedGroup} group - A group representing a temporal event requiring a definitions.
-   */
-  addEventFromGroup(onset, group) {
-    if (!onset || !group.requiresDefTag) {
-      return
-    }
-    const defName = group.requiresDefTag.normalized
-  }
-
-  /**
-   * Adds the events from a hedString to
-   * @param onset
-   * @param {ParsedHedString} hedString -
-   */
-  addEventsFromParsedHed(onset, hedString) {
-    for (const group of hedString.tagGroups) {
-      this.addEventFromGroup(onset, group)
-    }
   }
 }

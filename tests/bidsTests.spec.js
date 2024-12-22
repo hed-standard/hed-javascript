@@ -14,7 +14,7 @@ import { DefinitionManager } from '../parser/definitionManager'
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
 const runAll = false
-const runMap = new Map([['temporal-tests', ['simultaneous-temporal-onset']]])
+const runMap = new Map([['temporal-tests', ['delayed-onset-with-offset-before-with-sidecar']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
@@ -102,7 +102,7 @@ describe('BIDS validation', () => {
           validate(test)
         } else {
           // eslint-disable-next-line no-console
-          console.log(`----Skipping bidsTest ${name}: ${test.testname}`)
+          //console.log(`----Skipping bidsTest ${name}: ${test.testname}`)
         }
       })
     }

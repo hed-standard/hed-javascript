@@ -79,11 +79,10 @@ export class Definition {
   }
 
   /**
-   * Return true if this definition is the same as the other
-   * @param other
-   * @returns {boolean}
+   * Return true if this definition is the same as the other.
+   * @param {Definition} other - Another definition to compare with this one.
+   * @returns {boolean} - True if the definitions are equivalent
    */
-
   equivalent(other) {
     if (this.name !== other.name || this.defTag._splitValue !== other.defTag._splitValue) {
       return false
@@ -93,17 +92,22 @@ export class Definition {
     return true
   }
 
+  /**
+   * Verify that the placeholder count is correct in the definition.
+   * @returns {boolean} - True if the placeholder count is as expected.
+   * @private
+   */
   _checkDefinitionPlaceholderCount() {
     const placeholderCount = this.defContents ? this.defContents.originalTag.split('#').length - 1 : 0
     return !((placeholderCount !== 1 && this.placeholder) || (placeholderCount !== 0 && !this.placeholder))
   }
 
   /**
-   * Create a list of Definition objects from a list of strings
+   * Create a list of Definition objects from a list of strings.
    *
-   * @param {string} hedString - A list of string definitions
-   * @param {Schemas} hedSchemas - The HED schemas to use in creation
-   * @returns { [Definition[], Issue[]]} - The Definition list and any issues found
+   * @param {string} hedString - A list of string definitions.
+   * @param {Schemas} hedSchemas - The HED schemas to use in creation.
+   * @returns { [Definition, Issue[]]} - The Definition list and any issues found.
    */
   static createDefinition(hedString, hedSchemas) {
     const [parsedString, issues] = parseHedString(hedString, hedSchemas, true, true, true)
@@ -116,6 +120,11 @@ export class Definition {
     return Definition.createDefinitionFromGroup(parsedString.tagGroups[0])
   }
 
+  /**
+   * Create a definition from a ParsedHedGroup.
+   * @param {ParsedHedGroup} group - The group to create a definition from.
+   * @returns { [Definition, Issue[]]} - The definition and any issues. (The definition will be null if issues.)
+   */
   static createDefinitionFromGroup(group) {
     const def = new Definition(group)
     if (def._checkDefinitionPlaceholderCount()) {
@@ -127,7 +136,7 @@ export class Definition {
 
 export class DefinitionManager {
   /**
-   * @type { Map<string, Definition>} -definitions for this manager
+   * @type { Map<string, Definition>} - Definitions for this manager.
    */
   definitions
 
@@ -136,8 +145,9 @@ export class DefinitionManager {
   }
 
   /**
-   * Add the non-null items to this manager
-   * @param {Definition[]} defs - The list of items to be added
+   * Add the non-null definitions to this manager.
+   * @param {Definition[]} defs - The list of definitions to add to this manager.
+   * @returns {Issue[]} - Issues encountered in adding the definition.
    */
   addDefinitions(defs) {
     const issues = []

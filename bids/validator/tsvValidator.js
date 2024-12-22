@@ -1,9 +1,8 @@
 import { BidsHedIssue, BidsIssue } from '../types/issues'
-import { BidsTsvEvent, BidsTsvRow } from '../types/tsv'
+import { BidsTsvRow } from '../types/tsv'
 import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../common/issues/issues'
-import { groupBy } from '../../utils/map'
 import { SpecialChecker } from '../../parser/special'
 import { getTagListString } from '../../parser/parseUtils'
 import { EventManager } from '../../parser/eventManager'
@@ -67,7 +66,7 @@ export class BidsHedTsvValidator {
     const [bidsEvents, parsingIssues] = bidsHedTsvParser.parse()
     this.issues.push(...parsingIssues)
     if (!BidsIssue.anyAreErrors(this.issues)) {
-      this.validateDataset(bidsEvents)
+      this.issues.push(...this.validateDataset(bidsEvents))
     }
     return this.issues
   }
@@ -135,34 +134,32 @@ export class BidsHedTsvValidator {
    * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
    *
    * @param {BidsTsvElement[]} elements - The HED strings in the data collection.
+   * @returns {BidsHedIssue[]} - errors for dataset
    */
   validateDataset(elements) {
-    const topGroupIssues = this._checkNoTopTags(elements)
-    this.issues.push(...topGroupIssues)
-    if (topGroupIssues.length > 0) {
-      return
+    const issues = this._checkNoTopTags(elements)
+    if (issues.length > 0) {
+      return issues
     }
     if (this.tsvFile.isTimelineFile) {
-      this._validateTemporal(elements)
-    } else {
-      this._checkNoTime(elements)
+      return this._validateTemporal(elements)
     }
+    return this._checkNoTime(elements)
   }
 
   /**
    * Check the temporal relationships among events.
    * @param {BidsTsvElement[]} elements - The elements representing the tsv file.
+   * @returns {BidsHedIssue[]} - Errors in temporal relationships among events
    * @private
    */
   _validateTemporal(elements) {
-    // const eventManager = new EventManager()
-    // const [eventList, temporalIssues] = eventManager.parseEvents(elements)
-    // this.issues.push(...temporalIssues)
-    // if (temporalIssues.length > 0) {
-    //   return
-    // }
-    // const validationIssues = eventManager.validate(eventList)
-    // this.issues.push(...validationIssues)
+    const eventManager = new EventManager()
+    const [eventList, temporalIssues] = eventManager.parseEvents(elements)
+    if (temporalIssues.length > 0) {
+      return temporalIssues
+    }
+    return eventManager.validate(eventList)
   }
 
   /**
@@ -180,7 +177,7 @@ export class BidsHedTsvValidator {
         topGroupIssues.push(
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidTopLevelTag', { tag: getTagListString(badTags), string: element.hedString }),
-            this.tsvFile,
+            element.file,
             { tsvLine: element.tsvLine },
           ),
         )
@@ -201,12 +198,12 @@ export class BidsHedTsvValidator {
         timeIssues.push(
           BidsHedIssue.fromHedIssue(
             generateIssue('temporalTagInNonTemporalContext', { string: element.hedString, tsvLine: element.tsvLine }),
-            this.tsvFile,
+            this.tsvFile.file,
           ),
         )
       }
     }
-    this.issues.push(...timeIssues)
+    return timeIssues
   }
 }
 
@@ -242,7 +239,7 @@ export class BidsHedTsvParser {
   /**
    * Combine the BIDS sidecar HED data into a BIDS TSV file's HED data.
    *
-   * @returns {BidsTsvElement[]} The combined HED string collection for this BIDS TSV file.
+   * @returns {[BidsTsvElement[], BidsHedIssue[]]} The combined HED string collection for this BIDS TSV file.
    */
   parse() {
     const tsvHedRows = this._generateHedRows()
@@ -315,25 +312,6 @@ export class BidsHedTsvParser {
   }
 
   /**
-   * Merge rows with the same onset time into a single event string.
-   *
-   * @param {BidsTsvRow[]} rowStrings A list of row-based parsed HED strings.
-   * @returns {BidsTsvEvent[]} A list of event-based parsed HED strings.
-   * @private
-   */
-  _mergeEventRows(rowStrings) {
-    const eventStrings = []
-    const groupedTsvRows = groupBy(rowStrings, (rowString) => rowString.onset)
-    const sortedOnsetTimes = Array.from(groupedTsvRows.keys()).sort((a, b) => a - b)
-    for (const onset of sortedOnsetTimes) {
-      const onsetRows = groupedTsvRows.get(onset)
-      const onsetEventString = new BidsTsvEvent(this.tsvFile, onsetRows)
-      eventStrings.push(onsetEventString)
-    }
-    return eventStrings
-  }
-
-  /**
    * Parse a row in a TSV file into a BIDS row.
    *
    * @param {Map<string, string>} rowCells - The column-to-value mapping for a single row.
@@ -362,7 +340,7 @@ export class BidsHedTsvParser {
     if (hedString === '' || hedString === 'n/a') {
       return null
     }
-    return new BidsTsvRow(hedString, this.tsvFile, tsvLine.toString(), rowCells)
+    return new BidsTsvRow(hedString, this.tsvFile, tsvLine, rowCells)
   }
 
   /**

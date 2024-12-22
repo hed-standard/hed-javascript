@@ -1635,6 +1635,41 @@ export const bidsTestData = [
     description: 'Dataset level tests with temporal groups.',
     tests: [
       {
+        testname: 'valid-offset-after-onset',
+        explanation: 'An offset after an inset at an earlier time',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n4.5\t0\t(Onset, Def/MyColor)\n6.0\t0\t(Offset, Def/MyColor)\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-offset-after-onset-with-def-expand',
+        explanation: 'An offset after an inset at an earlier time but one is a Def and the other is a Def-expand',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString:
+          'onset\tduration\tHED\n4.5\t0\t(Onset, Def/MyColor)\n6.0\t0\t(Offset, (Def-expand/MyColor, (Label/Pie)))\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-offset-after-onset-with-def-expand-with-value',
+        explanation: 'An offset after an inset, the defs have a value and one is a Def and the other is a Def-expand',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString:
+          'onset\tduration\tHED\n4.5\t0\t(Onset, Def/Acc/5.4)\n6.0\t0\t(Offset, (Def-expand/Acc/5.4, (Acceleration/5.4 m-per-s^2, Red)))\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
         testname: 'simultaneous-temporal-onset',
         explanation: 'temporal onsets at same time',
         schemaVersion: '8.3.0',
@@ -1656,6 +1691,122 @@ export const bidsTestData = [
               path: 'simultaneous-temporal-onset.tsv',
               relativePath: 'simultaneous-temporal-onset.tsv',
             },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('simultaneousDuplicateEvents', {
+              onset1: '4.5',
+              onset2: '4.5',
+              tagGroup1: '(Onset, Def/MyColor, (Blue))',
+              tagGroup2: '(Onset, Def/MyColor, (Red))',
+              tsvLine1: '2',
+              tsvLine2: '2',
+            }),
+            {
+              path: 'simultaneous-temporal-onset.tsv',
+              relativePath: 'simultaneous-temporal-onset.tsv',
+            },
+          ),
+        ],
+      },
+      {
+        testname: 'missing-temporal-onset',
+        explanation: 'offset appears before an onset',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n4.5\t0\t(Offset, Def/MyColor)\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
+            {
+              path: 'missing-temporal-onset.tsv',
+              relativePath: 'missing-temporal-onset.tsv',
+            },
+            { tsvLine: '2' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
+            {
+              path: 'missing-temporal-onset.tsv',
+              relativePath: 'missing-temporal-onset.tsv',
+            },
+            { tsvLine: '2' },
+          ),
+        ],
+      },
+      {
+        testname: 'delayed-onset-with-offset-okay',
+        explanation: 'onset has delay, but offset appears after anyway',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString:
+          'onset\tduration\tHED\n4.5\t0\t(Onset, Delay/1.0 s, Def/MyColor)\n7.0\t\0\t(Offset, Def/MyColor)\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'delayed-onset-with-offset-before',
+        explanation: 'offset appears before an onset in delay scenario',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString:
+          'onset\tduration\tHED\n4.5\t0\t(Onset, Delay/5.0 s, Def/MyColor)\n6.0\t\0\t(Offset, Def/MyColor)\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
+            {
+              path: 'delayed-onset-with-offset-before.tsv',
+              relativePath: 'delayed-onset-with-offset-before.tsv',
+            },
+            { tsvLine: '3' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
+            {
+              path: 'delayed-onset-with-offset-before.tsv',
+              relativePath: 'delayed-onset-with-offset-before.tsv',
+            },
+            { tsvLine: '3' },
+          ),
+        ],
+      },
+      {
+        testname: 'delayed-onset-with-offset-before-with-sidecar',
+        explanation: 'offset appears before an onset with a sidecar in complex delayed scenario',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Delay/5.0 s, Onset, Def/MyColor)',
+              ball: '(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Onset)',
+              square: '(Delay/5.0 s, Offset, Def/MyColor)',
+              circle: '(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset)',
+            },
+          },
+        },
+        eventsString:
+          'onset\tduration\tevent_code\tHED\n4.5\t0\tface\tn/a\n4.8\t\0\tsquare\tn/a\n4.9\t\0\tball\tGreen\n10.0\t\0\tn/a\t(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset)\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
+            {
+              path: 'delayed-onset-with-offset-before-with-sidecar.tsv',
+              relativePath: 'delayed-onset-with-offset-before-with-sidecar.tsv',
+            },
+            { tsvLine: '5' },
           ),
         ],
         comboErrors: [],

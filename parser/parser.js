@@ -1,4 +1,3 @@
-import { mergeParsingIssues } from '../utils/hedData'
 import ParsedHedString from './parsedHedString'
 import HedStringSplitter from './splitter'
 import { generateIssue } from '../common/issues/issues'

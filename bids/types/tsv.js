@@ -102,9 +102,9 @@ export class BidsTsvElement {
 
   /**
    * The file this row belongs to.
-   * @type {BidsTsvFile}
+   * @type {Object}
    */
-  tsvFile
+  file
 
   onset
 
@@ -120,7 +120,8 @@ export class BidsTsvElement {
   constructor(hedString, tsvFile, onset, tsvLine) {
     this.hedString = hedString
     this.parsedHedString = null
-    this.tsvFile = tsvFile
+    this.file = tsvFile.file
+    this.fileName = tsvFile.name
     this.onset = onset
     this.tsvLine = tsvLine
   }
@@ -132,7 +133,7 @@ export class BidsTsvElement {
    */
   toString() {
     const onsetString = this.onset ? ` with onset=${this.onset.toString()}` : ''
-    return this.hedString + ` in TSV file "${this.tsvFile.name}" at line(s) ${this.tsvLine}` + onsetString
+    return this.hedString + ` in TSV file "${this.fileName}" at line(s) ${this.tsvLine}` + onsetString
   }
 }
 

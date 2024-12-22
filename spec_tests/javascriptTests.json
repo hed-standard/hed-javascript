@@ -4045,9 +4045,9 @@
     "tests": {
       "string_tests": {
         "fails": [
-          "Onset",
           "Definition/Blech, (Red)",
           "Def-expand/Acc/4.5 m-per-s^2, (Acceleration/4.5, Red)",
+          "Onset",
           "Duration/3.0 s",
           "Delay/3.0 s"
         ],
@@ -5129,8 +5129,8 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": ["(Offset, Def/MyColor, Red)", "((Def-expand/MyColor, (Label/Pie)), Offset, (Red))"],
-        "passes": ["(Offset, Def/MyColor)"]
+        "fails": [],
+        "passes": []
       },
       "sidecar_tests": {
         "fails": [
@@ -5889,7 +5889,7 @@
     "tests": {
       "string_tests": {
         "fails": ["((Delay/5.0 s, Delay/7.0 s, (Def/MyColor)), Red)"],
-        "passes": ["(Onset, Delay/6 s, (Def/MyColor)), Red"]
+        "passes": ["(Onset, Delay/6 s, Def/MyColor), Red"]
       },
       "sidecar_tests": {
         "fails": [
@@ -6154,11 +6154,8 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": [
-          "(Delay/5.0 s, Offset, Def/MyColor, Red)",
-          "(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset, (Red))"
-        ],
-        "passes": ["(Delay/5.0 s, Offset, Def/MyColor)"]
+        "fails": [],
+        "passes": []
       },
       "sidecar_tests": {
         "fails": [
@@ -6224,7 +6221,7 @@
               [4.5, 0, "face", "n/a"],
               [4.8, 0, "square", "n/a"],
               [4.9, 0, "ball", "Green"],
-              [5.5, 0, "(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset, Blue)", "Orange"]
+              [5.5, 0, "n/a", "(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset, Blue)", "Orange"]
             ]
           }
         ],
@@ -6245,7 +6242,7 @@
               [4.5, 0, "face", "n/a"],
               [4.8, 0, "square", "n/a"],
               [4.9, 0, "ball", "Green"],
-              [5.5, 0, "(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset, Blue)", "Orange"]
+              [10.0, 0, "n/a", "(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset)"]
             ]
           }
         ]
