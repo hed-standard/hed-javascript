@@ -111,25 +111,37 @@ export class ColumnSplicer {
    */
   _spliceTemplate(columnTemplate) {
     const columnName = columnTemplate.originalTag
-    const replacementString = this.columnReplacements.get(columnName)
-    if (replacementString === null) {
-      return null
-    }
+
+    // HED column handled specially
     if (columnName === 'HED') {
       return this._spliceHedColumnTemplate()
+    }
+
+    // Not the HED column so treat as usual
+    const replacementString = this.columnReplacements.get(columnName)
+
+    // Handle null or undefined replacement strings
+    if (replacementString === null) {
+      return null
     }
     if (replacementString === undefined) {
       this.issues.push(generateIssue('undefinedCurlyBraces', { column: columnName }))
       return []
     }
+
+    // Handle recursive curly braces
     if (replacementString.columnSplices.length > 0) {
       this.issues.push(generateIssue('recursiveCurlyBraces', { column: columnName }))
       return []
     }
-    const tagsHavePlaceholder = replacementString.tags.some((tag) => tag.originalTagName === '#')
-    if (tagsHavePlaceholder) {
+
+    // Handle value templates with placeholder
+    const tagListHasPlaceholder = replacementString.tags.some((tag) => tag.originalTagName === '#')
+    if (tagListHasPlaceholder) {
       return this._spliceValueTemplate(columnTemplate)
     }
+
+    // Default case
     return replacementString.parseTree
   }
 
@@ -142,6 +154,11 @@ export class ColumnSplicer {
   _spliceHedColumnTemplate() {
     const columnName = 'HED'
     const replacementString = this.columnValues.get(columnName)
+    const blankHedColumnValues = new Set([undefined, null, 'n/a', ''])
+    if (blankHedColumnValues.has(replacementString)) {
+      return null
+    }
+
     return this._reparseAndSpliceString(replacementString)
   }
 
@@ -167,10 +184,9 @@ export class ColumnSplicer {
    * @private
    */
   _reparseAndSpliceString(replacementString) {
-    const [newParsedString, parsingIssues] = parseHedString(replacementString, this.hedSchemas)
-    const flatParsingIssues = Object.values(parsingIssues).flat()
-    if (flatParsingIssues.length > 0) {
-      this.issues.push(...flatParsingIssues)
+    const [newParsedString, parsingIssues] = parseHedString(replacementString, this.hedSchemas, true, false, false)
+    if (parsingIssues.length > 0) {
+      this.issues.push(...parsingIssues)
       return []
     }
     return newParsedString.parseTree
@@ -188,7 +204,7 @@ export class ColumnSplicer {
     if (newData.length === 0) {
       return null
     }
-    return new ParsedHedGroup(newData, this.hedSchemas, this.parsedString.hedString, group.originalBounds)
+    return new ParsedHedGroup(newData, this.parsedString.hedString, group.originalBounds)
   }
 }
 

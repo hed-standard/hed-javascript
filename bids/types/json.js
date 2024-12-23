@@ -4,8 +4,9 @@ import { sidecarValueHasHed } from '../utils'
 import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './basic'
-import BidsHedSidecarValidator from '../validator/bidsHedSidecarValidator'
+import BidsHedSidecarValidator from '../validator/sidecarValidator'
 import { IssueError } from '../../common/issues/issues'
+import { DefinitionManager, Definition } from '../../parser/definitionManager'
 
 const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
 
@@ -63,35 +64,64 @@ export class BidsSidecar extends BidsJsonFile {
   columnSpliceReferences
 
   /**
+   * The object that manages definitions
+   * @type {DefinitionManager}
+   */
+  definitions
+
+  /**
    * Constructor.
    *
    * @param {string} name The name of the sidecar file.
    * @param {Object} sidecarData The raw JSON data.
    * @param {Object} file The file object representing this file.
+   * @param {DefinitionManager } defManager - The external definitions to use
    */
-  constructor(name, sidecarData = {}, file) {
+  constructor(name, sidecarData = {}, file, defManager = null) {
     super(name, sidecarData, file)
-
+    this.columnSpliceMapping = new Map()
+    this.columnSpliceReferences = new Set()
+    this._setDefinitions(defManager)
     this._filterHedStrings()
     this._categorizeHedStrings()
   }
 
-  _filterHedStrings() {
-    const sidecarHedTags = Object.entries(this.jsonData)
-      .map(([sidecarKey, sidecarValue]) => {
-        const trimmedSidecarKey = sidecarKey.trim()
-        if (ILLEGAL_SIDECAR_KEYS.has(trimmedSidecarKey.toLowerCase())) {
-          IssueError.generateAndThrow('illegalSidecarHedKey')
-        }
-        if (sidecarValueHasHed(sidecarValue)) {
-          return [trimmedSidecarKey, new BidsSidecarKey(trimmedSidecarKey, sidecarValue.HED, this)]
-        } else {
-          this._verifyKeyHasNoDeepHed(sidecarKey, sidecarValue)
-          return null
-        }
+  _setDefinitions(defManager) {
+    if (defManager instanceof DefinitionManager) {
+      this.definitions = defManager
+    } else if (!defManager) {
+      this.definitions = new DefinitionManager()
+    } else {
+      IssueError.generateAndThrow('internalError', {
+        message: 'Improper format for defManager parameter -- must be null or DefinitionManager',
       })
-      .filter((x) => x !== null)
-    this.sidecarKeys = new Map(sidecarHedTags)
+    }
+  }
+
+  /**
+   * Create the sidecar key map from the JSON.
+   * @private
+   */
+  _filterHedStrings() {
+    this.sidecarKeys = new Map(
+      Object.entries(this.jsonData)
+        .map(([key, value]) => {
+          const trimmedKey = key.trim()
+          const lowerKey = trimmedKey.toLowerCase()
+
+          if (ILLEGAL_SIDECAR_KEYS.has(lowerKey)) {
+            IssueError.generateAndThrow('illegalSidecarHedKey')
+          }
+
+          if (sidecarValueHasHed(value)) {
+            return [trimmedKey, new BidsSidecarKey(trimmedKey, value.HED, this)]
+          }
+
+          this._verifyKeyHasNoDeepHed(key, value)
+          return null
+        })
+        .filter(Boolean),
+    )
   }
 
   /**
@@ -114,6 +144,10 @@ export class BidsSidecar extends BidsJsonFile {
     }
   }
 
+  /**
+   * Categorize the column strings into value strings and categorical strings
+   * @private
+   */
   _categorizeHedStrings() {
     this.hedValueStrings = []
     this.hedCategoricalStrings = []
@@ -143,14 +177,15 @@ export class BidsSidecar extends BidsJsonFile {
    *
    * The parsed strings are placed into {@link parsedHedData}.
    *
-   * @param {Schemas} hedSchemas The HED schema collection.
+   * @param {Schemas} hedSchemas - The HED schema collection.
+   * @param {boolean} fullCheck - If true, then it is assumed no splicing will occur and strings stand on their own.
    * @returns {Issue[]} Any issues found.
    */
-  parseHedStrings(hedSchemas) {
+  parseHedStrings(hedSchemas, fullCheck = false) {
     this.parsedHedData = new Map()
     const issues = []
     for (const [name, sidecarKey] of this.sidecarKeys.entries()) {
-      issues.push(...sidecarKey.parseHed(hedSchemas))
+      issues.push(...sidecarKey.parseHed(hedSchemas, fullCheck))
       if (sidecarKey.isValueKey) {
         this.parsedHedData.set(name, sidecarKey.parsedValueString)
       } else {
@@ -171,46 +206,51 @@ export class BidsSidecar extends BidsJsonFile {
     this.columnSpliceReferences = new Set()
 
     for (const [sidecarKey, hedData] of this.parsedHedData) {
-      if (hedData === null) {
-        // Skipped
-      } else if (hedData instanceof ParsedHedString) {
-        if (hedData.columnSplices.length === 0) {
-          continue
-        }
-
-        const keyReferences = new Set()
-
-        for (const columnSplice of hedData.columnSplices) {
-          keyReferences.add(columnSplice.originalTag)
-          this.columnSpliceReferences.add(columnSplice.originalTag)
-        }
-
-        this.columnSpliceMapping.set(sidecarKey, keyReferences)
+      if (hedData instanceof ParsedHedString) {
+        this._parseValueSplice(sidecarKey, hedData)
       } else if (hedData instanceof Map) {
-        let keyReferences = null
-
-        for (const valueString of hedData.values()) {
-          if (valueString === null || valueString.columnSplices.length === 0) {
-            continue
-          }
-
-          keyReferences ??= new Set()
-
-          for (const columnSplice of valueString.columnSplices) {
-            keyReferences.add(columnSplice.originalTag)
-            this.columnSpliceReferences.add(columnSplice.originalTag)
-          }
-        }
-
-        if (keyReferences instanceof Set) {
-          this.columnSpliceMapping.set(sidecarKey, keyReferences)
-        }
-      } else {
+        this._parseCategorySplice(sidecarKey, hedData)
+      } else if (hedData) {
         IssueError.generateAndThrow('internalConsistencyError', {
           message: 'Unexpected type found in sidecar parsedHedData map.',
         })
       }
     }
+  }
+
+  _parseValueSplice(sidecarKey, hedData) {
+    if (hedData.columnSplices.length > 0) {
+      const keyReferences = this._processColumnSplices(new Set(), hedData.columnSplices)
+      this.columnSpliceMapping.set(sidecarKey, keyReferences)
+    }
+  }
+
+  _parseCategorySplice(sidecarKey, hedData) {
+    let keyReferences = null
+    for (const valueString of hedData.values()) {
+      if (valueString?.columnSplices.length > 0) {
+        keyReferences = this._processColumnSplices(keyReferences, valueString.columnSplices)
+      }
+    }
+    if (keyReferences instanceof Set) {
+      this.columnSpliceMapping.set(sidecarKey, keyReferences)
+    }
+  }
+
+  /**
+   * Add a list of columnSplices to a key map.
+   * @param {Set} keyReferences
+   * @param {ParsedHedColumnSplice[]} columnSplices
+   * @returns {*|Set<any>}
+   * @private
+   */
+  _processColumnSplices(keyReferences, columnSplices) {
+    keyReferences ??= new Set()
+    for (const columnSplice of columnSplices) {
+      keyReferences.add(columnSplice.originalTag)
+      this.columnSpliceReferences.add(columnSplice.originalTag)
+    }
+    return keyReferences
   }
 
   /**
@@ -219,14 +259,6 @@ export class BidsSidecar extends BidsJsonFile {
    */
   get hedStrings() {
     return this.hedValueStrings.concat(this.hedCategoricalStrings)
-  }
-
-  /**
-   * An alias for {@link jsonData}.
-   * @returns {Object}
-   */
-  get sidecarData() {
-    return this.jsonData
   }
 }
 
@@ -258,9 +290,11 @@ export class BidsSidecarKey {
   parsedValueString
   /**
    * Weak reference to the sidecar.
-   * @type {WeakRef<BidsSidecar>}
+   * @type {BidsSidecar}
    */
   sidecar
+
+  hasDefinitions
 
   /**
    * Constructor.
@@ -271,7 +305,8 @@ export class BidsSidecarKey {
    */
   constructor(key, data, sidecar) {
     this.name = key
-    this.sidecar = new WeakRef(sidecar)
+    this.hasDefinitions = false // May reset to true when definitions for this key are checked
+    this.sidecar = sidecar
     if (typeof data === 'string') {
       this.valueString = data
     } else if (!isPlainObject(data)) {
@@ -285,23 +320,39 @@ export class BidsSidecarKey {
    * Parse the HED data for this key.
    *
    * @param {Schemas} hedSchemas The HED schema collection.
+   * @param {boolean} fullCheck - If true, then assume in final form and not up for potential splice.
    * @returns {Issue[]} Any issues found.
    */
-  parseHed(hedSchemas) {
+  parseHed(hedSchemas, fullCheck) {
     if (this.isValueKey) {
-      return this._parseValueString(hedSchemas)
+      return this._parseValueString(hedSchemas, fullCheck)
     }
-    return this._parseCategory(hedSchemas)
+    return this._parseCategory(hedSchemas, fullCheck)
   }
 
-  _parseValueString(hedSchemas) {
-    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas)
-    const flatIssues = Object.values(parsingIssues).flat()
+  /**
+   * Parse the value string in a sidecar
+   * @param {Schemas} hedSchemas - The HED schemas to use.
+   * @param {boolean} fullCheck - If true, then assume in final form and not up for potential splice.
+   * @returns {Issue[]}
+   * @private
+   *
+   * Note: value strings cannot contain definitions
+   */
+  _parseValueString(hedSchemas, fullCheck) {
+    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas, fullCheck, false, true)
     this.parsedValueString = parsedString
-    return flatIssues
+    return parsingIssues
   }
 
-  _parseCategory(hedSchemas) {
+  /**
+   * Parse the categorical values associated with this key.
+   * @param {Schemas} hedSchemas - The HED schemas used to check against.
+   * @param {boolean} fullCheck - If true, then assume in final form and not up for potential splice.
+   * @returns {Issue[]} - A list of issues if any
+   * @private
+   */
+  _parseCategory(hedSchemas, fullCheck) {
     const issues = []
     this.parsedCategoryMap = new Map()
     for (const [value, string] of Object.entries(this.categoryMap)) {
@@ -311,22 +362,34 @@ export class BidsSidecarKey {
       } else if (typeof string !== 'string') {
         IssueError.generateAndThrow('illegalSidecarHedType', {
           key: value,
-          file: this.sidecar.deref()?.file?.relativePath,
+          file: this.sidecar?.file?.relativePath,
         })
       }
-      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas)
+      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas, fullCheck, true, true)
       this.parsedCategoryMap.set(value, parsedString)
-      issues.push(...Object.values(parsingIssues).flat())
+      issues.push(...parsingIssues)
+      if (parsingIssues.length === 0) {
+        issues.push(...this._checkDefinitions(parsedString))
+      }
     }
     return issues
   }
 
-  /**
-   * Whether this key is a categorical key.
-   * @returns {boolean}
-   */
-  get isCategoricalKey() {
-    return Boolean(this.categoryMap)
+  _checkDefinitions(parsedString) {
+    const issues = []
+    for (const group of parsedString.tagGroups) {
+      if (!group.isDefinitionGroup) {
+        continue
+      }
+      this.hasDefinitions = true
+      const [def, defIssues] = Definition.createDefinitionFromGroup(group)
+      if (defIssues.length > 0) {
+        issues.push(...defIssues)
+      } else {
+        issues.push(...this.sidecar.definitions.addDefinition(def))
+      }
+    }
+    return issues
   }
 
   /**
@@ -337,10 +400,3 @@ export class BidsSidecarKey {
     return Boolean(this.valueString)
   }
 }
-
-/**
- * Fallback default dataset_description.json file.
- * @deprecated Will be removed in v4.0.0.
- * @type {BidsJsonFile}
- */
-export const fallbackDatasetDescription = new BidsJsonFile('./dataset_description.json', null)

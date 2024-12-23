@@ -1,11 +1,7 @@
 import bids from './bids'
-import converter from './converter'
-import validator from './validator'
 
-export { bids, converter, validator }
+export { bids }
 
 export default {
   bids,
-  converter,
-  validator,
 }

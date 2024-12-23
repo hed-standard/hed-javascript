@@ -1,6 +1,8 @@
-import { ParsedHedTag } from './parsedHedTag'
+import ParsedHedTag from './parsedHedTag'
 import ParsedHedGroup from './parsedHedGroup'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
+import { filterByClass, getDuplicates } from './parseUtils'
+import { IssueError } from '../common/issues/issues'
 
 /**
  * A parsed HED string.
@@ -17,7 +19,7 @@ export class ParsedHedString {
    */
   parseTree
   /**
-   * The tag groups in the string.
+   * The tag groups in the string (top-level).
    * @type {ParsedHedGroup[]}
    */
   tagGroups
@@ -27,12 +29,12 @@ export class ParsedHedString {
    */
   topLevelTags
   /**
-   * All the tags in the string.
+   * All the tags in the string at all levels
    * @type {ParsedHedTag[]}
    */
   tags
   /**
-   * All the column splices in the string.
+   * All the column splices in the string at all levels.
    * @type {ParsedHedColumnSplice[]}
    */
   columnSplices
@@ -40,17 +42,12 @@ export class ParsedHedString {
    * The top-level tag groups in the string, split into arrays.
    * @type {ParsedHedTag[][]}
    */
-  topLevelTagGroups
+  topLevelGroupTags
   /**
-   * The definition tag groups in the string.
+   * The top-level definition tag groups in the string.
    * @type {ParsedHedGroup[]}
    */
-  definitionGroups
-  /**
-   * The context in which this string was defined.
-   * @type {Map<string, *>}
-   */
-  context
+  definitions
 
   /**
    * Constructor.
@@ -60,31 +57,24 @@ export class ParsedHedString {
   constructor(hedString, parsedTags) {
     this.hedString = hedString
     this.parseTree = parsedTags
-    this.tagGroups = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedGroup)
-    this.topLevelTags = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag)
-    /**
-     * @type {ParsedHedColumnSplice[]}
-     */
-    const topLevelColumnSplices = parsedTags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedColumnSplice)
+    this.tagGroups = filterByClass(parsedTags, ParsedHedGroup)
+    this.topLevelTags = filterByClass(parsedTags, ParsedHedTag)
 
     const subgroupTags = this.tagGroups.flatMap((tagGroup) => Array.from(tagGroup.tagIterator()))
     this.tags = this.topLevelTags.concat(subgroupTags)
 
+    const topLevelColumnSplices = filterByClass(parsedTags, ParsedHedColumnSplice)
     const subgroupColumnSplices = this.tagGroups.flatMap((tagGroup) => Array.from(tagGroup.columnSpliceIterator()))
     this.columnSplices = topLevelColumnSplices.concat(subgroupColumnSplices)
 
-    this.topLevelTagGroups = this.tagGroups.map((tagGroup) =>
-      tagGroup.tags.filter((tagOrGroup) => tagOrGroup instanceof ParsedHedTag),
-    )
-    this.definitionGroups = this.tagGroups.filter((group) => {
-      return group.isDefinitionGroup
-    })
-
-    this.context = new Map()
+    //this.topLevelGroupTags = this.tagGroups.map((tagGroup) => filterByClass(tagGroup.tags, ParsedHedTag))
+    this.topLevelGroupTags = this.tagGroups.flatMap((tagGroup) => filterByClass(tagGroup.tags, ParsedHedTag))
+    this.definitions = this.tagGroups.filter((group) => group.isDefinitionGroup)
+    this.normalized = this._getNormalized()
   }
 
   /**
-   * Nicely format this HED string.
+   * Nicely format this HED string. (Doesn't allow column splices).
    *
    * @param {boolean} long Whether the tags should be in long form.
    * @returns {string}
@@ -93,10 +83,22 @@ export class ParsedHedString {
     return this.parseTree.map((substring) => substring.format(long)).join(', ')
   }
 
-  get definitions() {
-    return this.definitionGroups.map((group) => {
-      return [group.definitionName, group]
-    })
+  /**
+   * Return a normalized string representation
+   * @returns {string}
+   */
+  _getNormalized() {
+    // This is an implicit recursion as the items have the same call.
+    const normalizedItems = this.parseTree.map((item) => item.normalized)
+
+    // Sort normalized items to ensure order independence
+    const sortedNormalizedItems = normalizedItems.sort()
+    const duplicates = getDuplicates(sortedNormalizedItems)
+    if (duplicates.length > 0) {
+      IssueError.generateAndThrow('duplicateTag', { tags: '[' + duplicates.join('],[') + ']', string: this.hedString })
+    }
+    // Return the normalized group as a string
+    return `${sortedNormalizedItems.join(',')}` // Using curly braces to indicate unordered group
   }
 
   /**

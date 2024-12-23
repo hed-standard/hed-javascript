@@ -3,8 +3,7 @@ import isPlainObject from 'lodash/isPlainObject'
 import { BidsFile } from './basic'
 import { convertParsedTSVData, parseTSV } from '../tsvParser'
 import { BidsSidecar } from './json'
-import ParsedHedString from '../../parser/parsedHedString'
-import BidsHedTsvValidator from '../validator/bidsHedTsvValidator'
+import BidsHedTsvValidator from '../validator/tsvValidator'
 import { IssueError } from '../../common/issues/issues'
 
 /**
@@ -31,11 +30,6 @@ export class BidsTsvFile extends BidsFile {
    * @type {BidsSidecar}
    */
   mergedSidecar
-  /**
-   * The extracted HED data for the merged pseudo-sidecar.
-   * @type {Map<string, string|Object<string, string>>}
-   */
-  sidecarHedData
 
   /**
    * Constructor.
@@ -47,8 +41,9 @@ export class BidsTsvFile extends BidsFile {
    * @param {object} file The file object representing this file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
    * @param {object} mergedDictionary The merged sidecar data.
+   * @param {DefinitionManager} defManager
    */
-  constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}) {
+  constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}, defManager) {
     super(name, file, BidsHedTsvValidator)
 
     if (typeof tsvData === 'string') {
@@ -62,8 +57,7 @@ export class BidsTsvFile extends BidsFile {
     }
 
     this.potentialSidecars = potentialSidecars
-    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, this.file)
-    this.sidecarHedData = this.mergedSidecar.hedData
+    this.mergedSidecar = new BidsSidecar(name, mergedDictionary, this.file, defManager)
     this._parseHedColumn()
   }
 
@@ -97,6 +91,72 @@ export class BidsTsvFile extends BidsFile {
   }
 }
 
+export class BidsTsvElement {
+  /**
+   * The string representation of this row
+   * @type {string}
+   */
+  hedString
+
+  parsedHedString
+
+  /**
+   * The file this row belongs to.
+   * @type {Object}
+   */
+  file
+
+  onset
+
+  tsvLine
+  /**
+   * Constructor.
+   *
+   * @param {string} hedString The HED string representing this row
+   * @param {BidsTsvFile} tsvFile The file this row belongs to.
+   * @param {number} onset - The onset for this element or undefined if none
+   * @param {string} tsvLine The line number(s) (string) corresponding to the lines in {@link tsvFile} this line is located at.
+   */
+  constructor(hedString, tsvFile, onset, tsvLine) {
+    this.hedString = hedString
+    this.parsedHedString = null
+    this.file = tsvFile.file
+    this.fileName = tsvFile.name
+    this.onset = onset
+    this.tsvLine = tsvLine
+  }
+
+  /**
+   * Override of {@link Object.prototype.toString}.
+   *
+   * @returns {string}
+   */
+  toString() {
+    const onsetString = this.onset ? ` with onset=${this.onset.toString()}` : ''
+    return this.hedString + ` in TSV file "${this.fileName}" at line(s) ${this.tsvLine}` + onsetString
+  }
+}
+
+/**
+ * A row in a BIDS TSV file.
+ */
+export class BidsTsvRow extends BidsTsvElement {
+  rowCells
+  /**
+   * Constructor.
+   *
+   * @param {string} hedString The parsed string representing this row.
+   * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
+   * @param {BidsTsvFile} tsvFile The file this row belongs to.
+   * @param {number} tsvLine The line number in {@link tsvFile} this line is located at.
+   */
+  constructor(hedString, tsvFile, tsvLine, rowCells) {
+    const onset = rowCells.has('onset') ? rowCells.get('onset') : undefined
+    super(hedString, tsvFile, onset, tsvLine.toString())
+    this.rowCells = rowCells
+  }
+}
+
 /**
  * A BIDS events.tsv file.
  *
@@ -114,138 +174,5 @@ export class BidsEventFile extends BidsTsvFile {
    */
   constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
     super(name, tsvData, file, potentialSidecars, mergedDictionary)
-  }
-}
-
-/**
- * A BIDS TSV file other than an events.tsv file.
- *
- * @deprecated Use {@link BidsTsvFile}. Will be removed in version 4.0.0.
- */
-export class BidsTabularFile extends BidsTsvFile {
-  /**
-   * Constructor.
-   *
-   * @param {string} name The name of the TSV file.
-   * @param {string[]} potentialSidecars The list of potential JSON sidecars.
-   * @param {object} mergedDictionary The merged sidecar data.
-   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
-   * @param {object} file The file object representing this file.
-   */
-  constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
-    super(name, tsvData, file, potentialSidecars, mergedDictionary)
-  }
-}
-
-/**
- * A row in a BIDS TSV file.
- */
-export class BidsTsvRow extends ParsedHedString {
-  /**
-   * The parsed string representing this row.
-   * @type {ParsedHedString}
-   */
-  parsedString
-  /**
-   * The column-to-value mapping for this row.
-   * @type {Map<string, string>}
-   */
-  rowCells
-  /**
-   * The file this row belongs to.
-   * @type {BidsTsvFile}
-   */
-  tsvFile
-  /**
-   * The line number in {@link BidsTsvRow.tsvFile} this line is located at.
-   * @type {number}
-   */
-  tsvLine
-
-  /**
-   * Constructor.
-   *
-   * @param {ParsedHedString} parsedString The parsed string representing this row.
-   * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
-   * @param {BidsTsvFile} tsvFile The file this row belongs to.
-   * @param {number} tsvLine The line number in {@link tsvFile} this line is located at.
-   */
-  constructor(parsedString, rowCells, tsvFile, tsvLine) {
-    super(parsedString.hedString, parsedString.parseTree)
-    this.parsedString = parsedString
-    this.context = parsedString.context
-    this.rowCells = rowCells
-    this.tsvFile = tsvFile
-    this.tsvLine = tsvLine
-  }
-
-  /**
-   * Override of {@link Object.prototype.toString}.
-   *
-   * @returns {string}
-   */
-  toString() {
-    return super.toString() + ` in TSV file "${this.tsvFile.name}" at line ${this.tsvLine}`
-  }
-
-  /**
-   * The onset of this row.
-   *
-   * @return {number} The onset of this row.
-   */
-  get onset() {
-    const value = Number(this.rowCells.get('onset'))
-    if (Number.isNaN(value)) {
-      IssueError.generateAndThrow('internalError', {
-        message: 'Attempting to access the onset of a TSV row without one.',
-      })
-    }
-    return value
-  }
-}
-
-/**
- * An event in a BIDS TSV file.
- */
-export class BidsTsvEvent extends ParsedHedString {
-  /**
-   * The file this row belongs to.
-   * @type {BidsTsvFile}
-   */
-  tsvFile
-  /**
-   * The TSV rows making up this event.
-   * @type {BidsTsvRow[]}
-   */
-  tsvRows
-
-  /**
-   * Constructor.
-   *
-   * @param {BidsTsvFile} tsvFile The file this row belongs to.
-   * @param {BidsTsvRow[]} tsvRows The TSV rows making up this event.
-   */
-  constructor(tsvFile, tsvRows) {
-    super(tsvRows.map((tsvRow) => tsvRow.hedString).join(', '), tsvRows.map((tsvRow) => tsvRow.parseTree).flat())
-    this.tsvFile = tsvFile
-    this.tsvRows = tsvRows
-  }
-
-  /**
-   * The lines in the TSV file corresponding to this event.
-   *
-   * @return {string} The lines in the TSV file corresponding to this event.
-   */
-  get tsvLines() {
-    return this.tsvRows.map((tsvRow) => tsvRow.tsvLine).join(', ')
-  }
-
-  /**
-   * Override of {@link Object.prototype.toString}.
-   *
-   * @returns {string}
-   */
-  toString() {
-    return super.toString() + ` in TSV file "${this.tsvFile.name}" at line(s) ${this.tsvLines}`
   }
 }

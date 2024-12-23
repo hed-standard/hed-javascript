@@ -35,7 +35,7 @@ export const filterNonEqualDuplicates = function (list, equalityFunction = isEqu
  * @template T, U
  * @param {T[]} list The list to group.
  * @param {function (T): U} groupingFunction A function mapping a list value to the key it is to be grouped under.
- * @return {Map<U, T[]>} The grouped map.
+ * @returns {Map<U, T[]>} The grouped map.
  */
 export const groupBy = function (list, groupingFunction = identity) {
   const groupingMap = new Map()

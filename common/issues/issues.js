@@ -46,14 +46,7 @@ export class Issue {
    * @type {string}
    */
   internalCode
-  /**
-   * Also the internal error code.
-   *
-   * TODO: This is kept for backward compatibility until the next major version bump.
-   * @deprecated
-   * @type {string}
-   */
-  code
+
   /**
    * The HED 3 error code.
    * @type {string}
@@ -84,7 +77,6 @@ export class Issue {
    */
   constructor(internalCode, hedCode, level, parameters) {
     this.internalCode = internalCode
-    this.code = internalCode
     this.hedCode = hedCode
     this.level = level
     this.parameters = parameters

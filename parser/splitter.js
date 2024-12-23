@@ -1,23 +1,10 @@
-import { ParsedHed3Tag, ParsedHedTag } from './parsedHedTag'
+import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
-import { Schemas } from '../common/schema/types'
 import { recursiveMap } from '../utils/array'
-import { mergeParsingIssues } from '../utils/hedData'
-import { ParsedHed2Tag } from '../validator/hed2/parser/parsedHed2Tag'
 import { HedStringTokenizer, ColumnSpliceSpec, TagSpec } from './tokenizer'
 import { generateIssue, IssueError } from '../common/issues/issues'
-
-const generationToClass = [
-  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
-    new ParsedHedTag(originalTag, originalBounds),
-  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
-    new ParsedHedTag(originalTag, originalBounds), // Generation 1 is not supported by this validator.
-  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
-    new ParsedHed2Tag(originalTag, hedString, originalBounds, hedSchemas, schemaName),
-  (originalTag, hedString, originalBounds, hedSchemas, schemaName, tagSpec) =>
-    new ParsedHed3Tag(tagSpec, hedSchemas, hedString),
-]
+import { ReservedChecker } from './reservedChecker'
 
 export default class HedStringSplitter {
   /**
@@ -30,21 +17,8 @@ export default class HedStringSplitter {
    * @type {Schemas}
    */
   hedSchemas
-  /**
-   * Any issues found during tag conversion.
-   * @type {Issue[]}
-   */
-  conversionIssues
-  /**
-   * Any syntax issues found.
-   * @type {Issue[]}
-   */
-  syntaxIssues
-  /**
-   * The constructor to be used to build the parsed HED tags.
-   * @type {function (string, string, number[], Schemas, string, TagSpec): ParsedHedTag}
-   */
-  ParsedHedTagConstructor
+
+  issues
 
   /**
    * Constructor.
@@ -55,26 +29,28 @@ export default class HedStringSplitter {
   constructor(hedString, hedSchemas) {
     this.hedString = hedString
     this.hedSchemas = hedSchemas
-    this.conversionIssues = []
-    this.syntaxIssues = []
-    this.ParsedHedTagConstructor = generationToClass[hedSchemas.generation]
+    this.special = ReservedChecker.getInstance()
+    this.issues = []
   }
 
   /**
    * Split and parse a HED string into tags and groups.
    *
-   * @returns {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED string data and any issues found.
+   * @returns {[ParsedHedSubstring[], Issue[]]} The parsed HED string data and any issues found.
    */
   splitHedString() {
-    const [tagSpecs, groupBounds, tokenizingIssues] = new HedStringTokenizer(this.hedString).tokenize()
-    if (tokenizingIssues.syntax.length > 0) {
-      return [null, tokenizingIssues]
+    if (this.hedString === null || this.hedString === undefined || typeof this.hedString !== 'string') {
+      return [null, [generateIssue('invalidTagString', {})]]
     }
-
+    if (this.hedString.length === 0) {
+      return [[], []]
+    }
+    const [tagSpecs, groupBounds, issues] = new HedStringTokenizer(this.hedString).tokenize()
+    if (issues.length > 0) {
+      return [null, issues]
+    }
     const [parsedTags, parsingIssues] = this._createParsedTags(tagSpecs, groupBounds)
-    mergeParsingIssues(tokenizingIssues, parsingIssues)
-
-    return [parsedTags, tokenizingIssues]
+    return [parsedTags, parsingIssues]
   }
 
   /**
@@ -82,38 +58,24 @@ export default class HedStringSplitter {
    *
    * @param {TagSpec[]} tagSpecs The tag specifications.
    * @param {GroupSpec} groupSpecs The group specifications.
-   * @returns {[ParsedHedSubstring[], Object<string, Issue[]>]} The parsed HED tags and any issues.
+   * @returns {[ParsedHedSubstring[], Issue[]]} The parsed HED tags and any issues.
    */
   _createParsedTags(tagSpecs, groupSpecs) {
     // Create tags from specifications
+    this.issues = []
     const parsedTags = recursiveMap((tagSpec) => this._createParsedTag(tagSpec), tagSpecs)
 
     // Create groups from the parsed tags
     const parsedTagsWithGroups = this._createParsedGroups(parsedTags, groupSpecs.children)
-
-    const issues = { syntax: this.syntaxIssues, conversion: this.conversionIssues }
-    return [parsedTagsWithGroups, issues]
+    return [parsedTagsWithGroups, this.issues]
   }
 
-  /**
-   * Create a parsed tag object based on the tag specification.
-   *
-   * @param {TagSpec|ColumnSpliceSpec} tagSpec The tag or column splice specification.
-   * @returns {ParsedHedTag|ParsedHedColumnSplice|null} The parsed HED tag or column splice.
-   */
   _createParsedTag(tagSpec) {
     if (tagSpec instanceof TagSpec) {
       try {
-        return this.ParsedHedTagConstructor(
-          tagSpec.tag,
-          this.hedString,
-          tagSpec.bounds,
-          this.hedSchemas,
-          tagSpec.library,
-          tagSpec,
-        )
+        return new ParsedHedTag(tagSpec, this.hedSchemas, this.hedString)
       } catch (issueError) {
-        this._handleIssueError(issueError)
+        this.issues.push(this._handleIssueError(issueError))
         return null
       }
     } else if (tagSpec instanceof ColumnSpliceSpec) {
@@ -128,9 +90,9 @@ export default class HedStringSplitter {
    */
   _handleIssueError(issueError) {
     if (issueError instanceof IssueError) {
-      this.conversionIssues.push(issueError.issue)
+      return issueError.issue
     } else if (issueError instanceof Error) {
-      this.conversionIssues.push(generateIssue('internalError', { message: issueError.message }))
+      return generateIssue('internalError', { message: issueError.message })
     }
   }
 
@@ -149,12 +111,7 @@ export default class HedStringSplitter {
       if (Array.isArray(tag)) {
         const groupSpec = groupSpecs[index]
         tagGroups.push(
-          new ParsedHedGroup(
-            this._createParsedGroups(tag, groupSpec.children),
-            this.hedSchemas,
-            this.hedString,
-            groupSpec.bounds,
-          ),
+          new ParsedHedGroup(this._createParsedGroups(tag, groupSpec.children), this.hedString, groupSpec.bounds),
         )
         index++
       } else if (tag !== null) {
