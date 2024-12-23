@@ -98,17 +98,29 @@ export class BidsTsvElement {
    */
   hedString
 
+  /**
+   * The ParsedHedString representation of this row
+   * @type {ParsedHedString}
+   */
   parsedHedString
 
   /**
-   * The file this row belongs to.
+   * The file this row belongs to (usually just the path).
    * @type {Object}
    */
   file
 
+  /**
+   * The onset represented by this row or a NaN.
+   * @type {Number}
+   */
   onset
 
+  /**
+   * The line number(s) (including the header) represented by this row.
+   */
   tsvLine
+
   /**
    * Constructor.
    *
@@ -141,7 +153,12 @@ export class BidsTsvElement {
  * A row in a BIDS TSV file.
  */
 export class BidsTsvRow extends BidsTsvElement {
+  /**
+   * The map of column name to value for this row.
+   * @type {Map<string, string>}
+   */
   rowCells
+
   /**
    * Constructor.
    *
@@ -154,25 +171,5 @@ export class BidsTsvRow extends BidsTsvElement {
     const onset = rowCells.has('onset') ? rowCells.get('onset') : undefined
     super(hedString, tsvFile, onset, tsvLine.toString())
     this.rowCells = rowCells
-  }
-}
-
-/**
- * A BIDS events.tsv file.
- *
- * @deprecated Use {@link BidsTsvFile}. Will be removed in version 4.0.0.
- */
-export class BidsEventFile extends BidsTsvFile {
-  /**
-   * Constructor.
-   *
-   * @param {string} name The name of the event TSV file.
-   * @param {string[]} potentialSidecars The list of potential JSON sidecars.
-   * @param {object} mergedDictionary The merged sidecar data.
-   * @param {{headers: string[], rows: string[][]}|string} tsvData This file's TSV data.
-   * @param {object} file The file object representing this file.
-   */
-  constructor(name, potentialSidecars, mergedDictionary, tsvData, file) {
-    super(name, tsvData, file, potentialSidecars, mergedDictionary)
   }
 }

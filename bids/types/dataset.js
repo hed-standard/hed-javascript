@@ -1,7 +1,7 @@
 export class BidsDataset {
   /**
    * The dataset's event file data.
-   * @type {BidsEventFile[]}
+   * @type {BidsTsvFile[]}
    */
   eventData
   /**
