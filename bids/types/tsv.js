@@ -158,34 +158,6 @@ export class BidsTsvRow extends BidsTsvElement {
 }
 
 /**
- * An event in a BIDS TSV file.
- */
-export class BidsTsvEvent extends BidsTsvElement {
-  /**
-   * The TSV rows making up this event.
-   * @type {BidsTsvRow[]}
-   */
-  tsvRows
-
-  /**
-   * Constructor.
-   *
-   * @param {BidsTsvFile} tsvFile The file this row belongs to.
-   * @param {BidsTsvRow[]} tsvRows The TSV rows making up this event.
-   */
-  constructor(tsvFile, tsvRows) {
-    const hedString = tsvRows.map((tsvRow) => tsvRow.hedString).join(', ')
-    const tsvLine = tsvRows
-      .map((tsvRow) => tsvRow.tsvLine)
-      .flat()
-      .join(', ')
-    const onset = tsvRows[0].onset ? tsvRows[0].onset : undefined
-    super(hedString, tsvFile, onset, tsvLine)
-    this.tsvRows = tsvRows
-  }
-}
-
-/**
  * A BIDS events.tsv file.
  *
  * @deprecated Use {@link BidsTsvFile}. Will be removed in version 4.0.0.
