@@ -13,35 +13,10 @@ The HED annotation strategy is very general and a standardized vocabulary in the
 [HED schema](https://github.com/hed-standard/hed-specification) enables
 annotation of events in an understandable, machine-actionable format.
 
-Additional [library schemas](https://github.com/hed-standard/hed-schema-library)
-with specialized vocabularies needed for particular subfields are under development.
-
-HED validation occurs at several levels.
-Syntactic validation checks that HED strings comply with the required syntax,
-but not whether tags comply with the additional requirements of a HED schema.
-
-Semantic validation verifies validity at many levels:
-
-1. **Tag-level validation** checks that tags are in the schema
-   and have correct units and value type.
-2. **String-level validation** performs additional checks for correctness.
-   In this implementation, tag-level and string-level validation occur at the same time.
-3. **Event-level validation** checks that the entire assembled HED annotation for an event is valid.
-   This includes checks for required tags, duplicate tags, top-level tags, top-level tag groups,
-   and unique tags. This usually implies the existence of an events file and an accompanying JSON sidecar
-   so that annotations for different columns of an events file can be assembled into a single string.
-4. **Dataset-level validation** parses out the definitions
-   and checks that the needed definitions are present and not duplications.
-   Dataset-level validation also checks for `Onset`-`Offset` tag consistency.
-
-The current version of `hed-validator` performs both syntactic and semantic validation.
-Because full validation of all the features of HED-3G (versions >= 8.0.0) requires full knowledge
-of an events file and its merged sidecars, the `hed-validator` currently only exposes its interface
-at the dataset level.
 The current focus of the `hed-validator` package is to support full validation of HED in
-[BIDS datasets](https://bids-specification.readthedocs.io/en/stable/).
+[BIDS datasets](https://bids-specification.readthedocs.io/en/stable/) under the BIDS validator 2.0.
 
-HED validation is currently also supported in an [online version of the HED validator](https://hedtools.ucsd.edu/hed),
+HED validation is currently also supported in an [online version of the HED validator](https://hedtools.org/hed),
 which is implemented in Python and developed in a [public GitHub repository](https://github.com/hed-standard/hed-python/).
 Validation and other HED operations are also available through web-services and a docker module.
 
