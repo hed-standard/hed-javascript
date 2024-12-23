@@ -21,14 +21,13 @@ const runMap = new Map([['TAG_GROUP_ERROR', ['tag-group-error-missing']]])
 const runOnly = new Set()
 
 const skippedErrors = {
-  VERSION_DEPRECATED: 'Not handling in the spec tests',
-  ELEMENT_DEPRECATED: 'Not handling in this round. This is a warning',
-  STYLE_WARNING: 'Not handling style warnings at this time',
-  'invalid-character-name-value-class-deprecated': 'We will let this pass regardless of schema version.',
+  VERSION_DEPRECATED: 'not handling in the spec tests.',
+  ELEMENT_DEPRECATED: 'not handling tag deprecated in the spec tests.',
+  STYLE_WARNING: 'not handling style warnings at this time',
+  'invalid-character-name-value-class-deprecated': 'not handling deprecated in the spec tests.',
 }
 const readFileSync = fs.readFileSync
 const test_file_name = 'javascriptTests.json'
-//const test_file_name = 'temp3.json'
 
 function comboListToStrings(items) {
   const comboItems = []
@@ -238,12 +237,19 @@ describe('HED validation using JSON tests', () => {
 
       afterAll(() => {})
 
+      // If debugging a single test
       if (!shouldRun(error_code, name, runAll, runMap, skipMap)) {
+        // eslint-disable-next-line no-console
         console.log(`----Skipping JSON Spec tests ${error_code} [${name}]}`)
         return
       }
-      if (error_code in skippedErrors || name in skippedErrors || warning) {
-        test.skip(`Skipping tests ${error_code} skipped because ${skippedErrors['error_code']}`, () => {})
+      // Run tests except for the ones explicitly skipped or because they are warnings
+      if (warning) {
+        test.skip(`Skipping tests ${error_code} [${name}] skipped because warning not error`, () => {})
+      } else if (error_code in skippedErrors) {
+        test.skip(`Skipping tests ${error_code} [${name}] skipped because ${skippedErrors[error_code]}`, () => {})
+      } else if (name in skippedErrors) {
+        test.skip(`Skipping tests ${error_code} [${name}] skipped because ${skippedErrors[name]}`, () => {})
       } else {
         test('it should have HED schema defined', () => {
           expect(hedSchema).toBeDefined()

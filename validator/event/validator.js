@@ -14,7 +14,7 @@ const topLevelTagGroupType = 'topLevelTagGroup'
 
 const uniqueType = 'unique'
 const requiredType = 'required'
-const specialTags = require('../../data/json/specialTags.json')
+const specialTags = require('../../data/json/reservedTags.json')
 
 /**
  * HED validator.

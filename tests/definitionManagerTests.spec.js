@@ -82,7 +82,7 @@ describe('DefinitionManager tests', () => {
         testDefinitions(test)
       } else {
         // eslint-disable-next-line no-console
-        console.log(`----Skipping sdefinitionManagerTest ${name}: ${test.testname}`)
+        console.log(`----Skipping definitionManagerTest ${name}: ${test.testname}`)
       }
     })
   })

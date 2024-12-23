@@ -3,7 +3,7 @@ import { BidsTsvRow } from '../types/tsv'
 import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../common/issues/issues'
-import { SpecialChecker } from '../../parser/special'
+import { ReservedChecker } from '../../parser/reservedChecker'
 import { getTagListString } from '../../parser/parseUtils'
 import { EventManager } from '../../parser/eventManager'
 
@@ -36,7 +36,7 @@ export class BidsHedTsvValidator {
   constructor(tsvFile, hedSchemas) {
     this.tsvFile = tsvFile
     this.hedSchemas = hedSchemas // Will be set when the file is validated
-    this.special = SpecialChecker.getInstance()
+    this.special = ReservedChecker.getInstance()
     this.issues = []
   }
 
@@ -172,7 +172,7 @@ export class BidsHedTsvValidator {
     const topGroupIssues = []
     for (const element of elements) {
       const topTags = element.parsedHedString ? element.parsedHedString.topLevelTags : []
-      const badTags = topTags.filter((tag) => SpecialChecker.hasTopLevelTagGroupAttribute(tag))
+      const badTags = topTags.filter((tag) => ReservedChecker.hasTopLevelTagGroupAttribute(tag))
       if (badTags.length > 0) {
         topGroupIssues.push(
           BidsHedIssue.fromHedIssue(

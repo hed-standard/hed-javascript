@@ -1,4 +1,4 @@
-import specialTags from '../data/json/specialTags.json'
+import specialTags from '../data/json/reservedTags.json'
 import { generateIssue } from '../common/issues/issues'
 import { filterTagMapByNames, getTagListString } from './parseUtils'
 
@@ -8,7 +8,7 @@ export class SpecialChecker {
 
   constructor() {
     if (SpecialChecker.instance) {
-      throw new Error('Use SpecialChecker.getInstance() to get an instance of this class.')
+      throw new Error('Use ReservedChecker.getInstance() to get an instance of this class.')
     }
 
     this._initializeSpecialTags()

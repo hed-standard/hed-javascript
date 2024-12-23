@@ -12,11 +12,9 @@ import { shouldRun, getHedString } from './testUtilities'
 
 const skipMap = new Map()
 const runAll = true
-//const runMap = new Map([['special-tag-group-tests', ['onset-delay-def-expand-extra-tag-group']]])
 const runMap = new Map([['tag-strings', ['multiple-complex-duplicates']]])
-//const runMap = new Map([['valid-tags', ['single-tag-single-level']]])
 
-describe.skip('Null schema objects should cause parsing to bail', () => {
+describe('Null schema objects should cause parsing to bail', () => {
   it('Should not proceed if no schema and valid string', () => {
     const stringIn = 'Item, Red'
     const [parsedString, errorIssues, warningIssues] = getHedString(stringIn, null, true, true, true)
@@ -26,6 +24,7 @@ describe.skip('Null schema objects should cause parsing to bail', () => {
     const [directParsed, directIssues] = parseHedString(stringIn, null, false, true, true)
     assert.isNull(directParsed, `Parsed HED string of ${stringIn} is null for invalid string`)
     assert.deepStrictEqual(directIssues, expectedIssues)
+    assert.equal(warningIssues.length, 0, `Null schema produces errors, not warnings`)
   })
 
   it('Should not proceed if no schema and invalid string', () => {
@@ -37,6 +36,7 @@ describe.skip('Null schema objects should cause parsing to bail', () => {
     const [directParsed, directIssues] = parseHedString(stringIn, null, true, true, true)
     assert.isNull(directParsed, `Parsed HED string of ${stringIn} is null for invalid string`)
     assert.deepStrictEqual(directIssues, expectedIssues)
+    assert.equal(warningIssues.length, 0, `Null schema produces errors, not warnings`)
   })
 
   it('Should not proceed if no schema and valid array of strings', () => {
@@ -68,7 +68,7 @@ describe('Parse HED string tests', () => {
       assert.isDefined(thisSchema, `header: ${test.schemaVersion} is not available in test ${test.testname}`)
 
       // Parse the string before converting
-      let issues = []
+      let issues
       let warnings = []
       let parsedString = null
       try {

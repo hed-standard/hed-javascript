@@ -1,6 +1,6 @@
 import { IssueError } from '../common/issues/issues'
 import { getTagSlashIndices } from '../utils/hedStrings'
-import { SpecialChecker } from './special'
+import { ReservedChecker } from './reservedChecker'
 
 /**
  * Converter from a tag specification to a schema-based tag object.
@@ -62,7 +62,7 @@ export default class TagConverter {
     this.tagLevels = this.tagString.split('/')
     this.tagSlashes = getTagSlashIndices(this.tagString)
     this.remainder = undefined
-    this.special = SpecialChecker.getInstance()
+    this.special = ReservedChecker.getInstance()
   }
 
   /**

@@ -1,14 +1,14 @@
-import specialTags from '../data/json/specialTags.json'
+import specialTags from '../data/json/reservedTags.json'
 import { generateIssue } from '../common/issues/issues'
 import { filterTagMapByNames, getTagListString } from './parseUtils'
 
-export class SpecialChecker {
+export class ReservedChecker {
   static instance = null
-  static specialMap = new Map(Object.entries(specialTags))
+  static reservedMap = new Map(Object.entries(specialTags))
 
   constructor() {
-    if (SpecialChecker.instance) {
-      throw new Error('Use SpecialChecker.getInstance() to get an instance of this class.')
+    if (ReservedChecker.instance) {
+      throw new Error('Use ReservedChecker.getInstance() to get an instance of this class.')
     }
 
     this._initializeSpecialTags()
@@ -16,25 +16,25 @@ export class SpecialChecker {
 
   // Static method to control access to the singleton instance
   static getInstance() {
-    if (!SpecialChecker.instance) {
-      SpecialChecker.instance = new SpecialChecker()
+    if (!ReservedChecker.instance) {
+      ReservedChecker.instance = new ReservedChecker()
     }
-    return SpecialChecker.instance
+    return ReservedChecker.instance
   }
 
   _initializeSpecialTags() {
-    this.specialNames = new Set(SpecialChecker.specialMap.keys())
-    this.requireValueTags = SpecialChecker._getSpecialTagsByProperty('requireValue')
-    this.noExtensionTags = SpecialChecker._getSpecialTagsByProperty('noExtension')
-    this.allowTwoLevelValueTags = SpecialChecker._getSpecialTagsByProperty('allowTwoLevelValue')
-    this.topGroupTags = SpecialChecker._getSpecialTagsByProperty('topLevelTagGroup')
-    this.requiresDefTags = SpecialChecker._getSpecialTagsByProperty('requiresDef')
-    this.groupTags = SpecialChecker._getSpecialTagsByProperty('tagGroup')
-    this.exclusiveTags = SpecialChecker._getSpecialTagsByProperty('exclusive')
-    this.temporalTags = SpecialChecker._getSpecialTagsByProperty('isTemporalTag')
-    this.noSpliceInGroup = SpecialChecker._getSpecialTagsByProperty('noSpliceInGroup')
+    this.specialNames = new Set(ReservedChecker.reservedMap.keys())
+    this.requireValueTags = ReservedChecker._getSpecialTagsByProperty('requireValue')
+    this.noExtensionTags = ReservedChecker._getSpecialTagsByProperty('noExtension')
+    this.allowTwoLevelValueTags = ReservedChecker._getSpecialTagsByProperty('allowTwoLevelValue')
+    this.topGroupTags = ReservedChecker._getSpecialTagsByProperty('topLevelTagGroup')
+    this.requiresDefTags = ReservedChecker._getSpecialTagsByProperty('requiresDef')
+    this.groupTags = ReservedChecker._getSpecialTagsByProperty('tagGroup')
+    this.exclusiveTags = ReservedChecker._getSpecialTagsByProperty('exclusive')
+    this.temporalTags = ReservedChecker._getSpecialTagsByProperty('isTemporalTag')
+    this.noSpliceInGroup = ReservedChecker._getSpecialTagsByProperty('noSpliceInGroup')
     this.hasForbiddenSubgroupTags = new Set(
-      [...SpecialChecker.specialMap.values()]
+      [...ReservedChecker.reservedMap.values()]
         .filter((value) => value.forbiddenSubgroupTags.length > 0)
         .map((value) => value.name),
     )
@@ -42,7 +42,7 @@ export class SpecialChecker {
 
   static _getSpecialTagsByProperty(property) {
     return new Set(
-      [...SpecialChecker.specialMap.values()].filter((value) => value[property] === true).map((value) => value.name),
+      [...ReservedChecker.reservedMap.values()].filter((value) => value[property] === true).map((value) => value.name),
     )
   }
 
@@ -123,7 +123,7 @@ export class SpecialChecker {
     const topGroupTags = hedString.topLevelGroupTags
     hedString.tags.forEach((tag) => {
       // Check for top-level violations because tag is deep
-      if (SpecialChecker.hasTopLevelTagGroupAttribute(tag)) {
+      if (ReservedChecker.hasTopLevelTagGroupAttribute(tag)) {
         //Tag is in a top-level tag group
         if (topGroupTags.includes(tag)) {
           return
@@ -139,7 +139,7 @@ export class SpecialChecker {
       }
 
       // In final form --- if not in a group (not just a top group) but has the group tag attribute
-      if (fullCheck && hedString.topLevelTags.includes(tag) && SpecialChecker.hasGroupAttribute(tag)) {
+      if (fullCheck && hedString.topLevelTags.includes(tag) && ReservedChecker.hasGroupAttribute(tag)) {
         issues.push(generateIssue('missingTagGroup', { tag: tag.originalTag, string: hedString.hedString }))
       }
     })
@@ -229,7 +229,7 @@ export class SpecialChecker {
    * @returns {Issue[]}
    */
   _checkGroupRequirements(group, specialTag, fullCheck) {
-    const specialRequirements = SpecialChecker.specialMap.get(specialTag.schemaTag.name)
+    const specialRequirements = ReservedChecker.reservedMap.get(specialTag.schemaTag.name)
     const issues = this._checkAllowedTags(group, specialTag, specialRequirements.otherAllowedNonDefTags)
     if (issues.length > 0) {
       return issues
@@ -360,7 +360,7 @@ export class SpecialChecker {
         continue
       }
       // This tag has
-      const forbidden = SpecialChecker.specialMap.get(tag.schemaTag.name).forbiddenSubgroupTags
+      const forbidden = ReservedChecker.reservedMap.get(tag.schemaTag.name).forbiddenSubgroupTags
       for (const group of hedString.tagGroups) {
         if (group.allTags.some((tag) => forbidden.has(tag.schemaTag.name))) {
           return [
@@ -407,7 +407,7 @@ export class SpecialChecker {
       for (const tag of forbiddenTags) {
         const otherTags = subGroup.allTags.filter((otherTag) => otherTag !== tag)
         const badTags = otherTags.filter((otherTag) =>
-          SpecialChecker.specialMap.get(tag.schemaTag.name)?.forbiddenSubgroupTags.includes(otherTag.schemaTag.name),
+          ReservedChecker.reservedMap.get(tag.schemaTag.name)?.forbiddenSubgroupTags.includes(otherTag.schemaTag.name),
         )
 
         if (badTags?.length > 0) {
@@ -435,8 +435,8 @@ export class SpecialChecker {
   static hasTopLevelTagGroupAttribute(tag) {
     return (
       tag.hasAttribute('topLevelTagGroup') ||
-      (SpecialChecker.specialMap.has(tag.schemaTag.name) &&
-        SpecialChecker.specialMap.get(tag.schemaTag.name).topLevelTagGroup)
+      (ReservedChecker.reservedMap.has(tag.schemaTag.name) &&
+        ReservedChecker.reservedMap.get(tag.schemaTag.name).topLevelTagGroup)
     )
   }
 
@@ -451,7 +451,8 @@ export class SpecialChecker {
   static hasGroupAttribute(tag) {
     return (
       tag.hasAttribute('tagGroup') ||
-      (SpecialChecker.specialMap.has(tag.schemaTag.name) && SpecialChecker.specialMap.get(tag.schemaTag.name).tagGroup)
+      (ReservedChecker.reservedMap.has(tag.schemaTag.name) &&
+        ReservedChecker.reservedMap.get(tag.schemaTag.name).tagGroup)
     )
   }
 }

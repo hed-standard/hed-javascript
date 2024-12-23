@@ -4,7 +4,7 @@ import { IssueError } from '../common/issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
-import { SpecialChecker } from './special'
+import { ReservedChecker } from './reservedChecker'
 import {
   filterByClass,
   categorizeTagsByName,
@@ -80,7 +80,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   _initializeGroups() {
-    const special = SpecialChecker.getInstance()
+    const special = ReservedChecker.getInstance()
     this.specialTags = categorizeTagsByName(this.topTags, special.specialNames)
     this.isDefExpandGroup = this.specialTags.has('Def-expand')
     this.isDefinitionGroup = this.specialTags.has('Definition')

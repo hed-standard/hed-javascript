@@ -40,6 +40,7 @@ describe('Normalize HED string tests', () => {
           test.stringNormalized,
           `${header}: received normalized string: ${parsedString?.normalized} but expected ${test.stringNormalized}`,
         )
+        assert.equal(warningIssues.length, 0, `${header}: expects errors not warnings`)
       } catch (error) {
         issues = [error.issue]
       }

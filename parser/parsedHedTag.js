@@ -2,7 +2,7 @@ import { IssueError } from '../common/issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
-import { SpecialChecker } from './special'
+import { ReservedChecker } from './reservedChecker'
 
 const allowedRegEx = /^[^{}\,]*$/
 
@@ -124,7 +124,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       return
     }
     // Check that there is a value if required
-    const special = SpecialChecker.getInstance()
+    const special = ReservedChecker.getInstance()
     if (
       (schemaTag.hasAttributeName('requireChild') || special.requireValueTags.has(schemaTag.name)) &&
       remainder === ''
@@ -173,7 +173,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Handle special three-level tags
    * @param {string} remainder - the remainder of the tag string after schema tag
-   * @param {SpecialChecker} special - the special checker for checking the special tag properties
+   * @param {ReservedChecker} special - the special checker for checking the special tag properties
    */
   _getSplitValue(remainder, special) {
     if (!special.allowTwoLevelValueTags.has(this.schemaTag.name)) {
