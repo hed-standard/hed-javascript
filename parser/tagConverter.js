@@ -1,6 +1,6 @@
 import { IssueError } from '../common/issues/issues'
 import { getTagSlashIndices } from '../utils/hedStrings'
-import { ReservedChecker } from './reservedChecker'
+import { SpecialChecker } from './special'
 
 /**
  * Converter from a tag specification to a schema-based tag object.
@@ -62,7 +62,7 @@ export default class TagConverter {
     this.tagLevels = this.tagString.split('/')
     this.tagSlashes = getTagSlashIndices(this.tagString)
     this.remainder = undefined
-    this.special = ReservedChecker.getInstance()
+    this.special = SpecialChecker.getInstance()
   }
 
   /**
@@ -100,7 +100,7 @@ export default class TagConverter {
       }
       if (
         parentTag !== undefined &&
-        (!parentTag.hasAttributeName('extensionAllowed') || this.special.noExtensionTags.has(parentTag.name))
+        (!parentTag.hasAttributeName('extensionAllowed') || this.special.noExtensionTags.includes(parentTag.name))
       ) {
         IssueError.generateAndThrow('invalidExtension', {
           tag: this.tagLevels[tagLevelIndex],

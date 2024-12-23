@@ -184,9 +184,10 @@ export class ColumnSplicer {
    * @private
    */
   _reparseAndSpliceString(replacementString) {
-    const [newParsedString, parsingIssues] = parseHedString(replacementString, this.hedSchemas, true, false, false)
-    if (parsingIssues.length > 0) {
-      this.issues.push(...parsingIssues)
+    const [newParsedString, parsingIssues] = parseHedString(replacementString, this.hedSchemas)
+    const flatParsingIssues = Object.values(parsingIssues).flat()
+    if (flatParsingIssues.length > 0) {
+      this.issues.push(...flatParsingIssues)
       return []
     }
     return newParsedString.parseTree
@@ -204,7 +205,7 @@ export class ColumnSplicer {
     if (newData.length === 0) {
       return null
     }
-    return new ParsedHedGroup(newData, this.parsedString.hedString, group.originalBounds)
+    return new ParsedHedGroup(newData, this.hedSchemas, this.parsedString.hedString, group.originalBounds)
   }
 }
 

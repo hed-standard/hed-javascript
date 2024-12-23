@@ -2,7 +2,7 @@
   {
     "error_code": "CHARACTER_INVALID",
     "alt_codes": ["TAG_INVALID", "UNITS_INVALID", "VALUE_INVALID"],
-    "name": "character-invalid-non-printing-appears",
+    "name": "character-invalid-non-printing appears",
     "description": "The HED string contains a UTF-8 character.",
     "warning": false,
     "schema": "8.3.0",
@@ -1181,7 +1181,7 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": ["(Def-expand/MyColor2, (Label/Pie))"],
+        "fails": ["(Def-expand/Acc2/4.5, (Acceleration/4.5 m-per-s^2, Red))", "(Def-expand/MyColor2, (Label/Pie))"],
         "passes": ["(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"]
       },
       "sidecar_tests": {
@@ -1229,7 +1229,7 @@
               "event_code": {
                 "HED": {
                   "face": "(Def-expand/Acc2/4.5, (Acceleration/4.5 m-per-s^2, Red))",
-                  "ball": "(Def-expand/MyColor2, (Label/Pie))"
+                  "ball": "(Def-expand/MyColor2, (Label/Pie)))"
                 }
               }
             },
@@ -1263,7 +1263,7 @@
   },
   {
     "error_code": "DEF_EXPAND_INVALID",
-    "alt_codes": ["VALUE_INVALID"],
+    "alt_codes": [],
     "name": "def-expand-invalid-missing-placeholder",
     "description": "A `Def-expand` is missing an expected placeholder value or has an unexpected placeholder value.",
     "warning": false,
@@ -1271,8 +1271,15 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": ["(Def-expand/Acc, (Acceleration, Red))", "(Def-expand/MyColor/Blue, (Label/Pie))"],
-        "passes": ["(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"]
+        "fails": [
+          "(Def-expand/Acc, (Acceleration, Red))",
+          "(Def-expand/Acc/4.5/3, (Acceleration, Red))",
+          "(Def-expand/MyColor/Blue, (Label/Pie))"
+        ],
+        "passes": [
+          "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))",
+          "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"
+        ]
       },
       "sidecar_tests": {
         "fails": [
@@ -1280,7 +1287,8 @@
             "event_code": {
               "HED": {
                 "face": "(Def-expand/Acc, (Acceleration, Red))",
-                "ball": "(Def-expand/Acc/4.5, (Acceleration, Red))"
+                "ball": "(Def-expand/Acc/4.5/3, (Acceleration, Red))",
+                "circle": "(Def-expand/MyColor2/4, (Label/Pie))"
               }
             }
           }
@@ -1289,7 +1297,8 @@
           {
             "event_code": {
               "HED": {
-                "face": "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"
+                "face": "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))",
+                "ball": "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"
               }
             }
           }
@@ -1300,13 +1309,15 @@
           [
             ["onset", "duration", "HED"],
             [4.5, 0, "(Def-expand/Acc, (Acceleration, Red))"],
-            [5.5, 0, "(Def-expand/Acc/4.5, (Acceleration, Red))"]
+            [5.5, 0, "(Def-expand/Acc/4.5/3, (Acceleration, Red))"],
+            [6.5, 0, "(Def-expand/MyColor2/4, (Label/Pie))"]
           ]
         ],
         "passes": [
           [
             ["onset", "duration", "HED"],
-            [4.5, 0, "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"]
+            [4.5, 0, "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"],
+            [5.5, 0, "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red))"]
           ]
         ]
       },
@@ -1317,14 +1328,17 @@
               "event_code": {
                 "HED": {
                   "face": "(Def-expand/Acc, (Acceleration, Red))",
-                  "ball": "(Def-expand/Acc/4.5, (Acceleration, Red))"
+                  "ball": "(Def-expand/Acc/4.5/3, (Acceleration, Red))",
+                  "circle": "(Def-expand/MyColor2/4, (Label/Pie))"
                 }
               }
             },
             "events": [
-              ["onset", "duration", "event_code"],
-              [4.5, 0, "face"],
-              [5.5, 0, "ball"]
+              ["onset", "duration", "event_code", "HED"],
+              [4.5, 0, "face", " (Def-expand/Acc, (Acceleration, Red))"],
+              [5.5, 0, "ball", "(Def-expand/Acc/4.5/3, (Acceleration, Red))"],
+              [5.6, 0, "circle", "(Def-expand/Acc/4.5/3, (Acceleration, Red))"],
+              [6.5, 0, "n/a", "(Def-expand/MyColor2/4, (Label/Pie))"]
             ]
           }
         ],
@@ -1512,7 +1526,7 @@
                 "HED": {
                   "face": "(Def-expand/Acc/4.5, (Acceleration/6, Red))",
                   "ball": "(Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Blue))",
-                  "square": "(Def-expand/MyColor, (Label/Cake))"
+                  "square": "(Def-expand/MyColor, (Label/Cake)))"
                 }
               }
             },
@@ -1562,7 +1576,7 @@
           {
             "event_code": {
               "HED": {
-                "face": "Orange",
+                "face": "(Def-expand/Acc/4.5, Red)",
                 "ball": "(Def-expand/Acc/4.5)"
               }
             }
@@ -1583,6 +1597,7 @@
         "fails": [
           [
             ["onset", "duration", "HED"],
+            [4.5, 0, "(Def-expand/Acc/4.5, Red)"],
             [5.4, 0, "(Def-expand/Acc/5.4 )"]
           ]
         ],
@@ -1606,7 +1621,7 @@
             },
             "events": [
               ["onset", "duration", "event_code", "HED"],
-              [4.5, 0, "ball", "(Def-expand/Acc/4.5)"],
+              [4.5, 0, "ball", "Def/Acc, (Def-expand/Acc/4.5)"],
               [5.4, 0, "n/a", "Green"],
               [6.4, 0, "face", "n/a"]
             ]
@@ -1796,8 +1811,7 @@
             "sidecar": {
               "event_code": {
                 "HED": {
-                  "face": "Def/Acc/4.5",
-                  "ball": "Item"
+                  "face": "Def/Acc/4.5"
                 }
               }
             },
@@ -1902,8 +1916,8 @@
   },
   {
     "error_code": "DEF_INVALID",
-    "alt_codes": ["VALUE_INVALID", "UNITS_INVALID"],
-    "name": "def-invalid-bad-placeholder-value",
+    "alt_codes": [],
+    "name": "def-invalid-bad-placeholder-units",
     "description": "A `Def` has a placeholder value of incorrect format or units for definition.",
     "warning": false,
     "schema": "8.3.0",
@@ -2574,6 +2588,60 @@
     }
   },
   {
+    "error_code": "REQUIRED_TAG_MISSING",
+    "alt_codes": [],
+    "name": "required-tag-missing",
+    "description": "An event-level annotation does not have a tag corresponding to a node with the `required` schema attribute. (Note this is deprecated so no tests.)",
+    "warning": false,
+    "schema": "8.3.0",
+    "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2 Red))", "(Definition/MyColor, (Label/Pie))"],
+    "tests": {
+      "string_tests": {
+        "fails": [],
+        "passes": []
+      },
+      "sidecar_tests": {
+        "fails": [],
+        "passes": []
+      },
+      "event_tests": {
+        "fails": [],
+        "passes": []
+      },
+      "combo_tests": {
+        "fails": [],
+        "passes": []
+      }
+    }
+  },
+  {
+    "error_code": "REQUIRED_TAG_MISSING",
+    "alt_codes": [],
+    "name": "required-tag-in-definition",
+    "description": "A required tag appears in a definition",
+    "warning": false,
+    "schema": "8.3.0",
+    "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
+    "tests": {
+      "string_tests": {
+        "fails": [],
+        "passes": []
+      },
+      "sidecar_tests": {
+        "fails": [],
+        "passes": []
+      },
+      "event_tests": {
+        "fails": [],
+        "passes": []
+      },
+      "combo_tests": {
+        "fails": [],
+        "passes": []
+      }
+    }
+  },
+  {
     "error_code": "SIDECAR_BRACES_INVALID",
     "alt_codes": ["CHARACTER_INVALID", "SIDECAR_INVALID"],
     "name": "sidecar-braces-contents-invalid",
@@ -2935,7 +3003,7 @@
               [4.5, 0, 3.4, "face", "Blue"],
               [5.0, 0, 6.8, "ball", "Green, Def/MyColor"],
               [5.2, 0, "n/a", "face", ""],
-              [5.5, 0, "7,3", "face", "n/a"]
+              [5.5, 0, "any", "face", "n/a"]
             ]
           }
         ]
@@ -4036,7 +4104,7 @@
   },
   {
     "error_code": "TAG_GROUP_ERROR",
-    "alt_codes": ["TEMPORAL_TAG_ERROR", "TAG_INVALID", "DEFINITION_INVALID"],
+    "alt_codes": ["TEMPORAL_TAG_ERROR", "TAG_INVALID"],
     "name": "tag-group-error-missing",
     "description": "A tag has tagGroup or topLevelTagGroup attribute, but is not enclosed in parentheses.",
     "warning": false,
@@ -4191,7 +4259,7 @@
               "event_code": {
                 "HED": {
                   "face": "Acceleration/5 m-per-s^2",
-                  "ball": "(Def/Acc/3.0, Onset)"
+                  "ball": "(Def/Acc/3.0 m-per-s^2, Onset)"
                 }
               }
             },
@@ -4237,11 +4305,11 @@
             "event_code": {
               "HED": {
                 "face": "Acceleration/5.0",
-                "ball": "Red"
+                "ball": "Onset"
               }
             },
             "val_col": {
-              "HED": "Time-interval/# s, (Duration/5.0 s, ({event_code}), Duration/6.0)"
+              "HED": "Time-interval/# s, (Duration/5.0 s, {event_code})"
             }
           }
         ],
@@ -4270,7 +4338,7 @@
         "passes": [
           [
             ["onset", "duration", "HED"],
-            [4.5, 0, "Red, (Event-context, (Def/MyColor))"],
+            [4.5, 0, "Red, (Event-context, Def/MyColor)"],
             [5.0, 0, "Green"]
           ]
         ]
@@ -4305,7 +4373,7 @@
             },
             "events": [
               ["onset", "duration", "event_code", "HED"],
-              [4.5, 0, "face", "Blue, (Event-context, (Label/Red))"],
+              [4.5, 0, "face", "Blue, (Event-context, Label/Red)"],
               [5.0, 0, "ball", "Green, Def/MyColor"]
             ]
           }
@@ -4793,7 +4861,16 @@
         "passes": ["(Onset, Def/Acc/5.4)"]
       },
       "sidecar_tests": {
-        "fails": [],
+        "fails": [
+          {
+            "event_code": {
+              "HED": {
+                "face": "Onset, Red",
+                "ball": "Offset, Def/Acc/5.4"
+              }
+            }
+          }
+        ],
         "passes": [
           {
             "event_code": {
@@ -4809,7 +4886,8 @@
           [
             ["onset", "duration", "HED"],
             [4.5, 0, "Onset, Red"],
-            [5.0, 0, "Onset, Def/MyColor"]
+            [4.8, 0, "(Onset, MyColor)"],
+            [5.0, 0, "Offset, MyColor"]
           ]
         ],
         "passes": [
@@ -4828,13 +4906,15 @@
               "event_code": {
                 "HED": {
                   "face": "Onset, Red",
-                  "ball": "(Onset, Def/Acc/5.4)"
+                  "ball": "Offset, Def/Acc/5.4"
                 }
               }
             },
             "events": [
               ["onset", "duration", "event_code", "HED"],
-              [4.5, 0, "ball", "Onset, Def/MyColor"]
+              [4.5, 0, "ball", "Onset, Red"],
+              [4.8, 0, "n/a", "(Onset/MyColor)"],
+              [5.0, 0, "face", "Offset, MyColor"]
             ]
           }
         ],
@@ -5129,8 +5209,8 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": [],
-        "passes": []
+        "fails": ["(Offset, Def/MyColor, Red)", "((Def-expand/MyColor, (Label/Pie)), Offset, (Red))"],
+        "passes": ["(Offset, Def/MyColor)"]
       },
       "sidecar_tests": {
         "fails": [
@@ -5799,7 +5879,7 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": ["(Delay, Red)", "(Delay, Def/Acc/5.4)"],
+        "fails": ["Delay, Red", "Delay, Def/Acc/5.4"],
         "passes": ["(Delay/5 s, (Def/Acc/5.4))"]
       },
       "sidecar_tests": {
@@ -5808,7 +5888,15 @@
             "event_code": {
               "HED": {
                 "face": "Blue, Red",
-                "ball": "(Delay/5.0 s, Def/Acc/5.4)"
+                "ball": "Delay/5.0 s, Def/Acc/5.4"
+              }
+            }
+          },
+          {
+            "event_code": {
+              "HED": {
+                "face": "Blue, Red",
+                "ball": "Delay/5.0 s, (Def/Acc/5.4)"
               }
             }
           }
@@ -5858,6 +5946,20 @@
               [4.8, 0, "n/a", "Blue"],
               [5.0, 0, "face", "Green"]
             ]
+          },
+          {
+            "sidecar": {
+              "event_code": {
+                "HED": {
+                  "face": "Red",
+                  "ball": "Delay/5.0 s, (Def/Acc/5.4)"
+                }
+              }
+            },
+            "events": [
+              ["onset", "duration", "event_code", "HED"],
+              [4.5, 0, "ball", "Red"]
+            ]
           }
         ],
         "passes": [
@@ -5883,13 +5985,13 @@
     "error_code": "TEMPORAL_TAG_ERROR",
     "alt_codes": ["TAG_GROUP_ERROR"],
     "name": "temporal-tag-error-nested-group-delay",
-    "description": "A delay appears in a group not in the top level.",
+    "description": "An Onset or Offset tag appears in a nested tag group (not a top-level tag group).",
     "schema": "8.2.0",
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": ["((Delay/5.0 s, Delay/7.0 s, (Def/MyColor)), Red)"],
-        "passes": ["(Onset, Delay/6 s, Def/MyColor), Red"]
+        "fails": ["((Delay/5.0 s, Delay/7.0 s (Def/MyColor)), Red)"],
+        "passes": ["(Onset, Delay/6 s, (Def/MyColor)), Red"]
       },
       "sidecar_tests": {
         "fails": [
@@ -6154,8 +6256,11 @@
     "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
     "tests": {
       "string_tests": {
-        "fails": [],
-        "passes": []
+        "fails": [
+          "(Delay/5.0 s, Offset, Def/MyColor, Red)",
+          "(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset, (Red))"
+        ],
+        "passes": ["(Delay/5.0 s, Offset, Def/MyColor)"]
       },
       "sidecar_tests": {
         "fails": [
@@ -6221,7 +6326,7 @@
               [4.5, 0, "face", "n/a"],
               [4.8, 0, "square", "n/a"],
               [4.9, 0, "ball", "Green"],
-              [5.5, 0, "n/a", "(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset, Blue)", "Orange"]
+              [5.5, 0, "(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset, Blue)", "Orange"]
             ]
           }
         ],
@@ -6242,7 +6347,7 @@
               [4.5, 0, "face", "n/a"],
               [4.8, 0, "square", "n/a"],
               [4.9, 0, "ball", "Green"],
-              [10.0, 0, "n/a", "(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset)"]
+              [5.5, 0, "(Delay/5.0 s, (Def-expand/MyColor, (Label/Pie)), Offset, Blue)", "Orange"]
             ]
           }
         ]
