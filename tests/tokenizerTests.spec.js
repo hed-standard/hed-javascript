@@ -21,7 +21,8 @@ describe('Tokenizer validation using JSON tests', () => {
       const status = test.errors.length > 0 ? 'Expect fail' : 'Expect pass'
       const tokenizer = new HedStringTokenizer(test.string)
       const header = `\n[${test.testname}](${status}): ${test.explanation}`
-      const [tagSpecs, groupSpec, issues] = tokenizer.tokenize()
+      const [tagSpecs, groupSpec, tokenizingIssues] = tokenizer.tokenize()
+      const issues = Object.values(tokenizingIssues).flat()
       assert.sameDeepMembers(issues, test.errors, `${header} should have the same errors`)
       assert.sameDeepMembers(tagSpecs, test.tagSpecs, `${header} should generate the same tagSpecs`)
       assert.deepEqual(groupSpec, test.groupSpec, `${header} should generate the same groupSpec`)
@@ -36,7 +37,6 @@ describe('Tokenizer validation using JSON tests', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           stringTokenizer(test)
         } else {
-          // eslint-disable-next-line no-console
           console.log(`----Skipping tokenizerTest ${name}: ${test.testname}`)
         }
       })

@@ -132,27 +132,27 @@ export class HedStringTokenizer {
   /**
    * Split the HED string into delimiters and tags.
    *
-   * @returns {[TagSpec[], GroupSpec, Issue[]]} The tag specifications, group bounds, and any issues found.
+   * @returns {[TagSpec[], GroupSpec, Object<string, Issue[]>]} The tag specifications, group bounds, and any issues found.
    */
   tokenize() {
     this.initializeTokenizer()
     // Empty strings cannot be tokenized
     if (this.hedString.trim().length === 0) {
       this.pushIssue('emptyTagFound', 0)
-      return [[], null, this.issues]
+      return [[], null, { syntax: this.issues }]
     }
     for (let i = 0; i < this.hedString.length; i++) {
       const character = this.hedString.charAt(i)
       this.handleCharacter(i, character)
       if (this.issues.length > 0) {
-        return [[], null, this.issues]
+        return [[], null, { syntax: this.issues }]
       }
     }
     this.finalizeTokenizer()
     if (this.issues.length > 0) {
-      return [[], null, this.issues]
+      return [[], null, { syntax: this.issues }]
     } else {
-      return [this.state.currentGroupStack.pop(), this.state.parenthesesStack.pop(), []]
+      return [this.state.currentGroupStack.pop(), this.state.parenthesesStack.pop(), { syntax: [] }]
     }
   }
 

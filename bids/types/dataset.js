@@ -1,3 +1,5 @@
+import { fallbackDatasetDescription } from './json'
+
 export class BidsDataset {
   /**
    * The dataset's event file data.
@@ -20,7 +22,7 @@ export class BidsDataset {
    */
   datasetRootDirectory
 
-  constructor(eventData, sidecarData, datasetDescription, datasetRootDirectory = null) {
+  constructor(eventData, sidecarData, datasetDescription = fallbackDatasetDescription, datasetRootDirectory = null) {
     this.eventData = eventData
     this.sidecarData = sidecarData
     this.datasetDescription = datasetDescription
