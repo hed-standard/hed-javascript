@@ -25,16 +25,16 @@ export const getTagSlashIndices = function (tag) {
   return indices
 }
 
-/**
- * Get the levels of a tag.
- *
- * @param {string} tag A HED tag string.
- * @returns {string[]} The levels of this tag.
- */
-export const getTagLevels = function (tag) {
-  const tagSlashIndices = getTagSlashIndices(tag)
-  return tagSlashIndices.map((tagSlashIndex) => tag.slice(0, tagSlashIndex))
-}
+// /**
+//  * Get the levels of a tag.
+//  *
+//  * @param {string} tag A HED tag string.
+//  * @returns {string[]} The levels of this tag.
+//  */
+// export const getTagLevels = function (tag) {
+//   const tagSlashIndices = getTagSlashIndices(tag)
+//   return tagSlashIndices.map((tagSlashIndex) => tag.slice(0, tagSlashIndex))
+// }
 
 /**
  * Get the last part of a HED tag.
