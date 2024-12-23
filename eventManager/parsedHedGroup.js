@@ -4,7 +4,7 @@ import { IssueError } from '../common/issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
-import { ReservedChecker } from './reservedChecker'
+import { SpecialChecker } from './special'
 import {
   filterByClass,
   categorizeTagsByName,
@@ -80,7 +80,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   _initializeGroups() {
-    const special = ReservedChecker.getInstance()
+    const special = SpecialChecker.getInstance()
     this.specialTags = categorizeTagsByName(this.topTags, special.specialNames)
     this.isDefExpandGroup = this.specialTags.has('Def-expand')
     this.isDefinitionGroup = this.specialTags.has('Definition')
@@ -119,16 +119,20 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
       return null
     }
     if (this.defCount > 1) {
-      IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
-        tag: requiresDefTags[0].originalTag,
-        tagGroup: this.originalTag,
-      })
+      return [
+        IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
+          tag: requiresDefTags[0].originalTag,
+          tagGroup: this.originalTag,
+        }),
+      ]
     }
     if (this.topSplices.length === 0 && this.defCount === 0) {
-      IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
-        tag: requiresDefTags[0].originalTag,
-        tagGroup: this.originalTag,
-      })
+      return [
+        IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
+          tag: requiresDefTags[0].originalTag,
+          tagGroup: this.originalTag,
+        }),
+      ]
     }
     return requiresDefTags[0]
   }
@@ -159,12 +163,20 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     return this.isSpecialGroup('Onset') || this.isSpecialGroup('Offset') || this.isSpecialGroup('Inset')
   }
 
-  get defTags() {
-    const tags = this.getSpecial('Def')
-    for (const group of this.defExpandChildren) {
-      tags.push(...group.getSpecial('Def-expand'))
+  /**
+   * Whether this HED tag group is an onset, offset, or inset group.
+   * @returns {string}
+   */
+  get temporalGroupName() {
+    if (this.isSpecialGroup('Onset')) {
+      return 'Onset'
+    } else if (this.isSpecialGroup('Offset')) {
+      return 'Offset'
+    } else if (this.isSpecialGroup('Inset')) {
+      return 'Inset'
+    } else {
+      return undefined
     }
-    return tags
   }
 
   equivalent(other) {
@@ -183,15 +195,15 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * @returns {ParsedHedTag[]}
    */
   nestedGroups() {
-    const groups = []
+    const currentGroup = []
     for (const innerTag of this.tags) {
       if (innerTag instanceof ParsedHedTag) {
-        groups.push(innerTag)
+        currentGroup.push(innerTag)
       } else if (innerTag instanceof ParsedHedGroup) {
-        groups.push(innerTag.nestedGroups())
+        currentGroup.push(innerTag.nestedGroups())
       }
     }
-    return groups
+    return currentGroup
   }
 
   /**

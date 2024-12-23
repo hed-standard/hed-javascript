@@ -1,4 +1,5 @@
 import { BidsHedIssue } from './issues'
+import { generateIssue } from '../../common/issues/issues'
 
 /**
  * A BIDS file.
@@ -36,15 +37,27 @@ export class BidsFile {
     return false
   }
 
-  validate(hedSchemas) {
+  /**
+   * Validate this validator's tsv file
+   *
+   * @param {Schemas} schemas
+   * @returns {BidsIssue[]} Any issues found during validation of this TSV file.
+   */
+  validate(schemas) {
     if (!this.hasHedData()) {
       return []
-    } else if (hedSchemas === null) {
-      return null
+    }
+    if (!schemas) {
+      BidsHedIssue.fromHedIssue(
+        generateIssue('genericError', {
+          message: 'BIDS file HED validation requires a HED schema, but the schema received was null.',
+        }),
+        { path: this.file.file, relativePath: this.file.file },
+      )
     }
 
     try {
-      const validator = new this.validatorClass(this, hedSchemas)
+      const validator = new this.validatorClass(this, schemas)
       return validator.validate()
     } catch (internalError) {
       return BidsHedIssue.fromHedIssues(internalError, this.file)

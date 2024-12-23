@@ -30,7 +30,7 @@ export default {
   duplicateTag: {
     hedCode: 'TAG_EXPRESSION_REPEATED',
     level: 'error',
-    message: stringTemplate`Duplicate tag - "${'tag'}".`,
+    message: stringTemplate`Duplicate tags - "${'tags'} in "${'string'}".`,
   },
   invalidCharacter: {
     hedCode: 'CHARACTER_INVALID',
@@ -88,11 +88,6 @@ export default {
     level: 'warning',
     message: stringTemplate`Tag with prefix "${'tagPrefix'}" is required.`,
   },
-  unitClassDefaultUsed: {
-    hedCode: 'UNITS_MISSING',
-    level: 'warning',
-    message: stringTemplate`No unit specified. Using "${'defaultUnit'}" as the default - "${'tag'}".`,
-  },
   unitClassInvalidUnit: {
     hedCode: 'UNITS_INVALID',
     level: 'error',
@@ -108,21 +103,41 @@ export default {
     level: 'warning',
     message: stringTemplate`Tag extension found - "${'tag'}".`,
   },
+  invalidPlaceholderContext: {
+    hedCode: 'PLACEHOLDER_INVALID',
+    level: 'error',
+    message: stringTemplate`"${'string'}" has "#" placeholders, which are not allowed in this context.`,
+  },
+  invalidSidecarPlaceholder: {
+    hedCode: 'PLACEHOLDER_INVALID',
+    level: 'error',
+    message: stringTemplate`"${'string'}" of column "${'column'}" has an invalid # placeholder.`,
+  },
   // HED 3-specific validation issues
   invalidPlaceholder: {
     hedCode: 'PLACEHOLDER_INVALID',
     level: 'error',
-    message: stringTemplate`Invalid placeholder - "${'tag'}".`,
+    message: stringTemplate`Invalid # placeholder - "${'tag'}".`,
   },
   missingPlaceholder: {
     hedCode: 'PLACEHOLDER_INVALID',
     level: 'error',
-    message: stringTemplate`HED value string "${'string'}" is missing a required placeholder.`,
+    message: stringTemplate`HED value string "${'string'}" is missing a required # placeholder for column "${'column'}".`,
+  },
+  extraPlaceholder: {
+    hedCode: 'PLACEHOLDER_INVALID',
+    level: 'error',
+    message: stringTemplate`HED value string "${'string'}" has too many placeholders in column "${'column'}".`,
   },
   invalidPlaceholderInDefinition: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Invalid placeholder in definition - "${'definition'}".`,
+    message: stringTemplate`Invalid placeholder or missing placeholder in definition - "${'definition'}".`,
+  },
+  invalidDefinition: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Invalid definition - "${'definition'}".`,
   },
   nestedDefinition: {
     hedCode: 'DEFINITION_INVALID',
@@ -139,10 +154,25 @@ export default {
     level: 'error',
     message: stringTemplate`Def-expand tag found for definition name "${'definition'}" does not correspond to an existing definition.`,
   },
+  defExpandContentsInvalid: {
+    hedCode: 'DEF_EXPAND_INVALID',
+    level: 'error',
+    message: stringTemplate`Def-expand contents "${'contents'}" disagree with evaluated definition "${'contentsDef'}".`,
+  },
   duplicateDefinition: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Definition "${'definition'}" is declared multiple times. This instance's tag group is "${'tagGroup'}".`,
+  },
+  conflictingDefinitions: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Definition "${'definition1'}" and "${'definition2'}' conflict.`,
+  },
+  duplicateDefinitionNames: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`Definition "${'definition1'}" and "${'definition2'}" have same name but are not equivalent.`,
   },
   multipleTagGroupsInDefinition: {
     hedCode: 'DEFINITION_INVALID',
@@ -157,7 +187,7 @@ export default {
   illegalDefinitionContext: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Definitions were found in string "${'string'}" in a context where definitions are not allowed.`,
+    message: stringTemplate`Definition "${'definition'}" was found in string "${'string'}" in a context where definitions are not allowed.`,
   },
   illegalInExclusiveContext: {
     hedCode: 'TAG_INVALID',
@@ -174,25 +204,45 @@ export default {
     level: 'error',
     message: stringTemplate`${'tag'} found without an included inner top-level tag group. This instance's tag group is "${'tagGroup'}".`,
   },
-  temporalWithMultipleDefinitions: {
+  temporalWithWrongNumberDefs: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
-    message: stringTemplate`${'tag'} found with multiple included definitions. This instance's tag group is "${'tagGroup'}".`,
+    message: stringTemplate`${'tag'} found in tag group "${'tagGroup'}" with the wrong number of Def tags and Def-expand groups.`,
   },
   temporalWithoutDefinition: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
-    message: stringTemplate`${'tag'} found without an included definition. This instance's tag group is "${'tagGroup'}".`,
+    message: stringTemplate`${'tag'} found in tag group "${'tagGroup'}" without an included definition.`,
   },
   extraTagsInTemporal: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
-    message: stringTemplate`Extra non-definition top-level tags or tag groups found in onset or offset group with definition "${'definition'}".`,
+    message: stringTemplate`Extra top-level tags or tag groups found in onset, inset, or offset group "${'tagGroup'}" with definition "${'definition'}".`,
+  },
+  temporalTagInNonTemporalContext: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`HED event string "${'string'}" has temporal tags on line(s) [${'tsvline'}] in a tsv file without an onset time.`,
   },
   duplicateTemporal: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
-    message: stringTemplate`HED event string "${'string'}" has onset/offset tags with duplicated definition "${'definition'}".`,
+    message: stringTemplate`HED event string "${'string'}" has onset/offset/inset tags with duplicated definition "${'definition'}".`,
+  },
+  multipleTemporalTags: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`HED event string "${'string'}" has multiple temporal tags ${'tags'} in the same group.`,
+  },
+  multipleRequiresDefTags: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`HED event string "${'string'}" has multiple temporal tags ${'tags'} that require a definition in the same group.`,
+  },
+  simultaneousDuplicateEvents: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`Temporal tag group "${'tagGroup1'}" at ${'onset1'} line ${'tsvLine1'} is simultaneous with "${'tagGroup2'}" at ${'onset2'} line ${'tsvLine2'}.`,
   },
   missingTagGroup: {
     hedCode: 'TAG_GROUP_ERROR',
@@ -203,6 +253,11 @@ export default {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
     message: stringTemplate`"${'tagGroup'}" has invalid group tags or invalid number of subgroups.`,
+  },
+  forbiddenSubgroupTags: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" in "${'string'}" cannot have tags "${'tagList'}" in a subgroup.`,
   },
   invalidTopLevelTagGroupTag: {
     hedCode: 'TAG_GROUP_ERROR',
@@ -219,6 +274,11 @@ export default {
     level: 'error',
     message: stringTemplate`Tags "${'tags'}" cannot be at the same level in group "${'string'}".`,
   },
+  tooManyGroupTopTags: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`Group "${'string'}" has too many or too few tags at the top level.`,
+  },
   multipleTopLevelTagGroupTags: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
@@ -227,17 +287,17 @@ export default {
   invalidNumberOfSubgroups: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`The tags "${'tags'} in "${'string'} require groups that do not agree or are not present in their group .`,
+    message: stringTemplate`The tag "${'tag'} is in a "${'string'} with too many or too few subgroups.`,
   },
   invalidTopLevelTag: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`Tag "${'tag'}" is only allowed inside of a tag group.`,
+    message: stringTemplate`Tag(s) "${'tag'}" should be in a top group in "${'string'}".`,
   },
   invalidGroupTag: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`Tag "${'tag'}" should be in a group in "${'string'}" but is not.`,
+    message: stringTemplate`Tag(s) "${'tag'}" should be in a group in "${'string'}".`,
   },
   // Tag conversion issues
   invalidParentNode: {
@@ -294,7 +354,7 @@ export default {
   curlyBracesInHedColumn: {
     hedCode: 'CHARACTER_INVALID',
     level: 'error',
-    message: stringTemplate`Curly brace expression "${'column'}" found in the HED column of a TSV file.`,
+    message: stringTemplate`Curly brace expression "${'string'}" found in the HED column of a TSV file.`,
   },
   curlyBracesNotAllowed: {
     hedCode: 'CHARACTER_INVALID',

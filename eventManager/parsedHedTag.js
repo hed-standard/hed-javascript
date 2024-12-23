@@ -2,7 +2,7 @@ import { IssueError } from '../common/issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
-import { ReservedChecker } from './reservedChecker'
+import { SpecialChecker } from './special'
 
 const allowedRegEx = /^[^{}\,]*$/
 
@@ -124,7 +124,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       return
     }
     // Check that there is a value if required
-    const special = ReservedChecker.getInstance()
+    const special = SpecialChecker.getInstance()
     if (
       (schemaTag.hasAttributeName('requireChild') || special.requireValueTags.has(schemaTag.name)) &&
       remainder === ''
@@ -173,7 +173,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Handle special three-level tags
    * @param {string} remainder - the remainder of the tag string after schema tag
-   * @param {ReservedChecker} special - the special checker for checking the special tag properties
+   * @param {SpecialChecker} special - the special checker for checking the special tag properties
    */
   _getSplitValue(remainder, special) {
     if (!special.allowTwoLevelValueTags.has(this.schemaTag.name)) {
@@ -234,6 +234,16 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
+   * Determine whether this tag's parent tag has a given attribute.
+   *
+   * @param {string} attribute An attribute name.
+   * @returns {boolean} Whether this tag's parent tag has the named attribute.
+   */
+  parentHasAttribute(attribute) {
+    return this.schema?.tagHasAttribute(this.parentFormattedTag, attribute)
+  }
+
+  /**
    * Get the last part of a HED tag.
    *
    * @param {string} tagString A HED tag.
@@ -273,10 +283,19 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
+   * The parent portion of {@link formattedTag}.
+   *
+   * @returns {string} The "parent" portion of the formatted tag.
+   */
+  get parentFormattedTag() {
+    return ParsedHedTag.getParentTag(this.formattedTag)
+  }
+
+  /**
    * Iterate through a tag's ancestor tag strings.
    *
-   * @param {string} tagString - A tag string.
-   * @yields {string} - The tag's ancestor tags.
+   * @param {string} tagString A tag string.
+   * @yields {string} The tag's ancestor tags.
    */
   static *ancestorIterator(tagString) {
     while (tagString.lastIndexOf('/') >= 0) {

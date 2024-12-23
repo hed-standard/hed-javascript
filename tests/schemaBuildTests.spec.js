@@ -48,7 +48,7 @@ describe('Schema build validation', () => {
       let schema = undefined
       let caughtError = null
       try {
-        schema = await buildBidsSchemas(desc)
+        schema = await buildBidsSchemas(desc, null)
       } catch (error) {
         caughtError = error
       }
@@ -60,6 +60,7 @@ describe('Schema build validation', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           await testSchema(test)
         } else {
+          // eslint-disable-next-line no-console
           console.log(`----Skipping schemaBuildTest ${name}: ${test.testname}`)
         }
       })

@@ -13,9 +13,9 @@ import { filterNonEqualDuplicates } from '../utils/map'
  */
 export const parseDefinitions = function (parsedHedStrings) {
   const issues = []
-  const parsedHedStringDefinitions = parsedHedStrings.flatMap((parsedHedString) => {
-    return parsedHedString.definitions
-  })
+  const parsedHedStringDefinitions = parsedHedStrings.flatMap((parsedHedString) =>
+    parsedHedString ? parsedHedString.definitions : [],
+  )
   const [definitionMap, definitionDuplicates] = filterNonEqualDuplicates(
     parsedHedStringDefinitions,
     (definition, other) => definition.definitionGroup.equivalent(other.definitionGroup),
@@ -39,10 +39,10 @@ export const parseDefinitions = function (parsedHedStrings) {
  * @returns {Issue[]} Any issues found.
  */
 const checkGroupForTemporalOrder = (parsedGroup, activeScopes) => {
-  if (parsedGroup.isOnsetGroup) {
+  if (parsedGroup.isSpecialGroup('Onset')) {
     activeScopes.add(parsedGroup.defNameAndValue)
   }
-  if (parsedGroup.isInsetGroup && !activeScopes.has(parsedGroup.defNameAndValue)) {
+  if (parsedGroup.isSpecialGroup('Inset') && !activeScopes.has(parsedGroup.defNameAndValue)) {
     return [
       generateIssue('inactiveOnset', {
         definition: parsedGroup.defNameAndValue,
@@ -50,7 +50,7 @@ const checkGroupForTemporalOrder = (parsedGroup, activeScopes) => {
       }),
     ]
   }
-  if (parsedGroup.isOffsetGroup && !activeScopes.delete(parsedGroup.defNameAndValue)) {
+  if (parsedGroup.isSpecialGroup('Offset') && !activeScopes.delete(parsedGroup.defNameAndValue)) {
     return [
       generateIssue('inactiveOnset', {
         definition: parsedGroup.defNameAndValue,
@@ -112,7 +112,7 @@ export const validateDataset = function (definitions, hedStrings, hedSchemas) {
  *
  * @param {(string[]|ParsedHedString[])} parsedHedStrings The dataset's parsed HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
- * @param {Map<string, ParsedHedGroup>} definitions The dataset's parsed definitions.
+ * @param {DefinitionManager} definitions The dataset's parsed definitions.
  * @param {Object} settings The configuration settings for validation.
  * @returns {[boolean, Issue[]]} Whether the HED strings are valid and any issues found.
  */
@@ -158,7 +158,7 @@ export const validateHedDataset = function (hedStrings, hedSchemas, ...args) {
   if (stringsValid && settings.validateDatasetLevel) {
     datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
   }
-  const issues = stringIssues.concat(...Object.values(parsingIssues), definitionIssues, datasetIssues)
+  const issues = [...parsingIssues, ...definitionIssues, ...stringIssues, ...datasetIssues]
 
   return Issue.issueListWithValidStatus(issues)
 }
@@ -167,12 +167,12 @@ export const validateHedDataset = function (hedStrings, hedSchemas, ...args) {
  * Validate a HED dataset with additional context.
  *
  * @param {string[]|ParsedHedString[]} hedStrings The dataset's HED strings.
- * @param {string[]|ParsedHedString[]} contextHedStrings The dataset's context HED strings.
+ * @param {BidsSidecar} contextHedStrings The dataset's context HED strings.
  * @param {Schemas} hedSchemas The HED schema container object.
  * @param {boolean} checkForWarnings Whether to check for warnings or only errors.
  * @returns {[boolean, Issue[]]} Whether the HED dataset is valid and any issues found.
  */
-export const validateHedDatasetWithContext = function (hedStrings, contextHedStrings, hedSchemas, ...args) {
+export const validateHedDatasetWithContext = function (hedStrings, context, hedSchemas, ...args) {
   let settings
   if (args[0] === Object(args[0])) {
     settings = {
@@ -185,24 +185,20 @@ export const validateHedDatasetWithContext = function (hedStrings, contextHedStr
       validateDatasetLevel: true,
     }
   }
-  if (hedStrings.length + contextHedStrings.length === 0) {
+  if (hedStrings.length + context.hedStrings.length === 0) {
     return [true, []]
   }
-  const [parsedHedStrings, parsingIssues] = parseHedStrings(hedStrings, hedSchemas, false)
-  const [parsedContextHedStrings, contextParsingIssues] = parseHedStrings(contextHedStrings, hedSchemas, false)
-  const combinedParsedHedStrings = parsedHedStrings.concat(parsedContextHedStrings)
-  const [definitions, definitionIssues] = parseDefinitions(combinedParsedHedStrings)
-  const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, definitions, settings)
+  const [parsedHedStrings, issues] = parseHedStrings(hedStrings, hedSchemas, true, false, false)
+  //const [parsedContextHedStrings, contextParsingIssues] = parseHedStrings(contextHedStrings, hedSchemas, false)
+  //const combinedParsedHedStrings = parsedHedStrings.concat(parsedContextHedStrings)
+  //const [definitions, definitionIssues] = parseDefinitions(combinedParsedHedStrings)
+  const [stringsValid, stringIssues] = validateHedEvents(parsedHedStrings, hedSchemas, context.definitions, settings)
+  issues.push(...stringIssues)
   let datasetIssues = []
   if (stringsValid && settings.validateDatasetLevel) {
-    datasetIssues = validateDataset(definitions, parsedHedStrings, hedSchemas)
+    datasetIssues = validateDataset(context.definitions, parsedHedStrings, hedSchemas)
   }
-  const issues = stringIssues.concat(
-    ...Object.values(parsingIssues),
-    ...Object.values(contextParsingIssues),
-    definitionIssues,
-    datasetIssues,
-  )
+  issues.push(...datasetIssues)
 
   return Issue.issueListWithValidStatus(issues)
 }

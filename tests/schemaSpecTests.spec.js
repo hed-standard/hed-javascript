@@ -52,6 +52,7 @@ describe('Schema validation', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           validateSpec(test)
         } else {
+          // eslint-disable-next-line no-console
           console.log(`----Skipping schemaSpecTest ${name}: ${test.testname}`)
         }
       })

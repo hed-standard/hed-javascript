@@ -24,7 +24,7 @@ import {
 } from './entries'
 import { IssueError } from '../common/issues/issues'
 
-//const specialTags = require('../data/json/specialTags.json')
+//const specialTags = require('../data/json/reservedTags.json')
 
 import classRegex from '../data/json/class_regex.json'
 

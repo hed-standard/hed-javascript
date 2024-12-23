@@ -30,3 +30,20 @@ export function recursiveMap(fn, array) {
     return fn(array)
   }
 }
+
+/**
+ * Apply a function recursively to an array.
+ *
+ * @template T,U
+ * @param {function(T, U[]): U} fn The function to apply.
+ * @param {T[]} array The array to map.
+ * @param {U[]}  [issues] An optional array to collect issues.
+ * @returns {U[]} The mapped array.
+ */
+export function recursiveMapNew(fn, array, issues = []) {
+  if (Array.isArray(array)) {
+    return array.map((element) => recursiveMap(fn, element, issues))
+  } else {
+    return fn(array, issues)
+  }
+}

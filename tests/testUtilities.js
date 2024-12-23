@@ -29,14 +29,19 @@ export function extractHedCodes(issues) {
 }
 
 // Parse the HED string
-export function getHedString(hedString, hedSchemas, fullCheck) {
-  const [parsedString, issues] = parseHedString(hedString, hedSchemas, fullCheck)
-  const flattenedIssues = Object.values(issues).flat()
+export function getHedString(hedString, hedSchemas, fullCheck, definitionsAllowed, placeholdersAllowed) {
+  const [parsedString, issues] = parseHedString(
+    hedString,
+    hedSchemas,
+    fullCheck,
+    definitionsAllowed,
+    placeholdersAllowed,
+  )
   let errorIssues = []
   let warningIssues = []
-  if (flattenedIssues.length !== 0) {
-    errorIssues = flattenedIssues.filter((obj) => obj.level === 'error')
-    warningIssues = flattenedIssues.filter((obj) => obj.level !== 'error')
+  if (issues.length !== 0) {
+    errorIssues = issues.filter((obj) => obj.level === 'error')
+    warningIssues = issues.filter((obj) => obj.level !== 'error')
   }
   if (errorIssues.length > 0) {
     return [null, errorIssues, warningIssues]

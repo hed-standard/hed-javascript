@@ -159,8 +159,8 @@ export class SchemaEntryManager extends Memoizer {
   /**
    * Get the entry with the given name.
    *
-   * @param {string} name The name of the entry to retrieve.
-   * @return {T} The entry with that name.
+   * @param {string} name - The name of the entry to retrieve.
+   * @returns {T} - The entry with that name.
    */
   getEntry(name) {
     return this._definitions.get(name)
@@ -169,8 +169,8 @@ export class SchemaEntryManager extends Memoizer {
   /**
    * Get a collection of entries with the given boolean attribute.
    *
-   * @param {string} booleanAttributeName The name of boolean attribute to filter on.
-   * @return {Map<string, T>} A collection of entries with that attribute.
+   * @param {string} booleanAttributeName - The name of boolean attribute to filter on.
+   * @returns {Map<string, T>} - A collection of entries with that attribute.
    */
   getEntriesWithBooleanAttribute(booleanAttributeName) {
     return this._memoize(booleanAttributeName, () => {
@@ -240,8 +240,8 @@ export class SchemaTagManager extends SchemaEntryManager {
   /**
    * Determine whether the tag with the given name exists.
    *
-   * @param {string} longName The long name of the tag.
-   * @return {boolean} Whether the tag exists.
+   * @param {string} longName - The long name of the tag.
+   * @returns {boolean} -True if the tag exists.
    */
   hasLongNameEntry(longName) {
     return this._definitionsByLongName.has(longName)
@@ -250,8 +250,8 @@ export class SchemaTagManager extends SchemaEntryManager {
   /**
    * Get the tag with the given name.
    *
-   * @param {string} longName The long name of the tag to retrieve.
-   * @return {SchemaTag} The tag with that name.
+   * @param {string} longName - The long name of the tag to retrieve.
+   * @returns {SchemaTag} - The tag with that name.
    */
   getLongNameEntry(longName) {
     return this._definitionsByLongName.get(longName)
@@ -664,7 +664,7 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
 
   /**
    * Extracts the Unit class and remainder
-   * @returns {Unit, string, string} unit class, unit string, and value string
+   * @returns {SchemaUnit, string, string} unit class, unit string, and value string
    */
   extractUnit(value) {
     let actualUnit = null // The Unit class of the value

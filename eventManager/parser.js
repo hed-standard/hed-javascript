@@ -1,7 +1,8 @@
+import { mergeParsingIssues } from '../utils/hedData'
 import ParsedHedString from './parsedHedString'
 import HedStringSplitter from './splitter'
 import { generateIssue } from '../common/issues/issues'
-import { ReservedChecker } from './reservedChecker'
+import { SpecialChecker } from './special'
 import { getTagListString } from './parseUtils'
 
 /**
@@ -75,7 +76,7 @@ class HedStringParser {
     if (simpleDefinitionIssues.length > 0) {
       return [null, simpleDefinitionIssues]
     }
-    const checkIssues = ReservedChecker.getInstance().checkHedString(parsedString, fullCheck)
+    const checkIssues = SpecialChecker.getInstance().checkHedString(parsedString, fullCheck)
     if (checkIssues.length > 0) {
       return [null, checkIssues]
     }
