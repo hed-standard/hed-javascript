@@ -26,7 +26,7 @@ export class BidsTsvFile extends BidsFile {
    */
   potentialSidecars
   /**
-   * The pseudo-sidecar object representing the merged sidecar data.
+   * The pseudo-bidsFile object representing the merged bidsFile data.
    * @type {BidsSidecar}
    */
   mergedSidecar
@@ -40,7 +40,7 @@ export class BidsTsvFile extends BidsFile {
    * @param {{headers: string[], rows: string[][]}|Map<string, string[]>|string} tsvData This file's TSV data.
    * @param {object} file The file object representing this file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
-   * @param {object} mergedDictionary The merged sidecar data.
+   * @param {object} mergedDictionary The merged bidsFile data.
    * @param {DefinitionManager} defManager
    */
   constructor(name, tsvData, file, potentialSidecars = [], mergedDictionary = {}, defManager) {
@@ -146,6 +146,15 @@ export class BidsTsvElement {
   toString() {
     const onsetString = this.onset ? ` with onset=${this.onset.toString()}` : ''
     return this.hedString + ` in TSV file "${this.fileName}" at line(s) ${this.tsvLine}` + onsetString
+  }
+
+  /**
+   * Create a string list of the
+   * @param BidsTsvElements[] elements - A list of elements to construct line numbers from.
+   * @returns {string} - A string with the list of line numbers for error messages.
+   */
+  static getTsvLines(elements) {
+    return elements.map((element) => element.tsvLine).join(',')
   }
 }
 

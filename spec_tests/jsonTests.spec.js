@@ -17,9 +17,9 @@ const skipMap = new Map()
 const runAll = true
 //const runMap = new Map([['DEF_EXPAND_INVALID', ['def-expand-invalid-missing-placeholder']]])
 //const runMap = new Map([['TAG_GROUP_ERROR', ['tag-group-error-missing']]])
-const runMap = new Map([['TAG_GROUP_ERROR', ['tag-group-error-missing']]])
+const runMap = new Map([['TAG_EXPRESSION_REPEATED', ['tags-duplicated-across-multiple-rows']]])
+//const runOnly = new Set(["eventsPass"])
 const runOnly = new Set()
-
 const skippedErrors = {
   VERSION_DEPRECATED: 'not handling in the spec tests.',
   ELEMENT_DEPRECATED: 'not handling tag deprecated in the spec tests.',
@@ -185,7 +185,7 @@ describe('HED validation using JSON tests', () => {
         try {
           const defManager = new DefinitionManager()
           defManager.addDefinitions(defList)
-          const bidsSide = new BidsSidecar(`sidecar`, JSON.parse(side), { relativePath: 'sidecar test' }, defManager)
+          const bidsSide = new BidsSidecar(`sidecar`, JSON.parse(side), { relativePath: 'bidsFile test' }, defManager)
           issues = bidsSide.validate(hedSchema)
         } catch (e) {
           issues = [convertIssue(e)]

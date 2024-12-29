@@ -13,8 +13,8 @@ import { DefinitionManager } from '../parser/definitionManager'
 // Ability to select individual tests to run
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
-const runAll = false
-const runMap = new Map([['temporal-tests', ['delayed-onset-with-offset-before-with-sidecar']]])
+const runAll = true
+const runMap = new Map([['duplicate-tag-tests', ['invalid-duplicate-multiple-onset']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
@@ -52,7 +52,7 @@ describe('BIDS validation', () => {
         `${header}: input definitions "${test.definitions}" have conflicts "${defAddIssues}"`,
       )
 
-      // Validate the sidecar by itself
+      // Validate the bidsFile by itself
       const sidecarName = test.testname + '.json'
       const bidsSidecar = new BidsSidecar(
         'thisOne',
@@ -64,7 +64,7 @@ describe('BIDS validation', () => {
       const sidecarIssues = bidsSidecar.validate(thisSchema)
       assertErrors(test, 'Sidecar only', test.sidecarErrors, sidecarIssues)
 
-      // Validate the events file with no sidecar
+      // Validate the events file with no bidsFile
       const eventName = test.testname + '.tsv'
       const parsedTsv = parseTSV(test.eventsString)
       assert.instanceOf(parsedTsv, Map, `${eventName} cannot be parsed`)
@@ -81,7 +81,7 @@ describe('BIDS validation', () => {
       const noSideIssues = bidsTsv.validate(thisSchema)
       assertErrors(test, 'Events', test.tsvErrors, noSideIssues)
 
-      // Validate the events file with the sidecar (use the definitions from the sidecar)
+      // Validate the events file with the bidsFile (use the definitions from the bidsFile)
       const defManager3 = new DefinitionManager()
       defManager3.addDefinitions(defList)
       const bidsTsvSide = new BidsTsvFile(
@@ -101,8 +101,8 @@ describe('BIDS validation', () => {
         if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
           validate(test)
         } else {
-          // eslint-disable-next-line no-console
-          //console.log(`----Skipping bidsTest ${name}: ${test.testname}`)
+          //eslint-disable-next-line no-console
+          console.log(`----Skipping bidsTest ${name}: ${test.testname}`)
         }
       })
     }

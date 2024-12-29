@@ -8,7 +8,7 @@ export const bidsTestData = [
     tests: [
       {
         testname: 'no-hed-at-all-but-both-tsv-json-non-empty',
-        explanation: 'Neither the sidecar or tsv has HED but neither non-empty',
+        explanation: 'Neither the bidsFile or tsv has HED but neither non-empty',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -38,7 +38,7 @@ export const bidsTestData = [
       },
       {
         testname: 'empty-json-empty-tsv',
-        explanation: 'Both sidecar and tsv are empty except for white space',
+        explanation: 'Both bidsFile and tsv are empty except for white space',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
@@ -92,7 +92,7 @@ export const bidsTestData = [
     tests: [
       {
         testname: 'invalid-bad-tag-in-tsv',
-        explanation: 'Unrelated sidecar is valid but HED column tag is invalid',
+        explanation: 'Unrelated bidsFile is valid but HED column tag is invalid',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -173,8 +173,8 @@ export const bidsTestData = [
         ],
       },
       {
-        testname: 'valid-sidecar-tsv-curly-brace',
-        explanation: 'The sidecar is valid, but tsv HED column has braces}',
+        testname: 'valid-bidsFile-tsv-curly-brace',
+        explanation: 'The bidsFile is valid, but tsv HED column has braces}',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -188,14 +188,14 @@ export const bidsTestData = [
         sidecarErrors: [],
         tsvErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: 'Red,{blue}', tsvLine: '2' }), {
-            path: 'valid-sidecar-tsv-curly-brace.tsv',
-            relativePath: 'valid-sidecar-tsv-curly-brace.tsv',
+            path: 'valid-bidsFile-tsv-curly-brace.tsv',
+            relativePath: 'valid-bidsFile-tsv-curly-brace.tsv',
           }),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: 'Red,{blue}', tsvLine: '2' }), {
-            path: 'valid-sidecar-tsv-curly-brace.tsv',
-            relativePath: 'valid-sidecar-tsv-curly-brace.tsv',
+            path: 'valid-bidsFile-tsv-curly-brace.tsv',
+            relativePath: 'valid-bidsFile-tsv-curly-brace.tsv',
           }),
         ],
       },
@@ -482,6 +482,92 @@ export const bidsTestData = [
           ),
         ],
       },
+      {
+        testname: 'invalid-duplicate-multiple-rows',
+        explanation: 'Duplicates across rows.',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              ball: '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange',
+            },
+          },
+        },
+        eventsString:
+          'onset\tduration\tevent_code\tHED\n' +
+          '19\t0\tball\t(Red, Blue, Green)\n' +
+          '20\t0\tball\t(Blue, Red, Green)\n19\t0\tn/a\t(Blue, Red, Green)\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              tags: '[(Blue,Green,Red)]',
+              string: '(Red, Blue, Green),(Blue, Red, Green)',
+            }),
+            {
+              path: 'invalid-duplicate-multiple-rows.tsv',
+              relativePath: 'invalid-duplicate-multiple-rows.tsv',
+            },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              tags: '[(Blue,Green,Red)]',
+              string:
+                '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange,(Red, Blue, Green),(Blue, Red, Green)',
+            }),
+            {
+              path: 'invalid-duplicate-multiple-rows.tsv',
+              relativePath: 'invalid-duplicate-multiple-rows.tsv',
+            },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-duplicate-multiple-onset',
+        explanation: 'Duplicates across rows because onsets are the same.',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              ball: '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange',
+            },
+          },
+        },
+        eventsString:
+          'onset\tduration\tevent_code\tHED\n' +
+          '19\t0\tball\t(Onset, Def/MyColor)\n' +
+          '20\t0\tball\t(Blue, Red, Green)\n19\t0\tn/a\t(Def/MyColor, Onset)\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              tags: '[(Def/MyColor,Onset)]',
+              string: '(Onset, Def/MyColor),(Def/MyColor, Onset)',
+            }),
+            {
+              path: 'invalid-duplicate-multiple-onset.tsv',
+              relativePath: 'invalid-duplicate-multiple-onset.tsv',
+            },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              tags: '[(Def/MyColor,Onset)]',
+              string:
+                '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange,(Onset, Def/MyColor),(Def/MyColor, Onset)',
+            }),
+            {
+              path: 'invalid-duplicate-multiple-onset.tsv',
+              relativePath: 'invalid-duplicate-multiple-onset.tsv',
+            },
+          ),
+        ],
+      },
     ],
   },
   {
@@ -489,8 +575,8 @@ export const bidsTestData = [
     description: 'Curly braces tested in various places',
     tests: [
       {
-        testname: 'valid-curly-brace-in-sidecar-with-value-splice',
-        explanation: 'Valid curly brace in sidecar and valid value is spliced in',
+        testname: 'valid-curly-brace-in-bidsFile-with-value-splice',
+        explanation: 'Valid curly brace in bidsFile and valid value is spliced in',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -511,8 +597,8 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
-        testname: 'valid-curly-brace-in-sidecar-with-tsv-n/a',
-        explanation: 'Valid curly brace in sidecar and valid tsv with n/a',
+        testname: 'valid-curly-brace-in-bidsFile-with-tsv-n/a',
+        explanation: 'Valid curly brace in bidsFile and valid tsv with n/a',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -534,8 +620,8 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
-        testname: 'valid-curly-brace-in-sidecar-with-category-splice',
-        explanation: 'Valid curly brace in sidecar and valid value is spliced in',
+        testname: 'valid-curly-brace-in-bidsFile-with-category-splice',
+        explanation: 'Valid curly brace in bidsFile and valid value is spliced in',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -558,8 +644,8 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
-        testname: 'valid-curly-brace-in-sidecar-with-n/a-splice',
-        explanation: 'Valid curly brace in sidecar and but tsv splice entry is n/a',
+        testname: 'valid-curly-brace-in-bidsFile-with-n/a-splice',
+        explanation: 'Valid curly brace in bidsFile and but tsv splice entry is n/a',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -581,7 +667,7 @@ export const bidsTestData = [
       },
       {
         testname: 'valid-HED-column-splice',
-        explanation: 'Valid curly brace in sidecar with valid HED column splice',
+        explanation: 'Valid curly brace in bidsFile with valid HED column splice',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -603,7 +689,7 @@ export const bidsTestData = [
       },
       {
         testname: 'valid-HED-column-splice-with-n/a',
-        explanation: 'Valid curly brace in sidecar with HED column entry n/a',
+        explanation: 'Valid curly brace in bidsFile with HED column entry n/a',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -620,7 +706,7 @@ export const bidsTestData = [
       },
       {
         testname: 'valid-HED-curly-brace-but-tsv-has-no-HED-column',
-        explanation: 'A {HED} column splice is used in a sidecar but the tsv has no HED column',
+        explanation: 'A {HED} column splice is used in a bidsFile but the tsv has no HED column',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -698,7 +784,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-recursive-curly-braces',
-        explanation: 'Mutually recursive curly braces in sidecar.',
+        explanation: 'Mutually recursive curly braces in bidsFile.',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -751,7 +837,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-self-recursive-curly-braces',
-        explanation: 'Mutually recursive curly braces in sidecar.',
+        explanation: 'Mutually recursive curly braces in bidsFile.',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -832,7 +918,7 @@ export const bidsTestData = [
     tests: [
       {
         testname: 'valid-placeholder-used-in-tsv',
-        explanation: 'The sidecar has a placeholder that is used in the tsv',
+        explanation: 'The bidsFile has a placeholder that is used in the tsv',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -853,7 +939,7 @@ export const bidsTestData = [
       },
       {
         testname: 'valid-placeholder-not-used',
-        explanation: 'The sidecar has a placeholder that is not used in the tsv',
+        explanation: 'The bidsFile has a placeholder that is not used in the tsv',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -874,7 +960,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-no-placeholder-value-column',
-        explanation: 'The sidecar has a value column with no placeholder tag',
+        explanation: 'The bidsFile has a value column with no placeholder tag',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -905,7 +991,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-multiple-placeholders-in-value-column',
-        explanation: 'The sidecar has a value column with no placeholder tag',
+        explanation: 'The bidsFile has a value column with no placeholder tag',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -942,7 +1028,7 @@ export const bidsTestData = [
     tests: [
       {
         testname: 'valid-units-on-a-placeholder',
-        explanation: 'The sidecar has invalid units on a placeholder',
+        explanation: 'The bidsFile has invalid units on a placeholder',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -957,7 +1043,7 @@ export const bidsTestData = [
       },
       {
         testname: 'wrong-units-on-a-placeholder',
-        explanation: 'The sidecar has wrong units on a placeholder',
+        explanation: 'The bidsFile has wrong units on a placeholder',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -993,7 +1079,7 @@ export const bidsTestData = [
     tests: [
       {
         testname: 'valid-definition-no-placeholder',
-        explanation: 'Simple definition in sidecar',
+        explanation: 'Simple definition in bidsFile',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1013,7 +1099,7 @@ export const bidsTestData = [
       },
       {
         testname: 'valid-definition-with-placeholder',
-        explanation: 'Definition in sidecar has a placeholder',
+        explanation: 'Definition in bidsFile has a placeholder',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1033,7 +1119,7 @@ export const bidsTestData = [
       },
       {
         testname: 'valid-def-with-placeholder',
-        explanation: 'Def in sidecar has a placeholder',
+        explanation: 'Def in bidsFile has a placeholder',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1048,7 +1134,7 @@ export const bidsTestData = [
       },
       {
         testname: 'valid-definition-with-nested-placeholder',
-        explanation: 'Definition in sidecar has nested placeholder',
+        explanation: 'Definition in bidsFile has nested placeholder',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1068,7 +1154,7 @@ export const bidsTestData = [
       },
       {
         testname: 'valid-definition-no-group',
-        explanation: 'The sidecar with definition that has no internal group.',
+        explanation: 'The bidsFile with definition that has no internal group.',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1088,7 +1174,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-def-expand-no-group',
-        explanation: 'The sidecar with definition that has no internal group.',
+        explanation: 'The bidsFile with definition that has no internal group.',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1127,7 +1213,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-missing-definition-for-def',
-        explanation: 'The sidecar uses a def with no definition',
+        explanation: 'The bidsFile uses a def with no definition',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1158,7 +1244,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-missing-definition-for-def-expand',
-        explanation: 'The sidecar uses a def-expand with no definition',
+        explanation: 'The bidsFile uses a def-expand with no definition',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1189,7 +1275,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-nested-definition',
-        explanation: 'The sidecar has a definition inside a definition',
+        explanation: 'The bidsFile has a definition inside a definition',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1231,7 +1317,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-multiple-definition-tags',
-        explanation: 'The sidecar has multiple definition tags in same definition',
+        explanation: 'The bidsFile has multiple definition tags in same definition',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1273,7 +1359,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-definition-with-extra-groups',
-        explanation: 'The sidecar has a definition with extra internal group',
+        explanation: 'The bidsFile has a definition with extra internal group',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1315,7 +1401,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-definition-with-extra-sibling',
-        explanation: 'The sidecar has a definition with an extra internal sibling',
+        explanation: 'The bidsFile has a definition with an extra internal sibling',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1390,7 +1476,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-definition-with-missing-placeholder',
-        explanation: 'Definition in sidecar has missing placeholder',
+        explanation: 'Definition in bidsFile has missing placeholder',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1426,7 +1512,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-definition-with-fixed-placeholder',
-        explanation: 'Definition in sidecar has a fixed value instead of placeholder',
+        explanation: 'Definition in bidsFile has a fixed value instead of placeholder',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1466,7 +1552,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-definition-has-multiple-placeholders',
-        explanation: 'Definition in sidecar has multiple placeholders',
+        explanation: 'Definition in bidsFile has multiple placeholders',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1506,7 +1592,7 @@ export const bidsTestData = [
       },
       {
         testname: 'invalid-definition-not-isolated',
-        explanation: 'Definition in sidecar appears with other tags',
+        explanation: 'Definition in bidsFile appears with other tags',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1782,8 +1868,8 @@ export const bidsTestData = [
         ],
       },
       {
-        testname: 'delayed-onset-with-offset-before-with-sidecar',
-        explanation: 'offset appears before an onset with a sidecar in complex delayed scenario',
+        testname: 'delayed-onset-with-offset-before-with-bidsFile',
+        explanation: 'offset appears before an onset with a bidsFile in complex delayed scenario',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1803,8 +1889,8 @@ export const bidsTestData = [
           BidsHedIssue.fromHedIssue(
             generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
             {
-              path: 'delayed-onset-with-offset-before-with-sidecar.tsv',
-              relativePath: 'delayed-onset-with-offset-before-with-sidecar.tsv',
+              path: 'delayed-onset-with-offset-before-with-bidsFile.tsv',
+              relativePath: 'delayed-onset-with-offset-before-with-bidsFile.tsv',
             },
             { tsvLine: '5' },
           ),

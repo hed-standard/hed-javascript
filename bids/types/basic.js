@@ -22,6 +22,12 @@ export class BidsFile {
    */
   _validatorClass
 
+  /**
+   *
+   * @param {string} name - The name of the file -- used for messages.
+   * @param {object} file - The representation of the file for error messages.
+   * @param validatorClass
+   */
   constructor(name, file, validatorClass) {
     this.name = name
     this.file = file
@@ -31,17 +37,17 @@ export class BidsFile {
   /**
    * Determine whether this file has any HED data.
    *
-   * @returns {boolean}
+   * @returns {boolean} - True if this file has HED data.
    */
   hasHedData() {
     return false
   }
 
   /**
-   * Validate this validator's tsv file
+   * Validate this validator's tsv file.
    *
-   * @param {Schemas} schemas
-   * @returns {BidsIssue[]} Any issues found during validation of this TSV file.
+   * @param {Schemas} schemas - The HED schemas used to validate this file.
+   * @returns {BidsIssue[]} - Any issues found during validation of this TSV file.
    */
   validate(schemas) {
     if (!this.hasHedData()) {
