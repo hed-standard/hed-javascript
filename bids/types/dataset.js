@@ -5,7 +5,7 @@ export class BidsDataset {
    */
   eventData
   /**
-   * The dataset's sidecar data.
+   * The dataset's bidsFile data.
    * @type {BidsSidecar[]}
    */
   sidecarData

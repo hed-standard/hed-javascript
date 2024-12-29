@@ -177,7 +177,7 @@ export class EventManager {
       //         onset2: currentEvent.onset.toString(),
       //         tsvLine2: currentEvent.element.tsvLine,
       //       }),
-      //       event.tsvFile,
+      //       event.bidsFile,
       //     ),
       //   ]
     }

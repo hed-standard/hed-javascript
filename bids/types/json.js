@@ -28,17 +28,17 @@ export class BidsJsonFile extends BidsFile {
 
 export class BidsSidecar extends BidsJsonFile {
   /**
-   * The extracted keys for this sidecar.
+   * The extracted keys for this bidsFile.
    * @type {Map<string, BidsSidecarKey>}
    */
   sidecarKeys
   /**
-   * The extracted HED data for this sidecar.
+   * The extracted HED data for this bidsFile.
    * @type {Map<string, string|Object<string, string>>}
    */
   hedData
   /**
-   * The parsed HED data for this sidecar.
+   * The parsed HED data for this bidsFile.
    * @type {Map<string, ParsedHedString|Map<string, ParsedHedString>>}
    */
   parsedHedData
@@ -72,7 +72,7 @@ export class BidsSidecar extends BidsJsonFile {
   /**
    * Constructor.
    *
-   * @param {string} name The name of the sidecar file.
+   * @param {string} name The name of the bidsFile file.
    * @param {Object} sidecarData The raw JSON data.
    * @param {Object} file The file object representing this file.
    * @param {DefinitionManager } defManager - The external definitions to use
@@ -99,7 +99,7 @@ export class BidsSidecar extends BidsJsonFile {
   }
 
   /**
-   * Create the sidecar key map from the JSON.
+   * Create the bidsFile key map from the JSON.
    * @private
    */
   _filterHedStrings() {
@@ -173,7 +173,7 @@ export class BidsSidecar extends BidsJsonFile {
   }
 
   /**
-   * Parse this sidecar's HED strings within the sidecar structure.
+   * Parse this bidsFile's HED strings within the bidsFile structure.
    *
    * The parsed strings are placed into {@link parsedHedData}.
    *
@@ -197,7 +197,7 @@ export class BidsSidecar extends BidsJsonFile {
   }
 
   /**
-   * Generate a mapping of an individual BIDS sidecar's curly brace references.
+   * Generate a mapping of an individual BIDS bidsFile's curly brace references.
    *
    * @private
    */
@@ -212,7 +212,7 @@ export class BidsSidecar extends BidsJsonFile {
         this._parseCategorySplice(sidecarKey, hedData)
       } else if (hedData) {
         IssueError.generateAndThrow('internalConsistencyError', {
-          message: 'Unexpected type found in sidecar parsedHedData map.',
+          message: 'Unexpected type found in bidsFile parsedHedData map.',
         })
       }
     }
@@ -289,7 +289,7 @@ export class BidsSidecarKey {
    */
   parsedValueString
   /**
-   * Weak reference to the sidecar.
+   * Weak reference to the bidsFile.
    * @type {BidsSidecar}
    */
   sidecar
@@ -301,7 +301,7 @@ export class BidsSidecarKey {
    *
    * @param {string} key The name of this key.
    * @param {string|Object<string, string>} data The data for this key.
-   * @param {BidsSidecar} sidecar The parent sidecar.
+   * @param {BidsSidecar} sidecar The parent bidsFile.
    */
   constructor(key, data, sidecar) {
     this.name = key
@@ -331,7 +331,7 @@ export class BidsSidecarKey {
   }
 
   /**
-   * Parse the value string in a sidecar
+   * Parse the value string in a bidsFile
    * @param {Schemas} hedSchemas - The HED schemas to use.
    * @param {boolean} fullCheck - If true, then assume in final form and not up for potential splice.
    * @returns {Issue[]}

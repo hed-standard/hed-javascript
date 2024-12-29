@@ -1,117 +1,116 @@
 import { BidsHedIssue } from '../types/issues'
 import ParsedHedString from '../../parser/parsedHedString'
-// IMPORTANT: This import cannot be shortened to '../../validator', as this creates a circular dependency until v4.0.0.
-//import { validateHedString } from '../../validator/event/init'
 import { generateIssue, IssueError } from '../../common/issues/issues'
 import { getCharacterCount } from '../../utils/string.js'
+import { BidsValidator } from './validator'
+
 /**
  * Validator for HED data in BIDS JSON sidecars.
  */
-export class BidsHedSidecarValidator {
+export class BidsHedSidecarValidator extends BidsValidator {
   /**
-   * The BIDS sidecar being validated.
-   * @type {BidsSidecar}
-   */
-  sidecar
-  /**
-   * The HED schema collection being validated against.
-   * @type {Schemas}
-   */
-  hedSchemas
-  /**
-   * The issues found during validation.
-   * @type {BidsIssue[]}
-   */
-  issues
-
-  /**
-   * Constructor.
+   * Constructor for the BidsHedSidecarValidator.
    *
-   * @param {BidsSidecar} sidecar The BIDS sidecar being validated.
-   * @param {Schemas} hedSchemas
+   * @param {BidsSidecar} sidecar - The BIDS bidsFile being validated.
+   * @param {Schemas} hedSchemas - The schemas used for the sidecar validation.
    */
   constructor(sidecar, hedSchemas) {
-    this.sidecar = sidecar
-    this.hedSchemas = hedSchemas
-    this.issues = []
+    super(sidecar, hedSchemas)
   }
 
   /**
-   * Validate a BIDS JSON sidecar file. This method returns the complete issue list for convenience.
+   * Validate a BIDS JSON bidsFile file. This method returns the complete issue list for convenience.
    *
-   * @returns {BidsIssue[]} Any issues found during validation of this sidecar file.
+   * @returns {BidsIssue[]} - Any issues found during validation of this bidsFile file.
    */
   validate() {
     // Allow schema to be set a validation time -- this is checked by the superclass of BIDS file
     const sidecarParsingIssues = BidsHedIssue.fromHedIssues(
-      this.sidecar.parseHedStrings(this.hedSchemas),
-      this.sidecar.file,
+      this.bidsFile.parseHedStrings(this.hedSchemas),
+      this.bidsFile.file,
     )
     this.issues.push(...sidecarParsingIssues)
     if (sidecarParsingIssues.length > 0) {
       return this.issues
     }
-    this.issues.push(...this._validateStrings(), ...this.validateCurlyBraces())
+    this.issues.push(...this._validateStrings(), ...this._validateCurlyBraces())
     return this.issues
   }
 
   /**
-   * Validate this sidecar's HED strings.
+   * Validate this bidsFile's HED strings.
    *
    * @returns {BidsIssue[]} All issues found.
    */
   _validateStrings() {
     const issues = []
 
-    for (const [sidecarKeyName, hedData] of this.sidecar.parsedHedData) {
+    for (const [sidecarKeyName, hedData] of this.bidsFile.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
-        // Value options have HED as string
+        // Value options have HED as string.
         issues.push(...this._checkDetails(sidecarKeyName, hedData, true))
       } else if (hedData instanceof Map) {
-        // Categorical options have HED as a Map
+        // Categorical options have HED as a Map.
         for (const valueString of hedData.values()) {
-          const placeholdersAllowed = this.sidecar.sidecarKeys.get(sidecarKeyName).hasDefinitions
+          const placeholdersAllowed = this.bidsFile.sidecarKeys.get(sidecarKeyName).hasDefinitions
           issues.push(...this._checkDetails(sidecarKeyName, valueString, placeholdersAllowed))
         }
       } else {
         IssueError.generateAndThrow('internalConsistencyError', {
-          message: 'Unexpected type found in sidecar parsedHedData map.',
+          message: 'Unexpected type found in bidsFile parsedHedData map.',
         })
       }
     }
     return issues
   }
 
+  /**
+   * Check definitions and placeholders for a string associated with a sidecar key.
+   *
+   * @param {string} sidecarKeyName - The name of the sidecar key associated with string to be checked.
+   * @param {ParsedHedString} hedString - The parsed string to be checked.
+   * @returns {BidsHedIssue[]} - Issues associated with the check.
+   * @private
+   */
   _checkDetails(sidecarKeyName, hedString) {
     const issues = this._checkDefs(sidecarKeyName, hedString, true)
     issues.push(...this._checkPlaceholders(sidecarKeyName, hedString))
     return issues
   }
 
-  _checkDefs(sidecarKeyName, sidecarString, placeholdersAllowed) {
-    let issues = this.sidecar.definitions.validateDefs(sidecarString, this.hedSchemas, placeholdersAllowed)
+  /**
+   * Validate the Def and Def-expand usage against the sidecar definitions.
+   *
+   * @param {string} sidecarKeyName - Name of the sidecar key for this HED string
+   * @param {ParsedHedString} hedString - The parsed HED string object associated with this key.
+   * @param {boolean} placeholdersAllowed - If true, placeholders are allowed here.
+   * @returns {BidsHedIssue[]} - Issues encountered such as missing definitions or improper Def-expand values.
+   * @private
+   */
+  _checkDefs(sidecarKeyName, hedString, placeholdersAllowed) {
+    let issues = this.bidsFile.definitions.validateDefs(hedString, this.hedSchemas, placeholdersAllowed)
     if (issues.length > 0) {
-      return BidsHedIssue.fromHedIssues(issues, this.sidecar.file, { sidecarKeyName: sidecarKeyName })
+      return BidsHedIssue.fromHedIssues(issues, this.bidsFile.file, { sidecarKeyName: sidecarKeyName })
     }
-    issues = this.sidecar.definitions.validateDefExpands(sidecarString, this.hedSchemas, placeholdersAllowed)
-    return BidsHedIssue.fromHedIssues(issues, this.sidecar.file, { sidecarKeyName: sidecarKeyName })
+    issues = this.bidsFile.definitions.validateDefExpands(hedString, this.hedSchemas, placeholdersAllowed)
+    return BidsHedIssue.fromHedIssues(issues, this.bidsFile.file, { sidecarKeyName: sidecarKeyName })
   }
 
   _checkPlaceholders(sidecarKeyName, hedString) {
     const numberPlaceholders = getCharacterCount(hedString.hedString, '#')
-    const sidecarKey = this.sidecar.sidecarKeys.get(sidecarKeyName)
+    const sidecarKey = this.bidsFile.sidecarKeys.get(sidecarKeyName)
     if (!sidecarKey.valueString && !sidecarKey.hasDefinitions && numberPlaceholders > 0) {
       return [
         BidsHedIssue.fromHedIssue(
           generateIssue('invalidSidecarPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
-          this.sidecar.file,
+          this.bidsFile.file,
         ),
       ]
     } else if (sidecarKey.valueString && numberPlaceholders === 0) {
       return [
         BidsHedIssue.fromHedIssue(
           generateIssue('missingPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
-          this.sidecar.file,
+          this.bidsFile.file,
         ),
       ]
     }
@@ -119,7 +118,7 @@ export class BidsHedSidecarValidator {
       return [
         BidsHedIssue.fromHedIssue(
           generateIssue('invalidSidecarPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
-          this.sidecar.file,
+          this.bidsFile.file,
         ),
       ]
     }
@@ -127,13 +126,13 @@ export class BidsHedSidecarValidator {
   }
 
   /**
-   * Validate this sidecar's curly braces.
+   * Validate this bidsFile's curly braces -- checking recursion and missing columns.
    *
    * @returns {BidsIssue[]} All issues found.
    */
-  validateCurlyBraces() {
+  _validateCurlyBraces() {
     const issues = []
-    const references = this.sidecar.columnSpliceMapping
+    const references = this.bidsFile.columnSpliceMapping
 
     for (const [key, referredKeys] of references) {
       for (const referredKey of referredKeys) {
@@ -141,15 +140,15 @@ export class BidsHedSidecarValidator {
           issues.push(
             BidsHedIssue.fromHedIssue(
               generateIssue('recursiveCurlyBracesWithKey', { column: referredKey, referrer: key }),
-              this.sidecar.file,
+              this.bidsFile.file,
             ),
           )
         }
-        if (!this.sidecar.parsedHedData.has(referredKey) && referredKey !== 'HED') {
+        if (!this.bidsFile.parsedHedData.has(referredKey) && referredKey !== 'HED') {
           issues.push(
             BidsHedIssue.fromHedIssue(
               generateIssue('undefinedCurlyBraces', { column: referredKey }),
-              this.sidecar.file,
+              this.bidsFile.file,
             ),
           )
         }

@@ -1,5 +1,6 @@
 import { BidsHedIssue, BidsIssue } from '../types/issues'
-import { BidsTsvRow } from '../types/tsv'
+import { BidsTsvElement, BidsTsvRow } from '../types/tsv'
+import { BidsValidator } from './validator'
 import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../common/issues/issues'
@@ -10,45 +11,33 @@ import { EventManager } from '../../parser/eventManager'
 /**
  * Validator for HED data in BIDS TSV files.
  */
-export class BidsHedTsvValidator {
+export class BidsHedTsvValidator extends BidsValidator {
   /**
    * The BIDS TSV file being validated.
-   * @type {BidsTsvFile}
+   * @type {ReservedChecker}
    */
-  tsvFile
-  /**
-   * The HED schema collection being validated against.
-   * @type {Schemas}
-   */
-  hedSchemas
-  /**
-   * The issues found during validation.
-   * @type {BidsIssue[]}
-   */
-  issues
+  special
 
   /**
    * Constructor.
    *
-   * @param {BidsTsvFile} tsvFile The BIDS TSV file being validated.
-   * @param {Schemas} hedSchemas
+   * @param {BidsTsvFile} tsvFile - The BIDS TSV file being validated.
+   * @param {Schemas} hedSchemas - The HED schemas used to validate the tsv file.
    */
   constructor(tsvFile, hedSchemas) {
-    this.tsvFile = tsvFile
-    this.hedSchemas = hedSchemas // Will be set when the file is validated
+    super(tsvFile, hedSchemas)
     this.special = ReservedChecker.getInstance()
-    this.issues = []
   }
 
   /**
    * Validate a BIDS TSV file. This method returns the complete issue list for convenience.
    *
-   * @returns {BidsIssue[]} Any issues found during validation of this TSV file.
+   * @returns {BidsIssue[]} - Any issues found during validation of this TSV file.
    */
   validate() {
-    // Validate the BIDS sidecar if it exists.
-    if (this.tsvFile.mergedSidecar) {
-      const sidecarIssues = this.tsvFile.mergedSidecar.validate(this.hedSchemas)
+    // Validate the BIDS bidsFile if it exists.
+    if (this.bidsFile.mergedSidecar) {
+      const sidecarIssues = this.bidsFile.mergedSidecar.validate(this.hedSchemas)
       this.issues.push(...sidecarIssues)
       if (BidsIssue.anyAreErrors(sidecarIssues)) {
         return this.issues
@@ -62,7 +51,7 @@ export class BidsHedTsvValidator {
       return this.issues
     }
     // Now do a full validation
-    const bidsHedTsvParser = new BidsHedTsvParser(this.tsvFile, this.hedSchemas)
+    const bidsHedTsvParser = new BidsHedTsvParser(this.bidsFile, this.hedSchemas)
     const [bidsEvents, parsingIssues] = bidsHedTsvParser.parse()
     this.issues.push(...parsingIssues)
     if (!BidsIssue.anyAreErrors(this.issues)) {
@@ -74,15 +63,14 @@ export class BidsHedTsvValidator {
   /**
    * Validate this TSV file's HED column.
    *
-   * @returns {BidsIssue[]} All issues found.
+   * @returns {BidsIssue[]} - Issues found in validating the HED column without sidecar information.
    * @private
    */
   _validateHedColumn() {
-    if (this.tsvFile.hedColumnHedStrings.length === 0) {
-      // no HED column strings to validate
+    if (this.bidsFile.hedColumnHedStrings.length === 0) {
       return []
     }
-    return this.tsvFile.hedColumnHedStrings.flatMap((hedString, rowIndexMinusTwo) =>
+    return this.bidsFile.hedColumnHedStrings.flatMap((hedString, rowIndexMinusTwo) =>
       this._validateHedColumnString(hedString, rowIndexMinusTwo + 2),
     )
   }
@@ -90,9 +78,9 @@ export class BidsHedTsvValidator {
   /**
    * Validate a string in this TSV file's HED column.
    *
-   * @param {string} hedString The string to be validated.
-   * @param {number} rowIndex The index of this row in the TSV file.
-   * @returns {BidsIssue[]} All issues found.
+   * @param {string} hedString - The string to be validated.
+   * @param {number} rowIndex - The index of this row in the TSV file.
+   * @returns {BidsIssue[]} - Specific issues found in validating the HED column
    * @private
    */
   _validateHedColumnString(hedString, rowIndex) {
@@ -100,14 +88,15 @@ export class BidsHedTsvValidator {
       return []
     }
 
+    // Find basic parsing issues and return if unable to parse the string. (Warnings are okay.)
     const issues = []
     const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false, false)
-    issues.push(...BidsHedIssue.fromHedIssues(parsingIssues, this.tsvFile.file, { tsvLine: rowIndex }))
-
+    issues.push(...BidsHedIssue.fromHedIssues(parsingIssues, this.bidsFile.file, { tsvLine: rowIndex }))
     if (parsedString === null) {
       return issues
     }
 
+    // The HED column is not allowed to have column splices.
     if (parsedString.columnSplices.length > 0) {
       issues.push(
         BidsHedIssue.fromHedIssue(
@@ -115,57 +104,119 @@ export class BidsHedTsvValidator {
             string: parsedString.hedString,
             tsvLine: rowIndex.toString(),
           }),
-          this.tsvFile.file,
+          this.bidsFile.file,
         ),
       )
       return issues
     }
 
+    // Check whether definitions used exist and are used correctly.
     const defIssues = [
-      ...this.tsvFile.mergedSidecar.definitions.validateDefs(parsedString, this.hedSchemas, false),
-      ...this.tsvFile.mergedSidecar.definitions.validateDefExpands(parsedString, this.hedSchemas, false),
+      ...this.bidsFile.mergedSidecar.definitions.validateDefs(parsedString, this.hedSchemas, false),
+      ...this.bidsFile.mergedSidecar.definitions.validateDefExpands(parsedString, this.hedSchemas, false),
     ]
-    const convertedIssues = BidsHedIssue.fromHedIssues(defIssues, this.tsvFile.file, { tsvLine: rowIndex })
+    const convertedIssues = BidsHedIssue.fromHedIssues(defIssues, this.bidsFile.file, { tsvLine: rowIndex })
     issues.push(...convertedIssues)
     return issues
   }
 
   /**
-   * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
+   * Validate the HED data in a combined event TSV file/bidsFile BIDS data collection.
    *
-   * @param {BidsTsvElement[]} elements - The HED strings in the data collection.
-   * @returns {BidsHedIssue[]} - errors for dataset
+   * @param {BidsTsvElement[]} elements - The element objects, which include the strings and row information.
+   * @returns {BidsHedIssue[]} - The errors resulting from final validation, including dataset-level checks.
    */
   validateDataset(elements) {
+    // Final top-tag detection cannot be done until the strings are fully assembled and finalized.
     const issues = this._checkNoTopTags(elements)
     if (issues.length > 0) {
       return issues
     }
-    if (this.tsvFile.isTimelineFile) {
+    // Temporal files have to check Onset, Inset, Offset consistency.
+    if (this.bidsFile.isTimelineFile) {
       return this._validateTemporal(elements)
     }
+    // Non-temporal files cannot have temporal tags.
     return this._checkNoTime(elements)
   }
 
   /**
    * Check the temporal relationships among events.
+   *
    * @param {BidsTsvElement[]} elements - The elements representing the tsv file.
-   * @returns {BidsHedIssue[]} - Errors in temporal relationships among events
+   * @returns {BidsHedIssue[]} - Errors in temporal relationships among events.
    * @private
    */
   _validateTemporal(elements) {
+    // Check basic temporal conflicts such as Offset before Onset, or temporal tags with same def at same time.
     const eventManager = new EventManager()
     const [eventList, temporalIssues] = eventManager.parseEvents(elements)
     if (temporalIssues.length > 0) {
       return temporalIssues
     }
+    // There still may be non-temporal duplicates when multiple rows with the same onset.
+    const duplicateErrors = this._checkDuplicatesAcrossRows(elements)
+    if (duplicateErrors.length > 0) {
+      return duplicateErrors
+    }
     return eventManager.validate(eventList)
   }
 
   /**
+   * Check for duplicate tags when multiple rows with the same onset.
+   *
+   * @param {BidsTsvElement[]} elements - The elements representing the tsv file.
+   * @returns {BidsHedIssue[]} - Errors in temporal relationships among events.
+   * @private
+   *
+   * Note: duplicate onsets are relatively rare and duplicates for single rows are checked when a ParsedHedString is
+   * constructed.
+   */
+  _checkDuplicatesAcrossRows(elements) {
+    const duplicateMap = this._getOnsetMap(elements)
+    const issues = []
+    for (const elementList of duplicateMap.values()) {
+      if (elementList.length === 1) {
+        continue
+      }
+      // Assemble the HED strings associated with same onset into single string. Use the parse duplicate detection.
+      const rowString = elementList.map((element) => element.hedString).join(',')
+      const [parsedString, parsingIssues] = parseHedString(rowString, this.hedSchemas, true, false, false)
+      if (parsingIssues.length > 0) {
+        const tsvLines = BidsTsvElement.getTsvLines(elementList)
+        issues.push(...BidsHedIssue.fromHedIssues(parsingIssues, this.bidsFile.file, { tsvLine: tsvLines }))
+      }
+    }
+    return issues
+  }
+
+  /**
+   * Get map of onsets to BidsTsvElements.
+   *
+   * @param {BidsTsvElement[]} elements - The elements representing the tsv file.
+   * @returns {Map<Number, BidsTsvElement[]>} - Map of onset value to a list of elements with that onset.
+   * @private
+   */
+  _getOnsetMap(elements) {
+    const onsetMap = new Map()
+    for (const element of elements) {
+      if (!element.hedString) {
+        continue
+      }
+      if (onsetMap.has(element.onset)) {
+        onsetMap.get(element.onset).push(element)
+      } else {
+        onsetMap.set(element.onset, [element])
+      }
+    }
+    return onsetMap
+  }
+
+  /**
    * Top group tag requirements may not be satisfied until all splices have been done.
-   * @param {BidsTsvElement[]} elements - The elements to be checked
-   * @returns {BidsHedIssue[]} - Issues from final check of top groups
+   *
+   * @param {BidsTsvElement[]} elements - The elements to be checked.
+   * @returns {BidsHedIssue[]} - Issues from final check of top groups.
    * @private
    */
   _checkNoTopTags(elements) {
@@ -189,7 +240,8 @@ export class BidsHedTsvValidator {
   /**
    * Verify that this non-temporal file does not contain any temporal tags.
    *
-   * @param {BidsTsvElement[]} elements
+   * @param {BidsTsvElement[]} elements - The elements representing a tsv file (with HED string parsed).
+   * @returns {BidsHedIssue[]} - Issues from checking non-temporal files for temporal tags.
    */
   _checkNoTime(elements) {
     const timeIssues = []
@@ -198,7 +250,7 @@ export class BidsHedTsvValidator {
         timeIssues.push(
           BidsHedIssue.fromHedIssue(
             generateIssue('temporalTagInNonTemporalContext', { string: element.hedString, tsvLine: element.tsvLine }),
-            this.tsvFile.file,
+            this.bidsFile.file,
           ),
         )
       }
@@ -207,6 +259,9 @@ export class BidsHedTsvValidator {
   }
 }
 
+/**
+ * Class that performs basic parsing and splicing.
+ */
 export class BidsHedTsvParser {
   static nullSet = new Set([null, undefined, '', 'n/a'])
   static braceRegEx = /\{([^{}]*?)\}/g
@@ -237,9 +292,9 @@ export class BidsHedTsvParser {
   }
 
   /**
-   * Combine the BIDS sidecar HED data into a BIDS TSV file's HED data.
+   * Combine the BIDS bidsFile HED data into a BIDS TSV file's HED data.
    *
-   * @returns {[BidsTsvElement[], BidsHedIssue[]]} The combined HED string collection for this BIDS TSV file.
+   * @returns {[BidsTsvElement[], BidsHedIssue[]]} The combined HED string collection for the BIDS TSV file.
    */
   parse() {
     const tsvHedRows = this._generateHedRows()
@@ -249,18 +304,19 @@ export class BidsHedTsvParser {
   }
 
   /**
-   * Parse element HED strings
-   * @param { BidsTsvElement []}  tsvElements -
-   * @returns {BidsHedIssue[]}
+   * Parse element HED strings.
+   *
+   * @param { BidsTsvElement []} elements - The objects representing tsv rows with their parsed HEd strings.
+   * @returns {BidsHedIssue[]} - The issues resulting in creating the parsed HED strings.
    */
-  _parseElementStrings(tsvElements) {
-    if (tsvElements.length === 0) {
+  _parseElementStrings(elements) {
+    if (elements.length === 0) {
       return []
     }
 
     // Add the parsed HED strings to the elements and quite if there are serious errors
     const cummulativeIssues = []
-    for (const element of tsvElements) {
+    for (const element of elements) {
       const [parsedHedString, parsingIssues] = parseHedString(element.hedString, this.hedSchemas, true, false, false)
       element.parsedHedString = parsedHedString
       if (parsingIssues.length > 0) {
@@ -346,8 +402,8 @@ export class BidsHedTsvParser {
   /**
    * Generate a mapping from tsv columns to strings (may have splices in the strings)
    *
-   * @param {Map<string, string>} rowCells The column-to-value mapping for a single row.
-   * @returns {Map<string, string>} A mapping of column names to their corresponding parsed sidecar strings.
+   * @param {Map<string, string>} rowCells - The column-to-value mapping for a single row.
+   * @returns {Map<string, string>} - A mapping of column names to their corresponding parsed bidsFile strings.
    * @private
    */
   _getColumnMapping(rowCells) {
@@ -361,7 +417,7 @@ export class BidsHedTsvParser {
       return columnMap
     }
 
-    // Check for the columns with HED data in the sidecar
+    // Check for the columns with HED data in the bidsFile
     for (const [columnName, columnValues] of this.tsvFile.mergedSidecar.parsedHedData.entries()) {
       if (!rowCells.has(columnName)) {
         continue
@@ -385,6 +441,7 @@ export class BidsHedTsvParser {
 
   /**
    * Update the map to splice-in the values for columns that have splices.
+   *
    * @param { Map <string, string>} columnMap - Map of column name to HED string for a row.
    *
    * Note: Updates the map in place.
