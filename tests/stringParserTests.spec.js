@@ -12,7 +12,7 @@ import { shouldRun, getHedString } from './testUtilities'
 
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['tag-strings', ['multiple-complex-duplicates']]])
+const runMap = new Map([['special-tag-group-tests', ['inset-delay-def']]])
 
 describe('Null schema objects should cause parsing to bail', () => {
   it('Should not proceed if no schema and valid string', () => {

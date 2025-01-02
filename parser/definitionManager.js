@@ -1,6 +1,5 @@
 import { generateIssue, IssueError } from '../common/issues/issues'
 import { parseHedString } from './parser'
-//import { filterNonEqualDuplicates } from './parseUtils'
 import { filterByTagName } from './parseUtils'
 
 export class Definition {
@@ -219,7 +218,7 @@ export class DefinitionManager {
   }
 
   /**
-   * Evaluate the definition based on a parsed HED tag
+   * Evaluate the definition based on a parsed HED tag.
    * @param {ParsedHedTag} tag - The tag to evaluate against the definitions.
    * @param {Schemas} hedSchemas - The schemas to be used to assist in the evaluation.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.

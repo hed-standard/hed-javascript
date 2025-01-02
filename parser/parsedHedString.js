@@ -39,7 +39,7 @@ export class ParsedHedString {
    */
   columnSplices
   /**
-   * The top-level tag groups in the string, split into arrays.
+   * The tags in the top-level tag groups in the string, split into arrays.
    * @type {ParsedHedTag[][]}
    */
   topLevelGroupTags

@@ -137,23 +137,6 @@ export default class TagConverter {
     }
   }
 
-  /*  /!**
-   * Handle the case where it does not allow an extension or if it requires a child and doesn't have one.
-   * @param {int} tagLevelIndex index of the tag
-   * @throws {IssueError} If the tag has an extension that is not allowed.
-   *!/
-  _checkExtensionRequirements(tagLevelIndex) {
-    // Check allow extension or requires a child
-    const schemaTag = this.getSchemaTag(tagLevelIndex - 1)
-    const remainder = this.tagLevels.slice(tagLevelIndex).join('/')
-    if (this.special.noExtension.includes(schemaTag.name) && remainder !== '') {
-      IssueError.generateAndThrow('invalidExtension',{tag: remainder, parentTag: schemaTag.name})
-    }
-    if (remainder === '' && schemaTag.hasAttributeName('requireChild')) (
-      IssueError.generateAndThrow('childRequired', {tag:schemaTag.name})
-    )
-  }*/
-
   _getSchemaTag(tagLevelIndex) {
     const tagLevel = this.tagLevels[tagLevelIndex].toLowerCase()
     return this.tagMapping.getEntry(tagLevel)

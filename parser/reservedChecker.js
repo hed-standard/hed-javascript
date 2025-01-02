@@ -120,7 +120,7 @@ export class ReservedChecker {
    */
   checkTagGroupLevels(hedString, fullCheck) {
     const issues = []
-    const topGroupTags = hedString.topLevelGroupTags
+    const topGroupTags = hedString.topLevelGroupTags.flat()
     hedString.tags.forEach((tag) => {
       // Check for top-level violations because tag is deep
       if (ReservedChecker.hasTopLevelTagGroupAttribute(tag)) {
@@ -230,7 +230,7 @@ export class ReservedChecker {
    */
   _checkGroupRequirements(group, specialTag, fullCheck) {
     const specialRequirements = ReservedChecker.reservedMap.get(specialTag.schemaTag.name)
-    const issues = this._checkAllowedTags(group, specialTag, specialRequirements.otherAllowedNonDefTags)
+    const issues = this._checkAllowedTags(group, specialTag, specialRequirements)
     if (issues.length > 0) {
       return issues
     }
@@ -239,22 +239,30 @@ export class ReservedChecker {
   }
 
   /**
-   * Verify that the tags in the group are allowed with the special tag
+   * Verify that the tags in the group are allowed with the special tag.
    *
-   * @param {ParsedHedGroup} group - The enclosing tag group
-   * @param {ParsedHedTag} specialTag - The special tag whose tag requirements are to be checked
-   * @param { string[]} otherAllowed - The list of tags that are allowed with this tag
-   * @returns {Issue[]|[]}
+   * @param {ParsedHedGroup} group - The enclosing tag group.
+   * @param {ParsedHedTag} specialTag - The special tag whose tag requirements are to be checked.
+   * @param { Object } requirements - The requirements for this special tag.
+   * @returns {Issue[]} - Issues because
    * @private
    */
-  _checkAllowedTags(group, specialTag, otherAllowed) {
-    if (otherAllowed === null || otherAllowed === undefined) {
+  _checkAllowedTags(group, specialTag, requirements) {
+    // The allowed tag requirement isn't applicable
+    if (requirements.otherAllowedNonDefTags === null || requirements.otherAllowedNonDefTags === undefined) {
       return []
     }
+    // Check for def or def-expand tags for a special tag that does not need them.
+    if (!requirements.requiresDef && !group.requiresDefTag && group.defCount > 0) {
+      return [generateIssue('tooManyGroupTopTags', { string: group.originalTag })]
+    }
+
+    // Isolate the other top tags.
     const otherTopTags = group.topTags.filter((tag) => tag !== specialTag)
     if (otherTopTags.length === 0) {
       return []
     }
+
     const encountered = new Set()
     for (const tag of otherTopTags) {
       if (encountered.has(tag.schemaTag.name)) {
@@ -265,7 +273,7 @@ export class ReservedChecker {
         continue
       }
       // This tag is not allowed with the special tag
-      if (!otherAllowed.includes(tag.schemaTag.name)) {
+      if (!requirements.otherAllowedNonDefTags.includes(tag.schemaTag.name)) {
         return [
           generateIssue('invalidGroupTopTags', { tags: getTagListString(group.topTags), string: group.originalTag }),
         ]
@@ -285,10 +293,12 @@ export class ReservedChecker {
    * @private
    */
   _checkAllowedGroups(group, specialTag, requirements, fullCheck) {
-    // Group checks are not applicable to this special tag
+    // Group checks are not applicable to this special tag.
     if (!requirements.tagGroup) {
       return []
     }
+
+    // Proper Def and Def-expand count for a tag that requires a def is checked when group is created.
     let subgroupCount = group.topGroups.length
     if (group.hasDefExpandChildren && group.requiresDefTag !== null) {
       subgroupCount = subgroupCount - 1

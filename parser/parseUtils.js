@@ -44,20 +44,6 @@ export function filterTagMapByNames(tagMap, tagNames) {
   return keys.flatMap((key) => tagMap.get(key))
 }
 
-/*/!**
- * Extract the ParsedHedTag tags that have a name from a specified list of names
- * @param {ParsedHedTag[]} tags - to be filtered by name
- * @param {[string]} tagList - List of tag names to filter by.
- * @returns {ParsedHedTag[]} - A list of tags whose
- *!/
-
-export function filterByTagNames(tags, tagList) {
-  if (!tags || !tagList) {
-    return []
-  }
-  return tags.filter((tag) => tagList.includes(tag.schemaTag.name))
-}*/
-
 /**
  * Convert a list of ParsedHedTag objects into a comma-separated string of their string representations.
  * @param {ParsedHedTag []} tagList - The HED tags whose string representations should be put in a comma-separated list.
@@ -68,10 +54,10 @@ export function getTagListString(tagList) {
 }
 
 /**
- * Create a map of the ParsedHedTags by type
- * @param { ParsedHedTag[] } tagList
- * @param {Set} tagNames
- * @returns {Map<string, ParsedHedTag[]>}
+ * Create a map of the ParsedHedTags by type.
+ * @param { ParsedHedTag[] } tagList - The HED tags to be categorized.
+ * @param {Set} tagNames - The tag names to use as categories.
+ * @returns {Map<string, ParsedHedTag[]>} - A map of tag name to a list of tags with that name.
  */
 export function categorizeTagsByName(tagList, tagNames = null) {
   // Initialize the map with keys from tagNames and an "other" key
@@ -89,9 +75,9 @@ export function categorizeTagsByName(tagList, tagNames = null) {
 }
 
 /**
- * Return a list of duplicate strings
- * @param { string[] } itemList - A list of strings to look for duplicates in
- * @returns {string []} - a list of unique duplicate strings (multiple copies not repeated
+ * Return a list of duplicate strings.
+ * @param { string[] } itemList - A list of strings to look for duplicates in.
+ * @returns {string []} - a list of unique duplicate strings (multiple copies not repeated.
  */
 export function getDuplicates(itemList) {
   const checkSet = new Set()

@@ -19,15 +19,23 @@ class HedStringParser {
    */
   hedSchemas
 
+  /**
+   * True if definitions are allowed in this string.
+   * @type {boolean}
+   */
   definitionsAllowed
 
+  /**
+   * True if placeholders are allowedare allowed in this string.
+   * @type {boolean}
+   */
   placeholdersAllowed
 
   /**
    * Constructor.
    *
-   * @param {string|ParsedHedString} hedString The HED string to be parsed.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {string|ParsedHedString} hedString - The HED string to be parsed.
+   * @param {Schemas} hedSchemas - The collection of HED schemas.
    * @param {boolean} definitionsAllowed - True if definitions are allowed
    * @param {boolean} placeholdersAllowed - True if placeholders are allowed
    */
@@ -48,9 +56,7 @@ class HedStringParser {
     if (this.hedString === null || this.hedString === undefined) {
       return [null, [generateIssue('invalidTagString', {})]]
     }
-    // if (!this.hedString) {
-    //   return [null, []]
-    // }
+
     const placeholderIssues = this._getPlaceholderCountIssues()
     if (placeholderIssues.length > 0) {
       return [null, placeholderIssues]
@@ -157,7 +163,7 @@ export function parseHedString(hedString, hedSchemas, fullCheck, definitionsAllo
 /**
  * Parse a list of HED strings.
  *
- * @param {string[]|ParsedHedString[]} hedStrings A list of HED strings.
+ * @param {string[]|ParsedHedString[]} hedStrings - A list of HED strings.
  * @param {Schemas} hedSchemas - The collection of HED schemas.
  * @param {boolean} fullCheck - If the strings is in final form -- can be fully parsed
  * @param {boolean} definitionsAllowed - True if definitions are allowed
