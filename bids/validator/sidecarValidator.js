@@ -48,12 +48,11 @@ export class BidsHedSidecarValidator extends BidsValidator {
     for (const [sidecarKeyName, hedData] of this.bidsFile.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
         // Value options have HED as string.
-        issues.push(...this._checkDetails(sidecarKeyName, hedData, true))
+        issues.push(...this._checkDetails(sidecarKeyName, hedData))
       } else if (hedData instanceof Map) {
         // Categorical options have HED as a Map.
         for (const valueString of hedData.values()) {
-          const placeholdersAllowed = this.bidsFile.sidecarKeys.get(sidecarKeyName).hasDefinitions
-          issues.push(...this._checkDetails(sidecarKeyName, valueString, placeholdersAllowed))
+          issues.push(...this._checkDetails(sidecarKeyName, valueString))
         }
       } else {
         IssueError.generateAndThrow('internalConsistencyError', {

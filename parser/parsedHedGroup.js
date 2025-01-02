@@ -19,23 +19,41 @@ import {
  */
 export default class ParsedHedGroup extends ParsedHedSubstring {
   /**
-   * The parsed HED tags or parsedHedGroups or parsedColumnSplices in the HED tag group at the top level
+   * The parsed HED tags, groups, or splices in the HED tag group at the top level.
    * @type {ParsedHedSubstring[]}
    */
   tags
 
+  /**
+   * The top-level parsed HED tags in this string.
+   * @type {ParsedHedTag[]}
+   */
   topTags
 
+  /**
+   * The top-level parsed HED groups in this string.
+   * @type {ParsedHedGroup[]}
+   */
   topGroups
 
+  /**
+   * The top-level column splices in this string
+   * @type {ParsedHedColumnSplice[]}
+   */
   topSplices
 
-  allTags
   /**
-   * Any HED tags with special handling. This only covers top-level tags in the group
+   * All the parsed HED tags in this string.
+   * @type {ParsedHedTag[]}
+   */
+  allTags
+
+  /**
+   * Any HED tags with special handling. This only covers top-level tags in the group.
    * @type {Map<string, ParsedHedTag[]>}
    */
   specialTags
+
   /**
    * Whether this HED tag group has child groups with a Def-expand tag.
    * @type {boolean}
@@ -48,12 +66,28 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   defExpandChildren
 
+  /**
+   * True if this group has a Def-expand tag at the top level.
+   * @type {boolean}
+   */
   isDefExpandGroup
 
+  /**
+   * True if this group has a Definition tag at the top level.
+   * @type {boolean}
+   */
   isDefinitionGroup
 
+  /**
+   * The total number of top-level Def tags and top-level Def-expand groups.
+   * @type {Number}
+   */
   defCount
 
+  /**
+   * The unique top-level tag requiring a Def or Def-expand group, if any.
+   * @type {ParsedHedTag | null}
+   */
   requiresDefTag
 
   /**
@@ -74,11 +108,20 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     this._initializeGroups()
   }
 
+  /**
+   * Recursively create a list of all the tags in this group.
+   * @returns {ParsedHedTag[]}
+   * @private
+   */
   _getAllTags() {
     const subgroupTags = this.topGroups.flatMap((tagGroup) => tagGroup.allTags)
     return this.topTags.concat(subgroupTags)
   }
 
+  /**
+   * Sets information about the special tags, particularly definition-related tags in this group.
+   * @private
+   */
   _initializeGroups() {
     const special = ReservedChecker.getInstance()
     this.specialTags = categorizeTagsByName(this.topTags, special.specialNames)
@@ -91,10 +134,11 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
-   * Filter top subgroups that include a special at the top-level of the group
+   * Filter top subgroups that include a special at the top-level of the group.
    *
    * @param {string} tagName - The schemaTag name to filter by.
    * @returns {Array} - Array of subgroups containing the specified tag.
+   * @private
    */
   _filterSubgroupsByTagName(tagName) {
     return Array.from(this.topLevelGroupIterator()).filter((subgroup) => subgroup.specialTags.has(tagName))
@@ -147,18 +191,6 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     return this.specialTags.get(tagName) ?? []
   }
 
-  isSpecialGroup(tagName) {
-    return this.specialTags.has(tagName)
-  }
-
-  /**
-   * Whether this HED tag group is an onset, offset, or inset group.
-   * @returns {boolean}
-   */
-  get isTemporalGroup() {
-    return this.isSpecialGroup('Onset') || this.isSpecialGroup('Offset') || this.isSpecialGroup('Inset')
-  }
-
   get defTags() {
     const tags = this.getSpecial('Def')
     for (const group of this.defExpandChildren) {
@@ -176,22 +208,6 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
       differenceWith(this.tags, other.tags, equivalence).length === 0 &&
       differenceWith(other.tags, this.tags, equivalence).length === 0
     )
-  }
-
-  /**
-   * The deeply nested array of parsed tags.
-   * @returns {ParsedHedTag[]}
-   */
-  nestedGroups() {
-    const groups = []
-    for (const innerTag of this.tags) {
-      if (innerTag instanceof ParsedHedTag) {
-        groups.push(innerTag)
-      } else if (innerTag instanceof ParsedHedGroup) {
-        groups.push(innerTag.nestedGroups())
-      }
-    }
-    return groups
   }
 
   /**
@@ -218,20 +234,6 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
     this._normalized = '(' + sortedNormalizedItems.join(',') + ')'
     // Return the normalized group as a string
     return `(${sortedNormalizedItems.join(',')})` // Using curly braces to indicate unordered group
-  }
-
-  /**
-   * Iterator over the full HED groups and subgroups in this HED tag group.
-   *
-   * @yields {ParsedHedTag[]} The subgroups of this tag group.
-   */
-  *subGroupArrayIterator() {
-    for (const innerTag of this.tags) {
-      if (innerTag instanceof ParsedHedGroup) {
-        yield* innerTag.subGroupArrayIterator()
-      }
-    }
-    yield this.tags
   }
 
   /**

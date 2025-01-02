@@ -277,7 +277,7 @@ export default {
   tooManyGroupTopTags: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`Group "${'string'}" has too many or too few tags at the top level.`,
+    message: stringTemplate`Group "${'string'}" has too many or too few tags or Def-expand groups at the top level.`,
   },
   multipleTopLevelTagGroupTags: {
     hedCode: 'TAG_GROUP_ERROR',

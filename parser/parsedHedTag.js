@@ -77,7 +77,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     super(tagSpec.tag, tagSpec.bounds) // Sets originalTag and originalBounds
     this._convertTag(hedSchemas, hedString, tagSpec)
     this._normalized = this.format(false) // Sets various forms of the tag.
-    this._validUnits = null
   }
 
   /**
@@ -113,11 +112,12 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Handle the remainder portion for value tag (converter handles others)
+   * Handle the remainder portion for value tag (converter handles others).
    *
-   * @param {SchemaTag} schemaTag - The part of the tag that is in the schema
-   * @param {string} remainder - the leftover part
+   * @param {SchemaTag} schemaTag - The part of the tag that is in the schema.
+   * @param {string} remainder - the leftover part.
    * @throws {IssueError} If parsing the remainder section fails.
+   * @private
    */
   _handleRemainder(schemaTag, remainder) {
     if (!(schemaTag instanceof SchemaValueTag)) {
@@ -149,10 +149,10 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Separate the remainder of the tag into three parts:
+   * Separate the remainder of the tag into three parts.
    *
-   * @param {SchemaTag} schemaTag - The part of the tag that is in the schema
-   * @param {string} remainder - the leftover part
+   * @param {SchemaTag} schemaTag - The part of the tag that is in the schema.
+   * @param {string} remainder - The leftover part.
    * @returns {[SchemaUnit, string, string]} - The actual Unit, the unit string and the value string.
    * @throws {IssueError} If parsing the remainder section fails.
    */
@@ -206,6 +206,10 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     }
   }
 
+  /**
+   * Return the normalized version of this tag.
+   * @returns {string} - The normalized version of this tag.
+   */
   get normalized() {
     return this._normalized
   }
@@ -232,82 +236,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   hasAttribute(attribute) {
     return this.schema?.tagHasAttribute(this.formattedTag, attribute)
   }
-
-  /**
-   * Get the last part of a HED tag.
-   *
-   * @param {string} tagString A HED tag.
-   * @returns {string} The last part of the tag using the given separator.
-   */
-  static getTagName(tagString) {
-    const lastSlashIndex = tagString.lastIndexOf('/')
-    if (lastSlashIndex === -1) {
-      return tagString
-    } else {
-      return tagString.substring(lastSlashIndex + 1)
-    }
-  }
-
-  /**
-   * The trailing portion of {@link originalTag}.
-   *
-   * @returns {string} The "name" portion of the original tag.
-   */
-  get originalTagName() {
-    return ParsedHedTag.getTagName(this.originalTag)
-  }
-
-  /**
-   * Get the HED tag prefix (up to the last slash).
-   *
-   * @param {string} tagString A HED tag.
-   * @returns {string} The portion of the tag up to the last slash.
-   */
-  static getParentTag(tagString) {
-    const lastSlashIndex = tagString.lastIndexOf('/')
-    if (lastSlashIndex === -1) {
-      return tagString
-    } else {
-      return tagString.substring(0, lastSlashIndex)
-    }
-  }
-
-  /**
-   * Iterate through a tag's ancestor tag strings.
-   *
-   * @param {string} tagString - A tag string.
-   * @yields {string} - The tag's ancestor tags.
-   */
-  static *ancestorIterator(tagString) {
-    while (tagString.lastIndexOf('/') >= 0) {
-      yield tagString
-      tagString = ParsedHedTag.getParentTag(tagString)
-    }
-    yield tagString
-  }
-  /*
-
-  /!**
-   * Determine whether this tag is a descendant of another tag.
-   *
-   * @param {ParsedHedTag|string} parent The possible parent tag.
-   * @returns {boolean} Whether {@link parent} is the parent tag of this tag.
-   *!/
-  isDescendantOf(parent) {
-    if (parent instanceof ParsedHedTag) {
-      if (this.schema !== parent.schema) {
-        return false
-      }
-      parent = parent.formattedTag
-    }
-    for (const ancestor of ParsedHedTag.ancestorIterator(this.formattedTag)) {
-      if (ancestor === parent) {
-        return true
-      }
-    }
-    return false
-  }
-*/
 
   /**
    * Determine if this HED tag is equivalent to another HED tag.
@@ -377,26 +305,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       return this.takesValueTag.unitClasses
     }
     return []
-  }
-
-  /**
-   * Get the legal units for this HED tag.
-   *
-   * @returns {Set<SchemaUnit>} The legal units for this HED tag.
-   */
-  get validUnits() {
-    if (this._validUnits) {
-      return this._validUnits
-    }
-    const tagUnitClasses = this.unitClasses
-    this._validUnits = new Set()
-    for (const unitClass of tagUnitClasses) {
-      const unitClassUnits = this.schema?.entries.unitClasses.getEntry(unitClass.name).units
-      for (const unit of unitClassUnits.values()) {
-        this._validUnits.add(unit)
-      }
-    }
-    return this._validUnits
   }
 
   /**

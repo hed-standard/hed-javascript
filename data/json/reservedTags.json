@@ -141,7 +141,7 @@
     "forbiddenSubgroupTags": [],
     "isTemporalTag": true,
     "requiresDef": true,
-    "otherAllowedNonDefTags": ["Def", "Delay"]
+    "otherAllowedNonDefTags": ["Delay"]
   },
   "Onset": {
     "name": "Onset",
