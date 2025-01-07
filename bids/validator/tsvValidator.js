@@ -246,7 +246,7 @@ export class BidsHedTsvValidator extends BidsValidator {
   _checkNoTime(elements) {
     const timeIssues = []
     for (const element of elements) {
-      if (element.parsedHedString.tags.some((tag) => this.special.temporalTags.has(tag.schemaTag.name))) {
+      if (element.parsedHedString.tags.some((tag) => this.special.timelineTags.has(tag.schemaTag.name))) {
         timeIssues.push(
           BidsHedIssue.fromHedIssue(
             generateIssue('temporalTagInNonTemporalContext', { string: element.hedString, tsvLine: element.tsvLine }),
