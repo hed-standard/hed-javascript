@@ -1714,6 +1714,62 @@ export const bidsTestData = [
           ),
         ],
       },
+      {
+        testname: 'delay-non-timeline-file',
+        explanation: 'A delay tag in not allowed in a file without a timeline',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Delay/5.0 s, (Red))',
+            },
+          },
+        },
+        eventsString: 'event_code\tHED\nn/a\t(Delay/5.0 s, (Blue))\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('temporalTagInNonTemporalContext', {
+              string: '(Delay/5.0 s, (Blue))',
+            }),
+            {
+              path: 'delay-non-timeline-file.tsv',
+              relativePath: 'delay-non-timeline-file.tsv',
+            },
+            { tsvLine: '2' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('temporalTagInNonTemporalContext', {
+              string: '(Delay/5.0 s, (Blue))',
+            }),
+            {
+              path: 'delay-non-timeline-file.tsv',
+              relativePath: 'delay-non-timeline-file.tsv',
+            },
+            { tsvLine: '2' },
+          ),
+        ],
+      },
+      {
+        testname: 'duration-non-timeline-file',
+        explanation: 'A duration tag is allowed a file without a timeline',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Duration/5.0 s, (Red))',
+            },
+          },
+        },
+        eventsString: 'event_code\tHED\nn/a\t(Duration/5.0 s, (Blue))\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
     ],
   },
   {

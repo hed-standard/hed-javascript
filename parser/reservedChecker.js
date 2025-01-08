@@ -31,7 +31,7 @@ export class ReservedChecker {
     this.requiresDefTags = ReservedChecker._getSpecialTagsByProperty('requiresDef')
     this.groupTags = ReservedChecker._getSpecialTagsByProperty('tagGroup')
     this.exclusiveTags = ReservedChecker._getSpecialTagsByProperty('exclusive')
-    this.temporalTags = ReservedChecker._getSpecialTagsByProperty('isTemporalTag')
+    this.timelineTags = ReservedChecker._getSpecialTagsByProperty('requiresTimeline')
     this.noSpliceInGroup = ReservedChecker._getSpecialTagsByProperty('noSpliceInGroup')
     this.hasForbiddenSubgroupTags = new Set(
       [...ReservedChecker.reservedMap.values()]
