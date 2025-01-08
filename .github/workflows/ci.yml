@@ -47,5 +47,4 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          config: .codeclimate.yml
           coverageCommand: ./node_modules/.bin/jest --coverage

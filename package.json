@@ -22,7 +22,7 @@
     "lint": "eslint ./**/*.js",
     "test": "jest --testPathIgnorePatterns=spec_tests",
     "testSpecs": "jest --silent --noStackTrace spec_tests/jsonTests.spec.js",
-    "coverage": "jest --coverage --testPathIgnorePatterns=spec_tests/*",
+    "coverage": "jest --coverage",
     "prepare": "husky install"
   },
   "contributors": [
