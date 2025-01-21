@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "allowJs": true,
+    "checkJs": true,
+    "outDir": "./dist",
+    "target": "es2017"
+  },
+  "include": [
+    "./*.js",
+    "./*.mjs",
+    "bids/**/*.js",
+    "common/**/*.js",
+    "parser/**/*.js",
+    "schema/**/*.js",
+    "spec_tests/**/*.js",
+    "tests/**/*.js",
+    "utils/**/*.js"
+  ]
+}
