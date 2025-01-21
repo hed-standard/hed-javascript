@@ -12,7 +12,7 @@ const alphabeticRegExp = new RegExp('^[a-zA-Z]+$')
  *
  * @param {BidsJsonFile} datasetDescription The description of the BIDS dataset being validated.
  * @param {SchemasSpec} schemaDefinition The version spec override for the schema to be loaded.
- * @returns {Promise<Schemas|null>} A Promise with the schema collection, or null if the specification is missing.
+ * @returns {Promise} A Promise with the schema collection, or null if the specification is missing.
  * @throws {IssueError} If the schema specification is invalid.
  */
 export async function buildBidsSchemas(datasetDescription, schemaDefinition) {
