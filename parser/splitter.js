@@ -4,7 +4,6 @@ import ParsedHedGroup from './parsedHedGroup'
 import { recursiveMap } from '../utils/array'
 import { HedStringTokenizer, ColumnSpliceSpec, TagSpec } from './tokenizer'
 import { generateIssue, IssueError } from '../common/issues/issues'
-import { ReservedChecker } from './reservedChecker'
 
 export default class HedStringSplitter {
   /**
@@ -29,7 +28,6 @@ export default class HedStringSplitter {
   constructor(hedString, hedSchemas) {
     this.hedString = hedString
     this.hedSchemas = hedSchemas
-    this.special = ReservedChecker.getInstance()
     this.issues = []
   }
 

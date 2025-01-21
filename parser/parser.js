@@ -2,7 +2,7 @@ import ParsedHedString from './parsedHedString'
 import HedStringSplitter from './splitter'
 import { generateIssue } from '../common/issues/issues'
 import { ReservedChecker } from './reservedChecker'
-import { getTagListString } from './parseUtils'
+import { DefinitionChecker } from './definitionChecker'
 
 /**
  * A parser for HED strings.
@@ -26,7 +26,7 @@ class HedStringParser {
   definitionsAllowed
 
   /**
-   * True if placeholders are allowedare allowed in this string.
+   * True if placeholders are allowed in this string.
    * @type {boolean}
    */
   placeholdersAllowed
@@ -48,11 +48,9 @@ class HedStringParser {
 
   /**
    * Parse a full HED string.
-   * @param {boolean} fullCheck whether the string is in final form and can be fully parsed
-
    * @returns {[ParsedHedString|null, Issue[]]} The parsed HED string and any parsing issues.
    */
-  parseHedString(fullCheck) {
+  parseHedString() {
     if (this.hedString === null || this.hedString === undefined) {
       return [null, [generateIssue('invalidTagString', {})]]
     }
@@ -74,36 +72,31 @@ class HedStringParser {
       return [null, parsingIssues]
     }
 
+    // Returns a parsed HED string unless empty
     const parsedString = new ParsedHedString(this.hedString, parsedTags)
-
-    // This checks whether there are any definitions in the string
-    const simpleDefinitionIssues = this._checkDefinitionContext(parsedString)
-    if (simpleDefinitionIssues.length > 0) {
-      return [null, simpleDefinitionIssues]
+    if (!parsedString) {
+      return [null, null]
     }
-    const checkIssues = ReservedChecker.getInstance().checkHedString(parsedString, fullCheck)
+
+    // Check the definition syntax issues
+    const definitionIssues = new DefinitionChecker(parsedString).check(this.definitionsAllowed)
+    if (definitionIssues.length > 0) {
+      return [null, definitionIssues]
+    }
+
+    // Check the other reserved tags requirements
+    const checkIssues = ReservedChecker.getInstance().checkHedString(parsedString)
     if (checkIssues.length > 0) {
       return [null, checkIssues]
     }
     return [parsedString, []]
   }
 
-  _checkDefinitionContext(parsedString) {
-    if (this.definitionsAllowed || !parsedString) {
-      return []
-    }
-    const definitionTags = parsedString.tags.filter((tag) => tag.schemaTag.name === 'Definition')
-    if (definitionTags.length > 0) {
-      return [
-        generateIssue('illegalDefinitionContext', {
-          definition: getTagListString(definitionTags),
-          string: parsedString.hedString,
-        }),
-      ]
-    }
-    return []
-  }
-
+  /**
+   * If placeholders are not allowed and the string has placeholders, return an issue.
+   * @returns {Issue[]} = Issues due to unwanted placeholders.
+   * @private
+   */
   _getPlaceholderCountIssues() {
     if (this.placeholdersAllowed) {
       return []
@@ -120,12 +113,11 @@ class HedStringParser {
    *
    * @param {string[]|ParsedHedString[]} hedStrings A list of HED strings.
    * @param {Schemas} hedSchemas The collection of HED schemas.
-   * @param {boolean} fullCheck whether the strings are in final form and can be fully parsed
    * @param {boolean} definitionsAllowed - True if definitions are allowed
    * @param {boolean} placeholdersAllowed - True if placeholders are allowed
    * @returns {[ParsedHedString[], Issue[]]} The parsed HED strings and any issues found.
    */
-  static parseHedStrings(hedStrings, hedSchemas, fullCheck, definitionsAllowed, placeholdersAllowed) {
+  static parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed) {
     if (!hedSchemas) {
       return [null, [generateIssue('missingSchemaSpecification', {})]]
     }
@@ -137,7 +129,7 @@ class HedStringParser {
         hedSchemas,
         definitionsAllowed,
         placeholdersAllowed,
-      ).parseHedString(fullCheck)
+      ).parseHedString()
       parsedStrings.push(parsedString)
       cumulativeIssues.push(...currentIssues)
     }
@@ -151,13 +143,12 @@ class HedStringParser {
  *
  * @param {string|ParsedHedString} hedString A (possibly already parsed) HED string.
  * @param {Schemas} hedSchemas - The collection of HED schemas.
- * @param {boolean} fullCheck - If the string is in final form -- can be fully parsed
  * @param {boolean} definitionsAllowed - True if definitions are allowed
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed
  * @returns {[ParsedHedString, Issue[]]} - The parsed HED string and any issues found.
  */
-export function parseHedString(hedString, hedSchemas, fullCheck, definitionsAllowed, placeholdersAllowed) {
-  return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parseHedString(fullCheck)
+export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed) {
+  return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parseHedString()
 }
 
 /**
@@ -165,11 +156,10 @@ export function parseHedString(hedString, hedSchemas, fullCheck, definitionsAllo
  *
  * @param {string[]|ParsedHedString[]} hedStrings - A list of HED strings.
  * @param {Schemas} hedSchemas - The collection of HED schemas.
- * @param {boolean} fullCheck - If the strings is in final form -- can be fully parsed
  * @param {boolean} definitionsAllowed - True if definitions are allowed
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed
  * @returns {[ParsedHedString[], Issue[]]} The parsed HED strings and any issues found.
  */
-export function parseHedStrings(hedStrings, hedSchemas, fullCheck, definitionsAllowed, placeholdersAllowed) {
-  return HedStringParser.parseHedStrings(hedStrings, hedSchemas, fullCheck, definitionsAllowed, placeholdersAllowed)
+export function parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed) {
+  return HedStringParser.parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed)
 }

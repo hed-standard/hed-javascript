@@ -1,5 +1,3 @@
-import { generateIssue } from '../../common/issues/issues'
-
 export const splitterTestData = [
   {
     name: 'valid-strings',
@@ -12,7 +10,6 @@ export const splitterTestData = [
         stringIn: 'Event, Item',
         allGroupTagCount: 0,
         allSubgroupCount: [],
-        fullCheck: true,
         errors: [],
         warnings: [],
       },
@@ -23,7 +20,6 @@ export const splitterTestData = [
         stringIn: 'Event, (Item, Red, (Blue, (Green))), (Item, Blue)',
         allGroupTagCount: [4, 2],
         allSubgroupCount: 2,
-        fullCheck: true,
         errors: [],
         warnings: [],
       },
@@ -34,7 +30,6 @@ export const splitterTestData = [
         stringIn: '(((Event, (Item, Red, (Blue, (Green))), (Item, Blue))))',
         allGroupTagCount: [7],
         allSubgroupCount: 1,
-        fullCheck: true,
         errors: [],
         warnings: [],
       },
@@ -45,7 +40,6 @@ export const splitterTestData = [
         stringIn: '',
         allGroupTagCount: [0],
         allSubgroupCount: 0,
-        fullCheck: true,
         errors: [],
         warnings: [],
       },

@@ -16,7 +16,7 @@ export class BidsHedTsvValidator extends BidsValidator {
    * The BIDS TSV file being validated.
    * @type {ReservedChecker}
    */
-  special
+  reserved
 
   /**
    * Constructor.
@@ -26,7 +26,7 @@ export class BidsHedTsvValidator extends BidsValidator {
    */
   constructor(tsvFile, hedSchemas) {
     super(tsvFile, hedSchemas)
-    this.special = ReservedChecker.getInstance()
+    this.reserved = ReservedChecker.getInstance()
   }
 
   /**
@@ -90,7 +90,7 @@ export class BidsHedTsvValidator extends BidsValidator {
 
     // Find basic parsing issues and return if unable to parse the string. (Warnings are okay.)
     const issues = []
-    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false, false)
+    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false)
     issues.push(...BidsHedIssue.fromHedIssues(parsingIssues, this.bidsFile.file, { tsvLine: rowIndex }))
     if (parsedString === null) {
       return issues
@@ -181,7 +181,7 @@ export class BidsHedTsvValidator extends BidsValidator {
       }
       // Assemble the HED strings associated with same onset into single string. Use the parse duplicate detection.
       const rowString = elementList.map((element) => element.hedString).join(',')
-      const [parsedString, parsingIssues] = parseHedString(rowString, this.hedSchemas, true, false, false)
+      const [parsedString, parsingIssues] = parseHedString(rowString, this.hedSchemas, false, false)
       if (parsingIssues.length > 0) {
         const tsvLines = BidsTsvElement.getTsvLines(elementList)
         issues.push(...BidsHedIssue.fromHedIssues(parsingIssues, this.bidsFile.file, { tsvLine: tsvLines }))
@@ -246,7 +246,7 @@ export class BidsHedTsvValidator extends BidsValidator {
   _checkNoTime(elements) {
     const timeIssues = []
     for (const element of elements) {
-      if (element.parsedHedString.tags.some((tag) => this.special.timelineTags.has(tag.schemaTag.name))) {
+      if (element.parsedHedString.tags.some((tag) => this.reserved.timelineTags.has(tag.schemaTag.name))) {
         timeIssues.push(
           BidsHedIssue.fromHedIssue(
             generateIssue('temporalTagInNonTemporalContext', { string: element.hedString, tsvLine: element.tsvLine }),
@@ -317,7 +317,7 @@ export class BidsHedTsvParser {
     // Add the parsed HED strings to the elements and quite if there are serious errors
     const cummulativeIssues = []
     for (const element of elements) {
-      const [parsedHedString, parsingIssues] = parseHedString(element.hedString, this.hedSchemas, true, false, false)
+      const [parsedHedString, parsingIssues] = parseHedString(element.hedString, this.hedSchemas, false, false)
       element.parsedHedString = parsedHedString
       if (parsingIssues.length > 0) {
         cummulativeIssues.push(

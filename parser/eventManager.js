@@ -39,7 +39,7 @@ export class Event {
    * @returns {[Event, BidsHedIssue[]]} - The event extracted from the group
    */
   static createEvent(group, element) {
-    if (!group.requiresDefTag) {
+    if (group.requiresDefTag.length === 0) {
       return [null, []]
     }
     let onset = Number(element.onset)
@@ -56,11 +56,12 @@ export class Event {
       ]
     }
     onset = onset + Event.extractDelay(group)
-    const eventType = group.requiresDefTag.schemaTag.name
+    const eventType = group.requiresDefTag[0].schemaTag.name
     let defName = null
-    const defTags = group.defTags
-    if (defTags.length === 1) {
-      defName = defTags[0]._remainder.toLowerCase()
+    if (group.defTags.length === 1) {
+      defName = group.defTags[0]._remainder.toLowerCase()
+    } else if (group.defExpandChildren.length === 1) {
+      defName = group.defExpandChildren[0].topTags[0]._remainder.toLowerCase()
     } else {
       return [
         null,
@@ -78,10 +79,10 @@ export class Event {
   }
 
   static extractDelay(group) {
-    if (!group.specialTags.has('Delay')) {
+    if (!group.reservedTags.has('Delay')) {
       return 0
     }
-    const tags = group.specialTags.get('Delay')
+    const tags = group.reservedTags.get('Delay')
     const delay = Number(tags[0]._value)
     return Number.isFinite(delay) ? delay : 0
   }

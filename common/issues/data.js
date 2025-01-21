@@ -154,6 +154,16 @@ export default {
     level: 'error',
     message: stringTemplate`Def-expand tag found for definition name "${'definition'}" does not correspond to an existing definition.`,
   },
+  invalidDefinitionGroupStructure: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`The Definition or Def-expand tag "${'tag'} in "${'tagGroup'}" has multiple top tags or more than one top group.`,
+  },
+  invalidDefinitionForbidden: {
+    hedCode: 'DEFINITION_INVALID',
+    level: 'error',
+    message: stringTemplate`The Definition or Def-expand tag "${'tag'} in "${'tagGroup'}" has other definition-related tags in subgroups.`,
+  },
   defExpandContentsInvalid: {
     hedCode: 'DEF_EXPAND_INVALID',
     level: 'error',
@@ -247,7 +257,7 @@ export default {
   missingTagGroup: {
     hedCode: 'TAG_GROUP_ERROR',
     level: 'error',
-    message: stringTemplate`Tag "${'tag'}" must appear in a tag group.`,
+    message: stringTemplate`Tag(s) "${'tag'}" must appear in a tag group.`,
   },
   invalidTagGroup: {
     hedCode: 'TAG_GROUP_ERROR',
@@ -349,7 +359,7 @@ export default {
   curlyBracesInDefinition: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Curly brace expression "${'column'}" found in definition "${'definition'}".`,
+    message: stringTemplate`Illegal curly brace expression "${'column'}" found in HED string containing definition "${'definition'}".`,
   },
   curlyBracesInHedColumn: {
     hedCode: 'CHARACTER_INVALID',

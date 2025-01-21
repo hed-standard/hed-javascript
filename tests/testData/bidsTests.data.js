@@ -1291,9 +1291,9 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTopLevelTagGroupTag', {
-              tag: 'Definition/Junk',
-              string: '(Definition/NestedDef, (Definition/Junk, (Blue)))',
+            generateIssue('invalidDefinitionForbidden', {
+              tag: 'Definition/NestedDef',
+              tagGroup: '(Definition/NestedDef, (Definition/Junk, (Blue)))',
             }),
             {
               path: 'invalid-nested-definition.json',
@@ -1304,9 +1304,9 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTopLevelTagGroupTag', {
-              tag: 'Definition/Junk',
-              string: '(Definition/NestedDef, (Definition/Junk, (Blue)))',
+            generateIssue('invalidDefinitionForbidden', {
+              tag: 'Definition/NestedDef',
+              tagGroup: '(Definition/NestedDef, (Definition/Junk, (Blue)))',
             }),
             {
               path: 'invalid-nested-definition.tsv',
@@ -1333,9 +1333,9 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidGroupTopTags', {
-              string: '(Definition/Apple, Definition/Banana, (Blue))',
-              tags: 'Definition/Apple, Definition/Banana',
+            generateIssue('invalidDefinitionGroupStructure', {
+              tagGroup: '(Definition/Apple, Definition/Banana, (Blue))',
+              tag: 'Definition/Apple',
             }),
             {
               path: 'invalid-multiple-definition-tags.json',
@@ -1346,9 +1346,9 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidGroupTopTags', {
-              string: '(Definition/Apple, Definition/Banana, (Blue))',
-              tags: 'Definition/Apple, Definition/Banana',
+            generateIssue('invalidDefinitionGroupStructure', {
+              tagGroup: '(Definition/Apple, Definition/Banana, (Blue))',
+              tag: 'Definition/Apple',
             }),
             {
               path: 'invalid-multiple-definition-tags.tsv',
@@ -1375,9 +1375,9 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidNumberOfSubgroups', {
+            generateIssue('invalidDefinitionGroupStructure', {
               tag: 'Definition/ExtraGroupDef',
-              string: '(Definition/ExtraGroupDef, (Red), (Blue))',
+              tagGroup: '(Definition/ExtraGroupDef, (Red), (Blue))',
             }),
             {
               path: 'invalid-definition-with-extra-groups.json',
@@ -1388,9 +1388,9 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidNumberOfSubgroups', {
+            generateIssue('invalidDefinitionGroupStructure', {
               tag: 'Definition/ExtraGroupDef',
-              string: '(Definition/ExtraGroupDef, (Red), (Blue))',
+              tagGroup: '(Definition/ExtraGroupDef, (Red), (Blue))',
             }),
             {
               path: 'invalid-definition-with-extra-groups.tsv',
@@ -1417,9 +1417,9 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidGroupTopTags', {
-              string: '(Definition/ExtraSiblingDef, Red, (Blue))',
-              tags: 'Definition/ExtraSiblingDef, Red',
+            generateIssue('invalidDefinitionGroupStructure', {
+              tagGroup: '(Definition/ExtraSiblingDef, Red, (Blue))',
+              tag: 'Definition/ExtraSiblingDef',
             }),
             {
               path: 'invalid-definition-with-extra-sibling.json',
@@ -1430,9 +1430,9 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidGroupTopTags', {
-              string: '(Definition/ExtraSiblingDef, Red, (Blue))',
-              tags: 'Definition/ExtraSiblingDef, Red',
+            generateIssue('invalidDefinitionGroupStructure', {
+              tagGroup: '(Definition/ExtraSiblingDef, Red, (Blue))',
+              tag: 'Definition/ExtraSiblingDef',
             }),
             {
               path: 'invalid-definition-with-extra-sibling.tsv',
@@ -1750,6 +1750,162 @@ export const bidsTestData = [
               relativePath: 'delay-non-timeline-file.tsv',
             },
             { tsvLine: '2' },
+          ),
+        ],
+      },
+      {
+        testname: 'duration-non-timeline-file',
+        explanation: 'A duration tag is allowed a file without a timeline',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Duration/5.0 s, (Red))',
+            },
+          },
+        },
+        eventsString: 'event_code\tHED\nn/a\t(Duration/5.0 s, (Blue))\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+    ],
+  },
+  {
+    name: 'Special-group-tests',
+    description: 'Tests with different group requirements',
+    tests: [
+      {
+        testname: 'nested-delay',
+        explanation: 'A delay tag with nesting',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tHED\n4.5\t0\t((Delay/5.0 s, Onset, Def/MyColor), Red)\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
+              tag: 'Delay/5.0 s',
+            }),
+            {
+              path: 'nested-delay.json',
+              relativePath: 'nested-delay.json',
+            },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
+              tag: 'Onset',
+            }),
+            {
+              path: 'nested-delay.json',
+              relativePath: 'nested-delay.json',
+            },
+          ),
+        ],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
+              tag: 'Delay/5.0 s',
+            }),
+            {
+              path: 'nested-delay.tsv',
+              relativePath: 'nested-delay.tsv',
+            },
+            { tsvLine: '2' },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
+              tag: 'Onset',
+            }),
+            {
+              path: 'nested-delay.tsv',
+              relativePath: 'nested-delay.tsv',
+            },
+            { tsvLine: '2' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
+              tag: 'Delay/5.0 s',
+            }),
+            {
+              path: 'nested-delay.tsv',
+              relativePath: 'nested-delay.tsv',
+            },
+          ),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
+              tag: 'Onset',
+            }),
+            {
+              path: 'nested-delay.tsv',
+              relativePath: 'nested-delay.tsv',
+            },
+          ),
+        ],
+      },
+      {
+        testname: 'event-context-with-other-special-tags',
+        explanation: 'Event context with other special tags.',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Acceleration/5.0 m-per-s^2',
+              ball: '(Def/Acc/3.0, Onset, Event-context)',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\n4.5\t0\tface\tRed, (Def/MyColor, Event-context)\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidGroupTopTags', {
+              string: '(Def/Acc/3.0, Onset, Event-context)',
+              tags: 'Def/Acc/3.0, Onset, Event-context',
+            }),
+            {
+              path: 'event-context-with-other-special-tags.json',
+              relativePath: 'event-context-with-other-special-tags.json',
+            },
+          ),
+        ],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('tooManyGroupTopTags', {
+              string: '(Def/MyColor, Event-context)',
+            }),
+            {
+              path: 'event-context-with-other-special-tags.tsv',
+              relativePath: 'event-context-with-other-special-tags.tsv',
+            },
+            { tsvLine: '2' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidGroupTopTags', {
+              string: '(Def/Acc/3.0, Onset, Event-context)',
+              tags: 'Def/Acc/3.0, Onset, Event-context',
+            }),
+            {
+              path: 'event-context-with-other-special-tags.tsv',
+              relativePath: 'event-context-with-other-special-tags.tsv',
+            },
           ),
         ],
       },
