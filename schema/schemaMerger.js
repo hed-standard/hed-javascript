@@ -157,9 +157,9 @@ export default class PartneredSchemaMerger {
     }
     const destinationParentTag = this.destinationTags.getEntry(tag.parent?.name?.toLowerCase())
     if (destinationParentTag) {
-      newTag._parent = destinationParentTag
+      newTag.parent = destinationParentTag
       if (newTag instanceof SchemaValueTag) {
-        newTag.parent._valueTag = newTag
+        newTag.parent.valueTag = newTag
       }
     }
 

@@ -1,5 +1,6 @@
 import pluralize from 'pluralize'
 import Memoizer from '../utils/memoizer'
+import { IssueError } from '../common/issues/issues'
 
 pluralize.addUncountableRule('hertz')
 
@@ -847,11 +848,25 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   }
 
   /**
-   * This tag's value-taking child.
+   * This tag's value-taking child tag.
    * @returns {SchemaValueTag}
    */
   get valueTag() {
     return this._valueTag
+  }
+
+  /**
+   * Set the tag's value-taking child tag.
+   * @param {SchemaValueTag} newValueTag The new value-taking child tag.
+   */
+  set valueTag(newValueTag) {
+    if (this._valueTag === undefined) {
+      this._valueTag = newValueTag
+    } else {
+      IssueError.generateAndThrow('internalError', {
+        message: `Attempted to set value tag for schema tag "${this.longName}" when it already has one.`,
+      })
+    }
   }
 
   /**
@@ -860,6 +875,20 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    */
   get parent() {
     return this._parent
+  }
+
+  /**
+   * Set the tag's parent tag.
+   * @param {SchemaTag} newParent The new parent tag.
+   */
+  set parent(newParent) {
+    if (this._parent === undefined) {
+      this._parent = newParent
+    } else {
+      IssueError.generateAndThrow('internalError', {
+        message: `Attempted to set parent for schema tag ${this.longName} when it already has one.`,
+      })
+    }
   }
 
   /**

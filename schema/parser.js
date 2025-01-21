@@ -416,11 +416,11 @@ export default class SchemaParser {
       const parentTagName = shortTags.get(tagElement.$parent)
 
       if (parentTagName) {
-        tagEntries.get(lc(tagName))._parent = tagEntries.get(lc(parentTagName))
+        tagEntries.get(lc(tagName)).parent = tagEntries.get(lc(parentTagName))
       }
 
       if (this.getElementTagName(tagElement) === '#') {
-        tagEntries.get(lc(parentTagName))._valueTag = tagEntries.get(lc(tagName))
+        tagEntries.get(lc(parentTagName)).valueTag = tagEntries.get(lc(tagName))
       }
     }
   }
