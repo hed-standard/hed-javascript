@@ -7,9 +7,9 @@ import { IssueError } from '../common/issues/issues'
  */
 export default class Memoizer {
   /**
-   * Map containing memoized properties.
+   * Map containing memoized properties (string --> any).
    *
-   * @type {Map<string, *>}
+   * @type {Map}
    * @private
    */
   _memoizedProperties

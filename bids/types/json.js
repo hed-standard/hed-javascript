@@ -28,18 +28,18 @@ export class BidsJsonFile extends BidsFile {
 
 export class BidsSidecar extends BidsJsonFile {
   /**
-   * The extracted keys for this bidsFile.
-   * @type {Map<string, BidsSidecarKey>}
+   * The extracted keys for this bidsFile (string --> BidsSidecarKey)
+   * @type {Map}
    */
   sidecarKeys
   /**
-   * The extracted HED data for this bidsFile.
-   * @type {Map<string, string|Object<string, string>>}
+   * The extracted HED data for this bidsFile (string --> string | Object: string, string
+   * @type {Map}
    */
   hedData
   /**
-   * The parsed HED data for this bidsFile.
-   * @type {Map<string, ParsedHedString|Map<string, ParsedHedString>>}
+   * The parsed HED data for this bidsFile (string --> ParsedHedString | Map: string --> ParsedHedString
+   * @type {Map}
    */
   parsedHedData
   /**
@@ -53,8 +53,8 @@ export class BidsSidecar extends BidsJsonFile {
    */
   hedCategoricalStrings
   /**
-   * The mapping of column splice references.
-   * @type {Map<string, Set<string>>}
+   * The mapping of column splice references (string --> Set of string)
+   * @type {Map}
    */
   columnSpliceMapping
   /**

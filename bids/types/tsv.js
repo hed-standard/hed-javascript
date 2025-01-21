@@ -12,7 +12,7 @@ import { IssueError } from '../../common/issues/issues'
 export class BidsTsvFile extends BidsFile {
   /**
    * This file's parsed TSV data.
-   * @type {Map<string, string[]>}
+   * @type {Map[]>}
    */
   parsedTsv
   /**
@@ -37,7 +37,7 @@ export class BidsTsvFile extends BidsFile {
    * @todo This interface is provisional and subject to modification in version 4.0.0.
    *
    * @param {string} name The name of the TSV file.
-   * @param {{headers: string[], rows: string[][]}|Map<string, string[]>|string} tsvData This file's TSV data.
+   * @param {{headers: string[], rows: string[][]}|Map[]>|string} tsvData This file's TSV data.
    * @param {object} file The file object representing this file.
    * @param {string[]} potentialSidecars The list of potential JSON sidecars.
    * @param {object} mergedDictionary The merged bidsFile data.
@@ -164,7 +164,7 @@ export class BidsTsvElement {
 export class BidsTsvRow extends BidsTsvElement {
   /**
    * The map of column name to value for this row.
-   * @type {Map<string, string>}
+   * @type {Map}
    */
   rowCells
 
@@ -172,7 +172,7 @@ export class BidsTsvRow extends BidsTsvElement {
    * Constructor.
    *
    * @param {string} hedString The parsed string representing this row.
-   * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
+   * @param {Map} rowCells The column-to-value mapping for this row.
    * @param {BidsTsvFile} tsvFile The file this row belongs to.
    * @param {number} tsvLine The line number in {@link tsvFile} this line is located at.
    */

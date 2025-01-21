@@ -34,5 +34,3 @@ export class BidsDataset {
     )
   }
 }
-
-export default BidsDataset

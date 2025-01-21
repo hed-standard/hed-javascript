@@ -194,7 +194,7 @@ export class BidsHedTsvValidator extends BidsValidator {
    * Get map of onsets to BidsTsvElements.
    *
    * @param {BidsTsvElement[]} elements - The elements representing the tsv file.
-   * @returns {Map<Number, BidsTsvElement[]>} - Map of onset value to a list of elements with that onset.
+   * @returns {Map} - Map of onset value to a list of elements with that onset.
    * @private
    */
   _getOnsetMap(elements) {
@@ -294,7 +294,7 @@ export class BidsHedTsvParser {
   /**
    * Combine the BIDS bidsFile HED data into a BIDS TSV file's HED data.
    *
-   * @returns {[BidsTsvElement[], BidsHedIssue[]]} The combined HED string collection for the BIDS TSV file.
+   * @returns {(BidsTsvElement[], BidsHedIssue[])} The combined HED string collection for the BIDS TSV file.
    */
   parse() {
     const tsvHedRows = this._generateHedRows()
@@ -306,7 +306,7 @@ export class BidsHedTsvParser {
   /**
    * Parse element HED strings.
    *
-   * @param { BidsTsvElement []} elements - The objects representing tsv rows with their parsed HEd strings.
+   * @param {BidsTsvElement[]} elements - The objects representing tsv rows with their parsed HEd strings.
    * @returns {BidsHedIssue[]} - The issues resulting in creating the parsed HED strings.
    */
   _parseElementStrings(elements) {
@@ -331,7 +331,7 @@ export class BidsHedTsvParser {
   /**
    * Generate a list of rows with column-to-value mappings.
    *
-   * @returns {Map<string, string>[]} A list of single-row column-to-value mappings.
+   * @returns {Map[]} A list of single-row column-to-value mappings.
    * @private
    */
   _generateHedRows() {
@@ -352,7 +352,7 @@ export class BidsHedTsvParser {
   /**
    * Parse the rows in the TSV file into HED strings.
    *
-   * @param {Map<string, string>[]} tsvHedRows - A list of single-row column-to-value mappings.
+   * @param {Map[]} tsvHedRows - A list of single-row column-to-value mappings.
    * @returns {BidsTsvRow[]} - A list of row-based parsed HED strings.
    * @private
    */
@@ -370,7 +370,7 @@ export class BidsHedTsvParser {
   /**
    * Parse a row in a TSV file into a BIDS row.
    *
-   * @param {Map<string, string>} rowCells - The column-to-value mapping for a single row.
+   * @param {Map} rowCells - The column-to-value mapping for a single row.
    * @param {number} tsvLine - The index of this row in the TSV file.
    * @returns {BidsTsvRow} - A parsed HED string.
    * @private
@@ -402,8 +402,8 @@ export class BidsHedTsvParser {
   /**
    * Generate a mapping from tsv columns to strings (may have splices in the strings)
    *
-   * @param {Map<string, string>} rowCells - The column-to-value mapping for a single row.
-   * @returns {Map<string, string>} - A mapping of column names to their corresponding parsed bidsFile strings.
+   * @param {Map} rowCells - The column-to-value mapping for a single row.
+   * @returns {Map} - A mapping of column names to their corresponding parsed bidsFile strings.
    * @private
    */
   _getColumnMapping(rowCells) {
@@ -442,7 +442,7 @@ export class BidsHedTsvParser {
   /**
    * Update the map to splice-in the values for columns that have splices.
    *
-   * @param { Map <string, string>} columnMap - Map of column name to HED string for a row.
+   * @param {Map} columnMap - Map of column name to HED string for a row.
    *
    * Note: Updates the map in place.
    */
@@ -462,7 +462,7 @@ export class BidsHedTsvParser {
    * Replace a HED string containing slices with a resolved version for the column value in a row.
    *
    * @param {string} unspliced - A HED string possibly with unresolved splices.
-   * @param {Map<string, string>} columnMap - The map of column name to HED string for a row.
+   * @param {Map} columnMap - The map of column name to HED string for a row.
    * @returns {string} - The fully resolved HED string with no splices.
    * @private
    */

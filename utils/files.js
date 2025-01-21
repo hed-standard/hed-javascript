@@ -5,8 +5,8 @@ import fetch from 'cross-fetch'
 /**
  * Read a local file.
  *
- * @param {string} fileName The file path.
- * @returns {Promise<unknown>} A promise with the file contents.
+ * @param {string} fileName - The file path.
+ * @returns {Promise} - A promise with the file contents.
  */
 export function readFile(fileName) {
   return new Promise((resolve, reject) => {

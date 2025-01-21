@@ -49,7 +49,7 @@ extensions = [
 ]
 
 root_for_relative_js_paths = "../../"
-base_folders = ["../../bids", "../../validator", "../../converter", "../../common", "../../utils"]
+base_folders = ["../../bids", "../../parser", "../../common", "../../utils"]
 
 def find_all_folders(directory):
     all_folders = [directory]
