@@ -1,6 +1,0 @@
-splitHedString
-==============
-
-.. js:autofunction:: splitHedString
-
-
