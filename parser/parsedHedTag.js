@@ -4,6 +4,7 @@ import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
 import { ReservedChecker } from './reservedChecker'
 
+const TWO_LEVEL_TAGS = new Set(['Definition', 'Def', 'Def-expand'])
 const allowedRegEx = /^[^{}\,]*$/
 
 /**
@@ -124,15 +125,15 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       return
     }
     // Check that there is a value if required
-    const special = ReservedChecker.getInstance()
+    const reserved = ReservedChecker.getInstance()
     if (
-      (schemaTag.hasAttributeName('requireChild') || special.requireValueTags.has(schemaTag.name)) &&
+      (schemaTag.hasAttributeName('requireChild') || reserved.requireValueTags.has(schemaTag.name)) &&
       remainder === ''
     ) {
       IssueError.generateAndThrow('valueRequired', { tag: this.originalTag })
     }
     // Check if this could have a two-level value
-    const [value, rest] = this._getSplitValue(remainder, special)
+    const [value, rest] = this._getSplitValue(remainder)
     this._splitValue = rest
 
     // Resolve the units and check
@@ -171,12 +172,11 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Handle special three-level tags
-   * @param {string} remainder - the remainder of the tag string after schema tag
-   * @param {ReservedChecker} special - the special checker for checking the special tag properties
+   * Handle reserved three-level tags.
+   * @param {string} remainder - the remainder of the tag string after schema tag.
    */
-  _getSplitValue(remainder, special) {
-    if (!special.allowTwoLevelValueTags.has(this.schemaTag.name)) {
+  _getSplitValue(remainder) {
+    if (!TWO_LEVEL_TAGS.has(this.schemaTag.name)) {
       return [remainder, null]
     }
     const [first, ...rest] = remainder.split('/')

@@ -149,8 +149,8 @@ export class BidsTsvElement {
   }
 
   /**
-   * Create a string list of the
-   * @param BidsTsvElements[] elements - A list of elements to construct line numbers from.
+   * Create a string list of a list of BidsTsvElement objects.
+   * @param BidsTsvElement[] elements - A list of elements to construct line numbers from.
    * @returns {string} - A string with the list of line numbers for error messages.
    */
   static getTsvLines(elements) {

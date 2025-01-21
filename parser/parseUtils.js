@@ -77,7 +77,7 @@ export function categorizeTagsByName(tagList, tagNames = null) {
 /**
  * Return a list of duplicate strings.
  * @param { string[] } itemList - A list of strings to look for duplicates in.
- * @returns {string []} - a list of unique duplicate strings (multiple copies not repeated.
+ * @returns {string []} - A list of unique duplicate strings (multiple copies not repeated).
  */
 export function getDuplicates(itemList) {
   const checkSet = new Set()

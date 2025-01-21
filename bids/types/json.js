@@ -178,14 +178,13 @@ export class BidsSidecar extends BidsJsonFile {
    * The parsed strings are placed into {@link parsedHedData}.
    *
    * @param {Schemas} hedSchemas - The HED schema collection.
-   * @param {boolean} fullCheck - If true, then it is assumed no splicing will occur and strings stand on their own.
    * @returns {Issue[]} Any issues found.
    */
-  parseHedStrings(hedSchemas, fullCheck = false) {
+  parseHedStrings(hedSchemas) {
     this.parsedHedData = new Map()
     const issues = []
     for (const [name, sidecarKey] of this.sidecarKeys.entries()) {
-      issues.push(...sidecarKey.parseHed(hedSchemas, fullCheck))
+      issues.push(...sidecarKey.parseHed(hedSchemas))
       if (sidecarKey.isValueKey) {
         this.parsedHedData.set(name, sidecarKey.parsedValueString)
       } else {
@@ -320,27 +319,25 @@ export class BidsSidecarKey {
    * Parse the HED data for this key.
    *
    * @param {Schemas} hedSchemas The HED schema collection.
-   * @param {boolean} fullCheck - If true, then assume in final form and not up for potential splice.
    * @returns {Issue[]} Any issues found.
    */
-  parseHed(hedSchemas, fullCheck) {
+  parseHed(hedSchemas) {
     if (this.isValueKey) {
-      return this._parseValueString(hedSchemas, fullCheck)
+      return this._parseValueString(hedSchemas)
     }
-    return this._parseCategory(hedSchemas, fullCheck)
+    return this._parseCategory(hedSchemas)
   }
 
   /**
    * Parse the value string in a bidsFile
    * @param {Schemas} hedSchemas - The HED schemas to use.
-   * @param {boolean} fullCheck - If true, then assume in final form and not up for potential splice.
    * @returns {Issue[]}
    * @private
    *
    * Note: value strings cannot contain definitions
    */
-  _parseValueString(hedSchemas, fullCheck) {
-    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas, fullCheck, false, true)
+  _parseValueString(hedSchemas) {
+    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas, false, true)
     this.parsedValueString = parsedString
     return parsingIssues
   }
@@ -348,11 +345,10 @@ export class BidsSidecarKey {
   /**
    * Parse the categorical values associated with this key.
    * @param {Schemas} hedSchemas - The HED schemas used to check against.
-   * @param {boolean} fullCheck - If true, then assume in final form and not up for potential splice.
    * @returns {Issue[]} - A list of issues if any
    * @private
    */
-  _parseCategory(hedSchemas, fullCheck) {
+  _parseCategory(hedSchemas) {
     const issues = []
     this.parsedCategoryMap = new Map()
     for (const [value, string] of Object.entries(this.categoryMap)) {
@@ -365,7 +361,7 @@ export class BidsSidecarKey {
           file: this.sidecar?.file?.relativePath,
         })
       }
-      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas, fullCheck, true, true)
+      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas, true, true)
       this.parsedCategoryMap.set(value, parsedString)
       issues.push(...parsingIssues)
       if (parsingIssues.length === 0) {

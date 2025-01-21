@@ -14,7 +14,7 @@ import { DefinitionManager } from '../parser/definitionManager'
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['delay-tests', ['delay-non-timeline-file']]])
+const runMap = new Map([['temporal-tests', ['valid-offset-after-onset']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([['8.3.0', undefined]])

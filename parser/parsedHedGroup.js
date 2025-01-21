@@ -1,18 +1,10 @@
 import differenceWith from 'lodash/differenceWith'
-
 import { IssueError } from '../common/issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import { ReservedChecker } from './reservedChecker'
-import {
-  filterByClass,
-  categorizeTagsByName,
-  getDuplicates,
-  filterByTagName,
-  filterTagMapByNames,
-  getTagListString,
-} from './parseUtils'
+import { filterByClass, categorizeTagsByName, getDuplicates, filterByTagName } from './parseUtils'
 
 /**
  * A parsed HED tag group.
@@ -49,16 +41,10 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   allTags
 
   /**
-   * Any HED tags with special handling. This only covers top-level tags in the group.
+   * Reserved HED group tags. This only covers top group tags in the group.
    * @type {Map<string, ParsedHedTag[]>}
    */
-  specialTags
-
-  /**
-   * Whether this HED tag group has child groups with a Def-expand tag.
-   * @type {boolean}
-   */
-  hasDefExpandChildren
+  reservedTags
 
   /**
    * The top-level child subgroups containing Def-expand tags.
@@ -67,10 +53,16 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   defExpandChildren
 
   /**
-   * True if this group has a Def-expand tag at the top level.
-   * @type {boolean}
+   * The top-level Def tags
+   * @type {ParsedHedTag[]}
    */
-  isDefExpandGroup
+  defTags
+
+  /**
+   * The top-level Def-expand tags
+   * @type {ParsedHedTag[]}
+   */
+  defExpandTags
 
   /**
    * True if this group has a Definition tag at the top level.
@@ -86,7 +78,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * The unique top-level tag requiring a Def or Def-expand group, if any.
-   * @type {ParsedHedTag | null}
+   * @type {ParsedHedTag[] | null}
    */
   requiresDefTag
 
@@ -119,62 +111,46 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
-   * Sets information about the special tags, particularly definition-related tags in this group.
+   * Sets information about the reserved tags, particularly definition-related tags in this group.
    * @private
    */
   _initializeGroups() {
-    const special = ReservedChecker.getInstance()
-    this.specialTags = categorizeTagsByName(this.topTags, special.specialNames)
-    this.isDefExpandGroup = this.specialTags.has('Def-expand')
-    this.isDefinitionGroup = this.specialTags.has('Definition')
+    const reserved = ReservedChecker.getInstance()
+    this.reservedTags = categorizeTagsByName(this.topTags, reserved.reservedNames)
+    this.defExpandTags = this._filterTopTagsByTagName('Def-expand')
+    this.definitionTags = this._filterTopTagsByTagName('Definition')
     this.defExpandChildren = this._filterSubgroupsByTagName('Def-expand')
-    this.hasDefExpandChildren = this.defExpandChildren.length !== 0
-    this.defCount = this.getSpecial('Def').length + this.defExpandChildren.length
-    this.requiresDefTag = this._getRequiresDefTag(special.requiresDefTags)
+    this.defTags = this._filterTopTagsByTagName('Def')
+    this.defCount = this.defTags.length + this.defExpandChildren.length
+    this.isDefinitionGroup = this.definitionTags.length > 0
+    this.requiresDefTag = [...this.reservedTags.entries()]
+      .filter((pair) => reserved.requiresDefTags.has(pair[0]))
+      .flatMap((pair) => pair[1]) // Flatten the values into a single list
   }
 
   /**
-   * Filter top subgroups that include a special at the top-level of the group.
+   * Filter top tags by tag name.
+   *
+   * @param {string} tagName - The schemaTag name to filter by.
+   * @returns {Array} - An array of
+   * @private
+   *
+   */
+  _filterTopTagsByTagName(tagName) {
+    return this.topTags.filter((tag) => tag.schemaTag._name === tagName)
+  }
+
+  /**
+   * Filter top subgroups that include a tag at the top-level of the group.
    *
    * @param {string} tagName - The schemaTag name to filter by.
    * @returns {Array} - Array of subgroups containing the specified tag.
    * @private
    */
   _filterSubgroupsByTagName(tagName) {
-    return Array.from(this.topLevelGroupIterator()).filter((subgroup) => subgroup.specialTags.has(tagName))
-  }
-
-  /**
-   * Return the unique requiresDef tag associated with this group (if any).
-   * @param {string[]} tagNames - The list of requiresDef tag names to use (based on the special tag requirements).
-   * @returns {ParsedHedTag | null} - The parsed requiresDef tag (if any) or null.
-   * @throws {IssueError} - If there are too many or too few defs or too many requiresDef tags in this group.
-   * @private
-   */
-  _getRequiresDefTag(tagNames) {
-    const requiresDefTags = filterTagMapByNames(this.specialTags, tagNames)
-    if (requiresDefTags.length > 1) {
-      IssueError.generateAndThrow('multipleRequiresDefTags', {
-        tags: getTagListString(requiresDefTags),
-        string: this.originalTag,
-      })
-    }
-    if (requiresDefTags.length === 0) {
-      return null
-    }
-    if (this.defCount > 1) {
-      IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
-        tag: requiresDefTags[0].originalTag,
-        tagGroup: this.originalTag,
-      })
-    }
-    if (this.topSplices.length === 0 && this.defCount === 0) {
-      IssueError.generateAndThrow('temporalWithWrongNumberDefs', {
-        tag: requiresDefTags[0].originalTag,
-        tagGroup: this.originalTag,
-      })
-    }
-    return requiresDefTags[0]
+    return Array.from(this.topLevelGroupIterator()).filter((subgroup) =>
+      subgroup.topTags.some((tag) => tag.schemaTag.name === tagName),
+    )
   }
 
   /**
@@ -185,18 +161,6 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    */
   format(long = true) {
     return '(' + this.tags.map((substring) => substring.format(long)).join(', ') + ')'
-  }
-
-  getSpecial(tagName) {
-    return this.specialTags.get(tagName) ?? []
-  }
-
-  get defTags() {
-    const tags = this.getSpecial('Def')
-    for (const group of this.defExpandChildren) {
-      tags.push(...group.getSpecial('Def-expand'))
-    }
-    return tags
   }
 
   equivalent(other) {

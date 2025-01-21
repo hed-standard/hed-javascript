@@ -70,7 +70,7 @@ export class Definition {
       return [this.defContents.normalized, []]
     }
     const evalString = this.defContents.originalTag.replace('#', tag._splitValue)
-    const [normalizedValue, issues] = parseHedString(evalString, hedSchema, true, false, false)
+    const [normalizedValue, issues] = parseHedString(evalString, hedSchema, false, false)
     if (issues.length > 0) {
       return [null, issues]
     }
@@ -109,7 +109,7 @@ export class Definition {
    * @returns { [Definition, Issue[]]} - The Definition list and any issues found.
    */
   static createDefinition(hedString, hedSchemas) {
-    const [parsedString, issues] = parseHedString(hedString, hedSchemas, true, true, true)
+    const [parsedString, issues] = parseHedString(hedString, hedSchemas, true, true)
     if (issues.length > 0) {
       return [null, issues]
     }
@@ -247,12 +247,15 @@ export class DefinitionManager {
   _checkDefExpandGroup(topGroup, hedSchemas, placeholderAllowed) {
     const issues = []
     for (const group of topGroup.subParsedGroupIterator('Def-expand')) {
-      const defExpandTags = group.getSpecial('Def-expand')
-      if (defExpandTags.length === 0) {
+      if (group.defExpandTags.length === 0) {
         continue
       }
-      // There should be only one Def-expand in this group as special requirements have been checked at parsing time.
-      const [normalizedValue, normalizedIssues] = this.evaluateTag(defExpandTags[0], hedSchemas, placeholderAllowed)
+      // There should be only one Def-expand in this group as reserved requirements have been checked at parsing time.
+      const [normalizedValue, normalizedIssues] = this.evaluateTag(
+        group.defExpandTags[0],
+        hedSchemas,
+        placeholderAllowed,
+      )
       issues.push(...normalizedIssues)
       if (normalizedIssues.length > 0) {
         continue

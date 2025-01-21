@@ -12,7 +12,7 @@ import { DefinitionManager } from '../parser/definitionManager'
 
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['def-or-def-expand', ['valid-def-with-placeholder']]])
+const runMap = new Map([['def-or-def-expand', ['invalid-def-expand-should-have-a-group']]])
 
 describe('DefinitionManager tests', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
@@ -61,7 +61,7 @@ describe('DefinitionManager tests', () => {
         }
         thisDefManager.addDefinitions(defsToAdd)
       }
-      const [parsedHed, issues] = parseHedString(test.stringIn, thisSchema, true, false, test.placeholderAllowed)
+      const [parsedHed, issues] = parseHedString(test.stringIn, thisSchema, false, test.placeholderAllowed)
       if (parsedHed === null && issues.length > 0) {
         assert.deepStrictEqual(
           issues,
