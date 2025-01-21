@@ -331,7 +331,7 @@ export class BidsHedTsvParser {
   /**
    * Generate a list of rows with column-to-value mappings.
    *
-   * @returns {Map[]} A list of single-row column-to-value mappings.
+   * @returns {Array.Map} A list of single-row column-to-value mappings.
    * @private
    */
   _generateHedRows() {

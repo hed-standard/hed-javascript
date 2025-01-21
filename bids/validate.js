@@ -7,7 +7,7 @@ import { generateIssue } from '../common/issues/issues'
  *
  * @param {BidsDataset} dataset The BIDS dataset.
  * @param {SchemasSpec} schemaDefinition The version spec for the schema to be loaded.
- * @returns {Promise of BidsIssue[]} Any issues found.
+ * @returns {Promise} A promise for list of Any issues found.
  */
 export async function validateBidsDataset(dataset, schemaDefinition) {
   const validator = new BidsHedValidator(dataset, schemaDefinition)

@@ -34,7 +34,7 @@ export default class HedStringSplitter {
   /**
    * Split and parse a HED string into tags and groups.
    *
-   * @returns {[ParsedHedSubstring[], Issue[]]} The parsed HED string data and any issues found.
+   * @returns {ParsedHedSubstring[], Issue[]} The parsed HED string data and any issues found.
    */
   splitHedString() {
     if (this.hedString === null || this.hedString === undefined || typeof this.hedString !== 'string') {
@@ -56,7 +56,7 @@ export default class HedStringSplitter {
    *
    * @param {TagSpec[]} tagSpecs The tag specifications.
    * @param {GroupSpec} groupSpecs The group specifications.
-   * @returns {[ParsedHedSubstring[], Issue[]]} The parsed HED tags and any issues.
+   * @returns {ParsedHedSubstring[], Issue[]} The parsed HED tags and any issues.
    */
   _createParsedTags(tagSpecs, groupSpecs) {
     // Create tags from specifications

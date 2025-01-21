@@ -1,31 +1,31 @@
 types
 ==============================
-.. js:autoclass:: BidsDataset
+.. js:autoclass:: dataset.BidsDataset
     :members:
 
-.. js:autoclass:: BidsFile
+.. js:autoclass:: file.BidsFile
     :members:
 
-.. js:autoclass:: BidsHedIssue
+.. js:autoclass:: issues.BidsHedIssue
     :members:
 
-.. js:autoclass:: BidsIssue
+.. js:autoclass:: issues.idsIssue
     :members:
 
-.. js:autoclass:: BidsJsonFile
+.. js:autoclass:: json.BidsJsonFile
     :members:
 
-.. js:autoclass:: BidsSidecar
+.. js:autoclass:: json.BidsSidecar
     :members:
 
-.. js:autoclass:: BidsSidecarKey
+.. js:autoclass:: json.BidsSidecarKey
     :members:
 
-.. js:autoclass:: BidsTsvElement
+.. js:autoclass:: tsv.idsTsvElement
     :members:
 
-.. js:autoclass:: BidsTsvFile
+.. js:autoclass:: tsv.BidsTsvFile
     :members:
 
-.. js:autoclass:: BidsTsvRow
+.. js:autoclass:: tsv.BidsTsvRow
     :members:

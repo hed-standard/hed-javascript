@@ -48,7 +48,7 @@ class HedStringParser {
 
   /**
    * Parse a full HED string.
-   * @returns {[ParsedHedString|null, Issue[]]} The parsed HED string and any parsing issues.
+   * @returns {ParsedHedString|null, Issue[]} The parsed HED string and any parsing issues.
    */
   parseHedString() {
     if (this.hedString === null || this.hedString === undefined) {
@@ -115,7 +115,7 @@ class HedStringParser {
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {boolean} definitionsAllowed - True if definitions are allowed
    * @param {boolean} placeholdersAllowed - True if placeholders are allowed
-   * @returns {[ParsedHedString[], Issue[]]} The parsed HED strings and any issues found.
+   * @returns {ParsedHedString[], Issue[]} The parsed HED strings and any issues found.
    */
   static parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed) {
     if (!hedSchemas) {
@@ -145,7 +145,7 @@ class HedStringParser {
  * @param {Schemas} hedSchemas - The collection of HED schemas.
  * @param {boolean} definitionsAllowed - True if definitions are allowed
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed
- * @returns {[ParsedHedString, Issue[]]} - The parsed HED string and any issues found.
+ * @returns {ParsedHedString, Issue[]} - The parsed HED string and any issues found.
  */
 export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed) {
   return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parseHedString()

@@ -161,7 +161,7 @@ export class ReservedChecker {
    *
    * @param {ParsedHedGroup} group - The enclosing tag group.
    * @param {ParsedHedTag} reservedTag - The reserved tag whose tag requirements are to be checked.
-   * @param { Object } requirements - The requirements for this reserved tag.
+   * @param {Object} requirements - The requirements for this reserved tag.
    * @returns {Issue[]} - Issues because
    * @private
    */
@@ -205,7 +205,7 @@ export class ReservedChecker {
    *
    * @param {ParsedHedGroup} group - The enclosing tag group.
    * @param {ParsedHedTag} reservedTag - The reserved tag whose tag requirements are to be checked.
-   * @param { Object } requirements - The requirements for this reserved tag.
+   * @param {Object} requirements - The requirements for this reserved tag.
    * @returns {Issue[]}
    * @private
    */
@@ -232,7 +232,7 @@ export class ReservedChecker {
    * @param {ParsedHedTag} reservedTag - The reserved tags whose requirements are used.
    * @param {Number | null} minLimit - The minimum number of non-def groups required or null if no requirement.
    * @param {Number} defAdjustment - Either 0 or 1 depending on whether a def-expand is included.
-   * @returns {Issue[]|*[]} - Returns an issue list if the count requirement is violated.
+   * @returns {Issue[]} - Returns an issue list if the count requirement is violated.
    * @private
    */
   _checkMinGroupCount(group, reservedTag, minLimit, defAdjustment) {
