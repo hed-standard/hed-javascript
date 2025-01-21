@@ -10,4 +10,4 @@ Bids functionality
    bids.tsvParser.rst
    bids.types.rst
    bids.utils.rst
-   bids.validate.rst
+   bids.validator.rst

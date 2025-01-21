@@ -26,9 +26,9 @@ Note:  this is a work in progress. More information is coming.
 
    bids.rst
    common.rst
-   converter.rst
+   parser.rst
+   schema.rst
    utils.rst
-   validator.rst
 
 
 Indices and tables

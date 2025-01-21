@@ -4,5 +4,5 @@ common
 .. toctree::
    :maxdepth: 8
 
-   common.schema
-   common.issues
+   common.issues.data.rst
+   common.issues.issues.rst
