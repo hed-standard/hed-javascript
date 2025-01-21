@@ -132,7 +132,7 @@ export class HedStringTokenizer {
   /**
    * Split the HED string into delimiters and tags.
    *
-   * @returns {[TagSpec[], GroupSpec, Issue[]]} The tag specifications, group bounds, and any issues found.
+   * @returns {TagSpec[], GroupSpec, Issue[]} The tag specifications, group bounds, and any issues found.
    */
   tokenize() {
     this.initializeTokenizer()

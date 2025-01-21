@@ -63,8 +63,8 @@ export class Issue {
    */
   message
   /**
-   * The parameters to the error message template.
-   * @type {Object<string, (string|number[])>}
+   * The parameters to the error message template. Object with string and map parameters.
+   * @type {Object}
    */
   parameters
 
@@ -73,7 +73,7 @@ export class Issue {
    * @param {string} internalCode The internal error code.
    * @param {string} hedCode The HED 3 error code.
    * @param {string} level The issue level (error or warning).
-   * @param {Object<string, (string|number[])>} parameters The error string parameters.
+   * @param {Object} parameters The error string parameters.
    */
   constructor(internalCode, hedCode, level, parameters) {
     this.internalCode = internalCode
@@ -134,7 +134,7 @@ export class Issue {
    * Return a tuple with a boolean denoting overall validity and all issues.
    *
    * @param {Issue[]} issues A list of issues.
-   * @returns {[boolean, Issue[]]} Whether the validation succeeded (i.e. any errors were found), and all issues (both errors and warnings).
+   * @returns {boolean, Issue[]} Whether the validation succeeded (i.e. any errors were found), and all issues (both errors and warnings).
    */
   static issueListWithValidStatus(issues) {
     return [!issues.some((issue) => issue.isError()), issues]
@@ -145,7 +145,7 @@ export class Issue {
  * Generate a new issue object.
  *
  * @param {string} internalCode The internal error code.
- * @param {Object<string, (string|number[])>} parameters The error string parameters.
+ * @param {Object} parameters The error string parameters.
  * @returns {Issue} An object representing the issue.
  */
 export const generateIssue = function (internalCode, parameters) {

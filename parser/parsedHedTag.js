@@ -154,7 +154,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    *
    * @param {SchemaTag} schemaTag - The part of the tag that is in the schema.
    * @param {string} remainder - The leftover part.
-   * @returns {[SchemaUnit, string, string]} - The actual Unit, the unit string and the value string.
+   * @returns {SchemaUnit, string, string} - The actual Unit, the unit string and the value string.
    * @throws {IssueError} If parsing the remainder section fails.
    */
   _separateUnits(schemaTag, remainder) {
