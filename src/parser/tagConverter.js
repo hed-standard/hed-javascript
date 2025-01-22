@@ -11,36 +11,43 @@ export default class TagConverter {
    * @type {TagSpec}
    */
   tagSpec
+
   /**
    * The tag string to convert.
    * @type {string}
    */
   tagString
+
   /**
    * The tag string split by slashes.
    * @type {string[]}
    */
   tagLevels
+
   /**
    * The indices of the tag string's slashes.
    * @type {number[]}
    */
   tagSlashes
+
   /**
    * A HED schema collection.
    * @type {Schemas}
    */
   hedSchemas
+
   /**
    * The entry manager for the tags in the active schema.
    * @type {SchemaTagManager}
    */
   tagMapping
+
   /**
    * The converted tag in the schema.
    * @type {SchemaTag}
    */
   schemaTag
+
   /**
    * The remainder (e.g. value, extension) of the tag string.
    * @type {string}
@@ -68,7 +75,7 @@ export default class TagConverter {
   /**
    * Retrieve the {@link SchemaTag} object for a tag specification.
    *
-   * @returns {[SchemaTag, string]} The schema's corresponding tag object and the remainder of the tag string.
+   * @returns {Array} - [SchemaTag, string] representing schema's corresponding tag object and the remainder of the tag string.
    * @throws {IssueError} If tag conversion.
    */
   convert() {

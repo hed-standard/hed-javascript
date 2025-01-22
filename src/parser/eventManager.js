@@ -9,19 +9,28 @@ export class Event {
   onset
 
   /**
-   * The parsed HED group representing the definition
+   * The parsed HED group representing the definition.
    * @type {string}
    */
   defName
 
+  /**
+   * The short name of the tag representing this event ("Onset", "Inset", or "Offset").
+   * @type {string}
+   */
   type
-  group
-  element
 
   /**
    * The parsed HED group representing the definition
    * @type {ParsedHedGroup}
    */
+  group
+
+  /**
+   * The tsv element source of this event.
+   * @type {BidsTsvElement}
+   */
+  element
 
   constructor(defName, eventType, onset, group, element) {
     this.defName = defName
@@ -36,7 +45,7 @@ export class Event {
    * Create an event from a ParsedHedGroup.
    * @param {ParsedHedGroup} group - A group to extract an event from a temporal group, if it is a group.
    * @param {BidsTsvElement} element - The element in which this group appears.
-   * @returns {[Event, BidsHedIssue[]]} - The event extracted from the group
+   * @returns {Array} - Returns [Event, BidsHedIssue[]] representing the extracted event and issues.
    */
   static createEvent(group, element) {
     if (group.requiresDefTag.length === 0) {
@@ -95,7 +104,7 @@ export class EventManager {
   /**
    * Create a list of temporal events from BIDS elements.
    * @param {BidsTsvElement[]} elements - The elements representing the contents of a tsv file.
-   * @returns {[Event[], BidsHedIssue[]]}
+   * @returns {Array} - Returns [Event[], BidsHedIssue[]], the parsed event and any issues.
    */
   parseEvents(elements) {
     const eventList = []
@@ -167,20 +176,6 @@ export class EventManager {
       currentMap.set(event.defName, event)
     } else if (event.type === 'Offset' && currentEvent.type !== 'Offset') {
       currentMap.set(event.defName, event)
-      // } else {
-      //   return [
-      //     BidsHedIssue.fromHedIssue(
-      //       generateIssue('simultaneousDuplicateEvents', {
-      //         tagGroup1: event.group.originalTag,
-      //         onset1: event.onset.toString(),
-      //         tsvLine1: event.element.tsvLine,
-      //         tagGroup2: currentEvent.group.originalTag,
-      //         onset2: currentEvent.onset.toString(),
-      //         tsvLine2: currentEvent.element.tsvLine,
-      //       }),
-      //       event.bidsFile,
-      //     ),
-      //   ]
     }
 
     return []

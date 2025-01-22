@@ -2,13 +2,13 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 
-import ParsedHedTag from '../parser/parsedHedTag'
+import ParsedHedTag from '../src/parser/parsedHedTag'
 import { shouldRun } from './testUtilities'
 import { parsedHedTagTests } from './testData/tagParserTests.data'
-import { SchemaSpec, SchemasSpec } from '../schema/specs'
+import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import path from 'path'
-import { buildSchemas } from '../schema/init'
-import { SchemaValueTag } from '../schema/entries'
+import { buildSchemas } from '../src/schema/init'
+import { SchemaValueTag } from '../src/schema/entries'
 
 // Ability to select individual tests to run
 const skipMap = new Map()

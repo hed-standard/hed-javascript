@@ -2,7 +2,7 @@ import chai from 'chai'
 const assert = chai.assert
 import { describe, it } from '@jest/globals'
 
-import * as arrayUtils from '../../utils/array'
+import * as arrayUtils from '../../src/utils/array'
 
 describe('Array utility functions', () => {
   describe('Element counts', () => {

@@ -3,10 +3,10 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll, it } from '@jest/globals'
 import path from 'path'
 
-import { buildSchemas } from '../schema/init'
-import { SchemaSpec, SchemasSpec } from '../schema/specs'
-import { generateIssue } from '../common/issues/issues'
-import { parseHedString, parseHedStrings } from '../parser/parser'
+import { buildSchemas } from '../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
+import { generateIssue } from '../src/common/issues/issues'
+import { parseHedString, parseHedStrings } from '../src/parser/parser'
 import { parseTestData } from './testData/stringParserTests.data'
 import { shouldRun, getHedString } from './testUtilities'
 

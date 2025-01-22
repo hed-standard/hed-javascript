@@ -2,13 +2,13 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
-import { buildSchemas } from '../schema/init'
-import { SchemaSpec, SchemasSpec } from '../schema/specs'
-import { BidsSidecar, BidsTsvFile } from '../bids'
-import parseTSV from '../bids/tsvParser'
+import { buildSchemas } from '../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
+import { BidsSidecar, BidsTsvFile } from '../src/bids'
+import parseTSV from '../src/bids/tsvParser'
 import { bidsTestData } from './testData/bidsTests.data'
 import { shouldRun } from './testUtilities'
-import { DefinitionManager } from '../parser/definitionManager'
+import { DefinitionManager } from '../src/parser/definitionManager'
 
 // Ability to select individual tests to run
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])

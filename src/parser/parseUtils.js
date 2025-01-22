@@ -2,11 +2,10 @@ import ParsedHedTag from './parsedHedTag'
 
 /**
  * Extract the items of a specified subtype from a list of ParsedHedSubstring
- * @param {ParsedHedSubstring[]} items - to be filtered by class type
- * @param {Class} classType - class type to filter by
- * @returns {*|*[]}
+ * @param {ParsedHedSubstring[]} items - Objects to be filtered by class type.
+ * @param {Class} classType - The class type to filter by.
+ * @returns {ParsedHedSubstring[]} - A list of objects of the specified subclass of ParsedHedSubstring
  */
-
 export function filterByClass(items, classType) {
   return items && items.length ? items.filter((item) => item instanceof classType) : []
 }
@@ -17,7 +16,6 @@ export function filterByClass(items, classType) {
  * @param {string} tagName - name of the tag to filter by
  * @returns {ParsedHedTag[]}
  */
-
 export function filterByTagName(tags, tagName) {
   if (!tags) {
     return []
@@ -46,7 +44,7 @@ export function filterTagMapByNames(tagMap, tagNames) {
 
 /**
  * Convert a list of ParsedHedTag objects into a comma-separated string of their string representations.
- * @param {ParsedHedTag []} tagList - The HED tags whose string representations should be put in a comma-separated list.
+ * @param {ParsedHedTag[]} tagList - The HED tags whose string representations should be put in a comma-separated list.
  * @returns {string} A comma separated list of original tag names for tags in tagList.
  */
 export function getTagListString(tagList) {
@@ -55,9 +53,9 @@ export function getTagListString(tagList) {
 
 /**
  * Create a map of the ParsedHedTags by type.
- * @param { ParsedHedTag[] } tagList - The HED tags to be categorized.
+ * @param {ParsedHedTag[]} tagList - The HED tags to be categorized.
  * @param {Set} tagNames - The tag names to use as categories.
- * @returns {Map<string, ParsedHedTag[]>} - A map of tag name to a list of tags with that name.
+ * @returns {Map} - A map (string --> ParsedHedTag) of tag name to a list of tags with that name.
  */
 export function categorizeTagsByName(tagList, tagNames = null) {
   // Initialize the map with keys from tagNames and an "other" key
@@ -77,7 +75,7 @@ export function categorizeTagsByName(tagList, tagNames = null) {
 /**
  * Return a list of duplicate strings.
  * @param { string[] } itemList - A list of strings to look for duplicates in.
- * @returns {string []} - A list of unique duplicate strings (multiple copies not repeated).
+ * @returns {string[]} - A list of unique duplicate strings (multiple copies not repeated).
  */
 export function getDuplicates(itemList) {
   const checkSet = new Set()

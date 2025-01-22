@@ -58,6 +58,7 @@ export class TagSpec extends SubstringSpec {
    * @type {string}
    */
   tag
+
   /**
    * The schema prefix for this tag, if any.
    * @type {string}
@@ -132,7 +133,7 @@ export class HedStringTokenizer {
   /**
    * Split the HED string into delimiters and tags.
    *
-   * @returns {TagSpec[], GroupSpec, Issue[]} The tag specifications, group bounds, and any issues found.
+   * @returns {Array} - [TagSpec[], GroupSpec, Issue[]] representing the tag specifications, group bounds, and any issues found.
    */
   tokenize() {
     this.initializeTokenizer()

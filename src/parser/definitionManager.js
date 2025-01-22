@@ -54,7 +54,7 @@ export class Definition {
    * @param {ParsedHedTag} tag - The parsed HEd tag whose details should be checked.
    * @param {Schemas} hedSchema - The HED schemas used to validate against.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
-   * @returns {string | null, Issue[]} - The evaluated normalized definition string and any issues in the evaluation,
+   * @returns {Array} - Returns [string, Issue[]] containing the evaluated normalized definition string and any issues in the evaluation,
    */
   evaluateDefinition(tag, hedSchema, placeholderAllowed) {
     // Check that the level of the value of tag agrees with the definition
@@ -106,7 +106,7 @@ export class Definition {
    *
    * @param {string} hedString - A list of string definitions.
    * @param {Schemas} hedSchemas - The HED schemas to use in creation.
-   * @returns {Definition, Issue[]} - The Definition list and any issues found.
+   * @returns {Array} - Returns [Definition, Issue[]] with the definition and any issues.
    */
   static createDefinition(hedString, hedSchemas) {
     const [parsedString, issues] = parseHedString(hedString, hedSchemas, true, true)
@@ -122,7 +122,7 @@ export class Definition {
   /**
    * Create a definition from a ParsedHedGroup.
    * @param {ParsedHedGroup} group - The group to create a definition from.
-   * @returns {Definition, Issue[]} - The definition and any issues. (The definition will be null if issues.)
+   * @returns {Array} - Returns [Definition, Issue[]] with the definition and any issues. (The definition will be null if issues.)
    */
   static createDefinitionFromGroup(group) {
     const def = new Definition(group)
@@ -135,7 +135,8 @@ export class Definition {
 
 export class DefinitionManager {
   /**
-   * @type {Map} - Definitions for this manager (string --> Definition).
+   * Definitions for this manager (string --> Definition).
+   * @type {Map}
    */
   definitions
 
@@ -222,7 +223,7 @@ export class DefinitionManager {
    * @param {ParsedHedTag} tag - The tag to evaluate against the definitions.
    * @param {Schemas} hedSchemas - The schemas to be used to assist in the evaluation.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
-   * @returns {string, Issue[]} - The evaluated definition contents with this tag and any issues.
+   * @returns {Array} - Returns [string, Issue[]] with definition contents for this tag and any issues.
    *
    * Note: If the tag is not a Def or Def-expand, this returns null for the string and [] for the issues.
    */
@@ -277,7 +278,7 @@ export class DefinitionManager {
   /**
    * Find the definition associated with a tag, if any
    * @param {ParsedHedTag} tag - The parsed HEd tag to be checked.
-   * @returns {Definition | null, Issue[]} - If there is no matching definition.
+   * @returns {Array} -Returns [Definition, Issue[]]. If no match is found, the first element is null.
    */
   findDefinition(tag) {
     if (tag.schemaTag._name !== 'Def' && tag.schemaTag.name !== 'Def-expand') {
@@ -300,7 +301,7 @@ export class DefinitionManager {
    *
    * @param {string[]} defStrings - A list of string definitions.
    * @param {Schemas} hedSchemas - The HED schemas to use in creation.
-   * @returns {Definition[], Issue[]} - The Definition list and any issues found.
+   * @returns {Array} - Returns [Definition[], Issue[]] with a definition list and any issues found.
    */
   static createDefinitions(defStrings, hedSchemas) {
     const defList = []

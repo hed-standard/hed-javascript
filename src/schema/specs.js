@@ -7,16 +7,19 @@ export class SchemaSpec {
    * @type {string}
    */
   nickname
+
   /**
    * The version of this schema.
    * @type {string}
    */
   version
+
   /**
    * The library name of this schema.
    * @type {string}
    */
   library
+
   /**
    * The local path for this schema.
    * @type {string}
@@ -72,7 +75,7 @@ export class SchemasSpec {
   /**
    * Iterator over the specifications.
    *
-   * @yields {[string, SchemaSpec[]]}
+   * @yields {Iterator} - [string, SchemaSpec[]]
    */
   *[Symbol.iterator]() {
     for (const [key, value] of this.data.entries()) {

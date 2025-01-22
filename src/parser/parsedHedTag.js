@@ -16,15 +16,18 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @type {string}
    */
   formattedTag
+
   /**
    * The canonical form of the HED tag.
    * @type {string}
    */
   canonicalTag
+
   /**
    * The HED schema this tag belongs to.
    * @type {Schema}
    */
+
   schema
   /**
    * The schema's representation of this tag.
@@ -32,35 +35,32 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @type {SchemaTag}
    * @private
    */
+
   _schemaTag
 
   /**
    * The remaining part of the tag after the portion actually in the schema.
-   *
    * @type {string}
    * @private
    */
   _remainder
 
   /**
-   * The value if any
-   *
+   * The value of the tag, if any.
    * @type {string}
    * @private
    */
   _value
 
   /**
-   * If definition this is the second value if
-   *
+   * If definition, this is the second value, otherwise empty string.
    * @type {string}
    * @private
    */
   _splitValue
 
   /**
-   * The units if any
-   *
+   * The units if any.
    * @type {string}
    * @private
    */
@@ -154,8 +154,8 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    *
    * @param {SchemaTag} schemaTag - The part of the tag that is in the schema.
    * @param {string} remainder - The leftover part.
-   * @returns {SchemaUnit, string, string} - The actual Unit, the unit string and the value string.
-   * @throws {IssueError} If parsing the remainder section fails.
+   * @returns {Array} - [SchemaUnit, string, string] representing the actual Unit, the unit string and the value string.
+   * @throws {IssueError} - If parsing the remainder section fails.
    */
   _separateUnits(schemaTag, remainder) {
     const unitClasses = schemaTag.unitClasses
@@ -173,7 +173,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
 
   /**
    * Handle reserved three-level tags.
-   * @param {string} remainder - the remainder of the tag string after schema tag.
+   * @param {string} remainder - The remainder of the tag string after schema tag.
    */
   _getSplitValue(remainder) {
     if (!TWO_LEVEL_TAGS.has(this.schemaTag.name)) {
@@ -186,8 +186,8 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Nicely format this tag.
    *
-   * @param {boolean} long Whether the tags should be in long form.
-   * @returns {string} The nicely formatted version of this tag.
+   * @param {boolean} long - Whether the tags should be in long form.
+   * @returns {string} - The nicely formatted version of this tag.
    */
   format(long = true) {
     let tagName

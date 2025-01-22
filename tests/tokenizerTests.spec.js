@@ -2,7 +2,7 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 
-import { HedStringTokenizer } from '../parser/tokenizer'
+import { HedStringTokenizer } from '../src/parser/tokenizer'
 import { shouldRun } from './testUtilities'
 import { tokenizerTests } from './testData/tokenizerTests.data'
 

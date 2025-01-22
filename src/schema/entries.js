@@ -13,26 +13,31 @@ export class SchemaEntries extends Memoizer {
    * @type {SchemaEntryManager<SchemaProperty>}
    */
   properties
+
   /**
    * The schema's attributes.
    * @type {SchemaEntryManager<SchemaAttribute>}
    */
   attributes
+
   /**
    * The schema's value classes.
    * @type {SchemaEntryManager<SchemaValueClass>}
    */
   valueClasses
+
   /**
    * The schema's unit classes.
    * @type {SchemaEntryManager<SchemaUnitClass>}
    */
   unitClasses
+
   /**
    * The schema's unit modifiers.
    * @type {SchemaEntryManager<SchemaUnitModifier>}
    */
   unitModifiers
+
   /**
    * The schema's tags.
    * @type {SchemaTagManager}
@@ -69,7 +74,7 @@ export class SchemaEntries extends Memoizer {
 
   /**
    * Get the schema's SI unit modifiers.
-   * @returns {Map<string, SchemaUnitModifier>}
+   * @returns {Map} - string --> SchemaUnitModifier.
    */
   get SIUnitModifiers() {
     return this.unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
@@ -77,7 +82,7 @@ export class SchemaEntries extends Memoizer {
 
   /**
    * Get the schema's SI unit symbol modifiers.
-   * @returns {Map<string, SchemaUnitModifier>}
+   * @returns {Map} - string --> SchemaUnitSymbolModifier.
    */
   get SIUnitSymbolModifiers() {
     return this.unitModifiers.getEntriesWithBooleanAttribute('SIUnitSymbolModifier')
@@ -123,7 +128,8 @@ export class SchemaEntryManager extends Memoizer {
   /**
    * Iterator over the entry manager's entries.
    *
-   * @returns {IterableIterator<[string, T]>}
+   * @template T
+   * @returns {IterableIterator} - [string, T]
    */
   [Symbol.iterator]() {
     return this._definitions.entries()
@@ -132,7 +138,7 @@ export class SchemaEntryManager extends Memoizer {
   /**
    * Iterator over the entry manager's keys.
    *
-   * @returns {IterableIterator<string>}
+   * @returns {IterableIterator} - [string]
    */
   keys() {
     return this._definitions.keys()
@@ -141,7 +147,7 @@ export class SchemaEntryManager extends Memoizer {
   /**
    * Iterator over the entry manager's keys.
    *
-   * @returns {IterableIterator<T>}
+   * @returns {IterableIterator} - [T]
    */
   values() {
     return this._definitions.values()
@@ -171,7 +177,7 @@ export class SchemaEntryManager extends Memoizer {
    * Get a collection of entries with the given boolean attribute.
    *
    * @param {string} booleanAttributeName - The name of boolean attribute to filter on.
-   * @returns {Map<string, T>} - A collection of entries with that attribute.
+   * @returns {Map} - string->T representing a  collection of entries with that attribute.
    */
   getEntriesWithBooleanAttribute(booleanAttributeName) {
     return this._memoize(booleanAttributeName, () => {
@@ -184,8 +190,8 @@ export class SchemaEntryManager extends Memoizer {
   /**
    * Filter the map underlying this manager.
    *
-   * @param {function ([string, T]): boolean} fn The filtering function.
-   * @returns {Map<string, T>} The filtered map.
+   * @param {function} fn -  ([string, T]): boolean specifying the filtering function.
+   * @returns {Map} - string->T representing a  collection of entries with that attribute.
    */
   filter(fn) {
     return SchemaEntryManager._filterDefinitionMap(this._definitions, fn)
@@ -196,8 +202,8 @@ export class SchemaEntryManager extends Memoizer {
    *
    * @template T
    * @param {Map<string, T>} definitionMap The definition map.
-   * @param {function ([string, T]): boolean} fn The filtering function.
-   * @returns {Map<string, T>} The filtered map.
+   * @param {function} fn -  ([string, T]):boolean specifying the filtering function.
+   * @returns {Map} - string->T representing the filtered definitions.
    * @protected
    */
   static _filterDefinitionMap(definitionMap, fn) {
@@ -261,8 +267,8 @@ export class SchemaTagManager extends SchemaEntryManager {
   /**
    * Filter the map underlying this manager using the long name.
    *
-   * @param {function ([string, SchemaTag]): boolean} fn The filtering function.
-   * @returns {Map<string, SchemaTag>} The filtered map.
+   * @param {function} fn - ([string, SchemaTag]): boolean specifying the filtering function.
+   * @returns {Map} - string --> SchemaTag representing the filtered map.
    */
   filterByLongName(fn) {
     return SchemaEntryManager._filterDefinitionMap(this._definitionsByLongName, fn)
@@ -665,7 +671,7 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
 
   /**
    * Extracts the Unit class and remainder
-   * @returns {SchemaUnit, string, string} unit class, unit string, and value string
+   * @returns {Array} [SchemaUnit, string, string] containing unit class, unit string, and value string
    */
   extractUnit(value) {
     let actualUnit = null // The Unit class of the value
@@ -893,7 +899,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
 
   /**
    * Return all of this tag's ancestors.
-   * @returns {*[]}
+   * @returns {Array}
    */
   get ancestors() {
     return this._memoize('ancestors', () => {

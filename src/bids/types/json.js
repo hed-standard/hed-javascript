@@ -334,7 +334,8 @@ export class BidsSidecarKey {
    * @returns {Issue[]}
    * @private
    *
-   * Note: value strings cannot contain definitions
+   * ### Note:
+   *  The value strings cannot contain definitions.
    */
   _parseValueString(hedSchemas) {
     const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas, false, true)

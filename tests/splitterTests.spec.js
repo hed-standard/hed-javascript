@@ -3,13 +3,13 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 
-import { buildSchemas } from '../schema/init'
-import { SchemaSpec, SchemasSpec } from '../schema/specs'
+import { buildSchemas } from '../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import { splitterTestData } from './testData/splitterTests.data'
 import { shouldRun } from './testUtilities'
-import ParsedHedGroup from '../parser/parsedHedGroup'
-import { filterByClass } from '../parser/parseUtils'
-import HedStringSplitter from '../parser/splitter'
+import ParsedHedGroup from '../src/parser/parsedHedGroup'
+import { filterByClass } from '../src/parser/parseUtils'
+import HedStringSplitter from '../src/parser/splitter'
 const skipMap = new Map()
 const runAll = true
 const runMap = new Map([['valid-strings', ['empty-string']]])

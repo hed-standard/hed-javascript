@@ -13,6 +13,7 @@ class HedStringParser {
    * @type {string|ParsedHedString}
    */
   hedString
+
   /**
    * The collection of HED schemas.
    * @type {Schemas}
@@ -48,7 +49,7 @@ class HedStringParser {
 
   /**
    * Parse a full HED string.
-   * @returns {ParsedHedString|null, Issue[]} The parsed HED string and any parsing issues.
+   * @returns {Array} - [ParsedHedString|null, Issue[]] representing the parsed HED string and any parsing issues.
    */
   parseHedString() {
     if (this.hedString === null || this.hedString === undefined) {
@@ -115,7 +116,7 @@ class HedStringParser {
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {boolean} definitionsAllowed - True if definitions are allowed
    * @param {boolean} placeholdersAllowed - True if placeholders are allowed
-   * @returns {ParsedHedString[], Issue[]} The parsed HED strings and any issues found.
+   * @returns {Array} - [ParsedHedString[], Issue[]] representing the parsed HED strings and any issues found.
    */
   static parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed) {
     if (!hedSchemas) {
@@ -143,9 +144,9 @@ class HedStringParser {
  *
  * @param {string|ParsedHedString} hedString A (possibly already parsed) HED string.
  * @param {Schemas} hedSchemas - The collection of HED schemas.
- * @param {boolean} definitionsAllowed - True if definitions are allowed
- * @param {boolean} placeholdersAllowed - True if placeholders are allowed
- * @returns {ParsedHedString, Issue[]} - The parsed HED string and any issues found.
+ * @param {boolean} definitionsAllowed - True if definitions are allowed.
+ * @param {boolean} placeholdersAllowed - True if placeholders are allowed.
+ * @returns {Array} - [ParsedHedString, Issue[]] representing the parsed HED string and any issues found.
  */
 export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed) {
   return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parseHedString()
@@ -158,7 +159,7 @@ export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeh
  * @param {Schemas} hedSchemas - The collection of HED schemas.
  * @param {boolean} definitionsAllowed - True if definitions are allowed
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed
- * @returns {[ParsedHedString[], Issue[]]} The parsed HED strings and any issues found.
+ * @returns {Array} - [ParsedHedString[], Issue[]] representing the parsed HED strings and any issues found.
  */
 export function parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed) {
   return HedStringParser.parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed)

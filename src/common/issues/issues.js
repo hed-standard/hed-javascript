@@ -134,7 +134,7 @@ export class Issue {
    * Return a tuple with a boolean denoting overall validity and all issues.
    *
    * @param {Issue[]} issues A list of issues.
-   * @returns {boolean, Issue[]} Whether the validation succeeded (i.e. any errors were found), and all issues (both errors and warnings).
+   * @returns {Array} Returns [boolean, Issue[]] indicate if validation succeeded (i.e. any errors were found)and all issues (both errors and warnings).
    */
   static issueListWithValidStatus(issues) {
     return [!issues.some((issue) => issue.isError()), issues]

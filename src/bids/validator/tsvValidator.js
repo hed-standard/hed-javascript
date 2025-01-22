@@ -169,7 +169,8 @@ export class BidsHedTsvValidator extends BidsValidator {
    * @returns {BidsHedIssue[]} - Errors in temporal relationships among events.
    * @private
    *
-   * Note: duplicate onsets are relatively rare and duplicates for single rows are checked when a ParsedHedString is
+   * ### Note:
+   * Duplicate onsets are relatively rare and duplicates for single rows are checked when a ParsedHedString is
    * constructed.
    */
   _checkDuplicatesAcrossRows(elements) {
@@ -294,7 +295,7 @@ export class BidsHedTsvParser {
   /**
    * Combine the BIDS bidsFile HED data into a BIDS TSV file's HED data.
    *
-   * @returns {(BidsTsvElement[], BidsHedIssue[])} The combined HED string collection for the BIDS TSV file.
+   * @returns {Array} - Returns a two-element array [BidsTsvElement[], BidsHedIssue[]].
    */
   parse() {
     const tsvHedRows = this._generateHedRows()

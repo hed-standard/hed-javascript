@@ -1,4 +1,4 @@
-import bids from './bids'
+import bids from './src/bids'
 
 export { bids }
 

@@ -24,7 +24,7 @@
     "testSpecs": "jest --silent --noStackTrace spec_tests/jsonTests.spec.js",
     "coverage": "jest --coverage",
     "prepare": "husky install",
-    "docs": "jsdoc -c jsdoc.conf.json && sphinx-build -b html docs docs/_build/html"
+    "docs": "jsdoc -c jsdoc.conf.json"
   },
   "contributors": [
     "Alexander Jones",
