@@ -18,20 +18,13 @@ Note:  this is a work in progress. More information is coming.
    :caption: Contents:
 
    introduction.md
-   user_guide.rst
 
 .. toctree::
    :maxdepth: 8
    :caption: HED JavaScript API:
 
-.. automodule:: bids.bids_utils
-   :members:
+   bids
 
-.. automodule:: bids.test.test_bids
-   :members:
-
-.. automodule:: parser.parser
-   :members:
 
 Indices and tables
 ====================
