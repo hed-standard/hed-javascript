@@ -1,0 +1,14 @@
+{
+  "tags": {
+    "allowUnknownTags": true
+  },
+  "source": {
+    "include": ["docs/source"], // Path to your JavaScript source files
+    "includePattern": ".+\\.js(doc)?$",
+    "excludePattern": "(node_modules/|docs/|data/|spec_tests/|tests/)"
+  },
+  "opts": {
+    "template": "node_modules/sphinx-js/jsdoc", // Use the sphinx-js template
+    "destination": "docs/_build/html/jsdoc" // Output directory for JSDoc
+  }
+}

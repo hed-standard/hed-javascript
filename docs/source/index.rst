@@ -24,12 +24,14 @@ Note:  this is a work in progress. More information is coming.
    :maxdepth: 8
    :caption: HED JavaScript API:
 
-   bids.rst
-   common.rst
-   parser.rst
-   schema.rst
-   utils.rst
+.. automodule:: bids.bids_utils
+   :members:
 
+.. automodule:: bids.test.test_bids
+   :members:
+
+.. automodule:: parser.parser
+   :members:
 
 Indices and tables
 ====================

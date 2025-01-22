@@ -30,8 +30,8 @@ install_requires = [
 ]
 
 # The full version, including alpha/beta/rc tags
-version = '3.10.0'
-release = '3.10.0'
+version = '4.0.0'
+release = '4.0.0'
 
 currentdir = os.path.realpath(os.path.dirname(__file__))
 
@@ -42,9 +42,7 @@ currentdir = os.path.realpath(os.path.dirname(__file__))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    #     'sphinx.ext.autodoc',
-    #     'sphinx.ext.viewcode',
-    # 'sphinx_click.ext',
+    'sphinx.ext.autodoc',
     'sphinx_js'
 ]
 

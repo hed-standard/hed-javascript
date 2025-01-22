@@ -1,4 +1,4 @@
-import { BidsHedIssue } from '../bids/types/issues'
+import { BidsHedIssue } from '../bids'
 import { parseHedString } from '../parser/parser'
 
 export function shouldRun(name, testname, runAll, runMap, skipMap) {
