@@ -1,5 +1,5 @@
 import { BidsHedIssue } from './issues'
-import { generateIssue } from '../../common/issues/issues'
+import { generateIssue } from '../../issues/issues'
 
 /**
  * A BIDS file.

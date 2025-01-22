@@ -1,6 +1,6 @@
 /** Utility classes. **/
 
-import { IssueError } from '../common/issues/issues'
+import { IssueError } from '../issues/issues'
 
 /**
  * Superclass for property memoization until we can get away with private fields.

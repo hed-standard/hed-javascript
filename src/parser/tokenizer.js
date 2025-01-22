@@ -1,6 +1,6 @@
 import { unicodeName } from 'unicode-name'
 
-import { generateIssue } from '../common/issues/issues'
+import { generateIssue } from '../issues/issues'
 
 const CHARACTERS = {
   BLANK: ' ',

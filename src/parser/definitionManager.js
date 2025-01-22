@@ -1,4 +1,4 @@
-import { generateIssue, IssueError } from '../common/issues/issues'
+import { generateIssue, IssueError } from '../issues/issues'
 import { parseHedString } from './parser'
 import { filterByTagName } from './parseUtils'
 

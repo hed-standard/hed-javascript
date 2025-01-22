@@ -2,7 +2,7 @@ import ParsedHedTag from './parsedHedTag'
 import ParsedHedGroup from './parsedHedGroup'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import { filterByClass, getDuplicates } from './parseUtils'
-import { IssueError } from '../common/issues/issues'
+import { IssueError } from '../issues/issues'
 
 /**
  * A parsed HED string.

@@ -1,4 +1,4 @@
-import { generateIssue } from '../../src/common/issues/issues'
+import { generateIssue } from '../../src/issues/issues'
 import { ColumnSpliceSpec, GroupSpec, TagSpec } from '../../src/parser/tokenizer'
 
 export const tokenizerTests = [

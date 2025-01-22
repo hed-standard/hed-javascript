@@ -1,4 +1,4 @@
-import { IssueError } from '../common/issues/issues'
+import { IssueError } from '../issues/issues'
 import { getTagSlashIndices } from '../utils/hedStrings'
 import { ReservedChecker } from './reservedChecker'
 

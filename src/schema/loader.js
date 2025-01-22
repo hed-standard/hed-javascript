@@ -4,7 +4,7 @@
 import xml2js from 'xml2js'
 
 import * as files from '../utils/files'
-import { IssueError } from '../common/issues/issues'
+import { IssueError } from '../issues/issues'
 
 import { localSchemaList } from './config'
 

@@ -4,7 +4,7 @@ import { BidsFile } from './basic'
 import { convertParsedTSVData, parseTSV } from '../tsvParser'
 import { BidsSidecar } from './json'
 import BidsHedTsvValidator from '../validator/tsvValidator'
-import { IssueError } from '../../common/issues/issues'
+import { IssueError } from '../../issues/issues'
 
 /**
  * A BIDS TSV file.

@@ -1,5 +1,5 @@
 import { BidsHedIssue } from '../../src/bids'
-import { generateIssue } from '../../src/common/issues/issues'
+import { generateIssue } from '../../src/issues/issues'
 
 export const bidsTestData = [
   {

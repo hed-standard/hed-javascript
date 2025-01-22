@@ -1,6 +1,6 @@
 import ParsedHedString from './parsedHedString'
 import HedStringSplitter from './splitter'
-import { generateIssue } from '../common/issues/issues'
+import { generateIssue } from '../issues/issues'
 import { ReservedChecker } from './reservedChecker'
 import { DefinitionChecker } from './definitionChecker'
 

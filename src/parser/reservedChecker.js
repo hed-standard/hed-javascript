@@ -1,5 +1,5 @@
 import reservedTags from '../data/json/reservedTags.json'
-import { generateIssue } from '../common/issues/issues'
+import { generateIssue } from '../issues/issues'
 import { getTagListString } from './parseUtils'
 
 export class ReservedChecker {

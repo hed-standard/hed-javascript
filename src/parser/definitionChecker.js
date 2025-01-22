@@ -1,4 +1,4 @@
-import { generateIssue } from '../common/issues/issues'
+import { generateIssue } from '../issues/issues'
 import { getTagListString } from './parseUtils'
 
 const DEFINITION_TAGS = new Set(['Definition', 'Def', 'Def-expand'])

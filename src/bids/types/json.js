@@ -5,7 +5,7 @@ import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './basic'
 import BidsHedSidecarValidator from '../validator/sidecarValidator'
-import { IssueError } from '../../common/issues/issues'
+import { IssueError } from '../../issues/issues'
 import { DefinitionManager, Definition } from '../../parser/definitionManager'
 
 const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])

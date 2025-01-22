@@ -1,4 +1,4 @@
-import { stringTemplate } from '../../utils/string'
+import { stringTemplate } from '../utils/string'
 
 export default {
   // Syntax issues

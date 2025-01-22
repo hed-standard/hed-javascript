@@ -22,7 +22,7 @@ import {
   SchemaValueClass,
   SchemaValueTag,
 } from './entries'
-import { IssueError } from '../common/issues/issues'
+import { IssueError } from '../issues/issues'
 
 import classRegex from '../data/json/class_regex.json'
 

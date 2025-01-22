@@ -7,7 +7,7 @@ import { setParent } from '../utils/xml2js'
 
 import SchemaParser from './parser'
 import PartneredSchemaMerger from './schemaMerger'
-import { IssueError } from '../common/issues/issues'
+import { IssueError } from '../issues/issues'
 import { Schema, Schemas } from './containers'
 
 /**
