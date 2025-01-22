@@ -64,7 +64,6 @@
     "jsdoc": "^4.0.4",
     "prettier": "^3.2.5",
     "pretty-quick": "^4.0.0",
-    "sphinx": "^0.1.2",
     "typedoc": "^0.25.13",
     "typescript": "^5.4.5"
   },
