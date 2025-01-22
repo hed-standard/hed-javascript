@@ -1,5 +1,5 @@
-import { BidsHedIssue } from '../bids/types/issues'
-import { parseHedString } from '../parser/parser'
+import { BidsHedIssue } from '../src/bids'
+import { parseHedString } from '../src/parser/parser'
 
 export function shouldRun(name, testname, runAll, runMap, skipMap) {
   if (runAll) {

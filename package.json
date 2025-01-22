@@ -23,7 +23,8 @@
     "test": "jest --testPathIgnorePatterns=spec_tests",
     "testSpecs": "jest --silent --noStackTrace spec_tests/jsonTests.spec.js",
     "coverage": "jest --coverage",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "docs": "jsdoc -c jsdoc.conf.json"
   },
   "contributors": [
     "Alexander Jones",
@@ -60,8 +61,11 @@
     "husky": "^9.0.11",
     "jest": "^29.7.0",
     "jest-environment-node": "^29.7.0",
+    "jsdoc": "^4.0.4",
     "prettier": "^3.2.5",
     "pretty-quick": "^4.0.0",
+    "sphinx": "^0.1.2",
+    "sphinx-js": "^0.0.9",
     "typedoc": "^0.25.13",
     "typescript": "^5.4.5"
   },

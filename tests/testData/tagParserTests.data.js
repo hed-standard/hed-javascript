@@ -1,5 +1,5 @@
-import { generateIssue } from '../../common/issues/issues'
-import { ColumnSpliceSpec, GroupSpec, TagSpec } from '../../parser/tokenizer'
+import { generateIssue } from '../../src/common/issues/issues'
+import { ColumnSpliceSpec, GroupSpec, TagSpec } from '../../src/parser/tokenizer'
 
 export const parsedHedTagTests = [
   {

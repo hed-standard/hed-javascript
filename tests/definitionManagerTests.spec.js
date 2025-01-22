@@ -3,12 +3,12 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 
-import { buildSchemas } from '../schema/init'
-import { SchemaSpec, SchemasSpec } from '../schema/specs'
-import { parseHedString } from '../parser/parser'
+import { buildSchemas } from '../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
+import { parseHedString } from '../src/parser/parser'
 import { definitionTestData } from './testData/definitionManagerTests.data'
 import { shouldRun } from './testUtilities'
-import { DefinitionManager } from '../parser/definitionManager'
+import { DefinitionManager } from '../src/parser/definitionManager'
 
 const skipMap = new Map()
 const runAll = true

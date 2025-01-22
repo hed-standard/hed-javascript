@@ -2,14 +2,14 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 
-import { BidsHedIssue } from '../bids/types/issues'
-import { buildSchemas } from '../schema/init'
-import { SchemaSpec, SchemasSpec } from '../schema/specs'
+import { BidsHedIssue } from '../src/bids/types/issues'
+import { buildSchemas } from '../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import path from 'path'
-import { BidsSidecar, BidsTsvFile } from '../bids'
-import { generateIssue, IssueError } from '../common/issues/issues'
-import { DefinitionManager } from '../parser/definitionManager'
-import parseTSV from '../bids/tsvParser'
+import { BidsSidecar, BidsTsvFile } from '../src/bids'
+import { generateIssue, IssueError } from '../src/common/issues/issues'
+import { DefinitionManager } from '../src/parser/definitionManager'
+import parseTSV from '../src/bids/tsvParser'
 import { shouldRun } from '../tests/testUtilities'
 const fs = require('fs')
 

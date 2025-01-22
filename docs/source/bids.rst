@@ -1,13 +1,23 @@
-bids
+BIDS
 ====
-
-Bids functionality
 
 .. toctree::
    :maxdepth: 8
 
-   bids.schema.rst
-   bids.tsvParser.rst
-   bids.types.rst
-   bids.utils.rst
-   bids.validator.rst
+   types
+   validator
+
+Modules
+-------
+
+.. automodule:: bids.schema
+   :members:
+
+.. automodule:: bids.tsvParser
+   :members:
+
+.. automodule:: bids.utils
+   :members:
+
+.. automodule:: validate
+   :members:

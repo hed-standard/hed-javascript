@@ -3,8 +3,8 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 
-import { buildSchemas } from '../schema/init'
-import { SchemaSpec, SchemasSpec } from '../schema/specs'
+import { buildSchemas } from '../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import { normalizerTestData } from './testData/normalizerTests.data'
 import { shouldRun, getHedString } from './testUtilities'
 

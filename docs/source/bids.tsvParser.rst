@@ -1,5 +1,0 @@
-tsvParse
-==============================
-
-.. js:autofunction:: parseTSV
-
