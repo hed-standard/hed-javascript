@@ -1,6 +1,6 @@
 import pluralize from 'pluralize'
 import Memoizer from '../utils/memoizer'
-import { IssueError } from '../common/issues/issues'
+import { IssueError } from '../issues/issues'
 
 pluralize.addUncountableRule('hertz')
 

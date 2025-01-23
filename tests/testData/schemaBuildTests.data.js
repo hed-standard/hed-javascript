@@ -1,4 +1,4 @@
-import { generateIssue, IssueError } from '../../src/common/issues/issues'
+import { generateIssue, IssueError } from '../../src/issues/issues'
 
 export const schemaSpecTestData = [
   {

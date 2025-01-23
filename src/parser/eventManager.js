@@ -1,4 +1,4 @@
-import { generateIssue } from '../common/issues/issues'
+import { generateIssue } from '../issues/issues'
 import { BidsHedIssue } from '../bids'
 
 export class Event {

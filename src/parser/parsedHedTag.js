@@ -1,4 +1,4 @@
-import { IssueError } from '../common/issues/issues'
+import { IssueError } from '../issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'

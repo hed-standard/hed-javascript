@@ -1,4 +1,4 @@
-import { generateIssue } from '../../src/common/issues/issues'
+import { generateIssue } from '../../src/issues/issues'
 
 export const normalizerTestData = [
   {

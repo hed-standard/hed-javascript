@@ -5,7 +5,7 @@ import path from 'path'
 
 import { buildSchemas } from '../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
-import { generateIssue } from '../src/common/issues/issues'
+import { generateIssue } from '../src/issues/issues'
 import { parseHedString, parseHedStrings } from '../src/parser/parser'
 import { parseTestData } from './testData/stringParserTests.data'
 import { shouldRun, getHedString } from './testUtilities'

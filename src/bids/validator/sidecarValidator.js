@@ -1,6 +1,6 @@
 import { BidsHedIssue } from '../types/issues'
 import ParsedHedString from '../../parser/parsedHedString'
-import { generateIssue, IssueError } from '../../common/issues/issues'
+import { generateIssue, IssueError } from '../../issues/issues'
 import { getCharacterCount } from '../../utils/string.js'
 import { BidsValidator } from './validator'
 

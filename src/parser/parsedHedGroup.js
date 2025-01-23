@@ -1,5 +1,5 @@
 import differenceWith from 'lodash/differenceWith'
-import { IssueError } from '../common/issues/issues'
+import { IssueError } from '../issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'

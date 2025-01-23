@@ -1,6 +1,6 @@
 import { buildBidsSchemas } from './schema'
 import { BidsHedIssue, BidsIssue } from './types/issues'
-import { generateIssue } from '../common/issues/issues'
+import { generateIssue } from '../issues/issues'
 
 /**
  * Validate a BIDS dataset.

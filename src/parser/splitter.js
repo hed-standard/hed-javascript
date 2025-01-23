@@ -3,7 +3,7 @@ import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'
 import { recursiveMap } from '../utils/array'
 import { HedStringTokenizer, ColumnSpliceSpec, TagSpec } from './tokenizer'
-import { generateIssue, IssueError } from '../common/issues/issues'
+import { generateIssue, IssueError } from '../issues/issues'
 
 export default class HedStringSplitter {
   /**

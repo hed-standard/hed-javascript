@@ -1,4 +1,4 @@
-import { IssueError } from '../common/issues/issues'
+import { IssueError } from '../issues/issues'
 import { SchemaTag, SchemaValueTag } from './entries'
 import { PartneredSchema } from './containers'
 

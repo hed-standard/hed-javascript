@@ -1,4 +1,4 @@
-import { generateIssue, IssueError } from '../../common/issues/issues'
+import { generateIssue, IssueError } from '../../issues/issues'
 
 const bidsHedErrorCodes = new Set([104, 106, 107])
 
