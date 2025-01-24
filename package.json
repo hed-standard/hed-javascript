@@ -39,7 +39,7 @@
     "buffer": "^6.0.3",
     "cross-fetch": "^4.0.0",
     "date-and-time": "^3.1.1",
-    "date-fns": "^3.6.0",
+    "date-fns": "^4.1.0",
     "events": "^3.3.0",
     "lodash": "^4.17.21",
     "path": "^0.12.7",
