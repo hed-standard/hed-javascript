@@ -63,7 +63,6 @@ export default class TagConverter {
   constructor(tagSpec, hedSchemas) {
     this.hedSchemas = hedSchemas
     this.tagMapping = hedSchemas.getSchema(tagSpec.library).entries.tags
-
     this.tagSpec = tagSpec
     this.tagString = tagSpec.tag
     this.tagLevels = this.tagString.split('/')

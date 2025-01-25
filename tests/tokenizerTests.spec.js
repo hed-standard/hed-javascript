@@ -9,7 +9,7 @@ import { tokenizerTests } from './testData/tokenizerTests.data'
 // Ability to select individual tests to run
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['valid-placeholders', []]])
+const runMap = new Map([['valid-single-tags', ['tag-with-date-time']]])
 
 describe('Tokenizer validation using JSON tests', () => {
   beforeAll(async () => {})

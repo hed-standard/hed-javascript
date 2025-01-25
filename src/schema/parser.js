@@ -24,7 +24,7 @@ import {
 } from './entries'
 import { IssueError } from '../issues/issues'
 
-import classRegex from '../data/json/class_regex.json'
+import classRegex from '../data/json/classRegex.json'
 
 const lc = (str) => str.toLowerCase()
 

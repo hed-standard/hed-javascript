@@ -43,6 +43,16 @@ export const splitterTestData = [
         errors: [],
         warnings: [],
       },
+      {
+        testname: 'date-time-value-string',
+        explanation: '"Creation-date/2009-04-09T12:04:14" is a an empty string',
+        schemaVersion: '8.3.0',
+        stringIn: 'Creation-date/2009-04-09T12:04:14',
+        allGroupTagCount: [0],
+        allSubgroupCount: 0,
+        errors: [],
+        warnings: [],
+      },
     ],
   },
 ]

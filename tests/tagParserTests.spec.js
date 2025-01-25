@@ -13,7 +13,7 @@ import { SchemaValueTag } from '../src/schema/entries'
 // Ability to select individual tests to run
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['special-tag-group-tests', ['def-expand-tag-not-in-group']]])
+const runMap = new Map([['name-space-tests', ['valid-date-time']]])
 
 describe('TagSpec converter tests using JSON tests', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
@@ -53,7 +53,7 @@ describe('TagSpec converter tests using JSON tests', () => {
       if (test.takesValue) {
         assert.instanceOf(tag._schemaTag, SchemaValueTag, `${header}: tag should be a takes value tag`)
       } else {
-        assert.notInstanceOf(tag._schemaTag, SchemaValueTag, `${header}: tag should be a takes value tag`)
+        assert.notInstanceOf(tag._schemaTag, SchemaValueTag, `${header}: tag should not be a takes value tag`)
       }
     }
 
