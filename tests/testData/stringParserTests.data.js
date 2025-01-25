@@ -144,6 +144,18 @@ export const parseTestData = [
         errors: [],
         warnings: [],
       },
+      {
+        testname: 'date-time-value-tag',
+        explanation: '"Label" does not have to take a value"',
+        schemaVersion: '8.3.0',
+        stringIn: 'Creation-date/2009-04-09T12:04:14',
+        stringLong: 'Property/Informational-property/Metadata/Creation-date/2009-04-09T12:04:14',
+        stringShort: 'Creation-date/2009-04-09T12:04:14',
+        placeholdersAllowed: false,
+        definitionsAllowed: false,
+        errors: [],
+        warnings: [],
+      },
     ],
   },
   {

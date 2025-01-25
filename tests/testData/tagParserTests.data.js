@@ -1,5 +1,5 @@
 import { generateIssue } from '../../src/issues/issues'
-import { ColumnSpliceSpec, GroupSpec, TagSpec } from '../../src/parser/tokenizer'
+import { TagSpec } from '../../src/parser/tokenizer'
 
 export const parsedHedTagTests = [
   {
@@ -501,6 +501,27 @@ export const parsedHedTagTests = [
         canonicalTag: undefined,
         takesValue: false,
         error: generateIssue('invalidValue', { tag: 'Label/Blec h' }),
+      },
+    ],
+  },
+  {
+    name: 'name-space-tests',
+    description: 'tests with colons in various places',
+    warning: false,
+    tests: [
+      {
+        testname: 'valid-date-time',
+        explanation: '"Creation-date/2009-04-09T12:04:14" is valid and no namespace.',
+        schemaVersion: '8.3.0',
+        tagPrefix: null,
+        fullString: 'Creation-date/2009-04-09T12:04:14',
+        tagSpec: new TagSpec('Creation-date/2009-04-09T12:04:14', 0, 33, ''),
+        tagLong: 'Property/Informational-property/Metadata/Creation-date/2009-04-09T12:04:14',
+        tagShort: 'Creation-date/2009-04-09T12:04:14',
+        formattedTag: 'property/informational-property/metadata/creation-date/2009-04-09t12:04:14',
+        canonicalTag: 'Property/Informational-property/Metadata/Creation-date/2009-04-09T12:04:14',
+        takesValue: true,
+        error: null,
       },
     ],
   },

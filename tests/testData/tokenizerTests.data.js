@@ -64,6 +64,14 @@ export const tokenizerTests = [
         errors: [],
       },
       {
+        testname: 'tag-with-date-time',
+        string: 'Creation-date/2009-04-09T12:04:14',
+        explanation: 'Creation-date/2009-04-09T12:04:14" has a date-time value',
+        tagSpecs: [new TagSpec('Creation-date/2009-04-09T12:04:14', 0, 33, '')],
+        groupSpec: new GroupSpec(0, 33, []),
+        errors: [],
+      },
+      {
         testname: 'tag-with-multiple-colons',
         string: 'xy:wz x:y',
         explanation: '"xy:wz x:y" has one colon marking library and another as part of a value',

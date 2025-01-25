@@ -320,9 +320,10 @@ export class HedStringTokenizer {
   }
 
   handleColon(i) {
-    if (this.state.librarySchema || this.state.currentToken.trim().includes(CHARACTERS.BLANK)) {
-      this.state.currentToken += CHARACTERS.COLON // If colon has not been seen, it is a library. Ignore other colons.
-    } else if (/[^A-Za-z]/.test(this.state.currentToken.trim())) {
+    const trimmed = this.state.currentToken.trim()
+    if (this.state.librarySchema || trimmed.includes(CHARACTERS.BLANK) || trimmed.includes(CHARACTERS.SLASH)) {
+      this.state.currentToken += CHARACTERS.COLON // If colon has been seen or is part of a value.
+    } else if (/[^A-Za-z]/.test(trimmed)) {
       this.pushIssue('invalidTagPrefix', i) // Prefix not alphabetic Ex:  "1a:xxx"
     } else {
       const lib = this.state.currentToken.trimStart()
