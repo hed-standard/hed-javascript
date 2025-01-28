@@ -51,7 +51,7 @@ jobs:
       - name: Download dependencies
         run: npm ci
       - name: Run JSON spec tests with Node.js ${{ matrix.node-version }}
-        run: npm testSpecs
+        run: npm run testSpecs
 
   Coverage:
     runs-on: ubuntu-latest
