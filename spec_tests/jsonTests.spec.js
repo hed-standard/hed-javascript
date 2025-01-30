@@ -5,6 +5,7 @@ import { beforeAll, describe, afterAll } from '@jest/globals'
 import { BidsHedIssue } from '../src/bids/types/issues'
 import { buildSchemas } from '../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
+import { Schemas } from '../src/schema/containers'
 import path from 'path'
 import { BidsSidecar, BidsTsvFile } from '../src/bids'
 import { generateIssue, IssueError } from '../src/issues/issues'
@@ -28,6 +29,7 @@ const skippedErrors = {
 }
 const readFileSync = fs.readFileSync
 const test_file_name = 'javascriptTests.json'
+// const test_file_name = 'temp6.json'
 
 function comboListToStrings(items) {
   const comboItems = []
@@ -83,12 +85,27 @@ describe('HED validation using JSON tests', () => {
   beforeAll(async () => {
     const spec2 = new SchemaSpec('', '8.2.0', '', path.join(__dirname, '../tests/data/HED8.2.0.xml'))
     const specs2 = new SchemasSpec().addSchemaSpec(spec2)
-    const schemas2 = await buildSchemas(specs2)
+
     const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../tests/data/HED8.3.0.xml'))
     const specs3 = new SchemasSpec().addSchemaSpec(spec3)
-    const schemas3 = await buildSchemas(specs3)
+
+    const spec3Lib = new SchemaSpec('ts', '8.3.0', '', path.join(__dirname, '../tests/data/HED8.3.0.xml'))
+    const specs3Lib = new SchemasSpec().addSchemaSpec(spec3Lib)
+
+    const specScore = new SchemaSpec('sc', '1.0.0', 'score', path.join(__dirname, '../tests/data/HED_score_1.0.0.xml'))
+    const specsScore = new SchemasSpec().addSchemaSpec(specScore)
+
+    const [schemas2, schemas3, schemas3lib, schemaScore] = await Promise.all([
+      buildSchemas(specs2),
+      buildSchemas(specs3),
+      buildSchemas(specs3Lib),
+      buildSchemas(specsScore),
+    ])
+
     schemaMap.set('8.2.0', schemas2)
     schemaMap.set('8.3.0', schemas3)
+    schemaMap.set('ts:8.3.0', schemas3lib)
+    schemaMap.set('sc:score_1.0.0', schemaScore)
   })
 
   afterAll(() => {})
@@ -100,6 +117,10 @@ describe('HED validation using JSON tests', () => {
     expect(schema2).toBeDefined()
     const schema3 = schemaMap.get('8.3.0')
     expect(schema3).toBeDefined()
+    const schema3lib = schemaMap.get('ts:8.3.0')
+    expect(schema3lib).toBeDefined()
+    const schemaScore = schemaMap.get('sc:score_1.0.0')
+    expect(schemaScore).toBeDefined()
   })
 
   describe.each(testInfo)(
@@ -225,8 +246,30 @@ describe('HED validation using JSON tests', () => {
         }
       }
 
+      const getSchema = function (schemaVersion) {
+        const parts = schemaVersion.split(':', 2)
+        const prefix = parts.length === 1 ? '' : parts[0]
+        const thisSchema = schemaMap.get(schemaVersion).schemas
+        return [prefix, thisSchema.get(prefix)]
+      }
+
+      const getSchemas = function (schemaVersion) {
+        const hedMap = new Map()
+        if (typeof schemaVersion === 'string') {
+          const [prefix, schema] = getSchema(schemaVersion)
+          hedMap.set(prefix, schema)
+        } else {
+          for (const version of schemaVersion) {
+            const [prefix, schema] = getSchema(version)
+            hedMap.set(prefix, schema)
+          }
+        }
+        return new Schemas(hedMap)
+      }
+
       beforeAll(async () => {
-        hedSchema = schemaMap.get(schema)
+        hedSchema = getSchemas(schema)
+        assert(hedSchema !== undefined, 'HED schemas required should be defined')
         let defIssues
         ;[defList, defIssues] = DefinitionManager.createDefinitions(definitions, hedSchema)
         assert.equal(defIssues.length, 0, `${name}: input definitions "${definitions}" have errors "${defIssues}"`)

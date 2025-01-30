@@ -1,5 +1,6 @@
 import { generateIssue } from '../issues/issues'
 import { getTagListString } from './parseUtils'
+import Set from 'lodash/_Set'
 
 const DEFINITION_TAGS = new Set(['Definition', 'Def', 'Def-expand'])
 const DEF_GROUP_TAGS = new Set(['Definition', 'Def-expand'])
