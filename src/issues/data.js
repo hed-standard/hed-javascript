@@ -418,12 +418,12 @@ export default {
     message: stringTemplate`Could not load HED schema "${'spec'}" from remote repository - "${'error'}".`,
   },
   unmatchedBaseSchema: {
-    hedCode: 'TAG_PREFIX_INVALID',
+    hedCode: 'TAG_NAMESPACE_PREFIX_INVALID',
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is declared to use a base schema in the dataset's schema listing, but no such schema was defined.`,
   },
   unmatchedLibrarySchema: {
-    hedCode: 'TAG_PREFIX_INVALID',
+    hedCode: 'TAG_NAMESPACE_PREFIX_INVALID',
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is declared to use a library schema nicknamed "${'library'}" in the dataset's schema listing, but no such schema was found.`,
   },
