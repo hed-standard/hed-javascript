@@ -1,6 +1,6 @@
 import isPlainObject from 'lodash/isPlainObject'
 
-import { BidsFile } from './basic'
+import { BidsFile } from './file'
 import { convertParsedTSVData, parseTSV } from '../tsvParser'
 import { BidsSidecar } from './json'
 import BidsHedTsvValidator from '../validator/tsvValidator'

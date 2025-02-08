@@ -1,5 +1,4 @@
 import { buildBidsSchemas } from './schema'
-import validateBidsDataset from './validate'
 import { BidsJsonFile, BidsSidecar } from './types/json'
 import { BidsTsvFile } from './types/tsv'
 import { BidsHedIssue, BidsIssue } from './types/issues'
@@ -15,7 +14,6 @@ export {
   BidsHedSidecarValidator,
   BidsHedTsvValidator,
   buildBidsSchemas,
-  validateBidsDataset,
 }
 
 export default {
@@ -27,5 +25,4 @@ export default {
   BidsHedSidecarValidator,
   BidsHedTsvValidator,
   buildBidsSchemas,
-  validateBidsDataset,
 }
