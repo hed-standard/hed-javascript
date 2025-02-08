@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>JSDoc: Source: schema/parser.js</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css" />
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css" />
+  </head>
+
+  <body>
+    <div id="main">
+      <h1 class="page-title">Source: schema/parser.js</h1>
+
+      <section>
+        <article>
+          <pre class="prettyprint source linenums"><code>import flattenDeep from 'lodash/flattenDeep'
+import zip from 'lodash/zip'
+import semver from 'semver'
+
+// TODO: Switch require once upstream bugs are fixed.
+// import xpath from 'xml2js-xpath'
+// Temporary
+import * as xpath from '../utils/xpath'
+
+import {
+  nodeProperty,
+  SchemaAttribute,
+  schemaAttributeProperty,
+  SchemaEntries,
+  SchemaEntryManager,
+  SchemaProperty,
+  SchemaTag,
+  SchemaTagManager,
+  SchemaUnit,
+  SchemaUnitClass,
+  SchemaUnitModifier,
+  SchemaValueClass,
+  SchemaValueTag,
+} from './entries'
+import { IssueError } from '../issues/issues'
+
+import classRegex from '../data/json/classRegex.json'
+
+const lc = (str) => str.toLowerCase()
+
+export default class SchemaParser {
+  /**
+   * The root XML element.
+   * @type {Object}
+   */
+  rootElement
+  /**
+   * @type {Map&lt;string, SchemaProperty>}
+   */
+  properties
+  /**
+   * @type {Map&lt;string, SchemaAttribute>}
+   */
+  attributes
+  /**
+   * The schema's value classes.
+   * @type {SchemaEntryManager&lt;SchemaValueClass>}
+   */
+  valueClasses
+  /**
+   * The schema's unit classes.
+   * @type {SchemaEntryManager&lt;SchemaUnitClass>}
+   */
+  unitClasses
+  /**
+   * The schema's unit modifiers.
+   * @type {SchemaEntryManager&lt;SchemaUnitModifier>}
+   */
+  unitModifiers
+  /**
+   * The schema's tags.
+   * @type {SchemaTagManager}
+   */
+  tags
+
+  constructor(rootElement) {
+    this.rootElement = rootElement
+    this._versionDefinitions = {
+      typeProperties: new Set(['boolProperty']),
+      categoryProperties: new Set([
+        'elementProperty',
+        'nodeProperty',
+        'schemaAttributeProperty',
+        'unitProperty',
+        'unitClassProperty',
+        'unitModifierProperty',
+        'valueClassProperty',
+      ]),
+      roleProperties: new Set(['recursiveProperty', 'isInheritedProperty', 'annotationProperty']),
+    }
+  }
+
+  parse() {
+    this.populateDictionaries()
+    return new SchemaEntries(this)
+  }
+
+  populateDictionaries() {
+    this.parseProperties()
+    this.parseAttributes()
+    this.parseUnitModifiers()
+    this.parseUnitClasses()
+    this.parseValueClasses()
+    this.parseTags()
+  }
+
+  getAllChildTags(parentElement, elementName = 'node', excludeTakeValueTags = true) {
+    if (excludeTakeValueTags &amp;&amp; this.getElementTagName(parentElement) === '#') {
+      return []
+    }
+    const tagElementChildren = this.getElementsByName(elementName, parentElement)
+    const childTags = flattenDeep(
+      tagElementChildren.map((child) => this.getAllChildTags(child, elementName, excludeTakeValueTags)),
+    )
+    childTags.push(parentElement)
+    return childTags
+  }
+
+  getElementsByName(elementName = 'node', parentElement = this.rootElement) {
+    return xpath.find(parentElement, '//' + elementName)
+  }
+
+  getParentTagName(tagElement) {
+    const parentTagElement = tagElement.$parent
+    if (parentTagElement &amp;&amp; parentTagElement.$parent) {
+      return this.getElementTagName(parentTagElement)
+    } else {
+      return ''
+    }
+  }
+
+  /**
+   * Extract the name of an XML element.
+   *
+   * NOTE: This method cannot be merged into {@link getElementTagValue} because it is used as a first-class object.
+   *
+   * @param {object} element An XML element.
+   * @returns {string} The name of the element.
+   */
+  getElementTagName(element) {
+    return element.name[0]._
+  }
+
+  /**
+   * Extract a value from an XML element.
+   *
+   * @param {object} element An XML element.
+   * @param {string} tagName The tag value to extract.
+   * @returns {string} The value of the tag in the element.
+   */
+  getElementTagValue(element, tagName) {
+    return element[tagName][0]._
+  }
+
+  /**
+   * Retrieve all the tags in the schema.
+   *
+   * @param {string} tagElementName The name of the tag element.
+   * @returns {Map&lt;Object, string>} The tag names and XML elements.
+   */
+  getAllTags(tagElementName = 'node') {
+    const tagElements = xpath.find(this.rootElement, '//' + tagElementName)
+    const tags = tagElements.map((element) => this.getElementTagName(element))
+    return new Map(zip(tagElements, tags))
+  }
+
+  // Rewrite starts here.
+
+  parseProperties() {
+    const propertyDefinitions = this.getElementsByName('propertyDefinition')
+    this.properties = new Map()
+    for (const definition of propertyDefinitions) {
+      const propertyName = this.getElementTagName(definition)
+      if (this._versionDefinitions.categoryProperties?.has(propertyName)) {
+        this.properties.set(
+          propertyName,
+          // TODO: Switch back to class constant once upstream bug is fixed.
+          new SchemaProperty(propertyName, 'categoryProperty'),
+        )
+      } else if (this._versionDefinitions.typeProperties?.has(propertyName)) {
+        this.properties.set(
+          propertyName,
+          // TODO: Switch back to class constant once upstream bug is fixed.
+          new SchemaProperty(propertyName, 'typeProperty'),
+        )
+      } else if (this._versionDefinitions.roleProperties?.has(propertyName)) {
+        this.properties.set(
+          propertyName,
+          // TODO: Switch back to class constant once upstream bug is fixed.
+          new SchemaProperty(propertyName, 'roleProperty'),
+        )
+      }
+    }
+    this._addCustomProperties()
+  }
+
+  parseAttributes() {
+    const attributeDefinitions = this.getElementsByName('schemaAttributeDefinition')
+    this.attributes = new Map()
+    for (const definition of attributeDefinitions) {
+      const attributeName = this.getElementTagName(definition)
+      const propertyElements = definition.property
+      let properties
+      if (propertyElements === undefined) {
+        properties = []
+      } else {
+        properties = propertyElements.map((element) => this.properties.get(this.getElementTagName(element)))
+      }
+      this.attributes.set(attributeName, new SchemaAttribute(attributeName, properties))
+    }
+    this._addCustomAttributes()
+  }
+
+  _getValueClassChars(name) {
+    let classChars
+    if (Array.isArray(classRegex.class_chars[name]) &amp;&amp; classRegex.class_chars[name].length > 0) {
+      classChars =
+        '^(?:' + classRegex.class_chars[name].map((charClass) => classRegex.char_regex[charClass]).join('|') + ')+$'
+    } else {
+      classChars = '^.+$' // Any non-empty line or string.
+    }
+    return new RegExp(classChars)
+  }
+
+  parseValueClasses() {
+    const valueClasses = new Map()
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('valueClass')
+    for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      const booleanAttributes = booleanAttributeDefinitions.get(name)
+      //valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes))
+      const charRegex = this._getValueClassChars(name)
+      const wordRegex = new RegExp(classRegex.class_words[name] ?? '^.+$')
+      valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes, charRegex, wordRegex))
+    }
+    this.valueClasses = new SchemaEntryManager(valueClasses)
+  }
+
+  parseUnitModifiers() {
+    const unitModifiers = new Map()
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('unitModifier')
+    for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      const booleanAttributes = booleanAttributeDefinitions.get(name)
+      unitModifiers.set(name, new SchemaUnitModifier(name, booleanAttributes, valueAttributes))
+    }
+    this.unitModifiers = new SchemaEntryManager(unitModifiers)
+  }
+
+  parseUnitClasses() {
+    const unitClasses = new Map()
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions('unitClass')
+    const unitClassUnits = this.parseUnits()
+
+    for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      const booleanAttributes = booleanAttributeDefinitions.get(name)
+      unitClasses.set(name, new SchemaUnitClass(name, booleanAttributes, valueAttributes, unitClassUnits.get(name)))
+    }
+    this.unitClasses = new SchemaEntryManager(unitClasses)
+  }
+
+  parseUnits() {
+    const unitClassUnits = new Map()
+    const unitClassElements = this.getElementsByName('unitClassDefinition')
+    const unitModifiers = this.unitModifiers
+    for (const element of unitClassElements) {
+      const elementName = this.getElementTagName(element)
+      const units = new Map()
+      unitClassUnits.set(elementName, units)
+      if (element.unit === undefined) {
+        continue
+      }
+      const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] = this._parseAttributeElements(
+        element.unit,
+        this.getElementTagName,
+      )
+      for (const [name, valueAttributes] of unitValueAttributeDefinitions) {
+        const booleanAttributes = unitBooleanAttributeDefinitions.get(name)
+        units.set(name, new SchemaUnit(name, booleanAttributes, valueAttributes, unitModifiers))
+      }
+    }
+    return unitClassUnits
+  }
+
+  // Tag parsing
+
+  /**
+   * Parse the schema's tags.
+   */
+  parseTags() {
+    const tags = this.getAllTags()
+    const shortTags = this._getShortTags(tags)
+    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseAttributeElements(
+      tags.keys(),
+      (element) => shortTags.get(element),
+    )
+
+    const tagUnitClassDefinitions = this._processTagUnitClasses(shortTags, valueAttributeDefinitions)
+    this._processRecursiveAttributes(shortTags, booleanAttributeDefinitions)
+
+    const tagEntries = this._createSchemaTags(
+      booleanAttributeDefinitions,
+      valueAttributeDefinitions,
+      tagUnitClassDefinitions,
+    )
+
+    this._injectTagFields(tags, shortTags, tagEntries)
+
+    const longNameTagEntries = new Map()
+    for (const tag of tagEntries.values()) {
+      longNameTagEntries.set(lc(tag.longName), tag)
+    }
+
+    this.tags = new SchemaTagManager(tagEntries, longNameTagEntries)
+  }
+
+  /**
+   * Generate the map from tag elements to shortened tag names.
+   *
+   * @param {Map&lt;Object, string>} tags The map from tag elements to tag strings.
+   * @returns {Map&lt;Object, string>} The map from tag elements to shortened tag names.
+   * @private
+   */
+  _getShortTags(tags) {
+    const shortTags = new Map()
+    for (const tagElement of tags.keys()) {
+      const shortKey =
+        this.getElementTagName(tagElement) === '#'
+          ? this.getParentTagName(tagElement) + '-#'
+          : this.getElementTagName(tagElement)
+      shortTags.set(tagElement, shortKey)
+    }
+    return shortTags
+  }
+
+  /**
+   * Process unit classes in tags.
+   *
+   * @param {Map&lt;Object, string>} shortTags The map from tag elements to shortened tag names.
+   * @param {Map&lt;string, Map&lt;SchemaAttribute, *>>} valueAttributeDefinitions The map from shortened tag names to their value schema attributes.
+   * @returns {Map&lt;string, SchemaUnitClass[]>} The map from shortened tag names to their unit classes.
+   * @private
+   */
+  _processTagUnitClasses(shortTags, valueAttributeDefinitions) {
+    const tagUnitClassAttribute = this.attributes.get('unitClass')
+    const tagUnitClassDefinitions = new Map()
+
+    for (const tagName of shortTags.values()) {
+      const valueAttributes = valueAttributeDefinitions.get(tagName)
+      if (valueAttributes.has(tagUnitClassAttribute)) {
+        tagUnitClassDefinitions.set(
+          tagName,
+          valueAttributes.get(tagUnitClassAttribute).map((unitClassName) => {
+            return this.unitClasses.getEntry(unitClassName)
+          }),
+        )
+        valueAttributes.delete(tagUnitClassAttribute)
+      }
+    }
+
+    return tagUnitClassDefinitions
+  }
+
+  /**
+   * Process recursive schema attributes.
+   *
+   * @param {Map&lt;Object, string>} shortTags The map from tag elements to shortened tag names.
+   * @param {Map&lt;string, Set&lt;SchemaAttribute>>} booleanAttributeDefinitions The map from shortened tag names to their boolean schema attributes. Passed by reference.
+   * @private
+   */
+  _processRecursiveAttributes(shortTags, booleanAttributeDefinitions) {
+    const recursiveAttributes = this._getRecursiveAttributes()
+
+    for (const [tagElement, tagName] of shortTags) {
+      for (const attribute of recursiveAttributes) {
+        if (booleanAttributeDefinitions.get(tagName).has(attribute)) {
+          for (const childTag of this.getAllChildTags(tagElement)) {
+            const childTagName = this.getElementTagName(childTag)
+            booleanAttributeDefinitions.get(childTagName).add(attribute)
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Create the {@link SchemaTag} objects.
+   *
+   * @param {Map&lt;string, Set&lt;SchemaAttribute>>} booleanAttributeDefinitions The map from shortened tag names to their boolean schema attributes.
+   * @param {Map&lt;string, Map&lt;SchemaAttribute, *>>} valueAttributeDefinitions The map from shortened tag names to their value schema attributes.
+   * @param {Map&lt;string, SchemaUnitClass[]>} tagUnitClassDefinitions The map from shortened tag names to their unit classes.
+   * @returns {Map&lt;string, SchemaTag>} The map from lowercase shortened tag names to their tag objects.
+   * @private
+   */
+  _createSchemaTags(booleanAttributeDefinitions, valueAttributeDefinitions, tagUnitClassDefinitions) {
+    const tagTakesValueAttribute = this.attributes.get('takesValue')
+    const tagEntries = new Map()
+
+    for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      if (tagEntries.has(name)) {
+        IssueError.generateAndThrow('duplicateTagsInSchema')
+      }
+
+      const booleanAttributes = booleanAttributeDefinitions.get(name)
+      const unitClasses = tagUnitClassDefinitions.get(name)
+
+      if (booleanAttributes.has(tagTakesValueAttribute)) {
+        tagEntries.set(lc(name), new SchemaValueTag(name, booleanAttributes, valueAttributes, unitClasses))
+      } else {
+        tagEntries.set(lc(name), new SchemaTag(name, booleanAttributes, valueAttributes, unitClasses))
+      }
+    }
+
+    return tagEntries
+  }
+
+  /**
+   * Inject special tag fields into the {@link SchemaTag} objects.
+   *
+   * @param {Map&lt;Object, string>} tags The map from tag elements to tag strings.
+   * @param {Map&lt;Object, string>} shortTags The map from tag elements to shortened tag names.
+   * @param {Map&lt;string, SchemaTag>} tagEntries The map from shortened tag names to tag objects.
+   * @private
+   */
+  _injectTagFields(tags, shortTags, tagEntries) {
+    for (const tagElement of tags.keys()) {
+      const tagName = shortTags.get(tagElement)
+      const parentTagName = shortTags.get(tagElement.$parent)
+
+      if (parentTagName) {
+        tagEntries.get(lc(tagName)).parent = tagEntries.get(lc(parentTagName))
+      }
+
+      if (this.getElementTagName(tagElement) === '#') {
+        tagEntries.get(lc(parentTagName)).valueTag = tagEntries.get(lc(tagName))
+      }
+    }
+  }
+
+  _parseDefinitions(category) {
+    const categoryTagName = category + 'Definition'
+    const definitionElements = this.getElementsByName(categoryTagName)
+
+    return this._parseAttributeElements(definitionElements, this.getElementTagName)
+  }
+
+  _parseAttributeElements(elements, namer) {
+    const booleanAttributeDefinitions = new Map()
+    const valueAttributeDefinitions = new Map()
+
+    for (const element of elements) {
+      const [booleanAttributes, valueAttributes] = this._parseAttributeElement(element)
+
+      const elementName = namer(element)
+      booleanAttributeDefinitions.set(elementName, booleanAttributes)
+      valueAttributeDefinitions.set(elementName, valueAttributes)
+    }
+
+    return [booleanAttributeDefinitions, valueAttributeDefinitions]
+  }
+
+  _parseAttributeElement(element) {
+    const booleanAttributes = new Set()
+    const valueAttributes = new Map()
+
+    const tagAttributes = element.attribute ?? []
+
+    for (const tagAttribute of tagAttributes) {
+      const attributeName = this.getElementTagName(tagAttribute)
+      if (tagAttribute.value === undefined) {
+        booleanAttributes.add(this.attributes.get(attributeName))
+        continue
+      }
+      const values = tagAttribute.value.map((value) => value._)
+      valueAttributes.set(this.attributes.get(attributeName), values)
+    }
+
+    return [booleanAttributes, valueAttributes]
+  }
+
+  _getRecursiveAttributes() {
+    const attributeArray = Array.from(this.attributes.values())
+    if (semver.lt(this.rootElement.$.version, '8.3.0')) {
+      return attributeArray.filter((attribute) =>
+        attribute.roleProperties.has(this.properties.get('isInheritedProperty')),
+      )
+    } else {
+      return attributeArray.filter(
+        (attribute) => !attribute.roleProperties.has(this.properties.get('annotationProperty')),
+      )
+    }
+  }
+
+  _addCustomAttributes() {
+    const isInheritedProperty = this.properties.get('isInheritedProperty')
+    const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
+    if (this.rootElement.$.library === undefined &amp;&amp; semver.lt(this.rootElement.$.version, '8.2.0')) {
+      extensionAllowedAttribute._roleProperties.add(isInheritedProperty)
+    }
+    const inLibraryAttribute = this.attributes.get('inLibrary')
+    if (inLibraryAttribute &amp;&amp; semver.lt(this.rootElement.$.version, '8.3.0')) {
+      inLibraryAttribute._roleProperties.add(isInheritedProperty)
+    }
+  }
+
+  _addCustomProperties() {
+    if (this.rootElement.$.library === undefined &amp;&amp; semver.lt(this.rootElement.$.version, '8.2.0')) {
+      const recursiveProperty = new SchemaProperty('isInheritedProperty', 'roleProperty')
+      this.properties.set('isInheritedProperty', recursiveProperty)
+    }
+  }
+}
+</code></pre>
+        </article>
+      </section>
+    </div>
+
+    <nav>
+      <h2><a href="index.html">Home</a></h2>
+      <h3>Classes</h3>
+      <ul>
+        <li><a href="BidsFile.html">BidsFile</a></li>
+        <li><a href="BidsHedIssue_BidsHedIssue.html">BidsHedIssue</a></li>
+        <li><a href="BidsHedSidecarValidator.html">BidsHedSidecarValidator</a></li>
+        <li><a href="BidsHedTsvParser.html">BidsHedTsvParser</a></li>
+        <li><a href="BidsHedTsvValidator.html">BidsHedTsvValidator</a></li>
+        <li><a href="BidsHedValidator.html">BidsHedValidator</a></li>
+        <li><a href="BidsJsonFile.html">BidsJsonFile</a></li>
+        <li><a href="BidsSidecar_BidsSidecar.html">BidsSidecar</a></li>
+        <li><a href="BidsSidecarKey_BidsSidecarKey.html">BidsSidecarKey</a></li>
+        <li><a href="BidsTsvElement_BidsTsvElement.html">BidsTsvElement</a></li>
+        <li><a href="BidsTsvFile.html">BidsTsvFile</a></li>
+        <li><a href="BidsTsvRow.html">BidsTsvRow</a></li>
+        <li><a href="BidsValidator.html">BidsValidator</a></li>
+        <li><a href="ColumnSpliceSpec.html">ColumnSpliceSpec</a></li>
+        <li><a href="Definition_Definition.html">Definition</a></li>
+        <li><a href="DefinitionChecker_DefinitionChecker.html">DefinitionChecker</a></li>
+        <li><a href="GroupSpec.html">GroupSpec</a></li>
+        <li><a href="HedStringParser.html">HedStringParser</a></li>
+        <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
+        <li><a href="Issue.html">Issue</a></li>
+        <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
+        <li><a href="ParsedHedString.html">ParsedHedString</a></li>
+        <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
+        <li><a href="PartneredSchema.html">PartneredSchema</a></li>
+        <li><a href="Schema.html">Schema</a></li>
+        <li><a href="SchemaAttribute.html">SchemaAttribute</a></li>
+        <li><a href="SchemaEntries.html">SchemaEntries</a></li>
+        <li><a href="SchemaEntry.html">SchemaEntry</a></li>
+        <li><a href="SchemaEntryManager.html">SchemaEntryManager</a></li>
+        <li><a href="SchemaEntryWithAttributes.html">SchemaEntryWithAttributes</a></li>
+        <li><a href="SchemaProperty.html">SchemaProperty</a></li>
+        <li><a href="SchemaSpec.html">SchemaSpec</a></li>
+        <li><a href="SchemaTag.html">SchemaTag</a></li>
+        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
+        <li><a href="SchemaUnit.html">SchemaUnit</a></li>
+        <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
+        <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
+        <li><a href="SchemaValueClass.html">SchemaValueClass</a></li>
+        <li><a href="SchemaValueTag.html">SchemaValueTag</a></li>
+        <li><a href="Schemas.html">Schemas</a></li>
+        <li><a href="SchemasSpec.html">SchemasSpec</a></li>
+        <li><a href="SubstringSpec.html">SubstringSpec</a></li>
+        <li><a href="TagSpec.html">TagSpec</a></li>
+        <li><a href="module.html#.exports">exports</a></li>
+        <li><a href="module.exports_module.exports.html">exports</a></li>
+      </ul>
+      <h3>Global</h3>
+      <ul>
+        <li><a href="global.html#_convertTag">_convertTag</a></li>
+        <li><a href="global.html#_createParsedGroups">_createParsedGroups</a></li>
+        <li><a href="global.html#_createParsedTags">_createParsedTags</a></li>
+        <li><a href="global.html#_getSplitValue">_getSplitValue</a></li>
+        <li><a href="global.html#_handleIssueError">_handleIssueError</a></li>
+        <li><a href="global.html#_memoize">_memoize</a></li>
+        <li><a href="global.html#_separateUnits">_separateUnits</a></li>
+        <li><a href="global.html#buildBidsSchemas">buildBidsSchemas</a></li>
+        <li><a href="global.html#buildSchemaObject">buildSchemaObject</a></li>
+        <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
+        <li><a href="global.html#buildSchemas">buildSchemas</a></li>
+        <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
+        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
+        <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
+        <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
+        <li><a href="global.html#convert">convert</a></li>
+        <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
+        <li><a href="global.html#destinationTags">destinationTags</a></li>
+        <li><a href="global.html#equivalent">equivalent</a></li>
+        <li><a href="global.html#filterByClass">filterByClass</a></li>
+        <li><a href="global.html#filterByTagName">filterByTagName</a></li>
+        <li><a href="global.html#filterTagMapByNames">filterTagMapByNames</a></li>
+        <li><a href="global.html#find">find</a></li>
+        <li><a href="global.html#format">format</a></li>
+        <li><a href="global.html#generateIssue">generateIssue</a></li>
+        <li><a href="global.html#getAllTags">getAllTags</a></li>
+        <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
+        <li><a href="global.html#getDuplicates">getDuplicates</a></li>
+        <li><a href="global.html#getElementCount">getElementCount</a></li>
+        <li><a href="global.html#getElementTagName">getElementTagName</a></li>
+        <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
+        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
+        <li><a href="global.html#getParentTag">getParentTag</a></li>
+        <li><a href="global.html#getTagListString">getTagListString</a></li>
+        <li><a href="global.html#getTagName">getTagName</a></li>
+        <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
+        <li><a href="global.html#hasAttribute">hasAttribute</a></li>
+        <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
+        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
+        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
+        <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isNumber">isNumber</a></li>
+        <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
+        <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
+        <li><a href="global.html#loadPromise">loadPromise</a></li>
+        <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
+        <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
+        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
+        <li><a href="global.html#normalized">normalized</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
+        <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
+        <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
+        <li><a href="global.html#parseTSV">parseTSV</a></li>
+        <li><a href="global.html#parseTags">parseTags</a></li>
+        <li><a href="global.html#parseXPath">parseXPath</a></li>
+        <li><a href="global.html#readFile">readFile</a></li>
+        <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
+        <li><a href="global.html#recursiveMap">recursiveMap</a></li>
+        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
+        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
+        <li><a href="global.html#schemaTag">schemaTag</a></li>
+        <li><a href="global.html#search">search</a></li>
+        <li><a href="global.html#setNodeParent">setNodeParent</a></li>
+        <li><a href="global.html#setParent">setParent</a></li>
+        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
+        <li><a href="global.html#sourceTags">sourceTags</a></li>
+        <li><a href="global.html#splitHedString">splitHedString</a></li>
+        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
+        <li><a href="global.html#stringTemplate">stringTemplate</a></li>
+        <li><a href="global.html#stripBOM">stripBOM</a></li>
+        <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
+        <li><a href="global.html#tagIterator">tagIterator</a></li>
+        <li><a href="global.html#takesValue">takesValue</a></li>
+        <li><a href="global.html#takesValueTag">takesValueTag</a></li>
+        <li><a href="global.html#toString">toString</a></li>
+        <li><a href="global.html#topLevelGroupIterator">topLevelGroupIterator</a></li>
+        <li><a href="global.html#unitClasses">unitClasses</a></li>
+        <li><a href="global.html#validateBidsDataset">validateBidsDataset</a></li>
+      </ul>
+    </nav>
+
+    <br class="clear" />
+
+    <footer>
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 10:56:25
+      GMT-0600 (Central Standard Time)
+    </footer>
+
+    <script>
+      prettyPrint()
+    </script>
+    <script src="scripts/linenumber.js"></script>
+  </body>
+</html>

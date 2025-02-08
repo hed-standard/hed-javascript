@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>JSDoc: Source: parser/tagConverter.js</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css" />
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css" />
+  </head>
+
+  <body>
+    <div id="main">
+      <h1 class="page-title">Source: parser/tagConverter.js</h1>
+
+      <section>
+        <article>
+          <pre class="prettyprint source linenums"><code>import { IssueError } from '../issues/issues'
+import { getTagSlashIndices } from '../utils/hedStrings'
+import { ReservedChecker } from './reservedChecker'
+
+/**
+ * Converter from a tag specification to a schema-based tag object.
+ */
+export default class TagConverter {
+  /**
+   * A parsed tag token.
+   * @type {TagSpec}
+   */
+  tagSpec
+
+  /**
+   * The tag string to convert.
+   * @type {string}
+   */
+  tagString
+
+  /**
+   * The tag string split by slashes.
+   * @type {string[]}
+   */
+  tagLevels
+
+  /**
+   * The indices of the tag string's slashes.
+   * @type {number[]}
+   */
+  tagSlashes
+
+  /**
+   * A HED schema collection.
+   * @type {Schemas}
+   */
+  hedSchemas
+
+  /**
+   * The entry manager for the tags in the active schema.
+   * @type {SchemaTagManager}
+   */
+  tagMapping
+
+  /**
+   * The converted tag in the schema.
+   * @type {SchemaTag}
+   */
+  schemaTag
+
+  /**
+   * The remainder (e.g. value, extension) of the tag string.
+   * @type {string}
+   */
+  remainder
+
+  /**
+   * Constructor.
+   *
+   * @param {TagSpec} tagSpec The tag specification to convert.
+   * @param {Schemas} hedSchemas The HED schema collection.
+   */
+  constructor(tagSpec, hedSchemas) {
+    this.hedSchemas = hedSchemas
+    this.tagMapping = hedSchemas.getSchema(tagSpec.library).entries.tags
+    this.tagSpec = tagSpec
+    this.tagString = tagSpec.tag
+    this.tagLevels = this.tagString.split('/')
+    this.tagSlashes = getTagSlashIndices(this.tagString)
+    this.remainder = undefined
+    this.special = ReservedChecker.getInstance()
+  }
+
+  /**
+   * Retrieve the {@link SchemaTag} object for a tag specification.
+   *
+   * @returns {Array} - [SchemaTag, string] representing schema's corresponding tag object and the remainder of the tag string.
+   * @throws {IssueError} If tag conversion.
+   */
+  convert() {
+    let parentTag = undefined
+    for (let tagLevelIndex = 0; tagLevelIndex &lt; this.tagLevels.length; tagLevelIndex++) {
+      if (parentTag?.valueTag) {
+        // It is a value tag
+        this._setSchemaTag(parentTag.valueTag, tagLevelIndex)
+        return [this.schemaTag, this.remainder]
+      }
+      const childTag = this._validateChildTag(parentTag, tagLevelIndex)
+      if (childTag === undefined) {
+        // It is an extended tag and the rest is undefined
+        this._setSchemaTag(parentTag, tagLevelIndex)
+      }
+      parentTag = childTag
+    }
+    this._setSchemaTag(parentTag, this.tagLevels.length + 1) // Fix the ending
+    return [this.schemaTag, this.remainder]
+  }
+
+  _validateChildTag(parentTag, tagLevelIndex) {
+    const childTag = this._getSchemaTag(tagLevelIndex)
+    if (childTag === undefined) {
+      // This is an extended tag
+      if (tagLevelIndex === 0) {
+        // Top level tags can't be extensions
+        IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
+      }
+      if (
+        parentTag !== undefined &amp;&amp;
+        (!parentTag.hasAttributeName('extensionAllowed') || this.special.noExtensionTags.has(parentTag.name))
+      ) {
+        IssueError.generateAndThrow('invalidExtension', {
+          tag: this.tagLevels[tagLevelIndex],
+          parentTag: this.tagLevels.slice(0, tagLevelIndex).join('/'),
+        })
+      }
+      this._checkExtensions(tagLevelIndex)
+      return childTag
+    }
+
+    if (tagLevelIndex > 0 &amp;&amp; (childTag.parent === undefined || childTag.parent !== parentTag)) {
+      IssueError.generateAndThrow('invalidParentNode', {
+        tag: this.tagLevels[tagLevelIndex],
+        parentTag: this.tagLevels.slice(0, tagLevelIndex).join('/'),
+      })
+    }
+
+    return childTag
+  }
+
+  _checkExtensions(tagLevelIndex) {
+    // A non-tag has been detected --- from here on must be non-tags.
+    this._checkNameClass(tagLevelIndex) // This is an extension
+    for (let index = tagLevelIndex + 1; index &lt; this.tagLevels.length; index++) {
+      const child = this._getSchemaTag(index)
+      if (child !== undefined) {
+        // A schema tag showed up after a non-schema tag
+        IssueError.generateAndThrow('invalidParentNode', {
+          tag: child.name,
+          parentTag: this.tagLevels.slice(0, index).join('/'),
+        })
+      }
+      this._checkNameClass(index)
+    }
+  }
+
+  _getSchemaTag(tagLevelIndex) {
+    const tagLevel = this.tagLevels[tagLevelIndex].toLowerCase()
+    return this.tagMapping.getEntry(tagLevel)
+  }
+
+  _setSchemaTag(schemaTag, remainderStartLevelIndex) {
+    if (this.schemaTag !== undefined) {
+      return
+    }
+    this.schemaTag = schemaTag
+    this.remainder = this.tagLevels.slice(remainderStartLevelIndex).join('/')
+    if (this.schemaTag?.hasAttributeName('requireChild') &amp;&amp; !this.remainder) {
+      IssueError.generateAndThrow('childRequired', { tag: this.tagString })
+    }
+  }
+
+  _checkNameClass(index) {
+    // Check whether the tagLevel is a valid name class
+    const valueClasses = this.hedSchemas.getSchema(this.tagSpec.library).entries.valueClasses
+    if (!valueClasses._definitions.get('nameClass').validateValue(this.tagLevels[index])) {
+      IssueError.generateAndThrow('invalidExtension', {
+        tag: this.tagLevels[index],
+        parentTag: this.tagLevels.slice(0, index).join('/'),
+      })
+    }
+  }
+}
+</code></pre>
+        </article>
+      </section>
+    </div>
+
+    <nav>
+      <h2><a href="index.html">Home</a></h2>
+      <h3>Classes</h3>
+      <ul>
+        <li><a href="BidsFile.html">BidsFile</a></li>
+        <li><a href="BidsHedIssue_BidsHedIssue.html">BidsHedIssue</a></li>
+        <li><a href="BidsHedSidecarValidator.html">BidsHedSidecarValidator</a></li>
+        <li><a href="BidsHedTsvParser.html">BidsHedTsvParser</a></li>
+        <li><a href="BidsHedTsvValidator.html">BidsHedTsvValidator</a></li>
+        <li><a href="BidsHedValidator.html">BidsHedValidator</a></li>
+        <li><a href="BidsJsonFile.html">BidsJsonFile</a></li>
+        <li><a href="BidsSidecar_BidsSidecar.html">BidsSidecar</a></li>
+        <li><a href="BidsSidecarKey_BidsSidecarKey.html">BidsSidecarKey</a></li>
+        <li><a href="BidsTsvElement_BidsTsvElement.html">BidsTsvElement</a></li>
+        <li><a href="BidsTsvFile.html">BidsTsvFile</a></li>
+        <li><a href="BidsTsvRow.html">BidsTsvRow</a></li>
+        <li><a href="BidsValidator.html">BidsValidator</a></li>
+        <li><a href="ColumnSpliceSpec.html">ColumnSpliceSpec</a></li>
+        <li><a href="Definition_Definition.html">Definition</a></li>
+        <li><a href="DefinitionChecker_DefinitionChecker.html">DefinitionChecker</a></li>
+        <li><a href="GroupSpec.html">GroupSpec</a></li>
+        <li><a href="HedStringParser.html">HedStringParser</a></li>
+        <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
+        <li><a href="Issue.html">Issue</a></li>
+        <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
+        <li><a href="ParsedHedString.html">ParsedHedString</a></li>
+        <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
+        <li><a href="PartneredSchema.html">PartneredSchema</a></li>
+        <li><a href="Schema.html">Schema</a></li>
+        <li><a href="SchemaAttribute.html">SchemaAttribute</a></li>
+        <li><a href="SchemaEntries.html">SchemaEntries</a></li>
+        <li><a href="SchemaEntry.html">SchemaEntry</a></li>
+        <li><a href="SchemaEntryManager.html">SchemaEntryManager</a></li>
+        <li><a href="SchemaEntryWithAttributes.html">SchemaEntryWithAttributes</a></li>
+        <li><a href="SchemaProperty.html">SchemaProperty</a></li>
+        <li><a href="SchemaSpec.html">SchemaSpec</a></li>
+        <li><a href="SchemaTag.html">SchemaTag</a></li>
+        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
+        <li><a href="SchemaUnit.html">SchemaUnit</a></li>
+        <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
+        <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
+        <li><a href="SchemaValueClass.html">SchemaValueClass</a></li>
+        <li><a href="SchemaValueTag.html">SchemaValueTag</a></li>
+        <li><a href="Schemas.html">Schemas</a></li>
+        <li><a href="SchemasSpec.html">SchemasSpec</a></li>
+        <li><a href="SubstringSpec.html">SubstringSpec</a></li>
+        <li><a href="TagSpec.html">TagSpec</a></li>
+        <li><a href="module.html#.exports">exports</a></li>
+        <li><a href="module.exports_module.exports.html">exports</a></li>
+      </ul>
+      <h3>Global</h3>
+      <ul>
+        <li><a href="global.html#_convertTag">_convertTag</a></li>
+        <li><a href="global.html#_createParsedGroups">_createParsedGroups</a></li>
+        <li><a href="global.html#_createParsedTags">_createParsedTags</a></li>
+        <li><a href="global.html#_getSplitValue">_getSplitValue</a></li>
+        <li><a href="global.html#_handleIssueError">_handleIssueError</a></li>
+        <li><a href="global.html#_memoize">_memoize</a></li>
+        <li><a href="global.html#_separateUnits">_separateUnits</a></li>
+        <li><a href="global.html#buildBidsSchemas">buildBidsSchemas</a></li>
+        <li><a href="global.html#buildSchemaObject">buildSchemaObject</a></li>
+        <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
+        <li><a href="global.html#buildSchemas">buildSchemas</a></li>
+        <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
+        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
+        <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
+        <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
+        <li><a href="global.html#convert">convert</a></li>
+        <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
+        <li><a href="global.html#destinationTags">destinationTags</a></li>
+        <li><a href="global.html#equivalent">equivalent</a></li>
+        <li><a href="global.html#filterByClass">filterByClass</a></li>
+        <li><a href="global.html#filterByTagName">filterByTagName</a></li>
+        <li><a href="global.html#filterTagMapByNames">filterTagMapByNames</a></li>
+        <li><a href="global.html#find">find</a></li>
+        <li><a href="global.html#format">format</a></li>
+        <li><a href="global.html#generateIssue">generateIssue</a></li>
+        <li><a href="global.html#getAllTags">getAllTags</a></li>
+        <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
+        <li><a href="global.html#getDuplicates">getDuplicates</a></li>
+        <li><a href="global.html#getElementCount">getElementCount</a></li>
+        <li><a href="global.html#getElementTagName">getElementTagName</a></li>
+        <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
+        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
+        <li><a href="global.html#getParentTag">getParentTag</a></li>
+        <li><a href="global.html#getTagListString">getTagListString</a></li>
+        <li><a href="global.html#getTagName">getTagName</a></li>
+        <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
+        <li><a href="global.html#hasAttribute">hasAttribute</a></li>
+        <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
+        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
+        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
+        <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isNumber">isNumber</a></li>
+        <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
+        <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
+        <li><a href="global.html#loadPromise">loadPromise</a></li>
+        <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
+        <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
+        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
+        <li><a href="global.html#normalized">normalized</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
+        <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
+        <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
+        <li><a href="global.html#parseTSV">parseTSV</a></li>
+        <li><a href="global.html#parseTags">parseTags</a></li>
+        <li><a href="global.html#parseXPath">parseXPath</a></li>
+        <li><a href="global.html#readFile">readFile</a></li>
+        <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
+        <li><a href="global.html#recursiveMap">recursiveMap</a></li>
+        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
+        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
+        <li><a href="global.html#schemaTag">schemaTag</a></li>
+        <li><a href="global.html#search">search</a></li>
+        <li><a href="global.html#setNodeParent">setNodeParent</a></li>
+        <li><a href="global.html#setParent">setParent</a></li>
+        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
+        <li><a href="global.html#sourceTags">sourceTags</a></li>
+        <li><a href="global.html#splitHedString">splitHedString</a></li>
+        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
+        <li><a href="global.html#stringTemplate">stringTemplate</a></li>
+        <li><a href="global.html#stripBOM">stripBOM</a></li>
+        <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
+        <li><a href="global.html#tagIterator">tagIterator</a></li>
+        <li><a href="global.html#takesValue">takesValue</a></li>
+        <li><a href="global.html#takesValueTag">takesValueTag</a></li>
+        <li><a href="global.html#toString">toString</a></li>
+        <li><a href="global.html#topLevelGroupIterator">topLevelGroupIterator</a></li>
+        <li><a href="global.html#unitClasses">unitClasses</a></li>
+        <li><a href="global.html#validateBidsDataset">validateBidsDataset</a></li>
+      </ul>
+    </nav>
+
+    <br class="clear" />
+
+    <footer>
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 10:56:25
+      GMT-0600 (Central Standard Time)
+    </footer>
+
+    <script>
+      prettyPrint()
+    </script>
+    <script src="scripts/linenumber.js"></script>
+  </body>
+</html>

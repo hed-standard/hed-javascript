@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>JSDoc: Source: parser/reservedChecker.js</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css" />
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css" />
+  </head>
+
+  <body>
+    <div id="main">
+      <h1 class="page-title">Source: parser/reservedChecker.js</h1>
+
+      <section>
+        <article>
+          <pre class="prettyprint source linenums"><code>import reservedTags from '../data/json/reservedTags.json'
+import { generateIssue } from '../issues/issues'
+import { getTagListString } from './parseUtils'
+
+export class ReservedChecker {
+  static instance = null
+  static reservedMap = new Map(Object.entries(reservedTags))
+
+  constructor() {
+    if (ReservedChecker.instance) {
+      throw new Error('Use ReservedChecker.getInstance() to get an instance of this class.')
+    }
+
+    this._initializeReservedTags()
+  }
+
+  // Static method to control access to the singleton instance
+  static getInstance() {
+    if (!ReservedChecker.instance) {
+      ReservedChecker.instance = new ReservedChecker()
+    }
+    return ReservedChecker.instance
+  }
+
+  _initializeReservedTags() {
+    this.reservedNames = new Set(ReservedChecker.reservedMap.keys())
+    this.requireValueTags = ReservedChecker._getReservedTagsByProperty('requireValue')
+    this.noExtensionTags = ReservedChecker._getReservedTagsByProperty('noExtension')
+    this.requiresDefTags = ReservedChecker._getReservedTagsByProperty('requiresDef')
+    this.timelineTags = ReservedChecker._getReservedTagsByProperty('requiresTimeline')
+  }
+
+  static _getReservedTagsByProperty(property) {
+    return new Set(
+      [...ReservedChecker.reservedMap.values()].filter((value) => value[property] === true).map((value) => value.name),
+    )
+  }
+
+  /**
+   * Perform syntactical checks on the provided HED string to detect violations.
+   *
+   * @param {ParsedHedString} hedString - The HED string to be checked.
+   * @returns {Issue[]} An array of issues if violations are found otherwise, an empty array.
+   */
+  checkHedString(hedString) {
+    const checks = [
+      () => this.checkUnique(hedString),
+      () => this.checkTagGroupLevels(hedString),
+      () => this.checkTopGroupRequirements(hedString),
+      () => this.checkNonTopGroups(hedString),
+    ]
+    for (const check of checks) {
+      const issues = check()
+      if (issues.length > 0) {
+        return issues
+      }
+    }
+    return []
+  }
+
+  /**
+   * Check for tags with the unique attribute.
+   *
+   * @param {ParsedHedString} hedString - The HED string to be checked for tags with the unique attribute.
+   * @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
+   */
+  checkUnique(hedString) {
+    const uniqueTags = hedString.tags.filter((tag) => tag.hasAttribute('unique'))
+    const uniqueNames = new Set()
+    for (const tag of uniqueTags) {
+      if (uniqueNames.has(tag.schemaTag._name)) {
+        return [generateIssue('multipleUniqueTags', { tag: tag.originalTag, string: hedString.hedString })]
+      }
+      uniqueNames.add(tag.schemaTag._name)
+    }
+    return []
+  }
+
+  /**
+   * Check whether tags are not in groups -- or top-level groups as required
+   *
+   * @param {ParsedHedString} hedString - The HED string to be checked for reserved tag syntax.
+   * @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
+   */
+  checkTagGroupLevels(hedString) {
+    const issues = []
+    const topGroupTags = hedString.topLevelGroupTags.flat()
+
+    // Check for top-level violations because tag is deep
+    hedString.tags.forEach((tag) => {
+      // If in a top group -- no problem regardless of tag group or top group attribute
+      if (topGroupTags.includes(tag)) {
+        return
+      }
+
+      // If this is a top tag group tag, we know it isn't in a top tag group.
+      if (ReservedChecker.hasTopLevelTagGroupAttribute(tag)) {
+        issues.push(generateIssue('invalidTopLevelTagGroupTag', { tag: tag.originalTag, string: hedString.hedString }))
+        return
+      }
+
+      // In final form --- if not in a group (not just a top group) but has the group tag attribute
+      if (hedString.topLevelTags.includes(tag) &amp;&amp; ReservedChecker.hasGroupAttribute(tag)) {
+        issues.push(generateIssue('missingTagGroup', { tag: tag.originalTag, string: hedString.hedString }))
+      }
+    })
+    return issues
+  }
+
+  /**
+   * Check the group conditions of the reserved tags. The top-level has already been verified.
+   *
+   * @param {ParsedHedString} hedString - The HED string to check for group conflicts.
+   * @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
+   *
+   * Notes: These include the number of groups and top tag compatibility in the group
+   */
+  checkTopGroupRequirements(hedString) {
+    const issues = []
+    for (const group of hedString.tagGroups) {
+      const reservedTags = [...group.reservedTags.values()].flat()
+      for (const reservedTag of reservedTags) {
+        const nextIssues = this._checkGroupRequirements(group, reservedTag)
+        issues.push(...nextIssues)
+        // If an error is found in this group -- there is no point looking for more.
+        if (nextIssues.length > 0) {
+          break
+        }
+      }
+    }
+    return issues
+  }
+
+  /**
+   * Check the group tag requirements of a reserved Tag.
+   * @param {ParsedHedGroup} group - The group to check for tag requirements.
+   * @param {ParsedHedTag} reservedTag - A top-level reserved tag in group.
+   * @returns {Issue[]} - Returns an issue if the group requirements for this tag are not met.
+   */
+  _checkGroupRequirements(group, reservedTag) {
+    // Check that groups with tags that require a definition, have one.
+    if (group.requiresDefTag.length > 0 &amp;&amp; group.defCount !== 1) {
+      return [
+        generateIssue('temporalWithWrongNumberDefs', { tag: group.requiresDefTag[0], tagGroup: group.originalTag }),
+      ]
+    }
+
+    const reservedRequirements = ReservedChecker.reservedMap.get(reservedTag.schemaTag.name)
+
+    // Check that only allowed tags are at the top level.
+    const issues = this._checkAllowedTags(group, reservedTag, reservedRequirements)
+    if (issues.length > 0) {
+      return issues
+    }
+    issues.push(...this._checkAllowedGroups(group, reservedTag, reservedRequirements))
+    return issues
+  }
+
+  /**
+   * Verify that the tags in the group are allowed with the reserved tag.
+   *
+   * @param {ParsedHedGroup} group - The enclosing tag group.
+   * @param {ParsedHedTag} reservedTag - The reserved tag whose tag requirements are to be checked.
+   * @param {Object} requirements - The requirements for this reserved tag.
+   * @returns {Issue[]} - Issues because
+   * @private
+   */
+  _checkAllowedTags(group, reservedTag, requirements) {
+    // The allowed tag requirement isn't applicable
+    if (requirements.otherAllowedNonDefTags === null || requirements.otherAllowedNonDefTags === undefined) {
+      return []
+    }
+    // Check for def or def-expand tags for a reserved tag that does not need them.
+    if (!requirements.requiresDef &amp;&amp; group.requiresDefTag.length === 0 &amp;&amp; group.defCount > 0) {
+      return [generateIssue('tooManyGroupTopTags', { string: group.originalTag })]
+    }
+
+    // Isolate the other top tags.
+    const otherTopTags = group.topTags.filter((tag) => tag !== reservedTag)
+    if (otherTopTags.length === 0) {
+      return []
+    }
+
+    const encountered = new Set()
+    for (const tag of otherTopTags) {
+      if (encountered.has(tag.schemaTag.name)) {
+        return [generateIssue('tooManyGroupTopTags', { string: group.originalTag })]
+      }
+      encountered.add(tag.schemaTag.name)
+      if (tag.schemaTag.name === 'Def' &amp;&amp; group.requiresDefTag.length !== 0) {
+        continue
+      }
+      // This tag is not allowed with the reserved tag
+      if (!requirements.otherAllowedNonDefTags.includes(tag.schemaTag.name)) {
+        return [
+          generateIssue('invalidGroupTopTags', { tags: getTagListString(group.topTags), string: group.originalTag }),
+        ]
+      }
+    }
+    return []
+  }
+
+  /**
+   * Verify the group conditions are satisfied for a reserved tag.
+   *
+   * @param {ParsedHedGroup} group - The enclosing tag group.
+   * @param {ParsedHedTag} reservedTag - The reserved tag whose tag requirements are to be checked.
+   * @param {Object} requirements - The requirements for this reserved tag.
+   * @returns {Issue[]}
+   * @private
+   */
+  _checkAllowedGroups(group, reservedTag, requirements) {
+    // Proper Def and Def-expand count for a tag that requires a def is checked when group is created.
+    let defAdjustment = 0
+    if (group.defExpandChildren.length !== 0 &amp;&amp; group.requiresDefTag.length > 0) {
+      defAdjustment = 1
+    }
+
+    // Check the group does not have more than the maximum allowed subgroups.
+    const maxLimit = requirements.maxNonDefSubgroups != null ? requirements.maxNonDefSubgroups : Infinity
+    if (group.topGroups.length - defAdjustment > maxLimit) {
+      return [generateIssue('invalidNumberOfSubgroups', { tag: reservedTag.originalTag, string: group.originalTag })]
+    }
+
+    // Check that the group has the correct minimum number of subgroups.
+    return this._checkMinGroupCount(group, reservedTag, requirements.minNonDefSubgroups, defAdjustment)
+  }
+
+  /**
+   * Verify that a group has the minimum required subgroups for its reserved tag.
+   * @param {ParsedHedGroup} group - The group to be checked.
+   * @param {ParsedHedTag} reservedTag - The reserved tags whose requirements are used.
+   * @param {Number | null} minLimit - The minimum number of non-def groups required or null if no requirement.
+   * @param {Number} defAdjustment - Either 0 or 1 depending on whether a def-expand is included.
+   * @returns {Issue[]} - Returns an issue list if the count requirement is violated.
+   * @private
+   */
+  _checkMinGroupCount(group, reservedTag, minLimit, defAdjustment) {
+    if (minLimit === null) {
+      return []
+    }
+    let nonEmptyGroups = 0
+    for (const subGroup of group.topGroups) {
+      if (subGroup.allTags.length > 0) {
+        nonEmptyGroups += 1
+      }
+    }
+    if (nonEmptyGroups &lt; minLimit + defAdjustment) {
+      return [generateIssue('invalidNumberOfSubgroups', { tag: reservedTag.originalTag, string: group.originalTag })]
+    }
+
+    return []
+  }
+
+  /** Verify that there are no group tags at the top level of the string.
+   *
+   * @param {ParsedHedString} hedString - The HED string to be checked.
+   * @returns {Issue[]} - Returns issue list if there are top level tags that are group tags.
+   */
+  checkNonTopGroups(hedString) {
+    const group_tags = hedString.tags.filter(
+      (tag) => ReservedChecker.hasGroupAttribute(tag) &amp;&amp; tag in hedString.topLevelTags,
+    )
+    if (group_tags.length > 0) {
+      return [generateIssue('missingTagGroup', { tag: getTagListString(group_tags) })]
+    }
+    return []
+  }
+
+  /**
+   * Indicate whether a tag should be a top-level tag.
+   *
+   * @param {ParsedHedTag} tag - HED tag to check for top-level requirements.
+   * @returns {boolean} If true, the tag is required to be at the top level.
+   *
+   * Note: This check both the reserved requirements and the 'topLevelTagGroup' attribute in the schema.
+   *
+   */
+  static hasTopLevelTagGroupAttribute(tag) {
+    return (
+      tag.schemaTag.hasAttributeName('topLevelTagGroup') ||
+      (ReservedChecker.reservedMap.has(tag.schemaTag.name) &amp;&amp;
+        ReservedChecker.reservedMap.get(tag.schemaTag.name).topLevelTagGroup)
+    )
+  }
+
+  /**
+   * Return a boolean indicating whether a tag is required to be in a tag group.
+   *
+   * @param {ParsedHedTag} tag - The HED tag to be checked.
+   * @returns {boolean} If true, this indicates that tag must be in a tag group.
+   *
+   * Note:  This checks both reserved and schema tag requirements.
+   */
+  static hasGroupAttribute(tag) {
+    return tag.schemaTag.hasAttributeName('tagGroup')
+  }
+}
+</code></pre>
+        </article>
+      </section>
+    </div>
+
+    <nav>
+      <h2><a href="index.html">Home</a></h2>
+      <h3>Classes</h3>
+      <ul>
+        <li><a href="BidsFile.html">BidsFile</a></li>
+        <li><a href="BidsHedIssue_BidsHedIssue.html">BidsHedIssue</a></li>
+        <li><a href="BidsHedSidecarValidator.html">BidsHedSidecarValidator</a></li>
+        <li><a href="BidsHedTsvParser.html">BidsHedTsvParser</a></li>
+        <li><a href="BidsHedTsvValidator.html">BidsHedTsvValidator</a></li>
+        <li><a href="BidsHedValidator.html">BidsHedValidator</a></li>
+        <li><a href="BidsJsonFile.html">BidsJsonFile</a></li>
+        <li><a href="BidsSidecar_BidsSidecar.html">BidsSidecar</a></li>
+        <li><a href="BidsSidecarKey_BidsSidecarKey.html">BidsSidecarKey</a></li>
+        <li><a href="BidsTsvElement_BidsTsvElement.html">BidsTsvElement</a></li>
+        <li><a href="BidsTsvFile.html">BidsTsvFile</a></li>
+        <li><a href="BidsTsvRow.html">BidsTsvRow</a></li>
+        <li><a href="BidsValidator.html">BidsValidator</a></li>
+        <li><a href="ColumnSpliceSpec.html">ColumnSpliceSpec</a></li>
+        <li><a href="Definition_Definition.html">Definition</a></li>
+        <li><a href="DefinitionChecker_DefinitionChecker.html">DefinitionChecker</a></li>
+        <li><a href="GroupSpec.html">GroupSpec</a></li>
+        <li><a href="HedStringParser.html">HedStringParser</a></li>
+        <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
+        <li><a href="Issue.html">Issue</a></li>
+        <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
+        <li><a href="ParsedHedString.html">ParsedHedString</a></li>
+        <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
+        <li><a href="PartneredSchema.html">PartneredSchema</a></li>
+        <li><a href="Schema.html">Schema</a></li>
+        <li><a href="SchemaAttribute.html">SchemaAttribute</a></li>
+        <li><a href="SchemaEntries.html">SchemaEntries</a></li>
+        <li><a href="SchemaEntry.html">SchemaEntry</a></li>
+        <li><a href="SchemaEntryManager.html">SchemaEntryManager</a></li>
+        <li><a href="SchemaEntryWithAttributes.html">SchemaEntryWithAttributes</a></li>
+        <li><a href="SchemaProperty.html">SchemaProperty</a></li>
+        <li><a href="SchemaSpec.html">SchemaSpec</a></li>
+        <li><a href="SchemaTag.html">SchemaTag</a></li>
+        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
+        <li><a href="SchemaUnit.html">SchemaUnit</a></li>
+        <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
+        <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
+        <li><a href="SchemaValueClass.html">SchemaValueClass</a></li>
+        <li><a href="SchemaValueTag.html">SchemaValueTag</a></li>
+        <li><a href="Schemas.html">Schemas</a></li>
+        <li><a href="SchemasSpec.html">SchemasSpec</a></li>
+        <li><a href="SubstringSpec.html">SubstringSpec</a></li>
+        <li><a href="TagSpec.html">TagSpec</a></li>
+        <li><a href="module.html#.exports">exports</a></li>
+        <li><a href="module.exports_module.exports.html">exports</a></li>
+      </ul>
+      <h3>Global</h3>
+      <ul>
+        <li><a href="global.html#_convertTag">_convertTag</a></li>
+        <li><a href="global.html#_createParsedGroups">_createParsedGroups</a></li>
+        <li><a href="global.html#_createParsedTags">_createParsedTags</a></li>
+        <li><a href="global.html#_getSplitValue">_getSplitValue</a></li>
+        <li><a href="global.html#_handleIssueError">_handleIssueError</a></li>
+        <li><a href="global.html#_memoize">_memoize</a></li>
+        <li><a href="global.html#_separateUnits">_separateUnits</a></li>
+        <li><a href="global.html#buildBidsSchemas">buildBidsSchemas</a></li>
+        <li><a href="global.html#buildSchemaObject">buildSchemaObject</a></li>
+        <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
+        <li><a href="global.html#buildSchemas">buildSchemas</a></li>
+        <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
+        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
+        <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
+        <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
+        <li><a href="global.html#convert">convert</a></li>
+        <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
+        <li><a href="global.html#destinationTags">destinationTags</a></li>
+        <li><a href="global.html#equivalent">equivalent</a></li>
+        <li><a href="global.html#filterByClass">filterByClass</a></li>
+        <li><a href="global.html#filterByTagName">filterByTagName</a></li>
+        <li><a href="global.html#filterTagMapByNames">filterTagMapByNames</a></li>
+        <li><a href="global.html#find">find</a></li>
+        <li><a href="global.html#format">format</a></li>
+        <li><a href="global.html#generateIssue">generateIssue</a></li>
+        <li><a href="global.html#getAllTags">getAllTags</a></li>
+        <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
+        <li><a href="global.html#getDuplicates">getDuplicates</a></li>
+        <li><a href="global.html#getElementCount">getElementCount</a></li>
+        <li><a href="global.html#getElementTagName">getElementTagName</a></li>
+        <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
+        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
+        <li><a href="global.html#getParentTag">getParentTag</a></li>
+        <li><a href="global.html#getTagListString">getTagListString</a></li>
+        <li><a href="global.html#getTagName">getTagName</a></li>
+        <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
+        <li><a href="global.html#hasAttribute">hasAttribute</a></li>
+        <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
+        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
+        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
+        <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isNumber">isNumber</a></li>
+        <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
+        <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
+        <li><a href="global.html#loadPromise">loadPromise</a></li>
+        <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
+        <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
+        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
+        <li><a href="global.html#normalized">normalized</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
+        <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
+        <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
+        <li><a href="global.html#parseTSV">parseTSV</a></li>
+        <li><a href="global.html#parseTags">parseTags</a></li>
+        <li><a href="global.html#parseXPath">parseXPath</a></li>
+        <li><a href="global.html#readFile">readFile</a></li>
+        <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
+        <li><a href="global.html#recursiveMap">recursiveMap</a></li>
+        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
+        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
+        <li><a href="global.html#schemaTag">schemaTag</a></li>
+        <li><a href="global.html#search">search</a></li>
+        <li><a href="global.html#setNodeParent">setNodeParent</a></li>
+        <li><a href="global.html#setParent">setParent</a></li>
+        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
+        <li><a href="global.html#sourceTags">sourceTags</a></li>
+        <li><a href="global.html#splitHedString">splitHedString</a></li>
+        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
+        <li><a href="global.html#stringTemplate">stringTemplate</a></li>
+        <li><a href="global.html#stripBOM">stripBOM</a></li>
+        <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
+        <li><a href="global.html#tagIterator">tagIterator</a></li>
+        <li><a href="global.html#takesValue">takesValue</a></li>
+        <li><a href="global.html#takesValueTag">takesValueTag</a></li>
+        <li><a href="global.html#toString">toString</a></li>
+        <li><a href="global.html#topLevelGroupIterator">topLevelGroupIterator</a></li>
+        <li><a href="global.html#unitClasses">unitClasses</a></li>
+        <li><a href="global.html#validateBidsDataset">validateBidsDataset</a></li>
+      </ul>
+    </nav>
+
+    <br class="clear" />
+
+    <footer>
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 10:56:25
+      GMT-0600 (Central Standard Time)
+    </footer>
+
+    <script>
+      prettyPrint()
+    </script>
+    <script src="scripts/linenumber.js"></script>
+  </body>
+</html>
