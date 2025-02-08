@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>JSDoc: Source: schema/entries.js</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css" />
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css" />
+  </head>
+
+  <body>
+    <div id="main">
+      <h1 class="page-title">Source: schema/entries.js</h1>
+
+      <section>
+        <article>
+          <pre class="prettyprint source linenums"><code>import pluralize from 'pluralize'
+import Memoizer from '../utils/memoizer'
+import { IssueError } from '../issues/issues'
+
+pluralize.addUncountableRule('hertz')
+
+/**
+ * SchemaEntries class
+ */
+export class SchemaEntries extends Memoizer {
+  /**
+   * The schema's properties.
+   * @type {SchemaEntryManager&lt;SchemaProperty>}
+   */
+  properties
+
+  /**
+   * The schema's attributes.
+   * @type {SchemaEntryManager&lt;SchemaAttribute>}
+   */
+  attributes
+
+  /**
+   * The schema's value classes.
+   * @type {SchemaEntryManager&lt;SchemaValueClass>}
+   */
+  valueClasses
+
+  /**
+   * The schema's unit classes.
+   * @type {SchemaEntryManager&lt;SchemaUnitClass>}
+   */
+  unitClasses
+
+  /**
+   * The schema's unit modifiers.
+   * @type {SchemaEntryManager&lt;SchemaUnitModifier>}
+   */
+  unitModifiers
+
+  /**
+   * The schema's tags.
+   * @type {SchemaTagManager}
+   */
+  tags
+
+  /**
+   * Constructor.
+   * @param {SchemaParser} schemaParser A constructed schema parser.
+   */
+  constructor(schemaParser) {
+    super()
+    this.properties = new SchemaEntryManager(schemaParser.properties)
+    this.attributes = new SchemaEntryManager(schemaParser.attributes)
+    this.valueClasses = schemaParser.valueClasses
+    this.unitClasses = schemaParser.unitClasses
+    this.unitModifiers = schemaParser.unitModifiers
+    this.tags = schemaParser.tags
+  }
+
+  /**
+   * Get a map of all of this schema's units.
+   */
+  get allUnits() {
+    return this._memoize('allUnits', () => {
+      const units = []
+      for (const unitClass of this.unitClasses.values()) {
+        const unitClassUnits = unitClass.units
+        units.push(...unitClassUnits)
+      }
+      return new Map(units)
+    })
+  }
+
+  /**
+   * Get the schema's SI unit modifiers.
+   * @returns {Map} - string --> SchemaUnitModifier.
+   */
+  get SIUnitModifiers() {
+    return this.unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
+  }
+
+  /**
+   * Get the schema's SI unit symbol modifiers.
+   * @returns {Map} - string --> SchemaUnitSymbolModifier.
+   */
+  get SIUnitSymbolModifiers() {
+    return this.unitModifiers.getEntriesWithBooleanAttribute('SIUnitSymbolModifier')
+  }
+
+  /**
+   * Determine if a HED tag has a particular attribute in this schema.
+   *
+   * @param {string} tag The HED tag to check.
+   * @param {string} tagAttribute The attribute to check for.
+   * @returns {boolean} Whether this tag has this attribute.
+   */
+  tagHasAttribute(tag, tagAttribute) {
+    if (!this.tags.hasLongNameEntry(tag)) {
+      return false
+    }
+    return this.tags.getLongNameEntry(tag).hasAttributeName(tagAttribute)
+  }
+}
+
+/**
+ * A manager of {@link SchemaEntry} objects.
+ *
+ * @template T
+ */
+export class SchemaEntryManager extends Memoizer {
+  /**
+   * The definitions managed by this entry manager.
+   * @type {Map&lt;string, T>}
+   */
+  _definitions
+
+  /**
+   * Constructor.
+   *
+   * @param {Map&lt;string, T>} definitions A map of schema entry definitions.
+   */
+  constructor(definitions) {
+    super()
+    this._definitions = definitions
+  }
+
+  /**
+   * Iterator over the entry manager's entries.
+   *
+   * @template T
+   * @returns {IterableIterator} - [string, T]
+   */
+  [Symbol.iterator]() {
+    return this._definitions.entries()
+  }
+
+  /**
+   * Iterator over the entry manager's keys.
+   *
+   * @returns {IterableIterator} - [string]
+   */
+  keys() {
+    return this._definitions.keys()
+  }
+
+  /**
+   * Iterator over the entry manager's keys.
+   *
+   * @returns {IterableIterator} - [T]
+   */
+  values() {
+    return this._definitions.values()
+  }
+
+  /**
+   * Determine whether the entry with the given name exists.
+   *
+   * @param {string} name The name of the entry.
+   * @return {boolean} Whether the entry exists.
+   */
+  hasEntry(name) {
+    return this._definitions.has(name)
+  }
+
+  /**
+   * Get the entry with the given name.
+   *
+   * @param {string} name - The name of the entry to retrieve.
+   * @returns {T} - The entry with that name.
+   */
+  getEntry(name) {
+    return this._definitions.get(name)
+  }
+
+  /**
+   * Get a collection of entries with the given boolean attribute.
+   *
+   * @param {string} booleanAttributeName - The name of boolean attribute to filter on.
+   * @returns {Map} - string->T representing a  collection of entries with that attribute.
+   */
+  getEntriesWithBooleanAttribute(booleanAttributeName) {
+    return this._memoize(booleanAttributeName, () => {
+      return this.filter(([_, v]) => {
+        return v.hasAttributeName(booleanAttributeName)
+      })
+    })
+  }
+
+  /**
+   * Filter the map underlying this manager.
+   *
+   * @param {function} fn -  ([string, T]): boolean specifying the filtering function.
+   * @returns {Map} - string->T representing a  collection of entries with that attribute.
+   */
+  filter(fn) {
+    return SchemaEntryManager._filterDefinitionMap(this._definitions, fn)
+  }
+
+  /**
+   * Filter a definition map.
+   *
+   * @template T
+   * @param {Map&lt;string, T>} definitionMap The definition map.
+   * @param {function} fn -  ([string, T]):boolean specifying the filtering function.
+   * @returns {Map} - string->T representing the filtered definitions.
+   * @protected
+   */
+  static _filterDefinitionMap(definitionMap, fn) {
+    const pairArray = Array.from(definitionMap.entries())
+    return new Map(pairArray.filter((entry) => fn(entry)))
+  }
+
+  /**
+   * The number of entries in this collection.
+   *
+   * @returns {number} The number of entries in this collection.
+   */
+  get length() {
+    return this._definitions.size
+  }
+}
+
+/**
+ * A manager of {@link SchemaTag} objects.
+ *
+ * @extends {SchemaEntryManager&lt;SchemaTag>}
+ */
+export class SchemaTagManager extends SchemaEntryManager {
+  /**
+   * The mapping of tags by long name.
+   * @type {Map&lt;string, SchemaTag>}
+   */
+  _definitionsByLongName
+
+  /**
+   * Constructor.
+   *
+   * @param {Map&lt;string, SchemaTag>} byShortName The mapping of tags by short name.
+   * @param {Map&lt;string, SchemaTag>} byLongName The mapping of tags by long name.
+   */
+  constructor(byShortName, byLongName) {
+    super(byShortName)
+    this._definitionsByLongName = byLongName
+  }
+
+  /**
+   * Determine whether the tag with the given name exists.
+   *
+   * @param {string} longName - The long name of the tag.
+   * @returns {boolean} -True if the tag exists.
+   */
+  hasLongNameEntry(longName) {
+    return this._definitionsByLongName.has(longName)
+  }
+
+  /**
+   * Get the tag with the given name.
+   *
+   * @param {string} longName - The long name of the tag to retrieve.
+   * @returns {SchemaTag} - The tag with that name.
+   */
+  getLongNameEntry(longName) {
+    return this._definitionsByLongName.get(longName)
+  }
+
+  /**
+   * Filter the map underlying this manager using the long name.
+   *
+   * @param {function} fn - ([string, SchemaTag]): boolean specifying the filtering function.
+   * @returns {Map} - string --> SchemaTag representing the filtered map.
+   */
+  filterByLongName(fn) {
+    return SchemaEntryManager._filterDefinitionMap(this._definitionsByLongName, fn)
+  }
+}
+
+/**
+ * SchemaEntry class
+ */
+export class SchemaEntry extends Memoizer {
+  /**
+   * The name of this schema entry.
+   * @type {string}
+   */
+  _name
+
+  constructor(name) {
+    super()
+    this._name = name
+  }
+
+  /**
+   * The name of this schema entry.
+   * @returns {string}
+   */
+  get name() {
+    return this._name
+  }
+
+  /**
+   * Whether this schema entry has this attribute (by name).
+   *
+   * This method is a stub to be overridden in {@link SchemaEntryWithAttributes}.
+   *
+   * @param {string} attributeName The attribute to check for.
+   * @returns {boolean} Whether this schema entry has this attribute.
+   */
+  // eslint-disable-next-line no-unused-vars
+  hasAttributeName(attributeName) {
+    return false
+  }
+}
+
+// TODO: Switch back to class constant once upstream bug is fixed.
+const categoryProperty = 'categoryProperty'
+const typeProperty = 'typeProperty'
+const roleProperty = 'roleProperty'
+
+/**
+ * A schema property.
+ */
+export class SchemaProperty extends SchemaEntry {
+  /**
+   * The type of the property.
+   * @type {string}
+   */
+  _propertyType
+
+  constructor(name, propertyType) {
+    super(name)
+    this._propertyType = propertyType
+  }
+
+  /**
+   * Whether this property describes a schema category.
+   * @returns {boolean}
+   */
+  get isCategoryProperty() {
+    return this._propertyType === categoryProperty
+  }
+
+  /**
+   * Whether this property describes a data type.
+   * @returns {boolean}
+   */
+  get isTypeProperty() {
+    return this._propertyType === typeProperty
+  }
+
+  /**
+   * Whether this property describes a role.
+   * @returns {boolean}
+   */
+  get isRoleProperty() {
+    return this._propertyType === roleProperty
+  }
+}
+
+// Pseudo-properties
+
+// TODO: Switch back to class constant once upstream bug is fixed.
+export const nodeProperty = new SchemaProperty('nodeProperty', categoryProperty)
+export const schemaAttributeProperty = new SchemaProperty('schemaAttributeProperty', categoryProperty)
+const stringProperty = new SchemaProperty('stringProperty', typeProperty)
+
+/**
+ * A schema attribute.
+ */
+export class SchemaAttribute extends SchemaEntry {
+  /**
+   * The categories of elements this schema attribute applies to.
+   * @type {Set&lt;SchemaProperty>}
+   */
+  _categoryProperties
+  /**
+   * The data type of this schema attribute.
+   * @type {SchemaProperty}
+   */
+  _typeProperty
+  /**
+   * The set of role properties for this schema attribute.
+   * @type {Set&lt;SchemaProperty>}
+   */
+  _roleProperties
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of the schema attribute.
+   * @param {SchemaProperty[]} properties The properties assigned to this schema attribute.
+   */
+  constructor(name, properties) {
+    super(name, new Set(), new Map())
+
+    // Parse properties
+    const categoryProperties = properties.filter((property) => property?.isCategoryProperty)
+    this._categoryProperties = categoryProperties.length === 0 ? new Set([nodeProperty]) : new Set(categoryProperties)
+    const typeProperties = properties.filter((property) => property?.isTypeProperty)
+    this._typeProperty = typeProperties.length === 0 ? stringProperty : typeProperties[0]
+    this._roleProperties = new Set(properties.filter((property) => property?.isRoleProperty))
+  }
+
+  /**
+   * The categories of elements this schema attribute applies to.
+   * @returns {Set&lt;SchemaProperty>|SchemaProperty|undefined}
+   */
+  get categoryProperty() {
+    switch (this._categoryProperties.size) {
+      case 0:
+        return undefined
+      case 1:
+        return Array.from(this._categoryProperties)[0]
+      default:
+        return this._categoryProperties
+    }
+  }
+
+  /**
+   * The data type property of this schema attribute.
+   * @returns {SchemaProperty}
+   */
+  get typeProperty() {
+    return this._typeProperty
+  }
+
+  /**
+   * The set of role properties for this schema attribute.
+   * @returns {Set&lt;SchemaProperty>}
+   */
+  get roleProperties() {
+    return new Set(this._roleProperties)
+  }
+}
+
+/**
+ * SchemaEntryWithAttributes class
+ */
+class SchemaEntryWithAttributes extends SchemaEntry {
+  /**
+   * The set of boolean attributes this schema entry has.
+   * @type {Set&lt;SchemaAttribute>}
+   */
+  booleanAttributes
+  /**
+   * The collection of value attributes this schema entry has.
+   * @type {Map&lt;SchemaAttribute, *>}
+   */
+  valueAttributes
+  /**
+   * The set of boolean attribute names this schema entry has.
+   * @type {Set&lt;string>}
+   */
+  booleanAttributeNames
+  /**
+   * The collection of value attribute names this schema entry has.
+   * @type {Map&lt;string, *>}
+   */
+  valueAttributeNames
+
+  constructor(name, booleanAttributes, valueAttributes) {
+    super(name)
+    this.booleanAttributes = booleanAttributes
+    this.valueAttributes = valueAttributes
+    this._parseAttributeNames()
+  }
+
+  /**
+   * Create aliases of the attribute collections keyed on their names.
+   *
+   * @private
+   */
+  _parseAttributeNames() {
+    this.booleanAttributeNames = new Set()
+    for (const attribute of this.booleanAttributes) {
+      this.booleanAttributeNames.add(attribute.name)
+    }
+    this.valueAttributeNames = new Map()
+    for (const [attributeName, value] of this.valueAttributes) {
+      this.valueAttributeNames.set(attributeName.name, value)
+    }
+  }
+
+  /**
+   * Whether this schema entry has this attribute.
+   * @param {SchemaAttribute} attribute The attribute to check for.
+   * @returns {boolean} Whether this schema entry has this attribute.
+   */
+  hasAttribute(attribute) {
+    return this.booleanAttributes.has(attribute)
+  }
+
+  /**
+   * Retrieve the value of an attribute on this schema entry.
+   * @param {SchemaAttribute} attribute The attribute whose value should be returned.
+   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
+   * @returns {*} The value of the attribute.
+   */
+  getAttributeValue(attribute, alwaysReturnArray = false) {
+    return SchemaEntryWithAttributes._getMapArrayValue(this.valueAttributes, attribute, alwaysReturnArray)
+  }
+
+  /**
+   * Whether this schema entry has this attribute (by name).
+   * @param {string} attributeName The attribute to check for.
+   * @returns {boolean} Whether this schema entry has this attribute.
+   */
+  hasAttributeName(attributeName) {
+    return this.booleanAttributeNames.has(attributeName)
+  }
+
+  /**
+   * Retrieve the value of an attribute (by name) on this schema entry.
+   * @param {string} attributeName The attribute whose value should be returned.
+   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
+   * @returns {*} The value of the attribute.
+   */
+  getNamedAttributeValue(attributeName, alwaysReturnArray = false) {
+    return SchemaEntryWithAttributes._getMapArrayValue(this.valueAttributeNames, attributeName, alwaysReturnArray)
+  }
+
+  /**
+   * Return a map value, with a scalar being returned in lieu of a singleton array if alwaysReturnArray is false.
+   *
+   * @template K,V
+   * @param {Map&lt;K,V>} map The map to search.
+   * @param {K} key A key in the map.
+   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
+   * @returns {V|V[]} The value for the key in the passed map.
+   * @private
+   */
+  static _getMapArrayValue(map, key, alwaysReturnArray) {
+    const value = map.get(key)
+    if (!alwaysReturnArray &amp;&amp; Array.isArray(value) &amp;&amp; value.length === 1) {
+      return value[0]
+    } else {
+      return value
+    }
+  }
+}
+
+/**
+ * SchemaUnit class
+ */
+export class SchemaUnit extends SchemaEntryWithAttributes {
+  /**
+   * The legal derivatives of this unit.
+   * @type {string[]}
+   */
+  _derivativeUnits
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of the unit.
+   * @param {Set&lt;SchemaAttribute>} booleanAttributes This unit's boolean attributes.
+   * @param {Map&lt;SchemaAttribute, *>} valueAttributes This unit's key-value attributes.
+   * @param {SchemaEntryManager&lt;SchemaUnitModifier>} unitModifiers The collection of unit modifiers.
+   */
+  constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
+    super(name, booleanAttributes, valueAttributes)
+
+    this._derivativeUnits = [name]
+    if (!this.isSIUnit) {
+      this._pushPluralUnit()
+      return
+    }
+    if (this.isUnitSymbol) {
+      const SIUnitSymbolModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitSymbolModifier')
+      for (const modifierName of SIUnitSymbolModifiers.keys()) {
+        this._derivativeUnits.push(modifierName + name)
+      }
+    } else {
+      const SIUnitModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
+      const pluralUnit = this._pushPluralUnit()
+      for (const modifierName of SIUnitModifiers.keys()) {
+        this._derivativeUnits.push(modifierName + name, modifierName + pluralUnit)
+      }
+    }
+  }
+
+  _pushPluralUnit() {
+    if (!this.isUnitSymbol) {
+      const pluralUnit = pluralize.plural(this._name)
+      this._derivativeUnits.push(pluralUnit)
+      return pluralUnit
+    }
+    return null
+  }
+
+  *derivativeUnits() {
+    for (const unit of this._derivativeUnits) {
+      yield unit
+    }
+  }
+
+  get isPrefixUnit() {
+    return this.hasAttributeName('unitPrefix')
+  }
+
+  get isSIUnit() {
+    return this.hasAttributeName('SIUnit')
+  }
+
+  get isUnitSymbol() {
+    return this.hasAttributeName('unitSymbol')
+  }
+
+  /**
+   * Determine if a value has this unit.
+   *
+   * @param {string} value -- either the whole value or the part after a blank (if not a prefix unit)
+   * @returns {boolean} Whether the value has these units.
+   */
+  validateUnit(value) {
+    if (value == null || value === '') {
+      return false
+    }
+    if (this.isPrefixUnit) {
+      return value.startsWith(this.name)
+    }
+
+    for (const dUnit of this.derivativeUnits()) {
+      if (value === dUnit) {
+        return true
+      }
+    }
+    return false
+  }
+}
+
+/**
+ * SchemaUnitClass class
+ */
+export class SchemaUnitClass extends SchemaEntryWithAttributes {
+  /**
+   * The units for this unit class.
+   * @type {Map&lt;string, SchemaUnit>}
+   */
+  _units
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this unit class.
+   * @param {Set&lt;SchemaAttribute>} booleanAttributes The boolean attributes for this unit class.
+   * @param {Map&lt;SchemaAttribute, *>} valueAttributes The value attributes for this unit class.
+   * @param {Map&lt;string, SchemaUnit>} units The units for this unit class.
+   * @constructor
+   */
+  constructor(name, booleanAttributes, valueAttributes, units) {
+    super(name, booleanAttributes, valueAttributes)
+    this._units = units
+  }
+
+  /**
+   * Get the units for this unit class.
+   * @returns {Map&lt;string, SchemaUnit>}
+   */
+  get units() {
+    return new Map(this._units)
+  }
+
+  /**
+   * Get the default unit for this unit class.
+   * @returns {SchemaUnit}
+   */
+  get defaultUnit() {
+    return this._units.get(this.getNamedAttributeValue('defaultUnits'))
+  }
+
+  /**
+   * Extracts the Unit class and remainder
+   * @returns {Array} [SchemaUnit, string, string] containing unit class, unit string, and value string
+   */
+  extractUnit(value) {
+    let actualUnit = null // The Unit class of the value
+    let actualValueString = null // The actual value part of the value
+    let actualUnitString = null
+    let lastPart = null
+    let firstPart = null
+    const index = value.indexOf(' ')
+    if (index !== -1) {
+      lastPart = value.slice(index + 1)
+      firstPart = value.slice(0, index)
+    } else {
+      // no blank -- there are no units
+      return [null, null, value]
+    }
+    actualValueString = firstPart
+    actualUnitString = lastPart
+    for (const unit of this._units.values()) {
+      if (!unit.isPrefixUnit &amp;&amp; unit.validateUnit(lastPart)) {
+        // Checking if it is non-prefixed unit
+        actualValueString = firstPart
+        actualUnitString = lastPart
+        actualUnit = unit
+        break
+      } else if (!unit.isPrefixUnit) {
+        continue
+      }
+      if (!unit.validateUnit(firstPart)) {
+        // If it got here, can only be a prefix Unit
+        continue
+      } else {
+        actualUnit = unit
+        actualValueString = value.substring(unit.name.length + 1)
+        actualUnitString = unit.name
+        break
+      }
+    }
+    return [actualUnit, actualUnitString, actualValueString]
+  }
+}
+
+/**
+ * SchemaUnitModifier class
+ */
+export class SchemaUnitModifier extends SchemaEntryWithAttributes {
+  constructor(name, booleanAttributes, valueAttributes) {
+    super(name, booleanAttributes, valueAttributes)
+  }
+
+  get isSIUnitModifier() {
+    return this.hasAttributeName('SIUnitModifier')
+  }
+
+  get isSIUnitSymbolModifier() {
+    return this.hasAttributeName('SIUnitSymbolModifier')
+  }
+}
+
+/**
+ * SchemaValueClass class
+ */
+export class SchemaValueClass extends SchemaEntryWithAttributes {
+  /**
+   * The character class-based regular expression.
+   * @type {RegExp}
+   * @private
+   */
+  _charClassRegex
+  /**
+   * The "word form"-based regular expression.
+   * @type {RegExp}
+   * @private
+   */
+  _wordRegex
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this value class.
+   * @param {Set&lt;SchemaAttribute>} booleanAttributes The boolean attributes for this value class.
+   * @param {Map&lt;SchemaAttribute, *>} valueAttributes The value attributes for this value class.
+   * @param {RegExp} charClassRegex The character class-based regular expression for this value class.
+   * @param {RegExp} wordRegex The "word form"-based regular expression for this value class.
+   */
+
+  constructor(name, booleanAttributes, valueAttributes, charClassRegex, wordRegex) {
+    super(name, booleanAttributes, valueAttributes)
+    this._charClassRegex = charClassRegex
+    this._wordRegex = wordRegex
+  }
+
+  /**
+   * Determine if a value is valid according to this value class.
+   *
+   * @param {string} value A HED value.
+   * @returns {boolean} Whether the value conforms to this value class.
+   */
+  validateValue(value) {
+    return this._wordRegex.test(value) &amp;&amp; this._charClassRegex.test(value)
+  }
+}
+
+/**
+ * A tag in a HED schema.
+ */
+export class SchemaTag extends SchemaEntryWithAttributes {
+  /**
+   * This tag's parent tag.
+   * @type {SchemaTag}
+   * @private
+   */
+  _parent
+  /**
+   * This tag's unit classes.
+   * @type {SchemaUnitClass[]}
+   * @private
+   */
+  _unitClasses
+
+  /**
+   * This tag's value-classes
+   * @type {SchemaValueClass[]}
+   * @private
+   */
+  _valueClasses
+
+  /**
+   * This tag's value-taking child.
+   * @type {SchemaValueTag}
+   * @private
+   */
+  _valueTag
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this tag.
+   * @param {Set&lt;SchemaAttribute>} booleanAttributes The boolean attributes for this tag.
+   * @param {Map&lt;SchemaAttribute, *>} valueAttributes The value attributes for this tag.
+   * @param {SchemaUnitClass[]} unitClasses The unit classes for this tag.
+   * @param {SchemaValueClass[]} valueClasses The value classes for this tag.
+   * @constructor
+   */
+  constructor(name, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
+    super(name, booleanAttributes, valueAttributes)
+    this._unitClasses = unitClasses ?? []
+    this._valueClasses = valueClasses ?? []
+  }
+
+  /**
+   * This tag's unit classes.
+   * @type {SchemaUnitClass[]}
+   */
+  get unitClasses() {
+    return this._unitClasses.slice() // The slice prevents modification
+  }
+
+  /**
+   * Whether this tag has any unit classes.
+   * @returns {boolean}
+   */
+  get hasUnitClasses() {
+    return this._unitClasses.length !== 0
+  }
+
+  /**
+   * This tag's value classes.
+   * @type {SchemaValueClass[]}
+   */
+  get valueClasses() {
+    return this._valueClasses.slice()
+  }
+
+  /**
+   * Whether this tag has any value classes.
+   * @returns {boolean}
+   */
+  get hasValueClasses() {
+    return this._valueClasses.length !== 0
+  }
+
+  /**
+   * This tag's value-taking child tag.
+   * @returns {SchemaValueTag}
+   */
+  get valueTag() {
+    return this._valueTag
+  }
+
+  /**
+   * Set the tag's value-taking child tag.
+   * @param {SchemaValueTag} newValueTag The new value-taking child tag.
+   */
+  set valueTag(newValueTag) {
+    if (this._valueTag === undefined) {
+      this._valueTag = newValueTag
+    } else {
+      IssueError.generateAndThrow('internalError', {
+        message: `Attempted to set value tag for schema tag "${this.longName}" when it already has one.`,
+      })
+    }
+  }
+
+  /**
+   * This tag's parent tag.
+   * @type {SchemaTag}
+   */
+  get parent() {
+    return this._parent
+  }
+
+  /**
+   * Set the tag's parent tag.
+   * @param {SchemaTag} newParent The new parent tag.
+   */
+  set parent(newParent) {
+    if (this._parent === undefined) {
+      this._parent = newParent
+    } else {
+      IssueError.generateAndThrow('internalError', {
+        message: `Attempted to set parent for schema tag ${this.longName} when it already has one.`,
+      })
+    }
+  }
+
+  /**
+   * Return all of this tag's ancestors.
+   * @returns {Array}
+   */
+  get ancestors() {
+    return this._memoize('ancestors', () => {
+      if (this.parent) {
+        return [this.parent, ...this.parent.ancestors]
+      }
+      return []
+    })
+  }
+
+  /**
+   * This tag's long name.
+   * @returns {string}
+   */
+  get longName() {
+    const nameParts = this.ancestors.map((parentTag) => parentTag.name)
+    nameParts.reverse().push(this.name)
+    return nameParts.join('/')
+  }
+
+  /**
+   * Extend this tag's short name.
+   *
+   * @param {string} extension The extension.
+   * @returns {string} The extended short string.
+   */
+  extend(extension) {
+    if (extension) {
+      return this.name + '/' + extension
+    } else {
+      return this.name
+    }
+  }
+
+  /**
+   * Extend this tag's long name.
+   *
+   * @param {string} extension The extension.
+   * @returns {string} The extended long string.
+   */
+  longExtend(extension) {
+    if (extension) {
+      return this.longName + '/' + extension
+    } else {
+      return this.longName
+    }
+  }
+}
+
+/**
+ * A value-taking tag in a HED schema.
+ */
+export class SchemaValueTag extends SchemaTag {
+  /**
+   * This tag's long name.
+   * @returns {string}
+   */
+  get longName() {
+    const nameParts = this.ancestors.map((parentTag) => parentTag.name)
+    nameParts.reverse().push('#')
+    return nameParts.join('/')
+  }
+
+  /**
+   * Extend this tag's short name.
+   *
+   * @param {string} extension The extension.
+   * @returns {string} The extended short string.
+   */
+  extend(extension) {
+    return this.parent.extend(extension)
+  }
+
+  /**
+   * Extend this tag's long name.
+   *
+   * @param {string} extension The extension.
+   * @returns {string} The extended long string.
+   */
+  longExtend(extension) {
+    return this.parent.longExtend(extension)
+  }
+}
+</code></pre>
+        </article>
+      </section>
+    </div>
+
+    <nav>
+      <h2><a href="index.html">Home</a></h2>
+      <h3>Classes</h3>
+      <ul>
+        <li><a href="BidsFile.html">BidsFile</a></li>
+        <li><a href="BidsHedIssue_BidsHedIssue.html">BidsHedIssue</a></li>
+        <li><a href="BidsHedSidecarValidator.html">BidsHedSidecarValidator</a></li>
+        <li><a href="BidsHedTsvParser.html">BidsHedTsvParser</a></li>
+        <li><a href="BidsHedTsvValidator.html">BidsHedTsvValidator</a></li>
+        <li><a href="BidsJsonFile.html">BidsJsonFile</a></li>
+        <li><a href="BidsSidecar_BidsSidecar.html">BidsSidecar</a></li>
+        <li><a href="BidsSidecarKey_BidsSidecarKey.html">BidsSidecarKey</a></li>
+        <li><a href="BidsTsvElement_BidsTsvElement.html">BidsTsvElement</a></li>
+        <li><a href="BidsTsvFile.html">BidsTsvFile</a></li>
+        <li><a href="BidsTsvRow.html">BidsTsvRow</a></li>
+        <li><a href="BidsValidator.html">BidsValidator</a></li>
+        <li><a href="ColumnSpliceSpec.html">ColumnSpliceSpec</a></li>
+        <li><a href="Definition_Definition.html">Definition</a></li>
+        <li><a href="DefinitionChecker_DefinitionChecker.html">DefinitionChecker</a></li>
+        <li><a href="GroupSpec.html">GroupSpec</a></li>
+        <li><a href="HedStringParser.html">HedStringParser</a></li>
+        <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
+        <li><a href="Issue.html">Issue</a></li>
+        <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
+        <li><a href="ParsedHedString.html">ParsedHedString</a></li>
+        <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
+        <li><a href="PartneredSchema.html">PartneredSchema</a></li>
+        <li><a href="Schema.html">Schema</a></li>
+        <li><a href="SchemaAttribute.html">SchemaAttribute</a></li>
+        <li><a href="SchemaEntries.html">SchemaEntries</a></li>
+        <li><a href="SchemaEntry.html">SchemaEntry</a></li>
+        <li><a href="SchemaEntryManager.html">SchemaEntryManager</a></li>
+        <li><a href="SchemaEntryWithAttributes.html">SchemaEntryWithAttributes</a></li>
+        <li><a href="SchemaProperty.html">SchemaProperty</a></li>
+        <li><a href="SchemaSpec.html">SchemaSpec</a></li>
+        <li><a href="SchemaTag.html">SchemaTag</a></li>
+        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
+        <li><a href="SchemaUnit.html">SchemaUnit</a></li>
+        <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
+        <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
+        <li><a href="SchemaValueClass.html">SchemaValueClass</a></li>
+        <li><a href="SchemaValueTag.html">SchemaValueTag</a></li>
+        <li><a href="Schemas.html">Schemas</a></li>
+        <li><a href="SchemasSpec.html">SchemasSpec</a></li>
+        <li><a href="SubstringSpec.html">SubstringSpec</a></li>
+        <li><a href="TagSpec.html">TagSpec</a></li>
+        <li><a href="module.html#.exports">exports</a></li>
+        <li><a href="module.exports_module.exports.html">exports</a></li>
+      </ul>
+      <h3>Global</h3>
+      <ul>
+        <li><a href="global.html#_convertTag">_convertTag</a></li>
+        <li><a href="global.html#_createParsedGroups">_createParsedGroups</a></li>
+        <li><a href="global.html#_createParsedTags">_createParsedTags</a></li>
+        <li><a href="global.html#_getSplitValue">_getSplitValue</a></li>
+        <li><a href="global.html#_handleIssueError">_handleIssueError</a></li>
+        <li><a href="global.html#_memoize">_memoize</a></li>
+        <li><a href="global.html#_separateUnits">_separateUnits</a></li>
+        <li><a href="global.html#buildBidsSchemas">buildBidsSchemas</a></li>
+        <li><a href="global.html#buildSchemaObject">buildSchemaObject</a></li>
+        <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
+        <li><a href="global.html#buildSchemas">buildSchemas</a></li>
+        <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
+        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
+        <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
+        <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
+        <li><a href="global.html#convert">convert</a></li>
+        <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
+        <li><a href="global.html#destinationTags">destinationTags</a></li>
+        <li><a href="global.html#equivalent">equivalent</a></li>
+        <li><a href="global.html#filterByClass">filterByClass</a></li>
+        <li><a href="global.html#filterByTagName">filterByTagName</a></li>
+        <li><a href="global.html#filterTagMapByNames">filterTagMapByNames</a></li>
+        <li><a href="global.html#find">find</a></li>
+        <li><a href="global.html#format">format</a></li>
+        <li><a href="global.html#generateIssue">generateIssue</a></li>
+        <li><a href="global.html#getAllTags">getAllTags</a></li>
+        <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
+        <li><a href="global.html#getDuplicates">getDuplicates</a></li>
+        <li><a href="global.html#getElementCount">getElementCount</a></li>
+        <li><a href="global.html#getElementTagName">getElementTagName</a></li>
+        <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
+        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
+        <li><a href="global.html#getParentTag">getParentTag</a></li>
+        <li><a href="global.html#getTagListString">getTagListString</a></li>
+        <li><a href="global.html#getTagName">getTagName</a></li>
+        <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
+        <li><a href="global.html#hasAttribute">hasAttribute</a></li>
+        <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
+        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
+        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
+        <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isNumber">isNumber</a></li>
+        <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
+        <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
+        <li><a href="global.html#loadPromise">loadPromise</a></li>
+        <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
+        <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
+        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
+        <li><a href="global.html#normalized">normalized</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
+        <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
+        <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
+        <li><a href="global.html#parseTSV">parseTSV</a></li>
+        <li><a href="global.html#parseTags">parseTags</a></li>
+        <li><a href="global.html#parseXPath">parseXPath</a></li>
+        <li><a href="global.html#readFile">readFile</a></li>
+        <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
+        <li><a href="global.html#recursiveMap">recursiveMap</a></li>
+        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
+        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
+        <li><a href="global.html#schemaTag">schemaTag</a></li>
+        <li><a href="global.html#search">search</a></li>
+        <li><a href="global.html#setNodeParent">setNodeParent</a></li>
+        <li><a href="global.html#setParent">setParent</a></li>
+        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
+        <li><a href="global.html#sourceTags">sourceTags</a></li>
+        <li><a href="global.html#splitHedString">splitHedString</a></li>
+        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
+        <li><a href="global.html#stringTemplate">stringTemplate</a></li>
+        <li><a href="global.html#stripBOM">stripBOM</a></li>
+        <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
+        <li><a href="global.html#tagIterator">tagIterator</a></li>
+        <li><a href="global.html#takesValue">takesValue</a></li>
+        <li><a href="global.html#takesValueTag">takesValueTag</a></li>
+        <li><a href="global.html#toString">toString</a></li>
+        <li><a href="global.html#topLevelGroupIterator">topLevelGroupIterator</a></li>
+        <li><a href="global.html#unitClasses">unitClasses</a></li>
+      </ul>
+    </nav>
+
+    <br class="clear" />
+
+    <footer>
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 11:13:20
+      GMT-0600 (Central Standard Time)
+    </footer>
+
+    <script>
+      prettyPrint()
+    </script>
+    <script src="scripts/linenumber.js"></script>
+  </body>
+</html>

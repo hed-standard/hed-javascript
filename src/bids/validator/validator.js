@@ -1,5 +1,3 @@
-import { BidsIssue } from '../types/issues'
-
 /**
  * Validator base class for HED data in BIDS TSV files.
  */

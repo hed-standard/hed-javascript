@@ -1,24 +1,11 @@
 import zip from 'lodash/zip'
-import semver from 'semver'
 
-import { SchemasSpec } from './specs'
 import loadSchema from './loader'
 import { setParent } from '../utils/xml2js'
 
 import SchemaParser from './parser'
 import PartneredSchemaMerger from './schemaMerger'
-import { IssueError } from '../issues/issues'
 import { Schema, Schemas } from './containers'
-
-/**
- * Determine whether a HED schema is based on the HED 3 spec.
- *
- * @param {object} xmlData HED XML data.
- * @returns {boolean} Whether the schema is a HED 3 schema.
- */
-const isHed3Schema = function (xmlData) {
-  return xmlData.HED.$.library !== undefined || semver.gte(xmlData.HED.$.version, '8.0.0-alpha.3')
-}
 
 /**
  * Build a single schema container object from an XML file.
@@ -27,9 +14,6 @@ const isHed3Schema = function (xmlData) {
  * @returns {Schema} The HED schema object.
  */
 const buildSchemaObject = function (xmlData) {
-  if (!isHed3Schema(xmlData)) {
-    IssueError.generateAndThrow('deprecatedStandardSchemaVersion', { version: xmlData.HED.$.version })
-  }
   const rootElement = xmlData.HED
   setParent(rootElement, null)
   const schemaEntries = new SchemaParser(rootElement).parse()

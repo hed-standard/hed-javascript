@@ -8,7 +8,7 @@
     "excludePattern": "(node_modules/|docs/|src/data/|spec_tests/|tests/)"
   },
   "opts": {
-    "destination": "docs/_build/html/jsdoc",
+    "destination": "docs/html",
     "recurse": true
   }
 }
