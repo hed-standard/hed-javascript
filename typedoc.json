@@ -1,0 +1,6 @@
+{
+  "entryPoints": ["./index.js"],
+  "out": "typedocs",
+  "includeVersion": true,
+  "excludeExternals": true
+}
