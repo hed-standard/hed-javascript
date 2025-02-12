@@ -16,11 +16,17 @@ const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
 export class BidsJsonFile extends BidsFile {
   /**
    * This file's JSON data.
-   * @type {object}
+   * @type {Object}
    */
   jsonData
 
-  constructor(name, jsonData, file) {
+  /**
+   *
+   * @param {string} name - The name of the JSON file.
+   * @param {Object} file - The object representing this file.
+   * @param {Object} jsonData - The JSON data for this file.
+   */
+  constructor(name, file, jsonData) {
     super(name, file, BidsHedSidecarValidator)
     this.jsonData = jsonData
   }
@@ -32,31 +38,37 @@ export class BidsSidecar extends BidsJsonFile {
    * @type {Map}
    */
   sidecarKeys
+
   /**
    * The extracted HED data for this bidsFile (string --> string | Object: string, string
    * @type {Map}
    */
   hedData
+
   /**
-   * The parsed HED data for this bidsFile (string --> ParsedHedString | Map: string --> ParsedHedString
+   * The parsed HED data for this bidsFile (string --> ParsedHedString | Map: string --> ParsedHedString).
    * @type {Map}
    */
   parsedHedData
+
   /**
    * The extracted HED value strings.
    * @type {string[]}
    */
   hedValueStrings
+
   /**
    * The extracted HED categorical strings.
    * @type {string[]}
    */
   hedCategoricalStrings
+
   /**
-   * The mapping of column splice references (string --> Set of string)
+   * The mapping of column splice references (string --> Set of string).
    * @type {Map}
    */
   columnSpliceMapping
+
   /**
    * The set of column splice references.
    * @type {Set<string>}
@@ -64,7 +76,7 @@ export class BidsSidecar extends BidsJsonFile {
   columnSpliceReferences
 
   /**
-   * The object that manages definitions
+   * The object that manages definitions.
    * @type {DefinitionManager}
    */
   definitions
@@ -73,12 +85,12 @@ export class BidsSidecar extends BidsJsonFile {
    * Constructor.
    *
    * @param {string} name The name of the bidsFile file.
-   * @param {Object} sidecarData The raw JSON data.
    * @param {Object} file The file object representing this file.
+   * @param {Object} sidecarData The raw JSON data.
    * @param {DefinitionManager } defManager - The external definitions to use
    */
-  constructor(name, sidecarData = {}, file, defManager = null) {
-    super(name, sidecarData, file)
+  constructor(name, file, sidecarData = {}, defManager = undefined) {
+    super(name, file, sidecarData)
     this.columnSpliceMapping = new Map()
     this.columnSpliceReferences = new Set()
     this._setDefinitions(defManager)
@@ -168,7 +180,7 @@ export class BidsSidecar extends BidsJsonFile {
    *
    * @returns {boolean}
    */
-  hasHedData() {
+  get hasHedData() {
     return this.sidecarKeys.size > 0
   }
 

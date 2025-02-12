@@ -13,7 +13,7 @@ const isContentfulRow = (row) => row && !/^\s*$/.test(row)
  * Parse a TSV file.
  *
  * @param {string} contents The contents of a TSV file.
- * @returns {Map[]} The parsed contents of the TSV file.
+ * @returns {Map} The parsed contents of the TSV file.
  */
 export function parseTSV(contents) {
   const columns = new Map()
@@ -40,7 +40,7 @@ export function parseTSV(contents) {
  * Convert parsed TSV file data from the old BIDS format to the new BIDS format.
  *
  * @param {{headers: string[], rows: string[][]}} oldParsedTsv Parsed TSV data using the old format
- * @returns {Map[]} The parsed contents of the TSV file, using the new format.
+ * @returns {Map} The parsed contents of the TSV file, using the new format.
  */
 export function convertParsedTSVData(oldParsedTsv) {
   const columns = new Map()

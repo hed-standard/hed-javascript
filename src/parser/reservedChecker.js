@@ -40,7 +40,7 @@ export class ReservedChecker {
    * Perform syntactical checks on the provided HED string to detect violations.
    *
    * @param {ParsedHedString} hedString - The HED string to be checked.
-   * @returns {Issue[]} An array of issues if violations are found otherwise, an empty array.
+   * @returns {Issue[]} - An array of issues if violations are found otherwise, an empty array.
    */
   checkHedString(hedString) {
     const checks = [

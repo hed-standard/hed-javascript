@@ -414,7 +414,7 @@ export class BidsHedTsvParser {
       columnMap.set('HED', rowCells.get('HED'))
     }
 
-    if (!this.tsvFile.mergedSidecar.hasHedData()) {
+    if (!this.tsvFile.mergedSidecar.hasHedData) {
       return columnMap
     }
 

@@ -56,8 +56,11 @@ describe('BIDS validation', () => {
       const sidecarName = test.testname + '.json'
       const bidsSidecar = new BidsSidecar(
         'thisOne',
+        {
+          relativePath: sidecarName,
+          path: sidecarName,
+        },
         test.sidecar,
-        { relativePath: sidecarName, path: sidecarName },
         defManager1,
       )
       assert.instanceOf(bidsSidecar, BidsSidecar, 'Test')
@@ -72,9 +75,11 @@ describe('BIDS validation', () => {
       defManager2.addDefinitions(defList)
       const bidsTsv = new BidsTsvFile(
         test.testname,
+        {
+          relativePath: eventName,
+          path: eventName,
+        },
         parsedTsv,
-        { relativePath: eventName, path: eventName },
-        [],
         {},
         defManager2,
       )
@@ -86,9 +91,11 @@ describe('BIDS validation', () => {
       defManager3.addDefinitions(defList)
       const bidsTsvSide = new BidsTsvFile(
         test.testname,
+        {
+          relativePath: eventName,
+          path: eventName,
+        },
         parsedTsv,
-        { relativePath: eventName, path: eventName },
-        [],
         test.sidecar,
         defManager3,
       )

@@ -38,7 +38,7 @@ export class Schema {
   /**
    * Constructor.
    *
-   * @param {object} xmlData The schema XML data.
+   * @param {Object} xmlData The schema XML data.
    * @param {SchemaEntries} entries A collection of schema entries.
    */
   constructor(xmlData, entries) {
