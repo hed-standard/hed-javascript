@@ -124,7 +124,7 @@ export default class SchemaParser {
    *
    * NOTE: This method cannot be merged into {@link getElementTagValue} because it is used as a first-class object.
    *
-   * @param {object} element An XML element.
+   * @param {Object} element An XML element.
    * @returns {string} The name of the element.
    */
   getElementTagName(element) {
@@ -134,7 +134,7 @@ export default class SchemaParser {
   /**
    * Extract a value from an XML element.
    *
-   * @param {object} element An XML element.
+   * @param {Object} element An XML element.
    * @param {string} tagName The tag value to extract.
    * @returns {string} The value of the tag in the element.
    */

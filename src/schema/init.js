@@ -10,7 +10,7 @@ import { Schema, Schemas } from './containers'
 /**
  * Build a single schema container object from an XML file.
  *
- * @param {object} xmlData The schema's XML data
+ * @param {Object} xmlData The schema's XML data
  * @returns {Schema} The HED schema object.
  */
 const buildSchemaObject = function (xmlData) {
@@ -23,7 +23,7 @@ const buildSchemaObject = function (xmlData) {
 /**
  * Build a single merged schema container object from one or more XML files.
  *
- * @param {object[]} xmlData The schemas' XML data.
+ * @param {Object[]} xmlData The schemas' XML data.
  * @returns {Schema} The HED schema object.
  */
 const buildSchemaObjects = function (xmlData) {

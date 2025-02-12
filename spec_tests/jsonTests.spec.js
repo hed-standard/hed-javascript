@@ -169,9 +169,8 @@ describe('HED validation using JSON tests', () => {
           assert.instanceOf(parsedTsv, Map, `${events} cannot be parsed`)
           const bidsTsv = new BidsTsvFile(
             `events`,
-            parsedTsv,
             { relativePath: 'combo test tsv' },
-            [],
+            parsedTsv,
             JSON.parse(side),
             defManager,
           )
@@ -191,7 +190,7 @@ describe('HED validation using JSON tests', () => {
           defManager.addDefinitions(defList)
           const parsedTsv = parseTSV(events)
           assert.instanceOf(parsedTsv, Map, `${events} cannot be parsed`)
-          const bidsTsv = new BidsTsvFile(`events`, parsedTsv, { relativePath: 'events test' }, [], {}, defManager)
+          const bidsTsv = new BidsTsvFile(`events`, { relativePath: 'events test' }, parsedTsv, {}, defManager)
           eventsIssues = bidsTsv.validate(hedSchema)
         } catch (e) {
           eventsIssues = [convertIssue(e)]
@@ -206,7 +205,7 @@ describe('HED validation using JSON tests', () => {
         try {
           const defManager = new DefinitionManager()
           defManager.addDefinitions(defList)
-          const bidsSide = new BidsSidecar(`sidecar`, JSON.parse(side), { relativePath: 'bidsFile test' }, defManager)
+          const bidsSide = new BidsSidecar(`sidecar`, { relativePath: 'bidsFile test' }, JSON.parse(side), defManager)
           issues = bidsSide.validate(hedSchema)
         } catch (e) {
           issues = [convertIssue(e)]
@@ -224,7 +223,7 @@ describe('HED validation using JSON tests', () => {
           defManager.addDefinitions(defList)
           const parsedTsv = parseTSV(hTsv)
           assert.instanceOf(parsedTsv, Map, `${str} cannot be parsed`)
-          const bidsTsv = new BidsTsvFile(`string`, parsedTsv, { relativePath: 'string test tsv' }, [], {}, defManager)
+          const bidsTsv = new BidsTsvFile(`string`, { relativePath: 'string test tsv' }, parsedTsv, {}, defManager)
           stringIssues = bidsTsv.validate(hedSchema)
         } catch (e) {
           stringIssues = [convertIssue(e)]

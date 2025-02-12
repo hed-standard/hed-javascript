@@ -5,7 +5,7 @@ import TagConverter from './tagConverter'
 import { ReservedChecker } from './reservedChecker'
 
 const TWO_LEVEL_TAGS = new Set(['Definition', 'Def', 'Def-expand'])
-const allowedRegEx = /^[^{}\,]*$/
+const allowedRegEx = /^[^{},]*$/
 
 /**
  * A parsed HED tag.

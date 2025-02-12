@@ -41,10 +41,14 @@ describe('Schema build validation', () => {
     afterAll(() => {})
 
     async function testSchema(test) {
-      const desc = new BidsJsonFile('/dataset_description.json', test.schemaVersion, {
-        relativePath: '/dataset_description.json',
-        path: '/dataset_description.json',
-      })
+      const desc = new BidsJsonFile(
+        '/dataset_description.json',
+        {
+          relativePath: '/dataset_description.json',
+          path: '/dataset_description.json',
+        },
+        test.schemaVersion,
+      )
       let schema = undefined
       let caughtError = null
       try {

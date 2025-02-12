@@ -1,8 +1,8 @@
 import { generateIssue } from '../issues/issues'
 import { getTagListString } from './parseUtils'
-import Set from 'lodash/_Set'
 
 const DEFINITION_TAGS = new Set(['Definition', 'Def', 'Def-expand'])
+
 const DEF_GROUP_TAGS = new Set(['Definition', 'Def-expand'])
 
 export class DefinitionChecker {
@@ -10,7 +10,6 @@ export class DefinitionChecker {
    * Check Def-expand or definition syntax for compatible tags and number of groups
    * @param {ParsedHedString} hedString - A group to check for Def-expand syntax.
    */
-
   constructor(hedString) {
     this.hedString = hedString
     this.definitionTags = this.hedString.tags.filter((tag) => tag.schemaTag.name === 'Definition')
@@ -158,33 +157,4 @@ export class DefinitionChecker {
     }
     return []
   }
-
-  // _checkDefinitionSyntax(parsedString) {
-  //
-  //   // This checks whether there are any definitions in the string if the definition is allowed.
-  //   const definitionContextIssues = this._checkDefinitionContext(parsedString)
-  //   if (definitionContextIssues.length > 0) {
-  //     return definitionContextIssues
-  //   }
-  //
-  //   // If
-  //   const definitionStructureIssues = this._checkDefinitionStructure(parsedString)
-  //   return definitionStructureIssues
-  // }
-  //
-  //
-  //
-
-  // return issues
-  // const definitionTags = parsedString.tags.filter((tag) => tag.schemaTag.name === 'Definition')
-  // if (definitionTags.length > 0) {
-  //   return [
-  //     generateIssue('illegalDefinitionContext', {
-  //       definition: getTagListString(definitionTags),
-  //       string: parsedString.hedString,
-  //     }),
-  //   ]
-  // }
-  // return []
-  // }
 }
