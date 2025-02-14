@@ -21,7 +21,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
   /**
    * Validate a BIDS JSON bidsFile file. This method returns the complete issue list for convenience.
    *
-   * @returns {BidsIssue[]} - Any issues found during validation of this bidsFile file.
+   * @returns {BidsHedIssue[]} - Any issues found during validation of this bidsFile file.
    */
   validate() {
     // Allow schema to be set a validation time -- this is checked by the superclass of BIDS file
@@ -40,7 +40,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
   /**
    * Validate this bidsFile's HED strings.
    *
-   * @returns {BidsIssue[]} All issues found.
+   * @returns {BidsHedIssue[]} All issues found.
    */
   _validateStrings() {
     const issues = []
@@ -55,9 +55,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
           issues.push(...this._checkDetails(sidecarKeyName, valueString))
         }
       } else {
-        IssueError.generateAndThrow('internalConsistencyError', {
-          message: 'Unexpected type found in bidsFile parsedHedData map.',
-        })
+        IssueError.generateAndThrowInternalError('Unexpected type found in bidsFile parsedHedData map.')
       }
     }
     return issues
@@ -127,7 +125,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
   /**
    * Validate this bidsFile's curly braces -- checking recursion and missing columns.
    *
-   * @returns {BidsIssue[]} All issues found.
+   * @returns {BidsHedIssue[]} All issues found.
    */
   _validateCurlyBraces() {
     const issues = []

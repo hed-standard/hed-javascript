@@ -1,13 +1,13 @@
 import { generateIssue, IssueError } from '../../issues/issues'
 
-const bidsHedErrorCodes = new Set([104, 106, 107])
+const bidsHedErrorCodes = new Set(['HED_ERROR', 'HED_INTERNAL_ERROR'])
 
-export class BidsIssue {
+export class BidsHedIssue {
   /**
    * The BIDS issue code.
-   * @type {number}
+   * @type {string}
    */
-  code
+  bidsCode
   /**
    * The file associated with this issue.
    * @type {Object}
@@ -17,39 +17,7 @@ export class BidsIssue {
    * The evidence for this issue.
    * @type {string}
    */
-  evidence
-
-  constructor(issueCode, file, evidence) {
-    this.code = issueCode
-    this.file = file
-    this.evidence = evidence
-  }
-
-  /**
-   * Whether this issue is an error.
-   *
-   * @returns {boolean}
-   */
-  isError() {
-    return bidsHedErrorCodes.has(this.code)
-  }
-
-  /**
-   * Determine if any of the passed issues are errors.
-   *
-   * @param {BidsIssue[]} issues A list of issues.
-   * @returns {boolean} Whether any of the passed issues are errors (rather than warnings).
-   */
-  static anyAreErrors(issues) {
-    return issues.some((issue) => issue.isError())
-  }
-
-  static async generateInternalErrorPromise(error, errorFile) {
-    return [new BidsHedIssue(generateIssue('internalError', { message: error.message }), errorFile)]
-  }
-}
-
-export class BidsHedIssue extends BidsIssue {
+  message
   /**
    * The HED Issue object corresponding to this object.
    * @type {Issue}
@@ -63,26 +31,66 @@ export class BidsHedIssue extends BidsIssue {
    * @param {Object} file The file this error occurred in.
    */
   constructor(hedIssue, file) {
-    super(BidsHedIssue._determineBidsIssueCode(hedIssue), file, hedIssue.message)
-
     this.hedIssue = hedIssue
+    this.bidsCode = BidsHedIssue._determineBidsIssueCode(hedIssue)
+    this.message = hedIssue.message
+    this.file = file
+  }
+
+  /**
+   * The HED spec code for this issue.
+   *
+   * @returns {string}
+   */
+  get hedCode() {
+    return this.hedIssue.hedCode
+  }
+
+  /**
+   * Whether this issue is an error.
+   *
+   * @returns {boolean}
+   */
+  get isError() {
+    return bidsHedErrorCodes.has(this.bidsCode)
+  }
+
+  /**
+   * Determine if any of the passed issues are errors.
+   *
+   * @param {BidsHedIssue[]} issues A list of issues.
+   * @returns {boolean} Whether any of the passed issues are errors (rather than warnings).
+   */
+  static anyAreErrors(issues) {
+    return issues.some((issue) => issue.isError)
+  }
+
+  /**
+   * Generate a {@link Promise} with an internal error.
+   *
+   * @param {string} error The error message.
+   * @param {Object} errorFile The file this error occurred in.
+   * @return {Promise} A promise resolving to a singleton array containing an internal error {@link BidsHedIssue}.
+   */
+  static async generateInternalErrorPromise(error, errorFile) {
+    return [new BidsHedIssue(generateIssue('internalError', { message: error.message }), errorFile)]
   }
 
   /**
    * Determine the BIDS issue code for this issue.
    *
    * @param {Issue} hedIssue The HED issue object to be wrapped.
-   * @returns {number} The BIDS issue code for this issue.
+   * @returns {string} The BIDS issue code for this issue.
    * @private
    */
   static _determineBidsIssueCode(hedIssue) {
-    if (hedIssue.internalCode === 'internalError' || hedIssue.internalCode === 'internalConsistencyError') {
-      return 106
+    if (hedIssue.internalCode === 'internalError') {
+      return 'HED_INTERNAL_ERROR'
     }
     if (hedIssue.level === 'warning') {
-      return 105
+      return 'HED_WARNING'
     }
-    return 104
+    return 'HED_ERROR'
   }
 
   /**

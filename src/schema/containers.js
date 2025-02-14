@@ -1,3 +1,4 @@
+import { IssueError } from '../issues/issues'
 import { getGenerationForSchemaVersion } from '../utils/hedData'
 
 /**
@@ -122,7 +123,7 @@ export class Schemas {
     } else if (schemas instanceof Schema) {
       this.schemas = new Map([['', schemas]])
     } else {
-      throw new Error('Invalid type passed to Schemas constructor')
+      IssueError.generateAndThrowInternalError('Invalid type passed to Schemas constructor')
     }
     if (this.schemas) {
       this._addNicknamesToSchemas()

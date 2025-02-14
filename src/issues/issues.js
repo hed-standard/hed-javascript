@@ -9,9 +9,15 @@ export class IssueError extends Error {
    */
   issue
 
+  /**
+   * Constructor.
+   *
+   * @param {Issue} issue The associated HED issue.
+   * @param {...*} params Extra parameters (to be forwarded to the {@link Error} constructor).
+   */
   constructor(issue, ...params) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
-    super(...params)
+    super(issue.message, ...params)
 
     // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
@@ -20,7 +26,6 @@ export class IssueError extends Error {
 
     this.name = 'IssueError'
     this.issue = issue
-    this.message = issue.message
 
     Object.setPrototypeOf(this, IssueError.prototype)
   }
@@ -34,6 +39,16 @@ export class IssueError extends Error {
    */
   static generateAndThrow(internalCode, parameters = {}) {
     throw new IssueError(generateIssue(internalCode, parameters))
+  }
+
+  /**
+   * Generate a new {@link Issue} object for an internal error and immediately throw it as an {@link IssueError}.
+   *
+   * @param {string} message A message describing the internal error.
+   * @throws {IssueError} Corresponding to the generated internal error {@link Issue}.
+   */
+  static generateAndThrowInternalError(message = 'Unknown internal error') {
+    throw new IssueError(generateIssue('internalError', { message }))
   }
 }
 
@@ -88,7 +103,7 @@ export class Issue {
    *
    * @returns {boolean}
    */
-  isError() {
+  get isError() {
     return this.level === 'error'
   }
 
@@ -137,7 +152,7 @@ export class Issue {
    * @returns {Array} Returns [boolean, Issue[]] indicate if validation succeeded (i.e. any errors were found)and all issues (both errors and warnings).
    */
   static issueListWithValidStatus(issues) {
-    return [!issues.some((issue) => issue.isError()), issues]
+    return [!issues.some((issue) => issue.isError), issues]
   }
 }
 

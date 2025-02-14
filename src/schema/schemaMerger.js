@@ -36,7 +36,7 @@ export default class PartneredSchemaMerger {
    */
   _validate() {
     if (!this.sourceSchemas.every((schema) => schema.generation === 3)) {
-      IssueError.generateAndThrow('internalConsistencyError', { message: 'Partnered schemas must be HED-3G schemas' })
+      IssueError.generateAndThrowInternalError('Partnered schemas must be HED-3G schemas')
     }
 
     for (const schema of this.sourceSchemas.slice(1)) {
@@ -118,7 +118,7 @@ export default class PartneredSchemaMerger {
     if (rootedTagShortName) {
       const parentTag = tag.parent
       if (parentTag?.name?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
-        IssueError.generateAndThrow('internalError', { message: `Node ${shortName} is improperly rooted.` })
+        IssueError.generateAndThrowInternalError(`Node ${shortName} is improperly rooted.`)
       }
     }
 

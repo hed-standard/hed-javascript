@@ -32,9 +32,7 @@ export default class Memoizer {
    */
   _memoize(propertyName, valueComputer) {
     if (!propertyName) {
-      IssueError.generateAndThrow('internalConsistencyError', {
-        message: 'Invalid property name in Memoizer subclass.',
-      })
+      IssueError.generateAndThrowInternalError('Invalid property name in Memoizer subclass.')
     }
     if (this._memoizedProperties.has(propertyName)) {
       return this._memoizedProperties.get(propertyName)

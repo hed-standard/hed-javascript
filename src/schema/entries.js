@@ -181,7 +181,7 @@ export class SchemaEntryManager extends Memoizer {
    */
   getEntriesWithBooleanAttribute(booleanAttributeName) {
     return this._memoize(booleanAttributeName, () => {
-      return this.filter(([_, v]) => {
+      return this.filter(([, v]) => {
         return v.hasAttributeName(booleanAttributeName)
       })
     })
@@ -869,9 +869,9 @@ export class SchemaTag extends SchemaEntryWithAttributes {
     if (this._valueTag === undefined) {
       this._valueTag = newValueTag
     } else {
-      IssueError.generateAndThrow('internalError', {
-        message: `Attempted to set value tag for schema tag "${this.longName}" when it already has one.`,
-      })
+      IssueError.generateAndThrowInternalError(
+        `Attempted to set value tag for schema tag "${this.longName}" when it already has one.`,
+      )
     }
   }
 
@@ -891,9 +891,9 @@ export class SchemaTag extends SchemaEntryWithAttributes {
     if (this._parent === undefined) {
       this._parent = newParent
     } else {
-      IssueError.generateAndThrow('internalError', {
-        message: `Attempted to set parent for schema tag ${this.longName} when it already has one.`,
-      })
+      IssueError.generateAndThrowInternalError(
+        `Attempted to set parent for schema tag ${this.longName} when it already has one.`,
+      )
     }
   }
 

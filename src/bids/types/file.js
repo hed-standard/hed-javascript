@@ -13,7 +13,7 @@ export class BidsFile {
 
   /**
    * The Object representing this file data.
-   * This is used to generate {@link BidsIssue} objects.
+   * This is used to generate {@link BidsHedIssue} objects.
    * @type {Object}
    */
 
@@ -40,7 +40,7 @@ export class BidsFile {
    * Validate this validator's tsv file.
    *
    * @param {Schemas} schemas - The HED schemas used to validate this file.
-   * @returns {BidsIssue[]} - Any issues found during validation of this TSV file.
+   * @returns {BidsHedIssue[]} - Any issues found during validation of this TSV file.
    */
   validate(schemas) {
     if (!this.hasHedData) {
@@ -64,8 +64,18 @@ export class BidsFile {
   }
 
   /**
+   * Determine whether this file has any HED data.
+   *
+   * @returns {boolean}
+   */
+  get hasHedData() {
+    return false
+  }
+
+  /**
    * The validator class used to validate this file.
-   * @returns {BidsValidator}
+   *
+   * @returns {function} (typeof BidsValidator) A subclass constructor of {@link BidsValidator}.
    */
   get validatorClass() {
     return this._validatorClass

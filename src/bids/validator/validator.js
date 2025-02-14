@@ -14,7 +14,7 @@ export class BidsValidator {
   hedSchemas
   /**
    * The issues found during validation.
-   * @type {BidsIssue[]}
+   * @type {BidsHedIssue[]}
    */
   issues
 
@@ -33,7 +33,7 @@ export class BidsValidator {
   /**
    * Validate a BIDS TSV file. This method returns the complete issue list for convenience.
    *
-   * @returns {BidsIssue[]} - Any issues found during validation of this TSV file.
+   * @returns {BidsHedIssue[]} - Any issues found during validation of this TSV file.
    */
   validate() {
     return this.issues

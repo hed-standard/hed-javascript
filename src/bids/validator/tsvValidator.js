@@ -1,4 +1,4 @@
-import { BidsHedIssue, BidsIssue } from '../types/issues'
+import { BidsHedIssue } from '../types/issues'
 import { BidsTsvElement, BidsTsvRow } from '../types/tsv'
 import { BidsValidator } from './validator'
 import { parseHedString } from '../../parser/parser'
@@ -32,14 +32,14 @@ export class BidsHedTsvValidator extends BidsValidator {
   /**
    * Validate a BIDS TSV file. This method returns the complete issue list for convenience.
    *
-   * @returns {BidsIssue[]} - Any issues found during validation of this TSV file.
+   * @returns {BidsHedIssue[]} - Any issues found during validation of this TSV file.
    */
   validate() {
     // Validate the BIDS bidsFile if it exists.
     if (this.bidsFile.mergedSidecar) {
       const sidecarIssues = this.bidsFile.mergedSidecar.validate(this.hedSchemas)
       this.issues.push(...sidecarIssues)
-      if (BidsIssue.anyAreErrors(sidecarIssues)) {
+      if (BidsHedIssue.anyAreErrors(sidecarIssues)) {
         return this.issues
       }
     }
@@ -47,14 +47,14 @@ export class BidsHedTsvValidator extends BidsValidator {
     // Valid the HED column by itself.
     const hedColumnIssues = this._validateHedColumn()
     this.issues.push(...hedColumnIssues)
-    if (BidsIssue.anyAreErrors(this.issues)) {
+    if (BidsHedIssue.anyAreErrors(this.issues)) {
       return this.issues
     }
     // Now do a full validation
     const bidsHedTsvParser = new BidsHedTsvParser(this.bidsFile, this.hedSchemas)
     const [bidsEvents, parsingIssues] = bidsHedTsvParser.parse()
     this.issues.push(...parsingIssues)
-    if (!BidsIssue.anyAreErrors(this.issues)) {
+    if (!BidsHedIssue.anyAreErrors(this.issues)) {
       this.issues.push(...this.validateDataset(bidsEvents))
     }
     return this.issues
@@ -63,7 +63,7 @@ export class BidsHedTsvValidator extends BidsValidator {
   /**
    * Validate this TSV file's HED column.
    *
-   * @returns {BidsIssue[]} - Issues found in validating the HED column without sidecar information.
+   * @returns {BidsHedIssue[]} - Issues found in validating the HED column without sidecar information.
    * @private
    */
   _validateHedColumn() {
@@ -80,7 +80,7 @@ export class BidsHedTsvValidator extends BidsValidator {
    *
    * @param {string} hedString - The string to be validated.
    * @param {number} rowIndex - The index of this row in the TSV file.
-   * @returns {BidsIssue[]} - Specific issues found in validating the HED column
+   * @returns {BidsHedIssue[]} - Specific issues found in validating the HED column
    * @private
    */
   _validateHedColumnString(hedString, rowIndex) {
@@ -165,13 +165,13 @@ export class BidsHedTsvValidator extends BidsValidator {
   /**
    * Check for duplicate tags when multiple rows with the same onset.
    *
-   * @param {BidsTsvElement[]} elements - The elements representing the tsv file.
-   * @returns {BidsHedIssue[]} - Errors in temporal relationships among events.
-   * @private
-   *
    * ### Note:
    * Duplicate onsets are relatively rare and duplicates for single rows are checked when a ParsedHedString is
    * constructed.
+   *
+   * @param {BidsTsvElement[]} elements - The elements representing the tsv file.
+   * @returns {BidsHedIssue[]} - Errors in temporal relationships among events.
+   * @private
    */
   _checkDuplicatesAcrossRows(elements) {
     const duplicateMap = this._getOnsetMap(elements)
