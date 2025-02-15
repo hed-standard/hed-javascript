@@ -1,5 +1,5 @@
 import reservedTags from '../data/json/reservedTags.json'
-import { generateIssue } from '../issues/issues'
+import { generateIssue, IssueError } from '../issues/issues'
 import { getTagListString } from './parseUtils'
 
 export class ReservedChecker {
@@ -8,7 +8,7 @@ export class ReservedChecker {
 
   constructor() {
     if (ReservedChecker.instance) {
-      throw new Error('Use ReservedChecker.getInstance() to get an instance of this class.')
+      IssueError.generateAndThrowInternalError('Use ReservedChecker.getInstance() to get an instance of this class.')
     }
 
     this._initializeReservedTags()

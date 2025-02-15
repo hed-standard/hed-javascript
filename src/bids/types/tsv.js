@@ -12,7 +12,7 @@ import { IssueError } from '../../issues/issues'
 export class BidsTsvFile extends BidsFile {
   /**
    * This file's parsed TSV data.
-   * @type {Map}
+   * @type {Map<string, string[]>}
    */
   parsedTsv
   /**
@@ -46,7 +46,7 @@ export class BidsTsvFile extends BidsFile {
     } else if (isPlainObject(tsvData)) {
       this.parsedTsv = convertParsedTSVData(tsvData)
     } else {
-      IssueError.generateAndThrow('internalError', { message: 'parsedTsv has an invalid type' })
+      IssueError.generateAndThrowInternalError('parsedTsv has an invalid type')
     }
 
     this.mergedSidecar = new BidsSidecar(name, this.file, mergedDictionary, defManager)
@@ -140,7 +140,7 @@ export class BidsTsvElement {
 
   /**
    * Create a string list of a list of BidsTsvElement objects.
-   * @param BidsTsvElement[] elements - A list of elements to construct line numbers from.
+   * @param {BidsTsvElement[]} elements - A list of elements to construct line numbers from.
    * @returns {string} - A string with the list of line numbers for error messages.
    */
   static getTsvLines(elements) {

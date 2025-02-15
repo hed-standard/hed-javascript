@@ -181,7 +181,7 @@ export class SchemaEntryManager extends Memoizer {
    */
   getEntriesWithBooleanAttribute(booleanAttributeName) {
     return this._memoize(booleanAttributeName, () => {
-      return this.filter(([_, v]) => {
+      return this.filter(([, v]) => {
         return v.hasAttributeName(booleanAttributeName)
       })
     })
@@ -783,7 +783,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaTag}
    * @private
    */
-  _parent
+  #parent
   /**
    * This tag's unit classes.
    * @type {SchemaUnitClass[]}
@@ -803,7 +803,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaValueTag}
    * @private
    */
-  _valueTag
+  #valueTag
 
   /**
    * Constructor.
@@ -858,7 +858,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @returns {SchemaValueTag}
    */
   get valueTag() {
-    return this._valueTag
+    return this.#valueTag
   }
 
   /**
@@ -866,12 +866,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {SchemaValueTag} newValueTag The new value-taking child tag.
    */
   set valueTag(newValueTag) {
-    if (this._valueTag === undefined) {
-      this._valueTag = newValueTag
-    } else {
-      IssueError.generateAndThrow('internalError', {
-        message: `Attempted to set value tag for schema tag "${this.longName}" when it already has one.`,
-      })
+    if (!this.#isPrivateFieldSet(this.#valueTag, 'value tag')) {
+      this.#valueTag = newValueTag
     }
   }
 
@@ -880,7 +876,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaTag}
    */
   get parent() {
-    return this._parent
+    return this.#parent
   }
 
   /**
@@ -888,13 +884,27 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {SchemaTag} newParent The new parent tag.
    */
   set parent(newParent) {
-    if (this._parent === undefined) {
-      this._parent = newParent
-    } else {
-      IssueError.generateAndThrow('internalError', {
-        message: `Attempted to set parent for schema tag ${this.longName} when it already has one.`,
-      })
+    if (!this.#isPrivateFieldSet(this.#parent, 'parent')) {
+      this.#parent = newParent
     }
+  }
+
+  /**
+   * Throw an error if a private field is already set.
+   *
+   * @param {*} field The field being set.
+   * @param {string} fieldName The name of the field (for error reporting).
+   * @return {boolean} Whether the field is set (never returns true).
+   * @throws {IssueError} If the field is already set.
+   * @private
+   */
+  #isPrivateFieldSet(field, fieldName) {
+    if (field !== undefined) {
+      IssueError.generateAndThrowInternalError(
+        `Attempted to set ${fieldName} for schema tag ${this.longName} when it already has one.`,
+      )
+    }
+    return false
   }
 
   /**

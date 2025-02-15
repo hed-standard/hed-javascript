@@ -104,9 +104,9 @@ export class BidsSidecar extends BidsJsonFile {
     } else if (!defManager) {
       this.definitions = new DefinitionManager()
     } else {
-      IssueError.generateAndThrow('internalError', {
-        message: 'Improper format for defManager parameter -- must be null or DefinitionManager',
-      })
+      IssueError.generateAndThrowInternalError(
+        'Improper format for defManager parameter -- must be null or DefinitionManager',
+      )
     }
   }
 
@@ -222,9 +222,7 @@ export class BidsSidecar extends BidsJsonFile {
       } else if (hedData instanceof Map) {
         this._parseCategorySplice(sidecarKey, hedData)
       } else if (hedData) {
-        IssueError.generateAndThrow('internalConsistencyError', {
-          message: 'Unexpected type found in bidsFile parsedHedData map.',
-        })
+        IssueError.generateAndThrowInternalError('Unexpected type found in bidsFile parsedHedData map.')
       }
     }
   }
@@ -250,9 +248,9 @@ export class BidsSidecar extends BidsJsonFile {
 
   /**
    * Add a list of columnSplices to a key map.
-   * @param {Set} keyReferences
+   * @param {Set<string>|null} keyReferences
    * @param {ParsedHedColumnSplice[]} columnSplices
-   * @returns {*|Set<any>}
+   * @returns {Set<string>}
    * @private
    */
   _processColumnSplices(keyReferences, columnSplices) {
@@ -341,13 +339,14 @@ export class BidsSidecarKey {
   }
 
   /**
-   * Parse the value string in a bidsFile
-   * @param {Schemas} hedSchemas - The HED schemas to use.
-   * @returns {Issue[]}
-   * @private
+   * Parse the value string in a bidsFile.
    *
    * ### Note:
    *  The value strings cannot contain definitions.
+   *
+   * @param {Schemas} hedSchemas - The HED schemas to use.
+   * @returns {Issue[]}
+   * @private
    */
   _parseValueString(hedSchemas) {
     const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas, false, true)

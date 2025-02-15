@@ -2,6 +2,8 @@ import fs from 'fs'
 
 import fetch from 'cross-fetch'
 
+import { IssueError } from '../issues/issues'
+
 /**
  * Read a local file.
  *
@@ -29,7 +31,9 @@ export function readFile(fileName) {
 export async function readHTTPSFile(url) {
   const response = await fetch(url)
   if (!response.ok) {
-    throw new Error(`Server responded to ${url} with status code ${response.status}: ${response.statusText}`)
+    IssueError.generateAndThrowInternalError(
+      `Server responded to ${url} with status code ${response.status}: ${response.statusText}`,
+    )
   }
   return response.text()
 }
