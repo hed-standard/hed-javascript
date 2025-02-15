@@ -22,10 +22,9 @@ const runMap = new Map([['TAG_EXPRESSION_REPEATED', ['tags-duplicated-across-mul
 //const runOnly = new Set(["eventsPass"])
 const runOnly = new Set()
 const skippedErrors = {
-  VERSION_DEPRECATED: 'not handling in the spec tests.',
-  ELEMENT_DEPRECATED: 'not handling tag deprecated in the spec tests.',
-  STYLE_WARNING: 'not handling style warnings at this time',
-  'invalid-character-name-value-class-deprecated': 'not handling deprecated in the spec tests.',
+  TAG_EXTENDED: 'Warning not being checked',
+  SIDECAR_KEY_MISSING: 'Warning not being checked',
+  ELEMENT_DEPRECATED: 'Warning not being checked',
 }
 const readFileSync = fs.readFileSync
 const test_file_name = 'javascriptTests.json'
@@ -286,9 +285,7 @@ describe('HED validation using JSON tests', () => {
         return
       }
       // Run tests except for the ones explicitly skipped or because they are warnings
-      if (warning) {
-        test.skip(`Skipping tests ${error_code} [${name}] skipped because warning not error`, () => {})
-      } else if (error_code in skippedErrors) {
+      if (error_code in skippedErrors) {
         test.skip(`Skipping tests ${error_code} [${name}] skipped because ${skippedErrors[error_code]}`, () => {})
       } else if (name in skippedErrors) {
         test.skip(`Skipping tests ${error_code} [${name}] skipped because ${skippedErrors[name]}`, () => {})

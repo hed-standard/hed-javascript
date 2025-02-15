@@ -164,9 +164,9 @@ export class Issue {
  * @returns {Issue} An object representing the issue.
  */
 export const generateIssue = function (internalCode, parameters) {
-  const issueCodeData = issueData[internalCode] ?? issueData.genericError
+  const issueCodeData = issueData[internalCode] ?? issueData.internalError
   const { hedCode, level } = issueCodeData
-  if (issueCodeData === issueData.genericError) {
+  if (issueCodeData === issueData.internalError) {
     parameters.internalCode = internalCode
     parameters.parameters = 'Issue parameters: ' + JSON.stringify(parameters)
   }

@@ -400,7 +400,7 @@ export default {
   missingSchemaSpecification: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`No schema specification was supplied.`,
+    message: stringTemplate`No valid HED schema specification was supplied.`,
   },
   bundledSchemaLoadFailed: {
     hedCode: 'SCHEMA_LOAD_FAILED',
@@ -467,12 +467,6 @@ export default {
     hedCode: 'SIDECAR_INVALID',
     level: 'error',
     message: stringTemplate`The key 'HED' was illegally used within a non-HED sidecar column.`,
-  },
-  // Generic errors
-  genericError: {
-    hedCode: 'GENERIC_ERROR',
-    level: 'error',
-    message: stringTemplate`Unknown HED error "${'internalCode'}" - parameters: "${'parameters'}".`,
   },
   internalError: {
     hedCode: 'INTERNAL_ERROR',

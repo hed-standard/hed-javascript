@@ -48,8 +48,8 @@ export class BidsFile {
     }
     if (!schemas) {
       BidsHedIssue.fromHedIssue(
-        generateIssue('genericError', {
-          message: 'BIDS file HED validation requires a HED schema, but the schema received was null.',
+        generateIssue('missingSchemaSpecification', {
+          message: 'No valid HED schema specification was supplied.',
         }),
         { path: this.file.file, relativePath: this.file.file },
       )
