@@ -57,6 +57,10 @@ export class BidsHedTsvValidator extends BidsValidator {
     if (!BidsHedIssue.anyAreErrors(this.issues)) {
       this.issues.push(...this.validateDataset(bidsEvents))
     }
+    if (!BidsHedIssue.anyAreErrors(this.issues)) {
+      //this.issues.push(...this.check_missing_keys())
+    }
+
     return this.issues
   }
 

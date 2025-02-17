@@ -1,7 +1,5 @@
 import { generateIssue, IssueError } from '../../issues/issues'
 
-const bidsHedErrorCodes = new Set(['HED_ERROR', 'HED_INTERNAL_ERROR'])
-
 export class BidsHedIssue {
   /**
    * The BIDS issue code.
@@ -52,7 +50,7 @@ export class BidsHedIssue {
    * @returns {boolean}
    */
   get isError() {
-    return bidsHedErrorCodes.has(this.bidsCode)
+    return this.hedIssue.level === 'error'
   }
 
   /**

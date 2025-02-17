@@ -58,8 +58,9 @@ export class BidsFile {
     try {
       const validator = new this.validatorClass(this, schemas)
       return validator.validate()
-    } catch (internalError) {
-      return BidsHedIssue.fromHedIssues(internalError, this.file)
+    } catch (error) {
+      // The low-level parsing throws exceptions with the issue encapsulated.
+      return BidsHedIssue.fromHedIssues(error, this.file)
     }
   }
 

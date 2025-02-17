@@ -51,7 +51,7 @@ class HedStringParser {
    * Parse a full HED string.
    * @returns {Array} - [ParsedHedString|null, Issue[]] representing the parsed HED string and any parsing issues.
    */
-  parseHedString() {
+  parse() {
     if (this.hedString === null || this.hedString === undefined) {
       return [null, [generateIssue('invalidTagString', {})]]
     }
@@ -130,7 +130,7 @@ class HedStringParser {
         hedSchemas,
         definitionsAllowed,
         placeholdersAllowed,
-      ).parseHedString()
+      ).parse()
       parsedStrings.push(parsedString)
       cumulativeIssues.push(...currentIssues)
     }
@@ -149,7 +149,7 @@ class HedStringParser {
  * @returns {Array} - [ParsedHedString, Issue[]] representing the parsed HED string and any issues found.
  */
 export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed) {
-  return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parseHedString()
+  return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parse()
 }
 
 /**
