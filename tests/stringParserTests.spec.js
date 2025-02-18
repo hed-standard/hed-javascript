@@ -42,9 +42,10 @@ describe('Null schema objects should cause parsing to bail', () => {
   it('Should not proceed if no schema and valid array of strings', () => {
     const arrayIn = ['Item, Red', 'Blue']
     const expectedIssues = [generateIssue('missingSchemaSpecification', {})]
-    const [directParsed, directIssues] = parseHedStrings(arrayIn, null, true, false, false)
+    const [directParsed, directIssues, warningIssues] = parseHedStrings(arrayIn, null, true, false)
     assert.isNull(directParsed, `Parsed HED string of ${arrayIn} is null for invalid string`)
     assert.deepStrictEqual(directIssues, expectedIssues)
+    assert.equal(warningIssues.length, 0)
   })
 })
 

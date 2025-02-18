@@ -14,7 +14,7 @@ import { DefinitionManager } from '../src/parser/definitionManager'
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['duplicate-tag-tests', ['invalid-duplicate-groups-first-level-tsv']]])
+const runMap = new Map([['curly-brace-tests', ['valid-HED-column-splice-with-n/a']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
