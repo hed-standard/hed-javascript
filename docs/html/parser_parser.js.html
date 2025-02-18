@@ -72,7 +72,7 @@ class HedStringParser {
    * Parse a full HED string.
    * @returns {Array} - [ParsedHedString|null, Issue[]] representing the parsed HED string and any parsing issues.
    */
-  parseHedString() {
+  parse() {
     if (this.hedString === null || this.hedString === undefined) {
       return [null, [generateIssue('invalidTagString', {})]]
     }
@@ -151,7 +151,7 @@ class HedStringParser {
         hedSchemas,
         definitionsAllowed,
         placeholdersAllowed,
-      ).parseHedString()
+      ).parse()
       parsedStrings.push(parsedString)
       cumulativeIssues.push(...currentIssues)
     }
@@ -169,8 +169,8 @@ class HedStringParser {
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed.
  * @returns {Array} - [ParsedHedString, Issue[]] representing the parsed HED string and any issues found.
  */
-export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed) {
-  return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parseHedString()
+export function parse(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed) {
+  return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parse()
 }
 
 /**
@@ -292,7 +292,7 @@ export function parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, plac
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parseHedString</a></li>
+        <li><a href="global.html#parseHedString">parse</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>

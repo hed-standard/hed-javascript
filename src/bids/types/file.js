@@ -36,30 +36,53 @@ export class BidsFile {
     this._validatorClass = validatorClass
   }
 
+  // /**
+  //  * Parse this bidsFile's HED strings within the bidsFile structure.
+  //  *
+  //  * @param {Schemas} hedSchemas - The HED schema collection.
+  //  * @returns {Array} [Issue[], Issue[]] Any errors and warnings found
+  //  */
+  // parseHed(hedSchemas) {
+  //   return [[], []]
+  // }
+
+  /**
+   * Whether this is a TSV file timeline file.
+   *
+   * @returns {boolean}
+   */
+  get isTimelineFile() {
+    return false
+  }
+
   /**
    * Validate this validator's tsv file.
    *
    * @param {Schemas} schemas - The HED schemas used to validate this file.
-   * @returns {BidsHedIssue[]} - Any issues found during validation of this TSV file.
+   * @returns {BidsHedIssue[], BidsHedIssue[]} - Any issues found during validation of this TSV file.
    */
   validate(schemas) {
     if (!this.hasHedData) {
       return []
     }
     if (!schemas) {
-      BidsHedIssue.fromHedIssue(
-        generateIssue('missingSchemaSpecification', {
-          message: 'No valid HED schema specification was supplied.',
-        }),
-        { path: this.file.file, relativePath: this.file.file },
-      )
+      return [
+        BidsHedIssue.fromHedIssue(
+          generateIssue('missingSchemaSpecification', {
+            message: 'No valid HED schema specification was supplied.',
+          }),
+          { path: this.file.file, relativePath: this.file.file },
+        ),
+      ]
     }
 
     try {
       const validator = new this.validatorClass(this, schemas)
-      return validator.validate()
-    } catch (internalError) {
-      return BidsHedIssue.fromHedIssues(internalError, this.file)
+      validator.validate()
+      return [...validator.errors, ...validator.warnings]
+    } catch (error) {
+      // The low-level parsing throws exceptions with the issue encapsulated.
+      return BidsHedIssue.fromHedIssues(error, this.file)
     }
   }
 

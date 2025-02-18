@@ -49,48 +49,51 @@ class HedStringParser {
 
   /**
    * Parse a full HED string.
-   * @returns {Array} - [ParsedHedString|null, Issue[]] representing the parsed HED string and any parsing issues.
+   *
+   * ###Note: now separates errors and warnings for easier handling.
+   *
+   * @returns {Array} - [ParsedHedString|null, Issue[], Issue[]] representing the parsed HED string and any parsing issues.
    */
-  parseHedString() {
+  parse() {
     if (this.hedString === null || this.hedString === undefined) {
-      return [null, [generateIssue('invalidTagString', {})]]
+      return [null, [generateIssue('invalidTagString', {})], []]
     }
 
     const placeholderIssues = this._getPlaceholderCountIssues()
     if (placeholderIssues.length > 0) {
-      return [null, placeholderIssues]
+      return [null, placeholderIssues, []]
     }
     if (this.hedString instanceof ParsedHedString) {
-      return [this.hedString, []]
+      return [this.hedString, [], []]
     }
     if (!this.hedSchemas) {
-      return [null, [generateIssue('missingSchemaSpecification', {})]]
+      return [null, [generateIssue('missingSchemaSpecification', {})], []]
     }
 
     // This assumes that splitter errors are only errors and not warnings
     const [parsedTags, parsingIssues] = new HedStringSplitter(this.hedString, this.hedSchemas).splitHedString()
     if (parsedTags === null || parsingIssues.length > 0) {
-      return [null, parsingIssues]
+      return [null, parsingIssues, []]
     }
 
     // Returns a parsed HED string unless empty
     const parsedString = new ParsedHedString(this.hedString, parsedTags)
     if (!parsedString) {
-      return [null, null]
+      return [null, null, []]
     }
 
     // Check the definition syntax issues
     const definitionIssues = new DefinitionChecker(parsedString).check(this.definitionsAllowed)
     if (definitionIssues.length > 0) {
-      return [null, definitionIssues]
+      return [null, definitionIssues, []]
     }
 
     // Check the other reserved tags requirements
     const checkIssues = ReservedChecker.getInstance().checkHedString(parsedString)
     if (checkIssues.length > 0) {
-      return [null, checkIssues]
+      return [null, checkIssues, []]
     }
-    return [parsedString, []]
+    return [parsedString, [], []]
   }
 
   /**
@@ -116,50 +119,56 @@ class HedStringParser {
    * @param {Schemas} hedSchemas The collection of HED schemas.
    * @param {boolean} definitionsAllowed - True if definitions are allowed
    * @param {boolean} placeholdersAllowed - True if placeholders are allowed
-   * @returns {Array} - [ParsedHedString[], Issue[]] representing the parsed HED strings and any issues found.
+   * @returns {Array} - [ParsedHedString[], Issue[], Issue[]] representing the parsed HED strings and any errors and warnings.
    */
   static parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed) {
     if (!hedSchemas) {
-      return [null, [generateIssue('missingSchemaSpecification', {})]]
+      return [null, [generateIssue('missingSchemaSpecification', {})], []]
     }
     const parsedStrings = []
-    const cumulativeIssues = []
+    const errors = []
+    const warnings = []
     for (const hedString of hedStrings) {
-      const [parsedString, currentIssues] = new HedStringParser(
+      const [parsedString, errorIssues, warningIssues] = new HedStringParser(
         hedString,
         hedSchemas,
         definitionsAllowed,
         placeholdersAllowed,
-      ).parseHedString()
+      ).parse()
       parsedStrings.push(parsedString)
-      cumulativeIssues.push(...currentIssues)
+      errors.push(...errorIssues)
+      warnings.push(...warningIssues)
     }
 
-    return [parsedStrings, cumulativeIssues]
+    return [parsedStrings, errors, warnings]
   }
 }
 
 /**
  * Parse a HED string.
  *
+ * ###Note: now separates errors and warnings for easier handling.
+ *
  * @param {string|ParsedHedString} hedString A (possibly already parsed) HED string.
  * @param {Schemas} hedSchemas - The collection of HED schemas.
  * @param {boolean} definitionsAllowed - True if definitions are allowed.
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed.
- * @returns {Array} - [ParsedHedString, Issue[]] representing the parsed HED string and any issues found.
+ * @returns {Array} - [ParsedHedString, Issue[], Issue[]] representing the parsed HED string and any issues found.
  */
 export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed) {
-  return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parseHedString()
+  return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parse()
 }
 
 /**
  * Parse a list of HED strings.
  *
+ * ###Note: now separates errors and warnings for easier handling.
+ *
  * @param {string[]|ParsedHedString[]} hedStrings - A list of HED strings.
  * @param {Schemas} hedSchemas - The collection of HED schemas.
  * @param {boolean} definitionsAllowed - True if definitions are allowed
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed
- * @returns {Array} - [ParsedHedString[], Issue[]] representing the parsed HED strings and any issues found.
+ * @returns {Array} - [ParsedHedString[], Issue[], Issue[]] representing the parsed HED strings and any issues found.
  */
 export function parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed) {
   return HedStringParser.parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed)

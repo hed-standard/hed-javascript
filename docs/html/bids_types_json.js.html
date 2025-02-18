@@ -22,7 +22,7 @@
           <pre class="prettyprint source linenums"><code>import isPlainObject from 'lodash/isPlainObject'
 
 import { sidecarValueHasHed } from '../utils'
-import { parseHedString } from '../../parser/parser'
+import { parse } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './file'
 import BidsHedSidecarValidator from '../validator/sidecarValidator'
@@ -359,7 +359,7 @@ export class BidsSidecarKey {
    *  The value strings cannot contain definitions.
    */
   _parseValueString(hedSchemas) {
-    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas, false, true)
+    const [parsedString, parsingIssues] = parse(this.valueString, hedSchemas, false, true)
     this.parsedValueString = parsedString
     return parsingIssues
   }
@@ -383,7 +383,7 @@ export class BidsSidecarKey {
           file: this.sidecar?.file?.relativePath,
         })
       }
-      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas, true, true)
+      const [parsedString, parsingIssues] = parse(string, hedSchemas, true, true)
       this.parsedCategoryMap.set(value, parsedString)
       issues.push(...parsingIssues)
       if (parsingIssues.length === 0) {
@@ -525,7 +525,7 @@ export class BidsSidecarKey {
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parseHedString</a></li>
+        <li><a href="global.html#parseHedString">parse</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>

@@ -1,7 +1,5 @@
 import { generateIssue, IssueError } from '../../issues/issues'
 
-const bidsHedErrorCodes = new Set(['HED_ERROR', 'HED_INTERNAL_ERROR'])
-
 export class BidsHedIssue {
   /**
    * The BIDS issue code.
@@ -52,7 +50,7 @@ export class BidsHedIssue {
    * @returns {boolean}
    */
   get isError() {
-    return bidsHedErrorCodes.has(this.bidsCode)
+    return this.hedIssue.level === 'error'
   }
 
   /**
@@ -65,15 +63,10 @@ export class BidsHedIssue {
     return issues.some((issue) => issue.isError)
   }
 
-  /**
-   * Generate a {@link Promise} with an internal error.
-   *
-   * @param {string} error The error message.
-   * @param {Object} errorFile The file this error occurred in.
-   * @return {Promise} A promise resolving to a singleton array containing an internal error {@link BidsHedIssue}.
-   */
-  static async generateInternalErrorPromise(error, errorFile) {
-    return [new BidsHedIssue(generateIssue('internalError', { message: error.message }), errorFile)]
+  static splitErrors(issues) {
+    const errors = issues.filter((item) => item.isError)
+    const warnings = issues.filter((item) => !item.isError)
+    return [errors, warnings]
   }
 
   /**
@@ -102,7 +95,9 @@ export class BidsHedIssue {
    * @returns {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
    */
   static fromHedIssues(hedIssues, file, extraParameters) {
-    if (hedIssues instanceof IssueError) {
+    if (hedIssues.length === 0) {
+      return []
+    } else if (hedIssues instanceof IssueError) {
       return [BidsHedIssue.fromHedIssue(hedIssues.issue, file, extraParameters)]
     } else if (hedIssues instanceof Error) {
       return [new BidsHedIssue(generateIssue('internalError', { message: hedIssues.message }), file ?? null)]

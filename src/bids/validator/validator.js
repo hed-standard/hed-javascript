@@ -16,7 +16,13 @@ export class BidsValidator {
    * The issues found during validation.
    * @type {BidsHedIssue[]}
    */
-  issues
+  errors
+
+  /**
+   * The warnings found during validation.
+   * @type {BidsHedIssue[]}
+   */
+  warnings
 
   /**
    * Bids validator base class.
@@ -27,15 +33,15 @@ export class BidsValidator {
   constructor(bidsFile, hedSchemas) {
     this.bidsFile = bidsFile
     this.hedSchemas = hedSchemas // Will be set when the file is validated
-    this.issues = []
+    this.errors = []
+    this.warnings = []
   }
 
   /**
-   * Validate a BIDS TSV file. This method returns the complete issue list for convenience.
+   * Validate a BIDS file. Overridden by particular types of BIDS files.
    *
-   * @returns {BidsHedIssue[]} - Any issues found during validation of this TSV file.
    */
   validate() {
-    return this.issues
+    return
   }
 }

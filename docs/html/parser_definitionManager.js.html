@@ -20,7 +20,7 @@
       <section>
         <article>
           <pre class="prettyprint source linenums"><code>import { generateIssue, IssueError } from '../issues/issues'
-import { parseHedString } from './parser'
+import { parse } from './parser'
 import { filterByTagName } from './parseUtils'
 
 export class Definition {
@@ -91,7 +91,7 @@ export class Definition {
       return [this.defContents.normalized, []]
     }
     const evalString = this.defContents.originalTag.replace('#', tag._splitValue)
-    const [normalizedValue, issues] = parseHedString(evalString, hedSchema, false, false)
+    const [normalizedValue, issues] = parse(evalString, hedSchema, false, false)
     if (issues.length > 0) {
       return [null, issues]
     }
@@ -130,7 +130,7 @@ export class Definition {
    * @returns {Array} - Returns [Definition, Issue[]] with the definition and any issues.
    */
   static createDefinition(hedString, hedSchemas) {
-    const [parsedString, issues] = parseHedString(hedString, hedSchemas, true, true)
+    const [parsedString, issues] = parse(hedString, hedSchemas, true, true)
     if (issues.length > 0) {
       return [null, issues]
     }
@@ -442,7 +442,7 @@ export class DefinitionManager {
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parseHedString</a></li>
+        <li><a href="global.html#parseHedString">parse</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>

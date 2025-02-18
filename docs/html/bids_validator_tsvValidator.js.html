@@ -22,7 +22,7 @@
           <pre class="prettyprint source linenums"><code>import { BidsHedIssue, BidsIssue } from '../types/issues'
 import { BidsTsvElement, BidsTsvRow } from '../types/tsv'
 import { BidsValidator } from './validator'
-import { parseHedString } from '../../parser/parser'
+import { parse } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../issues/issues'
 import { ReservedChecker } from '../../parser/reservedChecker'
@@ -111,7 +111,7 @@ export class BidsHedTsvValidator extends BidsValidator {
 
     // Find basic parsing issues and return if unable to parse the string. (Warnings are okay.)
     const issues = []
-    const [parsedString, parsingIssues] = parseHedString(hedString, this.hedSchemas, false, false)
+    const [parsedString, parsingIssues] = parse(hedString, this.hedSchemas, false, false)
     issues.push(...BidsHedIssue.fromHedIssues(parsingIssues, this.bidsFile.file, { tsvLine: rowIndex }))
     if (parsedString === null) {
       return issues
@@ -203,7 +203,7 @@ export class BidsHedTsvValidator extends BidsValidator {
       }
       // Assemble the HED strings associated with same onset into single string. Use the parse duplicate detection.
       const rowString = elementList.map((element) => element.hedString).join(',')
-      const [parsedString, parsingIssues] = parseHedString(rowString, this.hedSchemas, false, false)
+      const [parsedString, parsingIssues] = parse(rowString, this.hedSchemas, false, false)
       if (parsingIssues.length > 0) {
         const tsvLines = BidsTsvElement.getTsvLines(elementList)
         issues.push(...BidsHedIssue.fromHedIssues(parsingIssues, this.bidsFile.file, { tsvLine: tsvLines }))
@@ -339,7 +339,7 @@ export class BidsHedTsvParser {
     // Add the parsed HED strings to the elements and quite if there are serious errors
     const cummulativeIssues = []
     for (const element of elements) {
-      const [parsedHedString, parsingIssues] = parseHedString(element.hedString, this.hedSchemas, false, false)
+      const [parsedHedString, parsingIssues] = parse(element.hedString, this.hedSchemas, false, false)
       element.parsedHedString = parsedHedString
       if (parsingIssues.length > 0) {
         cummulativeIssues.push(
@@ -630,7 +630,7 @@ export default BidsHedTsvValidator
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parseHedString</a></li>
+        <li><a href="global.html#parseHedString">parse</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>

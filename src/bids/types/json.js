@@ -190,13 +190,16 @@ export class BidsSidecar extends BidsJsonFile {
    * The parsed strings are placed into {@link parsedHedData}.
    *
    * @param {Schemas} hedSchemas - The HED schema collection.
-   * @returns {Issue[]} Any issues found.
+   * @returns {Array} [Issue[], Issue[]] Any errors and warnings found
    */
-  parseHedStrings(hedSchemas) {
+  parseHed(hedSchemas) {
     this.parsedHedData = new Map()
-    const issues = []
+    const errors = []
+    const warnings = []
     for (const [name, sidecarKey] of this.sidecarKeys.entries()) {
-      issues.push(...sidecarKey.parseHed(hedSchemas))
+      const [errorIssues, warningIssues] = sidecarKey.parseHed(hedSchemas)
+      errors.push(...errorIssues)
+      warnings.push(...warningIssues)
       if (sidecarKey.isValueKey) {
         this.parsedHedData.set(name, sidecarKey.parsedValueString)
       } else {
@@ -204,7 +207,7 @@ export class BidsSidecar extends BidsJsonFile {
       }
     }
     this._generateSidecarColumnSpliceMap()
-    return issues
+    return [errors, warnings]
   }
 
   /**
@@ -277,32 +280,41 @@ export class BidsSidecarKey {
    * @type {string}
    */
   name
+
   /**
    * The unparsed category mapping.
    * @type {Object<string, string>}
    */
   categoryMap
+
   /**
    * The parsed category mapping.
    * @type {Map<string, ParsedHedString>}
    */
   parsedCategoryMap
+
   /**
    * The unparsed value string.
    * @type {string}
    */
   valueString
+
   /**
    * The parsed value string.
    * @type {ParsedHedString}
    */
   parsedValueString
+
   /**
    * Weak reference to the bidsFile.
    * @type {BidsSidecar}
    */
   sidecar
 
+  /**
+   * Indication of whether this key is for definitions.
+   * @type {Boolean}
+   */
   hasDefinitions
 
   /**
@@ -328,8 +340,10 @@ export class BidsSidecarKey {
   /**
    * Parse the HED data for this key.
    *
+   * ###Note: This sets the parsedHedData as a side effect.
+   *
    * @param {Schemas} hedSchemas The HED schema collection.
-   * @returns {Issue[]} Any issues found.
+   * @returns {Array} - [Issue[], Issues[]] Errors and warnings that result from parsing.
    */
   parseHed(hedSchemas) {
     if (this.isValueKey) {
@@ -345,24 +359,25 @@ export class BidsSidecarKey {
    *  The value strings cannot contain definitions.
    *
    * @param {Schemas} hedSchemas - The HED schemas to use.
-   * @returns {Issue[]}
+   * @returns {Array} - [Issue[], Issue[]] - Errors due for the value.
    * @private
    */
   _parseValueString(hedSchemas) {
-    const [parsedString, parsingIssues] = parseHedString(this.valueString, hedSchemas, false, true)
+    const [parsedString, errors, warnings] = parseHedString(this.valueString, hedSchemas, false, true)
     this.parsedValueString = parsedString
-    return parsingIssues
+    return [errors, warnings]
   }
 
   /**
    * Parse the categorical values associated with this key.
    * @param {Schemas} hedSchemas - The HED schemas used to check against.
-   * @returns {Issue[]} - A list of issues if any
+   * @returns {Array} - Array[Issue[], Issue[]] A list of error issues and warning issues.
    * @private
    */
   _parseCategory(hedSchemas) {
-    const issues = []
     this.parsedCategoryMap = new Map()
+    const errors = []
+    const warnings = []
     for (const [value, string] of Object.entries(this.categoryMap)) {
       const trimmedValue = value.trim()
       if (ILLEGAL_SIDECAR_KEYS.has(trimmedValue.toLowerCase())) {
@@ -373,18 +388,25 @@ export class BidsSidecarKey {
           file: this.sidecar?.file?.relativePath,
         })
       }
-      const [parsedString, parsingIssues] = parseHedString(string, hedSchemas, true, true)
+      const [parsedString, errorIssues, warningIssues] = parseHedString(string, hedSchemas, true, true)
       this.parsedCategoryMap.set(value, parsedString)
-      issues.push(...parsingIssues)
-      if (parsingIssues.length === 0) {
-        issues.push(...this._checkDefinitions(parsedString))
+      warnings.push(...warningIssues)
+      errors.push(...errorIssues)
+      if (errorIssues.length === 0) {
+        errors.push(...this._checkDefinitions(parsedString))
       }
     }
-    return issues
+    return [errors, warnings]
   }
 
+  /**
+   * Check for definitions in the HED string.
+   * @param {ParsedHedString} parsedString - The string to check for definitions.
+   * @returns {Issue[]} - Errors that occur.
+   * @private
+   */
   _checkDefinitions(parsedString) {
-    const issues = []
+    const errors = []
     for (const group of parsedString.tagGroups) {
       if (!group.isDefinitionGroup) {
         continue
@@ -392,12 +414,12 @@ export class BidsSidecarKey {
       this.hasDefinitions = true
       const [def, defIssues] = Definition.createDefinitionFromGroup(group)
       if (defIssues.length > 0) {
-        issues.push(...defIssues)
+        errors.push(...defIssues)
       } else {
-        issues.push(...this.sidecar.definitions.addDefinition(def))
+        errors.push(...this.sidecar.definitions.addDefinition(def))
       }
     }
-    return issues
+    return errors
   }
 
   /**

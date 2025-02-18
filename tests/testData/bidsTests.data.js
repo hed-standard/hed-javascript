@@ -146,7 +146,7 @@ export const bidsTestData = [
         ],
       },
       {
-        testname: 'invalid-bad-tag-in-JSON',
+        testname: 'invalid-bad-tag-in-JSON-no-use',
         explanation: 'Bad tag in JSON',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
@@ -160,15 +160,15 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tHED\n' + '7\t4\tGreen',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
-            path: 'invalid-bad-tag-in-JSON.json',
-            relativePath: 'invalid-bad-tag-in-JSON.json',
+            path: 'invalid-bad-tag-in-JSON-no-use.json',
+            relativePath: 'invalid-bad-tag-in-JSON-no-use.json',
           }),
         ],
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
-            path: 'invalid-bad-tag-in-JSON.tsv',
-            relativePath: 'invalid-bad-tag-in-JSON.tsv',
+            path: 'invalid-bad-tag-in-JSON-no-use.tsv',
+            relativePath: 'invalid-bad-tag-in-JSON-no-use.tsv',
           }),
         ],
       },

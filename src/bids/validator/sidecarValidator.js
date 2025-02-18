@@ -19,22 +19,19 @@ export class BidsHedSidecarValidator extends BidsValidator {
   }
 
   /**
-   * Validate a BIDS JSON bidsFile file. This method returns the complete issue list for convenience.
+   * Validate a BIDS JSON bidsFile file. Errors and warnings are stored.
    *
-   * @returns {BidsHedIssue[]} - Any issues found during validation of this bidsFile file.
    */
   validate() {
     // Allow schema to be set a validation time -- this is checked by the superclass of BIDS file
-    const sidecarParsingIssues = BidsHedIssue.fromHedIssues(
-      this.bidsFile.parseHedStrings(this.hedSchemas),
-      this.bidsFile.file,
-    )
-    this.issues.push(...sidecarParsingIssues)
-    if (sidecarParsingIssues.length > 0) {
-      return this.issues
+    const [errorIssues, warningIssues] = this.bidsFile.parseHed(this.hedSchemas)
+    this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.bidsFile.file))
+    this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.bidsFile.file))
+    if (errorIssues.length > 0) {
+      return
     }
-    this.issues.push(...this._validateStrings(), ...this._validateCurlyBraces())
-    return this.issues
+
+    this.errors.push(...this._validateStrings(), ...this._validateCurlyBraces())
   }
 
   /**
