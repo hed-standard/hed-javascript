@@ -278,7 +278,7 @@ export class ReservedChecker {
    */
   static hasTopLevelTagGroupAttribute(tag) {
     return (
-      tag.schemaTag.hasAttributeName('topLevelTagGroup') ||
+      tag.schemaTag.hasAttribute('topLevelTagGroup') ||
       (ReservedChecker.reservedMap.has(tag.schemaTag.name) &&
         ReservedChecker.reservedMap.get(tag.schemaTag.name).topLevelTagGroup)
     )
@@ -293,6 +293,6 @@ export class ReservedChecker {
    * Note:  This checks both reserved and schema tag requirements.
    */
   static hasGroupAttribute(tag) {
-    return tag.schemaTag.hasAttributeName('tagGroup')
+    return tag.schemaTag.hasAttribute('tagGroup')
   }
 }

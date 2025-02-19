@@ -99,7 +99,7 @@ export class SchemaEntries extends Memoizer {
     if (!this.tags.hasLongNameEntry(tag)) {
       return false
     }
-    return this.tags.getLongNameEntry(tag).hasAttributeName(tagAttribute)
+    return this.tags.getLongNameEntry(tag).hasAttribute(tagAttribute)
   }
 }
 
@@ -182,7 +182,7 @@ export class SchemaEntryManager extends Memoizer {
   getEntriesWithBooleanAttribute(booleanAttributeName) {
     return this._memoize(booleanAttributeName, () => {
       return this.filter(([, v]) => {
-        return v.hasAttributeName(booleanAttributeName)
+        return v.hasAttribute(booleanAttributeName)
       })
     })
   }
@@ -436,22 +436,25 @@ export class SchemaAttribute extends SchemaEntry {
 /**
  * SchemaEntryWithAttributes class
  */
-class SchemaEntryWithAttributes extends SchemaEntry {
+export class SchemaEntryWithAttributes extends SchemaEntry {
   /**
    * The set of boolean attributes this schema entry has.
    * @type {Set<SchemaAttribute>}
    */
   booleanAttributes
+
   /**
    * The collection of value attributes this schema entry has.
    * @type {Map<SchemaAttribute, *>}
    */
   valueAttributes
+
   /**
    * The set of boolean attribute names this schema entry has.
    * @type {Set<string>}
    */
   booleanAttributeNames
+
   /**
    * The collection of value attribute names this schema entry has.
    * @type {Map<string, *>}
@@ -487,7 +490,7 @@ class SchemaEntryWithAttributes extends SchemaEntry {
    * @returns {boolean} Whether this schema entry has this attribute.
    */
   hasAttribute(attribute) {
-    return this.booleanAttributes.has(attribute)
+    return this.booleanAttributeNames.has(attribute) || this.valueAttributeNames.has(attribute)
   }
 
   /**
@@ -595,15 +598,15 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
   }
 
   get isPrefixUnit() {
-    return this.hasAttributeName('unitPrefix')
+    return this.hasAttribute('unitPrefix')
   }
 
   get isSIUnit() {
-    return this.hasAttributeName('SIUnit')
+    return this.hasAttribute('SIUnit')
   }
 
   get isUnitSymbol() {
-    return this.hasAttributeName('unitSymbol')
+    return this.hasAttribute('unitSymbol')
   }
 
   /**
@@ -722,11 +725,11 @@ export class SchemaUnitModifier extends SchemaEntryWithAttributes {
   }
 
   get isSIUnitModifier() {
-    return this.hasAttributeName('SIUnitModifier')
+    return this.hasAttribute('SIUnitModifier')
   }
 
   get isSIUnitSymbolModifier() {
-    return this.hasAttributeName('SIUnitSymbolModifier')
+    return this.hasAttribute('SIUnitSymbolModifier')
   }
 }
 
@@ -784,6 +787,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @private
    */
   #parent
+
   /**
    * This tag's unit classes.
    * @type {SchemaUnitClass[]}

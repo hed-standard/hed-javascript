@@ -27,6 +27,11 @@ export default {
     level: 'error',
     message: stringTemplate`Comma missing after - "${'tag'}".`,
   },
+  deprecatedTag: {
+    hedCode: 'TAG_DEPRECATED',
+    level: 'warning',
+    message: stringTemplate`Tags "${'tags'} in "${'string'} are deprecated. Please see tag description for instructions on replacement.".`,
+  },
   duplicateTag: {
     hedCode: 'TAG_EXPRESSION_REPEATED',
     level: 'error',

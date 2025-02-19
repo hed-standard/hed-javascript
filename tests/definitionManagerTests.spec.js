@@ -61,20 +61,29 @@ describe('DefinitionManager tests', () => {
         }
         thisDefManager.addDefinitions(defsToAdd)
       }
-      const [parsedHed, issues] = parseHedString(test.stringIn, thisSchema, false, test.placeholderAllowed)
-      if (parsedHed === null && issues.length > 0) {
+      const [parsedHed, errorIssues, warningIssues] = parseHedString(
+        test.stringIn,
+        thisSchema,
+        false,
+        test.placeholderAllowed,
+      )
+      if (parsedHed === null && errorIssues.length > 0) {
         assert.deepStrictEqual(
-          issues,
+          errorIssues,
           test.errors,
-          `${header}: expected ${issues} errors but received ${test.errors}\n`,
+          `${header}: expected ${errorIssues} errors but received ${test.errors}\n`,
         )
       }
       if (parsedHed === null) {
         return
       }
-      issues.push(...thisDefManager.validateDefs(parsedHed, thisSchema, test.placeholderAllowed))
-      issues.push(...thisDefManager.validateDefExpands(parsedHed, thisSchema, test.placeholderAllowed))
-      assert.deepStrictEqual(issues, test.errors, `${header}: expected ${issues} errors but received ${test.errors}\n`)
+      errorIssues.push(...thisDefManager.validateDefs(parsedHed, thisSchema, test.placeholderAllowed))
+      errorIssues.push(...thisDefManager.validateDefExpands(parsedHed, thisSchema, test.placeholderAllowed))
+      assert.deepStrictEqual(
+        errorIssues,
+        test.errors,
+        `${header}: expected ${errorIssues} errors but received ${test.errors}\n`,
+      )
     }
 
     test.each(tests)('$testname: $explanation ', (test) => {

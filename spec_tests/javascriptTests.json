@@ -3397,6 +3397,87 @@
     }
   },
   {
+    "error_code": "TAG_DEPRECATED",
+    "alt_codes": [],
+    "name": "tag-deprecated",
+    "description": "A HED tag has been deprecated.",
+    "warning": true,
+    "schema": "8.3.0",
+    "definitions": ["(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))", "(Definition/MyColor, (Label/Pie))"],
+    "tests": {
+      "string_tests": {
+        "fails": ["Gentalia", "Clock-face"],
+        "passes": ["(Red, Blue), Green"]
+      },
+      "sidecar_tests": {
+        "fails": [
+          {
+            "event_code": {
+              "HED": {
+                "square": "Gentalia, Clock-face"
+              }
+            }
+          }
+        ],
+        "passes": [
+          {
+            "event_code": {
+              "HED": {
+                "square": "Genitalia"
+              }
+            }
+          }
+        ]
+      },
+      "event_tests": {
+        "fails": [
+          [
+            ["onset", "duration", "HED"],
+            [5.5, 0, "Gentalia"]
+          ]
+        ],
+        "passes": [
+          [
+            ["onset", "duration", "HED"],
+            [4.5, 0, "Genitalia"]
+          ]
+        ]
+      },
+      "combo_tests": {
+        "fails": [
+          {
+            "sidecar": {
+              "event_code": {
+                "HED": {
+                  "square": "Gentalia"
+                }
+              }
+            },
+            "events": [
+              ["onset", "duration", "event_code", "HED"],
+              [4.5, 0, "square", "Red, Def/MyColor, Clock-face"]
+            ]
+          }
+        ],
+        "passes": [
+          {
+            "sidecar": {
+              "event_code": {
+                "HED": {
+                  "face": "Genitalia"
+                }
+              }
+            },
+            "events": [
+              ["onset", "duration", "event_code", "HED"],
+              [4.5, 0, "face", "Blue"]
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
     "error_code": "TAG_EMPTY",
     "alt_codes": [],
     "name": "tag-empty-extra-commas-or-parentheses",

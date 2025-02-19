@@ -102,6 +102,19 @@ export const parseTestData = [
         errors: [],
         warnings: [],
       },
+      {
+        testname: 'deprecated-tag',
+        explanation: '"Deprecated tag should give a warning"',
+        schemaVersion: '8.3.0',
+        stringIn: 'Agent-action, Gentalia',
+        stringLong:
+          'Event/Agent-action, Item/Biological-item/Anatomical-item/Body-part/Torso-part/Pelvis-part/Gentalia',
+        stringShort: 'Agent-action, Gentalia',
+        placeholdersAllowed: false,
+        definitionsAllowed: false,
+        errors: [],
+        warnings: [generateIssue('deprecatedTag', { string: 'Agent-action, Gentalia', tags: '[Gentalia]' })],
+      },
     ],
   },
   {

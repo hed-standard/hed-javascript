@@ -93,6 +93,19 @@ class HedStringParser {
     if (checkIssues.length > 0) {
       return [null, checkIssues, []]
     }
+
+    // Check for deprecated
+    const deprecatedTags = parsedString.tags.filter((tag) => tag.isDeprecated === true)
+    if (deprecatedTags.length > 0) {
+      const deprecated = deprecatedTags.map((tag) => tag.toString())
+      return [
+        parsedString,
+        [],
+        [generateIssue('deprecatedTag', { tags: '[' + deprecated.join('],[') + ']', string: parsedString.hedString })],
+      ]
+    }
+    // Check for extension
+
     return [parsedString, [], []]
   }
 

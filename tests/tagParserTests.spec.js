@@ -13,7 +13,7 @@ import { SchemaValueTag } from '../src/schema/entries'
 // Ability to select individual tests to run
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['name-space-tests', ['valid-date-time']]])
+const runMap = new Map([['valid-tags', ['valid-short-tag-with-cascade-extension']]])
 
 describe('TagSpec converter tests using JSON tests', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
