@@ -59,8 +59,42 @@ export class BidsHedTsvValidator extends BidsValidator {
       return
     }
     this.validateDataset(bidsEvents)
-    if (this.errors.length === 0) {
-      //this.issues.push(...this.check_missing_keys())
+    if (this.errors.length === 0 && this.bidsFile.mergedSidecar?.hasHedData) {
+      this._checkMissingHedWarning()
+      this._checkMissingValueWarnings()
+    }
+  }
+
+  _checkMissingHedWarning() {
+    // Check for HED column used as splice but no HED column
+    if (this.bidsFile.mergedSidecar.columnSpliceReferences.has('HED') && !this.bidsFile.parsedTsv.has('HED')) {
+      this.warnings.push(BidsHedIssue.fromHedIssue(generateIssue('hedUsedAsSpliceButNoTsvHed'), this.bidsFile.file))
+    }
+  }
+
+  /**
+   * Check for categorical column value in tsv but not in sidecar.
+   * @private
+   */
+  _checkMissingValueWarnings() {
+    for (const columnName of this.bidsFile.parsedTsv.keys()) {
+      const sidecarColumn = this.bidsFile.mergedSidecar?.sidecarKeys.get(columnName)
+      if (!sidecarColumn || sidecarColumn.isValueKey) {
+        continue
+      }
+      const toRemove = new Set(['', 'n/a', null, undefined])
+      const tsvColumnValues = new Set(this.bidsFile.parsedTsv.get(columnName))
+      const cleanedValues = new Set([...tsvColumnValues].filter((value) => !toRemove.has(value)))
+      const missingValues = [...cleanedValues].filter((value) => !sidecarColumn.categoryMap.has(value))
+      if (missingValues.length > 0) {
+        const values = '[' + missingValues.join(', ') + ']'
+        this.warnings.push(
+          BidsHedIssue.fromHedIssue(
+            generateIssue('sidecarKeyMissing', { column: columnName, values: values }),
+            this.bidsFile.file,
+          ),
+        )
+      }
     }
   }
 
@@ -423,7 +457,7 @@ export class BidsHedTsvParser {
         const columnString = columnValues.hedString.replace('#', rowColumnValue)
         columnMap.set(columnName, columnString)
       } else if (columnValues instanceof Map) {
-        columnMap.set(columnName, columnValues.get(rowColumnValue).hedString)
+        columnMap.set(columnName, columnValues.get(rowColumnValue)?.hedString)
       }
     }
 

@@ -21,9 +21,7 @@ const runAll = true
 const runMap = new Map([['TAG_EXPRESSION_REPEATED', ['tags-duplicated-across-multiple-rows']]])
 //const runOnly = new Set(["eventsPass"])
 const runOnly = new Set()
-const skippedErrors = {
-  SIDECAR_KEY_MISSING: 'Warning not being checked',
-}
+const skippedErrors = {}
 const readFileSync = fs.readFileSync
 const test_file_name = 'javascriptTests.json'
 // const test_file_name = 'temp6.json'
