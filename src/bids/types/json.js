@@ -168,8 +168,8 @@ export class BidsSidecar extends BidsJsonFile {
       if (sidecarValue.isValueKey) {
         this.hedValueStrings.push(sidecarValue.valueString)
         this.hedData.set(key, sidecarValue.valueString)
-      } else {
-        this.hedCategoricalStrings.push(...Object.values(sidecarValue.categoryMap))
+      } else if (sidecarValue.categoryMap) {
+        this.hedCategoricalStrings.push(...sidecarValue.categoryMap.values())
         this.hedData.set(key, sidecarValue.categoryMap)
       }
     }
@@ -283,7 +283,7 @@ export class BidsSidecarKey {
 
   /**
    * The unparsed category mapping.
-   * @type {Object<string, string>}
+   * @type {Map<string, string>}
    */
   categoryMap
 
@@ -333,7 +333,7 @@ export class BidsSidecarKey {
     } else if (!isPlainObject(data)) {
       IssueError.generateAndThrow('illegalSidecarHedType', { key: key, file: sidecar.file.relativePath })
     } else {
-      this.categoryMap = data
+      this.categoryMap = new Map(Object.entries(data))
     }
   }
 
@@ -378,7 +378,7 @@ export class BidsSidecarKey {
     this.parsedCategoryMap = new Map()
     const errors = []
     const warnings = []
-    for (const [value, string] of Object.entries(this.categoryMap)) {
+    for (const [value, string] of this.categoryMap) {
       const trimmedValue = value.trim()
       if (ILLEGAL_SIDECAR_KEYS.has(trimmedValue.toLowerCase())) {
         IssueError.generateAndThrow('illegalSidecarHedCategoricalValue')

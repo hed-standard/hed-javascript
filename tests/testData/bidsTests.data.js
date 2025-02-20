@@ -720,7 +720,12 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tevent_code\n' + '19\t6\tball\n',
         sidecarErrors: [],
         tsvErrors: [],
-        comboErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('hedUsedAsSpliceButNoTsvHed', {}), {
+            path: 'valid-HED-curly-brace-but-tsv-has-no-HED-column.tsv',
+            relativePath: 'valid-HED-curly-brace-but-tsv-has-no-HED-column.tsv',
+          }),
+        ],
       },
       {
         testname: 'invalid-curly-brace-column-slice-has-no hed',
@@ -2107,6 +2112,80 @@ export const bidsTestData = [
             { tsvLine: '5' },
           ),
         ],
+        comboErrors: [],
+      },
+    ],
+  },
+  {
+    name: 'sidecar-key-missing-tests',
+    description: 'Dataset level tests of warnings for missing sidecar keys.',
+    tests: [
+      {
+        testname: 'tsv-has-categorical-value-missing-from-sidecar',
+        explanation: '(Warning) A categorical value in the tsv is missing from the sidecar.',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Acceleration/5',
+              square: 'Black, Blue',
+            },
+          },
+        },
+        eventsString:
+          'onset\tduration\tevent_code\tHED\n4.5\t0\tface\tBlue\n5.0\t0\tball\tGreen, Def/MyColor\n5.5\t0\tbat\tRed\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('sidecarKeyMissing', { column: 'event_code', values: '[ball, bat]' }),
+            {
+              path: 'tsv-has-categorical-value-missing-from-sidecar.tsv',
+              relativePath: 'tsv-has-categorical-value-missing-from-sidecar.tsv',
+            },
+          ),
+        ],
+      },
+      {
+        testname: 'hed-used-as-splice-but-no-tsv-hed',
+        explanation: '(Warning) {HED} appears in sidecar but no HED column in tsv,',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '{HED}',
+              ball: 'Red',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\n4.5\t0\tface\tBlue\n5.0\t0\tball\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('hedUsedAsSpliceButNoTsvHed', {}), {
+            path: 'hed-used-as-splice-but-no-tsv-hed.tsv',
+            relativePath: 'hed-used-as-splice-but-no-tsv-hed.tsv',
+          }),
+        ],
+      },
+      {
+        testname: 'hed-used-as-splice-and-tsv-has-hed',
+        explanation: '{HED} appears in sidecar and the tsv has a HED column,',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '{HED}',
+              ball: 'Red',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\n4.5\t0\tface\tBlue\n5.0\t0\tball\tGreen, Def/MyColor\n',
+        sidecarErrors: [],
+        tsvErrors: [],
         comboErrors: [],
       },
     ],

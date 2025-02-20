@@ -451,7 +451,12 @@ export default {
   sidecarKeyMissing: {
     hedCode: 'SIDECAR_KEY_MISSING',
     level: 'warning',
-    message: stringTemplate`Key "${'key'}" was referenced in column "${'column'}" of file "${'file'}", but it was not found in any associated sidecar.`,
+    message: stringTemplate`Values "${'values'}" appear in column "${'column'}" of file "${'file'}", but were not defined in any associated sidecar.`,
+  },
+  hedUsedAsSpliceButNoTsvHed: {
+    hedCode: 'SIDECAR_KEY_MISSING',
+    level: 'warning',
+    message: stringTemplate`Key "{HED}" was referenced in sidecar for file "${'file'}", but this file does not have a HED column.`,
   },
   illegalSidecarHedType: {
     hedCode: 'SIDECAR_INVALID',

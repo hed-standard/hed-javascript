@@ -850,14 +850,6 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   }
 
   /**
-   * Whether this tag has any value classes.
-   * @returns {boolean}
-   */
-  get hasValueClasses() {
-    return this._valueClasses.length !== 0
-  }
-
-  /**
    * This tag's value-taking child tag.
    * @returns {SchemaValueTag}
    */
