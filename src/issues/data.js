@@ -27,10 +27,20 @@ export default {
     level: 'error',
     message: stringTemplate`Comma missing after - "${'tag'}".`,
   },
+  deprecatedTag: {
+    hedCode: 'ELEMENT_DEPRECATED',
+    level: 'warning',
+    message: stringTemplate`Tags "${'tags'} in "${'string'} are deprecated. Please see tag description for instructions on replacement.".`,
+  },
   duplicateTag: {
     hedCode: 'TAG_EXPRESSION_REPEATED',
     level: 'error',
     message: stringTemplate`Duplicate tags - "${'tags'} in "${'string'}".`,
+  },
+  extendedTag: {
+    hedCode: 'TAG_EXTENDED',
+    level: 'warning',
+    message: stringTemplate`Tag extensions found for ${'tags'} in "${'string'}".`,
   },
   invalidCharacter: {
     hedCode: 'CHARACTER_INVALID',
@@ -97,11 +107,6 @@ export default {
     hedCode: 'VALUE_INVALID',
     level: 'error',
     message: stringTemplate`Invalid placeholder value for tag "${'tag'}".`,
-  },
-  extension: {
-    hedCode: 'TAG_EXTENDED',
-    level: 'warning',
-    message: stringTemplate`Tag extension found - "${'tag'}".`,
   },
   invalidPlaceholderContext: {
     hedCode: 'PLACEHOLDER_INVALID',

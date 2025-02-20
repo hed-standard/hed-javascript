@@ -106,7 +106,7 @@ export default class TagConverter {
       }
       if (
         parentTag !== undefined &&
-        (!parentTag.hasAttributeName('extensionAllowed') || this.special.noExtensionTags.has(parentTag.name))
+        (!parentTag.hasAttribute('extensionAllowed') || this.special.noExtensionTags.has(parentTag.name))
       ) {
         IssueError.generateAndThrow('invalidExtension', {
           tag: this.tagLevels[tagLevelIndex],
@@ -154,7 +154,7 @@ export default class TagConverter {
     }
     this.schemaTag = schemaTag
     this.remainder = this.tagLevels.slice(remainderStartLevelIndex).join('/')
-    if (this.schemaTag?.hasAttributeName('requireChild') && !this.remainder) {
+    if (this.schemaTag?.hasAttribute('requireChild') && !this.remainder) {
       IssueError.generateAndThrow('childRequired', { tag: this.tagString })
     }
   }

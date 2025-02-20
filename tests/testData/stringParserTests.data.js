@@ -75,7 +75,26 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         errors: [],
-        warnings: [],
+        warnings: [
+          generateIssue('extendedTag', {
+            string: 'Item/Sound/Environmental-sound/Unique-value',
+            tags: '[Item/Sound/Environmental-sound/Unique-value]',
+          }),
+        ],
+      },
+      {
+        testname: 'multiple-extended-tags',
+        explanation: '"Item/Junk1, Item/Junk2" has two extended tags"',
+        schemaVersion: '8.3.0',
+        stringIn: 'Item/Junk1, Item/Junk2',
+        stringLong: 'Item/Junk1, Item/Junk2',
+        stringShort: 'Item/Junk1, Item/Junk2',
+        placeholdersAllowed: false,
+        definitionsAllowed: false,
+        errors: [],
+        warnings: [
+          generateIssue('extendedTag', { string: 'Item/Junk1, Item/Junk2', tags: '[Item/Junk1, Item/Junk2]' }),
+        ],
       },
       {
         testname: 'multi-level-tag-extension',
@@ -84,11 +103,15 @@ export const parseTestData = [
         stringIn: 'Item/Sound/Environmental-sound/Unique-value/Junk',
         stringLong: 'Item/Sound/Environmental-sound/Unique-value/Junk',
         stringShort: 'Environmental-sound/Unique-value/Junk',
-        operation: 'toShort',
         placeholdersAllowed: false,
         definitionsAllowed: false,
         errors: [],
-        warnings: [],
+        warnings: [
+          generateIssue('extendedTag', {
+            string: 'Item/Sound/Environmental-sound/Unique-value/Junk',
+            tags: '[Item/Sound/Environmental-sound/Unique-value/Junk]',
+          }),
+        ],
       },
       {
         testname: 'multi-level-tag-extension-for-partial-path-to-short',
@@ -100,7 +123,43 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         errors: [],
-        warnings: [],
+        warnings: [
+          generateIssue('extendedTag', {
+            string: 'Sound/Environmental-sound/Unique-value/Junk',
+            tags: '[Sound/Environmental-sound/Unique-value/Junk]',
+          }),
+        ],
+      },
+      {
+        testname: 'deprecated-tag',
+        explanation: '"Deprecated tag should give a warning"',
+        schemaVersion: '8.3.0',
+        stringIn: 'Agent-action, Gentalia',
+        stringLong:
+          'Event/Agent-action, Item/Biological-item/Anatomical-item/Body-part/Torso-part/Pelvis-part/Gentalia',
+        stringShort: 'Agent-action, Gentalia',
+        placeholdersAllowed: false,
+        definitionsAllowed: false,
+        errors: [],
+        warnings: [generateIssue('deprecatedTag', { string: 'Agent-action, Gentalia', tags: '[Gentalia]' })],
+      },
+      {
+        testname: 'multiple-deprecated-tags',
+        explanation: '"Multiple deprecated tags should give 1 warning"',
+        schemaVersion: '8.3.0',
+        stringIn: 'Agent-action, Gentalia, (Item, Gentalia)',
+        stringLong:
+          'Event/Agent-action, Item/Biological-item/Anatomical-item/Body-part/Torso-part/Pelvis-part/Gentalia, (Item, Item/Biological-item/Anatomical-item/Body-part/Torso-part/Pelvis-part/Gentalia)',
+        stringShort: 'Agent-action, Gentalia, (Item, Gentalia)',
+        placeholdersAllowed: false,
+        definitionsAllowed: false,
+        errors: [],
+        warnings: [
+          generateIssue('deprecatedTag', {
+            string: 'Agent-action, Gentalia, (Item, Gentalia)',
+            tags: '[Gentalia, Gentalia]',
+          }),
+        ],
       },
     ],
   },
@@ -173,7 +232,9 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         errors: [],
-        warnings: [],
+        warnings: [
+          generateIssue('extendedTag', { string: '(Train/Maglev,Age/15,RGB-red/0.5),Operate', tags: '[Train/Maglev]' }),
+        ],
       },
       {
         testname: 'value with units',

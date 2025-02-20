@@ -13,7 +13,7 @@ import { EventManager } from '../../parser/eventManager'
  */
 export class BidsHedTsvValidator extends BidsValidator {
   /**
-   * The BIDS TSV file being validated.
+   * The singleton instance of the checker for reserved requirements.
    * @type {ReservedChecker}
    */
   reserved

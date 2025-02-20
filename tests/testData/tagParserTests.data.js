@@ -4,7 +4,7 @@ import { TagSpec } from '../../src/parser/tokenizer'
 export const parsedHedTagTests = [
   {
     name: 'valid-tags',
-    description: 'Valid tags with extensions',
+    description: 'Valid tags with different types of forms',
     warning: false,
     tests: [
       {

@@ -22,9 +22,7 @@ const runMap = new Map([['TAG_EXPRESSION_REPEATED', ['tags-duplicated-across-mul
 //const runOnly = new Set(["eventsPass"])
 const runOnly = new Set()
 const skippedErrors = {
-  TAG_EXTENDED: 'Warning not being checked',
   SIDECAR_KEY_MISSING: 'Warning not being checked',
-  ELEMENT_DEPRECATED: 'Warning not being checked',
 }
 const readFileSync = fs.readFileSync
 const test_file_name = 'javascriptTests.json'
@@ -137,22 +135,54 @@ describe('HED validation using JSON tests', () => {
       const failedCombos = comboListToStrings(tests.combo_tests.fails)
       const passedCombos = comboListToStrings(tests.combo_tests.passes)
 
-      const assertErrors = function (expectedErrors, issues, header) {
-        // Get the set of actual issues that were encountered.
+      /**
+       * Separates the error codes and warning codes from the issues
+       * @param issues
+       * @returns {[Set<string>,Set<string]}
+       */
+      const extractErrorCodes = function (issues) {
         const errors = new Set()
+        const warnings = new Set()
         for (const issue of issues) {
+          let code
+          let level
           if (issue instanceof BidsHedIssue) {
-            errors.add(issue.hedIssue.hedCode)
+            code = issue.hedIssue.hedCode
+            level = issue.hedIssue.level
           } else {
-            errors.add(issue.hedCode)
+            code = issue.hedCode
+            level = issue.level
+          }
+          if (level === 'error') {
+            errors.add(code)
+          } else if (level === 'warning') {
+            warnings.add(code)
           }
         }
-        let hasIntersection = [...expectedErrors].some((element) => errors.has(element))
+        return [errors, warnings]
+      }
+
+      const assertErrors = function (expectedErrors, issues, header) {
+        // Get the set of actual issues that were encountered.
+        const [errors, warnings] = extractErrorCodes(issues)
+        if (warning) {
+          assert.isTrue(errors.size === 0, `${header} expected no errors but received [${[...errors].join(', ')}]`)
+          let warningIntersection = [...expectedErrors].some((element) => warnings.has(element))
+          if (expectedErrors.size === 0 && warnings.size === 0) {
+            warningIntersection = true
+          }
+          assert.isTrue(
+            warningIntersection,
+            `${header} expected one of warnings[${[...expectedErrors].join(', ')}] but received [${[...warnings].join(', ')}]`,
+          )
+          return
+        }
+        let errorIntersection = [...expectedErrors].some((element) => errors.has(element))
         if (expectedErrors.size === 0 && errors.size === 0) {
-          hasIntersection = true
+          errorIntersection = true
         }
         assert.isTrue(
-          hasIntersection,
+          errorIntersection,
           `${header} expected one of errors[${[...expectedErrors].join(', ')}] but received [${[...errors].join(', ')}]`,
         )
       }

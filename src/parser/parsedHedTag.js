@@ -126,10 +126,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     }
     // Check that there is a value if required
     const reserved = ReservedChecker.getInstance()
-    if (
-      (schemaTag.hasAttributeName('requireChild') || reserved.requireValueTags.has(schemaTag.name)) &&
-      remainder === ''
-    ) {
+    if ((schemaTag.hasAttribute('requireChild') || reserved.requireValueTags.has(schemaTag.name)) && remainder === '') {
       IssueError.generateAndThrow('valueRequired', { tag: this.originalTag })
     }
     // Check if this could have a two-level value
@@ -234,7 +231,8 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @returns {boolean} Whether this tag has the named attribute.
    */
   hasAttribute(attribute) {
-    return this.schema?.tagHasAttribute(this.formattedTag, attribute)
+    return this.schemaTag.hasAttribute(attribute)
+    //return this.schema?.tagHasAttribute(this.formattedTag, attribute)
   }
 
   /**
@@ -260,6 +258,22 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     } else {
       return this._schemaTag
     }
+  }
+
+  /**
+   * Indicates whether the tag is deprecated
+   * @returns {boolean}
+   */
+  get isDeprecated() {
+    return this.schemaTag.hasAttribute('deprecatedFrom')
+  }
+
+  /**
+   * Indicates whether the tag is deprecated
+   * @returns {boolean}
+   */
+  get isExtended() {
+    return !this.takesValueTag && this._remainder !== ''
   }
 
   /**

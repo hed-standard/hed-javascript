@@ -363,9 +363,9 @@ export class BidsSidecarKey {
    * @private
    */
   _parseValueString(hedSchemas) {
-    const [parsedString, errors, warnings] = parseHedString(this.valueString, hedSchemas, false, true)
+    const [parsedString, errorIssues, warningIssues] = parseHedString(this.valueString, hedSchemas, false, true)
     this.parsedValueString = parsedString
-    return [errors, warnings]
+    return [errorIssues, warningIssues]
   }
 
   /**

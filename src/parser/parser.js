@@ -93,7 +93,36 @@ class HedStringParser {
     if (checkIssues.length > 0) {
       return [null, checkIssues, []]
     }
-    return [parsedString, [], []]
+
+    // Warnings are only checked when there are no fatal errors
+    return [parsedString, [], this._getWarnings(parsedString)]
+  }
+
+  /**
+   * Get warnings applicable for a parsed HED string.
+   * @param {ParsedHedString} parsedString - HED string object to check for warnings.
+   * @returns {Issue[]} - Warnings for the parsed HED string
+   * @private
+   */
+  _getWarnings(parsedString) {
+    const warnings = []
+    // Check for deprecated
+    const deprecatedTags = parsedString.tags.filter((tag) => tag.isDeprecated === true)
+    if (deprecatedTags.length > 0) {
+      const deprecated = deprecatedTags.map((tag) => tag.toString())
+      warnings.push(
+        generateIssue('deprecatedTag', { tags: '[' + deprecated.join(', ') + ']', string: parsedString.hedString }),
+      )
+    }
+    // Check for tag extensions
+    const extendedTags = parsedString.tags.filter((tag) => tag.isExtended === true)
+    if (extendedTags.length > 0) {
+      const extended = extendedTags.map((tag) => tag.toString())
+      warnings.push(
+        generateIssue('extendedTag', { tags: '[' + extended.join(', ') + ']', string: parsedString.hedString }),
+      )
+    }
+    return warnings
   }
 
   /**

@@ -30,13 +30,12 @@ export function extractHedCodes(issues) {
 
 // Parse the HED string
 export function getHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed) {
-  const [parsedString, issues] = parseHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed)
-  let errorIssues = []
-  let warningIssues = []
-  if (issues.length !== 0) {
-    errorIssues = issues.filter((obj) => obj.level === 'error')
-    warningIssues = issues.filter((obj) => obj.level !== 'error')
-  }
+  const [parsedString, errorIssues, warningIssues] = parseHedString(
+    hedString,
+    hedSchemas,
+    definitionsAllowed,
+    placeholdersAllowed,
+  )
   if (errorIssues.length > 0) {
     return [null, errorIssues, warningIssues]
   } else {
