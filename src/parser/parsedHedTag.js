@@ -269,6 +269,14 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
+   * Indicates whether the tag is deprecated
+   * @returns {boolean}
+   */
+  get isExtended() {
+    return !this.takesValueTag && this._remainder !== ''
+  }
+
+  /**
    * Get the schema tag object for this tag's value-taking form.
    *
    * @returns {SchemaValueTag} The schema tag object for this tag's value-taking form.
