@@ -13,6 +13,36 @@ export class BidsHedIssue {
    * @type {Issue}
    */
   hedIssue
+  /**
+   * The BIDS issue code.
+   * @type {string}
+   */
+  code
+  /**
+   * The HED spec code for this issue.
+   * @type {string}
+   */
+  subCode
+  /**
+   * The severity of this issue.
+   * @type {string}
+   */
+  severity
+  /**
+   * The issue message for this issue.
+   * @type {string}
+   */
+  issueMessage
+  /**
+   * The line at which the issue was found.
+   * @type {number}
+   */
+  line
+  /**
+   * The location of the file at which the issue was found.
+   * @type {string}
+   */
+  location
 
   /**
    * Constructor.
@@ -23,51 +53,18 @@ export class BidsHedIssue {
   constructor(hedIssue, file) {
     this.hedIssue = hedIssue
     this.file = file
-  }
 
-  /**
-   * The BIDS issue code.
-   * @returns {string}
-   */
-  get code() {
-    if (this.hedIssue.level === 'warning') {
-      return 'HED_WARNING'
+    // BIDS fields
+    if (hedIssue.level === 'warning') {
+      this.code = 'HED_WARNING'
     } else {
-      return 'HED_ERROR'
+      this.code = 'HED_ERROR'
     }
-  }
-
-  /**
-   * The HED spec code for this issue.
-   *
-   * @returns {string}
-   */
-  get subCode() {
-    return this.hedIssue.hedCode
-  }
-
-  /**
-   * The evidence for this issue.
-   * @returns {string}
-   */
-  get issueMessage() {
-    return this.hedIssue.message
-  }
-
-  /**
-   * The line at which the issue was found.
-   * @returns {number}
-   */
-  get line() {
-    return this.hedIssue.parameters.tsvLine
-  }
-
-  /**
-   * The severity of this issue.
-   * @returns {string}
-   */
-  get severity() {
-    return this.hedIssue.level
+    this.subCode = hedIssue.hedCode
+    this.severity = hedIssue.level
+    this.issueMessage = hedIssue.message
+    this.line = hedIssue.parameters?.tsvLine
+    this.location = file?.path
   }
 
   /**
