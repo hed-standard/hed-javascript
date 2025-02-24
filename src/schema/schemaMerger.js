@@ -35,10 +35,6 @@ export default class PartneredSchemaMerger {
    * @private
    */
   _validate() {
-    if (!this.sourceSchemas.every((schema) => schema.generation === 3)) {
-      IssueError.generateAndThrowInternalError('Partnered schemas must be HED-3G schemas')
-    }
-
     for (const schema of this.sourceSchemas.slice(1)) {
       if (schema.withStandard !== this.destination.withStandard) {
         IssueError.generateAndThrow('differentWithStandard', {

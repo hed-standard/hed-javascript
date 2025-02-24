@@ -18,7 +18,6 @@ describe('HED schemas', () => {
         const hedSchemas = await buildSchemas(specs)
 
         assert.strictEqual(hedSchemas.baseSchema.version, spec1.version, 'Schema has wrong version number')
-        assert.strictEqual(hedSchemas.generation, 3, 'Schema collection has wrong generation')
       })
 
       it('a library schema can be loaded from locally stored schema', async () => {
@@ -29,7 +28,6 @@ describe('HED schemas', () => {
 
         assert.strictEqual(hedSchemas.baseSchema.version, spec1.version, 'Schema has wrong version number')
         assert.strictEqual(hedSchemas.baseSchema.library, spec1.library, 'Schema has wrong library name')
-        assert.strictEqual(hedSchemas.generation, 3, 'Schema collection has wrong generation')
       })
 
       it('a base schema with a nickname can be loaded from locally stored schema', async () => {
@@ -41,7 +39,6 @@ describe('HED schemas', () => {
 
         assert.strictEqual(schema1.version, spec1.version, 'Schema has wrong version number')
         assert.strictEqual(schema1.library, spec1.library, 'Schema has wrong library name')
-        assert.strictEqual(hedSchemas.generation, 3, 'Schema collection has wrong generation')
       })
 
       it('multiple local schemas can be loaded', async () => {
@@ -64,7 +61,6 @@ describe('HED schemas', () => {
 
         const schema4 = hedSchemas.getSchema('baloney')
         assert.isUndefined(schema4, 'baloney schema exists')
-        assert.strictEqual(hedSchemas.generation, 3, 'Schema collection has wrong generation')
       })
     })
 
@@ -78,7 +74,6 @@ describe('HED schemas', () => {
 
         assert.strictEqual(schema1.version, spec1.version, 'Schema has wrong version number')
         assert.strictEqual(schema1.library, spec1.library, 'Schema has wrong library name')
-        assert.strictEqual(hedSchemas.generation, 3, 'Schema collection has wrong generation')
       })
     })
 
@@ -91,7 +86,6 @@ describe('HED schemas', () => {
 
         const hedSchemas = await buildSchemas(schemasSpec)
 
-        assert.strictEqual(hedSchemas.generation, 3, 'Schema collection has wrong generation')
         const hedSchemaVersion = hedSchemas.baseSchema.version
         assert.strictEqual(hedSchemaVersion, localHedSchemaVersion, 'Schema has wrong version number')
       })
@@ -105,10 +99,7 @@ describe('HED schemas', () => {
 
         const hedSchemas = await buildSchemas(schemasSpec)
 
-        assert.strictEqual(hedSchemas.generation, 3, 'Schema collection has wrong generation')
-
         const hedSchema = hedSchemas.getSchema(localHedLibrarySchemaName)
-        assert.strictEqual(hedSchema.generation, 3, 'Schema has wrong generation')
         assert.strictEqual(hedSchema.library, localHedLibrarySchemaName, 'Schema has wrong library name')
         assert.strictEqual(hedSchema.version, localHedLibrarySchemaVersion, 'Schema has wrong version number')
       })
