@@ -11,12 +11,11 @@ const alphabeticRegExp = new RegExp('^[a-zA-Z]+$')
  * Build a HED schema collection based on the defined BIDS schemas.
  *
  * @param {BidsJsonFile} datasetDescription The description of the BIDS dataset being validated.
- * @param {SchemasSpec} schemaDefinition The version spec override for the schema to be loaded.
  * @returns {Promise} A Promise with the schema collection, or null if the specification is missing.
  * @throws {IssueError} If the schema specification is invalid.
  */
-export async function buildBidsSchemas(datasetDescription, schemaDefinition) {
-  const schemasSpec = buildSchemasSpec(datasetDescription, schemaDefinition)
+export async function buildBidsSchemas(datasetDescription) {
+  const schemasSpec = buildSchemasSpec(datasetDescription)
   if (schemasSpec === null) {
     return null
   }
@@ -27,25 +26,14 @@ export async function buildBidsSchemas(datasetDescription, schemaDefinition) {
  * Build a HED schema specification based on the defined BIDS schemas.
  *
  * @param {BidsJsonFile} datasetDescription The description of the BIDS dataset being validated.
- * @param {SchemasSpec} schemaDefinition The version spec override for the schema to be loaded.
  * @returns {SchemasSpec|null} The schema specification to be used to build the schemas, or null if the specification is missing.
  * @throws {IssueError} If the schema specification is invalid.
  */
-export function buildSchemasSpec(datasetDescription, schemaDefinition) {
-  if (schemaDefinition) {
-    return validateSchemasSpec(schemaDefinition)
-  } else if (datasetDescription.jsonData?.HEDVersion) {
+export function buildSchemasSpec(datasetDescription) {
+  if (datasetDescription.jsonData?.HEDVersion) {
     return parseSchemasSpec(datasetDescription.jsonData.HEDVersion)
   } else {
     return null
-  }
-}
-
-function validateSchemasSpec(schemasSpec) {
-  if (schemasSpec instanceof SchemasSpec) {
-    return schemasSpec
-  } else {
-    IssueError.generateAndThrow('invalidSchemaSpecification', { spec: JSON.stringify(schemasSpec) })
   }
 }
 
