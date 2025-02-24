@@ -1,7 +1,3 @@
-import bids from './src/bids'
+export * from './src/bids'
 
-export { bids }
-
-export default {
-  bids,
-}
+export { IssueError } from './src/issues/issues'

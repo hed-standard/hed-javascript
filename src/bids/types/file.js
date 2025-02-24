@@ -59,7 +59,7 @@ export class BidsFile {
    * Validate this validator's tsv file.
    *
    * @param {Schemas} schemas - The HED schemas used to validate this file.
-   * @returns {BidsHedIssue[], BidsHedIssue[]} - Any issues found during validation of this TSV file.
+   * @returns {BidsHedIssue[]} - Any issues found during validation of this TSV file.
    */
   validate(schemas) {
     if (!this.hasHedData) {

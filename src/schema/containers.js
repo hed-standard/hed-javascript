@@ -1,5 +1,6 @@
+import lt from 'semver/functions/lt'
+
 import { IssueError } from '../issues/issues'
-import { getGenerationForSchemaVersion } from '../utils/hedData'
 
 /**
  * An imported HED 3 schema.
@@ -10,11 +11,6 @@ export class Schema {
    * @type {string}
    */
   version
-  /**
-   * The HED generation of this schema.
-   * @type {Number}
-   */
-  generation
   /**
    * The HED library schema name.
    * @type {string}
@@ -47,10 +43,10 @@ export class Schema {
     this.version = rootElement?.$?.version
     this.library = rootElement?.$?.library ?? ''
 
-    if (this.library) {
-      this.generation = 3
-    } else if (this.version) {
-      this.generation = getGenerationForSchemaVersion(this.version)
+    if (!this.library && this.version && lt(this.version, '8.0.0')) {
+      IssueError.generateAndThrow('deprecatedStandardSchemaVersion', {
+        version: this.version,
+      })
     }
 
     if (!this.library) {
@@ -93,7 +89,6 @@ export class PartneredSchema extends Schema {
     this.actualSchemas = actualSchemas
     this.withStandard = actualSchemas[0].withStandard
     this.library = undefined
-    this.generation = 3
   }
 }
 
@@ -185,39 +180,5 @@ export class Schemas {
     } else {
       return null
     }
-  }
-
-  /**
-   * The HED generation of this schema.
-   *
-   * If baseSchema is null, generation is set to 0.
-   * @type {Number}
-   */
-  get generation() {
-    if (this.schemas === null || this.schemas.size === 0) {
-      return 0
-    } else if (this.librarySchemas.size > 0) {
-      return 3
-    } else if (this.baseSchema) {
-      return this.baseSchema.generation
-    } else {
-      return 0
-    }
-  }
-
-  /**
-   * Whether this schema collection is for syntactic validation only.
-   * @returns {boolean}
-   */
-  get isSyntaxOnly() {
-    return this.generation === 0
-  }
-
-  /**
-   * Whether this schema collection comprises HED 3 schemas.
-   * @returns {boolean}
-   */
-  get isHed3() {
-    return this.generation === 3
   }
 }

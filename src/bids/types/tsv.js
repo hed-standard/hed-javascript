@@ -42,7 +42,7 @@ export class BidsTsvFile extends BidsFile {
     if (typeof tsvData === 'string') {
       this.parsedTsv = parseTSV(tsvData)
     } else if (tsvData instanceof Map) {
-      this.parsedTsv = tsvData
+      this.parsedTsv = new Map(tsvData)
     } else if (isPlainObject(tsvData)) {
       this.parsedTsv = convertParsedTSVData(tsvData)
     } else {
