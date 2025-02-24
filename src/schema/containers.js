@@ -45,7 +45,7 @@ export class Schema {
 
     if (!this.library && this.version && lt(this.version, '8.0.0')) {
       IssueError.generateAndThrow('deprecatedStandardSchemaVersion', {
-        version: this.library ? xmlData.HED?.$?.withStandard : this.version,
+        version: this.version,
       })
     }
 
