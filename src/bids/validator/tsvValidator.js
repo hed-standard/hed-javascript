@@ -37,9 +37,9 @@ export class BidsHedTsvValidator extends BidsValidator {
     // Validate the BIDS bidsFile if it exists and return if there are errors
     if (this.bidsFile.mergedSidecar) {
       const issues = this.bidsFile.mergedSidecar.validate(this.hedSchemas)
-      const [errorIssues, warningIssues] = BidsHedIssue.splitErrors(issues)
-      this.errors.push(...errorIssues)
-      this.warnings.push(...warningIssues)
+      const splitErrors = BidsHedIssue.splitErrors(issues)
+      this.errors.push(...(splitErrors.error ?? []))
+      this.warnings.push(...(splitErrors.warning ?? []))
       if (this.errors.length > 0) {
         return
       }

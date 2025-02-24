@@ -1,21 +1,13 @@
+import groupBy from 'lodash/groupBy'
+
 import { generateIssue, IssueError } from '../../issues/issues'
 
 export class BidsHedIssue {
-  /**
-   * The BIDS issue code.
-   * @type {string}
-   */
-  bidsCode
   /**
    * The file associated with this issue.
    * @type {Object}
    */
   file
-  /**
-   * The evidence for this issue.
-   * @type {string}
-   */
-  message
   /**
    * The HED Issue object corresponding to this object.
    * @type {Issue}
@@ -30,9 +22,19 @@ export class BidsHedIssue {
    */
   constructor(hedIssue, file) {
     this.hedIssue = hedIssue
-    this.bidsCode = BidsHedIssue._determineBidsIssueCode(hedIssue)
-    this.message = hedIssue.message
     this.file = file
+  }
+
+  /**
+   * The BIDS issue code.
+   * @returns {string}
+   */
+  get code() {
+    if (this.hedIssue.level === 'warning') {
+      return 'HED_WARNING'
+    } else {
+      return 'HED_ERROR'
+    }
   }
 
   /**
@@ -40,50 +42,42 @@ export class BidsHedIssue {
    *
    * @returns {string}
    */
-  get hedCode() {
+  get subCode() {
     return this.hedIssue.hedCode
   }
 
   /**
-   * Whether this issue is an error.
-   *
-   * @returns {boolean}
+   * The evidence for this issue.
+   * @returns {string}
    */
-  get isError() {
-    return this.hedIssue.level === 'error'
+  get issueMessage() {
+    return this.hedIssue.message
   }
 
   /**
-   * Determine if any of the passed issues are errors.
+   * The line at which the issue was found.
+   * @returns {number}
+   */
+  get line() {
+    return this.hedIssue.parameters.tsvLine
+  }
+
+  /**
+   * The severity of this issue.
+   * @returns {string}
+   */
+  get severity() {
+    return this.hedIssue.level
+  }
+
+  /**
+   * Split a list of issues into errors and warnings.
    *
    * @param {BidsHedIssue[]} issues A list of issues.
-   * @returns {boolean} Whether any of the passed issues are errors (rather than warnings).
+   * @returns {Object<string, BidsHedIssue[]>} The list of issues divided into errors and warnings.
    */
-  static anyAreErrors(issues) {
-    return issues.some((issue) => issue.isError)
-  }
-
   static splitErrors(issues) {
-    const errors = issues.filter((item) => item.isError)
-    const warnings = issues.filter((item) => !item.isError)
-    return [errors, warnings]
-  }
-
-  /**
-   * Determine the BIDS issue code for this issue.
-   *
-   * @param {Issue} hedIssue The HED issue object to be wrapped.
-   * @returns {string} The BIDS issue code for this issue.
-   * @private
-   */
-  static _determineBidsIssueCode(hedIssue) {
-    if (hedIssue.internalCode === 'internalError') {
-      return 'HED_INTERNAL_ERROR'
-    }
-    if (hedIssue.level === 'warning') {
-      return 'HED_WARNING'
-    }
-    return 'HED_ERROR'
+    return groupBy(issues, (issue) => issue.severity)
   }
 
   /**
