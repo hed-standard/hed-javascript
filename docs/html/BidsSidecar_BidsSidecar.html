@@ -21,7 +21,7 @@
         <header>
           <h2>
             <span class="attribs"><span class="type-signature"></span></span>BidsSidecar<span class="signature"
-              >(name, sidecarData, file, defManager)</span
+              >(name, file, sidecarData, defManager)</span
             ><span class="type-signature"></span>
           </h2>
         </header>
@@ -30,7 +30,7 @@
           <div class="container-overview">
             <h4 class="name" id="BidsSidecar">
               <span class="type-signature"></span>new BidsSidecar<span class="signature"
-                >(name, sidecarData, file, defManager)</span
+                >(name, file, sidecarData, defManager)</span
               ><span class="type-signature"></span>
             </h4>
 
@@ -45,8 +45,6 @@
 
                   <th>Type</th>
 
-                  <th>Default</th>
-
                   <th class="last">Description</th>
                 </tr>
               </thead>
@@ -59,21 +57,7 @@
                     <span class="param-type">string</span>
                   </td>
 
-                  <td class="default"></td>
-
                   <td class="description last">The name of the bidsFile file.</td>
-                </tr>
-
-                <tr>
-                  <td class="name"><code>sidecarData</code></td>
-
-                  <td class="type">
-                    <span class="param-type">Object</span>
-                  </td>
-
-                  <td class="default"></td>
-
-                  <td class="description last">The raw JSON data.</td>
                 </tr>
 
                 <tr>
@@ -83,9 +67,17 @@
                     <span class="param-type">Object</span>
                   </td>
 
-                  <td class="default"></td>
-
                   <td class="description last">The file object representing this file.</td>
+                </tr>
+
+                <tr>
+                  <td class="name"><code>sidecarData</code></td>
+
+                  <td class="type">
+                    <span class="param-type">Object</span>
+                  </td>
+
+                  <td class="description last">The raw JSON data.</td>
                 </tr>
 
                 <tr>
@@ -94,8 +86,6 @@
                   <td class="type">
                     <span class="param-type"><a href="DefinitionManager.html">DefinitionManager</a></span>
                   </td>
-
-                  <td class="default">null</td>
 
                   <td class="description last">The external definitions to use</td>
                 </tr>
@@ -108,7 +98,7 @@
                 <ul class="dummy">
                   <li>
                     <a href="bids_types_json.js.html">bids/types/json.js</a>,
-                    <a href="bids_types_json.js.html#line80">line 80</a>
+                    <a href="bids_types_json.js.html#line92">line 92</a>
                   </li>
                 </ul>
               </dd>
@@ -141,6 +131,7 @@
         <li><a href="HedStringParser.html">HedStringParser</a></li>
         <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
         <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
         <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
         <li><a href="ParsedHedString.html">ParsedHedString</a></li>
         <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
@@ -201,7 +192,6 @@
         <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
         <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
         <li><a href="global.html#getTagName">getTagName</a></li>
@@ -211,6 +201,8 @@
         <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
         <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
         <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
         <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
@@ -220,7 +212,7 @@
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parse</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>
@@ -254,7 +246,7 @@
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 11:13:20
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
       GMT-0600 (Central Standard Time)
     </footer>
 

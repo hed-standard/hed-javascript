@@ -19,63 +19,51 @@
 
       <section>
         <article>
-          <pre class="prettyprint source linenums"><code>import { generateIssue, IssueError } from '../../issues/issues'
+          <pre class="prettyprint source linenums"><code>import groupBy from 'lodash/groupBy'
 
-const bidsHedErrorCodes = new Set([104, 106, 107])
+import { generateIssue, IssueError } from '../../issues/issues'
 
-export class BidsIssue {
-  /**
-   * The BIDS issue code.
-   * @type {number}
-   */
-  code
+export class BidsHedIssue {
   /**
    * The file associated with this issue.
    * @type {Object}
    */
   file
   /**
-   * The evidence for this issue.
-   * @type {string}
-   */
-  evidence
-
-  constructor(issueCode, file, evidence) {
-    this.code = issueCode
-    this.file = file
-    this.evidence = evidence
-  }
-
-  /**
-   * Whether this issue is an error.
-   *
-   * @returns {boolean}
-   */
-  isError() {
-    return bidsHedErrorCodes.has(this.code)
-  }
-
-  /**
-   * Determine if any of the passed issues are errors.
-   *
-   * @param {BidsIssue[]} issues A list of issues.
-   * @returns {boolean} Whether any of the passed issues are errors (rather than warnings).
-   */
-  static anyAreErrors(issues) {
-    return issues.some((issue) => issue.isError())
-  }
-
-  static async generateInternalErrorPromise(error, errorFile) {
-    return [new BidsHedIssue(generateIssue('internalError', { message: error.message }), errorFile)]
-  }
-}
-
-export class BidsHedIssue extends BidsIssue {
-  /**
    * The HED Issue object corresponding to this object.
    * @type {Issue}
    */
   hedIssue
+  /**
+   * The BIDS issue code.
+   * @type {string}
+   */
+  code
+  /**
+   * The HED spec code for this issue.
+   * @type {string}
+   */
+  subCode
+  /**
+   * The severity of this issue.
+   * @type {string}
+   */
+  severity
+  /**
+   * The issue message for this issue.
+   * @type {string}
+   */
+  issueMessage
+  /**
+   * The line at which the issue was found.
+   * @type {number}
+   */
+  line
+  /**
+   * The location of the file at which the issue was found.
+   * @type {string}
+   */
+  location
 
   /**
    * Constructor.
@@ -84,26 +72,30 @@ export class BidsHedIssue extends BidsIssue {
    * @param {Object} file The file this error occurred in.
    */
   constructor(hedIssue, file) {
-    super(BidsHedIssue._determineBidsIssueCode(hedIssue), file, hedIssue.message)
-
     this.hedIssue = hedIssue
+    this.file = file
+
+    // BIDS fields
+    if (hedIssue.level === 'warning') {
+      this.code = 'HED_WARNING'
+    } else {
+      this.code = 'HED_ERROR'
+    }
+    this.subCode = hedIssue.hedCode
+    this.severity = hedIssue.level
+    this.issueMessage = hedIssue.message
+    this.line = hedIssue.parameters?.tsvLine
+    this.location = file?.path
   }
 
   /**
-   * Determine the BIDS issue code for this issue.
+   * Split a list of issues into errors and warnings.
    *
-   * @param {Issue} hedIssue The HED issue object to be wrapped.
-   * @returns {number} The BIDS issue code for this issue.
-   * @private
+   * @param {BidsHedIssue[]} issues A list of issues.
+   * @returns {Object&lt;string, BidsHedIssue[]>} The list of issues divided into errors and warnings.
    */
-  static _determineBidsIssueCode(hedIssue) {
-    if (hedIssue.internalCode === 'internalError' || hedIssue.internalCode === 'internalConsistencyError') {
-      return 106
-    }
-    if (hedIssue.level === 'warning') {
-      return 105
-    }
-    return 104
+  static splitErrors(issues) {
+    return groupBy(issues, (issue) => issue.severity)
   }
 
   /**
@@ -115,7 +107,9 @@ export class BidsHedIssue extends BidsIssue {
    * @returns {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
    */
   static fromHedIssues(hedIssues, file, extraParameters) {
-    if (hedIssues instanceof IssueError) {
+    if (hedIssues.length === 0) {
+      return []
+    } else if (hedIssues instanceof IssueError) {
       return [BidsHedIssue.fromHedIssue(hedIssues.issue, file, extraParameters)]
     } else if (hedIssues instanceof Error) {
       return [new BidsHedIssue(generateIssue('internalError', { message: hedIssues.message }), file ?? null)]
@@ -168,6 +162,7 @@ export class BidsHedIssue extends BidsIssue {
         <li><a href="HedStringParser.html">HedStringParser</a></li>
         <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
         <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
         <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
         <li><a href="ParsedHedString.html">ParsedHedString</a></li>
         <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
@@ -228,7 +223,6 @@ export class BidsHedIssue extends BidsIssue {
         <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
         <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
         <li><a href="global.html#getTagName">getTagName</a></li>
@@ -238,6 +232,8 @@ export class BidsHedIssue extends BidsIssue {
         <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
         <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
         <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
         <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
@@ -247,7 +243,7 @@ export class BidsHedIssue extends BidsIssue {
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parse</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>
@@ -281,7 +277,7 @@ export class BidsHedIssue extends BidsIssue {
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 11:13:20
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:11
       GMT-0600 (Central Standard Time)
     </footer>
 

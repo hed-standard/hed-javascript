@@ -101,7 +101,7 @@
 
           <h4 class="name" id="_validateCurlyBraces">
             <span class="type-signature"></span>_validateCurlyBraces<span class="signature">()</span
-            ><span class="type-signature"> &rarr; {Array.&lt;<a href="BidsIssue.html">BidsIssue</a>>}</span>
+            ><span class="type-signature"> &rarr; {Array.&lt;<a href="BidsHedIssue.html">BidsHedIssue</a>>}</span>
           </h4>
 
           <div class="description">
@@ -114,7 +114,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_sidecarValidator.js.html">bids/validator/sidecarValidator.js</a>,
-                  <a href="bids_validator_sidecarValidator.js.html#line132">line 132</a>
+                  <a href="bids_validator_sidecarValidator.js.html#line127">line 127</a>
                 </li>
               </ul>
             </dd>
@@ -127,13 +127,13 @@
           <dl>
             <dt>Type</dt>
             <dd>
-              <span class="param-type">Array.&lt;<a href="BidsIssue.html">BidsIssue</a>></span>
+              <span class="param-type">Array.&lt;<a href="BidsHedIssue.html">BidsHedIssue</a>></span>
             </dd>
           </dl>
 
           <h4 class="name" id="_validateStrings">
             <span class="type-signature"></span>_validateStrings<span class="signature">()</span
-            ><span class="type-signature"> &rarr; {Array.&lt;<a href="BidsIssue.html">BidsIssue</a>>}</span>
+            ><span class="type-signature"> &rarr; {Array.&lt;<a href="BidsHedIssue.html">BidsHedIssue</a>>}</span>
           </h4>
 
           <div class="description">Validate this bidsFile's HED strings.</div>
@@ -144,7 +144,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_sidecarValidator.js.html">bids/validator/sidecarValidator.js</a>,
-                  <a href="bids_validator_sidecarValidator.js.html#line45">line 45</a>
+                  <a href="bids_validator_sidecarValidator.js.html#line42">line 42</a>
                 </li>
               </ul>
             </dd>
@@ -157,18 +157,16 @@
           <dl>
             <dt>Type</dt>
             <dd>
-              <span class="param-type">Array.&lt;<a href="BidsIssue.html">BidsIssue</a>></span>
+              <span class="param-type">Array.&lt;<a href="BidsHedIssue.html">BidsHedIssue</a>></span>
             </dd>
           </dl>
 
           <h4 class="name" id="validate">
             <span class="type-signature"></span>validate<span class="signature">()</span
-            ><span class="type-signature"> &rarr; {Array.&lt;<a href="BidsIssue.html">BidsIssue</a>>}</span>
+            ><span class="type-signature"></span>
           </h4>
 
-          <div class="description">
-            Validate a BIDS JSON bidsFile file. This method returns the complete issue list for convenience.
-          </div>
+          <div class="description">Validate a BIDS JSON bidsFile file. Errors and warnings are stored.</div>
 
           <dl class="details">
             <dt class="tag-source">Source:</dt>
@@ -176,20 +174,9 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_sidecarValidator.js.html">bids/validator/sidecarValidator.js</a>,
-                  <a href="bids_validator_sidecarValidator.js.html#line26">line 26</a>
+                  <a href="bids_validator_sidecarValidator.js.html#line25">line 25</a>
                 </li>
               </ul>
-            </dd>
-          </dl>
-
-          <h5>Returns:</h5>
-
-          <div class="param-desc">- Any issues found during validation of this bidsFile file.</div>
-
-          <dl>
-            <dt>Type</dt>
-            <dd>
-              <span class="param-type">Array.&lt;<a href="BidsIssue.html">BidsIssue</a>></span>
             </dd>
           </dl>
         </article>
@@ -219,6 +206,7 @@
         <li><a href="HedStringParser.html">HedStringParser</a></li>
         <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
         <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
         <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
         <li><a href="ParsedHedString.html">ParsedHedString</a></li>
         <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
@@ -279,7 +267,6 @@
         <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
         <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
         <li><a href="global.html#getTagName">getTagName</a></li>
@@ -289,6 +276,8 @@
         <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
         <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
         <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
         <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
@@ -298,7 +287,7 @@
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parse</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>
@@ -332,7 +321,7 @@
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 11:13:20
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
       GMT-0600 (Central Standard Time)
     </footer>
 
