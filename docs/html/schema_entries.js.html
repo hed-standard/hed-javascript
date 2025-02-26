@@ -120,7 +120,7 @@ export class SchemaEntries extends Memoizer {
     if (!this.tags.hasLongNameEntry(tag)) {
       return false
     }
-    return this.tags.getLongNameEntry(tag).hasAttributeName(tagAttribute)
+    return this.tags.getLongNameEntry(tag).hasAttribute(tagAttribute)
   }
 }
 
@@ -202,8 +202,8 @@ export class SchemaEntryManager extends Memoizer {
    */
   getEntriesWithBooleanAttribute(booleanAttributeName) {
     return this._memoize(booleanAttributeName, () => {
-      return this.filter(([_, v]) => {
-        return v.hasAttributeName(booleanAttributeName)
+      return this.filter(([, v]) => {
+        return v.hasAttribute(booleanAttributeName)
       })
     })
   }
@@ -457,22 +457,25 @@ export class SchemaAttribute extends SchemaEntry {
 /**
  * SchemaEntryWithAttributes class
  */
-class SchemaEntryWithAttributes extends SchemaEntry {
+export class SchemaEntryWithAttributes extends SchemaEntry {
   /**
    * The set of boolean attributes this schema entry has.
    * @type {Set&lt;SchemaAttribute>}
    */
   booleanAttributes
+
   /**
    * The collection of value attributes this schema entry has.
    * @type {Map&lt;SchemaAttribute, *>}
    */
   valueAttributes
+
   /**
    * The set of boolean attribute names this schema entry has.
    * @type {Set&lt;string>}
    */
   booleanAttributeNames
+
   /**
    * The collection of value attribute names this schema entry has.
    * @type {Map&lt;string, *>}
@@ -508,7 +511,7 @@ class SchemaEntryWithAttributes extends SchemaEntry {
    * @returns {boolean} Whether this schema entry has this attribute.
    */
   hasAttribute(attribute) {
-    return this.booleanAttributes.has(attribute)
+    return this.booleanAttributeNames.has(attribute) || this.valueAttributeNames.has(attribute)
   }
 
   /**
@@ -616,15 +619,15 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
   }
 
   get isPrefixUnit() {
-    return this.hasAttributeName('unitPrefix')
+    return this.hasAttribute('unitPrefix')
   }
 
   get isSIUnit() {
-    return this.hasAttributeName('SIUnit')
+    return this.hasAttribute('SIUnit')
   }
 
   get isUnitSymbol() {
-    return this.hasAttributeName('unitSymbol')
+    return this.hasAttribute('unitSymbol')
   }
 
   /**
@@ -743,11 +746,11 @@ export class SchemaUnitModifier extends SchemaEntryWithAttributes {
   }
 
   get isSIUnitModifier() {
-    return this.hasAttributeName('SIUnitModifier')
+    return this.hasAttribute('SIUnitModifier')
   }
 
   get isSIUnitSymbolModifier() {
-    return this.hasAttributeName('SIUnitSymbolModifier')
+    return this.hasAttribute('SIUnitSymbolModifier')
   }
 }
 
@@ -804,7 +807,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaTag}
    * @private
    */
-  _parent
+  #parent
+
   /**
    * This tag's unit classes.
    * @type {SchemaUnitClass[]}
@@ -824,7 +828,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaValueTag}
    * @private
    */
-  _valueTag
+  #valueTag
 
   /**
    * Constructor.
@@ -867,19 +871,11 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   }
 
   /**
-   * Whether this tag has any value classes.
-   * @returns {boolean}
-   */
-  get hasValueClasses() {
-    return this._valueClasses.length !== 0
-  }
-
-  /**
    * This tag's value-taking child tag.
    * @returns {SchemaValueTag}
    */
   get valueTag() {
-    return this._valueTag
+    return this.#valueTag
   }
 
   /**
@@ -887,12 +883,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {SchemaValueTag} newValueTag The new value-taking child tag.
    */
   set valueTag(newValueTag) {
-    if (this._valueTag === undefined) {
-      this._valueTag = newValueTag
-    } else {
-      IssueError.generateAndThrow('internalError', {
-        message: `Attempted to set value tag for schema tag "${this.longName}" when it already has one.`,
-      })
+    if (!this.#isPrivateFieldSet(this.#valueTag, 'value tag')) {
+      this.#valueTag = newValueTag
     }
   }
 
@@ -901,7 +893,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaTag}
    */
   get parent() {
-    return this._parent
+    return this.#parent
   }
 
   /**
@@ -909,13 +901,27 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {SchemaTag} newParent The new parent tag.
    */
   set parent(newParent) {
-    if (this._parent === undefined) {
-      this._parent = newParent
-    } else {
-      IssueError.generateAndThrow('internalError', {
-        message: `Attempted to set parent for schema tag ${this.longName} when it already has one.`,
-      })
+    if (!this.#isPrivateFieldSet(this.#parent, 'parent')) {
+      this.#parent = newParent
     }
+  }
+
+  /**
+   * Throw an error if a private field is already set.
+   *
+   * @param {*} field The field being set.
+   * @param {string} fieldName The name of the field (for error reporting).
+   * @return {boolean} Whether the field is set (never returns true).
+   * @throws {IssueError} If the field is already set.
+   * @private
+   */
+  #isPrivateFieldSet(field, fieldName) {
+    if (field !== undefined) {
+      IssueError.generateAndThrowInternalError(
+        `Attempted to set ${fieldName} for schema tag ${this.longName} when it already has one.`,
+      )
+    }
+    return false
   }
 
   /**
@@ -1032,6 +1038,7 @@ export class SchemaValueTag extends SchemaTag {
         <li><a href="HedStringParser.html">HedStringParser</a></li>
         <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
         <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
         <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
         <li><a href="ParsedHedString.html">ParsedHedString</a></li>
         <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
@@ -1092,7 +1099,6 @@ export class SchemaValueTag extends SchemaTag {
         <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
         <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
         <li><a href="global.html#getTagName">getTagName</a></li>
@@ -1102,6 +1108,8 @@ export class SchemaValueTag extends SchemaTag {
         <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
         <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
         <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
         <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
@@ -1111,7 +1119,7 @@ export class SchemaValueTag extends SchemaTag {
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parse</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>
@@ -1145,7 +1153,7 @@ export class SchemaValueTag extends SchemaTag {
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 11:13:20
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
       GMT-0600 (Central Standard Time)
     </footer>
 

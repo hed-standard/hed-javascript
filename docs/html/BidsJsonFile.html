@@ -21,7 +21,7 @@
         <header>
           <h2>
             <span class="attribs"><span class="type-signature"></span></span>BidsJsonFile<span class="signature"
-              >()</span
+              >(name, file, jsonData)</span
             ><span class="type-signature"></span>
           </h2>
 
@@ -33,9 +33,55 @@
             <h2>Constructor</h2>
 
             <h4 class="name" id="BidsJsonFile">
-              <span class="type-signature"></span>new BidsJsonFile<span class="signature">()</span
+              <span class="type-signature"></span>new BidsJsonFile<span class="signature">(name, file, jsonData)</span
               ><span class="type-signature"></span>
             </h4>
+
+            <h5>Parameters:</h5>
+
+            <table class="params">
+              <thead>
+                <tr>
+                  <th>Name</th>
+
+                  <th>Type</th>
+
+                  <th class="last">Description</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr>
+                  <td class="name"><code>name</code></td>
+
+                  <td class="type">
+                    <span class="param-type">string</span>
+                  </td>
+
+                  <td class="description last">The name of the JSON file.</td>
+                </tr>
+
+                <tr>
+                  <td class="name"><code>file</code></td>
+
+                  <td class="type">
+                    <span class="param-type">Object</span>
+                  </td>
+
+                  <td class="description last">The object representing this file.</td>
+                </tr>
+
+                <tr>
+                  <td class="name"><code>jsonData</code></td>
+
+                  <td class="type">
+                    <span class="param-type">Object</span>
+                  </td>
+
+                  <td class="description last">The JSON data for this file.</td>
+                </tr>
+              </tbody>
+            </table>
 
             <dl class="details">
               <dt class="tag-source">Source:</dt>
@@ -60,7 +106,7 @@
           <h3 class="subsection-title">Members</h3>
 
           <h4 class="name" id="jsonData">
-            <span class="type-signature"></span>jsonData<span class="type-signature"> :object</span>
+            <span class="type-signature"></span>jsonData<span class="type-signature"> :Object</span>
           </h4>
 
           <div class="description">This file's JSON data.</div>
@@ -68,7 +114,7 @@
           <h5>Type:</h5>
           <ul>
             <li>
-              <span class="param-type">object</span>
+              <span class="param-type">Object</span>
             </li>
           </ul>
 
@@ -110,6 +156,7 @@
         <li><a href="HedStringParser.html">HedStringParser</a></li>
         <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
         <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
         <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
         <li><a href="ParsedHedString.html">ParsedHedString</a></li>
         <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
@@ -170,7 +217,6 @@
         <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
         <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
         <li><a href="global.html#getTagName">getTagName</a></li>
@@ -180,6 +226,8 @@
         <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
         <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
         <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
         <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
@@ -189,7 +237,7 @@
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parse</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>
@@ -223,7 +271,7 @@
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 11:13:20
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
       GMT-0600 (Central Standard Time)
     </footer>
 

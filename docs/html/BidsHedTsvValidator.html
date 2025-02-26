@@ -104,7 +104,7 @@
             >
           </h4>
 
-          <div class="description">The BIDS TSV file being validated.</div>
+          <div class="description">The singleton instance of the checker for reserved requirements.</div>
 
           <h5>Type:</h5>
           <ul>
@@ -129,7 +129,7 @@
 
           <h4 class="name" id="_checkNoTime">
             <span class="type-signature"></span>_checkNoTime<span class="signature">(elements)</span
-            ><span class="type-signature"> &rarr; {Array.&lt;<a href="BidsHedIssue.html">BidsHedIssue</a>>}</span>
+            ><span class="type-signature"></span>
           </h4>
 
           <div class="description">Verify that this non-temporal file does not contain any temporal tags.</div>
@@ -166,26 +166,15 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line247">line 247</a>
+                  <a href="bids_validator_tsvValidator.js.html#line270">line 270</a>
                 </li>
               </ul>
             </dd>
           </dl>
 
-          <h5>Returns:</h5>
-
-          <div class="param-desc">- Issues from checking non-temporal files for temporal tags.</div>
-
-          <dl>
-            <dt>Type</dt>
-            <dd>
-              <span class="param-type">Array.&lt;<a href="BidsHedIssue.html">BidsHedIssue</a>></span>
-            </dd>
-          </dl>
-
           <h4 class="name" id="validate">
             <span class="type-signature"></span>validate<span class="signature">()</span
-            ><span class="type-signature"> &rarr; {Array.&lt;<a href="BidsIssue.html">BidsIssue</a>>}</span>
+            ><span class="type-signature"></span>
           </h4>
 
           <div class="description">
@@ -198,57 +187,20 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line37">line 37</a>
+                  <a href="bids_validator_tsvValidator.js.html#line36">line 36</a>
                 </li>
               </ul>
             </dd>
           </dl>
 
-          <h5>Returns:</h5>
-
-          <div class="param-desc">- Any issues found during validation of this TSV file.</div>
-
-          <dl>
-            <dt>Type</dt>
-            <dd>
-              <span class="param-type">Array.&lt;<a href="BidsIssue.html">BidsIssue</a>></span>
-            </dd>
-          </dl>
-
           <h4 class="name" id="validateDataset">
-            <span class="type-signature"></span>validateDataset<span class="signature">(elements)</span
-            ><span class="type-signature"> &rarr; {Array.&lt;<a href="BidsHedIssue.html">BidsHedIssue</a>>}</span>
+            <span class="type-signature"></span>validateDataset<span class="signature">()</span
+            ><span class="type-signature"></span>
           </h4>
 
           <div class="description">
             Validate the HED data in a combined event TSV file/bidsFile BIDS data collection.
           </div>
-
-          <h5>Parameters:</h5>
-
-          <table class="params">
-            <thead>
-              <tr>
-                <th>Name</th>
-
-                <th>Type</th>
-
-                <th class="last">Description</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr>
-                <td class="name"><code>elements</code></td>
-
-                <td class="type">
-                  <span class="param-type">Array.&lt;<a href="BidsTsvElement.html">BidsTsvElement</a>></span>
-                </td>
-
-                <td class="description last">The element objects, which include the strings and row information.</td>
-              </tr>
-            </tbody>
-          </table>
 
           <dl class="details">
             <dt class="tag-source">Source:</dt>
@@ -256,20 +208,9 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line129">line 129</a>
+                  <a href="bids_validator_tsvValidator.js.html#line159">line 159</a>
                 </li>
               </ul>
-            </dd>
-          </dl>
-
-          <h5>Returns:</h5>
-
-          <div class="param-desc">- The errors resulting from final validation, including dataset-level checks.</div>
-
-          <dl>
-            <dt>Type</dt>
-            <dd>
-              <span class="param-type">Array.&lt;<a href="BidsHedIssue.html">BidsHedIssue</a>></span>
             </dd>
           </dl>
         </article>
@@ -299,6 +240,7 @@
         <li><a href="HedStringParser.html">HedStringParser</a></li>
         <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
         <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
         <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
         <li><a href="ParsedHedString.html">ParsedHedString</a></li>
         <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
@@ -359,7 +301,6 @@
         <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
         <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
         <li><a href="global.html#getTagName">getTagName</a></li>
@@ -369,6 +310,8 @@
         <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
         <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
         <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
         <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
@@ -378,7 +321,7 @@
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parse</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>
@@ -412,7 +355,7 @@
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 11:13:20
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
       GMT-0600 (Central Standard Time)
     </footer>
 

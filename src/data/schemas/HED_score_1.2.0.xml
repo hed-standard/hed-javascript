@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<HED version="1.1.0" library="score" withStandard="8.2.0">
+<HED version="1.2.0" library="score" withStandard="8.2.0">
    <prologue>This schema is a Hierarchical Event Descriptors (HED) Library Schema implementation of Standardized Computer-based Organized Reporting of EEG (SCORE)[1,2] for describing events occurring during neuroimaging time series recordings.
 The HED-SCORE library schema allows neurologists, neurophysiologists, and brain researchers to annotate electrophysiology recordings using terms from an internationally accepted set of defined terms (SCORE) compatible with the HED framework.
 The resulting annotations are understandable to clinicians and directly usable in computer analysis.
@@ -6720,17 +6720,6 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
                      <name>inLibrary</name>
                      <value>score</value>
                   </attribute>
-               </node>
-               <node>
-                  <name>Motor-onset-seizure</name>
-                  <attribute>
-                     <name>deprecatedFrom</name>
-                     <value>1.0.0</value>
-                  </attribute>
-                  <attribute>
-                     <name>inLibrary</name>
-                     <value>score</value>
-                  </attribute>
                   <node>
                      <name>Myoclonic-motor-seizure</name>
                      <description>Sudden, brief ( lower than 100 msec) involuntary single or multiple contraction(s) of muscles(s) or muscle groups of variable topography (axial, proximal limb, distal). Myoclonus is less regularly repetitive and less sustained than is clonus. Definition from ILAE 2017 Classification of Seizure Types Expanded Version</description>
@@ -6740,29 +6729,7 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
                      </attribute>
                   </node>
                   <node>
-                     <name>Myoclonic-motor-onset-seizure</name>
-                     <attribute>
-                        <name>deprecatedFrom</name>
-                        <value>1.0.0</value>
-                     </attribute>
-                     <attribute>
-                        <name>inLibrary</name>
-                        <value>score</value>
-                     </attribute>
-                  </node>
-                  <node>
                      <name>Negative-myoclonic-motor-seizure</name>
-                     <attribute>
-                        <name>inLibrary</name>
-                        <value>score</value>
-                     </attribute>
-                  </node>
-                  <node>
-                     <name>Negative-myoclonic-motor-onset-seizure</name>
-                     <attribute>
-                        <name>deprecatedFrom</name>
-                        <value>1.0.0</value>
-                     </attribute>
                      <attribute>
                         <name>inLibrary</name>
                         <value>score</value>
@@ -6777,30 +6744,8 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
                      </attribute>
                   </node>
                   <node>
-                     <name>Clonic-motor-onset-seizure</name>
-                     <attribute>
-                        <name>deprecatedFrom</name>
-                        <value>1.0.0</value>
-                     </attribute>
-                     <attribute>
-                        <name>inLibrary</name>
-                        <value>score</value>
-                     </attribute>
-                  </node>
-                  <node>
                      <name>Tonic-motor-seizure</name>
                      <description>A sustained increase in muscle contraction lasting a few seconds to minutes. Definition from ILAE 2017 Classification of Seizure Types Expanded Version</description>
-                     <attribute>
-                        <name>inLibrary</name>
-                        <value>score</value>
-                     </attribute>
-                  </node>
-                  <node>
-                     <name>Tonic-motor-onset-seizure</name>
-                     <attribute>
-                        <name>deprecatedFrom</name>
-                        <value>1.0.0</value>
-                     </attribute>
                      <attribute>
                         <name>inLibrary</name>
                         <value>score</value>
@@ -6815,30 +6760,8 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
                      </attribute>
                   </node>
                   <node>
-                     <name>Atonic-motor-onset-seizure</name>
-                     <attribute>
-                        <name>deprecatedFrom</name>
-                        <value>1.0.0</value>
-                     </attribute>
-                     <attribute>
-                        <name>inLibrary</name>
-                        <value>score</value>
-                     </attribute>
-                  </node>
-                  <node>
                      <name>Myoclonic-atonic-motor-seizure</name>
                      <description>A generalized seizure type with a myoclonic jerk leading to an atonic motor component. This type was previously called myoclonic astatic. Definition from ILAE 2017 Classification of Seizure Types Expanded Version</description>
-                     <attribute>
-                        <name>inLibrary</name>
-                        <value>score</value>
-                     </attribute>
-                  </node>
-                  <node>
-                     <name>Myoclonic-atonic-motor-onset-seizure</name>
-                     <attribute>
-                        <name>deprecatedFrom</name>
-                        <value>1.0.0</value>
-                     </attribute>
                      <attribute>
                         <name>inLibrary</name>
                         <value>score</value>
@@ -6853,30 +6776,8 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
                      </attribute>
                   </node>
                   <node>
-                     <name>Myoclonic-tonic-clonic-motor-onset-seizure</name>
-                     <attribute>
-                        <name>deprecatedFrom</name>
-                        <value>1.0.0</value>
-                     </attribute>
-                     <attribute>
-                        <name>inLibrary</name>
-                        <value>score</value>
-                     </attribute>
-                  </node>
-                  <node>
                      <name>Tonic-clonic-motor-seizure</name>
                      <description>A sequence consisting of a tonic followed by a clonic phase. Definition from ILAE 2017 Classification of Seizure Types Expanded Version</description>
-                     <attribute>
-                        <name>inLibrary</name>
-                        <value>score</value>
-                     </attribute>
-                  </node>
-                  <node>
-                     <name>Tonic-clonic-motor-onset-seizure</name>
-                     <attribute>
-                        <name>deprecatedFrom</name>
-                        <value>1.0.0</value>
-                     </attribute>
                      <attribute>
                         <name>inLibrary</name>
                         <value>score</value>
@@ -6891,29 +6792,7 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
                      </attribute>
                   </node>
                   <node>
-                     <name>Automatism-motor-onset-seizure</name>
-                     <attribute>
-                        <name>deprecatedFrom</name>
-                        <value>1.0.0</value>
-                     </attribute>
-                     <attribute>
-                        <name>inLibrary</name>
-                        <value>score</value>
-                     </attribute>
-                  </node>
-                  <node>
                      <name>Hyperkinetic-motor-seizure</name>
-                     <attribute>
-                        <name>inLibrary</name>
-                        <value>score</value>
-                     </attribute>
-                  </node>
-                  <node>
-                     <name>Hyperkinetic-motor-onset-seizure</name>
-                     <attribute>
-                        <name>deprecatedFrom</name>
-                        <value>1.0.0</value>
-                     </attribute>
                      <attribute>
                         <name>inLibrary</name>
                         <value>score</value>
@@ -6922,6 +6801,138 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
                   <node>
                      <name>Epileptic-spasm-episode</name>
                      <description>A sudden flexion, extension, or mixed extension flexion of predominantly proximal and truncal muscles that is usually more sustained than a myoclonic movement but not as sustained as a tonic seizure. Limited forms may occur: Grimacing, head nodding, or subtle eye movements. Epileptic spasms frequently occur in clusters. Infantile spasms are the best known form, but spasms can occur at all ages. Definition from ILAE 2017 Classification of Seizure Types Expanded Version</description>
+                     <attribute>
+                        <name>inLibrary</name>
+                        <value>score</value>
+                     </attribute>
+                  </node>
+               </node>
+               <node>
+                  <name>Motor-onset-seizure</name>
+                  <description>Replaced by Motor-seizure.</description>
+                  <attribute>
+                     <name>deprecatedFrom</name>
+                     <value>1.0.0</value>
+                  </attribute>
+                  <attribute>
+                     <name>inLibrary</name>
+                     <value>score</value>
+                  </attribute>
+                  <node>
+                     <name>Myoclonic-motor-onset-seizure</name>
+                     <description>Replaced by Myoclonic-motor-seizure.</description>
+                     <attribute>
+                        <name>deprecatedFrom</name>
+                        <value>1.0.0</value>
+                     </attribute>
+                     <attribute>
+                        <name>inLibrary</name>
+                        <value>score</value>
+                     </attribute>
+                  </node>
+                  <node>
+                     <name>Negative-myoclonic-motor-onset-seizure</name>
+                     <description>Replaced by Negative-myoclonic-motor-seizure.</description>
+                     <attribute>
+                        <name>deprecatedFrom</name>
+                        <value>1.0.0</value>
+                     </attribute>
+                     <attribute>
+                        <name>inLibrary</name>
+                        <value>score</value>
+                     </attribute>
+                  </node>
+                  <node>
+                     <name>Clonic-motor-onset-seizure</name>
+                     <description>Replaced by Clonic-motor-seizure.</description>
+                     <attribute>
+                        <name>deprecatedFrom</name>
+                        <value>1.0.0</value>
+                     </attribute>
+                     <attribute>
+                        <name>inLibrary</name>
+                        <value>score</value>
+                     </attribute>
+                  </node>
+                  <node>
+                     <name>Tonic-motor-onset-seizure</name>
+                     <description>Replaced by Tonic-motor-seizure.</description>
+                     <attribute>
+                        <name>deprecatedFrom</name>
+                        <value>1.0.0</value>
+                     </attribute>
+                     <attribute>
+                        <name>inLibrary</name>
+                        <value>score</value>
+                     </attribute>
+                  </node>
+                  <node>
+                     <name>Atonic-motor-onset-seizure</name>
+                     <description>Replaced by Atonic-motor-seizure.</description>
+                     <attribute>
+                        <name>deprecatedFrom</name>
+                        <value>1.0.0</value>
+                     </attribute>
+                     <attribute>
+                        <name>inLibrary</name>
+                        <value>score</value>
+                     </attribute>
+                  </node>
+                  <node>
+                     <name>Myoclonic-atonic-motor-onset-seizure</name>
+                     <description>Replaced by Myoclonic-atonic-motor-seizure.</description>
+                     <attribute>
+                        <name>deprecatedFrom</name>
+                        <value>1.0.0</value>
+                     </attribute>
+                     <attribute>
+                        <name>inLibrary</name>
+                        <value>score</value>
+                     </attribute>
+                  </node>
+                  <node>
+                     <name>Myoclonic-tonic-clonic-motor-onset-seizure</name>
+                     <description>Replaced by Myoclonic-tonic-clonic-motor-seizure.</description>
+                     <attribute>
+                        <name>deprecatedFrom</name>
+                        <value>1.0.0</value>
+                     </attribute>
+                     <attribute>
+                        <name>inLibrary</name>
+                        <value>score</value>
+                     </attribute>
+                  </node>
+                  <node>
+                     <name>Tonic-clonic-motor-onset-seizure</name>
+                     <description>Replaced by Tonic-clonic-motor-seizure.</description>
+                     <attribute>
+                        <name>deprecatedFrom</name>
+                        <value>1.0.0</value>
+                     </attribute>
+                     <attribute>
+                        <name>inLibrary</name>
+                        <value>score</value>
+                     </attribute>
+                  </node>
+                  <node>
+                     <name>Automatism-motor-onset-seizure</name>
+                     <description>Replaced by TAutomatism-motor-seizure.</description>
+                     <attribute>
+                        <name>deprecatedFrom</name>
+                        <value>1.0.0</value>
+                     </attribute>
+                     <attribute>
+                        <name>inLibrary</name>
+                        <value>score</value>
+                     </attribute>
+                  </node>
+                  <node>
+                     <name>Hyperkinetic-motor-onset-seizure</name>
+                     <description>Hyperkinetic-motor-seizure.</description>
+                     <attribute>
+                        <name>deprecatedFrom</name>
+                        <value>1.0.0</value>
+                     </attribute>
                      <attribute>
                         <name>inLibrary</name>
                         <value>score</value>
@@ -15937,7 +15948,7 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
          </node>
          <node>
             <name>Saw-tooth-waves</name>
-            <description>Vertex negative 2-5 Hz waves occuring in series during REM sleep</description>
+            <description>Vertex negative 2-5 Hz waves occurring in series during REM sleep</description>
             <attribute>
                <name>suggestedTag</name>
                <value>Finding-significance-to-recording</value>
@@ -15953,7 +15964,7 @@ For more information see https://hed-schema-library.readthedocs.io/en/latest/ind
          </node>
          <node>
             <name>POSTS</name>
-            <description>Positive occipital sharp transients of sleep. Sharp transient maximal over the occipital regions, positive relative to other areas, apparently occurring spontaneously during sleep. May be single or repetitive. Amplitude varies but is generally bellow 50 microV.</description>
+            <description>Positive occipital sharp transients of sleep. Sharp transient maximal over the occipital regions, positive relative to other areas, apparently occurring spontaneously during sleep. May be single or repetitive. Amplitude varies but is generally below 50 microV.</description>
             <attribute>
                <name>suggestedTag</name>
                <value>Finding-significance-to-recording</value>

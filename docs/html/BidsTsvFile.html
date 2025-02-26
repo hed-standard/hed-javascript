@@ -21,7 +21,7 @@
         <header>
           <h2>
             <span class="attribs"><span class="type-signature"></span></span>BidsTsvFile<span class="signature"
-              >(name, {{headers:, file, potentialSidecars, mergedDictionary, defManager)</span
+              >(name, file, tsvData, mergedDictionary, defManager)</span
             ><span class="type-signature"></span>
           </h2>
 
@@ -34,7 +34,7 @@
 
             <h4 class="name" id="BidsTsvFile">
               <span class="type-signature"></span>new BidsTsvFile<span class="signature"
-                >(name, {{headers:, file, potentialSidecars, mergedDictionary, defManager)</span
+                >(name, file, tsvData, mergedDictionary, defManager)</span
               ><span class="type-signature"></span>
             </h4>
 
@@ -65,40 +65,36 @@
                 </tr>
 
                 <tr>
-                  <td class="name"><code>{{headers:</code></td>
-
-                  <td class="type"></td>
-
-                  <td class="description last">
-                    string[], rows: string[][]|Map[]|string} tsvData This file's TSV data.
-                  </td>
-                </tr>
-
-                <tr>
                   <td class="name"><code>file</code></td>
 
                   <td class="type">
-                    <span class="param-type">object</span>
+                    <span class="param-type">Object</span>
                   </td>
 
                   <td class="description last">The file object representing this file.</td>
                 </tr>
 
                 <tr>
-                  <td class="name"><code>potentialSidecars</code></td>
+                  <td class="name"><code>tsvData</code></td>
 
                   <td class="type">
-                    <span class="param-type">Array.&lt;string></span>
+                    <span class="param-type">Object</span>
+                    |
+
+                    <span class="param-type">Map</span>
+                    |
+
+                    <span class="param-type">string</span>
                   </td>
 
-                  <td class="description last">The list of potential JSON sidecars.</td>
+                  <td class="description last">This file's TSV data.</td>
                 </tr>
 
                 <tr>
                   <td class="name"><code>mergedDictionary</code></td>
 
                   <td class="type">
-                    <span class="param-type">object</span>
+                    <span class="param-type">Object</span>
                   </td>
 
                   <td class="description last">The merged bidsFile data.</td>
@@ -111,7 +107,7 @@
                     <span class="param-type"><a href="DefinitionManager.html">DefinitionManager</a></span>
                   </td>
 
-                  <td class="description last"></td>
+                  <td class="description last">The definition manager for this file.</td>
                 </tr>
               </tbody>
             </table>
@@ -126,13 +122,6 @@
                   </li>
                 </ul>
               </dd>
-
-              <dt class="tag-todo">To Do:</dt>
-              <dd class="tag-todo">
-                <ul>
-                  <li>This interface is provisional and subject to modification in version 4.0.0.</li>
-                </ul>
-              </dd>
             </dl>
           </div>
 
@@ -144,6 +133,24 @@
           </dl>
 
           <h3 class="subsection-title">Members</h3>
+
+          <h4 class="name" id="hasHedData">
+            <span class="type-signature"></span>hasHedData<span class="type-signature"></span>
+          </h4>
+
+          <div class="description">Determine whether this file has any HED data.</div>
+
+          <dl class="details">
+            <dt class="tag-source">Source:</dt>
+            <dd class="tag-source">
+              <ul class="dummy">
+                <li>
+                  <a href="bids_types_tsv.js.html">bids/types/tsv.js</a>,
+                  <a href="bids_types_tsv.js.html#line70">line 70</a>
+                </li>
+              </ul>
+            </dd>
+          </dl>
 
           <h4 class="name" id="hedColumnHedStrings">
             <span class="type-signature"></span>hedColumnHedStrings<span class="type-signature">
@@ -184,7 +191,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_types_tsv.js.html">bids/types/tsv.js</a>,
-                  <a href="bids_types_tsv.js.html#line89">line 89</a>
+                  <a href="bids_types_tsv.js.html#line79">line 79</a>
                 </li>
               </ul>
             </dd>
@@ -211,14 +218,16 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_types_tsv.js.html">bids/types/tsv.js</a>,
-                  <a href="bids_types_tsv.js.html#line32">line 32</a>
+                  <a href="bids_types_tsv.js.html#line28">line 28</a>
                 </li>
               </ul>
             </dd>
           </dl>
 
           <h4 class="name" id="parsedTsv">
-            <span class="type-signature"></span>parsedTsv<span class="type-signature"> :Array.&lt;Map></span>
+            <span class="type-signature"></span>parsedTsv<span class="type-signature">
+              :Map.&lt;string, Array.&lt;string>></span
+            >
           </h4>
 
           <div class="description">This file's parsed TSV data.</div>
@@ -226,7 +235,7 @@
           <h5>Type:</h5>
           <ul>
             <li>
-              <span class="param-type">Array.&lt;Map></span>
+              <span class="param-type">Map.&lt;string, Array.&lt;string>></span>
             </li>
           </ul>
 
@@ -239,68 +248,6 @@
                   <a href="bids_types_tsv.js.html#line17">line 17</a>
                 </li>
               </ul>
-            </dd>
-          </dl>
-
-          <h4 class="name" id="potentialSidecars">
-            <span class="type-signature"></span>potentialSidecars<span class="type-signature"> :Array.&lt;string></span>
-          </h4>
-
-          <div class="description">The list of potential JSON sidecars.</div>
-
-          <h5>Type:</h5>
-          <ul>
-            <li>
-              <span class="param-type">Array.&lt;string></span>
-            </li>
-          </ul>
-
-          <dl class="details">
-            <dt class="tag-source">Source:</dt>
-            <dd class="tag-source">
-              <ul class="dummy">
-                <li>
-                  <a href="bids_types_tsv.js.html">bids/types/tsv.js</a>,
-                  <a href="bids_types_tsv.js.html#line27">line 27</a>
-                </li>
-              </ul>
-            </dd>
-          </dl>
-
-          <h3 class="subsection-title">Methods</h3>
-
-          <h4 class="name" id="hasHedData">
-            <span class="type-signature"></span>hasHedData<span class="signature">()</span
-            ><span class="type-signature"> &rarr; {boolean}</span>
-          </h4>
-
-          <div class="description">Determine whether this file has any HED data.</div>
-
-          <dl class="details">
-            <dt class="tag-source">Source:</dt>
-            <dd class="tag-source">
-              <ul class="dummy">
-                <li>
-                  <a href="bids_types_tsv.js.html">bids/types/tsv.js</a>,
-                  <a href="bids_types_tsv.js.html#line80">line 80</a>
-                </li>
-              </ul>
-            </dd>
-
-            <dt class="tag-todo">To Do:</dt>
-            <dd class="tag-todo">
-              <ul>
-                <li>To be replaced with property in version 4.0.0.</li>
-              </ul>
-            </dd>
-          </dl>
-
-          <h5>Returns:</h5>
-
-          <dl>
-            <dt>Type</dt>
-            <dd>
-              <span class="param-type">boolean</span>
             </dd>
           </dl>
         </article>
@@ -330,6 +277,7 @@
         <li><a href="HedStringParser.html">HedStringParser</a></li>
         <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
         <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
         <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
         <li><a href="ParsedHedString.html">ParsedHedString</a></li>
         <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
@@ -390,7 +338,6 @@
         <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
         <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
         <li><a href="global.html#getTagName">getTagName</a></li>
@@ -400,6 +347,8 @@
         <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
         <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
         <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
         <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
@@ -409,7 +358,7 @@
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parse</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>
@@ -443,7 +392,7 @@
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 11:13:20
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
       GMT-0600 (Central Standard Time)
     </footer>
 

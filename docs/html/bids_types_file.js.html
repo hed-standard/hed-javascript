@@ -31,11 +31,13 @@ export class BidsFile {
    * @type {string}
    */
   name
+
   /**
-   * The file object representing this file data.
-   * This is used to generate {@link BidsIssue} objects.
-   * @type {object}
+   * The Object representing this file data.
+   * This is used to generate {@link BidsHedIssue} objects.
+   * @type {Object}
    */
+
   file
   /**
    * The validator class used to validate this file.
@@ -46,8 +48,8 @@ export class BidsFile {
   /**
    *
    * @param {string} name - The name of the file -- used for messages.
-   * @param {object} file - The representation of the file for error messages.
-   * @param validatorClass
+   * @param {Object} file - The representation of the file for error messages.
+   * @param {BidsValidator} validatorClass - The validator class corresponding to this file.
    */
   constructor(name, file, validatorClass) {
     this.name = name
@@ -55,12 +57,22 @@ export class BidsFile {
     this._validatorClass = validatorClass
   }
 
+  // /**
+  //  * Parse this bidsFile's HED strings within the bidsFile structure.
+  //  *
+  //  * @param {Schemas} hedSchemas - The HED schema collection.
+  //  * @returns {Array} [Issue[], Issue[]] Any errors and warnings found
+  //  */
+  // parseHed(hedSchemas) {
+  //   return [[], []]
+  // }
+
   /**
-   * Determine whether this file has any HED data.
+   * Whether this is a TSV file timeline file.
    *
-   * @returns {boolean} - True if this file has HED data.
+   * @returns {boolean}
    */
-  hasHedData() {
+  get isTimelineFile() {
     return false
   }
 
@@ -68,32 +80,46 @@ export class BidsFile {
    * Validate this validator's tsv file.
    *
    * @param {Schemas} schemas - The HED schemas used to validate this file.
-   * @returns {BidsIssue[]} - Any issues found during validation of this TSV file.
+   * @returns {BidsHedIssue[]} - Any issues found during validation of this TSV file.
    */
   validate(schemas) {
-    if (!this.hasHedData()) {
+    if (!this.hasHedData) {
       return []
     }
     if (!schemas) {
-      BidsHedIssue.fromHedIssue(
-        generateIssue('genericError', {
-          message: 'BIDS file HED validation requires a HED schema, but the schema received was null.',
-        }),
-        { path: this.file.file, relativePath: this.file.file },
-      )
+      return [
+        BidsHedIssue.fromHedIssue(
+          generateIssue('missingSchemaSpecification', {
+            message: 'No valid HED schema specification was supplied.',
+          }),
+          { path: this.file.file, relativePath: this.file.file },
+        ),
+      ]
     }
 
     try {
       const validator = new this.validatorClass(this, schemas)
-      return validator.validate()
-    } catch (internalError) {
-      return BidsHedIssue.fromHedIssues(internalError, this.file)
+      validator.validate()
+      return [...validator.errors, ...validator.warnings]
+    } catch (error) {
+      // The low-level parsing throws exceptions with the issue encapsulated.
+      return BidsHedIssue.fromHedIssues(error, this.file)
     }
   }
 
   /**
+   * Determine whether this file has any HED data.
+   *
+   * @returns {boolean}
+   */
+  get hasHedData() {
+    return false
+  }
+
+  /**
    * The validator class used to validate this file.
-   * @returns {*}
+   *
+   * @returns {function} (typeof BidsValidator) A subclass constructor of {@link BidsValidator}.
    */
   get validatorClass() {
     return this._validatorClass
@@ -127,6 +153,7 @@ export class BidsFile {
         <li><a href="HedStringParser.html">HedStringParser</a></li>
         <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
         <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
         <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
         <li><a href="ParsedHedString.html">ParsedHedString</a></li>
         <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
@@ -187,7 +214,6 @@ export class BidsFile {
         <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
         <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
         <li><a href="global.html#getTagName">getTagName</a></li>
@@ -197,6 +223,8 @@ export class BidsFile {
         <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
         <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
         <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
         <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
@@ -206,7 +234,7 @@ export class BidsFile {
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parse</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>
@@ -240,7 +268,7 @@ export class BidsFile {
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 11:13:20
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:11
       GMT-0600 (Central Standard Time)
     </footer>
 

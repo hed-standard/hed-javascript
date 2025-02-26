@@ -82,7 +82,7 @@
                 <ul class="dummy">
                   <li>
                     <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                    <a href="bids_validator_tsvValidator.js.html#line266">line 266</a>
+                    <a href="bids_validator_tsvValidator.js.html#line287">line 287</a>
                   </li>
                 </ul>
               </dd>
@@ -119,7 +119,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line282">line 282</a>
+                  <a href="bids_validator_tsvValidator.js.html#line303">line 303</a>
                 </li>
               </ul>
             </dd>
@@ -146,7 +146,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line277">line 277</a>
+                  <a href="bids_validator_tsvValidator.js.html#line298">line 298</a>
                 </li>
               </ul>
             </dd>
@@ -156,7 +156,7 @@
 
           <h4 class="name" id="_parseElementStrings">
             <span class="type-signature"></span>_parseElementStrings<span class="signature">(elements)</span
-            ><span class="type-signature"> &rarr; {Array.&lt;<a href="BidsHedIssue.html">BidsHedIssue</a>>}</span>
+            ><span class="type-signature"> &rarr; {Array}</span>
           </h4>
 
           <div class="description">Parse element HED strings.</div>
@@ -193,7 +193,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line313">line 313</a>
+                  <a href="bids_validator_tsvValidator.js.html#line334">line 334</a>
                 </li>
               </ul>
             </dd>
@@ -201,12 +201,14 @@
 
           <h5>Returns:</h5>
 
-          <div class="param-desc">- The issues resulting in creating the parsed HED strings.</div>
+          <div class="param-desc">
+            - [BidsHedIssue[], BidsHedIssue[]] The errors and warnings resulting in creating the parsed HED strings.
+          </div>
 
           <dl>
             <dt>Type</dt>
             <dd>
-              <span class="param-type">Array.&lt;<a href="BidsHedIssue.html">BidsHedIssue</a>></span>
+              <span class="param-type">Array</span>
             </dd>
           </dl>
 
@@ -223,7 +225,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line300">line 300</a>
+                  <a href="bids_validator_tsvValidator.js.html#line321">line 321</a>
                 </li>
               </ul>
             </dd>
@@ -231,7 +233,9 @@
 
           <h5>Returns:</h5>
 
-          <div class="param-desc">- Returns a two-element array [BidsTsvElement[], BidsHedIssue[]].</div>
+          <div class="param-desc">
+            - Returns a two-element array [BidsTsvElement[], BidsHedIssue[], BidsHedIssue[]].
+          </div>
 
           <dl>
             <dt>Type</dt>
@@ -281,7 +285,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line450">line 450</a>
+                  <a href="bids_validator_tsvValidator.js.html#line474">line 474</a>
                 </li>
               </ul>
             </dd>
@@ -313,6 +317,7 @@
         <li><a href="HedStringParser.html">HedStringParser</a></li>
         <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
         <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
         <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
         <li><a href="ParsedHedString.html">ParsedHedString</a></li>
         <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
@@ -373,7 +378,6 @@
         <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getGenerationForSchemaVersion">getGenerationForSchemaVersion</a></li>
         <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
         <li><a href="global.html#getTagName">getTagName</a></li>
@@ -383,6 +387,8 @@
         <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
         <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
         <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
         <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
@@ -392,7 +398,7 @@
         <li><a href="global.html#localSchemaList">localSchemaList</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
-        <li><a href="global.html#parseHedString">parse</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
         <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
         <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
         <li><a href="global.html#parseTSV">parseTSV</a></li>
@@ -426,7 +432,7 @@
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sat Feb 08 2025 11:13:20
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
       GMT-0600 (Central Standard Time)
     </footer>
 
