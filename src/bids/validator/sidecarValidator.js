@@ -9,13 +9,20 @@ import { BidsValidator } from './validator'
  */
 export class BidsHedSidecarValidator extends BidsValidator {
   /**
+   * The BIDS sidecar being validated.
+   * @type {BidsSidecar}
+   */
+  sidecar
+
+  /**
    * Constructor for the BidsHedSidecarValidator.
    *
    * @param {BidsSidecar} sidecar - The BIDS bidsFile being validated.
    * @param {Schemas} hedSchemas - The schemas used for the sidecar validation.
    */
   constructor(sidecar, hedSchemas) {
-    super(sidecar, hedSchemas)
+    super(hedSchemas)
+    this.sidecar = sidecar
   }
 
   /**
@@ -24,9 +31,9 @@ export class BidsHedSidecarValidator extends BidsValidator {
    */
   validate() {
     // Allow schema to be set a validation time -- this is checked by the superclass of BIDS file
-    const [errorIssues, warningIssues] = this.bidsFile.parseHed(this.hedSchemas)
-    this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.bidsFile.file))
-    this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.bidsFile.file))
+    const [errorIssues, warningIssues] = this.sidecar.parseHed(this.hedSchemas)
+    this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.sidecar.file))
+    this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.sidecar.file))
     if (errorIssues.length > 0) {
       return
     }
@@ -42,7 +49,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
   _validateStrings() {
     const issues = []
 
-    for (const [sidecarKeyName, hedData] of this.bidsFile.parsedHedData) {
+    for (const [sidecarKeyName, hedData] of this.sidecar.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
         // Value options have HED as string.
         issues.push(...this._checkDetails(sidecarKeyName, hedData))
@@ -82,29 +89,29 @@ export class BidsHedSidecarValidator extends BidsValidator {
    * @private
    */
   _checkDefs(sidecarKeyName, hedString, placeholdersAllowed) {
-    let issues = this.bidsFile.definitions.validateDefs(hedString, this.hedSchemas, placeholdersAllowed)
+    let issues = this.sidecar.definitions.validateDefs(hedString, this.hedSchemas, placeholdersAllowed)
     if (issues.length > 0) {
-      return BidsHedIssue.fromHedIssues(issues, this.bidsFile.file, { sidecarKeyName: sidecarKeyName })
+      return BidsHedIssue.fromHedIssues(issues, this.sidecar.file, { sidecarKeyName: sidecarKeyName })
     }
-    issues = this.bidsFile.definitions.validateDefExpands(hedString, this.hedSchemas, placeholdersAllowed)
-    return BidsHedIssue.fromHedIssues(issues, this.bidsFile.file, { sidecarKeyName: sidecarKeyName })
+    issues = this.sidecar.definitions.validateDefExpands(hedString, this.hedSchemas, placeholdersAllowed)
+    return BidsHedIssue.fromHedIssues(issues, this.sidecar.file, { sidecarKeyName: sidecarKeyName })
   }
 
   _checkPlaceholders(sidecarKeyName, hedString) {
     const numberPlaceholders = getCharacterCount(hedString.hedString, '#')
-    const sidecarKey = this.bidsFile.sidecarKeys.get(sidecarKeyName)
+    const sidecarKey = this.sidecar.sidecarKeys.get(sidecarKeyName)
     if (!sidecarKey.valueString && !sidecarKey.hasDefinitions && numberPlaceholders > 0) {
       return [
         BidsHedIssue.fromHedIssue(
           generateIssue('invalidSidecarPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
-          this.bidsFile.file,
+          this.sidecar.file,
         ),
       ]
     } else if (sidecarKey.valueString && numberPlaceholders === 0) {
       return [
         BidsHedIssue.fromHedIssue(
           generateIssue('missingPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
-          this.bidsFile.file,
+          this.sidecar.file,
         ),
       ]
     }
@@ -112,7 +119,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
       return [
         BidsHedIssue.fromHedIssue(
           generateIssue('invalidSidecarPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
-          this.bidsFile.file,
+          this.sidecar.file,
         ),
       ]
     }
@@ -126,7 +133,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
    */
   _validateCurlyBraces() {
     const issues = []
-    const references = this.bidsFile.columnSpliceMapping
+    const references = this.sidecar.columnSpliceMapping
 
     for (const [key, referredKeys] of references) {
       for (const referredKey of referredKeys) {
@@ -134,15 +141,15 @@ export class BidsHedSidecarValidator extends BidsValidator {
           issues.push(
             BidsHedIssue.fromHedIssue(
               generateIssue('recursiveCurlyBracesWithKey', { column: referredKey, referrer: key }),
-              this.bidsFile.file,
+              this.sidecar.file,
             ),
           )
         }
-        if (!this.bidsFile.parsedHedData.has(referredKey) && referredKey !== 'HED') {
+        if (!this.sidecar.parsedHedData.has(referredKey) && referredKey !== 'HED') {
           issues.push(
             BidsHedIssue.fromHedIssue(
               generateIssue('undefinedCurlyBraces', { column: referredKey }),
-              this.bidsFile.file,
+              this.sidecar.file,
             ),
           )
         }

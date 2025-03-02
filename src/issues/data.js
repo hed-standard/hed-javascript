@@ -478,9 +478,15 @@ export default {
     level: 'error',
     message: stringTemplate`The key 'HED' was illegally used within a non-HED sidecar column.`,
   },
+  // Internal errors
   internalError: {
     hedCode: 'INTERNAL_ERROR',
     level: 'error',
     message: stringTemplate`Internal error - message: "${'message'}".`,
+  },
+  genericError: {
+    hedCode: 'INTERNAL_ERROR',
+    level: 'error',
+    message: stringTemplate`Unknown HED error "${'internalCode'}" - parameters: "${'parameters'}".`,
   },
 }

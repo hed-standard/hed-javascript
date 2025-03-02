@@ -42,16 +42,16 @@ const buildSchemaObjects = function (xmlData) {
  * @returns {Promise<Schemas>} The schema container object and any issues found.
  */
 export async function buildSchemas(schemaSpecs) {
-  const schemaKeys = Array.from(schemaSpecs.data.keys())
+  const schemaPrefixes = Array.from(schemaSpecs.data.keys())
   /* Data format example:
    * [[xmlData, ...], [xmlData, xmlData, ...], ...] */
   const schemaXmlData = await Promise.all(
-    schemaKeys.map((k) => {
-      const specs = schemaSpecs.data.get(k)
+    schemaPrefixes.map((prefix) => {
+      const specs = schemaSpecs.data.get(prefix)
       return Promise.all(specs.map((spec) => loadSchema(spec)))
     }),
   )
   const schemaObjects = schemaXmlData.map(buildSchemaObjects)
-  const schemas = new Map(zip(schemaKeys, schemaObjects))
+  const schemas = new Map(zip(schemaPrefixes, schemaObjects))
   return new Schemas(schemas)
 }

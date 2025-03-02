@@ -15,6 +15,7 @@ export class BidsTsvFile extends BidsFile {
    * @type {Map<string, string[]>}
    */
   parsedTsv
+
   /**
    * HED strings in the "HED" column of the TSV data.
    * @type {string[]}

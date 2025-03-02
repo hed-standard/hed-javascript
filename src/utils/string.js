@@ -1,17 +1,4 @@
-import date from 'date-and-time'
-import { parseISO, isValid as dateIsValid } from 'date-fns'
-const rfc3339ish = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?$/
-const digitExpression = /^-?\d+(?:\.\d+)?(?:[Ee]-?\d+)?$/
-
-/**
- * Check if a string is empty or only whitespace.
- *
- * @param {string} string The string to check.
- * @returns {boolean} Whether the string is empty.
- */
-export const stringIsEmpty = function (string) {
-  return !string.trim()
-}
+/** String-related utility functions */
 
 /**
  * Get number of instances of an character in a string.
@@ -22,46 +9,6 @@ export const stringIsEmpty = function (string) {
  */
 export const getCharacterCount = function (string, characterToCount) {
   return string.split(characterToCount).length - 1
-}
-
-/**
- * Get a copy of a string with the first letter capitalized.
- *
- * @param {string} string The string to capitalize.
- * @returns {string} The capitalized string.
- */
-export const capitalizeString = function (string) {
-  return string.charAt(0).toUpperCase() + string.substring(1)
-}
-
-/**
- * Determine if a string is a valid clock face time.
- *
- * @param {string} timeString The string to check.
- * @returns {boolean} Whether the string is a valid clock face time.
- */
-export const isClockFaceTime = function (timeString) {
-  return date.isValid(timeString, 'HH:mm') || date.isValid(timeString, 'HH:mm:ss')
-}
-
-/**
- * Determine if a string is a valid date-time.
- *
- * @param {string} dateTimeString The string to check.
- * @returns {boolean} Whether the string is a valid date-time.
- */
-export const isDateTime = function (dateTimeString) {
-  return dateIsValid(parseISO(dateTimeString)) && rfc3339ish.test(dateTimeString)
-}
-
-/**
- * Determine if a string is a valid number.
- *
- * @param {string} numericString The string to check.
- * @returns {boolean} Whether the string is a valid number.
- */
-export const isNumber = function (numericString) {
-  return digitExpression.test(numericString)
 }
 
 /**

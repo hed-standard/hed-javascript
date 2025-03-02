@@ -3,11 +3,16 @@ import { generateIssue, IssueError } from '../issues/issues'
 import { getTagListString } from './parseUtils'
 
 export class ReservedChecker {
-  static instance = null
+  /**
+   * Singleton instance of ReservedChecker.
+   * @type {ReservedChecker}
+   * @private
+   */
+  static #instance = undefined
   static reservedMap = new Map(Object.entries(reservedTags))
 
   constructor() {
-    if (ReservedChecker.instance) {
+    if (ReservedChecker.#instance) {
       IssueError.generateAndThrowInternalError('Use ReservedChecker.getInstance() to get an instance of this class.')
     }
 
@@ -16,10 +21,10 @@ export class ReservedChecker {
 
   // Static method to control access to the singleton instance
   static getInstance() {
-    if (!ReservedChecker.instance) {
-      ReservedChecker.instance = new ReservedChecker()
+    if (!ReservedChecker.#instance) {
+      ReservedChecker.#instance = new ReservedChecker()
     }
-    return ReservedChecker.instance
+    return ReservedChecker.#instance
   }
 
   _initializeReservedTags() {

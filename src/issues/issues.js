@@ -48,7 +48,7 @@ export class IssueError extends Error {
    * @throws {IssueError} Corresponding to the generated internal error {@link Issue}.
    */
   static generateAndThrowInternalError(message = 'Unknown internal error') {
-    throw new IssueError(generateIssue('internalError', { message }))
+    IssueError.generateAndThrow('internalError', { message })
   }
 }
 
@@ -61,7 +61,6 @@ export class Issue {
    * @type {string}
    */
   internalCode
-
   /**
    * The HED 3 error code.
    * @type {string}
@@ -96,15 +95,6 @@ export class Issue {
     this.level = level
     this.parameters = parameters
     this.generateMessage()
-  }
-
-  /**
-   * Whether this issue is an error.
-   *
-   * @returns {boolean}
-   */
-  get isError() {
-    return this.level === 'error'
   }
 
   /**
@@ -144,16 +134,6 @@ export class Issue {
 
     this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${message} (${hedSpecLink}.)`
   }
-
-  /**
-   * Return a tuple with a boolean denoting overall validity and all issues.
-   *
-   * @param {Issue[]} issues A list of issues.
-   * @returns {Array} Returns [boolean, Issue[]] indicate if validation succeeded (i.e. any errors were found)and all issues (both errors and warnings).
-   */
-  static issueListWithValidStatus(issues) {
-    return [!issues.some((issue) => issue.isError), issues]
-  }
 }
 
 /**
@@ -164,9 +144,9 @@ export class Issue {
  * @returns {Issue} An object representing the issue.
  */
 export const generateIssue = function (internalCode, parameters) {
-  const issueCodeData = issueData[internalCode] ?? issueData.internalError
+  const issueCodeData = issueData[internalCode] ?? issueData.genericError
   const { hedCode, level } = issueCodeData
-  if (issueCodeData === issueData.internalError) {
+  if (issueCodeData === issueData.genericError) {
     parameters.internalCode = internalCode
     parameters.parameters = 'Issue parameters: ' + JSON.stringify(parameters)
   }

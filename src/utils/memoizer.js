@@ -1,4 +1,4 @@
-/** Utility classes. **/
+/** Memoizer class. **/
 
 import { IssueError } from '../issues/issues'
 

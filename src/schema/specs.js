@@ -3,10 +3,10 @@
  */
 export class SchemaSpec {
   /**
-   * The nickname of this schema.
+   * The prefix of this schema.
    * @type {string}
    */
-  nickname
+  prefix
 
   /**
    * The version of this schema.
@@ -29,13 +29,13 @@ export class SchemaSpec {
   /**
    * Constructor.
    *
-   * @param {string} nickname The nickname of this schema.
+   * @param {string} prefix The prefix of this schema.
    * @param {string} version The version of this schema.
    * @param {string?} library The library name of this schema.
    * @param {string?} localPath The local path for this schema.
    */
-  constructor(nickname, version, library = '', localPath = '') {
-    this.nickname = nickname
+  constructor(prefix, version, library = '', localPath = '') {
+    this.prefix = prefix
     this.version = version
     this.library = library
     this.localPath = localPath
@@ -56,7 +56,7 @@ export class SchemaSpec {
 }
 
 /**
- * A specification mapping schema nicknames to SchemaSpec objects.
+ * A specification mapping schema prefixes to SchemaSpec objects.
  */
 export class SchemasSpec {
   /**
@@ -78,8 +78,8 @@ export class SchemasSpec {
    * @yields {Iterator} - [string, SchemaSpec[]]
    */
   *[Symbol.iterator]() {
-    for (const [key, value] of this.data.entries()) {
-      yield [key, value]
+    for (const [prefix, schemaSpecs] of this.data.entries()) {
+      yield [prefix, schemaSpecs]
     }
   }
 
@@ -90,10 +90,10 @@ export class SchemasSpec {
    * @returns {SchemasSpec| map} This object.
    */
   addSchemaSpec(schemaSpec) {
-    if (this.data.has(schemaSpec.nickname)) {
-      this.data.get(schemaSpec.nickname).push(schemaSpec)
+    if (this.data.has(schemaSpec.prefix)) {
+      this.data.get(schemaSpec.prefix).push(schemaSpec)
     } else {
-      this.data.set(schemaSpec.nickname, [schemaSpec])
+      this.data.set(schemaSpec.prefix, [schemaSpec])
     }
     return this
   }

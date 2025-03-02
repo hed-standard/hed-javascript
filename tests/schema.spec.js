@@ -35,7 +35,7 @@ describe('HED schemas', () => {
         const specs = new SchemasSpec().addSchemaSpec(spec1)
 
         const hedSchemas = await buildSchemas(specs)
-        const schema1 = hedSchemas.getSchema(spec1.nickname)
+        const schema1 = hedSchemas.getSchema(spec1.prefix)
 
         assert.strictEqual(schema1.version, spec1.version, 'Schema has wrong version number')
         assert.strictEqual(schema1.library, spec1.library, 'Schema has wrong library name')
@@ -48,9 +48,9 @@ describe('HED schemas', () => {
         const specs = new SchemasSpec().addSchemaSpec(spec1).addSchemaSpec(spec2).addSchemaSpec(spec3)
 
         const hedSchemas = await buildSchemas(specs)
-        const schema1 = hedSchemas.getSchema(spec1.nickname)
-        const schema2 = hedSchemas.getSchema(spec2.nickname)
-        const schema3 = hedSchemas.getSchema(spec3.nickname)
+        const schema1 = hedSchemas.getSchema(spec1.prefix)
+        const schema2 = hedSchemas.getSchema(spec2.prefix)
+        const schema3 = hedSchemas.getSchema(spec3.prefix)
 
         assert.strictEqual(schema1.version, spec1.version, 'Schema 1 has wrong version number')
         assert.strictEqual(schema1.library, spec1.library, 'Schema 1 has wrong library name')
@@ -70,7 +70,7 @@ describe('HED schemas', () => {
         const specs = new SchemasSpec().addSchemaSpec(spec1)
 
         const hedSchemas = await buildSchemas(specs)
-        const schema1 = hedSchemas.getSchema(spec1.nickname)
+        const schema1 = hedSchemas.getSchema(spec1.prefix)
 
         assert.strictEqual(schema1.version, spec1.version, 'Schema has wrong version number')
         assert.strictEqual(schema1.library, spec1.library, 'Schema has wrong library name')
