@@ -1,1 +1,3 @@
 npx pretty-quick --staged
+npm test
+npm run testSpecs
