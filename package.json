@@ -23,7 +23,7 @@
     "test": "jest --testPathIgnorePatterns=spec_tests",
     "testSpecs": "jest --silent --noStackTrace spec_tests/jsonTests.spec.js",
     "coverage": "jest --coverage",
-    "prepare": "husky install",
+    "prepare": "husky",
     "docs": "jsdoc -c jsdoc.conf.json"
   },
   "contributors": [
