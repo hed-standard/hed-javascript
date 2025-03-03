@@ -232,7 +232,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    */
   hasAttribute(attribute) {
     return this.schemaTag.hasAttribute(attribute)
-    //return this.schema?.tagHasAttribute(this.formattedTag, attribute)
   }
 
   /**

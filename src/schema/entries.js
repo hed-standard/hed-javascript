@@ -1,8 +1,8 @@
 import pluralize from 'pluralize'
-import Memoizer from '../utils/memoizer'
-import { IssueError } from '../issues/issues'
-
 pluralize.addUncountableRule('hertz')
+
+import { IssueError } from '../issues/issues'
+import Memoizer from '../utils/memoizer'
 
 /**
  * SchemaEntries class
@@ -40,7 +40,7 @@ export class SchemaEntries extends Memoizer {
 
   /**
    * The schema's tags.
-   * @type {SchemaTagManager}
+   * @type {SchemaEntryManager<SchemaTag>}
    */
   tags
 
@@ -56,50 +56,6 @@ export class SchemaEntries extends Memoizer {
     this.unitClasses = schemaParser.unitClasses
     this.unitModifiers = schemaParser.unitModifiers
     this.tags = schemaParser.tags
-  }
-
-  /**
-   * Get a map of all of this schema's units.
-   */
-  get allUnits() {
-    return this._memoize('allUnits', () => {
-      const units = []
-      for (const unitClass of this.unitClasses.values()) {
-        const unitClassUnits = unitClass.units
-        units.push(...unitClassUnits)
-      }
-      return new Map(units)
-    })
-  }
-
-  /**
-   * Get the schema's SI unit modifiers.
-   * @returns {Map} - string --> SchemaUnitModifier.
-   */
-  get SIUnitModifiers() {
-    return this.unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
-  }
-
-  /**
-   * Get the schema's SI unit symbol modifiers.
-   * @returns {Map} - string --> SchemaUnitSymbolModifier.
-   */
-  get SIUnitSymbolModifiers() {
-    return this.unitModifiers.getEntriesWithBooleanAttribute('SIUnitSymbolModifier')
-  }
-
-  /**
-   * Determine if a HED tag has a particular attribute in this schema.
-   *
-   * @param {string} tag The HED tag to check.
-   * @param {string} tagAttribute The attribute to check for.
-   * @returns {boolean} Whether this tag has this attribute.
-   */
-  tagHasAttribute(tag, tagAttribute) {
-    if (!this.tags.hasLongNameEntry(tag)) {
-      return false
-    }
-    return this.tags.getLongNameEntry(tag).hasAttribute(tagAttribute)
   }
 }
 
@@ -182,7 +138,7 @@ export class SchemaEntryManager extends Memoizer {
   getEntriesWithBooleanAttribute(booleanAttributeName) {
     return this._memoize(booleanAttributeName, () => {
       return this.filter(([, v]) => {
-        return v.hasAttribute(booleanAttributeName)
+        return v.hasBooleanAttribute(booleanAttributeName)
       })
     })
   }
@@ -222,60 +178,6 @@ export class SchemaEntryManager extends Memoizer {
 }
 
 /**
- * A manager of {@link SchemaTag} objects.
- *
- * @extends {SchemaEntryManager<SchemaTag>}
- */
-export class SchemaTagManager extends SchemaEntryManager {
-  /**
-   * The mapping of tags by long name.
-   * @type {Map<string, SchemaTag>}
-   */
-  _definitionsByLongName
-
-  /**
-   * Constructor.
-   *
-   * @param {Map<string, SchemaTag>} byShortName The mapping of tags by short name.
-   * @param {Map<string, SchemaTag>} byLongName The mapping of tags by long name.
-   */
-  constructor(byShortName, byLongName) {
-    super(byShortName)
-    this._definitionsByLongName = byLongName
-  }
-
-  /**
-   * Determine whether the tag with the given name exists.
-   *
-   * @param {string} longName - The long name of the tag.
-   * @returns {boolean} -True if the tag exists.
-   */
-  hasLongNameEntry(longName) {
-    return this._definitionsByLongName.has(longName)
-  }
-
-  /**
-   * Get the tag with the given name.
-   *
-   * @param {string} longName - The long name of the tag to retrieve.
-   * @returns {SchemaTag} - The tag with that name.
-   */
-  getLongNameEntry(longName) {
-    return this._definitionsByLongName.get(longName)
-  }
-
-  /**
-   * Filter the map underlying this manager using the long name.
-   *
-   * @param {function} fn - ([string, SchemaTag]): boolean specifying the filtering function.
-   * @returns {Map} - string --> SchemaTag representing the filtered map.
-   */
-  filterByLongName(fn) {
-    return SchemaEntryManager._filterDefinitionMap(this._definitionsByLongName, fn)
-  }
-}
-
-/**
  * SchemaEntry class
  */
 export class SchemaEntry extends Memoizer {
@@ -307,7 +209,7 @@ export class SchemaEntry extends Memoizer {
    * @returns {boolean} Whether this schema entry has this attribute.
    */
   // eslint-disable-next-line no-unused-vars
-  hasAttributeName(attributeName) {
+  hasBooleanAttribute(attributeName) {
     return false
   }
 }
@@ -373,11 +275,13 @@ export class SchemaAttribute extends SchemaEntry {
    * @type {Set<SchemaProperty>}
    */
   _categoryProperties
+
   /**
    * The data type of this schema attribute.
    * @type {SchemaProperty}
    */
   _typeProperty
+
   /**
    * The set of role properties for this schema attribute.
    * @type {Set<SchemaProperty>}
@@ -485,40 +389,30 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
   }
 
   /**
-   * Whether this schema entry has this attribute.
-   * @param {SchemaAttribute} attribute The attribute to check for.
-   * @returns {boolean} Whether this schema entry has this attribute.
-   */
-  hasAttribute(attribute) {
-    return this.booleanAttributeNames.has(attribute) || this.valueAttributeNames.has(attribute)
-  }
-
-  /**
-   * Retrieve the value of an attribute on this schema entry.
-   * @param {SchemaAttribute} attribute The attribute whose value should be returned.
-   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
-   * @returns {*} The value of the attribute.
-   */
-  getAttributeValue(attribute, alwaysReturnArray = false) {
-    return SchemaEntryWithAttributes._getMapArrayValue(this.valueAttributes, attribute, alwaysReturnArray)
-  }
-
-  /**
    * Whether this schema entry has this attribute (by name).
    * @param {string} attributeName The attribute to check for.
    * @returns {boolean} Whether this schema entry has this attribute.
    */
-  hasAttributeName(attributeName) {
+  hasAttribute(attributeName) {
+    return this.booleanAttributeNames.has(attributeName) || this.valueAttributeNames.has(attributeName)
+  }
+
+  /**
+   * Whether this schema entry has this boolean attribute (by name).
+   * @param {string} attributeName The attribute to check for.
+   * @returns {boolean} Whether this schema entry has this attribute.
+   */
+  hasBooleanAttribute(attributeName) {
     return this.booleanAttributeNames.has(attributeName)
   }
 
   /**
-   * Retrieve the value of an attribute (by name) on this schema entry.
+   * Retrieve the value of a value attribute (by name) on this schema entry.
    * @param {string} attributeName The attribute whose value should be returned.
    * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
    * @returns {*} The value of the attribute.
    */
-  getNamedAttributeValue(attributeName, alwaysReturnArray = false) {
+  getAttributeValue(attributeName, alwaysReturnArray = false) {
     return SchemaEntryWithAttributes._getMapArrayValue(this.valueAttributeNames, attributeName, alwaysReturnArray)
   }
 
@@ -669,7 +563,7 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
    * @returns {SchemaUnit}
    */
   get defaultUnit() {
-    return this._units.get(this.getNamedAttributeValue('defaultUnits'))
+    return this._units.get(this.getAttributeValue('defaultUnits'))
   }
 
   /**
@@ -702,15 +596,13 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
       } else if (!unit.isPrefixUnit) {
         continue
       }
-      if (!unit.validateUnit(firstPart)) {
-        // If it got here, can only be a prefix Unit
-        continue
-      } else {
+      if (unit.validateUnit(firstPart)) {
         actualUnit = unit
         actualValueString = value.substring(unit.name.length + 1)
         actualUnitString = unit.name
         break
       }
+      // If it got here, can only be a prefix Unit
     }
     return [actualUnit, actualUnitString, actualValueString]
   }
@@ -722,14 +614,6 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
 export class SchemaUnitModifier extends SchemaEntryWithAttributes {
   constructor(name, booleanAttributes, valueAttributes) {
     super(name, booleanAttributes, valueAttributes)
-  }
-
-  get isSIUnitModifier() {
-    return this.hasAttribute('SIUnitModifier')
-  }
-
-  get isSIUnitSymbolModifier() {
-    return this.hasAttribute('SIUnitSymbolModifier')
   }
 }
 

@@ -11,12 +11,17 @@ export default class HedStringSplitter {
    * @type {string}
    */
   hedString
+
   /**
    * The collection of HED schemas.
    * @type {Schemas}
    */
   hedSchemas
 
+  /**
+   * Any issues found.
+   * @type {Issue[]}
+   */
   issues
 
   /**

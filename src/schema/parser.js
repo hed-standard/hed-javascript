@@ -15,7 +15,6 @@ import {
   SchemaEntryManager,
   SchemaProperty,
   SchemaTag,
-  SchemaTagManager,
   SchemaUnit,
   SchemaUnitClass,
   SchemaUnitModifier,
@@ -34,35 +33,46 @@ export default class SchemaParser {
    * @type {Object}
    */
   rootElement
+
   /**
    * @type {Map<string, SchemaProperty>}
    */
   properties
+
   /**
    * @type {Map<string, SchemaAttribute>}
    */
   attributes
+
   /**
    * The schema's value classes.
    * @type {SchemaEntryManager<SchemaValueClass>}
    */
   valueClasses
+
   /**
    * The schema's unit classes.
    * @type {SchemaEntryManager<SchemaUnitClass>}
    */
   unitClasses
+
   /**
    * The schema's unit modifiers.
    * @type {SchemaEntryManager<SchemaUnitModifier>}
    */
   unitModifiers
+
   /**
    * The schema's tags.
-   * @type {SchemaTagManager}
+   * @type {SchemaEntryManager<SchemaTag>}
    */
   tags
 
+  /**
+   * Constructor.
+   *
+   * @param {Object} rootElement The root XML element.
+   */
   constructor(rootElement) {
     this.rootElement = rootElement
     this._versionDefinitions = {
@@ -294,12 +304,7 @@ export default class SchemaParser {
 
     this._injectTagFields(tags, shortTags, tagEntries)
 
-    const longNameTagEntries = new Map()
-    for (const tag of tagEntries.values()) {
-      longNameTagEntries.set(lc(tag.longName), tag)
-    }
-
-    this.tags = new SchemaTagManager(tagEntries, longNameTagEntries)
+    this.tags = new SchemaEntryManager(tagEntries)
   }
 
   /**

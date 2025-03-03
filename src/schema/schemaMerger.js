@@ -1,6 +1,6 @@
 import { IssueError } from '../issues/issues'
 import { SchemaTag, SchemaValueTag } from './entries'
-import { PartneredSchema } from './containers'
+import { PartneredSchema, Schema } from './containers'
 
 export default class PartneredSchemaMerger {
   /**
@@ -8,11 +8,13 @@ export default class PartneredSchemaMerger {
    * @type {Schema[]}
    */
   sourceSchemas
+
   /**
    * The current source of data to be merged.
    * @type {Schema}
    */
   currentSource
+
   /**
    * The destination of data to be merged.
    * @type {PartneredSchema}
@@ -61,7 +63,7 @@ export default class PartneredSchemaMerger {
   /**
    * The source schema's tag collection.
    *
-   * @return {SchemaTagManager}
+   * @return {SchemaEntryManager<SchemaTag>}
    */
   get sourceTags() {
     return this.currentSource.entries.tags
@@ -70,7 +72,7 @@ export default class PartneredSchemaMerger {
   /**
    * The destination schema's tag collection.
    *
-   * @returns {SchemaTagManager}
+   * @returns {SchemaEntryManager<SchemaTag>}
    */
   get destinationTags() {
     return this.destination.entries.tags
@@ -101,7 +103,7 @@ export default class PartneredSchemaMerger {
    * @private
    */
   _mergeTag(tag) {
-    if (!tag.getNamedAttributeValue('inLibrary')) {
+    if (!tag.getAttributeValue('inLibrary')) {
       return
     }
 
@@ -110,7 +112,7 @@ export default class PartneredSchemaMerger {
       IssueError.generateAndThrow('lazyPartneredSchemasShareTag', { tag: shortName })
     }
 
-    const rootedTagShortName = tag.getNamedAttributeValue('rooted')
+    const rootedTagShortName = tag.getAttributeValue('rooted')
     if (rootedTagShortName) {
       const parentTag = tag.parent
       if (parentTag?.name?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
@@ -160,6 +162,5 @@ export default class PartneredSchemaMerger {
     }
 
     this.destinationTags._definitions.set(newTag.name.toLowerCase(), newTag)
-    this.destinationTags._definitionsByLongName.set(newTag.longName.toLowerCase(), newTag)
   }
 }

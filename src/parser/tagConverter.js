@@ -38,7 +38,7 @@ export default class TagConverter {
 
   /**
    * The entry manager for the tags in the active schema.
-   * @type {SchemaTagManager}
+   * @type {SchemaEntryManager<SchemaTag>}
    */
   tagMapping
 
