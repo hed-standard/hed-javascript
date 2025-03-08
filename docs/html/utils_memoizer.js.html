@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>JSDoc: Source: utils/memoizer.js</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css" />
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css" />
+  </head>
+
+  <body>
+    <div id="main">
+      <h1 class="page-title">Source: utils/memoizer.js</h1>
+
+      <section>
+        <article>
+          <pre class="prettyprint source linenums"><code>/** Utility classes. **/
+
+import { IssueError } from '../issues/issues'
+
+/**
+ * Superclass for property memoization until we can get away with private fields.
+ */
+export default class Memoizer {
+  /**
+   * Map containing memoized properties (string --> any).
+   *
+   * @type {Map}
+   * @private
+   */
+  _memoizedProperties
+
+  /**
+   * Constructor.
+   */
+  constructor() {
+    this._memoizedProperties = new Map()
+  }
+
+  /**
+   * Memoize a property.
+   *
+   * @template T
+   * @param {string} propertyName The property name.
+   * @param {function() : T} valueComputer A function to compute the property's value.
+   * @returns {T} The computed value.
+   * @protected
+   */
+  _memoize(propertyName, valueComputer) {
+    if (!propertyName) {
+      IssueError.generateAndThrowInternalError('Invalid property name in Memoizer subclass.')
+    }
+    if (this._memoizedProperties.has(propertyName)) {
+      return this._memoizedProperties.get(propertyName)
+    }
+    const value = valueComputer()
+    this._memoizedProperties.set(propertyName, value)
+    return value
+  }
+}
+</code></pre>
+        </article>
+      </section>
+    </div>
+
+    <nav>
+      <h2><a href="index.html">Home</a></h2>
+      <h3>Classes</h3>
+      <ul>
+        <li><a href="BidsFile.html">BidsFile</a></li>
+        <li><a href="BidsHedIssue_BidsHedIssue.html">BidsHedIssue</a></li>
+        <li><a href="BidsHedSidecarValidator.html">BidsHedSidecarValidator</a></li>
+        <li><a href="BidsHedTsvParser.html">BidsHedTsvParser</a></li>
+        <li><a href="BidsHedTsvValidator.html">BidsHedTsvValidator</a></li>
+        <li><a href="BidsJsonFile.html">BidsJsonFile</a></li>
+        <li><a href="BidsSidecar_BidsSidecar.html">BidsSidecar</a></li>
+        <li><a href="BidsSidecarKey_BidsSidecarKey.html">BidsSidecarKey</a></li>
+        <li><a href="BidsTsvElement_BidsTsvElement.html">BidsTsvElement</a></li>
+        <li><a href="BidsTsvFile.html">BidsTsvFile</a></li>
+        <li><a href="BidsTsvRow.html">BidsTsvRow</a></li>
+        <li><a href="BidsValidator.html">BidsValidator</a></li>
+        <li><a href="ColumnSpliceSpec.html">ColumnSpliceSpec</a></li>
+        <li><a href="Definition_Definition.html">Definition</a></li>
+        <li><a href="DefinitionChecker_DefinitionChecker.html">DefinitionChecker</a></li>
+        <li><a href="GroupSpec.html">GroupSpec</a></li>
+        <li><a href="HedStringParser.html">HedStringParser</a></li>
+        <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
+        <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
+        <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
+        <li><a href="ParsedHedString.html">ParsedHedString</a></li>
+        <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
+        <li><a href="PartneredSchema.html">PartneredSchema</a></li>
+        <li><a href="Schema.html">Schema</a></li>
+        <li><a href="SchemaAttribute.html">SchemaAttribute</a></li>
+        <li><a href="SchemaEntries.html">SchemaEntries</a></li>
+        <li><a href="SchemaEntry.html">SchemaEntry</a></li>
+        <li><a href="SchemaEntryManager.html">SchemaEntryManager</a></li>
+        <li><a href="SchemaEntryWithAttributes.html">SchemaEntryWithAttributes</a></li>
+        <li><a href="SchemaProperty.html">SchemaProperty</a></li>
+        <li><a href="SchemaSpec.html">SchemaSpec</a></li>
+        <li><a href="SchemaTag.html">SchemaTag</a></li>
+        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
+        <li><a href="SchemaUnit.html">SchemaUnit</a></li>
+        <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
+        <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
+        <li><a href="SchemaValueClass.html">SchemaValueClass</a></li>
+        <li><a href="SchemaValueTag.html">SchemaValueTag</a></li>
+        <li><a href="Schemas.html">Schemas</a></li>
+        <li><a href="SchemasSpec.html">SchemasSpec</a></li>
+        <li><a href="SubstringSpec.html">SubstringSpec</a></li>
+        <li><a href="TagSpec.html">TagSpec</a></li>
+        <li><a href="module.html#.exports">exports</a></li>
+        <li><a href="module.exports_module.exports.html">exports</a></li>
+      </ul>
+      <h3>Global</h3>
+      <ul>
+        <li><a href="global.html#_convertTag">_convertTag</a></li>
+        <li><a href="global.html#_createParsedGroups">_createParsedGroups</a></li>
+        <li><a href="global.html#_createParsedTags">_createParsedTags</a></li>
+        <li><a href="global.html#_getSplitValue">_getSplitValue</a></li>
+        <li><a href="global.html#_handleIssueError">_handleIssueError</a></li>
+        <li><a href="global.html#_memoize">_memoize</a></li>
+        <li><a href="global.html#_separateUnits">_separateUnits</a></li>
+        <li><a href="global.html#buildBidsSchemas">buildBidsSchemas</a></li>
+        <li><a href="global.html#buildSchemaObject">buildSchemaObject</a></li>
+        <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
+        <li><a href="global.html#buildSchemas">buildSchemas</a></li>
+        <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
+        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
+        <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
+        <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
+        <li><a href="global.html#convert">convert</a></li>
+        <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
+        <li><a href="global.html#destinationTags">destinationTags</a></li>
+        <li><a href="global.html#equivalent">equivalent</a></li>
+        <li><a href="global.html#filterByClass">filterByClass</a></li>
+        <li><a href="global.html#filterByTagName">filterByTagName</a></li>
+        <li><a href="global.html#filterTagMapByNames">filterTagMapByNames</a></li>
+        <li><a href="global.html#find">find</a></li>
+        <li><a href="global.html#format">format</a></li>
+        <li><a href="global.html#generateIssue">generateIssue</a></li>
+        <li><a href="global.html#getAllTags">getAllTags</a></li>
+        <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
+        <li><a href="global.html#getDuplicates">getDuplicates</a></li>
+        <li><a href="global.html#getElementCount">getElementCount</a></li>
+        <li><a href="global.html#getElementTagName">getElementTagName</a></li>
+        <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
+        <li><a href="global.html#getParentTag">getParentTag</a></li>
+        <li><a href="global.html#getTagListString">getTagListString</a></li>
+        <li><a href="global.html#getTagName">getTagName</a></li>
+        <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
+        <li><a href="global.html#hasAttribute">hasAttribute</a></li>
+        <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
+        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
+        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
+        <li><a href="global.html#isDateTime">isDateTime</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
+        <li><a href="global.html#isNumber">isNumber</a></li>
+        <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
+        <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
+        <li><a href="global.html#loadPromise">loadPromise</a></li>
+        <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
+        <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
+        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
+        <li><a href="global.html#normalized">normalized</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
+        <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
+        <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
+        <li><a href="global.html#parseTSV">parseTSV</a></li>
+        <li><a href="global.html#parseTags">parseTags</a></li>
+        <li><a href="global.html#parseXPath">parseXPath</a></li>
+        <li><a href="global.html#readFile">readFile</a></li>
+        <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
+        <li><a href="global.html#recursiveMap">recursiveMap</a></li>
+        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
+        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
+        <li><a href="global.html#schemaTag">schemaTag</a></li>
+        <li><a href="global.html#search">search</a></li>
+        <li><a href="global.html#setNodeParent">setNodeParent</a></li>
+        <li><a href="global.html#setParent">setParent</a></li>
+        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
+        <li><a href="global.html#sourceTags">sourceTags</a></li>
+        <li><a href="global.html#splitHedString">splitHedString</a></li>
+        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
+        <li><a href="global.html#stringTemplate">stringTemplate</a></li>
+        <li><a href="global.html#stripBOM">stripBOM</a></li>
+        <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
+        <li><a href="global.html#tagIterator">tagIterator</a></li>
+        <li><a href="global.html#takesValue">takesValue</a></li>
+        <li><a href="global.html#takesValueTag">takesValueTag</a></li>
+        <li><a href="global.html#toString">toString</a></li>
+        <li><a href="global.html#topLevelGroupIterator">topLevelGroupIterator</a></li>
+        <li><a href="global.html#unitClasses">unitClasses</a></li>
+      </ul>
+    </nav>
+
+    <br class="clear" />
+
+    <footer>
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
+      GMT-0600 (Central Standard Time)
+    </footer>
+
+    <script>
+      prettyPrint()
+    </script>
+    <script src="scripts/linenumber.js"></script>
+  </body>
+</html>

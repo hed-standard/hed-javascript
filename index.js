@@ -1,11 +1,3 @@
-import bids from './bids'
-import converter from './converter'
-import validator from './validator'
+export * from './src/bids'
 
-export { bids, converter, validator }
-
-export default {
-  bids,
-  converter,
-  validator,
-}
+export { IssueError } from './src/issues/issues'

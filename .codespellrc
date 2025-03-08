@@ -1,3 +1,3 @@
 [codespell]
-skip = datasets,.git,*.pdf,*.svg,deprecated,*.xml,*.mediawiki,*.omn,datasets
-ignore-words-list = covert,hed,recuse,afterAll
+skip = datasets,.git,*.pdf,*.svg,deprecated,*.xml,*.mediawiki,*.omn,datasets, docs/html/fonts, docs/html/scripts
+ignore-words-list = covert,hed,recuse,afterAll,hertzs,isnt

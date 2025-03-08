@@ -30,8 +30,8 @@ install_requires = [
 ]
 
 # The full version, including alpha/beta/rc tags
-version = '3.10.0'
-release = '3.10.0'
+version = '4.0.0'
+release = '4.0.0'
 
 currentdir = os.path.realpath(os.path.dirname(__file__))
 
@@ -42,30 +42,27 @@ currentdir = os.path.realpath(os.path.dirname(__file__))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    #     'sphinx.ext.autodoc',
-    #     'sphinx.ext.viewcode',
-    # 'sphinx_click.ext',
+    'sphinx.ext.autodoc',
     'sphinx_js'
 ]
 
 root_for_relative_js_paths = "../../"
-base_folders = ["../../bids", "../../validator", "../../converter", "../../common", "../../utils"]
+js_source_path = "../../src"
 
-def find_all_folders(directory):
-    all_folders = [directory]
-
-    for root, dirs, _ in os.walk(directory):
-        for d in dirs:
-            all_folders.append(os.path.join(root, d))
-
-    return all_folders
-
-js_source_path = []
-for folder in base_folders:
-    js_source_path += find_all_folders(folder)
-print(js_source_path)
+# def find_all_folders(directory):
+#     all_folders = [directory]
+#
+#     for root, dirs, _ in os.walk(directory):
+#         for d in dirs:
+#             all_folders.append(os.path.join(root, d))
+#
+#     return all_folders
+#
+# js_source_path = []
+# for folder in base_folders:
+#     js_source_path += find_all_folders(folder)
+# print(js_source_path)
 primary_domain = 'js'
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -83,6 +80,7 @@ exclude_patterns = ['_build', '_templates', 'Thumbs.db', '.DS_Store', 'venv']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+
 pygments_style = 'sphinx'
 html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
