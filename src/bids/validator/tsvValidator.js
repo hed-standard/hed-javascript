@@ -38,10 +38,9 @@ export class BidsHedTsvValidator extends BidsValidator {
 
   /**
    * Validate a BIDS TSV file. This method returns the complete issue list for convenience.
-   *
    */
   validate() {
-    // Validate the BIDS bidsFile if it exists and return if there are errors
+    // Validate the BIDS sidecar if it exists and return if there are errors
     if (this.tsvFile.mergedSidecar) {
       const issues = this.tsvFile.mergedSidecar.validate(this.hedSchemas)
       const splitErrors = BidsHedIssue.splitErrors(issues)
@@ -161,7 +160,7 @@ export class BidsHedTsvValidator extends BidsValidator {
   }
 
   /**
-   * Validate the HED data in a combined event TSV file/bidsFile BIDS data collection.
+   * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
    */
   validateDataset(elements) {
     // Final top-tag detection cannot be done until the strings are fully assembled and finalized.
@@ -298,11 +297,13 @@ export class BidsHedTsvParser {
   static internalCommaRegEx = /,\s*,/g
   static leadingCommaRegEx = /^\s*,+\s*/
   static trailingCommaRegEx = /\s*,+\s*$/
+
   /**
    * The BIDS TSV file being parsed.
    * @type {BidsTsvFile}
    */
   tsvFile
+
   /**
    * The HED schema collection being parsed against.
    * @type {Schemas}
@@ -321,7 +322,7 @@ export class BidsHedTsvParser {
   }
 
   /**
-   * Combine the BIDS bidsFile HED data into a BIDS TSV file's HED data.
+   * Combine the BIDS sidecar HED data into a BIDS TSV file's HED data.
    *
    * @returns {Array} - Returns a two-element array [BidsTsvElement[], BidsHedIssue[], BidsHedIssue[]].
    */
@@ -435,7 +436,7 @@ export class BidsHedTsvParser {
    * Generate a mapping from tsv columns to strings (may have splices in the strings)
    *
    * @param {Map} rowCells - The column-to-value mapping for a single row.
-   * @returns {Map} - A mapping of column names to their corresponding parsed bidsFile strings.
+   * @returns {Map} - A mapping of column names to their corresponding parsed sidecar strings.
    * @private
    */
   _getColumnMapping(rowCells) {
@@ -449,7 +450,7 @@ export class BidsHedTsvParser {
       return columnMap
     }
 
-    // Check for the columns with HED data in the bidsFile
+    // Check for the columns with HED data in the sidecar
     for (const [columnName, columnValues] of this.tsvFile.mergedSidecar.parsedHedData.entries()) {
       if (!rowCells.has(columnName)) {
         continue

@@ -16,15 +16,16 @@ export class BidsFile {
    * This is used to generate {@link BidsHedIssue} objects.
    * @type {Object}
    */
-
   file
+
   /**
    * The validator class used to validate this file.
    * @private
    */
-  _validatorClass
+  #validatorClass
 
   /**
+   * Constructor.
    *
    * @param {string} name - The name of the file -- used for messages.
    * @param {Object} file - The representation of the file for error messages.
@@ -33,18 +34,8 @@ export class BidsFile {
   constructor(name, file, validatorClass) {
     this.name = name
     this.file = file
-    this._validatorClass = validatorClass
+    this.#validatorClass = validatorClass
   }
-
-  // /**
-  //  * Parse this bidsFile's HED strings within the bidsFile structure.
-  //  *
-  //  * @param {Schemas} hedSchemas - The HED schema collection.
-  //  * @returns {Array} [Issue[], Issue[]] Any errors and warnings found
-  //  */
-  // parseHed(hedSchemas) {
-  //   return [[], []]
-  // }
 
   /**
    * Whether this is a TSV file timeline file.
@@ -101,6 +92,6 @@ export class BidsFile {
    * @returns {function} (typeof BidsValidator) A subclass constructor of {@link BidsValidator}.
    */
   get validatorClass() {
-    return this._validatorClass
+    return this.#validatorClass
   }
 }

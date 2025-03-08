@@ -8,36 +8,43 @@ export class BidsHedIssue {
    * @type {Object}
    */
   file
+
   /**
    * The HED Issue object corresponding to this object.
    * @type {Issue}
    */
   hedIssue
+
   /**
    * The BIDS issue code.
    * @type {string}
    */
   code
+
   /**
    * The HED spec code for this issue.
    * @type {string}
    */
   subCode
+
   /**
    * The severity of this issue.
    * @type {string}
    */
   severity
+
   /**
    * The issue message for this issue.
    * @type {string}
    */
   issueMessage
+
   /**
    * The line at which the issue was found.
    * @type {number}
    */
   line
+
   /**
    * The location of the file at which the issue was found.
    * @type {string}

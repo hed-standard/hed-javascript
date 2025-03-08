@@ -14,7 +14,7 @@ import { DefinitionManager } from '../src/parser/definitionManager'
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['curly-brace-tests', ['valid-curly-brace-in-bidsFile-with-value-splice']]])
+const runMap = new Map([['curly-brace-tests', ['valid-curly-brace-in-sidecar-with-value-splice']]])
 
 describe('BIDS validation', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
@@ -52,7 +52,7 @@ describe('BIDS validation', () => {
         `${header}: input definitions "${test.definitions}" have conflicts "${defAddIssues}"`,
       )
 
-      // Validate the bidsFile by itself
+      // Validate the sidecar by itself
       const sidecarName = test.testname + '.json'
       const bidsSidecar = new BidsSidecar(
         'thisOne',
@@ -67,7 +67,7 @@ describe('BIDS validation', () => {
       const sidecarIssues = bidsSidecar.validate(thisSchema)
       assertErrors(test, 'Sidecar only', test.sidecarErrors, sidecarIssues)
 
-      // Validate the events file with no bidsFile
+      // Validate the events file with no sidecar
       const eventName = test.testname + '.tsv'
       const parsedTsv = parseTSV(test.eventsString)
       assert.instanceOf(parsedTsv, Map, `${eventName} cannot be parsed`)
@@ -86,7 +86,7 @@ describe('BIDS validation', () => {
       const noSideIssues = bidsTsv.validate(thisSchema)
       assertErrors(test, 'Events', test.tsvErrors, noSideIssues)
 
-      // Validate the events file with the bidsFile (use the definitions from the bidsFile)
+      // Validate the events file with the sidecar (use the definitions from the sidecar)
       const defManager3 = new DefinitionManager()
       defManager3.addDefinitions(defList)
       const bidsTsvSide = new BidsTsvFile(
