@@ -56,26 +56,36 @@ export class IssueError extends Error {
  * A HED validation error or warning.
  */
 export class Issue {
+  static SPECIAL_PARAMETERS = new Map([
+    ['sidecarKey', 'Sidecar key'],
+    ['tsvLine', 'TSV line'],
+    ['hedString', 'HED string'],
+  ])
+
   /**
    * The internal error code.
    * @type {string}
    */
   internalCode
+
   /**
    * The HED 3 error code.
    * @type {string}
    */
   hedCode
+
   /**
    * The issue level (error or warning).
    * @type {string}
    */
   level
+
   /**
    * The detailed error message.
    * @type {string}
    */
   message
+
   /**
    * The parameters to the error message template. Object with string and map parameters.
    * @type {Object}
@@ -118,14 +128,10 @@ export class Issue {
     let message = messageTemplate(...bounds, this.parameters)
 
     // Special parameters
-    if (this.parameters.sidecarKey) {
-      message += ` Sidecar key: "${this.parameters.sidecarKey}".`
-    }
-    if (this.parameters.tsvLine) {
-      message += ` TSV line: ${this.parameters.tsvLine}.`
-    }
-    if (this.parameters.hedString) {
-      message += ` HED string: "${this.parameters.hedString}".`
+    for (const [parameterName, parameterHeader] of Issue.SPECIAL_PARAMETERS) {
+      if (this.parameters[parameterName]) {
+        message += ` ${parameterHeader}: "${this.parameters[parameterName]}"`
+      }
     }
 
     // Append link to error code in HED spec.
