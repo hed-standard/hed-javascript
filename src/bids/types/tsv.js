@@ -23,7 +23,7 @@ export class BidsTsvFile extends BidsFile {
   hedColumnHedStrings
 
   /**
-   * The pseudo-bidsFile object representing the merged bidsFile data.
+   * The pseudo-sidecar object representing the merged sidecar data.
    * @type {BidsSidecar}
    */
   mergedSidecar
@@ -34,7 +34,7 @@ export class BidsTsvFile extends BidsFile {
    * @param {string} name - The name of the TSV file.
    * @param {Object} file - The file object representing this file.
    * @param {{headers: string[], rows: string[][]}|Map|string} tsvData - This file's TSV data.
-   * @param {Object} mergedDictionary - The merged bidsFile data.
+   * @param {Object} mergedDictionary - The merged sidecar data.
    * @param {DefinitionManager} defManager - The definition manager for this file.
    */
   constructor(name, file, tsvData, mergedDictionary = {}, defManager = undefined) {

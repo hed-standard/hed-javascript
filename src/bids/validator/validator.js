@@ -22,7 +22,7 @@ export class BidsValidator {
   warnings
 
   /**
-   * Bids validator base class.
+   * Constructor.
    *
    * @param {Schemas} hedSchemas - The HED schemas used for validation.
    */

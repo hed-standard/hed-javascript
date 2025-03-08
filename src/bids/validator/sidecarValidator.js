@@ -17,7 +17,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
   /**
    * Constructor for the BidsHedSidecarValidator.
    *
-   * @param {BidsSidecar} sidecar - The BIDS bidsFile being validated.
+   * @param {BidsSidecar} sidecar - The BIDS sidecar being validated.
    * @param {Schemas} hedSchemas - The schemas used for the sidecar validation.
    */
   constructor(sidecar, hedSchemas) {
@@ -26,7 +26,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
   }
 
   /**
-   * Validate a BIDS JSON bidsFile file. Errors and warnings are stored.
+   * Validate a BIDS JSON sidecar file. Errors and warnings are stored.
    *
    */
   validate() {
@@ -42,7 +42,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
   }
 
   /**
-   * Validate this bidsFile's HED strings.
+   * Validate this sidecar's HED strings.
    *
    * @returns {BidsHedIssue[]} All issues found.
    */
@@ -59,7 +59,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
           issues.push(...this._checkDetails(sidecarKeyName, valueString))
         }
       } else {
-        IssueError.generateAndThrowInternalError('Unexpected type found in bidsFile parsedHedData map.')
+        IssueError.generateAndThrowInternalError('Unexpected type found in sidecar parsedHedData map.')
       }
     }
     return issues
@@ -127,7 +127,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
   }
 
   /**
-   * Validate this bidsFile's curly braces -- checking recursion and missing columns.
+   * Validate this sidecar's curly braces -- checking recursion and missing columns.
    *
    * @returns {BidsHedIssue[]} All issues found.
    */

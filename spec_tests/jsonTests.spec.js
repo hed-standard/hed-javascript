@@ -232,7 +232,7 @@ describe('HED validation using JSON tests', () => {
         try {
           const defManager = new DefinitionManager()
           defManager.addDefinitions(defList)
-          const bidsSide = new BidsSidecar(`sidecar`, { relativePath: 'bidsFile test' }, JSON.parse(side), defManager)
+          const bidsSide = new BidsSidecar(`sidecar`, { relativePath: 'sidecar test' }, JSON.parse(side), defManager)
           issues = bidsSide.validate(hedSchema)
         } catch (e) {
           issues = [convertIssue(e)]
