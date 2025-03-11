@@ -48,48 +48,34 @@ export function parseSchemasSpec(hedVersion) {
 }
 
 export function parseSchemaSpec(schemaVersion) {
-  const [nickname, schema] = splitNicknameAndSchema(schemaVersion)
+  const [nickname, schema] = splitPrefixAndSchema(schemaVersion)
   const [library, version] = splitLibraryAndVersion(schema, schemaVersion)
   return new SchemaSpec(nickname, version, library)
 }
 
-function splitNicknameAndSchema(schemaVersion) {
-  const nicknameSplit = schemaVersion.split(':')
-  let nickname = ''
-  let schema
-  if (nicknameSplit.length > 2) {
-    IssueError.generateAndThrow('invalidSchemaSpecification', { spec: schemaVersion })
-  }
-  if (nicknameSplit.length > 1) {
-    ;[nickname, schema] = nicknameSplit
-    if (!alphabeticRegExp.test(nickname)) {
-      IssueError.generateAndThrow('invalidSchemaNickname', { nickname: nickname, spec: schemaVersion })
-    }
-  } else {
-    schema = nicknameSplit[0]
-  }
-  return [nickname, schema]
+function splitPrefixAndSchema(schemaVersion) {
+  return splitVersionSegments(schemaVersion, schemaVersion, ':')
 }
 
 function splitLibraryAndVersion(schemaVersion, originalVersion) {
-  const versionSplit = schemaVersion.split('_')
-  let library = ''
-  let version
-  if (versionSplit.length > 2) {
-    IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
-  }
-  if (versionSplit.length > 1) {
-    ;[library, version] = versionSplit
-    if (!alphabeticRegExp.test(library)) {
-      IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
-    }
-  } else {
-    version = versionSplit[0]
-  }
+  const [library, version] = splitVersionSegments(schemaVersion, originalVersion, '_')
   if (!semver.valid(version)) {
     IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
   }
   return [library, version]
+}
+
+function splitVersionSegments(schemaVersion, originalVersion, splitCharacter) {
+  const versionSplit = schemaVersion.split(splitCharacter)
+  const secondSegment = versionSplit.pop()
+  const firstSegment = versionSplit.pop()
+  if (versionSplit.length > 0) {
+    IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
+  }
+  if (firstSegment !== undefined && !alphabeticRegExp.test(firstSegment)) {
+    IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
+  }
+  return [firstSegment ?? '', secondSegment]
 }
 
 //export default buildBidsSchemas

@@ -392,11 +392,6 @@ export default {
     message: stringTemplate`Column name "${'column'}", used in curly braces, is not mapped to a defined column.`,
   },
   // Schema issues
-  invalidSchemaNickname: {
-    hedCode: 'SCHEMA_LOAD_FAILED',
-    level: 'error',
-    message: stringTemplate`The prefix nickname "${'nickname'}" in specification "${'spec'}" is duplicated or invalid.`,
-  },
   invalidSchemaSpecification: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
