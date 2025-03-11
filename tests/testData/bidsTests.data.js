@@ -2114,6 +2114,116 @@ export const bidsTestData = [
         ],
         comboErrors: [],
       },
+      {
+        testname: 'na-in-onset column-but-valid-hed',
+        explanation: 'n/a in some onset columns but valid HED',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Acceleration/5',
+              ball: 'Black, White',
+            },
+          },
+        },
+        eventsString:
+          'onset\tduration\tevent_code\tHED\nn/a\t0\tball\tRed,Blue\n5.0\t\0\tface\t((Green), Duration/4)\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'na-in-onset column-but-invalid-hed',
+        explanation: 'n/a in some onset columns but invalid HED',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Acceleration/5',
+              ball: 'Black, white',
+            },
+          },
+        },
+        eventsString:
+          'onset\tduration\tevent_code\tHED\nn/a\t0\tball\tRed,Baloney\n5.0\t\0\tface\t((Green), Duration/4)\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', { tag: 'Baloney' }),
+            {
+              path: 'na-in-onset column-but-invalid-hed.tsv',
+              relativePath: 'na-in-onset column-but-invalid-hed.tsv',
+            },
+            { tsvLine: '2' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', { tag: 'Baloney' }),
+            {
+              path: 'na-in-onset column-but-invalid-hed.tsv',
+              relativePath: 'na-in-onset column-but-invalid-hed.tsv',
+            },
+            { tsvLine: '2' },
+          ),
+        ],
+      },
+      {
+        testname: 'all-na-in-onset column-with-duration',
+        explanation: 'all n/a in onset column but one has allowed Duration tag',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Acceleration/5',
+              ball: 'Black, white',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\nn/a\t0\tball\tRed\n5n/a\t\0\tface\t((Green), Duration/4)\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'all-na-in-onset-column-invalid-onset',
+        explanation: 'all n/a in onset column with an invalid onset',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Acceleration/5',
+              ball: 'Black, white',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\nn/a\t0\tball\tRed\n5n/a\t\0\tface\t(Def/MyColor, Onset)\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('temporalTagInNonTemporalContext', { string: '(Def/MyColor, Onset)' }),
+            {
+              path: 'all-na-in-onset-column-invalid-onset.tsv',
+              relativePath: 'all-na-in-onset-column-invalid-onset.tsv',
+            },
+            { tsvLine: '3' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('temporalTagInNonTemporalContext', { string: 'Acceleration/5,(Def/MyColor, Onset)' }),
+            {
+              path: 'all-na-in-onset-column-invalid-onset.tsv',
+              relativePath: 'all-na-in-onset-column-invalid-onset.tsv',
+            },
+            { tsvLine: '3' },
+          ),
+        ],
+      },
     ],
   },
   {
