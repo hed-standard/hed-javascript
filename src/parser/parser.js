@@ -50,11 +50,12 @@ class HedStringParser {
   /**
    * Parse a full HED string.
    *
+   * @param {boolean} fullValidation - True if full full validation should be performed -- with assemploy
    * ###Note: now separates errors and warnings for easier handling.
    *
    * @returns {Array} - [ParsedHedString|null, Issue[], Issue[]] representing the parsed HED string and any parsing issues.
    */
-  parse() {
+  parse(fullValidation) {
     if (this.hedString === null || this.hedString === undefined) {
       return [null, [generateIssue('invalidTagString', {})], []]
     }
@@ -89,7 +90,7 @@ class HedStringParser {
     }
 
     // Check the other reserved tags requirements
-    const checkIssues = ReservedChecker.getInstance().checkHedString(parsedString)
+    const checkIssues = ReservedChecker.getInstance().checkHedString(parsedString, fullValidation)
     if (checkIssues.length > 0) {
       return [null, checkIssues, []]
     }
@@ -182,10 +183,11 @@ class HedStringParser {
  * @param {Schemas} hedSchemas - The collection of HED schemas.
  * @param {boolean} definitionsAllowed - True if definitions are allowed.
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed.
+ * @param {boolean} fullValidation - True if full validation is required.
  * @returns {Array} - [ParsedHedString, Issue[], Issue[]] representing the parsed HED string and any issues found.
  */
-export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed) {
-  return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parse()
+export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed, fullValidation) {
+  return new HedStringParser(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed).parse(fullValidation)
 }
 
 /**
@@ -199,6 +201,12 @@ export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeh
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed
  * @returns {Array} - [ParsedHedString[], Issue[], Issue[]] representing the parsed HED strings and any issues found.
  */
-export function parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed) {
-  return HedStringParser.parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed)
+export function parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed, fullValidation) {
+  return HedStringParser.parseHedStrings(
+    hedStrings,
+    hedSchemas,
+    definitionsAllowed,
+    placeholdersAllowed,
+    fullValidation,
+  )
 }

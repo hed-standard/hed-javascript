@@ -217,7 +217,7 @@ export class BidsSidecar extends BidsJsonFile {
         this.parsedHedData.set(name, sidecarKey.parsedCategoryMap)
       }
     }
-    this.#generateSidecarColumnSpliceMap()
+    this._generateSidecarColumnSpliceMap()
     return [errors, warnings]
   }
 
@@ -226,33 +226,33 @@ export class BidsSidecar extends BidsJsonFile {
    *
    * @private
    */
-  #generateSidecarColumnSpliceMap() {
+  _generateSidecarColumnSpliceMap() {
     this.columnSpliceMapping = new Map()
     this.columnSpliceReferences = new Set()
 
     for (const [sidecarKey, hedData] of this.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
-        this.#parseValueSplice(sidecarKey, hedData)
+        this._(sidecarKey, hedData)
       } else if (hedData instanceof Map) {
-        this.#parseCategorySplice(sidecarKey, hedData)
+        this._parseCategorySplice(sidecarKey, hedData)
       } else if (hedData) {
         IssueError.generateAndThrowInternalError('Unexpected type found in sidecar parsedHedData map.')
       }
     }
   }
 
-  #parseValueSplice(sidecarKey, hedData) {
+  _(sidecarKey, hedData) {
     if (hedData.columnSplices.length > 0) {
-      const keyReferences = this.#processColumnSplices(new Set(), hedData.columnSplices)
+      const keyReferences = this._processColumnSplices(new Set(), hedData.columnSplices)
       this.columnSpliceMapping.set(sidecarKey, keyReferences)
     }
   }
 
-  #parseCategorySplice(sidecarKey, hedData) {
+  _parseCategorySplice(sidecarKey, hedData) {
     let keyReferences = null
     for (const valueString of hedData.values()) {
       if (valueString?.columnSplices.length > 0) {
-        keyReferences = this.#processColumnSplices(keyReferences, valueString.columnSplices)
+        keyReferences = this._processColumnSplices(keyReferences, valueString.columnSplices)
       }
     }
     if (keyReferences instanceof Set) {
@@ -267,7 +267,7 @@ export class BidsSidecar extends BidsJsonFile {
    * @returns {Set<string>}
    * @private
    */
-  #processColumnSplices(keyReferences, columnSplices) {
+  _processColumnSplices(keyReferences, columnSplices) {
     keyReferences ??= new Set()
     for (const columnSplice of columnSplices) {
       keyReferences.add(columnSplice.originalTag)
@@ -358,9 +358,9 @@ export class BidsSidecarKey {
    */
   parseHed(hedSchemas) {
     if (this.isValueKey) {
-      return this.#parseValueString(hedSchemas)
+      return this._parseValueString(hedSchemas)
     }
-    return this.#parseCategory(hedSchemas)
+    return this._parseCategory(hedSchemas)
   }
 
   /**
@@ -373,8 +373,8 @@ export class BidsSidecarKey {
    * @returns {Array} - [Issue[], Issue[]] - Errors due for the value.
    * @private
    */
-  #parseValueString(hedSchemas) {
-    const [parsedString, errorIssues, warningIssues] = parseHedString(this.valueString, hedSchemas, false, true)
+  _parseValueString(hedSchemas) {
+    const [parsedString, errorIssues, warningIssues] = parseHedString(this.valueString, hedSchemas, false, true, false)
     this.parsedValueString = parsedString
     return [errorIssues, warningIssues]
   }
@@ -385,7 +385,7 @@ export class BidsSidecarKey {
    * @returns {Array} - Array[Issue[], Issue[]] A list of error issues and warning issues.
    * @private
    */
-  #parseCategory(hedSchemas) {
+  _parseCategory(hedSchemas) {
     this.parsedCategoryMap = new Map()
     const errors = []
     const warnings = []
@@ -399,7 +399,7 @@ export class BidsSidecarKey {
           file: this.sidecar?.file?.relativePath,
         })
       }
-      const [parsedString, errorIssues, warningIssues] = parseHedString(string, hedSchemas, true, true)
+      const [parsedString, errorIssues, warningIssues] = parseHedString(string, hedSchemas, true, true, false)
       this.parsedCategoryMap.set(value, parsedString)
       warnings.push(...warningIssues)
       errors.push(...errorIssues)

@@ -597,6 +597,90 @@ export const bidsTestData = [
         comboErrors: [],
       },
       {
+        testname: 'splice-of-top-level-tag',
+        explanation: 'A top-level tag group tag is part of a splice',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          duration: {
+            HED: 'Duration/#',
+          },
+          event_code: {
+            HED: {
+              face: '({duration}, ((Red, Blue), {ball_type}))',
+              ball: '{ball_type}, Black',
+            },
+          },
+          ball_type: {
+            Description: 'Has description with HED',
+            HED: 'Label/#',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tbig-one\n25\t5\tface\tother-one\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'bad-splice-of-top-level-tag',
+        explanation: 'A top-level tag group tag is part of a splice but is invalid',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          duration: {
+            HED: '(Duration/#, (Red, Blue))',
+          },
+          event_code: {
+            HED: {
+              face: '({duration}, ((Red, Blue), {ball_type}))',
+              ball: '{ball_type}, Black',
+            },
+          },
+          ball_type: {
+            Description: 'Has description with HED',
+            HED: 'Label/#',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tbig-one\n25\t5\tface\tother-one\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Duration/5',
+              string: '((Duration/5, (Red, Blue)), ((Red, Blue), Label/other-one))',
+            }),
+            { path: 'bad-splice-of-top-level-tag.tsv', relativePath: 'bad-splice-of-top-level-tag.tsv' },
+            { tsvLine: 3 },
+          ),
+        ],
+      },
+      {
+        testname: 'splice-of-non-top-level-tag',
+        explanation: 'A top-level tag group tag is part of a splice',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          duration: {
+            HED: 'Parameter-value/#',
+          },
+          event_code: {
+            HED: {
+              face: '({duration}, ((Red, Blue), {ball_type}))',
+              ball: '{ball_type}, Black',
+            },
+          },
+          ball_type: {
+            Description: 'Has description with HED',
+            HED: 'Label/#',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tbig-one\n25\t5\tface\tother-one\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
         testname: 'valid-curly-brace-in-sidecar-with-tsv-n/a',
         explanation: 'Valid curly brace in sidecar and valid tsv with n/a',
         schemaVersion: '8.3.0',

@@ -13,7 +13,7 @@ import { shouldRun, getHedString } from './testUtilities'
 const skipMap = new Map()
 const runAll = true
 //const runMap = new Map([['valid-tags', ['single-tag-extension']]])
-const runMap = new Map([['valid-tags', ['deprecated-tag']]])
+const runMap = new Map([['special-tag-group-tests', ['event-context-in-subgroup']]])
 
 describe('Null schema objects should cause parsing to bail', () => {
   it('Should not proceed if no schema and valid string', () => {
@@ -82,6 +82,7 @@ describe('Parse HED string tests', () => {
           thisSchema,
           test.definitionsAllowed,
           test.placeholdersAllowed,
+          test.fullValidation,
         )
       } catch (error) {
         issues = [error.issue]

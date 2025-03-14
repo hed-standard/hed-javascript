@@ -353,6 +353,7 @@ export class BidsHedTsvParser {
         this.hedSchemas,
         false,
         false,
+        true,
       )
       element.parsedHedString = parsedHedString
       errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: element.tsvLine }))
