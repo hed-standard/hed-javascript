@@ -37,6 +37,7 @@
   "homepage": "https://github.com/hed-standard/hed-javascript",
   "dependencies": {
     "buffer": "^6.0.3",
+    "core-js-pure": "^3.41.0",
     "cross-fetch": "^4.0.0",
     "date-and-time": "^3.1.1",
     "date-fns": "^4.1.0",

@@ -1,3 +1,4 @@
+import Set from 'core-js-pure/actual/set'
 import flattenDeep from 'lodash/flattenDeep'
 import zip from 'lodash/zip'
 import semver from 'semver'
@@ -294,7 +295,7 @@ export default class SchemaParser {
     )
 
     const tagUnitClassDefinitions = this._processTagUnitClasses(shortTags, valueAttributeDefinitions)
-    this._processRecursiveAttributes(shortTags, booleanAttributeDefinitions)
+    this.#processRecursiveAttributes(shortTags, booleanAttributeDefinitions)
 
     const tagEntries = this._createSchemaTags(
       booleanAttributeDefinitions,
@@ -361,19 +362,51 @@ export default class SchemaParser {
    * @param {Map<string, Set<SchemaAttribute>>} booleanAttributeDefinitions The map from shortened tag names to their boolean schema attributes. Passed by reference.
    * @private
    */
-  _processRecursiveAttributes(shortTags, booleanAttributeDefinitions) {
-    const recursiveAttributes = this._getRecursiveAttributes()
+  #processRecursiveAttributes(shortTags, booleanAttributeDefinitions) {
+    const recursiveAttributeMap = this.#generateRecursiveAttributeMap(shortTags, booleanAttributeDefinitions)
 
-    for (const [tagElement, tagName] of shortTags) {
-      for (const attribute of recursiveAttributes) {
-        if (booleanAttributeDefinitions.get(tagName).has(attribute)) {
-          for (const childTag of this.getAllChildTags(tagElement)) {
-            const childTagName = this.getElementTagName(childTag)
-            booleanAttributeDefinitions.get(childTagName).add(attribute)
-          }
-        }
+    for (const [tagElement, recursiveAttributes] of recursiveAttributeMap) {
+      for (const childTag of this.getAllChildTags(tagElement)) {
+        const childTagName = this.getElementTagName(childTag)
+        const newBooleanAttributes = booleanAttributeDefinitions.get(childTagName)?.union(recursiveAttributes)
+        booleanAttributeDefinitions.set(childTagName, newBooleanAttributes)
       }
     }
+  }
+
+  /**
+   * Generate a map from tags to their recursive attributes.
+   *
+   * @param {Map<Object, string>} shortTags The map from tag elements to shortened tag names.
+   * @param {Map<string, Set<SchemaAttribute>>} booleanAttributeDefinitions The map from shortened tag names to their boolean schema attributes. Passed by reference.
+   * @private
+   */
+  #generateRecursiveAttributeMap(shortTags, booleanAttributeDefinitions) {
+    const recursiveAttributes = this.#getRecursiveAttributes()
+    const recursiveAttributeMap = new Map()
+
+    for (const [tagElement, tagName] of shortTags) {
+      recursiveAttributeMap.set(tagElement, booleanAttributeDefinitions.get(tagName)?.intersection(recursiveAttributes))
+    }
+
+    return recursiveAttributeMap
+  }
+
+  #getRecursiveAttributes() {
+    const attributeArray = Array.from(this.attributes.values())
+    let filteredAttributeArray
+
+    if (semver.lt(this.rootElement.$.version, '8.3.0')) {
+      filteredAttributeArray = attributeArray.filter((attribute) =>
+        attribute.roleProperties.has(this.properties.get('isInheritedProperty')),
+      )
+    } else {
+      filteredAttributeArray = attributeArray.filter(
+        (attribute) => !attribute.roleProperties.has(this.properties.get('annotationProperty')),
+      )
+    }
+
+    return new Set(filteredAttributeArray)
   }
 
   /**
@@ -469,19 +502,6 @@ export default class SchemaParser {
     }
 
     return [booleanAttributes, valueAttributes]
-  }
-
-  _getRecursiveAttributes() {
-    const attributeArray = Array.from(this.attributes.values())
-    if (semver.lt(this.rootElement.$.version, '8.3.0')) {
-      return attributeArray.filter((attribute) =>
-        attribute.roleProperties.has(this.properties.get('isInheritedProperty')),
-      )
-    } else {
-      return attributeArray.filter(
-        (attribute) => !attribute.roleProperties.has(this.properties.get('annotationProperty')),
-      )
-    }
   }
 
   _addCustomAttributes() {
