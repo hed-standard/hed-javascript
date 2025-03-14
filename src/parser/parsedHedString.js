@@ -13,36 +13,43 @@ export class ParsedHedString {
    * @type {string}
    */
   hedString
+
   /**
    * The parsed substring data in unfiltered form.
    * @type {ParsedHedSubstring[]}
    */
   parseTree
+
   /**
    * The tag groups in the string (top-level).
    * @type {ParsedHedGroup[]}
    */
   tagGroups
+
   /**
    * All the top-level tags in the string.
    * @type {ParsedHedTag[]}
    */
   topLevelTags
+
   /**
    * All the tags in the string at all levels
    * @type {ParsedHedTag[]}
    */
   tags
+
   /**
    * All the column splices in the string at all levels.
    * @type {ParsedHedColumnSplice[]}
    */
   columnSplices
+
   /**
    * The tags in the top-level tag groups in the string, split into arrays.
    * @type {ParsedHedTag[][]}
    */
   topLevelGroupTags
+
   /**
    * The top-level definition tag groups in the string.
    * @type {ParsedHedGroup[]}
