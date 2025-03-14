@@ -295,7 +295,7 @@ export default class SchemaParser {
     )
 
     const tagUnitClassDefinitions = this._processTagUnitClasses(shortTags, valueAttributeDefinitions)
-    this.#processRecursiveAttributes(shortTags, booleanAttributeDefinitions)
+    this._processRecursiveAttributes(shortTags, booleanAttributeDefinitions)
 
     const tagEntries = this._createSchemaTags(
       booleanAttributeDefinitions,
@@ -362,8 +362,8 @@ export default class SchemaParser {
    * @param {Map<string, Set<SchemaAttribute>>} booleanAttributeDefinitions The map from shortened tag names to their boolean schema attributes. Passed by reference.
    * @private
    */
-  #processRecursiveAttributes(shortTags, booleanAttributeDefinitions) {
-    const recursiveAttributeMap = this.#generateRecursiveAttributeMap(shortTags, booleanAttributeDefinitions)
+  _processRecursiveAttributes(shortTags, booleanAttributeDefinitions) {
+    const recursiveAttributeMap = this._generateRecursiveAttributeMap(shortTags, booleanAttributeDefinitions)
 
     for (const [tagElement, recursiveAttributes] of recursiveAttributeMap) {
       for (const childTag of this.getAllChildTags(tagElement)) {
@@ -381,8 +381,8 @@ export default class SchemaParser {
    * @param {Map<string, Set<SchemaAttribute>>} booleanAttributeDefinitions The map from shortened tag names to their boolean schema attributes. Passed by reference.
    * @private
    */
-  #generateRecursiveAttributeMap(shortTags, booleanAttributeDefinitions) {
-    const recursiveAttributes = this.#getRecursiveAttributes()
+  _generateRecursiveAttributeMap(shortTags, booleanAttributeDefinitions) {
+    const recursiveAttributes = this._getRecursiveAttributes()
     const recursiveAttributeMap = new Map()
 
     for (const [tagElement, tagName] of shortTags) {
@@ -392,7 +392,7 @@ export default class SchemaParser {
     return recursiveAttributeMap
   }
 
-  #getRecursiveAttributes() {
+  _getRecursiveAttributes() {
     const attributeArray = Array.from(this.attributes.values())
     let filteredAttributeArray
 
