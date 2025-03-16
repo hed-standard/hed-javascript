@@ -70,7 +70,7 @@ export class Definition {
       return [this.defContents.normalized, [], []]
     }
     const evalString = this.defContents.originalTag.replace('#', tag._splitValue)
-    const [normalizedValue, errorIssues, warningIssues] = parseHedString(evalString, hedSchema, false, false)
+    const [normalizedValue, errorIssues, warningIssues] = parseHedString(evalString, hedSchema, false, false, true)
     if (errorIssues.length > 0) {
       return [null, errorIssues, warningIssues]
     }
@@ -109,7 +109,7 @@ export class Definition {
    * @returns {Array} - Returns [Definition, Issue[], Issue[]] with the definition and any issues.
    */
   static createDefinition(hedString, hedSchemas) {
-    const [parsedString, errorIssues, warningIssues] = parseHedString(hedString, hedSchemas, true, true)
+    const [parsedString, errorIssues, warningIssues] = parseHedString(hedString, hedSchemas, true, true, true)
     if (errorIssues.length > 0) {
       return [null, errorIssues, warningIssues]
     }

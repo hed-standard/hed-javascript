@@ -670,7 +670,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaTag}
    * @private
    */
-  #parent
+  _parent
 
   /**
    * This tag's unit classes.
@@ -691,7 +691,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaValueTag}
    * @private
    */
-  #valueTag
+  _valueTag
 
   /**
    * Constructor.
@@ -738,7 +738,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @returns {SchemaValueTag}
    */
   get valueTag() {
-    return this.#valueTag
+    return this._valueTag
   }
 
   /**
@@ -746,8 +746,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {SchemaValueTag} newValueTag The new value-taking child tag.
    */
   set valueTag(newValueTag) {
-    if (!this.#isPrivateFieldSet(this.#valueTag, 'value tag')) {
-      this.#valueTag = newValueTag
+    if (!this._isPrivateFieldSet(this._valueTag, 'value tag')) {
+      this._valueTag = newValueTag
     }
   }
 
@@ -756,7 +756,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaTag}
    */
   get parent() {
-    return this.#parent
+    return this._parent
   }
 
   /**
@@ -764,8 +764,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {SchemaTag} newParent The new parent tag.
    */
   set parent(newParent) {
-    if (!this.#isPrivateFieldSet(this.#parent, 'parent')) {
-      this.#parent = newParent
+    if (!this._isPrivateFieldSet(this._parent, 'parent')) {
+      this._parent = newParent
     }
   }
 
@@ -778,7 +778,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @throws {IssueError} If the field is already set.
    * @private
    */
-  #isPrivateFieldSet(field, fieldName) {
+  _isPrivateFieldSet(field, fieldName) {
     if (field !== undefined) {
       IssueError.generateAndThrowInternalError(
         `Attempted to set ${fieldName} for schema tag ${this.longName} when it already has one.`,

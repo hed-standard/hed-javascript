@@ -89,3 +89,45 @@ export function getDuplicates(itemList) {
   }
   return [...dupSet]
 }
+
+/**
+ * lean up a string and remove redundant commas and parentheses.
+ * @param {string} stringIn - The input string to be cleaned up.
+ * @return {string} - The cleaned-up string with redundant commas and parentheses removed.
+ *
+ */
+export function cleanupEmpties(stringIn) {
+  const leadingCommaRegEx = /^\s*,+/g // Remove leading commas
+  const trailingCommaRegEx = /,\s*$/g // Remove trailing commas
+  const innerCommaRegEx = /,\s*,+/g // Collapse multiple commas inside
+  const emptyParensRegEx = /\(\s*\)/g // Remove completely empty parentheses
+  const redundantParensRegEx = /\(\s*([,\s]*)\s*\)/g // Remove redundant empty-like parens
+  const trailingInnerCommaRegEx = /[\s,]+\)/g // Remove trailing commas and spaces inside parentheses
+
+  let result = stringIn
+  let previousResult
+
+  do {
+    previousResult = result
+
+    // Step 1: Remove empty parentheses
+    result = result.replace(emptyParensRegEx, '')
+
+    // Step 2: Remove redundant parentheses containing only commas/spaces
+    result = result.replace(redundantParensRegEx, (match, group1) => {
+      return /^[,\s()]*$/.test(group1) ? '' : `(${group1.replace(/^\s*,|,\s*$/g, '').trim()})`
+    })
+
+    // Step 3: Remove leading and trailing commas
+    result = result.replace(leadingCommaRegEx, '')
+    result = result.replace(trailingCommaRegEx, '')
+
+    // Step 4: Collapse multiple commas inside
+    result = result.replace(innerCommaRegEx, ',')
+
+    // Step 5: Remove trailing commas inside parentheses
+    result = result.replace(trailingInnerCommaRegEx, ')')
+  } while (result !== previousResult) // Keep looping until no more changes
+  result = result.replace(/\(\s*,+/g, '(')
+  return result.trim()
+}

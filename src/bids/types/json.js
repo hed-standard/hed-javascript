@@ -93,12 +93,12 @@ export class BidsSidecar extends BidsJsonFile {
     super(name, file, sidecarData)
     this.columnSpliceMapping = new Map()
     this.columnSpliceReferences = new Set()
-    this.#setDefinitions(defManager)
-    this.#filterHedStrings()
-    this.#categorizeHedStrings()
+    this._setDefinitions(defManager)
+    this._filterHedStrings()
+    this._categorizeHedStrings()
   }
 
-  #setDefinitions(defManager) {
+  _setDefinitions(defManager) {
     if (defManager instanceof DefinitionManager) {
       this.definitions = defManager
     } else if (!defManager) {
@@ -114,7 +114,7 @@ export class BidsSidecar extends BidsJsonFile {
    * Create the sidecar key map from the JSON.
    * @private
    */
-  #filterHedStrings() {
+  _filterHedStrings() {
     this.sidecarKeys = new Map(
       Object.entries(this.jsonData)
         .map(([key, value]) => {
@@ -125,11 +125,11 @@ export class BidsSidecar extends BidsJsonFile {
             IssueError.generateAndThrow('illegalSidecarHedKey')
           }
 
-          if (BidsSidecar.#sidecarValueHasHed(value)) {
+          if (BidsSidecar._sidecarValueHasHed(value)) {
             return [trimmedKey, new BidsSidecarKey(trimmedKey, value.HED, this)]
           }
 
-          BidsSidecar.#verifyKeyHasNoDeepHed(key, value)
+          BidsSidecar._verifyKeyHasNoDeepHed(key, value)
           return null
         })
         .filter(Boolean),
@@ -143,7 +143,7 @@ export class BidsSidecar extends BidsJsonFile {
    * @returns {boolean} Whether the sidecar value has HED data.
    * @private
    */
-  static #sidecarValueHasHed(sidecarValue) {
+  static _sidecarValueHasHed(sidecarValue) {
     return sidecarValue !== null && typeof sidecarValue === 'object' && sidecarValue.HED !== undefined
   }
 
@@ -155,7 +155,7 @@ export class BidsSidecar extends BidsJsonFile {
    * @throws {IssueError} If an invalid "HED" key is found.
    * @private
    */
-  static #verifyKeyHasNoDeepHed(key, value) {
+  static _verifyKeyHasNoDeepHed(key, value) {
     if (key.toUpperCase() === 'HED') {
       IssueError.generateAndThrow('illegalSidecarHedDeepKey')
     }
@@ -163,7 +163,7 @@ export class BidsSidecar extends BidsJsonFile {
       return
     }
     for (const [subkey, subvalue] of Object.entries(value)) {
-      BidsSidecar.#verifyKeyHasNoDeepHed(subkey, subvalue)
+      BidsSidecar._verifyKeyHasNoDeepHed(subkey, subvalue)
     }
   }
 
@@ -171,7 +171,7 @@ export class BidsSidecar extends BidsJsonFile {
    * Categorize the column strings into value strings and categorical strings
    * @private
    */
-  #categorizeHedStrings() {
+  _categorizeHedStrings() {
     this.hedValueStrings = []
     this.hedCategoricalStrings = []
     this.hedData = new Map()
@@ -201,14 +201,15 @@ export class BidsSidecar extends BidsJsonFile {
    * The parsed strings are placed into {@link parsedHedData}.
    *
    * @param {Schemas} hedSchemas - The HED schema collection.
+   * @param {boolean} fullValidation - True if full validation should be performed.
    * @returns {Array} [Issue[], Issue[]] Any errors and warnings found
    */
-  parseHed(hedSchemas) {
+  parseHed(hedSchemas, fullValidation = false) {
     this.parsedHedData = new Map()
     const errors = []
     const warnings = []
     for (const [name, sidecarKey] of this.sidecarKeys.entries()) {
-      const [errorIssues, warningIssues] = sidecarKey.parseHed(hedSchemas)
+      const [errorIssues, warningIssues] = sidecarKey.parseHed(hedSchemas, fullValidation)
       errors.push(...errorIssues)
       warnings.push(...warningIssues)
       if (sidecarKey.isValueKey) {
@@ -232,7 +233,7 @@ export class BidsSidecar extends BidsJsonFile {
 
     for (const [sidecarKey, hedData] of this.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
-        this._(sidecarKey, hedData)
+        this._parseValueSplice(sidecarKey, hedData)
       } else if (hedData instanceof Map) {
         this._parseCategorySplice(sidecarKey, hedData)
       } else if (hedData) {
@@ -241,7 +242,7 @@ export class BidsSidecar extends BidsJsonFile {
     }
   }
 
-  _(sidecarKey, hedData) {
+  _parseValueSplice(sidecarKey, hedData) {
     if (hedData.columnSplices.length > 0) {
       const keyReferences = this._processColumnSplices(new Set(), hedData.columnSplices)
       this.columnSpliceMapping.set(sidecarKey, keyReferences)
@@ -354,13 +355,14 @@ export class BidsSidecarKey {
    * ###Note: This sets the parsedHedData as a side effect.
    *
    * @param {Schemas} hedSchemas The HED schema collection.
+   * @param {boolean} fullValidation True if full validation should be performed.
    * @returns {Array} - [Issue[], Issues[]] Errors and warnings that result from parsing.
    */
-  parseHed(hedSchemas) {
+  parseHed(hedSchemas, fullValidation = false) {
     if (this.isValueKey) {
-      return this._parseValueString(hedSchemas)
+      return this._parseValueString(hedSchemas, fullValidation)
     }
-    return this._parseCategory(hedSchemas)
+    return this._parseCategory(hedSchemas, fullValidation) // This is a Map of string to ParsedHedString
   }
 
   /**
@@ -370,11 +372,18 @@ export class BidsSidecarKey {
    *  The value strings cannot contain definitions.
    *
    * @param {Schemas} hedSchemas - The HED schemas to use.
+   * @param {boolean} fullValidation - True if full validation should be performed.
    * @returns {Array} - [Issue[], Issue[]] - Errors due for the value.
    * @private
    */
-  _parseValueString(hedSchemas) {
-    const [parsedString, errorIssues, warningIssues] = parseHedString(this.valueString, hedSchemas, false, true, false)
+  _parseValueString(hedSchemas, fullValidation) {
+    const [parsedString, errorIssues, warningIssues] = parseHedString(
+      this.valueString,
+      hedSchemas,
+      false,
+      true,
+      fullValidation,
+    )
     this.parsedValueString = parsedString
     return [errorIssues, warningIssues]
   }
@@ -382,10 +391,11 @@ export class BidsSidecarKey {
   /**
    * Parse the categorical values associated with this key.
    * @param {Schemas} hedSchemas - The HED schemas used to check against.
+   * @param {boolean} fullValidation - True if full validation should be performed.
    * @returns {Array} - Array[Issue[], Issue[]] A list of error issues and warning issues.
    * @private
    */
-  _parseCategory(hedSchemas) {
+  _parseCategory(hedSchemas, fullValidation) {
     this.parsedCategoryMap = new Map()
     const errors = []
     const warnings = []
@@ -399,7 +409,7 @@ export class BidsSidecarKey {
           file: this.sidecar?.file?.relativePath,
         })
       }
-      const [parsedString, errorIssues, warningIssues] = parseHedString(string, hedSchemas, true, true, false)
+      const [parsedString, errorIssues, warningIssues] = parseHedString(string, hedSchemas, true, true, fullValidation)
       this.parsedCategoryMap.set(value, parsedString)
       warnings.push(...warningIssues)
       errors.push(...errorIssues)
