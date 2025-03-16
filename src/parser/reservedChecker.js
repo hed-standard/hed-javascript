@@ -8,11 +8,11 @@ export class ReservedChecker {
    * @type {ReservedChecker}
    * @private
    */
-  static #instance = undefined
+  static _instance = undefined
   static reservedMap = new Map(Object.entries(reservedTags))
 
   constructor() {
-    if (ReservedChecker.#instance) {
+    if (ReservedChecker._instance) {
       IssueError.generateAndThrowInternalError('Use ReservedChecker.getInstance() to get an instance of this class.')
     }
 
@@ -21,10 +21,10 @@ export class ReservedChecker {
 
   // Static method to control access to the singleton instance
   static getInstance() {
-    if (!ReservedChecker.#instance) {
-      ReservedChecker.#instance = new ReservedChecker()
+    if (!ReservedChecker._instance) {
+      ReservedChecker._instance = new ReservedChecker()
     }
-    return ReservedChecker.#instance
+    return ReservedChecker._instance
   }
 
   _initializeReservedTags() {

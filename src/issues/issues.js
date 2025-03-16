@@ -121,10 +121,10 @@ export class Issue {
    * (Re-)generate the issue message.
    */
   generateMessage() {
-    this.#stringifyParameters()
-    const baseMessage = this.#parseMessageTemplate()
-    const specialParameterMessages = this.#parseSpecialParameters()
-    const hedSpecLink = this.#generateHedSpecificationLink()
+    this._stringifyParameters()
+    const baseMessage = this._parseMessageTemplate()
+    const specialParameterMessages = this._parseSpecialParameters()
+    const hedSpecLink = this._generateHedSpecificationLink()
 
     this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${baseMessage} ${specialParameterMessages} (${hedSpecLink}.)`
   }
@@ -133,7 +133,7 @@ export class Issue {
    * Convert all parameters except the substring bounds (an integer array) to their string forms.
    * @private
    */
-  #stringifyParameters() {
+  _stringifyParameters() {
     this.parameters = mapValues(this.parameters, (value, key) => (key === 'bounds' ? value : String(value)))
   }
 
@@ -143,7 +143,7 @@ export class Issue {
    * @returns {string} The parsed base message.
    * @private
    */
-  #parseMessageTemplate() {
+  _parseMessageTemplate() {
     const bounds = this.parameters.bounds ?? []
     const messageTemplate = issueData[this.internalCode].message
     return messageTemplate(...bounds, this.parameters)
@@ -155,7 +155,7 @@ export class Issue {
    * @returns {string} The parsed special parameters.
    * @private
    */
-  #parseSpecialParameters() {
+  _parseSpecialParameters() {
     const specialParameterMessages = []
     for (const [parameterName, parameterHeader] of Issue.SPECIAL_PARAMETERS) {
       if (this.parameters[parameterName]) {
@@ -171,7 +171,7 @@ export class Issue {
    * @returns {string} A link to the HED specification
    * @private
    */
-  #generateHedSpecificationLink() {
+  _generateHedSpecificationLink() {
     const hedCodeAnchor = this.hedCode.toLowerCase().replace(/_/g, '-')
     return `For more information on this HED ${this.level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
   }

@@ -293,11 +293,6 @@ export class BidsHedTsvValidator extends BidsValidator {
 export class BidsHedTsvParser {
   static nullSet = new Set([null, undefined, '', 'n/a'])
   static braceRegEx = /\{([^{}]*?)\}/g
-  static parenthesesRegEx = /\(\s*([,\s()]*)\s*\)/g
-  static internalCommaRegEx = /[, ]+/g
-  static leadingCommaRegEx = /^[, ]+/
-  static trailingCommaRegEx = /[, ]+$/
-  static trailingInnerCommaRegEx = /[, ]+\)/g
 
   /**
    * The BIDS TSV file being parsed.

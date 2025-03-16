@@ -90,11 +90,12 @@ export function getDuplicates(itemList) {
   return [...dupSet]
 }
 
-/** Clean up a string and remove redundant commas and parentheses.
- *
+/**
+ * lean up a string and remove redundant commas and parentheses.
+ * @param {string} stringIn - The input string to be cleaned up.
+ * @return {string} - The cleaned-up string with redundant commas and parentheses removed.
  *
  */
-
 export function cleanupEmpties(stringIn) {
   const leadingCommaRegEx = /^\s*,+/g // Remove leading commas
   const trailingCommaRegEx = /,\s*$/g // Remove trailing commas
