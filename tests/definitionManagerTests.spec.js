@@ -66,6 +66,7 @@ describe('DefinitionManager tests', () => {
         thisSchema,
         false,
         test.placeholderAllowed,
+        true,
       )
       if (parsedHed === null && errorIssues.length > 0) {
         assert.deepStrictEqual(

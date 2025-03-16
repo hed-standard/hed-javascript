@@ -18,13 +18,13 @@ const runMap = new Map([['special-tag-group-tests', ['event-context-in-subgroup'
 describe('Null schema objects should cause parsing to bail', () => {
   it('Should not proceed if no schema and valid string', () => {
     const stringIn = 'Item, Red'
-    const [parsedString, errorIssues, warningIssues] = getHedString(stringIn, null, true, true)
+    const [parsedString, errorIssues, warningIssues] = getHedString(stringIn, null, true, true, true)
     assert.isNull(parsedString, `Parsed HED string of ${stringIn} is null although string is valid`)
     const expectedIssues = [generateIssue('missingSchemaSpecification', {})]
     assert.deepStrictEqual(errorIssues, expectedIssues, `A SCHEMA_LOAD_FAILED issue should be generated`)
     assert.equal(warningIssues.length, 0, `Null schema produces errors, not warnings`)
 
-    const [directParsed, errorsDirect, warningsDirect] = parseHedString(stringIn, null, true, true)
+    const [directParsed, errorsDirect, warningsDirect] = parseHedString(stringIn, null, true, true, true)
     assert.isNull(directParsed, `Parsed HED string of ${stringIn} is null for invalid string`)
     assert.deepStrictEqual(errorsDirect, expectedIssues)
     assert.equal(warningsDirect.length, 0, `Null schema produces errors, not warnings`)
@@ -32,12 +32,12 @@ describe('Null schema objects should cause parsing to bail', () => {
 
   it('Should not proceed if no schema and invalid string', () => {
     const stringIn = 'Item/Blue, Red'
-    const [parsedString, errorIssues, warningIssues] = getHedString(stringIn, null, false, false)
+    const [parsedString, errorIssues, warningIssues] = getHedString(stringIn, null, false, false, true)
     assert.isNull(parsedString, `Parsed HED string of ${stringIn} is null for invalid string`)
     const expectedIssues = [generateIssue('missingSchemaSpecification', {})]
     assert.deepStrictEqual(errorIssues, expectedIssues, `A SCHEMA_LOAD_FAILED issue should be generated`)
     assert.equal(warningIssues.length, 0, `Null schema produces errors, not warnings`)
-    const [directParsed, errorsDirect, warningsDirect] = parseHedString(stringIn, null, true, true)
+    const [directParsed, errorsDirect, warningsDirect] = parseHedString(stringIn, null, true, true, true)
     assert.isNull(directParsed, `Parsed HED string of ${stringIn} is null for invalid string`)
     assert.deepStrictEqual(errorsDirect, expectedIssues)
     assert.equal(warningsDirect.length, 0, `Null schema produces errors, not warnings`)

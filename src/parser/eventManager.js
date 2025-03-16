@@ -48,7 +48,7 @@ export class Event {
    * @returns {Array} - Returns [Event, BidsHedIssue[]] representing the extracted event and issues.
    */
   static createEvent(group, element) {
-    if (group.requiresDefTag.length === 0) {
+    if (group.requiresDefTag.length === 0 && !group.reservedTags.has('Delay')) {
       return [null, []]
     }
     let onset = Number(element.onset)
@@ -63,6 +63,9 @@ export class Event {
           ),
         ],
       ]
+    }
+    if (group.requiresDefTag.length === 0) {
+      return [null, []]
     }
     onset = onset + Event.extractDelay(group)
     const eventType = group.requiresDefTag[0].schemaTag.name

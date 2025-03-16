@@ -623,7 +623,7 @@ export const bidsTestData = [
       },
       {
         testname: 'bad-splice-of-top-level-tag',
-        explanation: 'A top-level tag group tag is part of a splice but is invalid',
+        explanation: 'A top-level tag group tag is part of a splice but gives invalid combo',
         schemaVersion: '8.3.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -656,6 +656,53 @@ export const bidsTestData = [
         ],
       },
       {
+        testname: 'bad-group-for-top-level-tag-no-splice',
+        explanation: 'A top-level tag group tag has no group and no splice should give sidecar error',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          duration: {
+            HED: 'Duration/#, (Red, Blue)',
+          },
+          event_code: {
+            HED: {
+              face: '(Red, Blue)',
+              ball: 'Black',
+            },
+          },
+          ball_type: {
+            Description: 'Has description with HED',
+            HED: 'Label/#',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tbig-one\n25\t5\tface\tother-one\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Duration/#',
+              string: 'Duration/#, (Red, Blue)',
+            }),
+            {
+              path: 'bad-group-for-top-level-tag-no-splice.json',
+              relativePath: 'bad-group-for-top-level-tag-no-splice.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Duration/#',
+              string: 'Duration/#, (Red, Blue)',
+            }),
+            {
+              path: 'bad-group-for-top-level-tag-no-splice.tsv',
+              relativePath: 'bad-group-for-top-level-tag-no-splice.tsv',
+            },
+          ),
+        ],
+      },
+      {
         testname: 'splice-of-non-top-level-tag',
         explanation: 'A top-level tag group tag is part of a splice',
         schemaVersion: '8.3.0',
@@ -676,6 +723,31 @@ export const bidsTestData = [
           },
         },
         eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tbig-one\n25\t5\tface\tother-one\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'splice-of-non-existent-column',
+        explanation: 'A splice corresponds to a non-existent column in the tsv, but should not result in empty tag.',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          duration: {
+            HED: 'Parameter-value/#',
+          },
+          event_code: {
+            HED: {
+              face: '({duration}, ((Red, Blue), {ball_type}))',
+              ball: '{ball_type}, Black',
+            },
+          },
+          ball_type: {
+            Description: 'Has description with HED',
+            HED: 'Label/#',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\n' + '19\t6\tball\n25\t5\tface\n',
         sidecarErrors: [],
         tsvErrors: [],
         comboErrors: [],
@@ -838,6 +910,31 @@ export const bidsTestData = [
             relativePath: 'invalid-curly-brace-column-slice-has-no hed.tsv',
           }),
         ],
+      },
+      {
+        testname: 'valid-curly-brace-but-splice-column-missing',
+        explanation: 'Curly braces but one of them for a splice that has no tsv column.',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          duration: {
+            HED: 'Duration/#',
+          },
+          event_code: {
+            HED: {
+              face: '({duration}, ((Red, Blue), {ball_type}))',
+              ball: '{ball_type}, Black',
+            },
+          },
+          ball_type: {
+            Description: 'Has description with HED',
+            HED: 'Label/#',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\n4.5\t0\tface\tBlue\n5.0\t0\tball\tGreen, Def/MyColor\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
       },
       {
         testname: 'invalid-curly-brace-in-HED-tsv-column',
@@ -2303,6 +2400,42 @@ export const bidsTestData = [
             {
               path: 'all-na-in-onset-column-invalid-onset.tsv',
               relativePath: 'all-na-in-onset-column-invalid-onset.tsv',
+            },
+            { tsvLine: '3' },
+          ),
+        ],
+      },
+      {
+        testname: 'all-na-in-onset-column-invalid-delay',
+        explanation: 'all n/a in onset column with an invalid delay',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Acceleration/5',
+              ball: 'Black, white',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\nn/a\t0\tball\tRed\nn/a\t\0\tface\t(Delay/4.0, (Green))\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('temporalTagInNonTemporalContext', { string: '(Delay/4.0, (Green))' }),
+            {
+              path: 'all-na-in-onset-column-invalid-delay.tsv',
+              relativePath: 'all-na-in-onset-column-invalid-delay.tsv',
+            },
+            { tsvLine: '3' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('temporalTagInNonTemporalContext', { string: 'Acceleration/5,(Delay/4.0, (Green))' }),
+            {
+              path: 'all-na-in-onset-column-invalid-delay.tsv',
+              relativePath: 'all-na-in-onset-column-invalid-delay.tsv',
             },
             { tsvLine: '3' },
           ),
