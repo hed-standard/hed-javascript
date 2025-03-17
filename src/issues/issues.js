@@ -94,6 +94,7 @@ export class Issue {
 
   /**
    * Constructor.
+   *
    * @param {string} internalCode The internal error code.
    * @param {string} hedCode The HED 3 error code.
    * @param {string} level The issue level (error or warning).
@@ -120,25 +121,59 @@ export class Issue {
    * (Re-)generate the issue message.
    */
   generateMessage() {
-    // Convert all parameters except the substring bounds (an integer array) to their string forms.
-    this.parameters = mapValues(this.parameters, (value, key) => (key === 'bounds' ? value : String(value)))
+    this._stringifyParameters()
+    const baseMessage = this._parseMessageTemplate()
+    const specialParameterMessages = this._parseSpecialParameters()
+    const hedSpecLink = this._generateHedSpecificationLink()
 
+    this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${baseMessage} ${specialParameterMessages} (${hedSpecLink}.)`
+  }
+
+  /**
+   * Convert all parameters except the substring bounds (an integer array) to their string forms.
+   * @private
+   */
+  _stringifyParameters() {
+    this.parameters = mapValues(this.parameters, (value, key) => (key === 'bounds' ? value : String(value)))
+  }
+
+  /**
+   * Find and parse the appropriate message template.
+   *
+   * @returns {string} The parsed base message.
+   * @private
+   */
+  _parseMessageTemplate() {
     const bounds = this.parameters.bounds ?? []
     const messageTemplate = issueData[this.internalCode].message
-    let message = messageTemplate(...bounds, this.parameters)
+    return messageTemplate(...bounds, this.parameters)
+  }
 
-    // Special parameters
+  /**
+   * Parse "special" parameters.
+   *
+   * @returns {string} The parsed special parameters.
+   * @private
+   */
+  _parseSpecialParameters() {
+    const specialParameterMessages = []
     for (const [parameterName, parameterHeader] of Issue.SPECIAL_PARAMETERS) {
       if (this.parameters[parameterName]) {
-        message += ` ${parameterHeader}: "${this.parameters[parameterName]}"`
+        specialParameterMessages.push(`${parameterHeader}: "${this.parameters[parameterName]}".`)
       }
     }
+    return specialParameterMessages.join(' ')
+  }
 
-    // Append link to error code in HED spec.
+  /**
+   * Generate a link to the appropriate section in the HED specification.
+   *
+   * @returns {string} A link to the HED specification
+   * @private
+   */
+  _generateHedSpecificationLink() {
     const hedCodeAnchor = this.hedCode.toLowerCase().replace(/_/g, '-')
-    const hedSpecLink = `For more information on this HED ${this.level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
-
-    this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${message} (${hedSpecLink}.)`
+    return `For more information on this HED ${this.level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
   }
 }
 
@@ -154,6 +189,7 @@ export const generateIssue = function (internalCode, parameters) {
   const { hedCode, level } = issueCodeData
   if (issueCodeData === issueData.genericError) {
     parameters.internalCode = internalCode
+    internalCode = 'genericError'
     parameters.parameters = 'Issue parameters: ' + JSON.stringify(parameters)
   }
 

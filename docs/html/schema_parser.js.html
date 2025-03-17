@@ -19,7 +19,8 @@
 
       <section>
         <article>
-          <pre class="prettyprint source linenums"><code>import flattenDeep from 'lodash/flattenDeep'
+          <pre class="prettyprint source linenums"><code>import Set from 'core-js-pure/actual/set'
+import flattenDeep from 'lodash/flattenDeep'
 import zip from 'lodash/zip'
 import semver from 'semver'
 
@@ -36,7 +37,6 @@ import {
   SchemaEntryManager,
   SchemaProperty,
   SchemaTag,
-  SchemaTagManager,
   SchemaUnit,
   SchemaUnitClass,
   SchemaUnitModifier,
@@ -55,35 +55,46 @@ export default class SchemaParser {
    * @type {Object}
    */
   rootElement
+
   /**
    * @type {Map&lt;string, SchemaProperty>}
    */
   properties
+
   /**
    * @type {Map&lt;string, SchemaAttribute>}
    */
   attributes
+
   /**
    * The schema's value classes.
    * @type {SchemaEntryManager&lt;SchemaValueClass>}
    */
   valueClasses
+
   /**
    * The schema's unit classes.
    * @type {SchemaEntryManager&lt;SchemaUnitClass>}
    */
   unitClasses
+
   /**
    * The schema's unit modifiers.
    * @type {SchemaEntryManager&lt;SchemaUnitModifier>}
    */
   unitModifiers
+
   /**
    * The schema's tags.
-   * @type {SchemaTagManager}
+   * @type {SchemaEntryManager&lt;SchemaTag>}
    */
   tags
 
+  /**
+   * Constructor.
+   *
+   * @param {Object} rootElement The root XML element.
+   */
   constructor(rootElement) {
     this.rootElement = rootElement
     this._versionDefinitions = {
@@ -315,12 +326,7 @@ export default class SchemaParser {
 
     this._injectTagFields(tags, shortTags, tagEntries)
 
-    const longNameTagEntries = new Map()
-    for (const tag of tagEntries.values()) {
-      longNameTagEntries.set(lc(tag.longName), tag)
-    }
-
-    this.tags = new SchemaTagManager(tagEntries, longNameTagEntries)
+    this.tags = new SchemaEntryManager(tagEntries)
   }
 
   /**
@@ -378,18 +384,50 @@ export default class SchemaParser {
    * @private
    */
   _processRecursiveAttributes(shortTags, booleanAttributeDefinitions) {
-    const recursiveAttributes = this._getRecursiveAttributes()
+    const recursiveAttributeMap = this._generateRecursiveAttributeMap(shortTags, booleanAttributeDefinitions)
 
-    for (const [tagElement, tagName] of shortTags) {
-      for (const attribute of recursiveAttributes) {
-        if (booleanAttributeDefinitions.get(tagName).has(attribute)) {
-          for (const childTag of this.getAllChildTags(tagElement)) {
-            const childTagName = this.getElementTagName(childTag)
-            booleanAttributeDefinitions.get(childTagName).add(attribute)
-          }
-        }
+    for (const [tagElement, recursiveAttributes] of recursiveAttributeMap) {
+      for (const childTag of this.getAllChildTags(tagElement)) {
+        const childTagName = this.getElementTagName(childTag)
+        const newBooleanAttributes = booleanAttributeDefinitions.get(childTagName)?.union(recursiveAttributes)
+        booleanAttributeDefinitions.set(childTagName, newBooleanAttributes)
       }
     }
+  }
+
+  /**
+   * Generate a map from tags to their recursive attributes.
+   *
+   * @param {Map&lt;Object, string>} shortTags The map from tag elements to shortened tag names.
+   * @param {Map&lt;string, Set&lt;SchemaAttribute>>} booleanAttributeDefinitions The map from shortened tag names to their boolean schema attributes. Passed by reference.
+   * @private
+   */
+  _generateRecursiveAttributeMap(shortTags, booleanAttributeDefinitions) {
+    const recursiveAttributes = this._getRecursiveAttributes()
+    const recursiveAttributeMap = new Map()
+
+    for (const [tagElement, tagName] of shortTags) {
+      recursiveAttributeMap.set(tagElement, booleanAttributeDefinitions.get(tagName)?.intersection(recursiveAttributes))
+    }
+
+    return recursiveAttributeMap
+  }
+
+  _getRecursiveAttributes() {
+    const attributeArray = Array.from(this.attributes.values())
+    let filteredAttributeArray
+
+    if (semver.lt(this.rootElement.$.version, '8.3.0')) {
+      filteredAttributeArray = attributeArray.filter((attribute) =>
+        attribute.roleProperties.has(this.properties.get('isInheritedProperty')),
+      )
+    } else {
+      filteredAttributeArray = attributeArray.filter(
+        (attribute) => !attribute.roleProperties.has(this.properties.get('annotationProperty')),
+      )
+    }
+
+    return new Set(filteredAttributeArray)
   }
 
   /**
@@ -487,19 +525,6 @@ export default class SchemaParser {
     return [booleanAttributes, valueAttributes]
   }
 
-  _getRecursiveAttributes() {
-    const attributeArray = Array.from(this.attributes.values())
-    if (semver.lt(this.rootElement.$.version, '8.3.0')) {
-      return attributeArray.filter((attribute) =>
-        attribute.roleProperties.has(this.properties.get('isInheritedProperty')),
-      )
-    } else {
-      return attributeArray.filter(
-        (attribute) => !attribute.roleProperties.has(this.properties.get('annotationProperty')),
-      )
-    }
-  }
-
   _addCustomAttributes() {
     const isInheritedProperty = this.properties.get('isInheritedProperty')
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
@@ -561,7 +586,6 @@ export default class SchemaParser {
         <li><a href="SchemaProperty.html">SchemaProperty</a></li>
         <li><a href="SchemaSpec.html">SchemaSpec</a></li>
         <li><a href="SchemaTag.html">SchemaTag</a></li>
-        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
         <li><a href="SchemaUnit.html">SchemaUnit</a></li>
         <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
         <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
@@ -588,9 +612,9 @@ export default class SchemaParser {
         <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
         <li><a href="global.html#buildSchemas">buildSchemas</a></li>
         <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
-        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
         <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
         <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
         <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
         <li><a href="global.html#convert">convert</a></li>
         <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
@@ -605,27 +629,20 @@ export default class SchemaParser {
         <li><a href="global.html#getAllTags">getAllTags</a></li>
         <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
         <li><a href="global.html#getDuplicates">getDuplicates</a></li>
-        <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
-        <li><a href="global.html#getTagName">getTagName</a></li>
         <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
         <li><a href="global.html#hasAttribute">hasAttribute</a></li>
         <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
-        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
-        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
-        <li><a href="global.html#isDateTime">isDateTime</a></li>
         <li><a href="global.html#isDeprecated">isDeprecated</a></li>
         <li><a href="global.html#isExtended">isExtended</a></li>
-        <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
         <li><a href="global.html#loadPromise">loadPromise</a></li>
         <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
         <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
-        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
         <li><a href="global.html#parseHedString">parseHedString</a></li>
@@ -637,16 +654,12 @@ export default class SchemaParser {
         <li><a href="global.html#readFile">readFile</a></li>
         <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
         <li><a href="global.html#recursiveMap">recursiveMap</a></li>
-        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
-        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
         <li><a href="global.html#schemaTag">schemaTag</a></li>
         <li><a href="global.html#search">search</a></li>
         <li><a href="global.html#setNodeParent">setNodeParent</a></li>
         <li><a href="global.html#setParent">setParent</a></li>
-        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
         <li><a href="global.html#sourceTags">sourceTags</a></li>
         <li><a href="global.html#splitHedString">splitHedString</a></li>
-        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
         <li><a href="global.html#stringTemplate">stringTemplate</a></li>
         <li><a href="global.html#stripBOM">stripBOM</a></li>
         <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
@@ -662,8 +675,8 @@ export default class SchemaParser {
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
-      GMT-0600 (Central Standard Time)
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
     </footer>
 
     <script>

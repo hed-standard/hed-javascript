@@ -1,4 +1,4 @@
-import { BidsHedIssue } from '../src/bids'
+import BidsHedIssue from '../src/bids'
 import { parseHedString } from '../src/parser/parser'
 
 export function shouldRun(name, testname, runAll, runMap, skipMap) {
@@ -29,12 +29,13 @@ export function extractHedCodes(issues) {
 }
 
 // Parse the HED string
-export function getHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed) {
+export function getHedString(hedString, hedSchemas, definitionsAllowed, placeholdersAllowed, fullValidation = true) {
   const [parsedString, errorIssues, warningIssues] = parseHedString(
     hedString,
     hedSchemas,
     definitionsAllowed,
     placeholdersAllowed,
+    fullValidation,
   )
   if (errorIssues.length > 0) {
     return [null, errorIssues, warningIssues]

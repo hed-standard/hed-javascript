@@ -1,4 +1,4 @@
-name: CI
+name: Tests
 
 on:
   push:
@@ -52,22 +52,3 @@ jobs:
         run: npm ci
       - name: Run JSON spec tests with Node.js ${{ matrix.node-version }}
         run: npm run testSpecs
-
-  Coverage:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out the code
-        uses: actions/checkout@v4
-      - name: Set up with Node.js LTS
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-      - name: Download dependencies
-        run: npm ci
-      - name: Test & publish code coverage
-        uses: paambaati/codeclimate-action@v9.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-        with:
-          coverageCommand: ./node_modules/.bin/jest --coverage

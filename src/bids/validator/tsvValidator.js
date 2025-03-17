@@ -5,7 +5,7 @@ import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../issues/issues'
 import { ReservedChecker } from '../../parser/reservedChecker'
-import { getTagListString } from '../../parser/parseUtils'
+import { cleanupEmpties, getTagListString } from '../../parser/parseUtils'
 import { EventManager } from '../../parser/eventManager'
 
 /**
@@ -74,7 +74,7 @@ export class BidsHedTsvValidator extends BidsValidator {
   _checkMissingHedWarning() {
     // Check for HED column used as splice but no HED column
     if (this.tsvFile.mergedSidecar.columnSpliceReferences.has('HED') && !this.tsvFile.parsedTsv.has('HED')) {
-      this.warnings.push(BidsHedIssue.fromHedIssue(generateIssue('hedUsedAsSpliceButNoTsvHed'), this.tsvFile.file))
+      this.warnings.push(BidsHedIssue.fromHedIssue(generateIssue('hedUsedAsSpliceButNoTsvHed', {}), this.tsvFile.file))
     }
   }
 
@@ -130,7 +130,7 @@ export class BidsHedTsvValidator extends BidsValidator {
     }
 
     // Find basic parsing issues and return if unable to parse the string. (Warnings are okay.)
-    const [parsedString, errorIssues, warningIssues] = parseHedString(hedString, this.hedSchemas, false, false)
+    const [parsedString, errorIssues, warningIssues] = parseHedString(hedString, this.hedSchemas, false, false, false)
     this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: rowIndex }))
     this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: rowIndex }))
     if (parsedString === null) {
@@ -217,7 +217,7 @@ export class BidsHedTsvValidator extends BidsValidator {
       }
       // Assemble the HED strings associated with same onset into single string. Use the parse duplicate detection.
       const rowString = elementList.map((element) => element.hedString).join(',')
-      const [parsedString, errorIssues, warningIssues] = parseHedString(rowString, this.hedSchemas, false, false)
+      const [parsedString, errorIssues, warningIssues] = parseHedString(rowString, this.hedSchemas, false, false, true)
       const tsvLines = BidsTsvElement.getTsvLines(elementList)
       this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: tsvLines }))
       this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: tsvLines }))
@@ -293,10 +293,6 @@ export class BidsHedTsvValidator extends BidsValidator {
 export class BidsHedTsvParser {
   static nullSet = new Set([null, undefined, '', 'n/a'])
   static braceRegEx = /\{([^{}]*?)\}/g
-  static parenthesesRegEx = /\(\s*[,\s]*(\(\s*[,\s]*\))*[,\s]*\)/g
-  static internalCommaRegEx = /,\s*,/g
-  static leadingCommaRegEx = /^\s*,+\s*/
-  static trailingCommaRegEx = /\s*,+\s*$/
 
   /**
    * The BIDS TSV file being parsed.
@@ -353,6 +349,7 @@ export class BidsHedTsvParser {
         this.hedSchemas,
         false,
         false,
+        true,
       )
       element.parsedHedString = parsedHedString
       errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: element.tsvLine }))
@@ -453,6 +450,7 @@ export class BidsHedTsvParser {
     // Check for the columns with HED data in the sidecar
     for (const [columnName, columnValues] of this.tsvFile.mergedSidecar.parsedHedData.entries()) {
       if (!rowCells.has(columnName)) {
+        columnMap.set(columnName, '')
         continue
       }
       const rowColumnValue = rowCells.get(columnName)
@@ -480,13 +478,18 @@ export class BidsHedTsvParser {
    * Note: Updates the map in place.
    */
   spliceValues(columnMap) {
+    if (!(this.tsvFile.mergedSidecar?.columnSpliceMapping?.size > 0)) {
+      return
+    }
     // Only iterate over the column names that have splices
     for (const column of this.tsvFile.mergedSidecar.columnSpliceMapping.keys()) {
-      if (!columnMap.has(column)) {
-        continue
-      }
+      // if (!columnMap.has(column)) {
+      //   continue
+      // }
       const unspliced = columnMap.get(column)
+
       const result = this._replaceSplices(unspliced, columnMap)
+      //console.log(`Column ${column}: ${unspliced} => ${result}`)
       columnMap.set(column, result)
     }
   }
@@ -506,30 +509,7 @@ export class BidsHedTsvParser {
       // Replace with resolved value or empty string if in nullSet
       return BidsHedTsvParser.nullSet.has(resolved) ? '' : resolved
     })
-    return this._spliceCleanup(result)
-  }
-
-  /**
-   * Remove empty tags or groups which occur because of an empty splice.
-   * @param {string} spliced - The result of splice removal -- which could have empty tags or groups.
-   * @returns {string} - The string with empty tags or groups removed.
-   * @private
-   */
-  _spliceCleanup(spliced) {
-    let result = spliced
-
-    // Remove extra internal empty parentheses due to empty splices
-    while (BidsHedTsvParser.parenthesesRegEx.test(result)) {
-      result = result.replace(BidsHedTsvParser.parenthesesRegEx, '')
-    }
-    // Remove leading commas
-    result = result.replace(BidsHedTsvParser.leadingCommaRegEx, '')
-
-    // Remove trailing commas
-    result = result.replace(BidsHedTsvParser.trailingCommaRegEx, '')
-
-    // Remove extra empty commas due to empty splices
-    return result.replace(BidsHedTsvParser.internalCommaRegEx, ',')
+    return cleanupEmpties(result)
   }
 }
 

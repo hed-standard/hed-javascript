@@ -37,6 +37,7 @@
   "homepage": "https://github.com/hed-standard/hed-javascript",
   "dependencies": {
     "buffer": "^6.0.3",
+    "core-js-pure": "^3.41.0",
     "cross-fetch": "^4.0.0",
     "date-and-time": "^3.1.1",
     "date-fns": "^4.1.0",
@@ -67,7 +68,7 @@
     "jsdoc": "^4.0.4",
     "prettier": "^3.2.5",
     "pretty-quick": "^4.0.0",
-    "typedoc": "^0.27.6",
+    "typedoc": "^0.28.0",
     "typescript": "^5.4.5"
   },
   "husky": {

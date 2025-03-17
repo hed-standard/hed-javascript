@@ -69,7 +69,7 @@ export class IssueError extends Error {
    * @throws {IssueError} Corresponding to the generated internal error {@link Issue}.
    */
   static generateAndThrowInternalError(message = 'Unknown internal error') {
-    throw new IssueError(generateIssue('internalError', { message }))
+    IssueError.generateAndThrow('internalError', { message })
   }
 }
 
@@ -77,6 +77,12 @@ export class IssueError extends Error {
  * A HED validation error or warning.
  */
 export class Issue {
+  static SPECIAL_PARAMETERS = new Map([
+    ['sidecarKey', 'Sidecar key'],
+    ['tsvLine', 'TSV line'],
+    ['hedString', 'HED string'],
+  ])
+
   /**
    * The internal error code.
    * @type {string}
@@ -88,16 +94,19 @@ export class Issue {
    * @type {string}
    */
   hedCode
+
   /**
    * The issue level (error or warning).
    * @type {string}
    */
   level
+
   /**
    * The detailed error message.
    * @type {string}
    */
   message
+
   /**
    * The parameters to the error message template. Object with string and map parameters.
    * @type {Object}
@@ -106,6 +115,7 @@ export class Issue {
 
   /**
    * Constructor.
+   *
    * @param {string} internalCode The internal error code.
    * @param {string} hedCode The HED 3 error code.
    * @param {string} level The issue level (error or warning).
@@ -117,15 +127,6 @@ export class Issue {
     this.level = level
     this.parameters = parameters
     this.generateMessage()
-  }
-
-  /**
-   * Whether this issue is an error.
-   *
-   * @returns {boolean}
-   */
-  get isError() {
-    return this.level === 'error'
   }
 
   /**
@@ -141,39 +142,59 @@ export class Issue {
    * (Re-)generate the issue message.
    */
   generateMessage() {
-    // Convert all parameters except the substring bounds (an integer array) to their string forms.
-    this.parameters = mapValues(this.parameters, (value, key) => (key === 'bounds' ? value : String(value)))
+    this._stringifyParameters()
+    const baseMessage = this._parseMessageTemplate()
+    const specialParameterMessages = this._parseSpecialParameters()
+    const hedSpecLink = this._generateHedSpecificationLink()
 
-    const bounds = this.parameters.bounds ?? []
-    const messageTemplate = issueData[this.internalCode].message
-    let message = messageTemplate(...bounds, this.parameters)
-
-    // Special parameters
-    if (this.parameters.sidecarKey) {
-      message += ` Sidecar key: "${this.parameters.sidecarKey}".`
-    }
-    if (this.parameters.tsvLine) {
-      message += ` TSV line: ${this.parameters.tsvLine}.`
-    }
-    if (this.parameters.hedString) {
-      message += ` HED string: "${this.parameters.hedString}".`
-    }
-
-    // Append link to error code in HED spec.
-    const hedCodeAnchor = this.hedCode.toLowerCase().replace(/_/g, '-')
-    const hedSpecLink = `For more information on this HED ${this.level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
-
-    this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${message} (${hedSpecLink}.)`
+    this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${baseMessage} ${specialParameterMessages} (${hedSpecLink}.)`
   }
 
   /**
-   * Return a tuple with a boolean denoting overall validity and all issues.
-   *
-   * @param {Issue[]} issues A list of issues.
-   * @returns {Array} Returns [boolean, Issue[]] indicate if validation succeeded (i.e. any errors were found)and all issues (both errors and warnings).
+   * Convert all parameters except the substring bounds (an integer array) to their string forms.
+   * @private
    */
-  static issueListWithValidStatus(issues) {
-    return [!issues.some((issue) => issue.isError), issues]
+  _stringifyParameters() {
+    this.parameters = mapValues(this.parameters, (value, key) => (key === 'bounds' ? value : String(value)))
+  }
+
+  /**
+   * Find and parse the appropriate message template.
+   *
+   * @returns {string} The parsed base message.
+   * @private
+   */
+  _parseMessageTemplate() {
+    const bounds = this.parameters.bounds ?? []
+    const messageTemplate = issueData[this.internalCode].message
+    return messageTemplate(...bounds, this.parameters)
+  }
+
+  /**
+   * Parse "special" parameters.
+   *
+   * @returns {string} The parsed special parameters.
+   * @private
+   */
+  _parseSpecialParameters() {
+    const specialParameterMessages = []
+    for (const [parameterName, parameterHeader] of Issue.SPECIAL_PARAMETERS) {
+      if (this.parameters[parameterName]) {
+        specialParameterMessages.push(`${parameterHeader}: "${this.parameters[parameterName]}".`)
+      }
+    }
+    return specialParameterMessages.join(' ')
+  }
+
+  /**
+   * Generate a link to the appropriate section in the HED specification.
+   *
+   * @returns {string} A link to the HED specification
+   * @private
+   */
+  _generateHedSpecificationLink() {
+    const hedCodeAnchor = this.hedCode.toLowerCase().replace(/_/g, '-')
+    return `For more information on this HED ${this.level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
   }
 }
 
@@ -185,10 +206,11 @@ export class Issue {
  * @returns {Issue} An object representing the issue.
  */
 export const generateIssue = function (internalCode, parameters) {
-  const issueCodeData = issueData[internalCode] ?? issueData.internalError
+  const issueCodeData = issueData[internalCode] ?? issueData.genericError
   const { hedCode, level } = issueCodeData
-  if (issueCodeData === issueData.internalError) {
+  if (issueCodeData === issueData.genericError) {
     parameters.internalCode = internalCode
+    internalCode = 'genericError'
     parameters.parameters = 'Issue parameters: ' + JSON.stringify(parameters)
   }
 
@@ -236,7 +258,6 @@ export const generateIssue = function (internalCode, parameters) {
         <li><a href="SchemaProperty.html">SchemaProperty</a></li>
         <li><a href="SchemaSpec.html">SchemaSpec</a></li>
         <li><a href="SchemaTag.html">SchemaTag</a></li>
-        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
         <li><a href="SchemaUnit.html">SchemaUnit</a></li>
         <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
         <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
@@ -263,9 +284,9 @@ export const generateIssue = function (internalCode, parameters) {
         <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
         <li><a href="global.html#buildSchemas">buildSchemas</a></li>
         <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
-        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
         <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
         <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
         <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
         <li><a href="global.html#convert">convert</a></li>
         <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
@@ -280,27 +301,20 @@ export const generateIssue = function (internalCode, parameters) {
         <li><a href="global.html#getAllTags">getAllTags</a></li>
         <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
         <li><a href="global.html#getDuplicates">getDuplicates</a></li>
-        <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
-        <li><a href="global.html#getTagName">getTagName</a></li>
         <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
         <li><a href="global.html#hasAttribute">hasAttribute</a></li>
         <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
-        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
-        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
-        <li><a href="global.html#isDateTime">isDateTime</a></li>
         <li><a href="global.html#isDeprecated">isDeprecated</a></li>
         <li><a href="global.html#isExtended">isExtended</a></li>
-        <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
         <li><a href="global.html#loadPromise">loadPromise</a></li>
         <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
         <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
-        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
         <li><a href="global.html#parseHedString">parseHedString</a></li>
@@ -312,16 +326,12 @@ export const generateIssue = function (internalCode, parameters) {
         <li><a href="global.html#readFile">readFile</a></li>
         <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
         <li><a href="global.html#recursiveMap">recursiveMap</a></li>
-        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
-        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
         <li><a href="global.html#schemaTag">schemaTag</a></li>
         <li><a href="global.html#search">search</a></li>
         <li><a href="global.html#setNodeParent">setNodeParent</a></li>
         <li><a href="global.html#setParent">setParent</a></li>
-        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
         <li><a href="global.html#sourceTags">sourceTags</a></li>
         <li><a href="global.html#splitHedString">splitHedString</a></li>
-        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
         <li><a href="global.html#stringTemplate">stringTemplate</a></li>
         <li><a href="global.html#stripBOM">stripBOM</a></li>
         <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
@@ -337,8 +347,8 @@ export const generateIssue = function (internalCode, parameters) {
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
-      GMT-0600 (Central Standard Time)
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
     </footer>
 
     <script>

@@ -24,11 +24,16 @@ import { generateIssue, IssueError } from '../issues/issues'
 import { getTagListString } from './parseUtils'
 
 export class ReservedChecker {
-  static instance = null
+  /**
+   * Singleton instance of ReservedChecker.
+   * @type {ReservedChecker}
+   * @private
+   */
+  static _instance = undefined
   static reservedMap = new Map(Object.entries(reservedTags))
 
   constructor() {
-    if (ReservedChecker.instance) {
+    if (ReservedChecker._instance) {
       IssueError.generateAndThrowInternalError('Use ReservedChecker.getInstance() to get an instance of this class.')
     }
 
@@ -37,10 +42,10 @@ export class ReservedChecker {
 
   // Static method to control access to the singleton instance
   static getInstance() {
-    if (!ReservedChecker.instance) {
-      ReservedChecker.instance = new ReservedChecker()
+    if (!ReservedChecker._instance) {
+      ReservedChecker._instance = new ReservedChecker()
     }
-    return ReservedChecker.instance
+    return ReservedChecker._instance
   }
 
   _initializeReservedTags() {
@@ -61,12 +66,13 @@ export class ReservedChecker {
    * Perform syntactical checks on the provided HED string to detect violations.
    *
    * @param {ParsedHedString} hedString - The HED string to be checked.
+   * @param {boolean} fullValidation - If true, perform full validation; otherwise, perform a quick check.
    * @returns {Issue[]} - An array of issues if violations are found otherwise, an empty array.
    */
-  checkHedString(hedString) {
+  checkHedString(hedString, fullValidation) {
     const checks = [
       () => this.checkUnique(hedString),
-      () => this.checkTagGroupLevels(hedString),
+      () => this.checkTagGroupLevels(hedString, fullValidation),
       () => this.checkTopGroupRequirements(hedString),
       () => this.checkNonTopGroups(hedString),
     ]
@@ -101,9 +107,10 @@ export class ReservedChecker {
    * Check whether tags are not in groups -- or top-level groups as required
    *
    * @param {ParsedHedString} hedString - The HED string to be checked for reserved tag syntax.
+   * @param {boolean} fullValidation - If true, perform full validation; otherwise, perform a quick check.
    * @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
    */
-  checkTagGroupLevels(hedString) {
+  checkTagGroupLevels(hedString, fullValidation) {
     const issues = []
     const topGroupTags = hedString.topLevelGroupTags.flat()
 
@@ -114,14 +121,22 @@ export class ReservedChecker {
         return
       }
 
-      // If this is a top tag group tag, we know it isn't in a top tag group.
-      if (ReservedChecker.hasTopLevelTagGroupAttribute(tag)) {
-        issues.push(generateIssue('invalidTopLevelTagGroupTag', { tag: tag.originalTag, string: hedString.hedString }))
+      // This is a top-level tag group tag that is in a lower level or ungrouped top level
+      if (
+        ReservedChecker.hasTopLevelTagGroupAttribute(tag) &amp;&amp;
+        (!hedString.topLevelTags.includes(tag) || fullValidation)
+      ) {
+        issues.push(
+          generateIssue('invalidTopLevelTagGroupTag', {
+            tag: tag.originalTag,
+            string: hedString.hedString,
+          }),
+        )
         return
       }
 
       // In final form --- if not in a group (not just a top group) but has the group tag attribute
-      if (hedString.topLevelTags.includes(tag) &amp;&amp; ReservedChecker.hasGroupAttribute(tag)) {
+      if (hedString.topLevelTags.includes(tag) &amp;&amp; ReservedChecker.hasGroupAttribute(tag) &amp;&amp; fullValidation) {
         issues.push(generateIssue('missingTagGroup', { tag: tag.originalTag, string: hedString.hedString }))
       }
     })
@@ -359,7 +374,6 @@ export class ReservedChecker {
         <li><a href="SchemaProperty.html">SchemaProperty</a></li>
         <li><a href="SchemaSpec.html">SchemaSpec</a></li>
         <li><a href="SchemaTag.html">SchemaTag</a></li>
-        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
         <li><a href="SchemaUnit.html">SchemaUnit</a></li>
         <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
         <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
@@ -386,9 +400,9 @@ export class ReservedChecker {
         <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
         <li><a href="global.html#buildSchemas">buildSchemas</a></li>
         <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
-        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
         <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
         <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
         <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
         <li><a href="global.html#convert">convert</a></li>
         <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
@@ -403,27 +417,20 @@ export class ReservedChecker {
         <li><a href="global.html#getAllTags">getAllTags</a></li>
         <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
         <li><a href="global.html#getDuplicates">getDuplicates</a></li>
-        <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
-        <li><a href="global.html#getTagName">getTagName</a></li>
         <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
         <li><a href="global.html#hasAttribute">hasAttribute</a></li>
         <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
-        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
-        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
-        <li><a href="global.html#isDateTime">isDateTime</a></li>
         <li><a href="global.html#isDeprecated">isDeprecated</a></li>
         <li><a href="global.html#isExtended">isExtended</a></li>
-        <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
         <li><a href="global.html#loadPromise">loadPromise</a></li>
         <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
         <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
-        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
         <li><a href="global.html#parseHedString">parseHedString</a></li>
@@ -435,16 +442,12 @@ export class ReservedChecker {
         <li><a href="global.html#readFile">readFile</a></li>
         <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
         <li><a href="global.html#recursiveMap">recursiveMap</a></li>
-        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
-        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
         <li><a href="global.html#schemaTag">schemaTag</a></li>
         <li><a href="global.html#search">search</a></li>
         <li><a href="global.html#setNodeParent">setNodeParent</a></li>
         <li><a href="global.html#setParent">setParent</a></li>
-        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
         <li><a href="global.html#sourceTags">sourceTags</a></li>
         <li><a href="global.html#splitHedString">splitHedString</a></li>
-        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
         <li><a href="global.html#stringTemplate">stringTemplate</a></li>
         <li><a href="global.html#stripBOM">stripBOM</a></li>
         <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
@@ -460,8 +463,8 @@ export class ReservedChecker {
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
-      GMT-0600 (Central Standard Time)
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
     </footer>
 
     <script>

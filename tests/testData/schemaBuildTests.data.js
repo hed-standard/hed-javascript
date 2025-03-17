@@ -88,15 +88,13 @@ export const schemaSpecTestData = [
         testname: 'empty-nickname',
         explanation: 'Empty nickname in schema version [":testlib_1.0.2", "8.3.0"]',
         schemaVersion: { Name: 'LeadingColon', BIDSVersion: '1.10.0', HEDVersion: [':testlib_1.0.2', '8.3.0'] },
-        schemaError: new IssueError(generateIssue('invalidSchemaNickname', { nickname: '', spec: ':testlib_1.0.2' })),
+        schemaError: new IssueError(generateIssue('invalidSchemaSpecification', { spec: ':testlib_1.0.2' })),
       },
       {
         testname: 'non-alphabetic-version-nickname',
         explanation: 'Nickname contains non-alphabetic characters in ["8.3.0", "t-s:testlib_1.0.2"]',
         schemaVersion: { Name: 'BadNickName', BIDSVersion: '1.10.0', HEDVersion: ['8.3.0', 't-s:testlib_1.0.2'] },
-        schemaError: new IssueError(
-          generateIssue('invalidSchemaNickname', { nickname: 't-s', spec: 't-s:testlib_1.0.2' }),
-        ),
+        schemaError: new IssueError(generateIssue('invalidSchemaSpecification', { spec: 't-s:testlib_1.0.2' })),
       },
       {
         testname: 'multiple-colon-nickname',

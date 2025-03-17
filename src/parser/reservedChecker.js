@@ -8,11 +8,11 @@ export class ReservedChecker {
    * @type {ReservedChecker}
    * @private
    */
-  static #instance = undefined
+  static _instance = undefined
   static reservedMap = new Map(Object.entries(reservedTags))
 
   constructor() {
-    if (ReservedChecker.#instance) {
+    if (ReservedChecker._instance) {
       IssueError.generateAndThrowInternalError('Use ReservedChecker.getInstance() to get an instance of this class.')
     }
 
@@ -21,10 +21,10 @@ export class ReservedChecker {
 
   // Static method to control access to the singleton instance
   static getInstance() {
-    if (!ReservedChecker.#instance) {
-      ReservedChecker.#instance = new ReservedChecker()
+    if (!ReservedChecker._instance) {
+      ReservedChecker._instance = new ReservedChecker()
     }
-    return ReservedChecker.#instance
+    return ReservedChecker._instance
   }
 
   _initializeReservedTags() {
@@ -45,12 +45,13 @@ export class ReservedChecker {
    * Perform syntactical checks on the provided HED string to detect violations.
    *
    * @param {ParsedHedString} hedString - The HED string to be checked.
+   * @param {boolean} fullValidation - If true, perform full validation; otherwise, perform a quick check.
    * @returns {Issue[]} - An array of issues if violations are found otherwise, an empty array.
    */
-  checkHedString(hedString) {
+  checkHedString(hedString, fullValidation) {
     const checks = [
       () => this.checkUnique(hedString),
-      () => this.checkTagGroupLevels(hedString),
+      () => this.checkTagGroupLevels(hedString, fullValidation),
       () => this.checkTopGroupRequirements(hedString),
       () => this.checkNonTopGroups(hedString),
     ]
@@ -85,9 +86,10 @@ export class ReservedChecker {
    * Check whether tags are not in groups -- or top-level groups as required
    *
    * @param {ParsedHedString} hedString - The HED string to be checked for reserved tag syntax.
+   * @param {boolean} fullValidation - If true, perform full validation; otherwise, perform a quick check.
    * @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
    */
-  checkTagGroupLevels(hedString) {
+  checkTagGroupLevels(hedString, fullValidation) {
     const issues = []
     const topGroupTags = hedString.topLevelGroupTags.flat()
 
@@ -98,14 +100,22 @@ export class ReservedChecker {
         return
       }
 
-      // If this is a top tag group tag, we know it isn't in a top tag group.
-      if (ReservedChecker.hasTopLevelTagGroupAttribute(tag)) {
-        issues.push(generateIssue('invalidTopLevelTagGroupTag', { tag: tag.originalTag, string: hedString.hedString }))
+      // This is a top-level tag group tag that is in a lower level or ungrouped top level
+      if (
+        ReservedChecker.hasTopLevelTagGroupAttribute(tag) &&
+        (!hedString.topLevelTags.includes(tag) || fullValidation)
+      ) {
+        issues.push(
+          generateIssue('invalidTopLevelTagGroupTag', {
+            tag: tag.originalTag,
+            string: hedString.hedString,
+          }),
+        )
         return
       }
 
       // In final form --- if not in a group (not just a top group) but has the group tag attribute
-      if (hedString.topLevelTags.includes(tag) && ReservedChecker.hasGroupAttribute(tag)) {
+      if (hedString.topLevelTags.includes(tag) && ReservedChecker.hasGroupAttribute(tag) && fullValidation) {
         issues.push(generateIssue('missingTagGroup', { tag: tag.originalTag, string: hedString.hedString }))
       }
     })

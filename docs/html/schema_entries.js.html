@@ -20,10 +20,10 @@
       <section>
         <article>
           <pre class="prettyprint source linenums"><code>import pluralize from 'pluralize'
-import Memoizer from '../utils/memoizer'
-import { IssueError } from '../issues/issues'
-
 pluralize.addUncountableRule('hertz')
+
+import { IssueError } from '../issues/issues'
+import Memoizer from '../utils/memoizer'
 
 /**
  * SchemaEntries class
@@ -61,7 +61,7 @@ export class SchemaEntries extends Memoizer {
 
   /**
    * The schema's tags.
-   * @type {SchemaTagManager}
+   * @type {SchemaEntryManager&lt;SchemaTag>}
    */
   tags
 
@@ -77,50 +77,6 @@ export class SchemaEntries extends Memoizer {
     this.unitClasses = schemaParser.unitClasses
     this.unitModifiers = schemaParser.unitModifiers
     this.tags = schemaParser.tags
-  }
-
-  /**
-   * Get a map of all of this schema's units.
-   */
-  get allUnits() {
-    return this._memoize('allUnits', () => {
-      const units = []
-      for (const unitClass of this.unitClasses.values()) {
-        const unitClassUnits = unitClass.units
-        units.push(...unitClassUnits)
-      }
-      return new Map(units)
-    })
-  }
-
-  /**
-   * Get the schema's SI unit modifiers.
-   * @returns {Map} - string --> SchemaUnitModifier.
-   */
-  get SIUnitModifiers() {
-    return this.unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
-  }
-
-  /**
-   * Get the schema's SI unit symbol modifiers.
-   * @returns {Map} - string --> SchemaUnitSymbolModifier.
-   */
-  get SIUnitSymbolModifiers() {
-    return this.unitModifiers.getEntriesWithBooleanAttribute('SIUnitSymbolModifier')
-  }
-
-  /**
-   * Determine if a HED tag has a particular attribute in this schema.
-   *
-   * @param {string} tag The HED tag to check.
-   * @param {string} tagAttribute The attribute to check for.
-   * @returns {boolean} Whether this tag has this attribute.
-   */
-  tagHasAttribute(tag, tagAttribute) {
-    if (!this.tags.hasLongNameEntry(tag)) {
-      return false
-    }
-    return this.tags.getLongNameEntry(tag).hasAttribute(tagAttribute)
   }
 }
 
@@ -203,7 +159,7 @@ export class SchemaEntryManager extends Memoizer {
   getEntriesWithBooleanAttribute(booleanAttributeName) {
     return this._memoize(booleanAttributeName, () => {
       return this.filter(([, v]) => {
-        return v.hasAttribute(booleanAttributeName)
+        return v.hasBooleanAttribute(booleanAttributeName)
       })
     })
   }
@@ -243,60 +199,6 @@ export class SchemaEntryManager extends Memoizer {
 }
 
 /**
- * A manager of {@link SchemaTag} objects.
- *
- * @extends {SchemaEntryManager&lt;SchemaTag>}
- */
-export class SchemaTagManager extends SchemaEntryManager {
-  /**
-   * The mapping of tags by long name.
-   * @type {Map&lt;string, SchemaTag>}
-   */
-  _definitionsByLongName
-
-  /**
-   * Constructor.
-   *
-   * @param {Map&lt;string, SchemaTag>} byShortName The mapping of tags by short name.
-   * @param {Map&lt;string, SchemaTag>} byLongName The mapping of tags by long name.
-   */
-  constructor(byShortName, byLongName) {
-    super(byShortName)
-    this._definitionsByLongName = byLongName
-  }
-
-  /**
-   * Determine whether the tag with the given name exists.
-   *
-   * @param {string} longName - The long name of the tag.
-   * @returns {boolean} -True if the tag exists.
-   */
-  hasLongNameEntry(longName) {
-    return this._definitionsByLongName.has(longName)
-  }
-
-  /**
-   * Get the tag with the given name.
-   *
-   * @param {string} longName - The long name of the tag to retrieve.
-   * @returns {SchemaTag} - The tag with that name.
-   */
-  getLongNameEntry(longName) {
-    return this._definitionsByLongName.get(longName)
-  }
-
-  /**
-   * Filter the map underlying this manager using the long name.
-   *
-   * @param {function} fn - ([string, SchemaTag]): boolean specifying the filtering function.
-   * @returns {Map} - string --> SchemaTag representing the filtered map.
-   */
-  filterByLongName(fn) {
-    return SchemaEntryManager._filterDefinitionMap(this._definitionsByLongName, fn)
-  }
-}
-
-/**
  * SchemaEntry class
  */
 export class SchemaEntry extends Memoizer {
@@ -328,7 +230,7 @@ export class SchemaEntry extends Memoizer {
    * @returns {boolean} Whether this schema entry has this attribute.
    */
   // eslint-disable-next-line no-unused-vars
-  hasAttributeName(attributeName) {
+  hasBooleanAttribute(attributeName) {
     return false
   }
 }
@@ -394,11 +296,13 @@ export class SchemaAttribute extends SchemaEntry {
    * @type {Set&lt;SchemaProperty>}
    */
   _categoryProperties
+
   /**
    * The data type of this schema attribute.
    * @type {SchemaProperty}
    */
   _typeProperty
+
   /**
    * The set of role properties for this schema attribute.
    * @type {Set&lt;SchemaProperty>}
@@ -506,40 +410,30 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
   }
 
   /**
-   * Whether this schema entry has this attribute.
-   * @param {SchemaAttribute} attribute The attribute to check for.
-   * @returns {boolean} Whether this schema entry has this attribute.
-   */
-  hasAttribute(attribute) {
-    return this.booleanAttributeNames.has(attribute) || this.valueAttributeNames.has(attribute)
-  }
-
-  /**
-   * Retrieve the value of an attribute on this schema entry.
-   * @param {SchemaAttribute} attribute The attribute whose value should be returned.
-   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
-   * @returns {*} The value of the attribute.
-   */
-  getAttributeValue(attribute, alwaysReturnArray = false) {
-    return SchemaEntryWithAttributes._getMapArrayValue(this.valueAttributes, attribute, alwaysReturnArray)
-  }
-
-  /**
    * Whether this schema entry has this attribute (by name).
    * @param {string} attributeName The attribute to check for.
    * @returns {boolean} Whether this schema entry has this attribute.
    */
-  hasAttributeName(attributeName) {
+  hasAttribute(attributeName) {
+    return this.booleanAttributeNames.has(attributeName) || this.valueAttributeNames.has(attributeName)
+  }
+
+  /**
+   * Whether this schema entry has this boolean attribute (by name).
+   * @param {string} attributeName The attribute to check for.
+   * @returns {boolean} Whether this schema entry has this attribute.
+   */
+  hasBooleanAttribute(attributeName) {
     return this.booleanAttributeNames.has(attributeName)
   }
 
   /**
-   * Retrieve the value of an attribute (by name) on this schema entry.
+   * Retrieve the value of a value attribute (by name) on this schema entry.
    * @param {string} attributeName The attribute whose value should be returned.
    * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
    * @returns {*} The value of the attribute.
    */
-  getNamedAttributeValue(attributeName, alwaysReturnArray = false) {
+  getAttributeValue(attributeName, alwaysReturnArray = false) {
     return SchemaEntryWithAttributes._getMapArrayValue(this.valueAttributeNames, attributeName, alwaysReturnArray)
   }
 
@@ -690,7 +584,7 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
    * @returns {SchemaUnit}
    */
   get defaultUnit() {
-    return this._units.get(this.getNamedAttributeValue('defaultUnits'))
+    return this._units.get(this.getAttributeValue('defaultUnits'))
   }
 
   /**
@@ -723,15 +617,13 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
       } else if (!unit.isPrefixUnit) {
         continue
       }
-      if (!unit.validateUnit(firstPart)) {
-        // If it got here, can only be a prefix Unit
-        continue
-      } else {
+      if (unit.validateUnit(firstPart)) {
         actualUnit = unit
         actualValueString = value.substring(unit.name.length + 1)
         actualUnitString = unit.name
         break
       }
+      // If it got here, can only be a prefix Unit
     }
     return [actualUnit, actualUnitString, actualValueString]
   }
@@ -743,14 +635,6 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
 export class SchemaUnitModifier extends SchemaEntryWithAttributes {
   constructor(name, booleanAttributes, valueAttributes) {
     super(name, booleanAttributes, valueAttributes)
-  }
-
-  get isSIUnitModifier() {
-    return this.hasAttribute('SIUnitModifier')
-  }
-
-  get isSIUnitSymbolModifier() {
-    return this.hasAttribute('SIUnitSymbolModifier')
   }
 }
 
@@ -807,7 +691,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaTag}
    * @private
    */
-  #parent
+  _parent
 
   /**
    * This tag's unit classes.
@@ -828,7 +712,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaValueTag}
    * @private
    */
-  #valueTag
+  _valueTag
 
   /**
    * Constructor.
@@ -875,7 +759,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @returns {SchemaValueTag}
    */
   get valueTag() {
-    return this.#valueTag
+    return this._valueTag
   }
 
   /**
@@ -883,8 +767,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {SchemaValueTag} newValueTag The new value-taking child tag.
    */
   set valueTag(newValueTag) {
-    if (!this.#isPrivateFieldSet(this.#valueTag, 'value tag')) {
-      this.#valueTag = newValueTag
+    if (!this._isPrivateFieldSet(this._valueTag, 'value tag')) {
+      this._valueTag = newValueTag
     }
   }
 
@@ -893,7 +777,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @type {SchemaTag}
    */
   get parent() {
-    return this.#parent
+    return this._parent
   }
 
   /**
@@ -901,8 +785,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {SchemaTag} newParent The new parent tag.
    */
   set parent(newParent) {
-    if (!this.#isPrivateFieldSet(this.#parent, 'parent')) {
-      this.#parent = newParent
+    if (!this._isPrivateFieldSet(this._parent, 'parent')) {
+      this._parent = newParent
     }
   }
 
@@ -915,7 +799,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @throws {IssueError} If the field is already set.
    * @private
    */
-  #isPrivateFieldSet(field, fieldName) {
+  _isPrivateFieldSet(field, fieldName) {
     if (field !== undefined) {
       IssueError.generateAndThrowInternalError(
         `Attempted to set ${fieldName} for schema tag ${this.longName} when it already has one.`,
@@ -1052,7 +936,6 @@ export class SchemaValueTag extends SchemaTag {
         <li><a href="SchemaProperty.html">SchemaProperty</a></li>
         <li><a href="SchemaSpec.html">SchemaSpec</a></li>
         <li><a href="SchemaTag.html">SchemaTag</a></li>
-        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
         <li><a href="SchemaUnit.html">SchemaUnit</a></li>
         <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
         <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
@@ -1079,9 +962,9 @@ export class SchemaValueTag extends SchemaTag {
         <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
         <li><a href="global.html#buildSchemas">buildSchemas</a></li>
         <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
-        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
         <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
         <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
         <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
         <li><a href="global.html#convert">convert</a></li>
         <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
@@ -1096,27 +979,20 @@ export class SchemaValueTag extends SchemaTag {
         <li><a href="global.html#getAllTags">getAllTags</a></li>
         <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
         <li><a href="global.html#getDuplicates">getDuplicates</a></li>
-        <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
-        <li><a href="global.html#getTagName">getTagName</a></li>
         <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
         <li><a href="global.html#hasAttribute">hasAttribute</a></li>
         <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
-        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
-        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
-        <li><a href="global.html#isDateTime">isDateTime</a></li>
         <li><a href="global.html#isDeprecated">isDeprecated</a></li>
         <li><a href="global.html#isExtended">isExtended</a></li>
-        <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
         <li><a href="global.html#loadPromise">loadPromise</a></li>
         <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
         <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
-        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
         <li><a href="global.html#parseHedString">parseHedString</a></li>
@@ -1128,16 +1004,12 @@ export class SchemaValueTag extends SchemaTag {
         <li><a href="global.html#readFile">readFile</a></li>
         <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
         <li><a href="global.html#recursiveMap">recursiveMap</a></li>
-        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
-        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
         <li><a href="global.html#schemaTag">schemaTag</a></li>
         <li><a href="global.html#search">search</a></li>
         <li><a href="global.html#setNodeParent">setNodeParent</a></li>
         <li><a href="global.html#setParent">setParent</a></li>
-        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
         <li><a href="global.html#sourceTags">sourceTags</a></li>
         <li><a href="global.html#splitHedString">splitHedString</a></li>
-        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
         <li><a href="global.html#stringTemplate">stringTemplate</a></li>
         <li><a href="global.html#stripBOM">stripBOM</a></li>
         <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
@@ -1153,8 +1025,8 @@ export class SchemaValueTag extends SchemaTag {
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
-      GMT-0600 (Central Standard Time)
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
     </footer>
 
     <script>
