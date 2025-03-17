@@ -42,12 +42,11 @@ export class BidsHedSidecarValidator extends BidsValidator {
     if (errorIssues.length > 0) {
       return
     }
-    // If no column splices, each annotation should stand on its own.
-    if (this.sidecar.columnSpliceMapping.size === 0) {
-      const [errors, warnings] = this.sidecar.parseHed(this.hedSchemas, true)
-      this.errors.push(...BidsHedIssue.fromHedIssues(errors, this.sidecar.file))
-      this.warnings.push(...BidsHedIssue.fromHedIssues(warnings, this.sidecar.file))
-    }
+
+    // Columns that aren't splices should have an annotation that stands on its own.
+    const [errors, warnings] = this.sidecar.parseHed(this.hedSchemas, true)
+    this.errors.push(...BidsHedIssue.fromHedIssues(errors, this.sidecar.file))
+    this.warnings.push(...BidsHedIssue.fromHedIssues(warnings, this.sidecar.file))
   }
 
   /**

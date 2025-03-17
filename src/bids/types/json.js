@@ -98,6 +98,58 @@ export class BidsSidecar extends BidsJsonFile {
     this._categorizeHedStrings()
   }
 
+  /**
+   * Determine whether this file has any HED data.
+   *
+   * @returns {boolean}
+   */
+  get hasHedData() {
+    return this.sidecarKeys.size > 0
+  }
+
+  /**
+   * The extracted HED strings.
+   * @returns {string[]}
+   */
+  get hedStrings() {
+    return this.hedValueStrings.concat(this.hedCategoricalStrings)
+  }
+
+  /**
+   * Parse this sidecar's HED strings within the sidecar structure.
+   *
+   * The parsed strings are placed into {@link parsedHedData}.
+   *
+   * @param {Schemas} hedSchemas - The HED schema collection.
+   * @param {boolean} fullValidation - True if full validation should be performed.
+   * @returns {Array} [Issue[], Issue[]] Any errors and warnings found
+   */
+  parseHed(hedSchemas, fullValidation = false) {
+    this.parsedHedData = new Map()
+    const errors = []
+    const warnings = []
+    for (const [name, sidecarKey] of this.sidecarKeys.entries()) {
+      const [errorIssues, warningIssues] = sidecarKey.parseHed(
+        hedSchemas,
+        fullValidation && !this.columnSpliceReferences.has(name),
+      )
+      errors.push(...errorIssues)
+      warnings.push(...warningIssues)
+      if (sidecarKey.isValueKey) {
+        this.parsedHedData.set(name, sidecarKey.parsedValueString)
+      } else {
+        this.parsedHedData.set(name, sidecarKey.parsedCategoryMap)
+      }
+    }
+    this._generateSidecarColumnSpliceMap()
+    return [errors, warnings]
+  }
+
+  /**
+   * Set the definition manager for this sidecar.
+   * @param defManager
+   * @private
+   */
   _setDefinitions(defManager) {
     if (defManager instanceof DefinitionManager) {
       this.definitions = defManager
@@ -187,42 +239,6 @@ export class BidsSidecar extends BidsJsonFile {
   }
 
   /**
-   * Determine whether this file has any HED data.
-   *
-   * @returns {boolean}
-   */
-  get hasHedData() {
-    return this.sidecarKeys.size > 0
-  }
-
-  /**
-   * Parse this sidecar's HED strings within the sidecar structure.
-   *
-   * The parsed strings are placed into {@link parsedHedData}.
-   *
-   * @param {Schemas} hedSchemas - The HED schema collection.
-   * @param {boolean} fullValidation - True if full validation should be performed.
-   * @returns {Array} [Issue[], Issue[]] Any errors and warnings found
-   */
-  parseHed(hedSchemas, fullValidation = false) {
-    this.parsedHedData = new Map()
-    const errors = []
-    const warnings = []
-    for (const [name, sidecarKey] of this.sidecarKeys.entries()) {
-      const [errorIssues, warningIssues] = sidecarKey.parseHed(hedSchemas, fullValidation)
-      errors.push(...errorIssues)
-      warnings.push(...warningIssues)
-      if (sidecarKey.isValueKey) {
-        this.parsedHedData.set(name, sidecarKey.parsedValueString)
-      } else {
-        this.parsedHedData.set(name, sidecarKey.parsedCategoryMap)
-      }
-    }
-    this._generateSidecarColumnSpliceMap()
-    return [errors, warnings]
-  }
-
-  /**
    * Generate a mapping of an individual BIDS sidecar's curly brace references.
    *
    * @private
@@ -242,6 +258,12 @@ export class BidsSidecar extends BidsJsonFile {
     }
   }
 
+  /**
+   *
+   * @param {BidsSidecarKey} sidecarKey - The column to be checked for column splices.
+   * @param {ParsedHedString} hedData - The parsed HED string to check for column splices.
+   * @private
+   */
   _parseValueSplice(sidecarKey, hedData) {
     if (hedData.columnSplices.length > 0) {
       const keyReferences = this._processColumnSplices(new Set(), hedData.columnSplices)
@@ -249,6 +271,12 @@ export class BidsSidecar extends BidsJsonFile {
     }
   }
 
+  /**
+   *
+   * @param {BidsSidecarKey} sidecarKey - The column to be checked for column splices.
+   * @param {ParsedHedString} hedData - The parsed HED string to check for column splices.
+   * @private
+   */
   _parseCategorySplice(sidecarKey, hedData) {
     let keyReferences = null
     for (const valueString of hedData.values()) {
@@ -275,14 +303,6 @@ export class BidsSidecar extends BidsJsonFile {
       this.columnSpliceReferences.add(columnSplice.originalTag)
     }
     return keyReferences
-  }
-
-  /**
-   * The extracted HED strings.
-   * @returns {string[]}
-   */
-  get hedStrings() {
-    return this.hedValueStrings.concat(this.hedCategoricalStrings)
   }
 }
 

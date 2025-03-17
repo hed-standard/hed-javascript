@@ -703,6 +703,53 @@ export const bidsTestData = [
         ],
       },
       {
+        testname: 'bad-group-for-top-level-tag-other-splice',
+        explanation: 'A non-spliced top-level tag group tag has no group should give sidecar error',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          duration: {
+            HED: 'Duration/#, (Red, Blue)',
+          },
+          event_code: {
+            HED: {
+              face: '(Red, Blue)',
+              ball: '{ball_type}, Black',
+            },
+          },
+          ball_type: {
+            Description: 'Has description with HED',
+            HED: 'Label/#',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tbig-one\n25\t5\tface\tother-one\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Duration/#',
+              string: 'Duration/#, (Red, Blue)',
+            }),
+            {
+              path: 'bad-group-for-top-level-tag-other-splice.json',
+              relativePath: 'bad-group-for-top-level-tag-other-splice.json',
+            },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTopLevelTagGroupTag', {
+              tag: 'Duration/#',
+              string: 'Duration/#, (Red, Blue)',
+            }),
+            {
+              path: 'bad-group-for-top-level-tag-other-splice.tsv',
+              relativePath: 'bad-group-for-top-level-tag-other-splice.tsv',
+            },
+          ),
+        ],
+      },
+      {
         testname: 'splice-of-non-top-level-tag',
         explanation: 'A top-level tag group tag is part of a splice',
         schemaVersion: '8.3.0',
