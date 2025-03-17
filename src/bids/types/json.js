@@ -290,7 +290,7 @@ export class BidsSidecar extends BidsJsonFile {
   }
 
   /**
-   * Add a list of columnSplices to a key map.
+   * Add a list of columnSplices to a key set.
    * @param {Set<string>|null} keyReferences
    * @param {ParsedHedColumnSplice[]} columnSplices
    * @returns {Set<string>}
@@ -434,7 +434,7 @@ export class BidsSidecarKey {
       warnings.push(...warningIssues)
       errors.push(...errorIssues)
       if (errorIssues.length === 0) {
-        errors.push(...this.#checkDefinitions(parsedString))
+        errors.push(...this._checkDefinitions(parsedString))
       }
     }
     return [errors, warnings]
@@ -446,7 +446,7 @@ export class BidsSidecarKey {
    * @returns {Issue[]} - Errors that occur.
    * @private
    */
-  #checkDefinitions(parsedString) {
+  _checkDefinitions(parsedString) {
     const errors = []
     for (const group of parsedString.tagGroups) {
       if (!group.isDefinitionGroup) {

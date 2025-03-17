@@ -19,22 +19,7 @@
 
       <section>
         <article>
-          <pre class="prettyprint source linenums"><code>import pluralize from 'pluralize'
-pluralize.addUncountableRule('hertz')
-
-/**
- * Replace the end of a HED tag with a pound sign.
- */
-export const replaceTagNameWithPound = function (formattedTag) {
-  const lastTagSlashIndex = formattedTag.lastIndexOf('/')
-  if (lastTagSlashIndex !== -1) {
-    return formattedTag.substring(0, lastTagSlashIndex) + '/#'
-  } else {
-    return '#'
-  }
-}
-
-/**
+          <pre class="prettyprint source linenums"><code>/**
  * Get the indices of all slashes in a HED tag.
  */
 export const getTagSlashIndices = function (tag) {
@@ -44,56 +29,6 @@ export const getTagSlashIndices = function (tag) {
     indices.push(i)
   }
   return indices
-}
-
-/**
- * Get the last part of a HED tag.
- *
- * @param {string} tag A HED tag
- * @param {string} character The character to use as a separator.
- * @returns {string} The last part of the tag using the given separator.
- */
-export const getTagName = function (tag, character = '/') {
-  const lastSlashIndex = tag.lastIndexOf(character)
-  if (lastSlashIndex === -1) {
-    return tag
-  } else {
-    return tag.substring(lastSlashIndex + 1)
-  }
-}
-
-/**
- * Get the HED tag prefix (up to the last slash).
- */
-export const getParentTag = function (tag, character = '/') {
-  const lastSlashIndex = tag.lastIndexOf(character)
-  if (lastSlashIndex === -1) {
-    return tag
-  } else {
-    return tag.substring(0, lastSlashIndex)
-  }
-}
-
-const openingGroupCharacter = '('
-const closingGroupCharacter = ')'
-
-/**
- * Determine whether a HED string is a group (surrounded by parentheses).
- *
- * @param {string} hedString A HED string.
- */
-export const hedStringIsAGroup = function (hedString) {
-  const trimmedHedString = hedString.trim()
-  return trimmedHedString.startsWith(openingGroupCharacter) &amp;&amp; trimmedHedString.endsWith(closingGroupCharacter)
-}
-
-/**
- * Return a copy of a group tag with the surrounding parentheses removed.
- *
- * @param {string} tagGroup A tag group string.
- */
-export const removeGroupParentheses = function (tagGroup) {
-  return tagGroup.slice(1, -1)
 }
 </code></pre>
         </article>
@@ -137,7 +72,6 @@ export const removeGroupParentheses = function (tagGroup) {
         <li><a href="SchemaProperty.html">SchemaProperty</a></li>
         <li><a href="SchemaSpec.html">SchemaSpec</a></li>
         <li><a href="SchemaTag.html">SchemaTag</a></li>
-        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
         <li><a href="SchemaUnit.html">SchemaUnit</a></li>
         <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
         <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
@@ -164,9 +98,9 @@ export const removeGroupParentheses = function (tagGroup) {
         <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
         <li><a href="global.html#buildSchemas">buildSchemas</a></li>
         <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
-        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
         <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
         <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
         <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
         <li><a href="global.html#convert">convert</a></li>
         <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
@@ -181,27 +115,20 @@ export const removeGroupParentheses = function (tagGroup) {
         <li><a href="global.html#getAllTags">getAllTags</a></li>
         <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
         <li><a href="global.html#getDuplicates">getDuplicates</a></li>
-        <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
-        <li><a href="global.html#getTagName">getTagName</a></li>
         <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
         <li><a href="global.html#hasAttribute">hasAttribute</a></li>
         <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
-        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
-        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
-        <li><a href="global.html#isDateTime">isDateTime</a></li>
         <li><a href="global.html#isDeprecated">isDeprecated</a></li>
         <li><a href="global.html#isExtended">isExtended</a></li>
-        <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
         <li><a href="global.html#loadPromise">loadPromise</a></li>
         <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
         <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
-        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
         <li><a href="global.html#parseHedString">parseHedString</a></li>
@@ -213,16 +140,12 @@ export const removeGroupParentheses = function (tagGroup) {
         <li><a href="global.html#readFile">readFile</a></li>
         <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
         <li><a href="global.html#recursiveMap">recursiveMap</a></li>
-        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
-        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
         <li><a href="global.html#schemaTag">schemaTag</a></li>
         <li><a href="global.html#search">search</a></li>
         <li><a href="global.html#setNodeParent">setNodeParent</a></li>
         <li><a href="global.html#setParent">setParent</a></li>
-        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
         <li><a href="global.html#sourceTags">sourceTags</a></li>
         <li><a href="global.html#splitHedString">splitHedString</a></li>
-        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
         <li><a href="global.html#stringTemplate">stringTemplate</a></li>
         <li><a href="global.html#stripBOM">stripBOM</a></li>
         <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
@@ -238,8 +161,8 @@ export const removeGroupParentheses = function (tagGroup) {
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
-      GMT-0600 (Central Standard Time)
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
     </footer>
 
     <script>

@@ -119,6 +119,33 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
+                  <a href="bids_validator_tsvValidator.js.html#line25">line 25</a>
+                </li>
+              </ul>
+            </dd>
+          </dl>
+
+          <h4 class="name" id="tsvFile">
+            <span class="type-signature"></span>tsvFile<span class="type-signature">
+              :<a href="BidsTsvFile.html">BidsTsvFile</a></span
+            >
+          </h4>
+
+          <div class="description">The BIDS TSV file being validated.</div>
+
+          <h5>Type:</h5>
+          <ul>
+            <li>
+              <span class="param-type"><a href="BidsTsvFile.html">BidsTsvFile</a></span>
+            </li>
+          </ul>
+
+          <dl class="details">
+            <dt class="tag-source">Source:</dt>
+            <dd class="tag-source">
+              <ul class="dummy">
+                <li>
+                  <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
                   <a href="bids_validator_tsvValidator.js.html#line19">line 19</a>
                 </li>
               </ul>
@@ -166,7 +193,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line270">line 270</a>
+                  <a href="bids_validator_tsvValidator.js.html#line276">line 276</a>
                 </li>
               </ul>
             </dd>
@@ -187,7 +214,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line36">line 36</a>
+                  <a href="bids_validator_tsvValidator.js.html#line42">line 42</a>
                 </li>
               </ul>
             </dd>
@@ -199,7 +226,7 @@
           </h4>
 
           <div class="description">
-            Validate the HED data in a combined event TSV file/bidsFile BIDS data collection.
+            Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
           </div>
 
           <dl class="details">
@@ -208,7 +235,7 @@
               <ul class="dummy">
                 <li>
                   <a href="bids_validator_tsvValidator.js.html">bids/validator/tsvValidator.js</a>,
-                  <a href="bids_validator_tsvValidator.js.html#line159">line 159</a>
+                  <a href="bids_validator_tsvValidator.js.html#line165">line 165</a>
                 </li>
               </ul>
             </dd>
@@ -254,7 +281,6 @@
         <li><a href="SchemaProperty.html">SchemaProperty</a></li>
         <li><a href="SchemaSpec.html">SchemaSpec</a></li>
         <li><a href="SchemaTag.html">SchemaTag</a></li>
-        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
         <li><a href="SchemaUnit.html">SchemaUnit</a></li>
         <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
         <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
@@ -281,9 +307,9 @@
         <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
         <li><a href="global.html#buildSchemas">buildSchemas</a></li>
         <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
-        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
         <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
         <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
         <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
         <li><a href="global.html#convert">convert</a></li>
         <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
@@ -298,27 +324,20 @@
         <li><a href="global.html#getAllTags">getAllTags</a></li>
         <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
         <li><a href="global.html#getDuplicates">getDuplicates</a></li>
-        <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
-        <li><a href="global.html#getTagName">getTagName</a></li>
         <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
         <li><a href="global.html#hasAttribute">hasAttribute</a></li>
         <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
-        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
-        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
-        <li><a href="global.html#isDateTime">isDateTime</a></li>
         <li><a href="global.html#isDeprecated">isDeprecated</a></li>
         <li><a href="global.html#isExtended">isExtended</a></li>
-        <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
         <li><a href="global.html#loadPromise">loadPromise</a></li>
         <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
         <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
-        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
         <li><a href="global.html#parseHedString">parseHedString</a></li>
@@ -330,16 +349,12 @@
         <li><a href="global.html#readFile">readFile</a></li>
         <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
         <li><a href="global.html#recursiveMap">recursiveMap</a></li>
-        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
-        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
         <li><a href="global.html#schemaTag">schemaTag</a></li>
         <li><a href="global.html#search">search</a></li>
         <li><a href="global.html#setNodeParent">setNodeParent</a></li>
         <li><a href="global.html#setParent">setParent</a></li>
-        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
         <li><a href="global.html#sourceTags">sourceTags</a></li>
         <li><a href="global.html#splitHedString">splitHedString</a></li>
-        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
         <li><a href="global.html#stringTemplate">stringTemplate</a></li>
         <li><a href="global.html#stripBOM">stripBOM</a></li>
         <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
@@ -355,8 +370,8 @@
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
-      GMT-0600 (Central Standard Time)
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
     </footer>
 
     <script>

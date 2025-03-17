@@ -110,6 +110,48 @@ export function getDuplicates(itemList) {
   }
   return [...dupSet]
 }
+
+/**
+ * lean up a string and remove redundant commas and parentheses.
+ * @param {string} stringIn - The input string to be cleaned up.
+ * @return {string} - The cleaned-up string with redundant commas and parentheses removed.
+ *
+ */
+export function cleanupEmpties(stringIn) {
+  const leadingCommaRegEx = /^\s*,+/g // Remove leading commas
+  const trailingCommaRegEx = /,\s*$/g // Remove trailing commas
+  const innerCommaRegEx = /,\s*,+/g // Collapse multiple commas inside
+  const emptyParensRegEx = /\(\s*\)/g // Remove completely empty parentheses
+  const redundantParensRegEx = /\(\s*([,\s]*)\s*\)/g // Remove redundant empty-like parens
+  const trailingInnerCommaRegEx = /[\s,]+\)/g // Remove trailing commas and spaces inside parentheses
+
+  let result = stringIn
+  let previousResult
+
+  do {
+    previousResult = result
+
+    // Step 1: Remove empty parentheses
+    result = result.replace(emptyParensRegEx, '')
+
+    // Step 2: Remove redundant parentheses containing only commas/spaces
+    result = result.replace(redundantParensRegEx, (match, group1) => {
+      return /^[,\s()]*$/.test(group1) ? '' : `(${group1.replace(/^\s*,|,\s*$/g, '').trim()})`
+    })
+
+    // Step 3: Remove leading and trailing commas
+    result = result.replace(leadingCommaRegEx, '')
+    result = result.replace(trailingCommaRegEx, '')
+
+    // Step 4: Collapse multiple commas inside
+    result = result.replace(innerCommaRegEx, ',')
+
+    // Step 5: Remove trailing commas inside parentheses
+    result = result.replace(trailingInnerCommaRegEx, ')')
+  } while (result !== previousResult) // Keep looping until no more changes
+  result = result.replace(/\(\s*,+/g, '(')
+  return result.trim()
+}
 </code></pre>
         </article>
       </section>
@@ -152,7 +194,6 @@ export function getDuplicates(itemList) {
         <li><a href="SchemaProperty.html">SchemaProperty</a></li>
         <li><a href="SchemaSpec.html">SchemaSpec</a></li>
         <li><a href="SchemaTag.html">SchemaTag</a></li>
-        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
         <li><a href="SchemaUnit.html">SchemaUnit</a></li>
         <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
         <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
@@ -179,9 +220,9 @@ export function getDuplicates(itemList) {
         <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
         <li><a href="global.html#buildSchemas">buildSchemas</a></li>
         <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
-        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
         <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
         <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
         <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
         <li><a href="global.html#convert">convert</a></li>
         <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
@@ -196,27 +237,20 @@ export function getDuplicates(itemList) {
         <li><a href="global.html#getAllTags">getAllTags</a></li>
         <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
         <li><a href="global.html#getDuplicates">getDuplicates</a></li>
-        <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
-        <li><a href="global.html#getTagName">getTagName</a></li>
         <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
         <li><a href="global.html#hasAttribute">hasAttribute</a></li>
         <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
-        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
-        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
-        <li><a href="global.html#isDateTime">isDateTime</a></li>
         <li><a href="global.html#isDeprecated">isDeprecated</a></li>
         <li><a href="global.html#isExtended">isExtended</a></li>
-        <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
         <li><a href="global.html#loadPromise">loadPromise</a></li>
         <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
         <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
-        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
         <li><a href="global.html#parseHedString">parseHedString</a></li>
@@ -228,16 +262,12 @@ export function getDuplicates(itemList) {
         <li><a href="global.html#readFile">readFile</a></li>
         <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
         <li><a href="global.html#recursiveMap">recursiveMap</a></li>
-        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
-        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
         <li><a href="global.html#schemaTag">schemaTag</a></li>
         <li><a href="global.html#search">search</a></li>
         <li><a href="global.html#setNodeParent">setNodeParent</a></li>
         <li><a href="global.html#setParent">setParent</a></li>
-        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
         <li><a href="global.html#sourceTags">sourceTags</a></li>
         <li><a href="global.html#splitHedString">splitHedString</a></li>
-        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
         <li><a href="global.html#stringTemplate">stringTemplate</a></li>
         <li><a href="global.html#stripBOM">stripBOM</a></li>
         <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
@@ -253,8 +283,8 @@ export function getDuplicates(itemList) {
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
-      GMT-0600 (Central Standard Time)
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
     </footer>
 
     <script>

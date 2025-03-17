@@ -30,40 +30,55 @@ import { BidsValidator } from './validator'
  */
 export class BidsHedSidecarValidator extends BidsValidator {
   /**
+   * The BIDS sidecar being validated.
+   * @type {BidsSidecar}
+   */
+  sidecar
+
+  /**
    * Constructor for the BidsHedSidecarValidator.
    *
-   * @param {BidsSidecar} sidecar - The BIDS bidsFile being validated.
+   * @param {BidsSidecar} sidecar - The BIDS sidecar being validated.
    * @param {Schemas} hedSchemas - The schemas used for the sidecar validation.
    */
   constructor(sidecar, hedSchemas) {
-    super(sidecar, hedSchemas)
+    super(hedSchemas)
+    this.sidecar = sidecar
   }
 
   /**
-   * Validate a BIDS JSON bidsFile file. Errors and warnings are stored.
+   * Validate a BIDS JSON sidecar file. Errors and warnings are stored.
    *
    */
   validate() {
     // Allow schema to be set a validation time -- this is checked by the superclass of BIDS file
-    const [errorIssues, warningIssues] = this.bidsFile.parseHed(this.hedSchemas)
-    this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.bidsFile.file))
-    this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.bidsFile.file))
+    const [errorIssues, warningIssues] = this.sidecar.parseHed(this.hedSchemas, false)
+    this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.sidecar.file))
+    this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.sidecar.file))
     if (errorIssues.length > 0) {
       return
     }
 
     this.errors.push(...this._validateStrings(), ...this._validateCurlyBraces())
+    if (errorIssues.length > 0) {
+      return
+    }
+
+    // Columns that aren't splices should have an annotation that stands on its own.
+    const [errors, warnings] = this.sidecar.parseHed(this.hedSchemas, true)
+    this.errors.push(...BidsHedIssue.fromHedIssues(errors, this.sidecar.file))
+    this.warnings.push(...BidsHedIssue.fromHedIssues(warnings, this.sidecar.file))
   }
 
   /**
-   * Validate this bidsFile's HED strings.
+   * Validate this sidecar's HED strings.
    *
    * @returns {BidsHedIssue[]} All issues found.
    */
   _validateStrings() {
     const issues = []
 
-    for (const [sidecarKeyName, hedData] of this.bidsFile.parsedHedData) {
+    for (const [sidecarKeyName, hedData] of this.sidecar.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
         // Value options have HED as string.
         issues.push(...this._checkDetails(sidecarKeyName, hedData))
@@ -73,7 +88,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
           issues.push(...this._checkDetails(sidecarKeyName, valueString))
         }
       } else {
-        IssueError.generateAndThrowInternalError('Unexpected type found in bidsFile parsedHedData map.')
+        IssueError.generateAndThrowInternalError('Unexpected type found in sidecar parsedHedData map.')
       }
     }
     return issues
@@ -103,29 +118,29 @@ export class BidsHedSidecarValidator extends BidsValidator {
    * @private
    */
   _checkDefs(sidecarKeyName, hedString, placeholdersAllowed) {
-    let issues = this.bidsFile.definitions.validateDefs(hedString, this.hedSchemas, placeholdersAllowed)
+    let issues = this.sidecar.definitions.validateDefs(hedString, this.hedSchemas, placeholdersAllowed)
     if (issues.length > 0) {
-      return BidsHedIssue.fromHedIssues(issues, this.bidsFile.file, { sidecarKeyName: sidecarKeyName })
+      return BidsHedIssue.fromHedIssues(issues, this.sidecar.file, { sidecarKeyName: sidecarKeyName })
     }
-    issues = this.bidsFile.definitions.validateDefExpands(hedString, this.hedSchemas, placeholdersAllowed)
-    return BidsHedIssue.fromHedIssues(issues, this.bidsFile.file, { sidecarKeyName: sidecarKeyName })
+    issues = this.sidecar.definitions.validateDefExpands(hedString, this.hedSchemas, placeholdersAllowed)
+    return BidsHedIssue.fromHedIssues(issues, this.sidecar.file, { sidecarKeyName: sidecarKeyName })
   }
 
   _checkPlaceholders(sidecarKeyName, hedString) {
     const numberPlaceholders = getCharacterCount(hedString.hedString, '#')
-    const sidecarKey = this.bidsFile.sidecarKeys.get(sidecarKeyName)
+    const sidecarKey = this.sidecar.sidecarKeys.get(sidecarKeyName)
     if (!sidecarKey.valueString &amp;&amp; !sidecarKey.hasDefinitions &amp;&amp; numberPlaceholders > 0) {
       return [
         BidsHedIssue.fromHedIssue(
           generateIssue('invalidSidecarPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
-          this.bidsFile.file,
+          this.sidecar.file,
         ),
       ]
     } else if (sidecarKey.valueString &amp;&amp; numberPlaceholders === 0) {
       return [
         BidsHedIssue.fromHedIssue(
           generateIssue('missingPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
-          this.bidsFile.file,
+          this.sidecar.file,
         ),
       ]
     }
@@ -133,7 +148,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
       return [
         BidsHedIssue.fromHedIssue(
           generateIssue('invalidSidecarPlaceholder', { column: sidecarKeyName, string: hedString.hedString }),
-          this.bidsFile.file,
+          this.sidecar.file,
         ),
       ]
     }
@@ -141,13 +156,13 @@ export class BidsHedSidecarValidator extends BidsValidator {
   }
 
   /**
-   * Validate this bidsFile's curly braces -- checking recursion and missing columns.
+   * Validate this sidecar's curly braces -- checking recursion and missing columns.
    *
    * @returns {BidsHedIssue[]} All issues found.
    */
   _validateCurlyBraces() {
     const issues = []
-    const references = this.bidsFile.columnSpliceMapping
+    const references = this.sidecar.columnSpliceMapping
 
     for (const [key, referredKeys] of references) {
       for (const referredKey of referredKeys) {
@@ -155,15 +170,15 @@ export class BidsHedSidecarValidator extends BidsValidator {
           issues.push(
             BidsHedIssue.fromHedIssue(
               generateIssue('recursiveCurlyBracesWithKey', { column: referredKey, referrer: key }),
-              this.bidsFile.file,
+              this.sidecar.file,
             ),
           )
         }
-        if (!this.bidsFile.parsedHedData.has(referredKey) &amp;&amp; referredKey !== 'HED') {
+        if (!this.sidecar.parsedHedData.has(referredKey) &amp;&amp; referredKey !== 'HED') {
           issues.push(
             BidsHedIssue.fromHedIssue(
               generateIssue('undefinedCurlyBraces', { column: referredKey }),
-              this.bidsFile.file,
+              this.sidecar.file,
             ),
           )
         }
@@ -217,7 +232,6 @@ export default BidsHedSidecarValidator
         <li><a href="SchemaProperty.html">SchemaProperty</a></li>
         <li><a href="SchemaSpec.html">SchemaSpec</a></li>
         <li><a href="SchemaTag.html">SchemaTag</a></li>
-        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
         <li><a href="SchemaUnit.html">SchemaUnit</a></li>
         <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
         <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
@@ -244,9 +258,9 @@ export default BidsHedSidecarValidator
         <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
         <li><a href="global.html#buildSchemas">buildSchemas</a></li>
         <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
-        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
         <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
         <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
         <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
         <li><a href="global.html#convert">convert</a></li>
         <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
@@ -261,27 +275,20 @@ export default BidsHedSidecarValidator
         <li><a href="global.html#getAllTags">getAllTags</a></li>
         <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
         <li><a href="global.html#getDuplicates">getDuplicates</a></li>
-        <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
-        <li><a href="global.html#getTagName">getTagName</a></li>
         <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
         <li><a href="global.html#hasAttribute">hasAttribute</a></li>
         <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
-        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
-        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
-        <li><a href="global.html#isDateTime">isDateTime</a></li>
         <li><a href="global.html#isDeprecated">isDeprecated</a></li>
         <li><a href="global.html#isExtended">isExtended</a></li>
-        <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
         <li><a href="global.html#loadPromise">loadPromise</a></li>
         <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
         <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
-        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
         <li><a href="global.html#parseHedString">parseHedString</a></li>
@@ -293,16 +300,12 @@ export default BidsHedSidecarValidator
         <li><a href="global.html#readFile">readFile</a></li>
         <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
         <li><a href="global.html#recursiveMap">recursiveMap</a></li>
-        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
-        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
         <li><a href="global.html#schemaTag">schemaTag</a></li>
         <li><a href="global.html#search">search</a></li>
         <li><a href="global.html#setNodeParent">setNodeParent</a></li>
         <li><a href="global.html#setParent">setParent</a></li>
-        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
         <li><a href="global.html#sourceTags">sourceTags</a></li>
         <li><a href="global.html#splitHedString">splitHedString</a></li>
-        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
         <li><a href="global.html#stringTemplate">stringTemplate</a></li>
         <li><a href="global.html#stripBOM">stripBOM</a></li>
         <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
@@ -318,8 +321,8 @@ export default BidsHedSidecarValidator
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
-      GMT-0600 (Central Standard Time)
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
     </footer>
 
     <script>

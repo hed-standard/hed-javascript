@@ -26,13 +26,19 @@ import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../issues/issues'
 import { ReservedChecker } from '../../parser/reservedChecker'
-import { getTagListString } from '../../parser/parseUtils'
+import { cleanupEmpties, getTagListString } from '../../parser/parseUtils'
 import { EventManager } from '../../parser/eventManager'
 
 /**
  * Validator for HED data in BIDS TSV files.
  */
 export class BidsHedTsvValidator extends BidsValidator {
+  /**
+   * The BIDS TSV file being validated.
+   * @type {BidsTsvFile}
+   */
+  tsvFile
+
   /**
    * The singleton instance of the checker for reserved requirements.
    * @type {ReservedChecker}
@@ -46,18 +52,18 @@ export class BidsHedTsvValidator extends BidsValidator {
    * @param {Schemas} hedSchemas - The HED schemas used to validate the tsv file.
    */
   constructor(tsvFile, hedSchemas) {
-    super(tsvFile, hedSchemas)
+    super(hedSchemas)
+    this.tsvFile = tsvFile
     this.reserved = ReservedChecker.getInstance()
   }
 
   /**
    * Validate a BIDS TSV file. This method returns the complete issue list for convenience.
-   *
    */
   validate() {
-    // Validate the BIDS bidsFile if it exists and return if there are errors
-    if (this.bidsFile.mergedSidecar) {
-      const issues = this.bidsFile.mergedSidecar.validate(this.hedSchemas)
+    // Validate the BIDS sidecar if it exists and return if there are errors
+    if (this.tsvFile.mergedSidecar) {
+      const issues = this.tsvFile.mergedSidecar.validate(this.hedSchemas)
       const splitErrors = BidsHedIssue.splitErrors(issues)
       this.errors.push(...(splitErrors.error ?? []))
       this.warnings.push(...(splitErrors.warning ?? []))
@@ -72,7 +78,7 @@ export class BidsHedTsvValidator extends BidsValidator {
       return
     }
     // Now do a full validation
-    const bidsHedTsvParser = new BidsHedTsvParser(this.bidsFile, this.hedSchemas)
+    const bidsHedTsvParser = new BidsHedTsvParser(this.tsvFile, this.hedSchemas)
     const [bidsEvents, errorIssues, warningIssues] = bidsHedTsvParser.parse()
     this.errors.push(...errorIssues)
     this.warnings.push(...warningIssues)
@@ -80,7 +86,7 @@ export class BidsHedTsvValidator extends BidsValidator {
       return
     }
     this.validateDataset(bidsEvents)
-    if (this.errors.length === 0 &amp;&amp; this.bidsFile.mergedSidecar?.hasHedData) {
+    if (this.errors.length === 0 &amp;&amp; this.tsvFile.mergedSidecar?.hasHedData) {
       this._checkMissingHedWarning()
       this._checkMissingValueWarnings()
     }
@@ -88,8 +94,8 @@ export class BidsHedTsvValidator extends BidsValidator {
 
   _checkMissingHedWarning() {
     // Check for HED column used as splice but no HED column
-    if (this.bidsFile.mergedSidecar.columnSpliceReferences.has('HED') &amp;&amp; !this.bidsFile.parsedTsv.has('HED')) {
-      this.warnings.push(BidsHedIssue.fromHedIssue(generateIssue('hedUsedAsSpliceButNoTsvHed'), this.bidsFile.file))
+    if (this.tsvFile.mergedSidecar.columnSpliceReferences.has('HED') &amp;&amp; !this.tsvFile.parsedTsv.has('HED')) {
+      this.warnings.push(BidsHedIssue.fromHedIssue(generateIssue('hedUsedAsSpliceButNoTsvHed', {}), this.tsvFile.file))
     }
   }
 
@@ -98,13 +104,13 @@ export class BidsHedTsvValidator extends BidsValidator {
    * @private
    */
   _checkMissingValueWarnings() {
-    for (const columnName of this.bidsFile.parsedTsv.keys()) {
-      const sidecarColumn = this.bidsFile.mergedSidecar?.sidecarKeys.get(columnName)
+    for (const columnName of this.tsvFile.parsedTsv.keys()) {
+      const sidecarColumn = this.tsvFile.mergedSidecar?.sidecarKeys.get(columnName)
       if (!sidecarColumn || sidecarColumn.isValueKey) {
         continue
       }
       const toRemove = new Set(['', 'n/a', null, undefined])
-      const tsvColumnValues = new Set(this.bidsFile.parsedTsv.get(columnName))
+      const tsvColumnValues = new Set(this.tsvFile.parsedTsv.get(columnName))
       const cleanedValues = new Set([...tsvColumnValues].filter((value) => !toRemove.has(value)))
       const missingValues = [...cleanedValues].filter((value) => !sidecarColumn.categoryMap.has(value))
       if (missingValues.length > 0) {
@@ -112,7 +118,7 @@ export class BidsHedTsvValidator extends BidsValidator {
         this.warnings.push(
           BidsHedIssue.fromHedIssue(
             generateIssue('sidecarKeyMissing', { column: columnName, values: values }),
-            this.bidsFile.file,
+            this.tsvFile.file,
           ),
         )
       }
@@ -125,8 +131,8 @@ export class BidsHedTsvValidator extends BidsValidator {
    * @private
    */
   _validateHedColumn() {
-    if (this.bidsFile.hedColumnHedStrings.length > 0) {
-      this.bidsFile.hedColumnHedStrings.flatMap((hedString, rowIndexMinusTwo) =>
+    if (this.tsvFile.hedColumnHedStrings.length > 0) {
+      this.tsvFile.hedColumnHedStrings.flatMap((hedString, rowIndexMinusTwo) =>
         this._validateHedColumnString(hedString, rowIndexMinusTwo + 2),
       )
     }
@@ -145,9 +151,9 @@ export class BidsHedTsvValidator extends BidsValidator {
     }
 
     // Find basic parsing issues and return if unable to parse the string. (Warnings are okay.)
-    const [parsedString, errorIssues, warningIssues] = parseHedString(hedString, this.hedSchemas, false, false)
-    this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.bidsFile.file, { tsvLine: rowIndex }))
-    this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.bidsFile.file, { tsvLine: rowIndex }))
+    const [parsedString, errorIssues, warningIssues] = parseHedString(hedString, this.hedSchemas, false, false, false)
+    this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: rowIndex }))
+    this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: rowIndex }))
     if (parsedString === null) {
       return
     }
@@ -160,7 +166,7 @@ export class BidsHedTsvValidator extends BidsValidator {
             string: parsedString.hedString,
             tsvLine: rowIndex.toString(),
           }),
-          this.bidsFile.file,
+          this.tsvFile.file,
         ),
       )
       return
@@ -168,14 +174,14 @@ export class BidsHedTsvValidator extends BidsValidator {
 
     // Check whether definitions used exist and are used correctly.
     const defIssues = [
-      ...this.bidsFile.mergedSidecar.definitions.validateDefs(parsedString, this.hedSchemas, false),
-      ...this.bidsFile.mergedSidecar.definitions.validateDefExpands(parsedString, this.hedSchemas, false),
+      ...this.tsvFile.mergedSidecar.definitions.validateDefs(parsedString, this.hedSchemas, false),
+      ...this.tsvFile.mergedSidecar.definitions.validateDefExpands(parsedString, this.hedSchemas, false),
     ]
-    this.errors.push(...BidsHedIssue.fromHedIssues(defIssues, this.bidsFile.file, { tsvLine: rowIndex }))
+    this.errors.push(...BidsHedIssue.fromHedIssues(defIssues, this.tsvFile.file, { tsvLine: rowIndex }))
   }
 
   /**
-   * Validate the HED data in a combined event TSV file/bidsFile BIDS data collection.
+   * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
    */
   validateDataset(elements) {
     // Final top-tag detection cannot be done until the strings are fully assembled and finalized.
@@ -184,7 +190,7 @@ export class BidsHedTsvValidator extends BidsValidator {
       return
     }
     // Temporal files have to check Onset, Inset, Offset consistency.
-    if (this.bidsFile.isTimelineFile) {
+    if (this.tsvFile.isTimelineFile) {
       this._validateTemporal(elements)
     } else {
       // Non-temporal files cannot have temporal tags.
@@ -232,10 +238,10 @@ export class BidsHedTsvValidator extends BidsValidator {
       }
       // Assemble the HED strings associated with same onset into single string. Use the parse duplicate detection.
       const rowString = elementList.map((element) => element.hedString).join(',')
-      const [parsedString, errorIssues, warningIssues] = parseHedString(rowString, this.hedSchemas, false, false)
+      const [parsedString, errorIssues, warningIssues] = parseHedString(rowString, this.hedSchemas, false, false, true)
       const tsvLines = BidsTsvElement.getTsvLines(elementList)
-      this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.bidsFile.file, { tsvLine: tsvLines }))
-      this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.bidsFile.file, { tsvLine: tsvLines }))
+      this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: tsvLines }))
+      this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: tsvLines }))
     }
   }
 
@@ -294,7 +300,7 @@ export class BidsHedTsvValidator extends BidsValidator {
         this.errors.push(
           BidsHedIssue.fromHedIssue(
             generateIssue('temporalTagInNonTemporalContext', { string: element.hedString, tsvLine: element.tsvLine }),
-            this.bidsFile.file,
+            this.tsvFile.file,
           ),
         )
       }
@@ -308,15 +314,13 @@ export class BidsHedTsvValidator extends BidsValidator {
 export class BidsHedTsvParser {
   static nullSet = new Set([null, undefined, '', 'n/a'])
   static braceRegEx = /\{([^{}]*?)\}/g
-  static parenthesesRegEx = /\(\s*[,\s]*(\(\s*[,\s]*\))*[,\s]*\)/g
-  static internalCommaRegEx = /,\s*,/g
-  static leadingCommaRegEx = /^\s*,+\s*/
-  static trailingCommaRegEx = /\s*,+\s*$/
+
   /**
    * The BIDS TSV file being parsed.
    * @type {BidsTsvFile}
    */
   tsvFile
+
   /**
    * The HED schema collection being parsed against.
    * @type {Schemas}
@@ -335,7 +339,7 @@ export class BidsHedTsvParser {
   }
 
   /**
-   * Combine the BIDS bidsFile HED data into a BIDS TSV file's HED data.
+   * Combine the BIDS sidecar HED data into a BIDS TSV file's HED data.
    *
    * @returns {Array} - Returns a two-element array [BidsTsvElement[], BidsHedIssue[], BidsHedIssue[]].
    */
@@ -366,6 +370,7 @@ export class BidsHedTsvParser {
         this.hedSchemas,
         false,
         false,
+        true,
       )
       element.parsedHedString = parsedHedString
       errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: element.tsvLine }))
@@ -449,7 +454,7 @@ export class BidsHedTsvParser {
    * Generate a mapping from tsv columns to strings (may have splices in the strings)
    *
    * @param {Map} rowCells - The column-to-value mapping for a single row.
-   * @returns {Map} - A mapping of column names to their corresponding parsed bidsFile strings.
+   * @returns {Map} - A mapping of column names to their corresponding parsed sidecar strings.
    * @private
    */
   _getColumnMapping(rowCells) {
@@ -463,9 +468,10 @@ export class BidsHedTsvParser {
       return columnMap
     }
 
-    // Check for the columns with HED data in the bidsFile
+    // Check for the columns with HED data in the sidecar
     for (const [columnName, columnValues] of this.tsvFile.mergedSidecar.parsedHedData.entries()) {
       if (!rowCells.has(columnName)) {
+        columnMap.set(columnName, '')
         continue
       }
       const rowColumnValue = rowCells.get(columnName)
@@ -493,13 +499,18 @@ export class BidsHedTsvParser {
    * Note: Updates the map in place.
    */
   spliceValues(columnMap) {
+    if (!(this.tsvFile.mergedSidecar?.columnSpliceMapping?.size > 0)) {
+      return
+    }
     // Only iterate over the column names that have splices
     for (const column of this.tsvFile.mergedSidecar.columnSpliceMapping.keys()) {
-      if (!columnMap.has(column)) {
-        continue
-      }
+      // if (!columnMap.has(column)) {
+      //   continue
+      // }
       const unspliced = columnMap.get(column)
+
       const result = this._replaceSplices(unspliced, columnMap)
+      //console.log(`Column ${column}: ${unspliced} => ${result}`)
       columnMap.set(column, result)
     }
   }
@@ -519,30 +530,7 @@ export class BidsHedTsvParser {
       // Replace with resolved value or empty string if in nullSet
       return BidsHedTsvParser.nullSet.has(resolved) ? '' : resolved
     })
-    return this._spliceCleanup(result)
-  }
-
-  /**
-   * Remove empty tags or groups which occur because of an empty splice.
-   * @param {string} spliced - The result of splice removal -- which could have empty tags or groups.
-   * @returns {string} - The string with empty tags or groups removed.
-   * @private
-   */
-  _spliceCleanup(spliced) {
-    let result = spliced
-
-    // Remove extra internal empty parentheses due to empty splices
-    while (BidsHedTsvParser.parenthesesRegEx.test(result)) {
-      result = result.replace(BidsHedTsvParser.parenthesesRegEx, '')
-    }
-    // Remove leading commas
-    result = result.replace(BidsHedTsvParser.leadingCommaRegEx, '')
-
-    // Remove trailing commas
-    result = result.replace(BidsHedTsvParser.trailingCommaRegEx, '')
-
-    // Remove extra empty commas due to empty splices
-    return result.replace(BidsHedTsvParser.internalCommaRegEx, ',')
+    return cleanupEmpties(result)
   }
 }
 
@@ -589,7 +577,6 @@ export default BidsHedTsvValidator
         <li><a href="SchemaProperty.html">SchemaProperty</a></li>
         <li><a href="SchemaSpec.html">SchemaSpec</a></li>
         <li><a href="SchemaTag.html">SchemaTag</a></li>
-        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
         <li><a href="SchemaUnit.html">SchemaUnit</a></li>
         <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
         <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
@@ -616,9 +603,9 @@ export default BidsHedTsvValidator
         <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
         <li><a href="global.html#buildSchemas">buildSchemas</a></li>
         <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
-        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
         <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
         <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
         <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
         <li><a href="global.html#convert">convert</a></li>
         <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
@@ -633,27 +620,20 @@ export default BidsHedTsvValidator
         <li><a href="global.html#getAllTags">getAllTags</a></li>
         <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
         <li><a href="global.html#getDuplicates">getDuplicates</a></li>
-        <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
-        <li><a href="global.html#getTagName">getTagName</a></li>
         <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
         <li><a href="global.html#hasAttribute">hasAttribute</a></li>
         <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
-        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
-        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
-        <li><a href="global.html#isDateTime">isDateTime</a></li>
         <li><a href="global.html#isDeprecated">isDeprecated</a></li>
         <li><a href="global.html#isExtended">isExtended</a></li>
-        <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
         <li><a href="global.html#loadPromise">loadPromise</a></li>
         <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
         <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
-        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
         <li><a href="global.html#parseHedString">parseHedString</a></li>
@@ -665,16 +645,12 @@ export default BidsHedTsvValidator
         <li><a href="global.html#readFile">readFile</a></li>
         <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
         <li><a href="global.html#recursiveMap">recursiveMap</a></li>
-        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
-        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
         <li><a href="global.html#schemaTag">schemaTag</a></li>
         <li><a href="global.html#search">search</a></li>
         <li><a href="global.html#setNodeParent">setNodeParent</a></li>
         <li><a href="global.html#setParent">setParent</a></li>
-        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
         <li><a href="global.html#sourceTags">sourceTags</a></li>
         <li><a href="global.html#splitHedString">splitHedString</a></li>
-        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
         <li><a href="global.html#stringTemplate">stringTemplate</a></li>
         <li><a href="global.html#stripBOM">stripBOM</a></li>
         <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
@@ -690,8 +666,8 @@ export default BidsHedTsvValidator
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
-      GMT-0600 (Central Standard Time)
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
     </footer>
 
     <script>
