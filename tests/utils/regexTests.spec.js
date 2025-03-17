@@ -11,7 +11,7 @@ describe('Tokenizer validation using JSON tests', () => {
     }
   }
 
-  it('It should handle trailing commas before:trailingInnerCommaRegEx )', () => {
+  it('It should handle empties of all kinds', () => {
     const tests = {
       multipleCommasAndBlanks: ['(value1, value2,  ,  ,  ) ', '(value1, value2)'],
       justAComma: ['value1, value2, )', 'value1, value2)'],

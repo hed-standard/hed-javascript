@@ -4400,9 +4400,39 @@
               "Description": "Has description with HED",
               "HED": "Label/#"
             }
+          },
+          {
+            "duration": {
+              "HED": "Duration/#, (Red, Blue)"
+            },
+            "event_code": {
+              "HED": {
+                "face": "(Red, Blue)",
+                "ball": "{ball_type}, Black"
+              }
+            },
+            "ball_type": {
+              "Description": "Has description with HED",
+              "HED": "Label/#"
+            }
           }
         ],
         "passes": [
+          {
+            "duration": {
+              "HED": "Duration/#, (Red, Blue)"
+            },
+            "event_code": {
+              "HED": {
+                "face": "{duration}, (Red, Blue)",
+                "ball": "Black"
+              }
+            },
+            "ball_type": {
+              "Description": "Has description with HED",
+              "HED": "Label/#"
+            }
+          },
           {
             "duration": {
               "HED": "Parameter-value/#"
