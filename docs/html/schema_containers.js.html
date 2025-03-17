@@ -32,21 +32,25 @@ export class Schema {
    * @type {string}
    */
   version
+
   /**
    * The HED library schema name.
    * @type {string}
    */
   library
+
   /**
    * This schema's prefix in the active schema set.
    * @type {string}
    */
   prefix
+
   /**
    * The collection of schema entries.
    * @type {SchemaEntries}
    */
   entries
+
   /**
    * The standard HED schema version this schema is linked to.
    * @type {string}
@@ -77,17 +81,6 @@ export class Schema {
     }
     this.entries = entries
   }
-
-  /**
-   * Determine if a HED tag has a particular attribute in this schema.
-   *
-   * @param {string} tag The HED tag to check.
-   * @param {string} tagAttribute The attribute to check for.
-   * @returns {boolean} Whether this tag has this attribute.
-   */
-  tagHasAttribute(tag, tagAttribute) {
-    return this.entries.tagHasAttribute(tag, tagAttribute)
-  }
 }
 
 /**
@@ -106,6 +99,9 @@ export class PartneredSchema extends Schema {
    * @param {Schema[]} actualSchemas The actual HED 3 schemas underlying this partnered schema.
    */
   constructor(actualSchemas) {
+    if (actualSchemas.length === 0) {
+      IssueError.generateAndThrowInternalError('A partnered schema set must contain at least one schema.')
+    }
     super({}, actualSchemas[0].entries)
     this.actualSchemas = actualSchemas
     this.withStandard = actualSchemas[0].withStandard
@@ -120,21 +116,19 @@ export class Schemas {
   /**
    * The imported HED schemas.
    *
-   * The empty string key ("") corresponds to the schema with no nickname,
-   * while other keys correspond to the respective nicknames.
+   * The empty string key ("") corresponds to the schema with no prefix,
+   * while other keys correspond to the respective prefixes.
    *
-   * This field is null for syntax-only validation.
-   *
-   * @type {Map&lt;string, Schema>|null}
+   * @type {Map&lt;string, Schema>}
    */
   schemas
 
   /**
    * Constructor.
-   * @param {Schema|Map&lt;string, Schema>|null} schemas The imported HED schemas.
+   * @param {Schema|Map&lt;string, Schema>} schemas The imported HED schemas.
    */
   constructor(schemas) {
-    if (schemas === null || schemas instanceof Map) {
+    if (schemas instanceof Map) {
       this.schemas = schemas
     } else if (schemas instanceof Schema) {
       this.schemas = new Map([['', schemas]])
@@ -142,65 +136,33 @@ export class Schemas {
       IssueError.generateAndThrowInternalError('Invalid type passed to Schemas constructor')
     }
     if (this.schemas) {
-      this._addNicknamesToSchemas()
+      this._addPrefixesToSchemas()
     }
   }
 
-  _addNicknamesToSchemas() {
-    for (const [nickname, schema] of this.schemas) {
-      schema.prefix = nickname
+  _addPrefixesToSchemas() {
+    for (const [prefix, schema] of this.schemas) {
+      schema.prefix = prefix
     }
   }
 
   /**
-   * Return the schema with the given nickname.
+   * Return the schema with the given prefix.
    *
-   * @param {string} schemaName A nickname in the schema set.
-   * @returns {Schema} The schema object corresponding to that nickname.
+   * @param {string} schemaName A prefix in the schema set.
+   * @returns {Schema} The schema object corresponding to that prefix.
    */
   getSchema(schemaName) {
     return this.schemas?.get(schemaName)
   }
 
   /**
-   * The base schema, i.e. the schema with no nickname, if one is defined.
+   * The base schema, i.e. the schema with no prefix, if one is defined.
    *
    * @returns {Schema}
    */
   get baseSchema() {
     return this.getSchema('')
-  }
-
-  /**
-   * The standard schema, i.e. primary schema implementing the HED standard, if one is defined.
-   *
-   * @returns {Schema}
-   */
-  get standardSchema() {
-    if (this.schemas === null) {
-      return undefined
-    }
-    for (const schema of this.schemas.values()) {
-      if (schema.library === '') {
-        return schema
-      }
-    }
-    return undefined
-  }
-
-  /**
-   * The library schemas, i.e. the schema with nicknames, if any are defined.
-   *
-   * @returns {Map&lt;string, Schema>|null}
-   */
-  get librarySchemas() {
-    if (this.schemas !== null) {
-      const schemasCopy = new Map(this.schemas)
-      schemasCopy.delete('')
-      return schemasCopy
-    } else {
-      return null
-    }
   }
 }
 </code></pre>
@@ -245,7 +207,6 @@ export class Schemas {
         <li><a href="SchemaProperty.html">SchemaProperty</a></li>
         <li><a href="SchemaSpec.html">SchemaSpec</a></li>
         <li><a href="SchemaTag.html">SchemaTag</a></li>
-        <li><a href="SchemaTagManager.html">SchemaTagManager</a></li>
         <li><a href="SchemaUnit.html">SchemaUnit</a></li>
         <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
         <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
@@ -272,9 +233,9 @@ export class Schemas {
         <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
         <li><a href="global.html#buildSchemas">buildSchemas</a></li>
         <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
-        <li><a href="global.html#capitalizeString">capitalizeString</a></li>
         <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
         <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
         <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
         <li><a href="global.html#convert">convert</a></li>
         <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
@@ -289,27 +250,20 @@ export class Schemas {
         <li><a href="global.html#getAllTags">getAllTags</a></li>
         <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
         <li><a href="global.html#getDuplicates">getDuplicates</a></li>
-        <li><a href="global.html#getElementCount">getElementCount</a></li>
         <li><a href="global.html#getElementTagName">getElementTagName</a></li>
         <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
-        <li><a href="global.html#getParentTag">getParentTag</a></li>
         <li><a href="global.html#getTagListString">getTagListString</a></li>
-        <li><a href="global.html#getTagName">getTagName</a></li>
         <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
         <li><a href="global.html#hasAttribute">hasAttribute</a></li>
         <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
-        <li><a href="global.html#hedStringIsAGroup">hedStringIsAGroup</a></li>
-        <li><a href="global.html#isClockFaceTime">isClockFaceTime</a></li>
-        <li><a href="global.html#isDateTime">isDateTime</a></li>
         <li><a href="global.html#isDeprecated">isDeprecated</a></li>
         <li><a href="global.html#isExtended">isExtended</a></li>
-        <li><a href="global.html#isNumber">isNumber</a></li>
         <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
         <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
         <li><a href="global.html#loadPromise">loadPromise</a></li>
         <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
         <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
-        <li><a href="global.html#localSchemaList">localSchemaList</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
         <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
         <li><a href="global.html#normalized">normalized</a></li>
         <li><a href="global.html#parseHedString">parseHedString</a></li>
@@ -321,16 +275,12 @@ export class Schemas {
         <li><a href="global.html#readFile">readFile</a></li>
         <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
         <li><a href="global.html#recursiveMap">recursiveMap</a></li>
-        <li><a href="global.html#removeGroupParentheses">removeGroupParentheses</a></li>
-        <li><a href="global.html#replaceTagNameWithPound">replaceTagNameWithPound</a></li>
         <li><a href="global.html#schemaTag">schemaTag</a></li>
         <li><a href="global.html#search">search</a></li>
         <li><a href="global.html#setNodeParent">setNodeParent</a></li>
         <li><a href="global.html#setParent">setParent</a></li>
-        <li><a href="global.html#sidecarValueHasHed">sidecarValueHasHed</a></li>
         <li><a href="global.html#sourceTags">sourceTags</a></li>
         <li><a href="global.html#splitHedString">splitHedString</a></li>
-        <li><a href="global.html#stringIsEmpty">stringIsEmpty</a></li>
         <li><a href="global.html#stringTemplate">stringTemplate</a></li>
         <li><a href="global.html#stripBOM">stripBOM</a></li>
         <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
@@ -346,8 +296,8 @@ export class Schemas {
     <br class="clear" />
 
     <footer>
-      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Wed Feb 26 2025 06:00:12
-      GMT-0600 (Central Standard Time)
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
     </footer>
 
     <script>
