@@ -16,7 +16,7 @@ checks:
   method-complexity:
     enabled: true
     config:
-      threshold: 5
+      threshold: 8
   method-count:
     enabled: true
     config:
@@ -36,48 +36,24 @@ checks:
   similar-code:
     enabled: true
     config:
-      threshold: #language-specific defaults. overrides affect all languages.
+      threshold: 100
   identical-code:
     enabled: true
     config:
-      threshold: #language-specific defaults. overrides affect all languages.
+      threshold: 100
 
 exclude_patterns:
-  - 'config/'
-  - 'db/'
+  - '.github/'
+  - '.husky/'
+  - 'docs/'
   - 'dist/'
-  - 'features/'
-  - '**/node_modules/'
-  - 'script/'
-  - '**/spec/'
-  - '**/test/'
+  - 'spec_tests/'
   - '**/tests/'
-  - '**/spec_tests/'
-  - '**/docs/'
-  - 'Tests/'
-  - '**/vendor/'
-  - '**/*_test.go'
-  - '**/*.d.ts'
-  - '**/*__init__.py'
-  - '**/*setup.py'
-  - '**/setup.cfg'
-  - '**/static/'
-  - '**/constants/'
-  - '**/deploy_hed/'
-  - '**/README*'
-  - '**/.gitignore'
-  - '**/LICENSE'
-  - '**/examples/'
+  - '**/node_modules/'
   - '**/*.yml'
   - '**/*.yaml'
-  - '**/config_template.py'
-  - '**/*.txt'
-  - '**/*.html'
-  - '**/.coveragerc'
-  - '**/*.md'
-  - '**/*.rst'
-  - '**/templates/'
-  - '**/conf.py'
-  - '**/deprecated/'
-  - '**/versioneer.py'
-  - '**/_version.py'
+  - '**/*.json'
+  - '**/.gitignore'
+  - '**/README*'
+  - '**/LICENSE'
+  - '.codespellrc'
