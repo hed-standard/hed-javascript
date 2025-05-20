@@ -194,13 +194,7 @@ describe('HED validation using JSON tests', () => {
           defManager.addDefinitions(defList)
           const parsedTsv = parseTSV(events)
           assert.instanceOf(parsedTsv, Map, `${events} cannot be parsed`)
-          const bidsTsv = new BidsTsvFile(
-            `events`,
-            { relativePath: 'combo test tsv' },
-            parsedTsv,
-            JSON.parse(side),
-            defManager,
-          )
+          const bidsTsv = new BidsTsvFile(`events`, { path: 'combo test tsv' }, parsedTsv, JSON.parse(side), defManager)
           issues = bidsTsv.validate(hedSchema)
         } catch (e) {
           issues = [convertIssue(e)]
@@ -217,7 +211,7 @@ describe('HED validation using JSON tests', () => {
           defManager.addDefinitions(defList)
           const parsedTsv = parseTSV(events)
           assert.instanceOf(parsedTsv, Map, `${events} cannot be parsed`)
-          const bidsTsv = new BidsTsvFile(`events`, { relativePath: 'events test' }, parsedTsv, {}, defManager)
+          const bidsTsv = new BidsTsvFile(`events`, { path: 'events test' }, parsedTsv, {}, defManager)
           eventsIssues = bidsTsv.validate(hedSchema)
         } catch (e) {
           eventsIssues = [convertIssue(e)]
@@ -232,7 +226,7 @@ describe('HED validation using JSON tests', () => {
         try {
           const defManager = new DefinitionManager()
           defManager.addDefinitions(defList)
-          const bidsSide = new BidsSidecar(`sidecar`, { relativePath: 'sidecar test' }, JSON.parse(side), defManager)
+          const bidsSide = new BidsSidecar(`sidecar`, { path: 'sidecar test' }, JSON.parse(side), defManager)
           issues = bidsSide.validate(hedSchema)
         } catch (e) {
           issues = [convertIssue(e)]
@@ -250,7 +244,7 @@ describe('HED validation using JSON tests', () => {
           defManager.addDefinitions(defList)
           const parsedTsv = parseTSV(hTsv)
           assert.instanceOf(parsedTsv, Map, `${str} cannot be parsed`)
-          const bidsTsv = new BidsTsvFile(`string`, { relativePath: 'string test tsv' }, parsedTsv, {}, defManager)
+          const bidsTsv = new BidsTsvFile(`string`, { path: 'string test tsv' }, parsedTsv, {}, defManager)
           stringIssues = bidsTsv.validate(hedSchema)
         } catch (e) {
           stringIssues = [convertIssue(e)]

@@ -363,7 +363,7 @@ export class BidsSidecarKey {
     if (typeof data === 'string') {
       this.valueString = data
     } else if (!isPlainObject(data)) {
-      IssueError.generateAndThrow('illegalSidecarHedType', { key: key, file: sidecar.file.relativePath })
+      IssueError.generateAndThrow('illegalSidecarHedType', { key: key, file: sidecar.file.path })
     } else {
       this.categoryMap = new Map(Object.entries(data))
     }
@@ -426,7 +426,7 @@ export class BidsSidecarKey {
       } else if (typeof string !== 'string') {
         IssueError.generateAndThrow('illegalSidecarHedType', {
           key: value,
-          file: this.sidecar?.file?.relativePath,
+          file: this.sidecar?.file?.path,
         })
       }
       const [parsedString, errorIssues, warningIssues] = parseHedString(string, hedSchemas, true, true, fullValidation)
