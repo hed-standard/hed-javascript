@@ -72,14 +72,13 @@ export const bidsTestData = [
             generateIssue('unclosedParenthesis', { index: '0', string: '(Red, Def/MyColor', tsvLine: '2' }),
             {
               path: 'mismatched-parentheses-in-tsv.tsv',
-              relativePath: 'mismatched-parentheses-in-tsv.tsv',
             },
           ),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('unclosedParenthesis', { index: '0', string: '(Red, Def/MyColor', tsvLine: '2' }),
-            { path: 'mismatched-parentheses-in-tsv.tsv', relativePath: 'mismatched-parentheses-in-tsv.tsv' },
+            { path: 'mismatched-parentheses-in-tsv.tsv' },
             { tsvLine: 2 },
           ),
         ],
@@ -107,13 +106,12 @@ export const bidsTestData = [
         tsvErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney', tsvLine: '2' }), {
             path: 'invalid-bad-tag-in-tsv.tsv',
-            relativePath: 'invalid-bad-tag-in-tsv.tsv',
           }),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidTag', { tag: 'Baloney' }),
-            { path: 'invalid-bad-tag-in-tsv.tsv', relativePath: 'invalid-bad-tag-in-tsv.tsv' },
+            { path: 'invalid-bad-tag-in-tsv.tsv' },
             { tsvLine: 2 },
           ),
         ],
@@ -134,14 +132,12 @@ export const bidsTestData = [
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
             path: 'invalid-bad-tag-in-JSON.json',
-            relativePath: 'invalid-bad-tag-in-JSON.json',
           }),
         ],
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
             path: 'invalid-bad-tag-in-JSON.tsv',
-            relativePath: 'invalid-bad-tag-in-JSON.tsv',
           }),
         ],
       },
@@ -161,14 +157,12 @@ export const bidsTestData = [
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
             path: 'invalid-bad-tag-in-JSON-no-use.json',
-            relativePath: 'invalid-bad-tag-in-JSON-no-use.json',
           }),
         ],
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
             path: 'invalid-bad-tag-in-JSON-no-use.tsv',
-            relativePath: 'invalid-bad-tag-in-JSON-no-use.tsv',
           }),
         ],
       },
@@ -189,13 +183,11 @@ export const bidsTestData = [
         tsvErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: 'Red,{blue}', tsvLine: '2' }), {
             path: 'valid-sidecar-tsv-curly-brace.tsv',
-            relativePath: 'valid-sidecar-tsv-curly-brace.tsv',
           }),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: 'Red,{blue}', tsvLine: '2' }), {
             path: 'valid-sidecar-tsv-curly-brace.tsv',
-            relativePath: 'valid-sidecar-tsv-curly-brace.tsv',
           }),
         ],
       },
@@ -267,7 +259,6 @@ export const bidsTestData = [
             generateIssue('duplicateTag', { tags: '[(Blue,Green)]', string: '(Green, Blue),(Green, Blue)' }),
             {
               path: 'invalid-duplicate-groups-first-level-tsv.tsv',
-              relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv',
             },
           ),
         ],
@@ -276,7 +267,6 @@ export const bidsTestData = [
             generateIssue('duplicateTag', { tags: '[(Blue,Green)]', string: '(Green, Blue),(Green, Blue)' }),
             {
               path: 'invalid-duplicate-groups-first-level-tsv.tsv',
-              relativePath: 'invalid-duplicate-groups-first-level-tsv.tsv',
             },
           ),
         ],
@@ -292,13 +282,11 @@ export const bidsTestData = [
         tsvErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }), {
             path: 'invalid-different-forms-same-tag-tsv.tsv',
-            relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
           }),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }), {
             path: 'invalid-different-forms-same-tag-tsv.tsv',
-            relativePath: 'invalid-different-forms-same-tag-tsv.tsv',
           }),
         ],
       },
@@ -328,7 +316,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-repeated-nested-groups-tsv.tsv',
-              relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
             },
           ),
         ],
@@ -340,7 +327,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-repeated-nested-groups-tsv.tsv',
-              relativePath: 'invalid-repeated-nested-groups-tsv.tsv',
             },
           ),
         ],
@@ -378,7 +364,6 @@ export const bidsTestData = [
             generateIssue('duplicateTag', { tags: '[Boat]', string: 'Boat,Boat,Speed/5 mph' }),
             {
               path: 'invalid-first-level-duplicate-combo.tsv',
-              relativePath: 'invalid-first-level-duplicate-combo.tsv',
             },
           ),
         ],
@@ -406,7 +391,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-first-level-duplicate-combo-reordered.tsv',
-              relativePath: 'invalid-first-level-duplicate-combo-reordered.tsv',
             },
           ),
         ],
@@ -433,7 +417,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-nested-duplicate-json-reordered.json',
-              relativePath: 'invalid-nested-duplicate-json-reordered.json',
             },
           ),
         ],
@@ -447,7 +430,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-nested-duplicate-json-reordered.tsv',
-              relativePath: 'invalid-nested-duplicate-json-reordered.tsv',
             },
           ),
         ],
@@ -477,7 +459,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-nested-duplicate-combo-reordered.tsv',
-              relativePath: 'invalid-nested-duplicate-combo-reordered.tsv',
             },
           ),
         ],
@@ -507,7 +488,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-duplicate-multiple-rows.tsv',
-              relativePath: 'invalid-duplicate-multiple-rows.tsv',
             },
           ),
         ],
@@ -520,7 +500,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-duplicate-multiple-rows.tsv',
-              relativePath: 'invalid-duplicate-multiple-rows.tsv',
             },
           ),
         ],
@@ -550,7 +529,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-duplicate-multiple-onset.tsv',
-              relativePath: 'invalid-duplicate-multiple-onset.tsv',
             },
           ),
         ],
@@ -563,7 +541,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-duplicate-multiple-onset.tsv',
-              relativePath: 'invalid-duplicate-multiple-onset.tsv',
             },
           ),
         ],
@@ -650,7 +627,7 @@ export const bidsTestData = [
               tag: 'Duration/5',
               string: '((Duration/5, (Red, Blue)), ((Red, Blue), Label/other-one))',
             }),
-            { path: 'bad-splice-of-top-level-tag.tsv', relativePath: 'bad-splice-of-top-level-tag.tsv' },
+            { path: 'bad-splice-of-top-level-tag.tsv' },
             { tsvLine: 3 },
           ),
         ],
@@ -684,7 +661,6 @@ export const bidsTestData = [
             }),
             {
               path: 'bad-group-for-top-level-tag-no-splice.json',
-              relativePath: 'bad-group-for-top-level-tag-no-splice.json',
             },
           ),
         ],
@@ -697,7 +673,6 @@ export const bidsTestData = [
             }),
             {
               path: 'bad-group-for-top-level-tag-no-splice.tsv',
-              relativePath: 'bad-group-for-top-level-tag-no-splice.tsv',
             },
           ),
         ],
@@ -731,7 +706,6 @@ export const bidsTestData = [
             }),
             {
               path: 'bad-group-for-top-level-tag-other-splice.json',
-              relativePath: 'bad-group-for-top-level-tag-other-splice.json',
             },
           ),
         ],
@@ -744,7 +718,6 @@ export const bidsTestData = [
             }),
             {
               path: 'bad-group-for-top-level-tag-other-splice.tsv',
-              relativePath: 'bad-group-for-top-level-tag-other-splice.tsv',
             },
           ),
         ],
@@ -926,7 +899,6 @@ export const bidsTestData = [
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('hedUsedAsSpliceButNoTsvHed', {}), {
             path: 'valid-HED-curly-brace-but-tsv-has-no-HED-column.tsv',
-            relativePath: 'valid-HED-curly-brace-but-tsv-has-no-HED-column.tsv',
           }),
         ],
       },
@@ -947,14 +919,12 @@ export const bidsTestData = [
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('undefinedCurlyBraces', { column: 'ball_type' }), {
             path: 'invalid-curly-brace-column-slice-has-no hed.json',
-            relativePath: 'invalid-curly-brace-column-slice-has-no hed.json',
           }),
         ],
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('undefinedCurlyBraces', { column: 'ball_type' }), {
             path: 'invalid-curly-brace-column-slice-has-no hed.tsv',
-            relativePath: 'invalid-curly-brace-column-slice-has-no hed.tsv',
           }),
         ],
       },
@@ -1001,7 +971,6 @@ export const bidsTestData = [
         tsvErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('curlyBracesInHedColumn', { string: '{event_code}', tsvLine: '2' }), {
             path: 'invalid-curly-brace-in-HED-tsv-column.tsv',
-            relativePath: 'invalid-curly-brace-in-HED-tsv-column.tsv',
           }),
         ],
         comboErrors: [
@@ -1009,7 +978,6 @@ export const bidsTestData = [
             generateIssue('curlyBracesInHedColumn', { string: '{event_code}' }),
             {
               path: 'invalid-curly-brace-in-HED-tsv-column.tsv',
-              relativePath: 'invalid-curly-brace-in-HED-tsv-column.tsv',
             },
             { tsvLine: 2 },
           ),
@@ -1039,14 +1007,12 @@ export const bidsTestData = [
             generateIssue('recursiveCurlyBracesWithKey', { column: 'type', referrer: 'event_code' }),
             {
               path: 'invalid-recursive-curly-braces.json',
-              relativePath: 'invalid-recursive-curly-braces.json',
             },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', { column: 'event_code', referrer: 'type' }),
             {
               path: 'invalid-recursive-curly-braces.json',
-              relativePath: 'invalid-recursive-curly-braces.json',
             },
           ),
         ],
@@ -1056,14 +1022,12 @@ export const bidsTestData = [
             generateIssue('recursiveCurlyBracesWithKey', { column: 'type', referrer: 'event_code' }),
             {
               path: 'invalid-recursive-curly-braces.tsv',
-              relativePath: 'invalid-recursive-curly-braces.tsv',
             },
           ),
           BidsHedIssue.fromHedIssue(
             generateIssue('recursiveCurlyBracesWithKey', { column: 'event_code', referrer: 'type' }),
             {
               path: 'invalid-recursive-curly-braces.tsv',
-              relativePath: 'invalid-recursive-curly-braces.tsv',
             },
           ),
         ],
@@ -1087,7 +1051,6 @@ export const bidsTestData = [
             generateIssue('recursiveCurlyBracesWithKey', { column: 'event_code', referrer: 'event_code' }),
             {
               path: 'invalid-self-recursive-curly-braces.json',
-              relativePath: 'invalid-self-recursive-curly-braces.json',
             },
           ),
         ],
@@ -1097,7 +1060,6 @@ export const bidsTestData = [
             generateIssue('recursiveCurlyBracesWithKey', { column: 'event_code', referrer: 'event_code' }),
             {
               path: 'invalid-self-recursive-curly-braces.tsv',
-              relativePath: 'invalid-self-recursive-curly-braces.tsv',
             },
           ),
         ],
@@ -1128,7 +1090,6 @@ export const bidsTestData = [
             generateIssue('recursiveCurlyBracesWithKey', { column: 'ball_type', referrer: 'event_code' }),
             {
               path: 'invalid-recursive-curly-brace-chain.json',
-              relativePath: 'invalid-recursive-curly-brace-chain.json',
             },
           ),
         ],
@@ -1138,7 +1099,6 @@ export const bidsTestData = [
             generateIssue('recursiveCurlyBracesWithKey', { column: 'ball_type', referrer: 'event_code' }),
             {
               path: 'invalid-recursive-curly-brace-chain.tsv',
-              relativePath: 'invalid-recursive-curly-brace-chain.tsv',
             },
           ),
         ],
@@ -1211,14 +1171,12 @@ export const bidsTestData = [
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('missingPlaceholder', { string: 'Blue,Speed', column: 'speed' }), {
             path: 'invalid-no-placeholder-value-column.json',
-            relativePath: 'invalid-no-placeholder-value-column.json',
           }),
         ],
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('missingPlaceholder', { string: 'Blue,Speed', column: 'speed' }), {
             path: 'invalid-no-placeholder-value-column.tsv',
-            relativePath: 'invalid-no-placeholder-value-column.tsv',
           }),
         ],
       },
@@ -1238,7 +1196,6 @@ export const bidsTestData = [
             generateIssue('invalidSidecarPlaceholder', { column: 'speed', string: 'Label/#, Speed/# mph' }),
             {
               path: 'invalid-multiple-placeholders-in-value-column.json',
-              relativePath: 'invalid-multiple-placeholders-in-value-column.json',
             },
           ),
         ],
@@ -1248,7 +1205,6 @@ export const bidsTestData = [
             generateIssue('invalidSidecarPlaceholder', { column: 'speed', string: 'Label/#, Speed/# mph' }),
             {
               path: 'invalid-multiple-placeholders-in-value-column.tsv',
-              relativePath: 'invalid-multiple-placeholders-in-value-column.tsv',
             },
           ),
         ],
@@ -1292,7 +1248,6 @@ export const bidsTestData = [
             }),
             {
               path: 'wrong-units-on-a-placeholder.json',
-              relativePath: 'wrong-units-on-a-placeholder.json',
             },
           ),
         ],
@@ -1300,7 +1255,6 @@ export const bidsTestData = [
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('unitClassInvalidUnit', { tag: 'Speed/# Hz' }), {
             path: 'wrong-units-on-a-placeholder.tsv',
-            relativePath: 'wrong-units-on-a-placeholder.tsv',
           }),
         ],
       },
@@ -1425,7 +1379,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-def-expand-no-group.json',
-              relativePath: 'invalid-def-expand-no-group.json',
             },
           ),
         ],
@@ -1439,7 +1392,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-def-expand-no-group.tsv',
-              relativePath: 'invalid-def-expand-no-group.tsv',
             },
           ),
         ],
@@ -1460,7 +1412,6 @@ export const bidsTestData = [
             generateIssue('missingDefinitionForDef', { definition: 'missingdef', sidecarKeyName: 'speed' }),
             {
               path: 'invalid-missing-definition-for-def.json',
-              relativePath: 'invalid-missing-definition-for-def.json',
             },
           ),
         ],
@@ -1470,7 +1421,6 @@ export const bidsTestData = [
             generateIssue('missingDefinitionForDef', { definition: 'missingdef', sidecarKeyName: 'speed' }),
             {
               path: 'invalid-missing-definition-for-def.tsv',
-              relativePath: 'invalid-missing-definition-for-def.tsv',
             },
           ),
         ],
@@ -1491,7 +1441,6 @@ export const bidsTestData = [
             generateIssue('missingDefinitionForDefExpand', { definition: 'missingdefexpand', sidecarKeyName: 'speed' }),
             {
               path: 'invalid-missing-definition-for-def-expand.json',
-              relativePath: 'invalid-missing-definition-for-def-expand.json',
             },
           ),
         ],
@@ -1501,7 +1450,6 @@ export const bidsTestData = [
             generateIssue('missingDefinitionForDefExpand', { definition: 'missingdefexpand', sidecarKeyName: 'speed' }),
             {
               path: 'invalid-missing-definition-for-def-expand.tsv',
-              relativePath: 'invalid-missing-definition-for-def-expand.tsv',
             },
           ),
         ],
@@ -1530,7 +1478,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-nested-definition.json',
-              relativePath: 'invalid-nested-definition.json',
             },
           ),
         ],
@@ -1543,7 +1490,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-nested-definition.tsv',
-              relativePath: 'invalid-nested-definition.tsv',
             },
           ),
         ],
@@ -1572,7 +1518,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-multiple-definition-tags.json',
-              relativePath: 'invalid-multiple-definition-tags.json',
             },
           ),
         ],
@@ -1585,7 +1530,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-multiple-definition-tags.tsv',
-              relativePath: 'invalid-multiple-definition-tags.tsv',
             },
           ),
         ],
@@ -1614,7 +1558,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-definition-with-extra-groups.json',
-              relativePath: 'invalid-definition-with-extra-groups.json',
             },
           ),
         ],
@@ -1627,7 +1570,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-definition-with-extra-groups.tsv',
-              relativePath: 'invalid-definition-with-extra-groups.tsv',
             },
           ),
         ],
@@ -1656,7 +1598,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-definition-with-extra-sibling.json',
-              relativePath: 'invalid-definition-with-extra-sibling.json',
             },
           ),
         ],
@@ -1669,7 +1610,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-definition-with-extra-sibling.tsv',
-              relativePath: 'invalid-definition-with-extra-sibling.tsv',
             },
           ),
         ],
@@ -1693,7 +1633,7 @@ export const bidsTestData = [
               string: '(Definition/TsvDef)',
               tsvLine: '2',
             }),
-            { path: 'invalid-definition-in-HED-column.tsv', relativePath: 'invalid-definition-in-HED-column.tsv' },
+            { path: 'invalid-definition-in-HED-column.tsv' },
           ),
         ],
         comboErrors: [
@@ -1703,7 +1643,7 @@ export const bidsTestData = [
               string: '(Definition/TsvDef)',
               tsvLine: '2',
             }),
-            { path: 'invalid-definition-in-HED-column.tsv', relativePath: 'invalid-definition-in-HED-column.tsv' },
+            { path: 'invalid-definition-in-HED-column.tsv' },
           ),
         ],
       },
@@ -1728,7 +1668,6 @@ export const bidsTestData = [
             generateIssue('invalidPlaceholderInDefinition', { definition: '(Definition/MySpeed/#, (Speed, Red))' }),
             {
               path: 'invalid-definition-with-missing-placeholder.json',
-              relativePath: 'invalid-definition-with-missing-placeholder.json',
             },
           ),
         ],
@@ -1738,7 +1677,6 @@ export const bidsTestData = [
             generateIssue('invalidPlaceholderInDefinition', { definition: '(Definition/MySpeed/#, (Speed, Red))' }),
             {
               path: 'invalid-definition-with-missing-placeholder.tsv',
-              relativePath: 'invalid-definition-with-missing-placeholder.tsv',
             },
           ),
         ],
@@ -1766,7 +1704,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-definition-with-fixed-placeholder.json',
-              relativePath: 'invalid-definition-with-fixed-placeholder.json',
             },
           ),
         ],
@@ -1778,7 +1715,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-definition-with-fixed-placeholder.tsv',
-              relativePath: 'invalid-definition-with-fixed-placeholder.tsv',
             },
           ),
         ],
@@ -1806,7 +1742,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-definition-has-multiple-placeholders.json',
-              relativePath: 'invalid-definition-has-multiple-placeholders.json',
             },
           ),
         ],
@@ -1818,7 +1753,6 @@ export const bidsTestData = [
             }),
             {
               path: 'invalid-definition-has-multiple-placeholders.tsv',
-              relativePath: 'invalid-definition-has-multiple-placeholders.tsv',
             },
           ),
         ],
@@ -1845,7 +1779,7 @@ export const bidsTestData = [
               tag: 'Definition/SpeedDef/#',
               string: 'Red, (Definition/SpeedDef/#, (Speed/# mph))',
             }),
-            { path: 'invalid-definition-not-isolated.json', relativePath: 'invalid-definition-not-isolated.json' },
+            { path: 'invalid-definition-not-isolated.json' },
           ),
         ],
         tsvErrors: [],
@@ -1855,7 +1789,7 @@ export const bidsTestData = [
               tag: 'Definition/SpeedDef/#',
               string: 'Red, (Definition/SpeedDef/#, (Speed/# mph))',
             }),
-            { path: 'invalid-definition-not-isolated.tsv', relativePath: 'invalid-definition-not-isolated.tsv' },
+            { path: 'invalid-definition-not-isolated.tsv' },
           ),
         ],
       },
@@ -1886,7 +1820,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.json',
-              relativePath: 'nested-delay.json',
             },
           ),
           BidsHedIssue.fromHedIssue(
@@ -1896,7 +1829,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.json',
-              relativePath: 'nested-delay.json',
             },
           ),
         ],
@@ -1908,7 +1840,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.tsv',
-              relativePath: 'nested-delay.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -1919,7 +1850,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.tsv',
-              relativePath: 'nested-delay.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -1932,7 +1862,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.tsv',
-              relativePath: 'nested-delay.tsv',
             },
           ),
           BidsHedIssue.fromHedIssue(
@@ -1942,7 +1871,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.tsv',
-              relativePath: 'nested-delay.tsv',
             },
           ),
         ],
@@ -1968,7 +1896,6 @@ export const bidsTestData = [
             }),
             {
               path: 'delay-non-timeline-file.tsv',
-              relativePath: 'delay-non-timeline-file.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -1980,7 +1907,6 @@ export const bidsTestData = [
             }),
             {
               path: 'delay-non-timeline-file.tsv',
-              relativePath: 'delay-non-timeline-file.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -2030,7 +1956,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.json',
-              relativePath: 'nested-delay.json',
             },
           ),
           BidsHedIssue.fromHedIssue(
@@ -2040,7 +1965,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.json',
-              relativePath: 'nested-delay.json',
             },
           ),
         ],
@@ -2052,7 +1976,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.tsv',
-              relativePath: 'nested-delay.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -2063,7 +1986,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.tsv',
-              relativePath: 'nested-delay.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -2076,7 +1998,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.tsv',
-              relativePath: 'nested-delay.tsv',
             },
           ),
           BidsHedIssue.fromHedIssue(
@@ -2086,7 +2007,6 @@ export const bidsTestData = [
             }),
             {
               path: 'nested-delay.tsv',
-              relativePath: 'nested-delay.tsv',
             },
           ),
         ],
@@ -2113,7 +2033,6 @@ export const bidsTestData = [
             }),
             {
               path: 'event-context-with-other-special-tags.json',
-              relativePath: 'event-context-with-other-special-tags.json',
             },
           ),
         ],
@@ -2124,7 +2043,6 @@ export const bidsTestData = [
             }),
             {
               path: 'event-context-with-other-special-tags.tsv',
-              relativePath: 'event-context-with-other-special-tags.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -2137,7 +2055,6 @@ export const bidsTestData = [
             }),
             {
               path: 'event-context-with-other-special-tags.tsv',
-              relativePath: 'event-context-with-other-special-tags.tsv',
             },
           ),
         ],
@@ -2220,7 +2137,6 @@ export const bidsTestData = [
             }),
             {
               path: 'simultaneous-temporal-onset.tsv',
-              relativePath: 'simultaneous-temporal-onset.tsv',
             },
           ),
         ],
@@ -2236,7 +2152,6 @@ export const bidsTestData = [
             }),
             {
               path: 'simultaneous-temporal-onset.tsv',
-              relativePath: 'simultaneous-temporal-onset.tsv',
             },
           ),
         ],
@@ -2254,7 +2169,6 @@ export const bidsTestData = [
             generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
             {
               path: 'missing-temporal-onset.tsv',
-              relativePath: 'missing-temporal-onset.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -2264,7 +2178,6 @@ export const bidsTestData = [
             generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
             {
               path: 'missing-temporal-onset.tsv',
-              relativePath: 'missing-temporal-onset.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -2296,7 +2209,6 @@ export const bidsTestData = [
             generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
             {
               path: 'delayed-onset-with-offset-before.tsv',
-              relativePath: 'delayed-onset-with-offset-before.tsv',
             },
             { tsvLine: '3' },
           ),
@@ -2306,7 +2218,6 @@ export const bidsTestData = [
             generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
             {
               path: 'delayed-onset-with-offset-before.tsv',
-              relativePath: 'delayed-onset-with-offset-before.tsv',
             },
             { tsvLine: '3' },
           ),
@@ -2335,7 +2246,6 @@ export const bidsTestData = [
             generateIssue('inactiveOnset', { tag: 'Offset', definition: 'mycolor' }),
             {
               path: 'delayed-onset-with-offset-before-with-sidecar.tsv',
-              relativePath: 'delayed-onset-with-offset-before-with-sidecar.tsv',
             },
             { tsvLine: '5' },
           ),
@@ -2382,7 +2292,6 @@ export const bidsTestData = [
             generateIssue('invalidTag', { tag: 'Baloney' }),
             {
               path: 'na-in-onset column-but-invalid-hed.tsv',
-              relativePath: 'na-in-onset column-but-invalid-hed.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -2392,7 +2301,6 @@ export const bidsTestData = [
             generateIssue('invalidTag', { tag: 'Baloney' }),
             {
               path: 'na-in-onset column-but-invalid-hed.tsv',
-              relativePath: 'na-in-onset column-but-invalid-hed.tsv',
             },
             { tsvLine: '2' },
           ),
@@ -2436,7 +2344,6 @@ export const bidsTestData = [
             generateIssue('temporalTagInNonTemporalContext', { string: '(Def/MyColor, Onset)' }),
             {
               path: 'all-na-in-onset-column-invalid-onset.tsv',
-              relativePath: 'all-na-in-onset-column-invalid-onset.tsv',
             },
             { tsvLine: '3' },
           ),
@@ -2446,7 +2353,6 @@ export const bidsTestData = [
             generateIssue('temporalTagInNonTemporalContext', { string: 'Acceleration/5,(Def/MyColor, Onset)' }),
             {
               path: 'all-na-in-onset-column-invalid-onset.tsv',
-              relativePath: 'all-na-in-onset-column-invalid-onset.tsv',
             },
             { tsvLine: '3' },
           ),
@@ -2472,7 +2378,6 @@ export const bidsTestData = [
             generateIssue('temporalTagInNonTemporalContext', { string: '(Delay/4.0, (Green))' }),
             {
               path: 'all-na-in-onset-column-invalid-delay.tsv',
-              relativePath: 'all-na-in-onset-column-invalid-delay.tsv',
             },
             { tsvLine: '3' },
           ),
@@ -2482,7 +2387,6 @@ export const bidsTestData = [
             generateIssue('temporalTagInNonTemporalContext', { string: 'Acceleration/5,(Delay/4.0, (Green))' }),
             {
               path: 'all-na-in-onset-column-invalid-delay.tsv',
-              relativePath: 'all-na-in-onset-column-invalid-delay.tsv',
             },
             { tsvLine: '3' },
           ),
@@ -2516,7 +2420,6 @@ export const bidsTestData = [
             generateIssue('sidecarKeyMissing', { column: 'event_code', values: '[ball, bat]' }),
             {
               path: 'tsv-has-categorical-value-missing-from-sidecar.tsv',
-              relativePath: 'tsv-has-categorical-value-missing-from-sidecar.tsv',
             },
           ),
         ],
@@ -2540,7 +2443,6 @@ export const bidsTestData = [
         comboErrors: [
           BidsHedIssue.fromHedIssue(generateIssue('hedUsedAsSpliceButNoTsvHed', {}), {
             path: 'hed-used-as-splice-but-no-tsv-hed.tsv',
-            relativePath: 'hed-used-as-splice-but-no-tsv-hed.tsv',
           }),
         ],
       },

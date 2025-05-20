@@ -57,7 +57,6 @@ describe('BIDS validation', () => {
       const bidsSidecar = new BidsSidecar(
         'thisOne',
         {
-          relativePath: sidecarName,
           path: sidecarName,
         },
         test.sidecar,
@@ -76,7 +75,6 @@ describe('BIDS validation', () => {
       const bidsTsv = new BidsTsvFile(
         test.testname,
         {
-          relativePath: eventName,
           path: eventName,
         },
         parsedTsv,
@@ -92,7 +90,6 @@ describe('BIDS validation', () => {
       const bidsTsvSide = new BidsTsvFile(
         test.testname,
         {
-          relativePath: eventName,
           path: eventName,
         },
         parsedTsv,

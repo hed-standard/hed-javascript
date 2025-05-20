@@ -62,7 +62,7 @@ export class BidsFile {
           generateIssue('missingSchemaSpecification', {
             message: 'No valid HED schema specification was supplied.',
           }),
-          { path: this.file.file, relativePath: this.file.file },
+          this.file,
         ),
       ]
     }

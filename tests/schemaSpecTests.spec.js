@@ -32,7 +32,6 @@ describe('Schema validation', () => {
       const desc = new BidsJsonFile(
         '/dataset_description.json',
         {
-          relativePath: '/dataset_description.json',
           path: '/dataset_description.json',
         },
         test.schemaVersion,
