@@ -31,9 +31,9 @@ To use the `hed-validator`, you must install the npm `hed-validator` package and
 `import hedValidator from 'hed-validator'` to your JavaScript program.
 
 A sample of current `hed-validator` usage can be found in the BIDS validator in
-[`hed.js`](https://github.com/bids-standard/bids-validator/blob/5dfc3938ea8ce128c7db295e7bebc8eed2de1ce6/bids-validator/validators/hed.js).
+[`hed.ts`](https://github.com/bids-standard/bids-validator/blob/43be01517aaf338aa8bf87676be192dd57087c50/src/validators/hed.ts).
 
 ## Repository notes:
 
-The `develop` branch is now the default branch. All changes to the repository should
-be done as PRs (pull requests) to the `develop` branch.
+The `main` branch is now the default branch. All changes to the repository should
+be done as PRs (pull requests) to the `main` branch.
