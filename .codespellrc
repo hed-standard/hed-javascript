@@ -1,4 +1,3 @@
 [codespell]
-skip = datasets,.git,*.pdf,*.svg,deprecated,*.xml,*.mediawiki,*.omn,datasets, docs/html/fonts, site/docs/html/scripts, site/Gemfile,
-site/Gemfile.lock
+skip = datasets,.git,*.pdf,*.svg,deprecated,*.xml,*.mediawiki,*.omn,datasets, docs/html/fonts, site/docs/html/scripts, site/Gemfile, site/Gemfile.lock
 ignore-words-list = covert,hed,recuse,afterAll,hertzs,isnt
