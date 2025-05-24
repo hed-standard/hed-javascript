@@ -47,7 +47,7 @@ extensions = [
 ]
 
 root_for_relative_js_paths = "../../"
-js_source_path = "../../src"
+js_source_path = "../../../src"
 
 # def find_all_folders(directory):
 #     all_folders = [directory]
