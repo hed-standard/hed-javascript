@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>JSDoc: Source: bids/types/json.js</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css" />
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css" />
+  </head>
+
+  <body>
+    <div id="main">
+      <h1 class="page-title">Source: bids/types/json.js</h1>
+
+      <section>
+        <article>
+          <pre class="prettyprint source linenums"><code>import isPlainObject from 'lodash/isPlainObject'
+
+import { parseHedString } from '../../parser/parser'
+import ParsedHedString from '../../parser/parsedHedString'
+import { BidsFile } from './file'
+import BidsHedSidecarValidator from '../validator/sidecarValidator'
+import { IssueError } from '../../issues/issues'
+import { DefinitionManager, Definition } from '../../parser/definitionManager'
+
+const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
+
+/**
+ * A BIDS JSON file.
+ */
+export class BidsJsonFile extends BidsFile {
+  /**
+   * This file's JSON data.
+   * @type {Object}
+   */
+  jsonData
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name - The name of the JSON file.
+   * @param {Object} file - The object representing this file.
+   * @param {Object} jsonData - The JSON data for this file.
+   */
+  constructor(name, file, jsonData) {
+    super(name, file, BidsHedSidecarValidator)
+    this.jsonData = jsonData
+  }
+}
+
+export class BidsSidecar extends BidsJsonFile {
+  /**
+   * The extracted keys for this sidecar (string --> BidsSidecarKey)
+   * @type {Map}
+   */
+  sidecarKeys
+
+  /**
+   * The extracted HED data for this sidecar (string --> string | Object: string, string
+   * @type {Map}
+   */
+  hedData
+
+  /**
+   * The parsed HED data for this sidecar (string --> ParsedHedString | Map: string --> ParsedHedString).
+   * @type {Map}
+   */
+  parsedHedData
+
+  /**
+   * The extracted HED value strings.
+   * @type {string[]}
+   */
+  hedValueStrings
+
+  /**
+   * The extracted HED categorical strings.
+   * @type {string[]}
+   */
+  hedCategoricalStrings
+
+  /**
+   * The mapping of column splice references (string --> Set of string).
+   * @type {Map}
+   */
+  columnSpliceMapping
+
+  /**
+   * The set of column splice references.
+   * @type {Set&lt;string>}
+   */
+  columnSpliceReferences
+
+  /**
+   * The object that manages definitions.
+   * @type {DefinitionManager}
+   */
+  definitions
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of the sidecar file.
+   * @param {Object} file The file object representing this file.
+   * @param {Object} sidecarData The raw JSON data.
+   * @param {DefinitionManager } defManager - The external definitions to use
+   */
+  constructor(name, file, sidecarData = {}, defManager = undefined) {
+    super(name, file, sidecarData)
+    this.columnSpliceMapping = new Map()
+    this.columnSpliceReferences = new Set()
+    this._setDefinitions(defManager)
+    this._filterHedStrings()
+    this._categorizeHedStrings()
+  }
+
+  /**
+   * Determine whether this file has any HED data.
+   *
+   * @returns {boolean}
+   */
+  get hasHedData() {
+    return this.sidecarKeys.size > 0
+  }
+
+  /**
+   * The extracted HED strings.
+   * @returns {string[]}
+   */
+  get hedStrings() {
+    return this.hedValueStrings.concat(this.hedCategoricalStrings)
+  }
+
+  /**
+   * Parse this sidecar's HED strings within the sidecar structure.
+   *
+   * The parsed strings are placed into {@link parsedHedData}.
+   *
+   * @param {Schemas} hedSchemas - The HED schema collection.
+   * @param {boolean} fullValidation - True if full validation should be performed.
+   * @returns {Array} [Issue[], Issue[]] Any errors and warnings found
+   */
+  parseHed(hedSchemas, fullValidation = false) {
+    this.parsedHedData = new Map()
+    const errors = []
+    const warnings = []
+    for (const [name, sidecarKey] of this.sidecarKeys.entries()) {
+      const [errorIssues, warningIssues] =
+        sidecarKey.parseHed(hedSchemas, fullValidation &amp;&amp; !this.columnSpliceReferences.has(name))
+      errors.push(...errorIssues)
+      warnings.push(...warningIssues)
+      if (sidecarKey.isValueKey) {
+        this.parsedHedData.set(name, sidecarKey.parsedValueString)
+      } else {
+        this.parsedHedData.set(name, sidecarKey.parsedCategoryMap)
+      }
+    }
+    this._generateSidecarColumnSpliceMap()
+    return [errors, warnings]
+  }
+
+  /**
+   * Set the definition manager for this sidecar.
+   * @param defManager
+   * @private
+   */
+  _setDefinitions(defManager) {
+    if (defManager instanceof DefinitionManager) {
+      this.definitions = defManager
+    } else if (!defManager) {
+      this.definitions = new DefinitionManager()
+    } else {
+      IssueError.generateAndThrowInternalError(
+        'Improper format for defManager parameter -- must be null or DefinitionManager',
+      )
+    }
+  }
+
+  /**
+   * Create the sidecar key map from the JSON.
+   * @private
+   */
+  _filterHedStrings() {
+    this.sidecarKeys = new Map(
+      Object.entries(this.jsonData)
+        .map(([key, value]) => {
+          const trimmedKey = key.trim()
+          const lowerKey = trimmedKey.toLowerCase()
+
+          if (ILLEGAL_SIDECAR_KEYS.has(lowerKey)) {
+            IssueError.generateAndThrow('illegalSidecarHedKey')
+          }
+
+          if (BidsSidecar._sidecarValueHasHed(value)) {
+            return [trimmedKey, new BidsSidecarKey(trimmedKey, value.HED, this)]
+          }
+
+          BidsSidecar._verifyKeyHasNoDeepHed(key, value)
+          return null
+        })
+        .filter(Boolean),
+    )
+  }
+
+  /**
+   * Determine whether a sidecar value has HED data.
+   *
+   * @param {Object} sidecarValue A BIDS sidecar value.
+   * @returns {boolean} Whether the sidecar value has HED data.
+   * @private
+   */
+  static _sidecarValueHasHed(sidecarValue) {
+    return sidecarValue !== null &amp;&amp; typeof sidecarValue === 'object' &amp;&amp; sidecarValue.HED !== undefined
+  }
+
+  /**
+   * Verify that a column has no deeply nested "HED" keys.
+   *
+   * @param {string} key An object key.
+   * @param {*} value An object value.
+   * @throws {IssueError} If an invalid "HED" key is found.
+   * @private
+   */
+  static _verifyKeyHasNoDeepHed(key, value) {
+    if (key.toUpperCase() === 'HED') {
+      IssueError.generateAndThrow('illegalSidecarHedDeepKey')
+    }
+    if (!isPlainObject(value)) {
+      return
+    }
+    for (const [subkey, subvalue] of Object.entries(value)) {
+      BidsSidecar._verifyKeyHasNoDeepHed(subkey, subvalue)
+    }
+  }
+
+  /**
+   * Categorize the column strings into value strings and categorical strings
+   * @private
+   */
+  _categorizeHedStrings() {
+    this.hedValueStrings = []
+    this.hedCategoricalStrings = []
+    this.hedData = new Map()
+    for (const [key, sidecarValue] of this.sidecarKeys.entries()) {
+      if (sidecarValue.isValueKey) {
+        this.hedValueStrings.push(sidecarValue.valueString)
+        this.hedData.set(key, sidecarValue.valueString)
+      } else if (sidecarValue.categoryMap) {
+        this.hedCategoricalStrings.push(...sidecarValue.categoryMap.values())
+        this.hedData.set(key, sidecarValue.categoryMap)
+      }
+    }
+  }
+
+  /**
+   * Generate a mapping of an individual BIDS sidecar's curly brace references.
+   *
+   * @private
+   */
+  _generateSidecarColumnSpliceMap() {
+    this.columnSpliceMapping = new Map()
+    this.columnSpliceReferences = new Set()
+
+    for (const [sidecarKey, hedData] of this.parsedHedData) {
+      if (hedData instanceof ParsedHedString) {
+        this._parseValueSplice(sidecarKey, hedData)
+      } else if (hedData instanceof Map) {
+        this._parseCategorySplice(sidecarKey, hedData)
+      } else if (hedData) {
+        IssueError.generateAndThrowInternalError('Unexpected type found in sidecar parsedHedData map.')
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {BidsSidecarKey} sidecarKey - The column to be checked for column splices.
+   * @param {ParsedHedString} hedData - The parsed HED string to check for column splices.
+   * @private
+   */
+  _parseValueSplice(sidecarKey, hedData) {
+    if (hedData.columnSplices.length > 0) {
+      const keyReferences = this._processColumnSplices(new Set(), hedData.columnSplices)
+      this.columnSpliceMapping.set(sidecarKey, keyReferences)
+    }
+  }
+
+  /**
+   *
+   * @param {BidsSidecarKey} sidecarKey - The column to be checked for column splices.
+   * @param {ParsedHedString} hedData - The parsed HED string to check for column splices.
+   * @private
+   */
+  _parseCategorySplice(sidecarKey, hedData) {
+    let keyReferences = null
+    for (const valueString of hedData.values()) {
+      if (valueString?.columnSplices.length > 0) {
+        keyReferences = this._processColumnSplices(keyReferences, valueString.columnSplices)
+      }
+    }
+    if (keyReferences instanceof Set) {
+      this.columnSpliceMapping.set(sidecarKey, keyReferences)
+    }
+  }
+
+  /**
+   * Add a list of columnSplices to a key set.
+   * @param {Set&lt;string>|null} keyReferences
+   * @param {ParsedHedColumnSplice[]} columnSplices
+   * @returns {Set&lt;string>}
+   * @private
+   */
+  _processColumnSplices(keyReferences, columnSplices) {
+    keyReferences ??= new Set()
+    for (const columnSplice of columnSplices) {
+      keyReferences.add(columnSplice.originalTag)
+      this.columnSpliceReferences.add(columnSplice.originalTag)
+    }
+    return keyReferences
+  }
+}
+
+export class BidsSidecarKey {
+
+  /**
+   * The name of this key.
+   * @type {string}
+   */
+  name
+
+  /**
+   * The unparsed category mapping.
+   * @type {Map&lt;string, string>}
+   */
+  categoryMap
+
+  /**
+   * The parsed category mapping.
+   * @type {Map&lt;string, ParsedHedString>}
+   */
+  parsedCategoryMap
+
+  /**
+   * The unparsed value string.
+   * @type {string}
+   */
+  valueString
+
+  /**
+   * The parsed value string.
+   * @type {ParsedHedString}
+   */
+  parsedValueString
+
+  /**
+   * Weak reference to the sidecar.
+   * @type {BidsSidecar}
+   */
+  sidecar
+
+  /**
+   * Indication of whether this key is for definitions.
+   * @type {Boolean}
+   */
+  hasDefinitions
+
+  /**
+   * Constructor.
+   *
+   * @param {string} key The name of this key.
+   * @param {string|Object&lt;string, string>} data The data for this key.
+   * @param {BidsSidecar} sidecar The parent sidecar.
+   */
+  constructor(key, data, sidecar) {
+    this.name = key
+    this.hasDefinitions = false // May reset to true when definitions for this key are checked
+    this.sidecar = sidecar
+    if (typeof data === 'string') {
+      this.valueString = data
+    } else if (!isPlainObject(data)) {
+      IssueError.generateAndThrow('illegalSidecarHedType', { key: key, file: sidecar.file.relativePath })
+    } else {
+      this.categoryMap = new Map(Object.entries(data))
+    }
+  }
+
+  /**
+   * Parse the HED data for this key.
+   *
+   * ###Note: This sets the parsedHedData as a side effect.
+   *
+   * @param {Schemas} hedSchemas The HED schema collection.
+   * @param {boolean} fullValidation True if full validation should be performed.
+   * @returns {Array} - [Issue[], Issues[]] Errors and warnings that result from parsing.
+   */
+  parseHed(hedSchemas, fullValidation = false) {
+    if (this.isValueKey) {
+      return this._parseValueString(hedSchemas, fullValidation)
+    }
+    return this._parseCategory(hedSchemas, fullValidation) // This is a Map of string to ParsedHedString
+  }
+
+  /**
+   * Parse the value string in a sidecar.
+   *
+   * ### Note:
+   *  The value strings cannot contain definitions.
+   *
+   * @param {Schemas} hedSchemas - The HED schemas to use.
+   * @param {boolean} fullValidation - True if full validation should be performed.
+   * @returns {Array} - [Issue[], Issue[]] - Errors due for the value.
+   * @private
+   */
+  _parseValueString(hedSchemas, fullValidation) {
+    const [parsedString, errorIssues, warningIssues] = parseHedString(
+      this.valueString,
+      hedSchemas,
+      false,
+      true,
+      fullValidation,
+    )
+    this.parsedValueString = parsedString
+    return [errorIssues, warningIssues]
+  }
+
+
+  /**
+   * Parse the categorical values associated with this key.
+   * @param {Schemas} hedSchemas - The HED schemas used to check against.
+   * @param {boolean} fullValidation - True if full validation should be performed.
+   * @returns {Array} - Array[Issue[], Issue[]] A list of error issues and warning issues.
+   * @private
+   */
+  _parseCategory(hedSchemas, fullValidation) {
+    this.parsedCategoryMap = new Map()
+    const errors = []
+    const warnings = []
+    for (const [value, string] of this.categoryMap) {
+      const trimmedValue = value.trim()
+      if (ILLEGAL_SIDECAR_KEYS.has(trimmedValue.toLowerCase())) {
+        IssueError.generateAndThrow('illegalSidecarHedCategoricalValue')
+      } else if (typeof string !== 'string') {
+        IssueError.generateAndThrow('illegalSidecarHedType', {
+          key: value,
+          file: this.sidecar?.file?.relativePath,
+        })
+      }
+      const [parsedString, errorIssues, warningIssues] =
+        parseHedString(string, hedSchemas, true, true, fullValidation)
+      this.parsedCategoryMap.set(value, parsedString)
+      warnings.push(...warningIssues)
+      errors.push(...errorIssues)
+      if (errorIssues.length === 0) {
+        errors.push(...this._checkDefinitions(parsedString))
+      }
+    }
+    return [errors, warnings]
+  }
+
+  /**
+   * Check for definitions in the HED string.
+   * @param {ParsedHedString} parsedString - The string to check for definitions.
+   * @returns {Issue[]} - Errors that occur.
+   * @private
+   */
+  _checkDefinitions(parsedString) {
+    const errors = []
+    for (const group of parsedString.tagGroups) {
+      if (!group.isDefinitionGroup) {
+        continue
+      }
+      this.hasDefinitions = true
+      const [def, defIssues] = Definition.createDefinitionFromGroup(group)
+      if (defIssues.length > 0) {
+        errors.push(...defIssues)
+      } else {
+        errors.push(...this.sidecar.definitions.addDefinition(def))
+      }
+    }
+    return errors
+  }
+
+  /**
+   * Whether this key is a value key.
+   * @returns {boolean}
+   */
+  get isValueKey() {
+    return Boolean(this.valueString)
+  }
+}
+</code></pre>
+        </article>
+      </section>
+    </div>
+
+    <nav>
+      <h2><a href="index.html">Home</a></h2>
+      <h3>Classes</h3>
+      <ul>
+        <li><a href="BidsFile.html">BidsFile</a></li>
+        <li><a href="BidsHedIssue_BidsHedIssue.html">BidsHedIssue</a></li>
+        <li><a href="BidsHedSidecarValidator.html">BidsHedSidecarValidator</a></li>
+        <li><a href="BidsHedTsvParser.html">BidsHedTsvParser</a></li>
+        <li><a href="BidsHedTsvValidator.html">BidsHedTsvValidator</a></li>
+        <li><a href="BidsJsonFile.html">BidsJsonFile</a></li>
+        <li><a href="BidsSidecar_BidsSidecar.html">BidsSidecar</a></li>
+        <li><a href="BidsSidecarKey_BidsSidecarKey.html">BidsSidecarKey</a></li>
+        <li><a href="BidsTsvElement_BidsTsvElement.html">BidsTsvElement</a></li>
+        <li><a href="BidsTsvFile.html">BidsTsvFile</a></li>
+        <li><a href="BidsTsvRow.html">BidsTsvRow</a></li>
+        <li><a href="BidsValidator.html">BidsValidator</a></li>
+        <li><a href="ColumnSpliceSpec.html">ColumnSpliceSpec</a></li>
+        <li><a href="Definition_Definition.html">Definition</a></li>
+        <li><a href="DefinitionChecker_DefinitionChecker.html">DefinitionChecker</a></li>
+        <li><a href="GroupSpec.html">GroupSpec</a></li>
+        <li><a href="HedStringParser.html">HedStringParser</a></li>
+        <li><a href="HedStringTokenizer.html">HedStringTokenizer</a></li>
+        <li><a href="Issue.html">Issue</a></li>
+        <li><a href="IssueError_IssueError.html">IssueError</a></li>
+        <li><a href="ParsedHedColumnSplice.html">ParsedHedColumnSplice</a></li>
+        <li><a href="ParsedHedString.html">ParsedHedString</a></li>
+        <li><a href="ParsedHedSubstring.html">ParsedHedSubstring</a></li>
+        <li><a href="PartneredSchema.html">PartneredSchema</a></li>
+        <li><a href="Schema.html">Schema</a></li>
+        <li><a href="SchemaAttribute.html">SchemaAttribute</a></li>
+        <li><a href="SchemaEntries.html">SchemaEntries</a></li>
+        <li><a href="SchemaEntry.html">SchemaEntry</a></li>
+        <li><a href="SchemaEntryManager.html">SchemaEntryManager</a></li>
+        <li><a href="SchemaEntryWithAttributes.html">SchemaEntryWithAttributes</a></li>
+        <li><a href="SchemaProperty.html">SchemaProperty</a></li>
+        <li><a href="SchemaSpec.html">SchemaSpec</a></li>
+        <li><a href="SchemaTag.html">SchemaTag</a></li>
+        <li><a href="SchemaUnit.html">SchemaUnit</a></li>
+        <li><a href="SchemaUnitClass.html">SchemaUnitClass</a></li>
+        <li><a href="SchemaUnitModifier.html">SchemaUnitModifier</a></li>
+        <li><a href="SchemaValueClass.html">SchemaValueClass</a></li>
+        <li><a href="SchemaValueTag.html">SchemaValueTag</a></li>
+        <li><a href="Schemas.html">Schemas</a></li>
+        <li><a href="SchemasSpec.html">SchemasSpec</a></li>
+        <li><a href="SubstringSpec.html">SubstringSpec</a></li>
+        <li><a href="TagSpec.html">TagSpec</a></li>
+        <li><a href="module.html#.exports">exports</a></li>
+        <li><a href="module.exports_module.exports.html">exports</a></li>
+      </ul>
+      <h3>Global</h3>
+      <ul>
+        <li><a href="global.html#_convertTag">_convertTag</a></li>
+        <li><a href="global.html#_createParsedGroups">_createParsedGroups</a></li>
+        <li><a href="global.html#_createParsedTags">_createParsedTags</a></li>
+        <li><a href="global.html#_getSplitValue">_getSplitValue</a></li>
+        <li><a href="global.html#_handleIssueError">_handleIssueError</a></li>
+        <li><a href="global.html#_memoize">_memoize</a></li>
+        <li><a href="global.html#_separateUnits">_separateUnits</a></li>
+        <li><a href="global.html#buildBidsSchemas">buildBidsSchemas</a></li>
+        <li><a href="global.html#buildSchemaObject">buildSchemaObject</a></li>
+        <li><a href="global.html#buildSchemaObjects">buildSchemaObjects</a></li>
+        <li><a href="global.html#buildSchemas">buildSchemas</a></li>
+        <li><a href="global.html#buildSchemasSpec">buildSchemasSpec</a></li>
+        <li><a href="global.html#categorizeTagsByName">categorizeTagsByName</a></li>
+        <li><a href="global.html#checkValue">checkValue</a></li>
+        <li><a href="global.html#cleanupEmpties">cleanupEmpties</a></li>
+        <li><a href="global.html#columnSpliceIterator">columnSpliceIterator</a></li>
+        <li><a href="global.html#convert">convert</a></li>
+        <li><a href="global.html#convertParsedTSVData">convertParsedTSVData</a></li>
+        <li><a href="global.html#destinationTags">destinationTags</a></li>
+        <li><a href="global.html#equivalent">equivalent</a></li>
+        <li><a href="global.html#filterByClass">filterByClass</a></li>
+        <li><a href="global.html#filterByTagName">filterByTagName</a></li>
+        <li><a href="global.html#filterTagMapByNames">filterTagMapByNames</a></li>
+        <li><a href="global.html#find">find</a></li>
+        <li><a href="global.html#format">format</a></li>
+        <li><a href="global.html#generateIssue">generateIssue</a></li>
+        <li><a href="global.html#getAllTags">getAllTags</a></li>
+        <li><a href="global.html#getCharacterCount">getCharacterCount</a></li>
+        <li><a href="global.html#getDuplicates">getDuplicates</a></li>
+        <li><a href="global.html#getElementTagName">getElementTagName</a></li>
+        <li><a href="global.html#getElementTagValue">getElementTagValue</a></li>
+        <li><a href="global.html#getTagListString">getTagListString</a></li>
+        <li><a href="global.html#getTagSlashIndices">getTagSlashIndices</a></li>
+        <li><a href="global.html#hasAttribute">hasAttribute</a></li>
+        <li><a href="global.html#hasUnitClass">hasUnitClass</a></li>
+        <li><a href="global.html#isDeprecated">isDeprecated</a></li>
+        <li><a href="global.html#isExtended">isExtended</a></li>
+        <li><a href="global.html#loadBundledSchema">loadBundledSchema</a></li>
+        <li><a href="global.html#loadLocalSchema">loadLocalSchema</a></li>
+        <li><a href="global.html#loadPromise">loadPromise</a></li>
+        <li><a href="global.html#loadRemoteSchema">loadRemoteSchema</a></li>
+        <li><a href="global.html#loadSchemaFile">loadSchemaFile</a></li>
+        <li><a href="global.html#localSchemas">localSchemas</a></li>
+        <li><a href="global.html#mergeSchemas">mergeSchemas</a></li>
+        <li><a href="global.html#normalized">normalized</a></li>
+        <li><a href="global.html#parseHedString">parseHedString</a></li>
+        <li><a href="global.html#parseHedStrings">parseHedStrings</a></li>
+        <li><a href="global.html#parseSchemaXML">parseSchemaXML</a></li>
+        <li><a href="global.html#parseTSV">parseTSV</a></li>
+        <li><a href="global.html#parseTags">parseTags</a></li>
+        <li><a href="global.html#parseXPath">parseXPath</a></li>
+        <li><a href="global.html#readFile">readFile</a></li>
+        <li><a href="global.html#readHTTPSFile">readHTTPSFile</a></li>
+        <li><a href="global.html#recursiveMap">recursiveMap</a></li>
+        <li><a href="global.html#schemaTag">schemaTag</a></li>
+        <li><a href="global.html#search">search</a></li>
+        <li><a href="global.html#setNodeParent">setNodeParent</a></li>
+        <li><a href="global.html#setParent">setParent</a></li>
+        <li><a href="global.html#sourceTags">sourceTags</a></li>
+        <li><a href="global.html#splitHedString">splitHedString</a></li>
+        <li><a href="global.html#stringTemplate">stringTemplate</a></li>
+        <li><a href="global.html#stripBOM">stripBOM</a></li>
+        <li><a href="global.html#subParsedGroupIterator">subParsedGroupIterator</a></li>
+        <li><a href="global.html#tagIterator">tagIterator</a></li>
+        <li><a href="global.html#takesValue">takesValue</a></li>
+        <li><a href="global.html#takesValueTag">takesValueTag</a></li>
+        <li><a href="global.html#toString">toString</a></li>
+        <li><a href="global.html#topLevelGroupIterator">topLevelGroupIterator</a></li>
+        <li><a href="global.html#unitClasses">unitClasses</a></li>
+      </ul>
+    </nav>
+
+    <br class="clear" />
+
+    <footer>
+      Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Mar 17 2025 14:21:23
+      GMT-0500 (Central Daylight Time)
+    </footer>
+
+    <script>
+      prettyPrint()
+    </script>
+    <script src="scripts/linenumber.js"></script>
+  </body>
+</html>

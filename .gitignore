@@ -40,4 +40,4 @@ var/
 .installed.cfg
 *.egg
 tests/scratch
-docs/_build
+site/docs/_build
