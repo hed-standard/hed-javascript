@@ -34,12 +34,13 @@ jobs:
           mkdir -p site/validate
           cp -r browser/dist/* site/validate/
 
-      - name: Commit and push changes
+      - name: Create commit and push to new branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b auto/browser-update
           git add site/validate
           git commit -m "Auto-update browser validator [skip ci]" || echo "No changes to commit"
-          git push origin main
+          git push origin auto/browser-update
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,4 +1,4 @@
-# Sample workflow for building and deploying a Jekyll site to GitHub Pages
+# This workflow builds a Jekyll site and deploys it to GitHub Pages.
 name: Deploy Jekyll with GitHub Pages dependencies preinstalled
 
 on:
