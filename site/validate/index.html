@@ -1,24 +1,13 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Upload</title>
-  </head>
-  <body>
-    <h1>Upload File</h1>
-    <input type="file" id="fileInput" />
-    <button onclick="handleUpload()">Upload</button>
-
-    <script>
-      function handleUpload() {
-        const file = document.getElementById('fileInput').files[0]
-        if (!file) {
-          alert('No file selected')
-          return
-        }
-        // Handle upload logic here (or simulate it)
-        alert(`File "${file.name}" selected.`)
-      }
-    </script>
-  </body>
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HED Validator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script type="module" crossorigin src="/hed-javascript/validate/assets/index-nArSEzwX.js"></script>
+</head>
+<body>
+<div id="root"></div>
+</body>
 </html>
