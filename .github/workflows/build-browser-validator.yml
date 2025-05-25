@@ -41,6 +41,6 @@ jobs:
           git checkout -b auto/browser-update
           git add site/validate
           git commit -m "Auto-update browser validator [skip ci]" || echo "No changes to commit"
-          git push origin auto/browser-update
+          git push --force origin auto/browser-update
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
