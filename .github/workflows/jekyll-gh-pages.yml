@@ -28,13 +28,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install and build browser validator (Vite)
+        working-directory: browser
+        run: |
+          npm install
+          npm run build
+
+      - name: Copy Vite output to site/validate
+        run: |
+          rm -rf site/validate
+          mkdir -p site/validate
+          cp -r browser/dist/* site/validate/
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
           source: ./site
           destination: ./_site
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
