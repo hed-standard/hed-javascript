@@ -79,7 +79,7 @@ describe('HED schemas', () => {
 
     describe('Local HED schemas', () => {
       it('a standard schema can be loaded from a path', async () => {
-        const localHedSchemaFile = 'tests/data/HED8.0.0.xml'
+        const localHedSchemaFile = 'src/data/schemas/HED8.0.0.xml'
         const localHedSchemaVersion = '8.0.0'
         const schemaSpec = new SchemaSpec('', '', '', localHedSchemaFile)
         const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
@@ -107,7 +107,7 @@ describe('HED schemas', () => {
   })
 
   describe('HED-3G schemas', () => {
-    const localHedSchemaFile = 'tests/data/HED8.0.0.xml'
+    const localHedSchemaFile = 'src/data/schemas/HED8.0.0.xml'
     let hedSchemas
 
     beforeAll(async () => {
