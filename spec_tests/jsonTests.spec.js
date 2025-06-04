@@ -75,30 +75,36 @@ describe('HED validation using JSON tests', () => {
   const schemaMap = new Map([
     ['8.2.0', undefined],
     ['8.3.0', undefined],
+    ['8.4.0', undefined],
   ])
 
   beforeAll(async () => {
-    const spec2 = new SchemaSpec('', '8.2.0', '', path.join(__dirname, '../tests/data/HED8.2.0.xml'))
+    const spec2 = new SchemaSpec('', '8.2.0', '', path.join(__dirname, '../src/data/schemas/HED8.2.0.xml'))
     const specs2 = new SchemasSpec().addSchemaSpec(spec2)
 
-    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../tests/data/HED8.3.0.xml'))
+    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../src/data/schemas/HED8.3.0.xml'))
     const specs3 = new SchemasSpec().addSchemaSpec(spec3)
 
-    const spec3Lib = new SchemaSpec('ts', '8.3.0', '', path.join(__dirname, '../tests/data/HED8.3.0.xml'))
+    const spec4 = new SchemaSpec('', '8.4.0', '', path.join(__dirname, '../src/data/schemas/HED8.4.0.xml'))
+    const specs4 = new SchemasSpec().addSchemaSpec(spec4)
+
+    const spec3Lib = new SchemaSpec('ts', '8.3.0', '', path.join(__dirname, '../src/data/schemas/HED8.3.0.xml'))
     const specs3Lib = new SchemasSpec().addSchemaSpec(spec3Lib)
 
     const specScore = new SchemaSpec('sc', '1.0.0', 'score', path.join(__dirname, '../tests/data/HED_score_1.0.0.xml'))
     const specsScore = new SchemasSpec().addSchemaSpec(specScore)
 
-    const [schemas2, schemas3, schemas3lib, schemaScore] = await Promise.all([
+    const [schemas2, schemas3, schemas4, schemas3lib, schemaScore] = await Promise.all([
       buildSchemas(specs2),
       buildSchemas(specs3),
+      buildSchemas(specs4),
       buildSchemas(specs3Lib),
       buildSchemas(specsScore),
     ])
 
     schemaMap.set('8.2.0', schemas2)
     schemaMap.set('8.3.0', schemas3)
+    schemaMap.set('8.4.0', schemas4)
     schemaMap.set('ts:8.3.0', schemas3lib)
     schemaMap.set('sc:score_1.0.0', schemaScore)
   })
@@ -112,6 +118,8 @@ describe('HED validation using JSON tests', () => {
     expect(schema2).toBeDefined()
     const schema3 = schemaMap.get('8.3.0')
     expect(schema3).toBeDefined()
+    const schema4 = schemaMap.get('8.4.0')
+    expect(schema4).toBeDefined()
     const schema3lib = schemaMap.get('ts:8.3.0')
     expect(schema3lib).toBeDefined()
     const schemaScore = schemaMap.get('sc:score_1.0.0')
