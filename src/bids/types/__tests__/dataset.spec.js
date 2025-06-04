@@ -1,10 +1,10 @@
 // src/bids/types/dataset.spec.js
-jest.mock('../datasetParser')
-jest.mock('../schema')
+jest.mock('../../datasetParser')
+jest.mock('../../schema')
 
 // Re-require after jest.mock so we get the mocked versions
-const datasetParser = require('../datasetParser')
-const schema = require('../schema')
+const datasetParser = require('../../datasetParser')
+const schema = require('../../schema')
 
 describe('BidsDataset', () => {
   const mockDatasetRoot = '/mock/dataset'
@@ -23,7 +23,7 @@ describe('BidsDataset', () => {
   })
 
   it('loads HED schemas from dataset_description.json', async () => {
-    const { BidsDataset } = require('./dataset')
+    const { BidsDataset } = require('../dataset')
     const dataset = new BidsDataset(mockDatasetRoot, mockFileList)
     // Wait for async constructor logic
     await dataset.loadHedSchemas()
@@ -35,7 +35,7 @@ describe('BidsDataset', () => {
 
   it('throws if HEDVersion is missing', async () => {
     datasetParser.parseBidsJsonFile.mockResolvedValue({ jsonData: {} })
-    const { BidsDataset } = require('./dataset')
+    const { BidsDataset } = require('../dataset')
     const dataset = new BidsDataset(mockDatasetRoot, mockFileList)
     await expect(dataset.loadHedSchemas()).rejects.toThrow('HEDVersion not found in dataset_description.json')
   })

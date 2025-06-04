@@ -3,6 +3,7 @@ const path = require('path')
 const { BidsJsonFile } = require('./json')
 const {parseBidsJsonFile} = require('../datasetParser')
 const { buildBidsSchemas } = require('../schema')
+const { IssueError } = require('../../issues/issues')
 
 class BidsDataset {
   /**
@@ -59,8 +60,8 @@ class BidsDataset {
   async loadHedSchemas() {
     // Use the general parser for dataset_description.json
     this.datasetDescription = await parseBidsJsonFile(this.datasetRootDirectory, 'dataset_description.json')
-    if (!this.datasetDescription || !this.datasetDescription.jsonData?.HEDVersion) {
-      throw new Error('HEDVersion not found in dataset_description.json')
+    if (!this.datasetDescription?.jsonData?.HEDVersion) {
+        IssueError.generateAndThrow('missingSchemaSpecification')
     }
     // Build HED schemas using the datasetDescription object
     this.hedSchemas = await buildBidsSchemas(this.datasetDescription)
