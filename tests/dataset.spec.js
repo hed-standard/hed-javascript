@@ -1,5 +1,13 @@
 import { jest, describe, it, beforeEach, afterEach, expect } from '@jest/globals'
 import { generateIssue, IssueError } from '../src/issues/issues'
+import { toMatchIssue } from './testHelpers/toMatchIssue'
+
+
+expect.extend({
+  toMatchIssue(receivedError, expectedCode, expectedParams) {
+    return toMatchIssue(receivedError, expectedCode, expectedParams)
+  }
+});
 
 jest.mock('../src/bids/datasetParser')
 jest.mock('../src/bids/schema')
