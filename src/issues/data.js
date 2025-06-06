@@ -395,7 +395,7 @@ export default {
   invalidSchemaSpecification: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`The supplied schema specification is invalid. Specification: ${'spec'}.`,
+    message: stringTemplate`The supplied HED schema specification is invalid. Specification: ${'spec'}.`,
   },
   missingSchemaSpecification: {
     hedCode: 'SCHEMA_LOAD_FAILED',

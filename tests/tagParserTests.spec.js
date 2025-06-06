@@ -3,7 +3,7 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 
 import ParsedHedTag from '../src/parser/parsedHedTag'
-import { shouldRun } from './testUtilities'
+import { shouldRun } from './testHelpers/testUtilities'
 import { parsedHedTagTests } from './testData/tagParserTests.data'
 import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import path from 'path'

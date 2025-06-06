@@ -6,7 +6,7 @@ import path from 'path'
 import { buildSchemas } from '../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import { normalizerTestData } from './testData/normalizerTests.data'
-import { shouldRun, getHedString } from './testUtilities'
+import { shouldRun, getHedString } from './testHelpers/testUtilities'
 
 const skipMap = new Map()
 const runAll = true

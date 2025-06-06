@@ -8,7 +8,7 @@ import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import { generateIssue } from '../src/issues/issues'
 import { parseHedString, parseHedStrings } from '../src/parser/parser'
 import { parseTestData } from './testData/stringParserTests.data'
-import { shouldRun, getHedString } from './testUtilities'
+import { shouldRun, getHedString } from './testHelpers/testUtilities'
 
 const skipMap = new Map()
 const runAll = true

@@ -7,7 +7,7 @@ import { buildSchemas } from '../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import { parseHedString } from '../src/parser/parser'
 import { definitionTestData } from './testData/definitionManagerTests.data'
-import { shouldRun } from './testUtilities'
+import { shouldRun } from './testHelpers/testUtilities'
 import { DefinitionManager } from '../src/parser/definitionManager'
 
 const skipMap = new Map()
