@@ -479,6 +479,16 @@ export default {
     level: 'error',
     message: stringTemplate`Internal error - message: "${'message'}".`,
   },
+  networkReadError: {
+    hedCode: 'INTERNAL_ERROR',
+    level: 'error',
+    message: stringTemplate`I/O error when reading from network - server responded to URL "${'url'}" with HTTP status code ${'statusCode'} ${'statusText'}.`,
+  },
+  fileReadError: {
+    hedCode: 'INTERNAL_ERROR',
+    level: 'error',
+    message: stringTemplate`I/O error when reading from file "${'fileName'}" - message: "${'message'}".`,
+  },
   genericError: {
     hedCode: 'INTERNAL_ERROR',
     level: 'error',
