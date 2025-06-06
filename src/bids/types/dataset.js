@@ -1,14 +1,11 @@
-const fs = require('fs')
-const path = require('path')
-const { BidsJsonFile } = require('./json')
-const {parseBidsJsonFile} = require('../datasetParser')
-const { buildBidsSchemas } = require('../schema')
-const { IssueError } = require('../../issues/issues')
+import { parseBidsJsonFile } from '../datasetParser'
+import { buildBidsSchemas } from '../schema'
+import { IssueError } from '../../issues/issues'
 
-class BidsDataset {
+export class BidsDataset {
   /**
    * The dataset's event file data.
-   * @type {BidsEventFile[]}
+   * @type {BidsTsvFile[]}
    */
   eventData
 
@@ -34,8 +31,7 @@ class BidsDataset {
    * The HED schemas used to validate this dataset.
    * @type {Schemas}
    */
-  hedSchemas = null
-
+  hedSchemas
 
   /**
    *
@@ -46,6 +42,7 @@ class BidsDataset {
     this.datasetRootDirectory = datasetRootDirectory
     this.eventData = null
     this.sidecarData = null
+    this.hedSchemas = null
     this.fileList = fileList
   }
 
@@ -56,16 +53,17 @@ class BidsDataset {
     )
   }
 
-
   async loadHedSchemas() {
     // Use the general parser for dataset_description.json
-    this.datasetDescription = await parseBidsJsonFile(this.datasetRootDirectory, 'dataset_description.json')
+    try {
+      this.datasetDescription = await parseBidsJsonFile(this.datasetRootDirectory, 'dataset_description.json')
+    } catch (error) {
+      IssueError.generateAndThrow('missingSchemaSpecification')
+    }
     if (!this.datasetDescription?.jsonData?.HEDVersion) {
-        IssueError.generateAndThrow('missingSchemaSpecification')
+      IssueError.generateAndThrow('missingSchemaSpecification')
     }
     // Build HED schemas using the datasetDescription object
     this.hedSchemas = await buildBidsSchemas(this.datasetDescription)
   }
 }
-
-module.exports = { BidsDataset }
