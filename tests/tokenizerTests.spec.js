@@ -3,7 +3,7 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 
 import { HedStringTokenizer } from '../src/parser/tokenizer'
-import { shouldRun } from './testUtilities'
+import { shouldRun } from './testHelpers/testUtilities'
 import { tokenizerTests } from './testData/tokenizerTests.data'
 
 // Ability to select individual tests to run

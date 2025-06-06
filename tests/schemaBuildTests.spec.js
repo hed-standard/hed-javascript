@@ -5,7 +5,7 @@ import { beforeAll, describe, afterAll } from '@jest/globals'
 import { buildBidsSchemas } from '../src/bids/schema'
 import { BidsJsonFile } from '../src/bids'
 
-import { shouldRun } from './testUtilities'
+import { shouldRun } from './testHelpers/testUtilities'
 import { schemaBuildTestData } from './testData/schemaBuildTests.data'
 import { Schemas } from '../src/schema/containers'
 

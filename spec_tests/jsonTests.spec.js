@@ -11,7 +11,7 @@ import { BidsSidecar, BidsTsvFile } from '../src/bids'
 import { generateIssue, IssueError } from '../src/issues/issues'
 import { DefinitionManager } from '../src/parser/definitionManager'
 import parseTSV from '../src/bids/tsvParser'
-import { shouldRun } from '../tests/testUtilities'
+import { shouldRun } from '../tests/testHelpers/testUtilities'
 const fs = require('fs')
 
 const skipMap = new Map()
@@ -25,6 +25,36 @@ const skippedErrors = {}
 const readFileSync = fs.readFileSync
 const test_file_name = 'javascriptTests.json'
 // const test_file_name = 'temp6.json'
+
+
+function toMatchIssue(receivedError, expectedCode, expectedParams = {}) {
+  const expectedIssue = generateIssue(expectedCode, expectedParams)
+
+  const passType = receivedError instanceof IssueError
+  const passMessage = receivedError.message === expectedIssue.message
+
+  if (passType && passMessage) {
+    return {
+      pass: true,
+      message: () =>
+        `Expected error not to match IssueError with message "${expectedIssue.message}", but it did.`,
+    }
+  } else {
+    return {
+      pass: false,
+      message: () => {
+        let msg = ''
+        if (!passType) {
+          msg += `Expected error to be instance of IssueError but got ${receivedError.constructor.name}\n`
+        }
+        if (!passMessage) {
+          msg += `Expected message:\n  "${expectedIssue.message}"\nReceived:\n  "${receivedError.message}"`
+        }
+        return msg
+      },
+    }
+  }
+}
 
 function comboListToStrings(items) {
   const comboItems = []
@@ -70,6 +100,12 @@ function tsvListToStrings(eventList) {
 function tsvToString(events) {
   return events.map((row) => row.join('\t')).join('\n')
 }
+
+  expect.extend({
+    toMatchIssue(receivedError, expectedCode, expectedParams) {
+      return toMatchIssue(receivedError, expectedCode, expectedParams)
+    }
+  })
 
 describe('HED validation using JSON tests', () => {
   const schemaMap = new Map([

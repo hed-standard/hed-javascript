@@ -5,7 +5,7 @@ import { beforeAll, describe, afterAll } from '@jest/globals'
 import { buildSchemasSpec } from '../src/bids/schema'
 import { BidsJsonFile } from '../src/bids'
 
-import { shouldRun } from './testUtilities'
+import { shouldRun } from './testHelpers/testUtilities'
 import { schemaSpecTestData } from './testData/schemaBuildTests.data'
 
 // Ability to select individual tests to run

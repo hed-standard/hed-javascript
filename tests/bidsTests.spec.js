@@ -7,7 +7,7 @@ import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import { BidsSidecar, BidsTsvFile } from '../src/bids'
 import parseTSV from '../src/bids/tsvParser'
 import { bidsTestData } from './testData/bidsTests.data'
-import { shouldRun } from './testUtilities'
+import { shouldRun } from './testHelpers/testUtilities'
 import { DefinitionManager } from '../src/parser/definitionManager'
 
 // Ability to select individual tests to run
