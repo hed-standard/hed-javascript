@@ -60,7 +60,7 @@ and its accompanying `participants.json` file can be extracted
 as a HED string and then used in analysis for search or extracting design
 matrices and contrasts.
 
-The demo [`participants.json`](./participants.json) is:
+The demo [`participants.json`](participants.json) is:
 
 ```json
 {
@@ -91,7 +91,7 @@ The demo [`participants.json`](./participants.json) is:
 The `participant_id` and `age` column are annotated as value columns,
 while `sex` is annotated as a value column.
 
-In the demo, the first row of the [`partipants.tsv`](./participants.tsv) file is:
+In the demo, the first row of the [`partipants.tsv`](participants.tsv) file is:
 
 | participant_id | age | sex | HED |
 | -------------- | --- | --- | --- |

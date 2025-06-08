@@ -3,10 +3,10 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 
-import { buildSchemas } from '../src/schema/init'
-import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
-import { normalizerTestData } from './testData/normalizerTests.data'
-import { shouldRun, getHedString } from './testHelpers/testUtilities'
+import { buildSchemas } from '../../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
+import { normalizerTestData } from '../jsonTestData/normalizerTests.data'
+import { shouldRun, getHedString } from '../testHelpers/testUtilities'
 
 const skipMap = new Map()
 const runAll = true
@@ -16,7 +16,7 @@ describe('Normalize HED string tests', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
 
   beforeAll(async () => {
-    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../src/data/schemas/HED8.3.0.xml'))
+    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../../src/data/schemas/HED8.4.0.xml'))
     const specs3 = new SchemasSpec().addSchemaSpec(spec3)
     const schemas3 = await buildSchemas(specs3)
     schemaMap.set('8.3.0', schemas3)

@@ -3,13 +3,13 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 
-import { buildSchemas } from '../src/schema/init'
-import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
-import { splitterTestData } from './testData/splitterTests.data'
-import { shouldRun } from './testHelpers/testUtilities'
-import ParsedHedGroup from '../src/parser/parsedHedGroup'
-import { filterByClass } from '../src/parser/parseUtils'
-import HedStringSplitter from '../src/parser/splitter'
+import { buildSchemas } from '../../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
+import { splitterTestData } from '../jsonTestData/splitterTests.data'
+import { shouldRun } from '../testHelpers/testUtilities'
+import ParsedHedGroup from '../../src/parser/parsedHedGroup'
+import { filterByClass } from '../../src/parser/parseUtils'
+import HedStringSplitter from '../../src/parser/splitter'
 const skipMap = new Map()
 const runAll = true
 const runMap = new Map([['valid-strings', ['empty-string']]])
@@ -18,7 +18,7 @@ describe('Parse HED string tests', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
 
   beforeAll(async () => {
-    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../src/data/schemas/HED8.3.0.xml'))
+    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../../src/data/schemas/HED8.4.0.xml'))
     const specs3 = new SchemasSpec().addSchemaSpec(spec3)
     const schemas3 = await buildSchemas(specs3)
     schemaMap.set('8.3.0', schemas3)

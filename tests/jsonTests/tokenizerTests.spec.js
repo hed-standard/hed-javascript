@@ -2,9 +2,9 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 
-import { HedStringTokenizer } from '../src/parser/tokenizer'
-import { shouldRun } from './testHelpers/testUtilities'
-import { tokenizerTests } from './testData/tokenizerTests.data'
+import { HedStringTokenizer } from '../../src/parser/tokenizer'
+import { shouldRun } from '../testHelpers/testUtilities'
+import { tokenizerTests } from '../jsonTestData/tokenizerTests.data'
 
 // Ability to select individual tests to run
 const skipMap = new Map()

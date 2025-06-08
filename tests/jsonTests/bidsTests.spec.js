@@ -2,13 +2,13 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
-import { buildSchemas } from '../src/schema/init'
-import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
-import { BidsSidecar, BidsTsvFile } from '../src/bids'
-import parseTSV from '../src/bids/tsvParser'
-import { bidsTestData } from './testData/bidsTests.data'
-import { shouldRun } from './testHelpers/testUtilities'
-import { DefinitionManager } from '../src/parser/definitionManager'
+import { buildSchemas } from '../../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
+import { BidsSidecar, BidsTsvFile } from '../../src/bids'
+import parseTSV from '../../src/bids/tsvParser'
+import { bidsTestData } from '../jsonTestData/bidsTests.data'
+import { shouldRun } from '../testHelpers/testUtilities'
+import { DefinitionManager } from '../../src/parser/definitionManager'
 
 // Ability to select individual tests to run
 //const skipMap = new Map([['definition-tests', ['invalid-missing-definition-for-def', 'invalid-nested-definition']]])
@@ -20,7 +20,7 @@ describe('BIDS validation', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
 
   beforeAll(async () => {
-    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../src/data/schemas/HED8.3.0.xml'))
+    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../../src/data/schemas/HED8.4.0.xml'))
     const specs3 = new SchemasSpec().addSchemaSpec(spec3)
     const schemas3 = await buildSchemas(specs3)
     schemaMap.set('8.3.0', schemas3)

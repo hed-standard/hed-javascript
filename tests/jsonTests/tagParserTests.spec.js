@@ -2,13 +2,13 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 
-import ParsedHedTag from '../src/parser/parsedHedTag'
-import { shouldRun } from './testHelpers/testUtilities'
-import { parsedHedTagTests } from './testData/tagParserTests.data'
-import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
+import ParsedHedTag from '../../src/parser/parsedHedTag'
+import { shouldRun } from '../testHelpers/testUtilities'
+import { parsedHedTagTests } from '../jsonTestData/tagParserTests.data'
+import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import path from 'path'
-import { buildSchemas } from '../src/schema/init'
-import { SchemaValueTag } from '../src/schema/entries'
+import { buildSchemas } from '../../src/schema/init'
+import { SchemaValueTag } from '../../src/schema/entries'
 
 // Ability to select individual tests to run
 const skipMap = new Map()
@@ -19,7 +19,7 @@ describe('TagSpec converter tests using JSON tests', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
 
   beforeAll(async () => {
-    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../src/data/schemas/HED8.3.0.xml'))
+    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../../src/data/schemas/HED8.4.0.xml'))
     const specs3 = new SchemasSpec().addSchemaSpec(spec3)
     const schemas3 = await buildSchemas(specs3)
     schemaMap.set('8.3.0', schemas3)

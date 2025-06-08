@@ -2,12 +2,12 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 
-import { buildBidsSchemas } from '../src/bids/schema'
-import { BidsJsonFile } from '../src/bids'
+import { buildBidsSchemas } from '../../src/bids/schema'
+import { BidsJsonFile } from '../../src/bids'
 
-import { shouldRun } from './testHelpers/testUtilities'
-import { schemaBuildTestData } from './testData/schemaBuildTests.data'
-import { Schemas } from '../src/schema/containers'
+import { shouldRun } from '../testHelpers/testUtilities'
+import { schemaBuildTestData } from '../jsonTestData/schemaBuildTests.data'
+import { Schemas } from '../../src/schema/containers'
 
 // Ability to select individual tests to run
 const skipMap = new Map()
