@@ -124,10 +124,10 @@ describe('HED validation using JSON tests', () => {
     const spec4 = new SchemaSpec('', '8.4.0', '', path.join(__dirname, '../src/data/schemas/HED8.4.0.xml'))
     const specs4 = new SchemasSpec().addSchemaSpec(spec4)
 
-    const spec3Lib = new SchemaSpec('ts', '8.3.0', '', path.join(__dirname, '../src/data/schemas/HED8.3.0.xml'))
+    const spec3Lib = new SchemaSpec('ts', '8.4.0', '', path.join(__dirname, '../src/data/schemas/HED8.4.0.xml'))
     const specs3Lib = new SchemasSpec().addSchemaSpec(spec3Lib)
 
-    const specScore = new SchemaSpec('sc', '1.0.0', 'score', path.join(__dirname, '../tests/data/HED_score_1.0.0.xml'))
+    const specScore = new SchemaSpec('sc', '1.0.0', 'score', path.join(__dirname, '../tests/otherTestData/HED_score_1.0.0.xml'))
     const specsScore = new SchemasSpec().addSchemaSpec(specScore)
 
     const [schemas2, schemas3, schemas4, schemas3lib, schemaScore] = await Promise.all([
