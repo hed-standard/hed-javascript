@@ -2,11 +2,11 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
-import { generateIssue } from '../src/issues/issues'
-import { PartneredSchema } from '../src/schema/containers'
-import { buildSchemas } from '../src/schema/init'
-import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
-import { parseSchemaSpec, parseSchemasSpec } from '../src/bids/schema'
+import { generateIssue } from '../../src/issues/issues'
+import { PartneredSchema } from '../../src/schema/containers'
+import { buildSchemas } from '../../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
+import { parseSchemaSpec, parseSchemasSpec } from '../../src/bids/schema'
 
 describe('HED schemas', () => {
   describe('Schema loading', () => {
@@ -93,7 +93,7 @@ describe('HED schemas', () => {
       it('a library schema can be loaded from a path', async () => {
         const localHedLibrarySchemaName = 'testlib'
         const localHedLibrarySchemaVersion = '2.0.0'
-        const localHedLibrarySchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
+        const localHedLibrarySchemaFile = 'tests/otherTestData/HED_testlib_2.0.0.xml'
         const schemaSpec = new SchemaSpec(localHedLibrarySchemaName, '', '', localHedLibrarySchemaFile)
         const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
 
@@ -294,9 +294,9 @@ describe('HED schemas', () => {
   })
 
   describe('HED 3 partnered schemas', () => {
-    const testLib200SchemaFile = 'tests/data/HED_testlib_2.0.0.xml'
-    const testLib210SchemaFile = 'tests/data/HED_testlib_2.1.0.xml'
-    const testLib300SchemaFile = 'tests/data/HED_testlib_3.0.0.xml'
+    const testLib200SchemaFile = 'tests/otherTestData/HED_testlib_2.0.0.xml'
+    const testLib210SchemaFile = 'tests/otherTestData/HED_testlib_2.1.0.xml'
+    const testLib300SchemaFile = 'tests/otherTestData/HED_testlib_3.0.0.xml'
     let specs1, specs2, specs3
 
     beforeAll(() => {

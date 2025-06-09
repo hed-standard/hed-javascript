@@ -1,6 +1,6 @@
 import { jest, describe, it, beforeEach, afterEach, expect } from '@jest/globals'
-import { generateIssue, IssueError } from '../src/issues/issues'
-import { toMatchIssue } from './testHelpers/toMatchIssue'
+import { generateIssue, IssueError } from '../../src/issues/issues'
+import { toMatchIssue } from '../testHelpers/toMatchIssue'
 
 
 expect.extend({
@@ -9,12 +9,12 @@ expect.extend({
   }
 });
 
-jest.mock('../src/bids/datasetParser')
-jest.mock('../src/bids/schema')
+jest.mock('../../src/bids/datasetParser')
+jest.mock('../../src/bids/schema')
 
 // Re-require after jest.mock so we get the mocked versions
-const datasetParser = require('../src/bids/datasetParser')
-const schema = require('../src/bids/schema')
+const datasetParser = require('../../src/bids/datasetParser')
+const schema = require('../../src/bids/schema')
 
 describe('BidsDataset', () => {
   const mockDatasetRoot = '/mock/dataset'
@@ -33,7 +33,7 @@ describe('BidsDataset', () => {
   })
 
   it('loads HED schemas from dataset_description.json', async () => {
-    const { BidsDataset } = require('../src/bids/types/dataset')
+    const { BidsDataset } = require('../../src/bids/types/dataset')
     const dataset = new BidsDataset(mockDatasetRoot, mockFileList)
     await dataset.loadHedSchemas()
     expect(datasetParser.parseBidsJsonFile).toHaveBeenCalledWith(mockDatasetRoot, 'dataset_description.json')
@@ -44,7 +44,7 @@ describe('BidsDataset', () => {
 
   it('throws if HEDVersion is missing', async () => {
     datasetParser.parseBidsJsonFile.mockResolvedValue({ jsonData: {} })
-    const { BidsDataset } = require('../src/bids/types/dataset')
+    const { BidsDataset } = require('../../src/bids/types/dataset')
     const dataset = new BidsDataset(mockDatasetRoot, mockFileList)
     const issue = generateIssue('missingSchemaSpecification', {})
     await expect(dataset.loadHedSchemas()).rejects.toThrow(IssueError)
@@ -54,7 +54,7 @@ describe('BidsDataset', () => {
   it('throws if parseBidsJsonFile fails', async () => {
     const parseError = new Error('File read failed')
     datasetParser.parseBidsJsonFile.mockRejectedValue(parseError)
-    const { BidsDataset } = require('../src/bids/types/dataset')
+    const { BidsDataset } = require('../../src/bids/types/dataset')
     const dataset = new BidsDataset(mockDatasetRoot, mockFileList)
 
     await expect(dataset.loadHedSchemas()).rejects.toMatchIssue('missingSchemaSpecification', {})
@@ -66,14 +66,14 @@ describe('BidsDataset', () => {
 
   it('throws if buildBidsSchemas fails', async () => {
     schema.buildBidsSchemas.mockRejectedValue(new Error('Schema build failed'))
-    const { BidsDataset } = require('../src/bids/types/dataset')
+    const { BidsDataset } = require('../../src/bids/types/dataset')
     const dataset = new BidsDataset(mockDatasetRoot, mockFileList)
 
     await expect(dataset.loadHedSchemas()).rejects.toThrow('Schema build failed')
   })
 
   describe('hasHedData', () => {
-    const { BidsDataset } = require('../src/bids/types/dataset')
+    const { BidsDataset } = require('../../src/bids/types/dataset')
 
     it('returns true if any sidecar or event file has HED data', () => {
       const dataset = new BidsDataset(mockDatasetRoot, mockFileList)

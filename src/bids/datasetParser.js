@@ -36,8 +36,9 @@ export async function parseBidsSidecar(datasetRoot, relativePath) {
  * @param {string} relativePath The relative path of the file within the dataset.
  * @returns {Promise<[string, {path: string}]>} The file contents and mocked BIDS-type file object.
  */
-async function readBidsFile(datasetRoot, relativePath) {
+export async function readBidsFile(datasetRoot, relativePath) {
   const filePath = path.join(datasetRoot, relativePath)
   const fileObject = { path: filePath }
   return [await readFile(filePath), fileObject]
 }
+

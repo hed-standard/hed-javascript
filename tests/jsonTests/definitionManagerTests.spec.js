@@ -3,12 +3,12 @@ const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 import path from 'path'
 
-import { buildSchemas } from '../src/schema/init'
-import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
-import { parseHedString } from '../src/parser/parser'
-import { definitionTestData } from './testData/definitionManagerTests.data'
-import { shouldRun } from './testHelpers/testUtilities'
-import { DefinitionManager } from '../src/parser/definitionManager'
+import { buildSchemas } from '../../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
+import { parseHedString } from '../../src/parser/parser'
+import { definitionTestData } from '../jsonTestData/definitionManagerTests.data'
+import { shouldRun } from '../testHelpers/testUtilities'
+import { DefinitionManager } from '../../src/parser/definitionManager'
 
 const skipMap = new Map()
 const runAll = true
@@ -18,7 +18,7 @@ describe('DefinitionManager tests', () => {
   const schemaMap = new Map([['8.3.0', undefined]])
 
   beforeAll(async () => {
-    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../src/data/schemas/HED8.3.0.xml'))
+    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../../src/data/schemas/HED8.4.0.xml'))
     const specs3 = new SchemasSpec().addSchemaSpec(spec3)
     const schemas3 = await buildSchemas(specs3)
     schemaMap.set('8.3.0', schemas3)
