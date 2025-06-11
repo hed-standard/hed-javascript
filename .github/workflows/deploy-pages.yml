@@ -44,6 +44,7 @@ jobs:
         run: npm run build
 
       - name: Upload artifact for deployment
+        id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
           # Specifies the directory to upload. This should match your build output folder.
@@ -56,7 +57,7 @@ jobs:
     # This job depends on the 'build' job completing successfully
     needs: build
     runs-on: ubuntu-latest
-    
+
     # Specify the deployment environment
     environment:
       name: github-pages
