@@ -3,33 +3,61 @@ import react from '@vitejs/plugin-react'
 import fs from 'fs'
 import * as path from 'path'
 
-export default defineConfig({
-  base: '/hed-validator/',
-  build: {
-    outDir: 'buildweb',
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html'),
-        validate: path.resolve(__dirname, 'validate.html'),
-        contrast: path.resolve(__dirname, 'contrast.html')
-      }
-    }
-  },
-  plugins: [
-    react(),
-    {
-      name: 'copy-api-docs-after-build',
-      closeBundle: () => {
-        const sourceDir = path.resolve(__dirname, '../docs/html')
-        const targetDir = path.resolve(__dirname, 'buildweb/docs/html')
+// This configuration combines your specific project needs (React, multi-page, custom scripts)
+// with a dynamic base path for seamless local development and GitHub Pages deployment.
 
-        if (fs.existsSync(sourceDir)) {
-          fs.cpSync(sourceDir, targetDir, { recursive: true })
-          console.log('✅ Copied docs/html → buildweb/docs/html after build')
-        } else {
-          console.warn('⚠️  docs/html not found — skipping copy')
-        }
-      }
-    }
-  ]
+export default defineConfig(({ command }) => {
+  // 'command' will be 'serve' for local development (npm run dev)
+  // and 'build' for production (npm run build)
+  const isProduction = command === 'build'
+
+  return {
+    // The 'base' is now dynamic.
+    // For production builds, it's set to your repository name '/hed-validator/'.
+    // For local development, it defaults to '/', allowing assets to load correctly.
+    // NOTE: This setting can be overridden by the '--base' flag in your GitHub Action.
+    base: isProduction ? '/hed-validator/' : '/',
+
+    build: {
+      // This matches the output directory in your GitHub Actions workflow.
+      outDir: 'buildweb',
+
+      // Preserving your multi-page application setup.
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+          validate: path.resolve(__dirname, 'validate.html'),
+          contrast: path.resolve(__dirname, 'contrast.html'),
+        },
+      },
+      // Best practice: Generates a manifest file.
+      manifest: true,
+
+      // Best practice: Helps with debugging in production.
+      sourcemap: true,
+    },
+
+    plugins: [
+      // Your React plugin.
+      react(),
+
+      // Your custom plugin to copy documentation after the build.
+      {
+        name: 'copy-api-docs-after-build',
+        closeBundle: () => {
+          const sourceDir = path.resolve(__dirname, '../docs/html')
+          const targetDir = path.resolve(__dirname, 'buildweb/docs/html')
+
+          // Check if the source directory exists before attempting to copy.
+          if (fs.existsSync(sourceDir)) {
+            // Using fs.cpSync for modern Node.js versions.
+            fs.cpSync(sourceDir, targetDir, { recursive: true })
+            console.log('✅ Copied docs/html → buildweb/docs/html after build')
+          } else {
+            console.warn('⚠️  docs/html not found — skipping copy')
+          }
+        },
+      },
+    ],
+  }
 })
