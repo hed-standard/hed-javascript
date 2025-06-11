@@ -1,12 +1,12 @@
 name: Deploy to GitHub Pages
 
 on:
-  workflow_dispatch:  # Manual trigger from Actions tab
+  workflow_dispatch:  # Manual trigger only
 
 permissions:
-  contents: read      # Read repo contents
-  pages: write        # Publish to Pages
-  id-token: write     # Authenticate with GitHub Pages
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: "pages"
@@ -44,8 +44,12 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Deploy to GitHub Pages
-        id: deploy
+        id: deploy_pages
+        uses: actions/deploy-pages@v2
+
+      - name: Log deployed URL
+        run: |
+          echo "🔗 Deployed at: ${{ steps.deployment.outputs.page_url }}"
