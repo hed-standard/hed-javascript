@@ -1,0 +1,19 @@
+/* web/static/css/styles.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 2em;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: #2c3e50;
+}
+
+a {
+    color: #0077cc;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
