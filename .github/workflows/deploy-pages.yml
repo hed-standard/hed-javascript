@@ -1,0 +1,79 @@
+# A descriptive name for your workflow
+name: Deploy Vite App to GitHub Pages
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch to build and deploy from'
+        required: true
+        default: 'web-interface' # Or set your most common branch, like 'web-interface'
+        type: string
+
+# Set permissions for the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, cancelling any previously running ones.
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  #--------------------------------------
+  # Build Job: Prepares the application
+  #--------------------------------------
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout selected branch (${{ github.event.inputs.branch }})
+        uses: actions/checkout@v4
+        with:
+          # Checks out the branch specified in the manual trigger input
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # Cache npm dependencies to speed up future builds
+          cache: 'npm'
+          cache-dependency-path: browser/package-lock.json
+
+      - name: Install dependencies
+        # Specifies the working directory for the command
+        working-directory: ./browser
+        run: npm ci
+
+      - name: Build Vite site
+        working-directory: ./browser
+        run: npm run build
+
+      - name: Upload artifact for deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Specifies the directory to upload. This should match your build output folder.
+          path: ./browser/buildweb
+
+  #------------------------------------------------
+  # Deploy Job: Deploys the built site
+  #------------------------------------------------
+  deploy:
+    # This job depends on the 'build' job completing successfully
+    needs: build
+    runs-on: ubuntu-latest
+
+    # Specify the deployment environment
+    environment:
+      name: github-pages
+      # The URL will be automatically set by the deployment step's output
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        # This is the official action for deploying the artifact to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
