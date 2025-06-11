@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --outDir buildweb"
+    "build:local": "vite build --config vite.local.config.js",
+    "preview:local": "npm run build:local && npx serve buildweb"
   },
   "dependencies": {
     "react": "^18.2.0",
