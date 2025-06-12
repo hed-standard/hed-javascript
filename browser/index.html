@@ -3,19 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Updated Content Security Policy to allow inline scripts, which the Tailwind CDN requires -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self'; script-src 'self' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline';"
+      content="default-src 'self'; img-src 'self'; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
     />
     <title>HED Validator</title>
-    <!-- Link to your favicon -->
+    <!-- Use a root-relative path for the favicon. Vite will handle the final path during the build. -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <!-- This script enables Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-50 dark:bg-gray-900">
     <div id="root"></div>
-    <!-- Make sure this path points to your new React entry file -->
-    <script type="module" src="./src/main.jsx"></script>
+    <!-- Use a root-relative path for the main script. Vite will replace this with the correct bundled file path during the build. -->
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
