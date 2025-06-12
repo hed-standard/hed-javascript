@@ -5,7 +5,7 @@ import './styles/styles.css'
 function ContrastApp() {
   return (
     <div>
-      <h2>Contrast datasets here</h2>
+      <h2>Validate file</h2>
       <p>Coming soon...</p>
     </div>
   )

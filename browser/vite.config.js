@@ -13,10 +13,10 @@ export default defineConfig(({ command }) => {
 
   return {
     // The 'base' is now dynamic.
-    // For production builds, it's set to your repository name '/hed-validator/'.
+    // For production builds, it's set to your repository name '/hed-javascript/'.
     // For local development, it defaults to '/', allowing assets to load correctly.
     // NOTE: This setting can be overridden by the '--base' flag in your GitHub Action.
-    base: isProduction ? '/hed-validator/' : '/',
+    base: isProduction ? '/hed-javascript/' : '/',
 
     build: {
       // This matches the output directory in your GitHub Actions workflow.
@@ -26,8 +26,8 @@ export default defineConfig(({ command }) => {
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html'),
-          validate: path.resolve(__dirname, 'validate.html'),
-          contrast: path.resolve(__dirname, 'contrast.html'),
+          validate_dataset: path.resolve(__dirname, 'validate_dataset.html'),
+          validate_file: path.resolve(__dirname, 'validate_file.html'),
         },
       },
       // Best practice: Generates a manifest file.

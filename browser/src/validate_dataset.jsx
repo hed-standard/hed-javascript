@@ -24,7 +24,7 @@ function ValidateApp() {
 
   return (
     <div>
-      <h2>Upload your HED dataset</h2>
+      <h2>Upload your BIDS dataset</h2>
       <input type="file" webkitdirectory="true" directory="" multiple onChange={handleFileChange} />
       {files.length > 0 && <FileList files={files} />}
     </div>
