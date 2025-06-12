@@ -42,7 +42,7 @@ export default defineConfig(({ command }) => {
       react(),
 
       // Your custom plugin to copy documentation after the build.
-      {
+      isProduction && {
         name: 'copy-api-docs-after-build',
         closeBundle: () => {
           const sourceDir = path.resolve(__dirname, '../docs/html')
