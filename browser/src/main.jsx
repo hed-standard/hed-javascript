@@ -28,16 +28,16 @@ const NavCard = ({ href, icon, title, description }) => {
 function App() {
   const navOptions = [
     {
-      href: './validate.html',
+      href: './validate_dataset.html',
       icon: <img src="/favicon.ico" alt="HED Icon" className="h-6 w-6" />,
-      title: 'Validate',
-      description: 'Check your HED dataset for compliance and errors.',
+      title: 'Validate dataset',
+      description: 'Check your BIDS dataset for HED compliance and errors.',
     },
     {
-      href: './contrast.html',
+      href: './validate_file.html',
       icon: <img src="/favicon.ico" alt="HED Icon" className="h-6 w-6" />,
-      title: 'Contrast',
-      description: 'Compare two HED datasets to identify differences.',
+      title: 'Validate file',
+      description: 'Check a BIDS-style tsv file for HED compliance.',
     },
     {
       href: './docs/html/',
@@ -51,7 +51,7 @@ function App() {
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <header className="text-center mb-10 md:mb-16">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 dark:text-white">
-          Welcome to the HED Validator
+          Welcome to the HED JavaScript Validator
         </h1>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
           A suite of tools to ensure your Hierarchical Event Descriptors are accurate and well-formed.
