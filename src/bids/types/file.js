@@ -1,5 +1,8 @@
+import path from 'path'
+
 import { BidsHedIssue } from './issues'
 import { generateIssue } from '../../issues/issues'
+import { readFile } from '../../utils/files'
 
 /**
  * A BIDS file.
@@ -38,12 +41,16 @@ export class BidsFile {
   }
 
   /**
-   * Whether this is a TSV file timeline file.
+   * Read a BIDS file.
    *
-   * @returns {boolean}
+   * @param {string} datasetRoot The root path of the dataset.
+   * @param {string} relativePath The relative path of the file within the dataset.
+   * @returns {Promise<[string, {path: string}]>} The file contents and mocked BIDS-type file object.
    */
-  get isTimelineFile() {
-    return false
+  static async readBidsFileFromDatasetPath(datasetRoot, relativePath) {
+    const filePath = path.join(datasetRoot, relativePath)
+    const fileObject = { path: filePath }
+    return [await readFile(filePath), fileObject]
   }
 
   /**
@@ -75,6 +82,15 @@ export class BidsFile {
       // The low-level parsing throws exceptions with the issue encapsulated.
       return BidsHedIssue.fromHedIssues(error, this.file)
     }
+  }
+
+  /**
+   * Whether this is a TSV file timeline file.
+   *
+   * @returns {boolean}
+   */
+  get isTimelineFile() {
+    return false
   }
 
   /**

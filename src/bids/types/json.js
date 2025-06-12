@@ -30,6 +30,19 @@ export class BidsJsonFile extends BidsFile {
     super(name, file, BidsHedSidecarValidator)
     this.jsonData = jsonData
   }
+
+  /**
+   * Parse a BIDS JSON file from a BIDS dataset path.
+   *
+   * @param {string} datasetRoot The root path of the dataset.
+   * @param {string} relativePath The relative path of the file within the dataset.
+   * @returns {Promise<BidsJsonFile>} The built JSON file object.
+   */
+  static async createFromBidsDatasetPath(datasetRoot, relativePath) {
+    const [contents, fileObject] = await BidsFile.readBidsFileFromDatasetPath(datasetRoot, relativePath)
+    const jsonData = JSON.parse(contents)
+    return new BidsJsonFile(relativePath, fileObject, jsonData)
+  }
 }
 
 export class BidsSidecar extends BidsJsonFile {
@@ -96,6 +109,19 @@ export class BidsSidecar extends BidsJsonFile {
     this._setDefinitions(defManager)
     this._filterHedStrings()
     this._categorizeHedStrings()
+  }
+
+  /**
+   * Parse a BIDS sidecar from a BIDS dataset path.
+   *
+   * @param {string} datasetRoot The root path of the dataset.
+   * @param {string} relativePath The relative path of the file within the dataset.
+   * @returns {Promise<BidsSidecar>} The built sidecar object.
+   */
+  static async createFromBidsDatasetPath(datasetRoot, relativePath) {
+    const [contents, fileObject] = await BidsFile.readBidsFileFromDatasetPath(datasetRoot, relativePath)
+    const jsonData = JSON.parse(contents)
+    return new BidsSidecar(relativePath, fileObject, jsonData)
   }
 
   /**
