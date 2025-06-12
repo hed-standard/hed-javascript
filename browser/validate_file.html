@@ -2,9 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Validate file</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self'; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+    />
+    <title>Validate File</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
   </head>
-  <body>
+  <body class="bg-gray-50 dark:bg-gray-900">
     <div id="root"></div>
     <script type="module" src="/src/validate_file.jsx"></script>
   </body>
