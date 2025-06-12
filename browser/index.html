@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>HED Validator</title>
-  <link rel="stylesheet" href="/styles/styles.css" />
-</head>
-<body>
-<h1>Welcome to the HED Validator</h1>
-<nav>
-  <a href="validate.html">Validate</a>
-  <a href="contrast.html">Contrast</a>
-  <a href="docs/html/">API Docs</a>
-</nav>
-<script type="module" src="/scripts/main.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HED Validator</title>
+    <!-- Link to your favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <!-- This script enables Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50 dark:bg-gray-900">
+    <div id="root"></div>
+    <!-- Make sure this path points to your new React entry file -->
+    <script type="module" src="./src/main.jsx"></script>
+  </body>
 </html>
