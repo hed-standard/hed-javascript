@@ -1,9 +1,6 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-// The import below is commented out as it's no longer necessary.
-// We are now loading styles via the Tailwind CDN script in index.html,
-// which caused a "could not resolve" error during the build process.
-// import './styles/styles.css';
+import { NavOptions } from './components/NavOptions'
 
 // --- Reusable Components ---
 
@@ -26,28 +23,7 @@ const NavCard = ({ href, icon, title, description }) => {
 // --- Main Application Component ---
 
 function App() {
-  // Construct the base path for assets. This will be '/' in dev and '/hed-javascript/' in production.
   const base_url = import.meta.env.BASE_URL
-  const navOptions = [
-    {
-      href: './validate_dataset.html',
-      icon: <img src={`${base_url}favicon.ico`} alt="HED Icon" className="h-6 w-6" />,
-      title: 'Validate dataset',
-      description: 'Check your BIDS dataset for HED compliance and errors.',
-    },
-    {
-      href: './validate_file.html',
-      icon: <img src={`${base_url}favicon.ico`} alt="HED Icon" className="h-6 w-6" />,
-      title: 'Validate file',
-      description: 'Check a BIDS-style tsv file for HED compliance.',
-    },
-    {
-      href: './docs/html/',
-      icon: <img src={`${base_url}favicon.ico`} alt="HED Icon" className="h-6 w-6" />,
-      title: 'API Docs',
-      description: 'Browse the technical documentation for developers.',
-    },
-  ]
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -56,22 +32,14 @@ function App() {
           Welcome to the HED JavaScript Validator
         </h1>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          A suite of tools to ensure your Hierarchical Event Descriptors are accurate and well-formed.
+          A suite of tools to ensure your HED (Hierarchical Event Descriptor) tags are valid.
+          <br />
+          These tools are browser-based -- all data remains local.
         </p>
       </header>
 
       <main>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {navOptions.map((option) => (
-            <NavCard
-              key={option.title}
-              href={option.href}
-              icon={option.icon}
-              title={option.title}
-              description={option.description}
-            />
-          ))}
-        </div>
+        <NavOptions base_url={base_url} />
       </main>
 
       <footer className="mt-16 text-center text-gray-500 dark:text-gray-400 text-sm">
