@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import fs from 'fs'
 import * as path from 'path'
+import { createRequire } from 'module' // Add this line
+const require = createRequire(import.meta.url) // Add this line
 
 // This configuration combines your specific project needs (React, multi-page, custom scripts)
 // with a dynamic base path for seamless local development and GitHub Pages deployment.
@@ -18,6 +20,25 @@ export default defineConfig(({ command }) => {
     // NOTE: This setting can be overridden by the '--base' flag in your GitHub Action.
     base: isProduction ? '/hed-javascript/' : '/',
 
+    define: {
+      // Add this section
+      __VITE_ENV__: true,
+    },
+
+    optimizeDeps: {
+      // Add this section
+      include: ['xml2js'],
+    },
+
+    resolve: {
+      alias: {
+        path: 'path-browserify',
+        stream: require.resolve('readable-stream'),
+        timers: require.resolve('timers-browserify'), // Modified this line
+        '@hed-javascript-root': path.resolve(__dirname, '..'), // Added alias to project root
+      },
+    },
+
     build: {
       // This matches the output directory in your GitHub Actions workflow.
       outDir: 'buildweb',
@@ -28,6 +49,17 @@ export default defineConfig(({ command }) => {
           main: path.resolve(__dirname, 'index.html'),
           validate_dataset: path.resolve(__dirname, 'validate_dataset.html'),
           validate_file: path.resolve(__dirname, 'validate_file.html'),
+        },
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/xml2js')) {
+              return 'xml2js'
+            }
+            if (id.includes('node_modules/lodash')) {
+              return 'lodash'
+            }
+            // You could add other large dependencies here
+          },
         },
       },
       // Best practice: Generates a manifest file.

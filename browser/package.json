@@ -9,10 +9,13 @@
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "readable-stream": "^4.7.0",
+    "timers-browserify": "^2.0.12"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.1.0",
+    "path-browserify": "^1.0.1",
     "vite": "^6.3.5"
   }
 }
