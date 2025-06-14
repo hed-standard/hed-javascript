@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { FileInput } from './components/FileInput'
 import { ErrorDisplay } from './components/ErrorDisplay'
 import { readFileAsText } from './utils/fileReader.js'
+import { getHedSchemaCollection } from './utils/hedSchemaHelpers.js' // Added import
 
 // --- Main Application Component ---
 
@@ -28,11 +29,33 @@ function ValidateFileApp() {
     setIsLoading(true)
     setErrors([])
 
-    let tsvText, jsonText // Declare variables in a wider scope
+    let tsvText, jsonText, hedSchemas, issues // Declare variables in a wider scope
 
     try {
       // Dynamically import BidsTsvFile and BidsSidecar when validation starts
-      const { BidsTsvFile, BidsSidecar } = await import('../../index.js')
+      const { BidsTsvFile, BidsSidecar } = await import('@hed-javascript-root/index.js') // Use alias
+
+      // Load HED Schemas
+      const hedVersionSpec = { HEDVersion: '8.4.0' } // 8.4.0 might not be bundled
+      console.log('Attempting to load HED schemas for:', hedVersionSpec)
+      hedSchemas = await getHedSchemaCollection(hedVersionSpec)
+
+      if (hedSchemas) {
+        console.log('HED Schemas loaded successfully:', hedSchemas)
+        // You can now pass hedSchemas to your validation logic if needed
+      } else {
+        console.error('Failed to load HED Schemas. Validation might be incomplete or inaccurate.')
+        // Optionally, set an error state to inform the user
+        setErrors((prevErrors) => [
+          ...prevErrors,
+          {
+            code: 'SCHEMA_LOAD_ERROR',
+            message: `Failed to load HED schemas for HEDVersion: ${JSON.stringify(hedVersionSpec.HEDVersion)}. Validation may not be accurate.`,
+            location: 'Schema Loading',
+          },
+        ])
+        // Decide if you want to proceed without schemas or stop
+      }
 
       // Assign to the variables declared above
       ;[tsvText, jsonText] = await Promise.all([readFileAsText(tsvFile), readFileAsText(jsonFile)])
@@ -54,9 +77,12 @@ function ValidateFileApp() {
       // You can now use bidsTsvFile and bidsSidecar for further validation logic
       console.log('BidsSidecar instance created:', bidsSidecar)
       console.log('BidsTsvFile instance created:', bidsTsvFile)
-
+      console.log('HED Schemas:', hedSchemas)
+      issues = bidsTsvFile.validate(hedSchemas)
+      console.log('Issues', issues)
       // Call your validate function here
       // Example: validate(bidsTsvFile, bidsSidecar)
+      setErrors(issues) // Pass the actual issues
     } catch (err) {
       let errorMsg = 'Error reading or processing a file.'
       if (err && err.message) {
@@ -72,34 +98,33 @@ function ValidateFileApp() {
       setIsLoading(false)
       return
     }
-    console.log('TSV File Content:', tsvText)
-    console.log('JSON File Content:', jsonText)
+    // console.log('TSV File Content:', tsvText) // Optional: keep for debugging if needed
+    // console.log('JSON File Content:', jsonText) // Optional: keep for debugging if needed
 
-    setTimeout(() => {
-      // --- MOCK ERROR DATA ---
-      // Replace this with the actual response from your validator
-      const mockErrors = [
-        {
-          code: 'HED_TSV_UNMATCHED_COLUMN',
-          message: "The 'event_type' column was not found in the HED schema.",
-          location: "Column: 'event_type'",
-        },
-        {
-          code: 'HED_VALUE_INVALID',
-          message: "The value 'N/A' is not a valid value for the 'response_time' tag.",
-          location: 'Line: 12',
-        },
-        {
-          code: 'HED_TAG_WARNING_INVALID_CHARACTERS',
-          message: "The tag 'Stimulus/Image Circle' contains a space. It should be 'Stimulus/Image_Circle'.",
-          location: 'Line: 28',
-        },
-      ]
-      setErrors(mockErrors)
-      // -----------------------
+    setIsLoading(false) // Set loading to false once processing is done
+    // --- MOCK ERROR DATA ---
+    // Remove mock errors and setTimeout
+    // const mockErrors = [
+    //   {
+    //     code: 'HED_TSV_UNMATCHED_COLUMN',
+    //     message: "The 'event_type' column was not found in the HED schema.",
+    //     location: "Column: 'event_type'",
+    //   },
+    //   {
+    //     code: 'HED_VALUE_INVALID',
+    //     message: "The value 'N/A' is not a valid value for the 'response_time' tag.",
+    //     location: 'Line: 12',
+    //   },
+    //   {
+    //     code: 'HED_TAG_WARNING_INVALID_CHARACTERS',
+    //     message: "The tag 'Stimulus/Image Circle' contains a space. It should be 'Stimulus/Image_Circle'.",
+    //     location: 'Line: 28',
+    //   },
+    // ]
+    // setErrors(mockErrors)
+    // -----------------------
 
-      setIsLoading(false)
-    }, 1500) // Simulate network delay
+    // setIsLoading(false) // Already set above
   }
 
   return (

@@ -35,6 +35,7 @@ export default defineConfig(({ command }) => {
         path: 'path-browserify',
         stream: require.resolve('readable-stream'),
         timers: require.resolve('timers-browserify'), // Modified this line
+        '@hed-javascript-root': path.resolve(__dirname, '..'), // Added alias to project root
       },
     },
 

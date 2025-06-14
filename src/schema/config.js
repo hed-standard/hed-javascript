@@ -10,6 +10,7 @@ export const localSchemaNames = [
   'HED8.1.0',
   'HED8.2.0',
   'HED8.3.0',
+  'HED8.4.0',
   'HED_lang_1.0.0',
   'HED_score_1.2.0',
   'HED_score_2.0.0',
