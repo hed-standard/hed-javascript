@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { FileInput } from './components/FileInput'
 import { ErrorDisplay } from './components/ErrorDisplay'
+import { readFileAsText } from './utils/fileReader.js'
 
 // --- Main Application Component ---
 
@@ -12,9 +13,8 @@ function ValidateFileApp() {
   const [isLoading, setIsLoading] = useState(false)
 
   // Mock validation function - replace with your actual validation logic
-  const handleValidation = () => {
+  async function handleValidation() {
     if (!tsvFile || !jsonFile) {
-      // Replaced alert with a more user-friendly error mechanism
       setErrors([
         {
           code: 'CLIENT_ERROR',
@@ -28,7 +28,53 @@ function ValidateFileApp() {
     setIsLoading(true)
     setErrors([])
 
-    // Simulate an API call or a web worker for validation
+    let tsvText, jsonText // Declare variables in a wider scope
+
+    try {
+      // Dynamically import BidsTsvFile and BidsSidecar when validation starts
+      const { BidsTsvFile, BidsSidecar } = await import('../../index.js')
+
+      // Assign to the variables declared above
+      ;[tsvText, jsonText] = await Promise.all([readFileAsText(tsvFile), readFileAsText(jsonFile)])
+
+      const jsonData = JSON.parse(jsonText)
+
+      // Prepare file objects for BIDS classes
+      // The BIDS classes might expect a 'path' property, so we use the file name as a stand-in.
+      const tsvFileObject = { name: tsvFile.name, path: tsvFile.name }
+      const jsonFileObject = { name: jsonFile.name, path: jsonFile.name }
+
+      // Create BidsSidecar instance
+      const bidsSidecar = new BidsSidecar(jsonFile.name, jsonFileObject, jsonData)
+
+      // Create BidsTsvFile instance
+      // It uses the tsvFile's name and file object, and the jsonData from the sidecar as the mergedDictionary.
+      const bidsTsvFile = new BidsTsvFile(tsvFile.name, tsvFileObject, tsvText, jsonData)
+
+      // You can now use bidsTsvFile and bidsSidecar for further validation logic
+      console.log('BidsSidecar instance created:', bidsSidecar)
+      console.log('BidsTsvFile instance created:', bidsTsvFile)
+
+      // Call your validate function here
+      // Example: validate(bidsTsvFile, bidsSidecar)
+    } catch (err) {
+      let errorMsg = 'Error reading or processing a file.'
+      if (err && err.message) {
+        errorMsg += `\nDetails: ${err.message}`
+      }
+      setErrors([
+        {
+          code: 'FILE_READ_ERROR',
+          message: errorMsg,
+          location: 'File Input',
+        },
+      ])
+      setIsLoading(false)
+      return
+    }
+    console.log('TSV File Content:', tsvText)
+    console.log('JSON File Content:', jsonText)
+
     setTimeout(() => {
       // --- MOCK ERROR DATA ---
       // Replace this with the actual response from your validator

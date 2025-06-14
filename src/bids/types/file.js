@@ -41,7 +41,7 @@ export class BidsFile {
   }
 
   /**
-   * Read a BIDS file.
+   * Read a BIDS file from a relative path within a dataset.
    *
    * @param {string} datasetRoot The root path of the dataset.
    * @param {string} relativePath The relative path of the file within the dataset.
@@ -49,6 +49,17 @@ export class BidsFile {
    */
   static async readBidsFileFromDatasetPath(datasetRoot, relativePath) {
     const filePath = path.join(datasetRoot, relativePath)
+    const fileObject = { path: filePath }
+    return [await readFile(filePath), fileObject]
+  }
+
+  /**
+   * Read a BIDS file from a path.
+   *
+   * @param {string} filePath The actual path of the file.
+   * @returns {Promise<[string, {path: string}]>} The file contents and mocked BIDS-type file object.
+   */
+  static async readBidsFile(filePath) {
     const fileObject = { path: filePath }
     return [await readFile(filePath), fileObject]
   }

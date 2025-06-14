@@ -1,21 +1,32 @@
-import fs from 'fs/promises'
-
 import fetch from 'cross-fetch'
 
-import { IssueError } from '../issues/issues'
+import { IssueError, generateIssue } from '../issues/issues'
 
 /**
  * Read a local file.
  *
  * @param {string} fileName The file path.
  * @returns {Promise<string>} A promise with the file contents.
- * @throws {IssueError} If the file read failed.
+ * @throws {IssueError} If the file read failed or if called in a browser environment.
  */
 export async function readFile(fileName) {
-  try {
-    return await fs.readFile(fileName, 'utf8')
-  } catch (error) {
-    IssueError.generateAndThrow('fileReadError', { fileName: fileName, message: error.message })
+  // @ts-ignore __VITE_ENV__ is defined by Vite in browser builds
+  if (typeof __VITE_ENV__ !== 'undefined' && __VITE_ENV__) {
+    console.error('readFile function was called in a browser environment. This is not supported.')
+    // Use generateIssue if available and appropriate, otherwise construct IssueError directly or use IssueError.generateAndThrow
+    throw new IssueError(
+      generateIssue('internalError', {
+        message: 'Local file reading (readFile) is not supported in the browser environment.',
+      }),
+    )
+  } else {
+    // Node.js/Jest environment
+    try {
+      const fsp = require('fs').promises // Changed from dynamic import to require
+      return await fsp.readFile(fileName, 'utf8')
+    } catch (error) {
+      IssueError.generateAndThrow('fileReadError', { fileName: fileName, message: error.message })
+    }
   }
 }
 

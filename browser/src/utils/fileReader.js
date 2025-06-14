@@ -1,0 +1,13 @@
+/**
+ * Reads a File object and returns its content as a string.
+ * @param {File} file The File object to read.
+ * @returns {Promise<string>} A promise that resolves with the file's text content.
+ */
+export function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (event) => resolve(event.target.result)
+    reader.onerror = (error) => reject(error)
+    reader.readAsText(file)
+  })
+}
