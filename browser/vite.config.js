@@ -27,7 +27,7 @@ export default defineConfig(({ command }) => {
 
     optimizeDeps: {
       // Add this section
-      include: ['xml2js'],
+      include: ['xml2js', 'lodash'], // Added 'lodash'
     },
 
     resolve: {
