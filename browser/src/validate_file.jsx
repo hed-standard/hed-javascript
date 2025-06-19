@@ -3,7 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { FileInput } from './components/FileInput'
 import { ErrorDisplay } from './components/ErrorDisplay'
 import { readFileAsText } from './utils/fileReader.js'
-import { getHedSchemaCollection } from './utils/hedSchemaHelpers.js' // Added import
+import { getHedSchemaCollection } from './utils/hedSchemaHelpers.js'
+import { performTsvValidation } from './utils/validationUtils.js' // Removed performHedValidation
 
 // --- Main Application Component ---
 
@@ -12,8 +13,9 @@ function ValidateFileApp() {
   const [jsonFile, setJsonFile] = useState(null)
   const [errors, setErrors] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [checkWarnings, setCheckWarnings] = useState(false)
+  const [limitErrors, setLimitErrors] = useState(false) // This state is not used by performHedValidation yet
 
-  // Mock validation function - replace with your actual validation logic
   async function handleValidation() {
     if (!tsvFile || !jsonFile) {
       setErrors([
@@ -29,23 +31,14 @@ function ValidateFileApp() {
     setIsLoading(true)
     setErrors([])
 
-    let tsvText, jsonText, hedSchemas, issues // Declare variables in a wider scope
-
     try {
-      // Dynamically import BidsTsvFile and BidsSidecar when validation starts
-      const { BidsTsvFile, BidsSidecar } = await import('@hed-javascript-root/index.js') // Use alias
-
       // Load HED Schemas
-      const hedVersionSpec = { HEDVersion: '8.4.0' } // 8.4.0 might not be bundled
+      const hedVersionSpec = { HEDVersion: '8.4.0' } // Consider making this configurable or dynamic
       console.log('Attempting to load HED schemas for:', hedVersionSpec)
-      hedSchemas = await getHedSchemaCollection(hedVersionSpec)
+      const hedSchemas = await getHedSchemaCollection(hedVersionSpec)
 
-      if (hedSchemas) {
-        console.log('HED Schemas loaded successfully:', hedSchemas)
-        // You can now pass hedSchemas to your validation logic if needed
-      } else {
+      if (!hedSchemas) {
         console.error('Failed to load HED Schemas. Validation might be incomplete or inaccurate.')
-        // Optionally, set an error state to inform the user
         setErrors((prevErrors) => [
           ...prevErrors,
           {
@@ -54,78 +47,28 @@ function ValidateFileApp() {
             location: 'Schema Loading',
           },
         ])
-        // Decide if you want to proceed without schemas or stop
+        setIsLoading(false) // Added to reset loading state before early return
+        return
       }
 
-      // Assign to the variables declared above
-      ;[tsvText, jsonText] = await Promise.all([readFileAsText(tsvFile), readFileAsText(jsonFile)])
-
+      const [tsvText, jsonText] = await Promise.all([readFileAsText(tsvFile), readFileAsText(jsonFile)])
       const jsonData = JSON.parse(jsonText)
 
-      // Prepare file objects for BIDS classes
-      // The BIDS classes might expect a 'path' property, so we use the file name as a stand-in.
-      const tsvFileObject = { name: tsvFile.name, path: tsvFile.name }
-      const jsonFileObject = { name: jsonFile.name, path: jsonFile.name }
-
-      // Create BidsSidecar instance
-      const bidsSidecar = new BidsSidecar(jsonFile.name, jsonFileObject, jsonData)
-
-      // Create BidsTsvFile instance
-      // It uses the tsvFile's name and file object, and the jsonData from the sidecar as the mergedDictionary.
-      const bidsTsvFile = new BidsTsvFile(tsvFile.name, tsvFileObject, tsvText, jsonData)
-
-      // You can now use bidsTsvFile and bidsSidecar for further validation logic
-      console.log('BidsSidecar instance created:', bidsSidecar)
-      console.log('BidsTsvFile instance created:', bidsTsvFile)
-      console.log('HED Schemas:', hedSchemas)
-      issues = bidsTsvFile.validate(hedSchemas)
-      console.log('Issues', issues)
-      // Call your validate function here
-      // Example: validate(bidsTsvFile, bidsSidecar)
-      setErrors(issues) // Pass the actual issues
+      // Moved this block inside the try block
+      const validationOptions = { checkWarnings }
+      const issues = performTsvValidation(tsvFile.name, tsvFile.name, tsvText, hedSchemas, jsonData, validationOptions) // Pass validationOptions
+      setErrors(issues)
+      setIsLoading(false) // Moved here from outside, for the successful path
     } catch (err) {
       let errorMsg = 'Error reading or processing a file.'
       if (err && err.message) {
         errorMsg += `\nDetails: ${err.message}`
       }
-      setErrors([
-        {
-          code: 'FILE_READ_ERROR',
-          message: errorMsg,
-          location: 'File Input',
-        },
-      ])
+      setErrors([{ code: 'FILE_READ_ERROR', message: errorMsg, location: 'File Input' }])
       setIsLoading(false)
-      return
+      // return // Removed unnecessary return
     }
-    // console.log('TSV File Content:', tsvText) // Optional: keep for debugging if needed
-    // console.log('JSON File Content:', jsonText) // Optional: keep for debugging if needed
-
-    setIsLoading(false) // Set loading to false once processing is done
-    // --- MOCK ERROR DATA ---
-    // Remove mock errors and setTimeout
-    // const mockErrors = [
-    //   {
-    //     code: 'HED_TSV_UNMATCHED_COLUMN',
-    //     message: "The 'event_type' column was not found in the HED schema.",
-    //     location: "Column: 'event_type'",
-    //   },
-    //   {
-    //     code: 'HED_VALUE_INVALID',
-    //     message: "The value 'N/A' is not a valid value for the 'response_time' tag.",
-    //     location: 'Line: 12',
-    //   },
-    //   {
-    //     code: 'HED_TAG_WARNING_INVALID_CHARACTERS',
-    //     message: "The tag 'Stimulus/Image Circle' contains a space. It should be 'Stimulus/Image_Circle'.",
-    //     location: 'Line: 28',
-    //   },
-    // ]
-    // setErrors(mockErrors)
-    // -----------------------
-
-    // setIsLoading(false) // Already set above
-  }
+  } // Corrected from ')' to '}'
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -164,6 +107,34 @@ function ValidateFileApp() {
               onFileSelect={setJsonFile}
               isLoading={isLoading}
             />
+          </div>
+
+          {/* Checkboxes for validation options */}
+          <div className="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+            <div className="flex items-center">
+              <input
+                id="check-warnings"
+                type="checkbox"
+                checked={checkWarnings}
+                onChange={(e) => setCheckWarnings(e.target.checked)}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label htmlFor="check-warnings" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                Check warnings
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                id="limit-errors"
+                type="checkbox"
+                checked={limitErrors}
+                onChange={(e) => setLimitErrors(e.target.checked)}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label htmlFor="limit-errors" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                Limit errors
+              </label>
+            </div>
           </div>
 
           <div className="mt-8 text-center">
