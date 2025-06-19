@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.1.0",
+    "jest-environment-jsdom": "^30.0.2",
     "path-browserify": "^1.0.1",
     "vite": "^6.3.5"
   }

@@ -7,5 +7,4 @@ skip = datasets,.git,*.pdf,*.svg,*.xml,*.mediawiki,*.omn,docs/html/fonts,**/pack
    .env.test.local,.env.production.local,.env.development,.env.test,.env.production,
   .github,.vscode,.idea,.DS_Store,.gitignore,.gitmodules,.gitattributes,*.log,*.zip,*.tar.gz,
    *.tar.bz2,*.tar.xz,*.tar,*.tgz,*.gz,*.rar,*.7z,*.bak,*.swp
->>>>>>> ae7aa1ec9dd6cbd8fb1f2f59ba0f993fc05e85ff
 ignore-words-list = covert,hed,recuse,afterAll,hertzs,isnt,rouge,EACG

@@ -2,7 +2,7 @@ import { BidsFileAccessor } from '../datasetParser'
 import { BidsSidecar } from './json'
 import { BidsTsvFile } from './tsv'
 import { buildBidsSchemas } from '../schema'
-import { IssueError, generateAndThrow } from '../../issues/issues'
+import { IssueError } from '../../issues/issues'
 
 export class BidsDataset {
   /**
@@ -113,7 +113,7 @@ export class BidsDataset {
       // First try-catch: Load and parse dataset_description.json
       const descriptionContentString = await this.accessor.getFileContent('dataset_description.json')
       if (descriptionContentString === null || typeof descriptionContentString === 'undefined') {
-        generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
+        IssueError.generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
       }
       description = {}
       description.jsonData = JSON.parse(descriptionContentString)
@@ -194,5 +194,13 @@ export class BidsDataset {
         this.sidecarMap.delete(category)
       }
     }
+  }
+
+  /**
+   * Dummy validation method.
+   * @returns {Promise<[]>} An empty list of issues.
+   */
+  async validate() {
+    return []
   }
 }
