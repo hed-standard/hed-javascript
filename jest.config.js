@@ -1,5 +1,3 @@
-
-
 module.exports = {
   rootDir: '.',
   moduleDirectories: ['node_modules', 'src'],
@@ -8,5 +6,5 @@ module.exports = {
     '\\.js$': 'esbuild-runner/jest',
     '\\.xml$': '<rootDir>/fileTransformer.js',
   },
-  transformIgnorePatterns: ['node_modules/(?!unicode-name)']
-};
+  transformIgnorePatterns: ['node_modules/(?!unicode-name)'],
+}

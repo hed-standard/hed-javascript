@@ -1,3 +1,10 @@
 [codespell]
-skip = datasets,.git,*.pdf,*.svg,deprecated,*.xml,*.mediawiki,*.omn,datasets, docs/html/fonts, site/docs/html/scripts, site/Gemfile, site/Gemfile.lock, package-lock.json
+skip = datasets,.git,*.pdf,*.svg,*.xml,*.mediawiki,*.omn,docs/html/fonts,**/package-lock.json,yarn.lock,*.lock,
+   *.min.js,*.min.css,*.min.map,*.min.json,*.min.svg,*.min.html,
+   .cache,.pytest_cache,.tox,.mypy_cache,.coverage*,.eggs,.eggs-info,dist,build,node_modules,
+   npm-debug.log*,yarn-error.log*,
+   __pycache__,__pypackages__,.venv,.env,.env.local,.env.development.local,
+   .env.test.local,.env.production.local,.env.development,.env.test,.env.production,
+  .github,.vscode,.idea,.DS_Store,.gitignore,.gitmodules,.gitattributes,*.log,*.zip,*.tar.gz,
+   *.tar.bz2,*.tar.xz,*.tar,*.tgz,*.gz,*.rar,*.7z,*.bak,*.swp
 ignore-words-list = covert,hed,recuse,afterAll,hertzs,isnt,rouge,EACG

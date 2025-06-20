@@ -2,6 +2,9 @@ import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { FolderInput } from './components/FolderInput'
 import { ErrorDisplay } from './components/ErrorDisplay'
+import { BidsWebAccessor } from './bids/BidsWebAccessor.js'
+import { BidsDataset } from '@hed-javascript-root/src/bids/types/dataset.js'
+import { IssueError } from '@hed-javascript-root/src/issues/issues.js'
 
 // --- Add TailwindCSS to the document head for immediate styling ---
 ;(() => {
@@ -15,52 +18,84 @@ import { ErrorDisplay } from './components/ErrorDisplay'
 /**
  * --- Main Application Component ---
  */
-
 function ValidateDatasetApp() {
-  const [files, setFiles] = useState([])
+  const [dataset, setDataset] = useState(null)
   const [errors, setErrors] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
-  const handleFolderSelect = (selectedFiles) => {
-    setFiles(selectedFiles)
-    if (errors.length > 0) {
-      setErrors([])
+  const handleFolderSelect = async (selectedFiles) => {
+    if (!selectedFiles || selectedFiles.length === 0) {
+      return
+    }
+    const numFiles = selectedFiles.length
+    setIsLoading(true)
+    setErrors([])
+    setDataset(null)
+    setSuccessMessage('')
+
+    try {
+      const accessor = await BidsWebAccessor.create(selectedFiles)
+      const dataset = new BidsDataset(accessor)
+
+      await dataset.getHedSchemas()
+      await dataset.setSidecars()
+
+      const issues = dataset.issues
+      if (issues && issues.length > 0) {
+        setErrors(issues)
+      } else {
+        setDataset(dataset)
+        setSuccessMessage(`${numFiles} files found. Ready for validation.`)
+      }
+    } catch (err) {
+      console.error('[ValidateDatasetApp] Error during dataset processing:', err)
+      const newErrors = []
+      if (err instanceof IssueError) {
+        newErrors.push(err.issue)
+      } else {
+        newErrors.push({
+          code: err.code || 'DATASET_LOAD_ERROR',
+          message: err.message || 'An unexpected error occurred during dataset processing.',
+          location: 'Dataset Loading',
+        })
+      }
+      setErrors(newErrors)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  // Mock validation function - replace with your actual validation logic
-  const handleValidation = () => {
-    if (!files.length) {
-      setErrors([
-        {
-          code: 'CLIENT_ERROR',
-          message: 'Please select a BIDS dataset folder before validating.',
-          location: 'Folder Input',
-        },
-      ])
+  const handleValidate = async () => {
+    if (!dataset) {
       return
     }
     setIsLoading(true)
     setErrors([])
-
-    // Simulate an API call or a web worker for validation
-    setTimeout(() => {
-      // --- MOCK ERROR DATA ---
-      const mockErrors = [
-        {
-          code: 'HED_DATASET_MISSING_FILE',
-          message: "The 'events.tsv' file is missing in one or more folders.",
-          location: 'events.tsv',
-        },
-        {
-          code: 'HED_TAG_WARNING_INVALID_CHARACTERS',
-          message: 'A JSON sidecar is invalid or missing.',
-          location: 'sub-01_task-rest_events.json',
-        },
-      ]
-      setErrors(mockErrors)
+    setSuccessMessage('')
+    try {
+      const issues = await dataset.validate()
+      if (issues && issues.length > 0) {
+        setErrors(issues)
+      } else {
+        setSuccessMessage('No validation errors found.')
+      }
+    } catch (err) {
+      console.error('[ValidateDatasetApp] Error during validation:', err)
+      const newErrors = []
+      if (err instanceof IssueError) {
+        newErrors.push(err.issue)
+      } else {
+        newErrors.push({
+          code: err.code || 'VALIDATION_ERROR',
+          message: err.message || 'An unexpected error occurred during validation.',
+          location: 'Dataset Validation',
+        })
+      }
+      setErrors(newErrors)
+    } finally {
       setIsLoading(false)
-    }, 1500) // Simulate network delay
+    }
   }
 
   return (
@@ -89,17 +124,20 @@ function ValidateDatasetApp() {
               onFolderSelect={handleFolderSelect}
               isLoading={isLoading}
             />
-          </div>
-          <div className="mt-8 text-center">
             <button
-              onClick={handleValidation}
-              disabled={!files.length || isLoading}
-              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 disabled:dark:bg-gray-600"
+              onClick={handleValidate}
+              disabled={!dataset || isLoading}
+              className="rounded-md bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Validating...' : 'Validate'}
             </button>
           </div>
-          <ErrorDisplay errors={errors} />
+          {successMessage && (
+            <div className="text-center mt-4">
+              <p className="text-green-600 dark:text-green-400">{successMessage}</p>
+            </div>
+          )}
+          {errors.length > 0 && <ErrorDisplay errors={errors} />}
         </main>
       </div>
     </div>
