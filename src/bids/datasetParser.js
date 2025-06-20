@@ -144,9 +144,10 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
     if (typeof datasetRootDirectory !== 'string' || !datasetRootDirectory) {
       throw new Error('BidsDirectoryAccessor.create requires a non-empty string for datasetRootDirectory.')
     }
+    const resolvedDatasetRoot = path.resolve(datasetRootDirectory)
     const fileMap = new Map()
-    await BidsDirectoryAccessor._readDirRecursive(datasetRootDirectory, datasetRootDirectory, fileMap)
-    return new BidsDirectoryAccessor(datasetRootDirectory, fileMap)
+    await BidsDirectoryAccessor._readDirRecursive(resolvedDatasetRoot, resolvedDatasetRoot, fileMap)
+    return new BidsDirectoryAccessor(resolvedDatasetRoot, fileMap)
   }
 
   /**
