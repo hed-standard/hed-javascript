@@ -12,10 +12,10 @@ expect.extend({
   },
 })
 
-describe('BidsDataset', () => {
-  const demoDataRoot = path.resolve(process.cwd(), 'tests/BidsDemoData')
-  const invalidDataRoot = path.resolve(process.cwd(), 'tests/otherTestData/invalidDataset')
+const demoDataRoot = path.resolve(__dirname, '../bidsDemoData')
+const invalidDataRoot = path.resolve(__dirname, '../otherTestData/invalidDataset')
 
+describe('BidsDataset', () => {
   afterEach(() => {
     jest.clearAllMocks()
     if (fs.existsSync(invalidDataRoot)) {
@@ -30,15 +30,12 @@ describe('BidsDataset', () => {
       expect(issues.length).toBe(0)
       expect(dataset.hedSchemas).toBeInstanceOf(Schemas)
       expect(dataset.sidecarMap.size).toBe(6)
-      //expect(dataset.eventData.length).toBeGreaterThan(0)
-      // Note: sidecarData is a Map in the refactored code, so use .size
-      //expect(dataset.sidecarData.size).toBeGreaterThan(0)
     })
 
     it('should throw if the dataset has no dataset_description.json', async () => {
       const emptyDir = path.join(invalidDataRoot, 'empty')
       fs.mkdirSync(emptyDir, { recursive: true })
-      const [dataset, issues] = await BidsDataset.create(emptyDir, BidsDirectoryAccessor)
+      const [, issues] = await BidsDataset.create(emptyDir, BidsDirectoryAccessor)
       expect(issues.length).toBe(1)
       expect(issues[0].internalCode).toBe('missingSchemaSpecification')
       expect(issues[0].hedCode).toBe('SCHEMA_LOAD_FAILED')

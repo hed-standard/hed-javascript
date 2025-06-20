@@ -84,7 +84,7 @@ describe('BidsFileAccessor', () => {
 })
 
 describe('BidsDirectoryAccessor', () => {
-  const datasetRoot = path.resolve(process.cwd(), 'tests/BidsDemoData')
+  const datasetRoot = path.resolve(__dirname, '../bidsDemoData')
 
   describe('create', () => {
     it('should throw if datasetRootDirectory is not a string', async () => {
@@ -200,7 +200,7 @@ describe('BidsDirectoryAccessor', () => {
       try {
         const parsedContent = JSON.parse(content)
         expect(parsedContent.Name).toBe('Face processing MEEG dataset with HED annotation')
-      } catch (e) {
+      } catch {
         throw new Error('Failed to parse dataset_description.json or "Name" property not found/matching.')
       }
     })
