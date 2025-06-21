@@ -106,21 +106,6 @@ export class BidsTsvFile extends BidsFile {
   get isTimelineFile() {
     return this.parsedTsv.has('onset')
   }
-
-  // /**
-  //  * Validate the HED data in this TSV file.
-  //  * @param {Schemas} hedSchemas The HED schema collection.
-  //  * @returns {BidsHedIssue[]} Any issues found.
-  //  */
-  // validate(hedSchemas) {
-  //   // Example usage of the imported validator
-  //   if (this.parsedTsv && hedSchemas) {
-  //     // Assuming BidsHedTsvValidator is the class name from the validator module
-  //     const validator = new BidsHedTsvValidator(this.parsedTsv, hedSchemas);
-  //     return validator.validate();
-  //   }
-  //   return [];
-  // }
 }
 
 export class BidsTsvElement {

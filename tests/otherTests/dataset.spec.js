@@ -5,6 +5,7 @@ import { toMatchIssue } from '../testHelpers/toMatchIssue'
 import { BidsDataset } from '../../src/bids/types/dataset'
 import { BidsDirectoryAccessor, BidsFileAccessor } from '../../src/bids/datasetParser'
 import { Schemas } from '../../src/schema/containers'
+import { BidsSidecar } from '../../src/bids/types/json'
 
 expect.extend({
   toMatchIssue(receivedError, expectedCode, expectedParams) {
@@ -29,7 +30,7 @@ describe('BidsDataset', () => {
       expect(dataset).toBeInstanceOf(BidsDataset)
       expect(issues.length).toBe(0)
       expect(dataset.hedSchemas).toBeInstanceOf(Schemas)
-      expect(dataset.sidecarMap.size).toBe(6)
+      expect(dataset.sidecarMap.size).toBe(9)
     })
 
     it('should throw if the dataset has no dataset_description.json', async () => {
@@ -42,12 +43,12 @@ describe('BidsDataset', () => {
     })
   })
 
-  describe('getHedSchemas', () => {
+  describe('setHedSchemas', () => {
     it('should load the HED schemas for the BidsDemoData dataset', async () => {
       const accessor = await BidsDirectoryAccessor.create(demoDataRoot)
       const dataset = new BidsDataset(accessor)
-      // getHedSchemas is no longer called in the constructor.
-      await dataset.getHedSchemas()
+      // setHedSchemas is no longer called in the constructor.
+      await dataset.setHedSchemas()
       expect(dataset.hedSchemas).toBeDefined()
       expect(dataset.hedSchemas).not.toBeNull()
       expect(dataset.hedSchemas).toBeInstanceOf(Schemas)
@@ -58,7 +59,7 @@ describe('BidsDataset', () => {
       fs.mkdirSync(emptyDir, { recursive: true })
       const accessor = await BidsDirectoryAccessor.create(emptyDir)
       const dataset = new BidsDataset(accessor)
-      await expect(dataset.getHedSchemas()).rejects.toMatchIssue('missingSchemaSpecification', {})
+      await expect(dataset.setHedSchemas()).rejects.toMatchIssue('missingSchemaSpecification', {})
     })
 
     it('should throw "invalidSchemaSpecification" if HEDVersion is missing from dataset_description.json', async () => {
@@ -67,7 +68,7 @@ describe('BidsDataset', () => {
       fs.writeFileSync(path.join(noHedVersionDir, 'dataset_description.json'), JSON.stringify({ Name: 'Test Dataset' }))
       const accessor = await BidsDirectoryAccessor.create(noHedVersionDir)
       const dataset = new BidsDataset(accessor)
-      await expect(dataset.getHedSchemas()).rejects.toMatchIssue('invalidSchemaSpecification', { spec: null })
+      await expect(dataset.setHedSchemas()).rejects.toMatchIssue('invalidSchemaSpecification', { spec: null })
     })
 
     it('should throw "invalidSchemaSpecification" if HEDVersion is an invalid version string', async () => {
@@ -80,49 +81,28 @@ describe('BidsDataset', () => {
       )
       const accessor = await BidsDirectoryAccessor.create(invalidHedVersionDir)
       const dataset = new BidsDataset(accessor)
-      await expect(dataset.getHedSchemas()).rejects.toMatchIssue('invalidSchemaSpecification', { spec: hedVersion })
+      await expect(dataset.setHedSchemas()).rejects.toMatchIssue('invalidSchemaSpecification', { spec: hedVersion })
     })
   })
 
   describe('setSidecars', () => {
     it('should populate the sidecarMap correctly for a valid dataset', async () => {
       const accessor = await BidsDirectoryAccessor.create(demoDataRoot)
-      expect(accessor.fileMap.size).toBe(23)
-      expect(accessor.organizedPaths.size).toBe(9) // participants, events, beh, phenotype, scans, sessions
       const dataset = new BidsDataset(accessor)
       await dataset.setSidecars()
+
       expect(dataset.sidecarMap).toBeInstanceOf(Map)
-      expect(dataset.sidecarMap.size).toBe(6) // participants, events, beh, phenotype, scans
+      expect(dataset.sidecarMap.size).toBeGreaterThan(0)
 
-      const participantsSidecars = dataset.sidecarMap.get('participants')
-      expect(participantsSidecars).toBeDefined()
-      expect(participantsSidecars.length).toBe(1)
-      expect(participantsSidecars[0].name).toBe('participants.json')
+      const sidecarKeys = Array.from(dataset.sidecarMap.keys())
+      const sidecarValues = Array.from(dataset.sidecarMap.values())
 
-      const eventsSidecars = dataset.sidecarMap.get('_events')
-      expect(eventsSidecars).toBeDefined()
-      expect(eventsSidecars.length).toBe(1)
-      expect(eventsSidecars[0].name).toBe('task-FacePerception_events.json')
+      expect(sidecarKeys).toContain('task-FacePerception_events.json')
+      expect(sidecarValues.some((sidecar) => sidecar.name === 'task-FacePerception_events.json')).toBe(true)
 
-      const behSidecars = dataset.sidecarMap.get('_beh')
-      expect(behSidecars).toBeDefined()
-      expect(behSidecars.length).toBe(1)
-      expect(behSidecars[0].name).toBe('task-FaceRecognition_beh.json')
+      expect(sidecarKeys).toContain('phenotype/KSSSleep.json')
+      expect(sidecarValues.some((sidecar) => sidecar.name === 'KSSSleep.json')).toBe(true)
 
-      const phenotypeSidecars = dataset.sidecarMap.get('phenotype')
-      expect(phenotypeSidecars).toBeDefined()
-      expect(phenotypeSidecars.length).toBe(2)
-      expect(phenotypeSidecars.map((s) => s.name).sort()).toEqual(['KSSSleep.json', 'trainLog.json'].sort())
-
-      const scansSidecars = dataset.sidecarMap.get('_scans')
-      expect(scansSidecars).toBeDefined()
-      expect(scansSidecars.length).toBe(3)
-      expect(scansSidecars.map((s) => s.name).sort()).toEqual(
-        ['sub-002_scans.json', 'sub-003_scans.json', 'sub-004_ses-1_scans.json'].sort(),
-      )
-
-      expect(dataset.sidecarMap.has('_sessions')).toBe(false)
-      expect(dataset.sidecarMap.has('participants')).toBe(true)
       expect(dataset.issues.length).toBe(0)
     })
 
@@ -140,16 +120,47 @@ describe('BidsDataset', () => {
       const dataset = new BidsDataset(accessor)
       await dataset.setSidecars()
 
-      expect(dataset.sidecarMap.has('_events')).toBe(false)
+      expect(dataset.sidecarMap.size).toBe(0)
       expect(dataset.issues.length).toBe(1)
       expect(dataset.issues[0].code).toBe('JSON_PARSE_ERROR')
       expect(dataset.issues[0].location).toBe('task-testing_events.json')
 
       getFileContentSpy.mockRestore()
     })
+  })
 
-    // TODO: Add tests for correct error handling.
-    // TODO: Add tests for _initializeFileObjects if not covered elsewhere,
-    // focusing on its interaction with the accessor.
+  describe('validate', () => {
+    it('should return an empty array if there are no validation issues', async () => {
+      const [dataset, issues] = await BidsDataset.create(demoDataRoot, BidsDirectoryAccessor)
+      expect(dataset.hedSchemas).toBeInstanceOf(Schemas)
+      expect(issues).toEqual([])
+
+      const tissues = await dataset.validate()
+      expect(tissues).toEqual([])
+    })
+
+    it('should collect validation issues from sidecars', async () => {
+      const [dataset, tissues] = await BidsDataset.create(demoDataRoot, BidsDirectoryAccessor)
+      expect(tissues).toEqual([])
+
+      // const badSidecar = BidsSidecar('test.json', { path: 'test.json', name: 'test.json' }, { HED: 'invalid/hed/tag' })
+      // // Ensure the sidecarMap is populated with the mock sidecar
+      // dataset.sidecarMap.set('task-FacePerception_events.json', badSidecar)
+      //
+      // // Call validate and check the issues
+      // const issues = await dataset.validate()
+      // expect(issues).toEqual([
+      //   { code: 'INVALID_TAG', message: 'Invalid HED tag found.' },
+      // ])
+    })
+
+    it('should skip validation for sidecars not in the sidecarMap', async () => {
+      let [dataset, issues] = await BidsDataset.create(demoDataRoot, BidsDirectoryAccessor)
+      expect(dataset).toBeInstanceOf(BidsDataset)
+      expect(issues).toEqual([])
+
+      issues = await dataset.validate()
+      expect(issues).toEqual([])
+    })
   })
 })

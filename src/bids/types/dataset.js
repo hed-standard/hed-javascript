@@ -3,22 +3,23 @@ import { BidsSidecar } from './json'
 import { BidsTsvFile } from './tsv'
 import { buildBidsSchemas } from '../schema'
 import { IssueError } from '../../issues/issues'
+import { getMergedSidecarData, organizedPathsGenerator } from '../../utils/paths'
 
 export class BidsDataset {
   /**
    * Factory method to create a BidsDataset.
    *
    * @param {string} datasetRootDirectory The root directory of the dataset.
-   * @param {typeof BidsFileAccessor} BidsFileAccessorClass The BidsFileAccessor class to use for accessing files.
+   * @param {typeof BidsFileAccessor}fileAccessorClass, The BidsFileAccessor class to use for accessing files.
    * @returns [{Promise<BidsDataset>} A Promise that resolves to a BidsDataset instance.
    */
-  static async create(datasetRootDirectory, BidsFileAccessorClass) {
+  static async create(datasetRootDirectory, fileAccessorClass) {
     let dataset = null
     const issues = []
     try {
-      const accessor = await BidsFileAccessorClass.create(datasetRootDirectory)
+      const accessor = await fileAccessorClass.create(datasetRootDirectory)
       dataset = new BidsDataset(accessor)
-      await dataset.getHedSchemas()
+      await dataset.setHedSchemas()
       await dataset.setSidecars()
     } catch (error) {
       if (error instanceof IssueError) {
@@ -41,16 +42,9 @@ export class BidsDataset {
   eventData
 
   /**
-   * The dataset's sidecar data.
-   * @type {BidsSidecar[]}
-   */
-  sidecarData
-
-  /**
    * Map of BIDS sidecar files.
-   * The keys are categories (e.g. 'events', 'participants', 'phenotype') and
-   * the values are arrays of BidsSidecar objects.
-   * @type {Map<string, BidsSidecar[]>}
+   * The keys are relative paths and the values are BidsSidecar objects.
+   * @type {Map<string, BidsSidecar>}
    */
   sidecarMap
 
@@ -100,13 +94,12 @@ export class BidsDataset {
     this.accessor = accessor
     this.datasetRootDirectory = accessor.datasetRootDirectory // Set from accessor
     this.eventData = []
-    this.sidecarData = new Map()
     this.sidecarMap = new Map()
     this.hedSchemas = null
     this.issues = []
   }
 
-  async getHedSchemas() {
+  async setHedSchemas() {
     let description
 
     try {
@@ -117,8 +110,7 @@ export class BidsDataset {
       }
       description = {}
       description.jsonData = JSON.parse(descriptionContentString)
-    } catch (_error) {
-      // console.warn(`getHedSchemas: Error in first try block: ${_error.message}`);
+    } catch {
       IssueError.generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
     }
 
@@ -127,9 +119,7 @@ export class BidsDataset {
       if (this.hedSchemas === null) {
         IssueError.generateAndThrow('invalidSchemaSpecification', { spec: null })
       }
-    } catch (_error) {
-      // Changed variable name from error to caughtError
-      // console.warn(`getHedSchemas: Error in second try block: ${caughtError.message}`);
+    } catch {
       IssueError.generateAndThrow('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null })
     }
     // If successful, this.hedSchemas is populated.
@@ -140,13 +130,11 @@ export class BidsDataset {
     const organizedPaths = this.accessor.organizedPaths
     const processingPromises = []
 
-    for (const [category, pathGroup] of organizedPaths.entries()) {
+    for (const pathGroup of organizedPaths.values()) {
       const jsonPaths = pathGroup.get('json')
       if (!jsonPaths || jsonPaths.length === 0) {
         continue
       }
-
-      this.sidecarMap.set(category, [])
 
       for (const jsonPath of jsonPaths) {
         const promise = this.accessor
@@ -167,7 +155,7 @@ export class BidsDataset {
               const jsonData = JSON.parse(jsonText)
               const fileName = jsonPath.substring(jsonPath.lastIndexOf('/') + 1)
               const sidecar = new BidsSidecar(fileName, { path: jsonPath, name: fileName }, jsonData)
-              this.sidecarMap.get(category).push(sidecar)
+              this.sidecarMap.set(jsonPath, sidecar)
             } catch (e) {
               this.issues.push({
                 code: 'JSON_PARSE_ERROR',
@@ -187,20 +175,58 @@ export class BidsDataset {
       }
     }
     await Promise.allSettled(processingPromises)
-
-    // Clean up empty categories
-    for (const [category, sidecars] of this.sidecarMap.entries()) {
-      if (sidecars.length === 0) {
-        this.sidecarMap.delete(category)
-      }
-    }
   }
 
   /**
-   * Dummy validation method.
-   * @returns {Promise<[]>} An empty list of issues.
+   * Validate the dataset by checking each sidecar file for issues.
+   * @returns {Promise<Issue[]>} A promise that resolves to an array of issues found during validation.
    */
   async validate() {
-    return []
+    this.issues = []
+
+    for (const relativePath of organizedPathsGenerator(this.accessor.organizedPaths, '.json')) {
+      const sidecar = this.sidecarMap.get(relativePath)
+      if (sidecar) {
+        const validationIssues = sidecar.validate(this.hedSchemas)
+        this.issues.push(...validationIssues)
+      }
+    }
+    await this._validateTsvFiles()
+    return this.issues.length > 0 ? this.issues : []
+  }
+
+  /**
+   * Validate the TSV files in the dataset.
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _validateTsvFiles() {
+    for (const [category, catMap] of this.accessor.organizedPaths) {
+      const tsvPaths = catMap.get('tsv') || []
+      const jsonPaths = catMap.get('json') || []
+      for (const tsvPath of tsvPaths) {
+        const tsvContents = await this.accessor.getFileContent(tsvPath)
+        if (tsvContents === null) {
+          this.issues.push({
+            code: 'FILE_READ_ERROR',
+            message: `Could not read TSV file: ${tsvPath}`,
+            location: tsvPath,
+          })
+          continue
+        }
+        if (!tsvContents) {
+          continue
+        }
+
+        const mergedSidecarData = getMergedSidecarData(tsvPath, jsonPaths, this.sidecarMap)
+        const tsvFile = new BidsTsvFile(tsvPath, { path: tsvPath }, tsvContents, mergedSidecarData)
+        if (!tsvFile.hasHedData) {
+          continue
+        }
+
+        const validationIssues = tsvFile.validate(this.hedSchemas)
+        this.issues.push(...validationIssues)
+      }
+    }
   }
 }
