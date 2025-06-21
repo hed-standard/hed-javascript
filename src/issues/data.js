@@ -487,7 +487,7 @@ export default {
   fileReadError: {
     hedCode: 'INTERNAL_ERROR',
     level: 'error',
-    message: stringTemplate`I/O error when reading from file "${'fileName'}" - message: "${'message'}".`,
+    message: stringTemplate`I/O error when reading file or directory "${'fileName'}" - message: "${'message'}".`,
   },
   genericError: {
     hedCode: 'INTERNAL_ERROR',
