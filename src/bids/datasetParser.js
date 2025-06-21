@@ -2,6 +2,8 @@ import { BidsJsonFile } from './types/json'
 import fsp from 'fs/promises'
 import path from 'path'
 import { organizePaths } from '../utils/paths.js'
+import { generateIssue } from '../issues/issues'
+import { BidsHedIssue } from './types/issues'
 
 /**
  * Parse a BIDS JSON file.
@@ -112,21 +114,6 @@ export class BidsFileAccessor {
   }
 
   /**
-   * Asynchronously reads the first line of a file.
-   * This method should be implemented by subclasses.
-   * @param {string} relativePath The relative path to the file.
-   * @returns {Promise<string|null>} A promise that resolves with the first line as a string, or null if not found.
-   */
-  async readFirstLine(relativePath) {
-    if (!this.fileMap.has(relativePath)) {
-      return null
-    }
-    throw new Error(
-      `readFirstLine for '${relativePath}': File found in map, but base class cannot determine how to read content. Subclass must implement.`,
-    )
-  }
-
-  /**
    * Gets all relative file paths known to the accessor.
    * This method should be implemented by subclasses.
    * @returns {string[]} An array of relative file paths.
@@ -146,7 +133,10 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
    */
   constructor(datasetRootDirectory, fileMap) {
     if (typeof datasetRootDirectory !== 'string' || !datasetRootDirectory) {
-      throw new Error('BidsDirectoryAccessor constructor requires a non-empty string for datasetRootDirectory.')
+      const message = `Bids validation requires a non-empty string for the dataset root directory but received: ${datasetRootDirectory}`
+      throw BidsHedIssue.fromHedIssue(
+        generateIssue('fileReadError', { filename: datasetRootDirectory, message: `${message}` }),
+      )
     }
     super(datasetRootDirectory, fileMap)
   }
@@ -158,47 +148,12 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
    */
   static async create(datasetRootDirectory) {
     if (typeof datasetRootDirectory !== 'string' || !datasetRootDirectory) {
-      throw new Error('BidsDirectoryAccessor.create requires a non-empty string for datasetRootDirectory.')
+      throw new Error('Must have a non-empty dataset root directory path.')
     }
     const resolvedDatasetRoot = path.resolve(datasetRootDirectory)
     const fileMap = new Map()
     await BidsDirectoryAccessor._readDirRecursive(resolvedDatasetRoot, resolvedDatasetRoot, fileMap)
     return new BidsDirectoryAccessor(resolvedDatasetRoot, fileMap)
-  }
-
-  /**
-   * Asynchronously reads the first line of a file from the file system.
-   * @param {string} relativePath The relative path to the file within the dataset.
-   * @returns {Promise<string|null>} A promise that resolves with the first line as a string, or null if not found/error.
-   */
-  async readFirstLine(relativePath) {
-    const absolutePath = this.fileMap.get(relativePath)
-    if (!absolutePath) {
-      return null
-    }
-
-    try {
-      const fileHandle = await fsp.open(absolutePath, 'r')
-      const buffer = Buffer.alloc(1024) // Read up to 1KB, should be enough for the first line
-      const { bytesRead } = await fileHandle.read(buffer, 0, 1024, 0)
-      await fileHandle.close()
-
-      if (bytesRead === 0) {
-        return '' // Empty file
-      }
-
-      const content = buffer.toString('utf8', 0, bytesRead)
-      const newlineIndex = content.indexOf('\n')
-
-      if (newlineIndex !== -1) {
-        return content.substring(0, newlineIndex).trim()
-      } else {
-        return content.trim() // The file has only one line
-      }
-    } catch (err) {
-      // console.warn(`BidsDirectoryAccessor: Error reading first line of ${absolutePath}:`, err);
-      return null // Resolve with null on error
-    }
   }
 
   /**
@@ -218,14 +173,6 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
       // console.warn(`BidsDirectoryAccessor: Error reading file ${absolutePath}:`, err);
       return null // Resolve with null on error like file not found
     }
-  }
-
-  /**
-   * Gets all relative file paths from the keys of the pre-populated fileMap.
-   * @returns {string[]} An array of relative file paths.
-   */
-  getAllFilePaths() {
-    return Array.from(this.fileMap.keys())
   }
 
   /**

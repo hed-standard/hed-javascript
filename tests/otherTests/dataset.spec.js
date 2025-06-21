@@ -122,7 +122,8 @@ describe('BidsDataset', () => {
 
       expect(dataset.sidecarMap.size).toBe(0)
       expect(dataset.issues.length).toBe(1)
-      expect(dataset.issues[0].code).toBe('JSON_PARSE_ERROR')
+      expect(dataset.issues[0].code).toBe('HED_ERROR')
+      expect(dataset.issues[0].hedIssue.internalCode).toBe('fileReadError')
       expect(dataset.issues[0].location).toBe('task-testing_events.json')
 
       getFileContentSpy.mockRestore()
@@ -142,16 +143,6 @@ describe('BidsDataset', () => {
     it('should collect validation issues from sidecars', async () => {
       const [dataset, tissues] = await BidsDataset.create(demoDataRoot, BidsDirectoryAccessor)
       expect(tissues).toEqual([])
-
-      // const badSidecar = BidsSidecar('test.json', { path: 'test.json', name: 'test.json' }, { HED: 'invalid/hed/tag' })
-      // // Ensure the sidecarMap is populated with the mock sidecar
-      // dataset.sidecarMap.set('task-FacePerception_events.json', badSidecar)
-      //
-      // // Call validate and check the issues
-      // const issues = await dataset.validate()
-      // expect(issues).toEqual([
-      //   { code: 'INVALID_TAG', message: 'Invalid HED tag found.' },
-      // ])
     })
 
     it('should skip validation for sidecars not in the sidecarMap', async () => {

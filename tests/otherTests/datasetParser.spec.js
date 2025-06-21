@@ -89,13 +89,13 @@ describe('BidsDirectoryAccessor', () => {
   describe('create', () => {
     it('should throw if datasetRootDirectory is not a string', async () => {
       await expect(BidsDirectoryAccessor.create(null)).rejects.toThrow(
-        'BidsDirectoryAccessor.create requires a non-empty string for datasetRootDirectory.',
+        'Must have a non-empty dataset root directory path.',
       )
     })
 
     it('should throw if datasetRootDirectory is an empty string', async () => {
       await expect(BidsDirectoryAccessor.create('')).rejects.toThrow(
-        'BidsDirectoryAccessor.create requires a non-empty string for datasetRootDirectory.',
+        'Must have a non-empty dataset root directory path.',
       )
     })
 
@@ -221,62 +221,6 @@ describe('BidsDirectoryAccessor', () => {
     it('should return null for a path that is a directory', async () => {
       const content = await accessor.getFileContent('sub-002/ses-1/eeg') // This is a directory
       expect(content).toBeNull()
-    })
-  })
-
-  describe('getAllFilePaths', () => {
-    it('should recursively read directories and return relative paths', async () => {
-      const accessor = await BidsDirectoryAccessor.create(datasetRoot)
-      const paths = accessor.getAllFilePaths()
-      const expectedPaths = [
-        'dataset_description.json',
-        'participants.json',
-        'participants.tsv',
-        'phenotype/KSSSleep.json',
-        'phenotype/KSSSleep.tsv',
-        'phenotype/trainLog.json',
-        'phenotype/trainLog.tsv',
-        'samples.json',
-        'samples.tsv',
-        'sub-002/ses-1/beh/sub-002_ses-1_task-FaceRecognition_beh.tsv',
-        'sub-002/ses-1/eeg/sub-002_ses-1_task-FacePerception_run-1_events.tsv',
-        'sub-002/sub-002_scans.json',
-        'sub-002/sub-002_scans.tsv',
-        'sub-002/sub-002_sessions.json',
-        'sub-003/ses-1/eeg/sub-003_ses-1_task-FacePerception_run-1_events.tsv',
-        'sub-003/sub-003_scans.json',
-        'sub-003/sub-003_scans.tsv',
-        'sub-004/ses-1/beh/sub-004_ses-1_task-FaceRecognition_beh.tsv',
-        'sub-004/ses-1/eeg/sub-004_ses-1_task-FacePerception_run-1_events.tsv',
-        'sub-004/ses-1/sub-004_ses-1_scans.json',
-        'sub-004/ses-1/sub-004_ses-1_scans.tsv',
-        'task-FacePerception_events.json',
-        'task-FaceRecognition_beh.json',
-      ]
-      expect(paths.sort()).toEqual(expectedPaths.sort())
-    })
-
-    it('should return an empty array if the root directory is actually empty', async () => {
-      const baseTestDir = path.dirname(datasetRoot)
-      const emptyDir = path.join(baseTestDir, 'emptyTestDirForHedJsTestUnique')
-      if (fs.existsSync(emptyDir)) {
-        fs.rmSync(emptyDir, { recursive: true, force: true })
-      }
-      fs.mkdirSync(emptyDir, { recursive: true })
-      try {
-        const accessor = await BidsDirectoryAccessor.create(emptyDir)
-        expect(accessor.getAllFilePaths()).toEqual([])
-      } finally {
-        if (fs.existsSync(emptyDir)) {
-          fs.rmSync(emptyDir, { recursive: true, force: true })
-        }
-      }
-    })
-
-    it('should return an empty array if the datasetRootDirectory points to a file', async () => {
-      const filePath = path.join(datasetRoot, 'dataset_description.json')
-      const accessor = await BidsDirectoryAccessor.create(filePath)
-      expect(accessor.getAllFilePaths()).toEqual([])
     })
   })
 })

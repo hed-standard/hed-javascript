@@ -2,8 +2,9 @@ import { BidsFileAccessor } from '../datasetParser'
 import { BidsSidecar } from './json'
 import { BidsTsvFile } from './tsv'
 import { buildBidsSchemas } from '../schema'
-import { IssueError } from '../../issues/issues'
+import { generateIssue, IssueError } from '../../issues/issues'
 import { getMergedSidecarData, organizedPathsGenerator } from '../../utils/paths'
+import { BidsHedIssue } from './issues'
 
 export class BidsDataset {
   /**
@@ -137,15 +138,18 @@ export class BidsDataset {
       }
 
       for (const jsonPath of jsonPaths) {
+        const fileName = jsonPath.substring(jsonPath.lastIndexOf('/') + 1)
         const promise = this.accessor
           .getFileContent(jsonPath)
           .then((jsonText) => {
             if (jsonText === null) {
-              this.issues.push({
-                code: 'FILE_READ_ERROR',
-                message: `Could not read file: ${jsonPath}`,
-                location: jsonPath,
-              })
+              const errorMessage = `Could not read JSON file: ${jsonPath}`
+              this.issues.push(
+                BidsHedIssue.fromHedIssue(
+                  generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
+                  { file: jsonPath, name: fileName },
+                ),
+              )
               return
             }
             if (!jsonText.includes('"HED":')) {
@@ -153,23 +157,26 @@ export class BidsDataset {
             }
             try {
               const jsonData = JSON.parse(jsonText)
-              const fileName = jsonPath.substring(jsonPath.lastIndexOf('/') + 1)
               const sidecar = new BidsSidecar(fileName, { path: jsonPath, name: fileName }, jsonData)
               this.sidecarMap.set(jsonPath, sidecar)
             } catch (e) {
-              this.issues.push({
-                code: 'JSON_PARSE_ERROR',
-                message: `File: ${jsonPath} - ${e.message}`,
-                location: jsonPath,
-              })
+              const errorMessage = `Could not parse the JSON file: ${jsonPath}`
+              this.issues.push(
+                BidsHedIssue.fromHedIssue(
+                  generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
+                  { path: jsonPath, name: fileName },
+                ),
+              )
             }
           })
           .catch((e) => {
-            this.issues.push({
-              code: 'FILE_READ_ERROR',
-              message: `File: ${jsonPath} - ${e.message}`,
-              location: jsonPath,
-            })
+            const errorMessage = `Unexpected exception '${e.message}' occurred when setting sidecar: ${jsonPath}`
+            this.issues.push(
+              BidsHedIssue.fromHedIssue(
+                generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
+                { path: jsonPath, name: fileName },
+              ),
+            )
           })
         processingPromises.push(promise)
       }
@@ -205,13 +212,14 @@ export class BidsDataset {
       const tsvPaths = catMap.get('tsv') || []
       const jsonPaths = catMap.get('json') || []
       for (const tsvPath of tsvPaths) {
+        const tsvName = tsvPath.substring(tsvPath.lastIndexOf('/') + 1)
         const tsvContents = await this.accessor.getFileContent(tsvPath)
         if (tsvContents === null) {
-          this.issues.push({
-            code: 'FILE_READ_ERROR',
-            message: `Could not read TSV file: ${tsvPath}`,
-            location: tsvPath,
-          })
+          const message = `Could not read TSV file: ${tsvPath} in category ${category}`
+          this.issues.push(
+            BidsHedIssue.fromHedIssue(generateIssue('fileReadError', { filename: tsvPath, message: `${message}` })),
+            { path: tsvPath, name: tsvName },
+          )
           continue
         }
         if (!tsvContents) {
@@ -219,7 +227,7 @@ export class BidsDataset {
         }
 
         const mergedSidecarData = getMergedSidecarData(tsvPath, jsonPaths, this.sidecarMap)
-        const tsvFile = new BidsTsvFile(tsvPath, { path: tsvPath }, tsvContents, mergedSidecarData)
+        const tsvFile = new BidsTsvFile(tsvPath, { path: `${tsvPath}` }, tsvContents, mergedSidecarData)
         if (!tsvFile.hasHedData) {
           continue
         }
