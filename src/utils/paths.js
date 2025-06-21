@@ -54,427 +54,6 @@ export function isSubpath(potentialChild, potentialParent) {
 }
 
 /**
- * Filters a list of relative paths from a dataset according to specific rules.
- *
- * The function assumes that:
- * - `datasetRoot` is the name of the root directory of the dataset (e.g., "myDataset").
- * - All paths in the `paths` array start with this `datasetRoot` segment
- *   (e.g., "myDataset/file.txt", "myDataset/sub-01/data.nii.gz").
- *
- * It keeps paths that match any of the following criteria:
- * 1. Paths under the `phenotype` directory: `datasetRoot/phenotype/...`
- * 2. Paths under a subject directory: `datasetRoot/sub-...` (e.g., `datasetRoot/sub-01/...`)
- * 3. Files or directories that are direct children of `datasetRoot`: `datasetRoot/someFileOrDir`
- *    (e.g., `datasetRoot/README.md`, but not `datasetRoot/derivatives/README.md`).
- *
- * @param {string[]} paths An array of relative path strings.
- * @param {string} datasetRoot The name of the dataset's root directory.
- * @returns {string[]} A new array containing only the filtered paths.
- */
-export function filterDatasetPaths(paths, datasetRoot) {
-  // Validate datasetRoot: should be a simple, non-empty string without slashes, '.', or '..'
-  if (
-    !datasetRoot ||
-    typeof datasetRoot !== 'string' ||
-    datasetRoot.trim() === '' ||
-    datasetRoot.includes('/') ||
-    datasetRoot === '.' ||
-    datasetRoot === '..'
-  ) {
-    return [] // Return empty array for invalid input
-  }
-
-  const rootPrefix = datasetRoot + '/' // e.g., "myDataset/"
-  const phenotypePrefix = rootPrefix + 'phenotype/' // e.g., "myDataset/phenotype/"
-  const subjectPrefix = rootPrefix + 'sub-' // e.g., "myDataset/sub-"
-
-  return paths.filter((path) => {
-    // Rule 1: Keep paths starting with datasetRoot/phenotype/
-    if (path.startsWith(phenotypePrefix)) {
-      return true
-    }
-
-    // Rule 2: Keep paths starting with datasetRoot/sub-
-    if (path.startsWith(subjectPrefix)) {
-      return true
-    }
-
-    // Rule 3: Keep paths that are direct children of datasetRoot
-    // Path must start with rootPrefix.
-    // The part after rootPrefix must not contain any further '/' and must not be empty.
-    if (path.startsWith(rootPrefix)) {
-      const pathAfterRoot = path.substring(rootPrefix.length)
-      if (pathAfterRoot.length > 0 && !pathAfterRoot.includes('/')) {
-        return true
-      }
-    }
-
-    return false
-  })
-}
-
-/**
- * Filters a list of relative paths, keeping only those files where the
- * filename (the part before the final extension) ends with a specific suffix.
- *
- * For example:
- * - If path is "path/to/myfile_events.tsv" and targetSuffix is "_events",
- *   the filename part "myfile_events" ends with "_events", so the path is kept.
- * - If path is "path/to/archive.report_final.tar.gz" and targetSuffix is "_final",
- *   the filename part "archive.report_final.tar" (before ".gz") ends with "_final", so the path is kept.
- * - If path is "path/to/README" (no extension) and targetSuffix is "ME",
- *   the filename part "README" ends with "ME", so the path is kept.
- * - Paths ending with '/' are considered directories and are ignored.
- * - If targetSuffix is empty, null, or undefined, an empty list is returned.
- *
- * @param {string[]} paths An array of relative path strings.
- * @param {string} targetSuffix The suffix to check for at the end of the filename part (before the final extension).
- * @returns {string[]} A new array containing only the filtered paths.
- */
-export function filterPathsByFilenameSuffix(paths, targetSuffix) {
-  if (!targetSuffix || typeof targetSuffix !== 'string' || targetSuffix.trim() === '') {
-    return []
-  }
-
-  if (!Array.isArray(paths)) {
-    return []
-  }
-
-  return paths.filter((path) => {
-    if (typeof path !== 'string' || path.endsWith('/')) {
-      // Ignore non-strings or paths ending with a slash (directories)
-      return false
-    }
-
-    const basename = path.substring(path.lastIndexOf('/') + 1)
-    if (basename === '') {
-      // Ignore paths that result in an empty basename (e.g., if path was just '/')
-      return false
-    }
-
-    const lastDotIndex = basename.lastIndexOf('.')
-    const namePart = lastDotIndex === -1 ? basename : basename.substring(0, lastDotIndex)
-
-    if (namePart === '') {
-      // If namePart is empty (e.g. ".bashrc" leads to empty namePart), it cannot end with a non-empty targetSuffix.
-      return false
-    }
-
-    return namePart.endsWith(targetSuffix)
-  })
-}
-
-/**
- * Filters a list of relative paths, keeping only those that match the given extension(s).
- *
- * @param {string[]} paths An array of relative path strings.
- * @param {string|string[]} targetExtensions The target extension(s) (e.g., '.tsv' or ['tsv', '.json']).
- *                                            Extensions are matched case-insensitively by default.
- *                                            If an extension string does not start with '.', it will be added.
- * @param {boolean} [caseSensitive=false] Whether the extension matching should be case-sensitive.
- * @returns {string[]} A new array containing only the filtered paths.
- */
-export function filterPathsByExtension(paths, targetExtensions, caseSensitive = false) {
-  if (!Array.isArray(paths)) {
-    return []
-  }
-
-  let extensionsToMatch = []
-  if (typeof targetExtensions === 'string') {
-    extensionsToMatch = [targetExtensions]
-  } else if (Array.isArray(targetExtensions)) {
-    extensionsToMatch = targetExtensions
-  } else {
-    return []
-  }
-
-  extensionsToMatch = extensionsToMatch
-    .filter((ext) => typeof ext === 'string' && ext.trim() !== '')
-    .map((ext) => {
-      const trimmedExt = ext.trim()
-      return trimmedExt.startsWith('.') ? trimmedExt : '.' + trimmedExt
-    })
-
-  if (extensionsToMatch.length === 0) {
-    return []
-  }
-
-  if (!caseSensitive) {
-    extensionsToMatch = extensionsToMatch.map((ext) => ext.toLowerCase())
-  }
-
-  return paths.filter((path) => {
-    if (typeof path !== 'string' || path.endsWith('/')) {
-      // Ignore non-strings or paths ending with a slash (directories)
-      return false
-    }
-
-    const lastDotIndex = path.lastIndexOf('.')
-    if (lastDotIndex === -1 || lastDotIndex === 0 || lastDotIndex === path.length - 1) {
-      // No extension, hidden file without extension (e.g. .bashrc), or ends with a dot.
-      return false
-    }
-
-    let fileExtension = path.substring(lastDotIndex)
-    if (!caseSensitive) {
-      fileExtension = fileExtension.toLowerCase()
-    }
-
-    return extensionsToMatch.includes(fileExtension)
-  })
-}
-
-/**
- * Initializes the result object for getBidsFiles.
- * @param {string[]} subdirectories - An array of subdirectory names.
- * @returns {Object<string, {tsv: string[], json: string[]}>} The initialized result object.
- * @private
- */
-function _initializeBidsResult(subdirectories) {
-  const initialResult = {}
-  const effectiveSubdirectories = Array.isArray(subdirectories) ? subdirectories : []
-  effectiveSubdirectories.forEach((subDir) => {
-    if (typeof subDir === 'string' && subDir.trim() !== '') {
-      initialResult[subDir.trim()] = { tsv: [], json: [] }
-    }
-  })
-  initialResult.other = { tsv: [], json: [] }
-  return initialResult
-}
-
-/**
- * Validates the main inputs for getBidsFiles.
- * If inputs are invalid, it returns a cleaned version of the initialResult.
- * Otherwise, it returns null, indicating inputs are valid.
- * @param {string[]} paths - An array of relative path strings.
- * @param {string} datasetRoot - The name of the dataset's root directory.
- * @param {Object<string, {tsv: string[], json: string[]}>} initialResult - The initial result structure.
- * @returns {Object<string, {tsv: string[], json: string[]}> | null} Cleaned result if invalid, else null.
- * @private
- */
-function _validateGetBidsFilesInputs(paths, datasetRoot, initialResult) {
-  if (
-    !Array.isArray(paths) ||
-    !datasetRoot ||
-    typeof datasetRoot !== 'string' ||
-    datasetRoot.trim() === '' ||
-    datasetRoot.includes('/') ||
-    datasetRoot === '.' ||
-    datasetRoot === '..'
-  ) {
-    const cleanedResult = JSON.parse(JSON.stringify(initialResult))
-    for (const key in cleanedResult) {
-      if (cleanedResult[key].tsv.length === 0 && cleanedResult[key].json.length === 0) {
-        delete cleanedResult[key]
-      }
-    }
-    return cleanedResult
-  }
-  return null
-}
-
-/**
- * Determines the file extension key ('tsv' or 'json') or null if not applicable.
- * @param {string} path - The file path.
- * @returns {string|null} 'tsv', 'json', or null.
- * @private
- */
-function _getFileExtensionKey(path) {
-  const lastDotIndex = path.lastIndexOf('.')
-  if (lastDotIndex === -1 || lastDotIndex === 0 || lastDotIndex === path.length - 1) {
-    return null // No valid extension
-  }
-  const extension = path.substring(lastDotIndex).toLowerCase()
-  if (extension === '.tsv') {
-    return 'tsv'
-  } else if (extension === '.json') {
-    return 'json'
-  }
-  return null // Not a .tsv or .json file
-}
-
-/**
- * Categorizes a single file into the result object.
- * @param {string} path - The file path.
- * @param {string} rootPrefix - The datasetRoot followed by '/'.
- * @param {string[]} effectiveSubdirectories - Trimmed and validated subdirectory names.
- * @param {Object<string, {tsv: string[], json: string[]}>} result - The result object to update.
- * @param {string} extKey - The extension key ('tsv' or 'json').
- * @private
- */
-function _categorizeFile(path, rootPrefix, effectiveSubdirectories, result, extKey) {
-  if (!path.startsWith(rootPrefix)) {
-    return // Path is not under the dataset root
-  }
-
-  const pathAfterRoot = path.substring(rootPrefix.length)
-  if (pathAfterRoot.length === 0) {
-    return // Path is just the dataset root itself
-  }
-
-  const pathSegments = pathAfterRoot.split('/')
-  const firstSegmentAfterRoot = pathSegments[0]
-
-  let categorized = false
-
-  // Check against specified subdirectories (e.g., "phenotype")
-  // These are expected to be direct children of the datasetRoot.
-  if (pathSegments.length > 1) {
-    // File must be *inside* a directory
-    for (const cleanSubDir of effectiveSubdirectories) {
-      if (firstSegmentAfterRoot === cleanSubDir) {
-        result[cleanSubDir][extKey].push(path)
-        categorized = true
-        break
-      }
-    }
-  }
-
-  if (!categorized) {
-    // Check for "other" category:
-    // 1. Top-level files (directly under datasetRoot): pathAfterRoot does not contain '/'
-    // 2. Files under any 'sub-X' directory: firstSegmentAfterRoot starts with 'sub-'
-    const isTopLevelFile = !pathAfterRoot.includes('/')
-    const isInSubXDirectory = firstSegmentAfterRoot.startsWith('sub-')
-
-    if (isTopLevelFile || isInSubXDirectory) {
-      result.other[extKey].push(path)
-    }
-  }
-}
-
-/**
- * Removes categories from the result object if they have no files.
- * @param {Object<string, {tsv: string[], json: string[]}>} result - The result object to clean.
- * @private
- */
-function _cleanupEmptyCategories(result) {
-  Object.keys(result).forEach((key) => {
-    // Changed from for...in to Object.keys().forEach
-    if (result[key].tsv.length === 0 && result[key].json.length === 0) {
-      delete result[key]
-    }
-  })
-}
-
-/**
- * Categorizes BIDS dataset files based on specified subdirectories, filename suffixes,
- * and fixed extensions (.tsv, .json).
- *
- * Files are categorized into:
- * 1. Specified subdirectories (e.g., "phenotype", "stimuli").
- * 2. An "other" category, which includes:
- *    - Files directly under the datasetRoot.
- *    - Files within any 'sub-X' directory (e.g., 'sub-01', 'sub-02/anat').
- *
- * Within each category, files are further divided into 'tsv' and 'json' lists
- * based on their extension.
- *
- * The function expects input paths to be relative to the workspace root and
- * start with the `datasetRoot` segment (e.g., "myDataset/sub-01/data.tsv").
- *
- * @param {string[]} paths An array of relative path strings.
- * @param {string} datasetRoot The name of the dataset's root directory (e.g., "myDataset").
- *                             Should be a simple name, without slashes.
- * @param {string[]} subdirectories An array of subdirectory names to categorize explicitly
- *                                  (e.g., ["phenotype", "stimuli"]).
- * @returns {Object<string, {tsv: string[], json: string[]}>} An object where keys are
- *          the subdirectory names (from `subdirectories` parameter) plus "other".
- *          Values are objects with "tsv" and "json" properties, each holding an array of matching file paths.
- *          Example: { "phenotype": { "tsv": [], "json": [] }, "other": { "tsv": [], "json": [] } }
- */
-export function getBidsFiles(paths, datasetRoot, subdirectories) {
-  const initialResult = _initializeBidsResult(subdirectories)
-
-  const validationErrorResult = _validateGetBidsFilesInputs(paths, datasetRoot, initialResult)
-  if (validationErrorResult) {
-    return validationErrorResult
-  }
-
-  const result = JSON.parse(JSON.stringify(initialResult))
-  const rootPrefix = datasetRoot + '/'
-  // Get effective subdirectories once, already trimmed and keys exist in result
-  const effectiveSubdirectories = Object.keys(initialResult).filter((k) => k !== 'other')
-
-  for (const path of paths) {
-    if (typeof path !== 'string' || path.endsWith('/')) {
-      continue // Skip non-strings or directory paths
-    }
-
-    const extKey = _getFileExtensionKey(path)
-    if (!extKey) {
-      continue // Not a .tsv or .json file, or no valid extension
-    }
-
-    _categorizeFile(path, rootPrefix, effectiveSubdirectories, result, extKey)
-  }
-
-  _cleanupEmptyCategories(result)
-  return result
-}
-
-/**
- * Organizes a dictionary of .tsv and .json file paths based on a list of filename suffixes.
- * The suffix is checked against the part of the filename before the final extension.
- *
- * @param {Object<string, string[]>} filedict - An object with 'tsv' and 'json' keys,
- *                                            each holding an array of relative file paths.
- *                                            Example: { tsv: ["path/name_suffix.tsv"], json: [] }
- * @param {string[]} suffixes - An array of suffixes to organize by (e.g., ["_events", "_bold"]).
- * @returns {Object<string, {tsv: string[], json: string[]}>} A new object where keys are the suffixes.
- *          The values are objects with "tsv" and "json" properties, each holding an array of
- *          file paths from the input `filedict` that match the respective suffix and extension.
- *          If a suffix from the input list yields no matching files, it will still be a key
- *          in the returned dictionary with empty tsv/json arrays.
- */
-export function organizeBySuffix(filedict, suffixes) {
-  const organizedResult = {}
-
-  if (!Array.isArray(suffixes) || suffixes.length === 0) {
-    return organizedResult // Return empty object if no suffixes are provided
-  }
-
-  if (!filedict || typeof filedict !== 'object') {
-    // Initialize all suffix keys with empty arrays if filedict is invalid but suffixes are provided
-    suffixes.forEach((suffix) => {
-      if (typeof suffix === 'string' && suffix.trim() !== '') {
-        organizedResult[suffix] = { tsv: [], json: [] }
-      } else {
-        // Handle invalid suffix strings in the input array by creating a key representation
-        organizedResult[String(suffix)] = { tsv: [], json: [] }
-      }
-    })
-    return organizedResult
-  }
-
-  const inputTsvFiles = Array.isArray(filedict.tsv) ? filedict.tsv : []
-  const inputJsonFiles = Array.isArray(filedict.json) ? filedict.json : []
-
-  suffixes.forEach((suffix) => {
-    const currentSuffixKey = typeof suffix === 'string' && suffix.trim() !== '' ? suffix : String(suffix)
-    // Initialize even if suffix is invalid, as per behavior for invalid filedict
-    organizedResult[currentSuffixKey] = { tsv: [], json: [] }
-
-    if (typeof suffix !== 'string' || suffix.trim() === '') {
-      // Skip actual filtering for invalid suffixes, key is already initialized with empty arrays
-      return
-    }
-
-    organizedResult[currentSuffixKey].tsv = filterPathsByFilenameSuffix(inputTsvFiles, suffix)
-    organizedResult[currentSuffixKey].json = filterPathsByFilenameSuffix(inputJsonFiles, suffix)
-  })
-
-  // Remove keys where both tsv and json arrays are empty
-  Object.keys(organizedResult).forEach((key) => {
-    if (organizedResult[key].tsv.length === 0 && organizedResult[key].json.length === 0) {
-      delete organizedResult[key]
-    }
-  })
-
-  return organizedResult
-}
-
-/**
  * Organizes a list of relative file paths based on BIDS naming conventions.
  *
  * This function filters and categorizes file paths into a structured object. It identifies files
@@ -488,6 +67,7 @@ export function organizeBySuffix(filedict, suffixes) {
  * @param {string[]} relativeFilePaths - A list of relative file paths to organize.
  * @param {string[]} suffixes - A list of filename suffixes to categorize by (e.g., 'events').
  * @param {string[]} specialDirs - A list of special directory names (e.g., 'phenotype').
+ * @param {string[]} extKeys - A list of file extension keys to use (e.g., ['json', 'tsv']).
  * @returns {{candidates: string[], organizedPaths: Map<string, Map<string, string[]>>}}
  *          An object containing two properties:
  *          - `candidates`: A list of all file paths that were successfully categorized.
@@ -497,27 +77,8 @@ export function organizeBySuffix(filedict, suffixes) {
  */
 export function organizePaths(relativeFilePaths, suffixes, specialDirs) {
   const candidates = []
-  const organizedPaths = new Map()
-
-  // Initialize organizedPaths with keys for all suffixes and special directories.
-  for (const suffix of suffixes) {
-    organizedPaths.set(
-      suffix,
-      new Map([
-        ['json', []],
-        ['tsv', []],
-      ]),
-    )
-  }
-  for (const dir of specialDirs) {
-    organizedPaths.set(
-      dir,
-      new Map([
-        ['json', []],
-        ['tsv', []],
-      ]),
-    )
-  }
+  // Use helper function to initialize organizedPaths
+  const organizedPaths = _initializeOrganizedPaths([...suffixes, ...specialDirs])
 
   for (const relativePath of relativeFilePaths) {
     // Basic validation and extension check
@@ -568,4 +129,248 @@ export function organizePaths(relativeFilePaths, suffixes, specialDirs) {
   }
 
   return { candidates, organizedPaths }
+}
+
+function _updateEntity(nameDict, entity) {
+  const parts = entity.split('-')
+  if (parts.length === 2 && parts[0] && parts[1]) {
+    nameDict.entities[parts[0]] = parts[1]
+  } else {
+    nameDict.bad.push(entity)
+  }
+}
+
+/**
+ * Split a filename into BIDS-relevant components.
+ *
+ * This is a JavaScript implementation of the Python code provided by the user.
+ *
+ * @param {string} filePath Path to be parsed.
+ * @returns {{basename: string, suffix: string, prefix: string, ext: string, bad: string[], entities: Record<string, string>}}
+ */
+export function parseBidsFilename(filePath) {
+  const nameDict = {
+    basename: '',
+    suffix: null,
+    prefix: null,
+    ext: '',
+    bad: [],
+    entities: {},
+  }
+
+  const strippedPath = filePath.trim()
+  const lastSlash = strippedPath.lastIndexOf('/')
+  const filename = lastSlash === -1 ? strippedPath : strippedPath.substring(lastSlash + 1)
+
+  // Simplified extension parsing
+  const firstDot = filename.indexOf('.')
+  let basename = filename
+  if (firstDot !== -1) {
+    nameDict.ext = filename.substring(firstDot)
+    basename = filename.substring(0, firstDot)
+  }
+  nameDict.basename = basename
+
+  if (!basename) {
+    return nameDict
+  }
+
+  const lastUnderscore = basename.lastIndexOf('_')
+
+  // Case: No underscore in filename
+  if (lastUnderscore === -1) {
+    const entityCount = (basename.match(/-/g) || []).length
+    if (entityCount > 1) {
+      nameDict.bad.push(basename)
+    } else if (entityCount === 1) {
+      _updateEntity(nameDict, basename)
+    } else {
+      nameDict.suffix = basename
+    }
+    return nameDict
+  }
+
+  // Case: Underscore present
+  const rest = basename.substring(0, lastUnderscore)
+  let suffix = basename.substring(lastUnderscore + 1)
+
+  if (suffix.includes('-') && (suffix.match(/-/g) || []).length === 1) {
+    _updateEntity(nameDict, suffix)
+    suffix = null // it was an entity, not a suffix
+  }
+  nameDict.suffix = suffix
+
+  const entityPieces = rest.split('_')
+  if (entityPieces.length > 0 && !entityPieces[0].includes('-')) {
+    nameDict.prefix = entityPieces.shift()
+  }
+
+  for (const entity of entityPieces) {
+    _updateEntity(nameDict, entity)
+  }
+
+  return nameDict
+}
+
+/**
+ * Get the directory part of a path.
+ * @param {string} path The path.
+ * @returns {string} The directory part of the path.
+ * @private
+ */
+function _getDir(path) {
+  const lastSlash = path.lastIndexOf('/')
+  return lastSlash === -1 ? '' : path.substring(0, lastSlash)
+}
+
+/**
+ * Filter a list of JSON sidecar paths to find candidates for a given TSV file.
+ * @param {string[]} jsonList A list of relative paths of JSON sidecars.
+ * @param {string} tsvDir The directory of the TSV file.
+ * @param {object} tsvParsed The parsed BIDS filename of the TSV file.
+ * @returns {string[]} A list of candidate JSON sidecar paths.
+ * @private
+ */
+export function _getCandidates(jsonList, tsvDir, tsvParsed) {
+  return jsonList.filter((jsonPath) => {
+    const jsonDir = _getDir(jsonPath)
+
+    // Sidecar must be in the tsv file's directory hierarchy.
+    if (!isSubpath(tsvDir, jsonDir)) {
+      return false
+    }
+
+    const jsonParsed = parseBidsFilename(jsonPath)
+
+    // Suffix must match if json has a suffix. An events.json sidecar can apply to any events.tsv file.
+    if (jsonParsed.suffix && tsvParsed.suffix !== jsonParsed.suffix) {
+      return false
+    }
+
+    // All entities in json must be in tsv and have same value
+    for (const [key, value] of Object.entries(jsonParsed.entities)) {
+      if (tsvParsed.entities[key] !== value) {
+        return false
+      }
+    }
+
+    return true
+  })
+}
+
+/**
+ * Sort a list of candidate sidecar paths from least to most specific.
+ * @param {string[]} candidates A list of candidate JSON sidecar paths.
+ * @private
+ */
+export function _sortCandidates(candidates) {
+  candidates.sort((a, b) => {
+    const aDir = _getDir(a)
+    const bDir = _getDir(b)
+    if (aDir.length !== bDir.length) {
+      return aDir.length - bDir.length
+    }
+    const aParsed = parseBidsFilename(a)
+    const bParsed = parseBidsFilename(b)
+    return Object.keys(aParsed.entities).length - Object.keys(bParsed.entities).length
+  })
+}
+
+/**
+ * Get the merged sidecar for a given TSV file.
+ * @param {string} tsvPath The path to the TSV file.
+ * @param {string[]} jsonList A list of relative paths of JSON sidecars.
+ * @param {Map<string, BidsSidecar>} sidecarMap A map of sidecars.
+ * @returns {object} The merged sidecar data.
+ */
+export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
+  const tsvDir = _getDir(tsvPath)
+  const tsvParsed = parseBidsFilename(tsvPath)
+
+  // 1. Filter to find applicable sidecars
+  const candidates = _getCandidates(jsonList, tsvDir, tsvParsed)
+
+  // 2. Sort applicable sidecars from least to most specific.
+  _sortCandidates(candidates)
+
+  // 3. Check for conflicts
+  const groupedByDir = candidates.reduce((acc, path) => {
+    const dir = _getDir(path)
+    if (!acc.has(dir)) {
+      acc.set(dir, [])
+    }
+    acc.get(dir).push(path)
+    return acc
+  }, new Map())
+
+  for (const [dir, sidecarsInDir] of groupedByDir.entries()) {
+    if (sidecarsInDir.length > 1) {
+      for (let i = 0; i < sidecarsInDir.length; i++) {
+        for (let j = i + 1; j < sidecarsInDir.length; j++) {
+          const aParsed = parseBidsFilename(sidecarsInDir[i])
+          const bParsed = parseBidsFilename(sidecarsInDir[j])
+          const aEntities = Object.keys(aParsed.entities)
+          const bEntities = Object.keys(bParsed.entities)
+          const aIsSubset = aEntities.every((k) => bEntities.includes(k) && aParsed.entities[k] === bParsed.entities[k])
+          const bIsSubset = bEntities.every((k) => aEntities.includes(k) && bParsed.entities[k] === aParsed.entities[k])
+          if (aIsSubset === bIsSubset) {
+            throw new Error(
+              `BIDS inheritance conflict in directory '${dir}': sidecars '${sidecarsInDir[i]}' and '${sidecarsInDir[j]}' are not hierarchically related.`,
+            )
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Merge
+  let merged = {}
+  for (const path of candidates) {
+    const sidecar = sidecarMap.get(path)
+    if (sidecar && sidecar.jsonData) {
+      merged = { ...merged, ...sidecar.jsonData }
+    }
+  }
+
+  return merged
+}
+
+/**
+ * A generator that yields file paths from a two-level Map structure of organized paths.
+ *
+ * This function traverses an outer Map whose values are themselves Maps.
+ * The inner maps are expected to have keys corresponding to file extensions without the dot (e.g., 'json', 'tsv'),
+ * and values which are arrays of file path strings.
+ *
+ * @generator
+ * @function organizedPathsGenerator
+ * @param {Map<string, Map<string, string[]>>} outerMap - A Map where each value is a Map of extension keys to arrays of relative file path strings.
+ * @param {string} extension - The file extension to filter for (e.g., ".json"). Must include the dot.
+ * @yields {string} Relative file paths that match the specified extension.
+ */
+export function* organizedPathsGenerator(outerMap, extension) {
+  const extKey = extension.startsWith('.') ? extension.slice(1) : extension
+  for (const innerMap of outerMap.values()) {
+    const pathArray = innerMap.get(extKey)
+    if (Array.isArray(pathArray)) {
+      for (const path of pathArray) {
+        yield path
+      }
+    }
+  }
+}
+
+// Helper function to initialize organized paths
+const _initializeOrganizedPaths = (keys) => {
+  const map = new Map()
+  for (const key of keys) {
+    map.set(
+      key,
+      new Map([
+        ['json', []],
+        ['tsv', []],
+      ]),
+    )
+  }
+  return map
 }

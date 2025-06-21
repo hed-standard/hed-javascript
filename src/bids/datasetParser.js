@@ -84,6 +84,7 @@ export class BidsFileAccessor {
       relativeFilePaths,
       BidsFileAccessor.SUFFIXES,
       BidsFileAccessor.SPECIAL_DIRS,
+      ['json', 'tsv'],
     )
     this.organizedPaths = organizedPaths
 
@@ -107,6 +108,21 @@ export class BidsFileAccessor {
     // Use relativePath in the error message to satisfy the linter
     throw new Error(
       `getFileContent for '${relativePath}': File found in map, but base class cannot determine how to read content. Subclass must implement.`,
+    )
+  }
+
+  /**
+   * Asynchronously reads the first line of a file.
+   * This method should be implemented by subclasses.
+   * @param {string} relativePath The relative path to the file.
+   * @returns {Promise<string|null>} A promise that resolves with the first line as a string, or null if not found.
+   */
+  async readFirstLine(relativePath) {
+    if (!this.fileMap.has(relativePath)) {
+      return null
+    }
+    throw new Error(
+      `readFirstLine for '${relativePath}': File found in map, but base class cannot determine how to read content. Subclass must implement.`,
     )
   }
 
@@ -148,6 +164,41 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
     const fileMap = new Map()
     await BidsDirectoryAccessor._readDirRecursive(resolvedDatasetRoot, resolvedDatasetRoot, fileMap)
     return new BidsDirectoryAccessor(resolvedDatasetRoot, fileMap)
+  }
+
+  /**
+   * Asynchronously reads the first line of a file from the file system.
+   * @param {string} relativePath The relative path to the file within the dataset.
+   * @returns {Promise<string|null>} A promise that resolves with the first line as a string, or null if not found/error.
+   */
+  async readFirstLine(relativePath) {
+    const absolutePath = this.fileMap.get(relativePath)
+    if (!absolutePath) {
+      return null
+    }
+
+    try {
+      const fileHandle = await fsp.open(absolutePath, 'r')
+      const buffer = Buffer.alloc(1024) // Read up to 1KB, should be enough for the first line
+      const { bytesRead } = await fileHandle.read(buffer, 0, 1024, 0)
+      await fileHandle.close()
+
+      if (bytesRead === 0) {
+        return '' // Empty file
+      }
+
+      const content = buffer.toString('utf8', 0, bytesRead)
+      const newlineIndex = content.indexOf('\n')
+
+      if (newlineIndex !== -1) {
+        return content.substring(0, newlineIndex).trim()
+      } else {
+        return content.trim() // The file has only one line
+      }
+    } catch (err) {
+      // console.warn(`BidsDirectoryAccessor: Error reading first line of ${absolutePath}:`, err);
+      return null // Resolve with null on error
+    }
   }
 
   /**

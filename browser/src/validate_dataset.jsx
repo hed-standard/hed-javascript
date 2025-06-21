@@ -38,7 +38,7 @@ function ValidateDatasetApp() {
       const accessor = await BidsWebAccessor.create(selectedFiles)
       const dataset = new BidsDataset(accessor)
 
-      await dataset.getHedSchemas()
+      await dataset.setHedSchemas()
       await dataset.setSidecars()
 
       const issues = dataset.issues
