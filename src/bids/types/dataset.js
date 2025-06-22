@@ -10,18 +10,21 @@ export class BidsDataset {
   /**
    * Factory method to create a BidsDataset.
    *
-   * @param {string} datasetRootDirectory The root directory of the dataset.
-   * @param {typeof BidsFileAccessor}fileAccessorClass, The BidsFileAccessor class to use for accessing files.
-   * @returns [{Promise<BidsDataset>} A Promise that resolves to a BidsDataset instance.
+   * @param {string | object} rootOrFiles The root directory of the dataset or a file-like object.
+   * @param {typeof BidsFileAccessor} fileAccessorClass The BidsFileAccessor class to use for accessing files.
+   * @returns {Promise<[BidsDataset, issue[]]>} A Promise that resolves to a BidsDataset instance and an array of issues.
    */
-  static async create(datasetRootDirectory, fileAccessorClass) {
+  static async create(rootOrFiles, fileAccessorClass) {
     let dataset = null
     const issues = []
     try {
-      const accessor = await fileAccessorClass.create(datasetRootDirectory)
+      const accessor = await fileAccessorClass.create(rootOrFiles)
       dataset = new BidsDataset(accessor)
       await dataset.setHedSchemas()
       await dataset.setSidecars()
+      if (dataset.issues.length > 0) {
+        issues.push(...dataset.issues)
+      }
     } catch (error) {
       if (error instanceof IssueError) {
         issues.push(error.issue)
@@ -29,9 +32,12 @@ export class BidsDataset {
         issues.push({
           code: 'INTERNAL_ERROR',
           message: `An unexpected error occurred while creating the BidsDataset: ${error.message}`,
-          location: datasetRootDirectory,
+          location: typeof rootOrFiles === 'string' ? rootOrFiles : 'Uploaded files',
         })
       }
+    }
+    if (issues.length > 0) {
+      dataset = null
     }
     return [dataset, issues]
   }
