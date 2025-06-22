@@ -184,7 +184,7 @@ export class Issue {
  * @param {Object} parameters The error string parameters.
  * @returns {Issue} An object representing the issue.
  */
-export const generateIssue = function (internalCode, parameters) {
+export const generateIssue = function (internalCode, parameters = {}) {
   const issueCodeData = issueData[internalCode] ?? issueData.genericError
   const { hedCode, level } = issueCodeData
   if (issueCodeData === issueData.genericError) {

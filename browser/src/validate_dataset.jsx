@@ -81,6 +81,7 @@ function ValidateDatasetApp() {
     try {
       const issues = await dataset.validate({ checkWarnings })
       if (issues && issues.length > 0) {
+        console.log(issues)
         setErrors(issues)
       } else {
         setSuccessMessage('No validation errors found.')
@@ -100,6 +101,7 @@ function ValidateDatasetApp() {
       setErrors(newErrors)
     } finally {
       setIsLoading(false)
+      console.log(errors)
     }
   }
 

@@ -1,6 +1,6 @@
 import groupBy from 'lodash/groupBy'
 
-import { generateIssue, IssueError } from '../../issues/issues'
+import { generateIssue, IssueError } from '../../issues/issues.js'
 
 export class BidsHedIssue {
   /**
@@ -118,5 +118,27 @@ export class BidsHedIssue {
       hedIssue.generateMessage()
     }
     return new BidsHedIssue(hedIssue, file)
+  }
+
+  /**
+   * Transform a list of mixed issues into BIDS-compatible issues.
+   *
+   * @param {(BidsHedIssue|IssueError|Error)[]} issues A list of mixed-format issues.
+   * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
+   * @returns {BidsHedIssue[]} The passed issues in BIDS-compatible format.
+   */
+  static transformToBids(issues, file = null) {
+    return issues.map((issue) => {
+      if (issue instanceof BidsHedIssue) {
+        return issue
+      } else if (issue instanceof IssueError) {
+        const issueFile = issue.issue.file || file
+        return BidsHedIssue.fromHedIssue(issue.issue, issueFile, issue.issue.parameters)
+      } else if (issue instanceof Error) {
+        return new BidsHedIssue(generateIssue('internalError', { message: issue.message }), file)
+      } else {
+        return new BidsHedIssue(generateIssue('internalError', { message: 'Unknown issue type' }), file)
+      }
+    })
   }
 }
