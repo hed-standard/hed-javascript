@@ -23,6 +23,16 @@ function ValidateDatasetApp() {
   const [errors, setErrors] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [fileInputKey, setFileInputKey] = useState(Date.now())
+  const [checkWarnings, setCheckWarnings] = useState(false)
+  const [limitErrors, setLimitErrors] = useState(false)
+
+  const handleClear = () => {
+    setDataset(null)
+    setErrors([])
+    setSuccessMessage('')
+    setFileInputKey(Date.now())
+  }
 
   const handleFolderSelect = async (selectedFiles) => {
     if (!selectedFiles || selectedFiles.length === 0) {
@@ -35,13 +45,8 @@ function ValidateDatasetApp() {
     setSuccessMessage('')
 
     try {
-      const accessor = await BidsWebAccessor.create(selectedFiles)
-      const dataset = new BidsDataset(accessor)
+      const [dataset, issues] = await BidsDataset.create(selectedFiles, BidsWebAccessor)
 
-      await dataset.setHedSchemas()
-      await dataset.setSidecars()
-
-      const issues = dataset.issues
       if (issues && issues.length > 0) {
         setErrors(issues)
       } else {
@@ -74,8 +79,9 @@ function ValidateDatasetApp() {
     setErrors([])
     setSuccessMessage('')
     try {
-      const issues = await dataset.validate()
+      const issues = await dataset.validate({ checkWarnings })
       if (issues && issues.length > 0) {
+        console.log(issues)
         setErrors(issues)
       } else {
         setSuccessMessage('No validation errors found.')
@@ -95,6 +101,7 @@ function ValidateDatasetApp() {
       setErrors(newErrors)
     } finally {
       setIsLoading(false)
+      console.log(errors)
     }
   }
 
@@ -118,18 +125,54 @@ function ValidateDatasetApp() {
         <main className="bg-white dark:bg-gray-800/50 p-6 md:p-8 rounded-xl shadow-lg ring-1 ring-gray-200 dark:ring-gray-700">
           <div className="flex flex-col items-center justify-center gap-8">
             <FolderInput
+              key={fileInputKey}
               id="folder-upload"
               buttonText="Dataset root"
               tooltip="Choose a BIDS dataset root directory"
               onFolderSelect={handleFolderSelect}
               isLoading={isLoading}
             />
+          </div>
+          {/* Checkboxes for validation options */}
+          <div className="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+            <div className="flex items-center">
+              <input
+                id="check-warnings"
+                type="checkbox"
+                checked={checkWarnings}
+                onChange={(e) => setCheckWarnings(e.target.checked)}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label htmlFor="check-warnings" className="ml-2 text-gray-600 dark:text-gray-400">
+                Check warnings
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                id="limit-errors"
+                type="checkbox"
+                checked={limitErrors}
+                onChange={(e) => setLimitErrors(e.target.checked)}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label htmlFor="limit-errors" className="ml-2 text-gray-600 dark:text-gray-400">
+                Limit errors
+              </label>
+            </div>
+          </div>
+          <div className="mt-8 text-center">
             <button
               onClick={handleValidate}
               disabled={!dataset || isLoading}
-              className="rounded-md bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 disabled:dark:bg-gray-600"
             >
               {isLoading ? 'Validating...' : 'Validate'}
+            </button>
+            <button
+              onClick={handleClear}
+              className="ml-4 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300"
+            >
+              Clear
             </button>
           </div>
           {successMessage && (
