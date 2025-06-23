@@ -112,18 +112,7 @@ export class BidsFileAccessor {
       `getFileContent for '${relativePath}': File found in map, but base class cannot determine how to read content. Subclass must implement.`,
     )
   }
-
-  /**
-   * Gets all relative file paths known to the accessor.
-   * This method should be implemented by subclasses.
-   * @returns {string[]} An array of relative file paths.
-   */
-  getAllFilePaths() {
-    throw new Error('getAllFilePaths must be implemented by a subclass')
-  }
 }
-
-// Subclass for web environment
 
 // Subclass for directory (e.g., Node.js) environment
 export class BidsDirectoryAccessor extends BidsFileAccessor {

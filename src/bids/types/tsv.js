@@ -24,7 +24,7 @@ export class BidsTsvFile extends BidsFile {
 
   /**
    * The pseudo-sidecar object representing the merged sidecar data.
-   * @type {BidsSidecar}
+   * @type {import('./json.js').BidsSidecar}
    */
   mergedSidecar
 
@@ -35,7 +35,7 @@ export class BidsTsvFile extends BidsFile {
    * @param {Object} file - The file object representing this file.
    * @param {{headers: string[], rows: string[][]}|Map|string} tsvData - This file's TSV data.
    * @param {Object} mergedDictionary - The merged sidecar data.
-   * @param {DefinitionManager} defManager - The definition manager for this file.
+   * @param {import('../../parser/definitionManager.js').DefinitionManager} defManager - The definition manager for this file.
    */
   constructor(name, file, tsvData, mergedDictionary = {}, defManager = undefined) {
     super(name, file, BidsHedTsvValidator)
@@ -59,7 +59,7 @@ export class BidsTsvFile extends BidsFile {
    *
    * @param {string} datasetRoot The root path of the dataset.
    * @param {string} relativePath The relative path of the file within the dataset.
-   * @param {BidsSidecar} sidecar The BIDS sidecar to use with this file.
+   * @param {import('./json.js').BidsSidecar} sidecar The BIDS sidecar to use with this file.
    * @returns {Promise<BidsTsvFile>} The built TSV file object.
    */
   static async createFromBidsDatasetPathAndSidecar(datasetRoot, relativePath, sidecar) {
@@ -80,6 +80,10 @@ export class BidsTsvFile extends BidsFile {
     return new BidsTsvFile(relativePath, fileObject, contents, jsonData)
   }
 
+  /**
+   * Parse the HED column from the TSV data.
+   * @private
+   */
   _parseHedColumn() {
     const hedColumn = this.parsedTsv.get('HED')
     if (hedColumn === undefined) {
@@ -117,7 +121,7 @@ export class BidsTsvElement {
 
   /**
    * The ParsedHedString representation of this row
-   * @type {ParsedHedString}
+   * @type {import('../../parser/parsedHedString.js').ParsedHedString}
    */
   parsedHedString
 
@@ -135,6 +139,7 @@ export class BidsTsvElement {
 
   /**
    * The line number(s) (including the header) represented by this row.
+   * @type {string}
    */
   tsvLine
 
@@ -144,7 +149,7 @@ export class BidsTsvElement {
    * @param {string} hedString The HED string representing this row
    * @param {BidsTsvFile} tsvFile The file this row belongs to.
    * @param {number} onset - The onset for this element or undefined if none
-   * @param {string} tsvLine The line number(s) (string) corresponding to the lines in {@link tsvFile} this line is located at.
+   * @param {string} tsvLine The line number(s) (string) corresponding to the lines in the TSV file this line is located at.
    */
   constructor(hedString, tsvFile, onset, tsvLine) {
     this.hedString = hedString
@@ -156,9 +161,9 @@ export class BidsTsvElement {
   }
 
   /**
-   * Override of {@link object.prototype.toString}.
+   * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
    *
-   * @returns {string}
+   * @returns {string} The string representation of this element.
    */
   toString() {
     const onsetString = this.onset ? ` with onset=${this.onset.toString()}` : ''
@@ -181,7 +186,7 @@ export class BidsTsvElement {
 export class BidsTsvRow extends BidsTsvElement {
   /**
    * The map of column name to value for this row.
-   * @type {Map}
+   * @type {Map<string, string>}
    */
   rowCells
 
@@ -189,9 +194,9 @@ export class BidsTsvRow extends BidsTsvElement {
    * Constructor.
    *
    * @param {string} hedString The parsed string representing this row.
-   * @param {Map} rowCells The column-to-value mapping for this row.
+   * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
    * @param {BidsTsvFile} tsvFile The file this row belongs to.
-   * @param {number} tsvLine The line number in {@link tsvFile} this line is located at.
+   * @param {number} tsvLine The line number in the TSV file this line is located at.
    */
   constructor(hedString, tsvFile, tsvLine, rowCells) {
     const onset = rowCells.has('onset') ? rowCells.get('onset') : undefined

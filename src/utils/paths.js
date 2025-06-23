@@ -67,7 +67,6 @@ export function isSubpath(potentialChild, potentialParent) {
  * @param {string[]} relativeFilePaths - A list of relative file paths to organize.
  * @param {string[]} suffixes - A list of filename suffixes to categorize by (e.g., 'events').
  * @param {string[]} specialDirs - A list of special directory names (e.g., 'phenotype').
- * @param {string[]} extKeys - A list of file extension keys to use (e.g., ['json', 'tsv']).
  * @returns {{candidates: string[], organizedPaths: Map<string, Map<string, string[]>>}}
  *          An object containing two properties:
  *          - `candidates`: A list of all file paths that were successfully categorized.
@@ -336,21 +335,18 @@ export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
 }
 
 /**
- * A generator that yields file paths from a two-level Map structure of organized paths.
+ * A generator function that yields the paths of a given file extension from a BIDS-style organized path mapping.
  *
- * This function traverses an outer Map whose values are themselves Maps.
- * The inner maps are expected to have keys corresponding to file extensions without the dot (e.g., 'json', 'tsv'),
- * and values which are arrays of file path strings.
- *
- * @generator
- * @function organizedPathsGenerator
- * @param {Map<string, Map<string, string[]>>} outerMap - A Map where each value is a Map of extension keys to arrays of relative file path strings.
- * @param {string} extension - The file extension to filter for (e.g., ".json"). Must include the dot.
- * @yields {string} Relative file paths that match the specified extension.
+ * @param {Map<string, Map<string, string[]>>} organizedPaths A BIDS-style organized path mapping.
+ * @param {string} targetExtension The file extension to search for.
+ * @yields {string} The paths of the given file extension.
  */
-export function* organizedPathsGenerator(outerMap, extension) {
-  const extKey = extension.startsWith('.') ? extension.slice(1) : extension
-  for (const innerMap of outerMap.values()) {
+export function* organizedPathsGenerator(organizedPaths, targetExtension) {
+  if (!organizedPaths) {
+    return
+  }
+  const extKey = targetExtension.startsWith('.') ? targetExtension.slice(1) : targetExtension
+  for (const innerMap of organizedPaths.values()) {
     const pathArray = innerMap.get(extKey)
     if (Array.isArray(pathArray)) {
       for (const path of pathArray) {

@@ -242,8 +242,8 @@ describe('HED schemas', () => {
         base_with_nick: [],
       }
 
-      return checkWithIssues(tests, expectedResults, expectedIssues, parseSchemaSpec)
-    }, 10000)
+      checkWithIssues(tests, expectedResults, expectedIssues, parseSchemaSpec)
+    })
 
     it('should return issues when invalid', () => {
       const tests = {
@@ -256,8 +256,8 @@ describe('HED schemas', () => {
         bad_version: [generateIssue('invalidSchemaSpecification', { spec: '3.1.a' })],
       }
 
-      return checkWithIssues(tests, expectedResults, expectedIssues, parseSchemaSpec)
-    }, 10000)
+      checkWithIssues(tests, expectedResults, expectedIssues, parseSchemaSpec)
+    })
   })
 
   describe('HED 3 SchemasSpec tests', () => {
@@ -275,8 +275,8 @@ describe('HED schemas', () => {
         just_version: [],
       }
 
-      return checkWithIssues(tests, expectedResults, expectedIssues, parseSchemasSpec)
-    }, 10000)
+      checkWithIssues(tests, expectedResults, expectedIssues, parseSchemasSpec)
+    })
 
     it('should return issues when invalid', () => {
       const tests = {
@@ -289,8 +289,8 @@ describe('HED schemas', () => {
         bad_version: [generateIssue('invalidSchemaSpecification', { spec: '3.1.a' })],
       }
 
-      return checkWithIssues(tests, expectedResults, expectedIssues, parseSchemasSpec)
-    }, 10000)
+      checkWithIssues(tests, expectedResults, expectedIssues, parseSchemasSpec)
+    })
   })
 
   describe('HED 3 partnered schemas', () => {
@@ -308,34 +308,31 @@ describe('HED schemas', () => {
       specs3 = new SchemasSpec().addSchemaSpec(spec210).addSchemaSpec(spec300)
     })
 
-    it('should fail when trying to merge incompatible schemas', () => {
-      return Promise.all([
-        buildSchemas(specs1).then(
-          () => {
-            assert.fail('Incompatible schemas testlib_2.0.0 and testlib_2.1.0 were incorrectly merged without an error')
-          },
-          (issueError) => {
-            const issue = issueError.issue
-            assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'A-nonextension' }))
-          },
-        ),
-        buildSchemas(specs3).then(
-          () => {
-            assert.fail('Incompatible schemas testlib_2.1.0 and testlib_3.0.0 were incorrectly merged without an error')
-          },
-          (issueError) => {
-            const issue = issueError.issue
-            assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-sound' }))
-          },
-        ),
-        buildSchemas(specs2).then((schemas) => {
-          assert.instanceOf(
-            schemas.getSchema('testlib'),
-            PartneredSchema,
-            'Parsed testlib schema (combined 2.0.0 and 3.0.0) is not an instance of PartneredSchema',
-          )
-        }),
-      ])
+    it('should fail when trying to merge incompatible schemas', async () => {
+      const schemaPromises = [buildSchemas(specs1), buildSchemas(specs3), buildSchemas(specs2)]
+
+      try {
+        await schemaPromises[0]
+        assert.fail('Incompatible schemas testlib_2.0.0 and testlib_2.1.0 were incorrectly merged without an error')
+      } catch (issueError) {
+        const issue = issueError.issue
+        assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'A-nonextension' }))
+      }
+
+      try {
+        await schemaPromises[1]
+        assert.fail('Incompatible schemas testlib_2.1.0 and testlib_3.0.0 were incorrectly merged without an error')
+      } catch (issueError) {
+        const issue = issueError.issue
+        assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-sound' }))
+      }
+
+      const schemas = await schemaPromises[2]
+      assert.instanceOf(
+        schemas.getSchema('testlib'),
+        PartneredSchema,
+        'Parsed testlib schema (combined 2.0.0 and 3.0.0) is not an instance of PartneredSchema',
+      )
     })
   })
 })

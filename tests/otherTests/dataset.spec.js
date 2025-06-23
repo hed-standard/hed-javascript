@@ -48,7 +48,8 @@ describe('BidsDataset', () => {
       const accessor = await BidsDirectoryAccessor.create(demoDataRoot)
       const dataset = new BidsDataset(accessor)
       // setHedSchemas is no longer called in the constructor.
-      await dataset.setHedSchemas()
+      const issues = await dataset.setHedSchemas()
+      expect(issues).toEqual([])
       expect(dataset.hedSchemas).toBeDefined()
       expect(dataset.hedSchemas).not.toBeNull()
       expect(dataset.hedSchemas).toBeInstanceOf(Schemas)
@@ -89,7 +90,7 @@ describe('BidsDataset', () => {
     it('should populate the sidecarMap correctly for a valid dataset', async () => {
       const accessor = await BidsDirectoryAccessor.create(demoDataRoot)
       const dataset = new BidsDataset(accessor)
-      await dataset.setSidecars()
+      const issues = await dataset.setSidecars()
 
       expect(dataset.sidecarMap).toBeInstanceOf(Map)
       expect(dataset.sidecarMap.size).toBeGreaterThan(0)
@@ -103,7 +104,7 @@ describe('BidsDataset', () => {
       expect(sidecarKeys).toContain('phenotype/KSSSleep.json')
       expect(sidecarValues.some((sidecar) => sidecar.name === 'KSSSleep.json')).toBe(true)
 
-      expect(dataset.issues.length).toBe(0)
+      expect(issues.length).toBe(0)
     })
 
     it('should handle JSON parsing errors gracefully', async () => {
@@ -118,13 +119,13 @@ describe('BidsDataset', () => {
       })
 
       const dataset = new BidsDataset(accessor)
-      await dataset.setSidecars()
+      const issues = await dataset.setSidecars()
 
       expect(dataset.sidecarMap.size).toBe(0)
-      expect(dataset.issues.length).toBe(1)
-      expect(dataset.issues[0].code).toBe('HED_ERROR')
-      expect(dataset.issues[0].hedIssue.internalCode).toBe('fileReadError')
-      expect(dataset.issues[0].location).toBe('task-testing_events.json')
+      expect(issues.length).toBe(1)
+      expect(issues[0].code).toBe('HED_ERROR')
+      expect(issues[0].hedIssue.internalCode).toBe('fileReadError')
+      expect(issues[0].location).toBe('task-testing_events.json')
 
       getFileContentSpy.mockRestore()
     })

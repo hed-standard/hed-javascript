@@ -30,8 +30,22 @@ function ValidateFileApp() {
     setSuccessMessage('')
     setValidated(false)
     setFileInputKey(Date.now())
+    setCheckWarnings(false)
+    setLimitErrors(false)
   }
 
+  /**
+   * Handles the validation process for the selected TSV and JSON files.
+   *
+   * This function performs the following steps:
+   * 1. Sets the loading state and clears previous errors and success messages.
+   * 2. Loads the specified HED schema version(s).
+   * 3. Reads the content of the TSV and JSON files.
+   * 4. Parses the JSON sidecar.
+   * 5. Performs validation on the TSV data using the HED schemas and sidecar.
+   * 6. Updates the state with any validation issues or a success message.
+   * 7. Resets the loading state.
+   */
   async function handleValidation() {
     setIsLoading(true)
     setErrors([])

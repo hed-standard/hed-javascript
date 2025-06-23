@@ -24,7 +24,7 @@
     "testSpecs": "jest spec_tests --silent --noStackTrace",
     "coverage": "jest --coverage",
     "prepare": "husky",
-    "docs": "jsdoc -c jsdoc.conf.json"
+    "docs": "typedoc --options typedoc.json"
   },
   "contributors": [
     "Alexander Jones",
