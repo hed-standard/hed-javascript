@@ -78,13 +78,13 @@ export default defineConfig(({ command }) => {
         name: 'copy-api-docs-after-build',
         closeBundle: () => {
           const sourceDir = path.resolve(__dirname, '../docs/html')
-          const targetDir = path.resolve(__dirname, 'buildweb/docs/html')
+          const targetDir = path.resolve(__dirname, 'buildweb/docs')
 
           // Check if the source directory exists before attempting to copy.
           if (fs.existsSync(sourceDir)) {
             // Using fs.cpSync for modern Node.js versions.
             fs.cpSync(sourceDir, targetDir, { recursive: true })
-            console.log('✅ Copied docs/html → buildweb/docs/html after build')
+            console.log('✅ Copied docs/html → buildweb/docs after build')
           } else {
             console.warn('⚠️  docs/html not found — skipping copy')
           }
