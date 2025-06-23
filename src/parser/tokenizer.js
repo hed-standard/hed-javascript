@@ -112,7 +112,7 @@ export class ColumnSpliceSpec extends SubstringSpec {
  *
  * @internal
  */
-class TokenizerState {
+export class TokenizerState {
   constructor() {
     this.currentToken = '' // Characters in the token currently being parsed
     this.groupDepth = 0

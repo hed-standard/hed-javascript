@@ -35,7 +35,7 @@ export class IssueError extends Error {
    *
    * @param {string} internalCode The internal error code.
    * @param {Object<string, (string|number[])>?} parameters The error string parameters.
-   * @throws {IssueError} Corresponding to the generated {@link import('./issues.js').Issue}.
+   * @throws {IssueError} Corresponding to the generated {@link Issue}.
    */
   static generateAndThrow(internalCode, parameters = {}) {
     throw new IssueError(generateIssue(internalCode, parameters))
@@ -45,7 +45,7 @@ export class IssueError extends Error {
    * Generate a new {@link Issue} object for an internal error and immediately throw it as an {@link IssueError}.
    *
    * @param {string} message A message describing the internal error.
-   * @throws {IssueError} Corresponding to the generated internal error {@link import('./issues.js').Issue}.
+   * @throws {IssueError} Corresponding to the generated internal error {@link Issue}.
    */
   static generateAndThrowInternalError(message = 'Unknown internal error') {
     IssueError.generateAndThrow('internalError', { message })
@@ -145,7 +145,16 @@ export class Issue {
    */
   _parseMessageTemplate() {
     const bounds = this.parameters.bounds ?? []
-    const messageTemplate = issueData[this.internalCode].message
+    const issueCodeData = issueData[this.internalCode]
+    if (issueCodeData === undefined) {
+      const messageTemplate = issueData.genericError.message
+      const tempParameters = {
+        internalCode: this.internalCode,
+        parameters: JSON.stringify(this.parameters),
+      }
+      return messageTemplate(tempParameters)
+    }
+    const messageTemplate = issueCodeData.message
     return messageTemplate(...bounds, this.parameters)
   }
 

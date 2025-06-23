@@ -53,17 +53,12 @@ jobs:
         working-directory: ./browser
         run: npm ci
 
-      - name: Build Vite site
-        working-directory: ./browser
-        run: npm run build
-
       - name: Build documentation
         run: npx typedoc
 
-      - name: Copy documentation to artifact
-        run: |
-          mkdir -p ./browser/buildweb/docs
-          cp -r ./docs/html/* ./browser/buildweb/docs/
+      - name: Build Vite site
+        working-directory: ./browser
+        run: npm run build
 
       - name: Upload artifact for deployment
         uses: actions/upload-pages-artifact@v3

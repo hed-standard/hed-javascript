@@ -1,6 +1,10 @@
 import groupBy from 'lodash/groupBy'
 
-import { generateIssue, IssueError, Issue } from '../../issues/issues.js'
+import { generateIssue, IssueError } from '../../issues/issues.js'
+
+/**
+ * @typedef {import('../../issues/issues.js').Issue} Issue
+ */
 
 export class BidsHedIssue {
   /**
@@ -11,7 +15,7 @@ export class BidsHedIssue {
 
   /**
    * The HED Issue object corresponding to this object.
-   * @type {import('../../issues/issues.js').Issue}
+   * @type {Issue}
    */
   hedIssue
 
@@ -85,9 +89,26 @@ export class BidsHedIssue {
   }
 
   /**
+   * Categorize a list of issues by their sub-codes.
+   *
+   * @param {BidsHedIssue[]} issues A list of issues.
+   * @returns {Map<string, BidsHedIssue[]>} The list of issues organized by sub-code.
+   */
+  static categorizeByCode(issues) {
+    const codeMap = new Map()
+    for (const issue of issues) {
+      if (!codeMap.has(issue.subCode)) {
+        codeMap.set(issue.subCode, [])
+      }
+      codeMap.get(issue.subCode).push(issue)
+    }
+    return codeMap
+  }
+
+  /**
    * Convert one or more HED issues into BIDS-compatible issues.
    *
-   * @param {Error|import('../../issues/issues.js').Issue[]} hedIssues One or more HED-format issues.
+   * @param {Error|Issue[]} hedIssues One or more HED-format issues.
    * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
    * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} objects.
    * @returns {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
@@ -107,7 +128,7 @@ export class BidsHedIssue {
   /**
    * Convert a single HED issue into a BIDS-compatible issue.
    *
-   * @param {import('../../issues/issues.js').Issue} hedIssue One HED-format issue.
+   * @param {Issue} hedIssue One HED-format issue.
    * @param {Object} file A BIDS-format file object used to generate a {@link BidsHedIssue} object.
    * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} object.
    * @returns {BidsHedIssue} The passed issue in BIDS-compatible format.
