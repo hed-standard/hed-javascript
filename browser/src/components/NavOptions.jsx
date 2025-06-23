@@ -31,7 +31,7 @@ export const NavOptions = ({ base_url }) => {
       description: 'Check a BIDS-style tsv file for HED errors.',
     },
     {
-      href: './docs/html/',
+      href: './docs/',
       icon: <img src={`${base_url}favicon.ico`} alt="HED Icon" className="h-6 w-6" />,
       title: 'API Docs',
       description: 'Browse the technical documentation for developers.',

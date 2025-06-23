@@ -309,10 +309,8 @@ describe('HED schemas', () => {
     })
 
     it('should fail when trying to merge incompatible schemas', async () => {
-      const schemaPromises = [buildSchemas(specs1), buildSchemas(specs3), buildSchemas(specs2)]
-
       try {
-        await schemaPromises[0]
+        await buildSchemas(specs1)
         assert.fail('Incompatible schemas testlib_2.0.0 and testlib_2.1.0 were incorrectly merged without an error')
       } catch (issueError) {
         const issue = issueError.issue
@@ -320,14 +318,14 @@ describe('HED schemas', () => {
       }
 
       try {
-        await schemaPromises[1]
+        await buildSchemas(specs3)
         assert.fail('Incompatible schemas testlib_2.1.0 and testlib_3.0.0 were incorrectly merged without an error')
       } catch (issueError) {
         const issue = issueError.issue
         assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-sound' }))
       }
 
-      const schemas = await schemaPromises[2]
+      const schemas = await buildSchemas(specs2)
       assert.instanceOf(
         schemas.getSchema('testlib'),
         PartneredSchema,
