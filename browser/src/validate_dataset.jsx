@@ -32,6 +32,8 @@ function ValidateDatasetApp() {
     setErrors([])
     setSuccessMessage('')
     setFileInputKey(Date.now())
+    setCheckWarnings(false)
+    setLimitErrors(false)
   }
 
   const handleFolderSelect = async (selectedFiles) => {
@@ -79,7 +81,7 @@ function ValidateDatasetApp() {
     setErrors([])
     setSuccessMessage('')
     try {
-      const issues = await dataset.validate({ checkWarnings })
+      const issues = await dataset.validate(checkWarnings)
       if (issues && issues.length > 0) {
         console.log(issues)
         setErrors(issues)

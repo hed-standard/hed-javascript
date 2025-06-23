@@ -32,7 +32,7 @@ export class BidsFile {
    *
    * @param {string} name - The name of the file -- used for messages.
    * @param {Object} file - The representation of the file for error messages.
-   * @param {BidsValidator} validatorClass - The validator class corresponding to this file.
+   * @param {function} validatorClass - The validator class corresponding to this file.
    */
   constructor(name, file, validatorClass) {
     this.name = name
@@ -45,7 +45,7 @@ export class BidsFile {
    *
    * @param {string} datasetRoot The root path of the dataset.
    * @param {string} relativePath The relative path of the file within the dataset.
-   * @returns {Promise<[string, {path: string}]>} The file contents and mocked BIDS-type file object.
+   * @returns {Promise<Array>} A Promise that resolves to a two-element array containing the file contents and a mocked BIDS-type file object.
    */
   static async readBidsFileFromDatasetPath(datasetRoot, relativePath) {
     const filePath = path.join(datasetRoot, relativePath)
@@ -57,7 +57,7 @@ export class BidsFile {
    * Read a BIDS file from a path.
    *
    * @param {string} filePath The actual path of the file.
-   * @returns {Promise<[string, {path: string}]>} The file contents and mocked BIDS-type file object.
+   * @returns {Promise<Array>} A Promise that resolves to a two-element array containing the file contents and a mocked BIDS-type file object.
    */
   static async readBidsFile(filePath) {
     const fileObject = { path: filePath }
@@ -116,7 +116,7 @@ export class BidsFile {
   /**
    * The validator class used to validate this file.
    *
-   * @returns {function} (typeof BidsValidator) A subclass constructor of {@link BidsValidator}.
+   * @returns {function} The validator class used to validate this file.
    */
   get validatorClass() {
     return this._validatorClass

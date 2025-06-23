@@ -6,13 +6,17 @@ import { generateIssue, IssueError } from '../../issues/issues'
 import { getMergedSidecarData, organizedPathsGenerator } from '../../utils/paths'
 import { BidsHedIssue } from './issues'
 
+/**
+ * A two-element array containing a BidsDataset and a list of issues.
+ * @typedef {Array} BidsDatasetAndIssues
+ */
 export class BidsDataset {
   /**
    * Factory method to create a BidsDataset.
    *
    * @param {string | object} rootOrFiles The root directory of the dataset or a file-like object.
-   * @param {typeof BidsFileAccessor} fileAccessorClass The BidsFileAccessor class to use for accessing files.
-   * @returns {Promise<[BidsDataset, issue[]]>} A Promise that resolves to a BidsDataset instance and an array of issues.
+   * @param {function} fileAccessorClass The BidsFileAccessor class to use for accessing files.
+   * @returns {Promise<BidsDatasetAndIssues>} A Promise that resolves to a BidsDataset instance and an array of issues.
    */
   static async create(rootOrFiles, fileAccessorClass) {
     let dataset = null
@@ -20,11 +24,13 @@ export class BidsDataset {
     try {
       const accessor = await fileAccessorClass.create(rootOrFiles)
       dataset = new BidsDataset(accessor)
-      await dataset.setHedSchemas()
-      await dataset.setSidecars()
-      if (dataset.issues.length > 0) {
-        issues.push(...dataset.issues)
+      const schemaIssues = await dataset.setHedSchemas()
+      issues.push(...schemaIssues)
+      if (dataset.hedSchemas === null) {
+        return [null, issues]
       }
+      const sidecarIssues = await dataset.setSidecars()
+      issues.push(...sidecarIssues)
     } catch (error) {
       if (error instanceof IssueError) {
         issues.push(error.issue)
@@ -103,37 +109,47 @@ export class BidsDataset {
     this.eventData = []
     this.sidecarMap = new Map()
     this.hedSchemas = null
-    this.issues = []
   }
 
   async setHedSchemas() {
     let description
 
     try {
-      // First try-catch: Load and parse dataset_description.json
       const descriptionContentString = await this.accessor.getFileContent('dataset_description.json')
       if (descriptionContentString === null || typeof descriptionContentString === 'undefined') {
-        IssueError.generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
+        throw new IssueError(generateIssue('missingSchemaSpecification', { file: 'dataset_description.json' }))
       }
-      description = {}
-      description.jsonData = JSON.parse(descriptionContentString)
-    } catch {
-      IssueError.generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
+      description = {
+        jsonData: JSON.parse(descriptionContentString),
+      }
+    } catch (e) {
+      if (e instanceof IssueError) {
+        throw e
+      }
+      throw new IssueError(generateIssue('missingSchemaSpecification', { file: 'dataset_description.json' }))
     }
 
     try {
       this.hedSchemas = await buildBidsSchemas(description)
       if (this.hedSchemas === null) {
-        IssueError.generateAndThrow('invalidSchemaSpecification', { spec: null })
+        throw new IssueError(
+          generateIssue('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null }),
+        )
       }
-    } catch {
-      IssueError.generateAndThrow('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null })
+    } catch (e) {
+      if (e instanceof IssueError) {
+        throw e
+      }
+      throw new IssueError(
+        generateIssue('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null }),
+      )
     }
-    // If successful, this.hedSchemas is populated.
+    return []
   }
 
   async setSidecars() {
     this.sidecarMap = new Map()
+    const issues = []
     const organizedPaths = this.accessor.organizedPaths
     const processingPromises = []
 
@@ -148,18 +164,19 @@ export class BidsDataset {
         const promise = this.accessor
           .getFileContent(jsonPath)
           .then((jsonText) => {
+            const sidecarIssues = []
             if (jsonText === null) {
               const errorMessage = `Could not read JSON file: ${jsonPath}`
-              this.issues.push(
+              sidecarIssues.push(
                 BidsHedIssue.fromHedIssue(
                   generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
                   { file: jsonPath, name: fileName },
                 ),
               )
-              return
+              return sidecarIssues
             }
             if (!jsonText.includes('"HED":')) {
-              return
+              return sidecarIssues
             }
             try {
               const jsonData = JSON.parse(jsonText)
@@ -167,27 +184,30 @@ export class BidsDataset {
               this.sidecarMap.set(jsonPath, sidecar)
             } catch (e) {
               const errorMessage = `Could not parse the JSON file: ${jsonPath}`
-              this.issues.push(
+              sidecarIssues.push(
                 BidsHedIssue.fromHedIssue(
                   generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
                   { path: jsonPath, name: fileName },
                 ),
               )
             }
+            return sidecarIssues
           })
           .catch((e) => {
             const errorMessage = `Unexpected exception '${e.message}' occurred when setting sidecar: ${jsonPath}`
-            this.issues.push(
+            return [
               BidsHedIssue.fromHedIssue(
                 generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
                 { path: jsonPath, name: fileName },
               ),
-            )
+            ]
           })
         processingPromises.push(promise)
       }
     }
-    await Promise.allSettled(processingPromises)
+    const allIssues = await Promise.all(processingPromises)
+    issues.push(...allIssues.flat())
+    return issues
   }
 
   /**
@@ -195,17 +215,18 @@ export class BidsDataset {
    * @returns {Promise<Issue[]>} A promise that resolves to an array of issues found during validation.
    */
   async validate() {
-    this.issues = []
+    const issues = []
 
     for (const relativePath of organizedPathsGenerator(this.accessor.organizedPaths, '.json')) {
       const sidecar = this.sidecarMap.get(relativePath)
       if (sidecar) {
         const validationIssues = sidecar.validate(this.hedSchemas)
-        this.issues.push(...validationIssues)
+        issues.push(...validationIssues)
       }
     }
-    await this._validateTsvFiles()
-    return this.issues.length > 0 ? this.issues : []
+    const tsvIssues = await this._validateTsvFiles()
+    issues.push(...tsvIssues)
+    return issues
   }
 
   /**
@@ -214,6 +235,7 @@ export class BidsDataset {
    * @private
    */
   async _validateTsvFiles() {
+    const issues = []
     for (const [category, catMap] of this.accessor.organizedPaths) {
       const tsvPaths = catMap.get('tsv') || []
       const jsonPaths = catMap.get('json') || []
@@ -222,7 +244,7 @@ export class BidsDataset {
         const tsvContents = await this.accessor.getFileContent(tsvPath)
         if (tsvContents === null) {
           const message = `Could not read TSV file: ${tsvPath} in category ${category}`
-          this.issues.push(
+          issues.push(
             BidsHedIssue.fromHedIssue(generateIssue('fileReadError', { filename: tsvPath, message: `${message}` })),
             { path: tsvPath, name: tsvName },
           )
@@ -239,8 +261,9 @@ export class BidsDataset {
         }
 
         const validationIssues = tsvFile.validate(this.hedSchemas)
-        this.issues.push(...validationIssues)
+        issues.push(...validationIssues)
       }
     }
+    return issues
   }
 }

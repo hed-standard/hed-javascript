@@ -5,7 +5,7 @@ import issueData from './data'
 export class IssueError extends Error {
   /**
    * The associated HED issue.
-   * @type {Issue}
+   * @type {import('./issues.js').Issue}
    */
   issue
 
@@ -13,7 +13,7 @@ export class IssueError extends Error {
    * Constructor.
    *
    * @param {Issue} issue The associated HED issue.
-   * @param {...*} params Extra parameters (to be forwarded to the {@link Error} constructor).
+   * @param {...*} params Extra parameters (to be forwarded to the {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error | Error} constructor).
    */
   constructor(issue, ...params) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
@@ -35,7 +35,7 @@ export class IssueError extends Error {
    *
    * @param {string} internalCode The internal error code.
    * @param {Object<string, (string|number[])>?} parameters The error string parameters.
-   * @throws {IssueError} Corresponding to the generated {@link Issue}.
+   * @throws {IssueError} Corresponding to the generated {@link import('./issues.js').Issue}.
    */
   static generateAndThrow(internalCode, parameters = {}) {
     throw new IssueError(generateIssue(internalCode, parameters))
@@ -45,7 +45,7 @@ export class IssueError extends Error {
    * Generate a new {@link Issue} object for an internal error and immediately throw it as an {@link IssueError}.
    *
    * @param {string} message A message describing the internal error.
-   * @throws {IssueError} Corresponding to the generated internal error {@link Issue}.
+   * @throws {IssueError} Corresponding to the generated internal error {@link import('./issues.js').Issue}.
    */
   static generateAndThrowInternalError(message = 'Unknown internal error') {
     IssueError.generateAndThrow('internalError', { message })
@@ -109,7 +109,7 @@ export class Issue {
   }
 
   /**
-   * Override of {@link Object.prototype.toString}.
+   * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
    *
    * @returns {string} This issue's message.
    */

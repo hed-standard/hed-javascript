@@ -72,10 +72,10 @@ export default class TagConverter {
   }
 
   /**
-   * Retrieve the {@link SchemaTag} object for a tag specification.
+   * Retrieve the {@link import('../schema/entries.js').SchemaTag} object for a tag specification.
    *
-   * @returns {Array} - [SchemaTag, string] representing schema's corresponding tag object and the remainder of the tag string.
-   * @throws {IssueError} If tag conversion.
+   * @returns {[import('../schema/entries.js').SchemaTag, string]} The schema's corresponding tag object and the remainder of the tag string.
+   * @throws {IssueError} If tag conversion fails.
    */
   convert() {
     let parentTag = undefined

@@ -1,6 +1,6 @@
 import groupBy from 'lodash/groupBy'
 
-import { generateIssue, IssueError } from '../../issues/issues.js'
+import { generateIssue, IssueError, Issue } from '../../issues/issues.js'
 
 export class BidsHedIssue {
   /**
@@ -11,7 +11,7 @@ export class BidsHedIssue {
 
   /**
    * The HED Issue object corresponding to this object.
-   * @type {Issue}
+   * @type {import('../../issues/issues.js').Issue}
    */
   hedIssue
 
@@ -87,7 +87,7 @@ export class BidsHedIssue {
   /**
    * Convert one or more HED issues into BIDS-compatible issues.
    *
-   * @param {Error|Issue[]} hedIssues One or more HED-format issues.
+   * @param {Error|import('../../issues/issues.js').Issue[]} hedIssues One or more HED-format issues.
    * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
    * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} objects.
    * @returns {BidsHedIssue[]} The passed issue(s) in BIDS-compatible format.
@@ -107,7 +107,7 @@ export class BidsHedIssue {
   /**
    * Convert a single HED issue into a BIDS-compatible issue.
    *
-   * @param {Issue} hedIssue One HED-format issue.
+   * @param {import('../../issues/issues.js').Issue} hedIssue One HED-format issue.
    * @param {Object} file A BIDS-format file object used to generate a {@link BidsHedIssue} object.
    * @param {Object?} extraParameters Any extra parameters to inject into the {@link Issue} object.
    * @returns {BidsHedIssue} The passed issue in BIDS-compatible format.
@@ -123,7 +123,7 @@ export class BidsHedIssue {
   /**
    * Transform a list of mixed issues into BIDS-compatible issues.
    *
-   * @param {(BidsHedIssue|IssueError|Error)[]} issues A list of mixed-format issues.
+   * @param {Array<BidsHedIssue|IssueError|Error>} issues A list of mixed-format issues.
    * @param {Object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
    * @returns {BidsHedIssue[]} The passed issues in BIDS-compatible format.
    */
