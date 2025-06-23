@@ -1,6 +1,6 @@
 import ParsedHedSubstring from './parsedHedSubstring'
 import { ParsedHedString } from './parsedHedString'
-import { ParsedHedGroup } from './parsedHedGroup'
+import ParsedHedGroup from './parsedHedGroup'
 
 /**
  * A template for an inline column splice in a HED string.
