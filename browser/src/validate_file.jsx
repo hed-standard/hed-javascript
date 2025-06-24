@@ -2,10 +2,8 @@ import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { FileInput } from './components/FileInput'
 import { ErrorDisplay } from './components/ErrorDisplay'
-import { readFileAsText } from './utils/fileReader.js'
-import { getHedSchemaCollection } from './utils/hedSchemaHelpers.js'
-import { BidsHedIssue, BidsTsvFile } from '@hed-javascript-root/src/bids/index.js'
-import { generateIssue } from '@hed-javascript-root/src/issues/issues.js'
+import { BidsHedIssue, BidsJsonFile, BidsTsvFile, buildBidsSchemas } from '@hed-javascript-root/src/bids/index.js'
+import { generateIssue, IssueError } from '@hed-javascript-root/src/issues/issues.js'
 import parseTSV from '@hed-javascript-root/src/bids/tsvParser.js'
 
 // --- Main Application Component ---
@@ -52,6 +50,7 @@ function ValidateFileApp() {
     setSuccessMessage('')
     setValidated(true)
     let issues = []
+    let defaultPath = 'HED schema input'
 
     try {
       // Load HED Schemas
@@ -62,30 +61,39 @@ function ValidateFileApp() {
           .map((v) => v.trim())
           .filter(Boolean)
       }
-      const hedVersionSpec = { HEDVersion: hedVersionValue }
-      console.log('Attempting to load HED schemas for:', hedVersionSpec)
-      const hedSchemas = await getHedSchemaCollection(hedVersionSpec)
+
+      const hedVersionSpec = new BidsJsonFile(
+        'HED schema input',
+        { path: 'HED schema version input' },
+        { HEDVersion: hedVersionValue },
+      )
+      defaultPath = 'HED schema input'
+      const hedSchemas = await buildBidsSchemas(hedVersionSpec)
 
       if (!hedSchemas) {
-        console.error('Failed to load HED Schemas. Validation might be incomplete or inaccurate.')
-        const message = `Failed to load HED schemas for HEDVersion: ${JSON.stringify(
-          hedVersionSpec.HEDVersion,
-        )}. Validation may not be accurate.`
-        const issue = generateIssue('genericError', { message })
-        setErrors([new BidsHedIssue(issue, { path: 'Schema Loading' })])
-        setIsLoading(false) // Added to reset loading state before early return
-        return
+        throw BidsHedIssue.fromHedIssue(
+          generateIssue('invalidSchemaSpecification', { spec: originalVersion }, { path: defaultPath }),
+        )
       }
-
-      const [tsvText, jsonText] = await Promise.all([readFileAsText(tsvFile), readFileAsText(jsonFile)])
+      defaultPath = jsonFile.name
+      const jsonText = await jsonFile.text()
       const jsonData = JSON.parse(jsonText)
+      const jsonFileObject = { name: jsonFile.name, path: jsonFile.name }
+      const bidsJsonFile = new BidsJsonFile(jsonFile.name, jsonFileObject, jsonData)
+      const sidecarIssues = bidsJsonFile.validate(hedSchemas)
+      const sidecarErrors = sidecarIssues.filter((issue) => issue.severity === 'error')
 
-      const parsedTsv = parseTSV(tsvText)
-      const tsvFileObject = { name: tsvFile.name, path: tsvFile.name, file: tsvFile }
-      const bidsTsvFile = new BidsTsvFile(tsvFile.name, tsvFileObject, parsedTsv, jsonData, hedSchemas.definitions)
-      issues = bidsTsvFile.validate(hedSchemas)
+      if (sidecarErrors.length > 0) {
+        issues = sidecarIssues
+      } else {
+        const tsvText = await tsvFile.text()
+        const parsedTsv = parseTSV(tsvText)
+        const tsvFileObject = { name: tsvFile.name, path: tsvFile.name, file: tsvFile }
+        const bidsTsvFile = new BidsTsvFile(tsvFile.name, tsvFileObject, parsedTsv, jsonData, hedSchemas.definitions)
+        issues = bidsTsvFile.validate(hedSchemas)
+      }
     } catch (err) {
-      issues = BidsHedIssue.transformToBids([err], { path: 'File Input' })
+      issues = BidsHedIssue.transformToBids([err], { path: defaultPath })
     } finally {
       const processedIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
       if (processedIssues.length > 0) {

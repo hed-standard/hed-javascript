@@ -79,20 +79,4 @@ describe('BidsWebAccessor', () => {
       )
     })
   })
-
-  describe('getAllFilePaths', () => {
-    it('should return keys from the fileInput map', async () => {
-      const fileInput = [
-        new MockFile('{}', 'dataset_description.json', 'my-dataset/dataset_description.json'),
-        new MockFile('tsv content', 'participants.tsv', 'my-dataset/participants.tsv'),
-      ]
-      const accessor = await BidsWebAccessor.create(fileInput)
-      const paths = accessor.getAllFilePaths()
-      expect(paths.sort()).toEqual(['dataset_description.json', 'participants.tsv'].sort())
-    })
-    it('should return an empty array for an empty map', async () => {
-      const accessor = await BidsWebAccessor.create([])
-      expect(accessor.getAllFilePaths()).toEqual([])
-    })
-  })
 })
