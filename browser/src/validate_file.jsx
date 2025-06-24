@@ -2,7 +2,13 @@ import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { FileInput } from './components/FileInput'
 import { ErrorDisplay } from './components/ErrorDisplay'
-import { BidsHedIssue, BidsJsonFile, BidsTsvFile, buildBidsSchemas } from '@hed-javascript-root/src/bids/index.js'
+import {
+  BidsHedIssue,
+  BidsJsonFile,
+  BidsSidecar,
+  BidsTsvFile,
+  buildBidsSchemas,
+} from '@hed-javascript-root/src/bids/index.js'
 import { generateIssue, IssueError } from '@hed-javascript-root/src/issues/issues.js'
 import parseTSV from '@hed-javascript-root/src/bids/tsvParser.js'
 
@@ -79,8 +85,8 @@ function ValidateFileApp() {
       const jsonText = await jsonFile.text()
       const jsonData = JSON.parse(jsonText)
       const jsonFileObject = { name: jsonFile.name, path: jsonFile.name }
-      const bidsJsonFile = new BidsJsonFile(jsonFile.name, jsonFileObject, jsonData)
-      const sidecarIssues = bidsJsonFile.validate(hedSchemas)
+      const bidsSidecar = new BidsSidecar(jsonFile.name, jsonFileObject, jsonData)
+      const sidecarIssues = bidsSidecar.validate(hedSchemas)
       const sidecarErrors = sidecarIssues.filter((issue) => issue.severity === 'error')
 
       if (sidecarErrors.length > 0) {
