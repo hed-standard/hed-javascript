@@ -1,5 +1,3 @@
-import groupBy from 'lodash/groupBy'
-
 import { generateIssue, IssueError } from '../../issues/issues.js'
 
 /**
@@ -79,13 +77,20 @@ export class BidsHedIssue {
   }
 
   /**
-   * Split a list of issues into errors and warnings.
+   * Split a list of issues by severity.
    *
    * @param {BidsHedIssue[]} issues A list of issues.
-   * @returns {Object<string, BidsHedIssue[]>} The list of issues divided into errors and warnings.
+   * @returns {Map<string, BidsHedIssue[]>} The list of issues divided by severity.
    */
   static splitErrors(issues) {
-    return groupBy(issues, (issue) => issue.severity)
+    const issueMap = new Map()
+    for (const issue of issues) {
+      if (!issueMap.has(issue.severity)) {
+        issueMap.set(issue.severity, [])
+      }
+      issueMap.get(issue.severity).push(issue)
+    }
+    return issueMap
   }
 
   /**
@@ -103,6 +108,58 @@ export class BidsHedIssue {
       codeMap.get(issue.subCode).push(issue)
     }
     return codeMap
+  }
+
+  /**
+   * Reduce a list of issues to one of each type.
+   *
+   * @param {BidsHedIssue[]} issues A list of issues.
+   * @returns {BidsHedIssue[]} The reduced list of issues.
+   */
+  static reduceIssues(issues) {
+    const categorizedIssues = BidsHedIssue.categorizeByCode(issues)
+    const reducedIssues = []
+    for (const issueList of categorizedIssues.values()) {
+      if (issueList.length === 0) {
+        continue
+      }
+      const firstIssue = issueList[0]
+      // Deep copy the HED issue object to avoid modifying the original.
+      const hedIssueCopy = JSON.parse(JSON.stringify(firstIssue.hedIssue))
+      const newIssue = new BidsHedIssue(hedIssueCopy, firstIssue.file)
+
+      const numErrors = issueList.length
+      const numFiles = new Set(issueList.map((issue) => issue.location)).size
+      newIssue.issueMessage += ` There are ${numErrors} total errors of this type in ${numFiles} unique files.`
+
+      reducedIssues.push(newIssue)
+    }
+    return reducedIssues
+  }
+
+  /**
+   * Filter and reduce a list of issues.
+   *
+   * @param {BidsHedIssue[]} issues A list of issues.
+   * @param {boolean} checkWarnings Whether to include warnings.
+   * @param {boolean} limitErrors Whether to reduce the list of issues to one of each type.
+   * @returns {BidsHedIssue[]} The processed list of issues.
+   */
+  static processIssues(issues, checkWarnings = false, limitErrors = false) {
+    const issueMap = BidsHedIssue.splitErrors(issues)
+    const errorIssues = issueMap.get('error') ?? []
+    const warningIssues = issueMap.get('warning') ?? []
+
+    let processedIssues = [...errorIssues]
+    if (checkWarnings) {
+      processedIssues.push(...warningIssues)
+    }
+
+    if (limitErrors) {
+      processedIssues = BidsHedIssue.reduceIssues(processedIssues)
+    }
+
+    return processedIssues
   }
 
   /**

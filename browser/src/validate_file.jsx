@@ -4,9 +4,9 @@ import { FileInput } from './components/FileInput'
 import { ErrorDisplay } from './components/ErrorDisplay'
 import { readFileAsText } from './utils/fileReader.js'
 import { getHedSchemaCollection } from './utils/hedSchemaHelpers.js'
-import { performTsvValidation } from './utils/validationUtils.js'
-import { BidsHedIssue } from '@hed-javascript-root/src/bids/index.js'
-import { generateIssue } from '@hed-javascript-root/src/issues/issues.js' // Removed performHedValidation
+import { BidsHedIssue, BidsTsvFile } from '@hed-javascript-root/src/bids/index.js'
+import { generateIssue } from '@hed-javascript-root/src/issues/issues.js'
+import parseTSV from '@hed-javascript-root/src/bids/tsvParser.js'
 
 // --- Main Application Component ---
 
@@ -51,6 +51,7 @@ function ValidateFileApp() {
     setErrors([])
     setSuccessMessage('')
     setValidated(true)
+    let issues = []
 
     try {
       // Load HED Schemas
@@ -67,14 +68,11 @@ function ValidateFileApp() {
 
       if (!hedSchemas) {
         console.error('Failed to load HED Schemas. Validation might be incomplete or inaccurate.')
-        setErrors((prevErrors) => [
-          ...prevErrors,
-          {
-            code: 'SCHEMA_LOAD_ERROR',
-            message: `Failed to load HED schemas for HEDVersion: ${JSON.stringify(hedVersionSpec.HEDVersion)}. Validation may not be accurate.`,
-            location: 'Schema Loading',
-          },
-        ])
+        const message = `Failed to load HED schemas for HEDVersion: ${JSON.stringify(
+          hedVersionSpec.HEDVersion,
+        )}. Validation may not be accurate.`
+        const issue = generateIssue('genericError', { message })
+        setErrors([new BidsHedIssue(issue, { path: 'Schema Loading' })])
         setIsLoading(false) // Added to reset loading state before early return
         return
       }
@@ -82,25 +80,22 @@ function ValidateFileApp() {
       const [tsvText, jsonText] = await Promise.all([readFileAsText(tsvFile), readFileAsText(jsonFile)])
       const jsonData = JSON.parse(jsonText)
 
-      // Moved this block inside the try block
-      const validationOptions = { checkWarnings }
-      const issues = performTsvValidation(tsvFile.name, tsvFile.name, tsvText, hedSchemas, jsonData, validationOptions) // Pass validationOptions
-      if (issues && issues.length > 0) {
-        setErrors(issues)
+      const parsedTsv = parseTSV(tsvText)
+      const tsvFileObject = { name: tsvFile.name, path: tsvFile.name, file: tsvFile }
+      const bidsTsvFile = new BidsTsvFile(tsvFile.name, tsvFileObject, parsedTsv, jsonData, hedSchemas.definitions)
+      issues = bidsTsvFile.validate(hedSchemas)
+    } catch (err) {
+      issues = BidsHedIssue.transformToBids([err], { path: 'File Input' })
+    } finally {
+      const processedIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
+      if (processedIssues.length > 0) {
+        setErrors(processedIssues)
       } else {
         setSuccessMessage('No validation issues found.')
       }
-      setIsLoading(false) // Moved here from outside, for the successful path
-    } catch (err) {
-      let errorMsg = 'Error reading or processing a file.'
-      if (err && err.message) {
-        errorMsg += `\nDetails: ${err.message}`
-      }
-      setErrors([{ code: 'FILE_READ_ERROR', message: errorMsg, location: 'File Input' }])
       setIsLoading(false)
-      // return // Removed unnecessary return
     }
-  } // Corrected from ')' to '}'
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">

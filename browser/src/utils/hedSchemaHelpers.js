@@ -28,8 +28,8 @@ export async function getHedSchemaCollection(hedSpec) {
 
   // buildBidsSchemas expects a BidsJsonFile-like object, specifically its jsonData.HEDVersion property.
   const mockBidsJsonFile = new BidsJsonFile(
-    'virtual_dataset_description.json', // Placeholder name
-    { path: 'virtual_dataset_description.json' }, // Placeholder file object
+    'HED schema version input', // Placeholder name
+    { path: 'HED schema version input' }, // Placeholder file object
     jsonDataPayload,
   )
 

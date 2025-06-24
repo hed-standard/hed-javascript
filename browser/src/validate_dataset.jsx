@@ -5,6 +5,7 @@ import { ErrorDisplay } from './components/ErrorDisplay'
 import { BidsWebAccessor } from './bids/BidsWebAccessor.js'
 import { BidsDataset } from '@hed-javascript-root/src/bids/types/dataset.js'
 import { IssueError } from '@hed-javascript-root/src/issues/issues.js'
+import { BidsHedIssue } from '@hed-javascript-root/src/bids/types/issues.js'
 
 // --- Add TailwindCSS to the document head for immediate styling ---
 ;(() => {
@@ -45,30 +46,23 @@ function ValidateDatasetApp() {
     setErrors([])
     setDataset(null)
     setSuccessMessage('')
+    let issues = []
+    let createdDataset = null
 
     try {
-      const [dataset, issues] = await BidsDataset.create(selectedFiles, BidsWebAccessor)
-
-      if (issues && issues.length > 0) {
-        setErrors(issues)
-      } else {
-        setDataset(dataset)
-        setSuccessMessage(`${numFiles} files found. Ready for validation.`)
-      }
+      ;[createdDataset, issues] = await BidsDataset.create(selectedFiles, BidsWebAccessor)
     } catch (err) {
       console.error('[ValidateDatasetApp] Error during dataset processing:', err)
-      const newErrors = []
-      if (err instanceof IssueError) {
-        newErrors.push(err.issue)
-      } else {
-        newErrors.push({
-          code: err.code || 'DATASET_LOAD_ERROR',
-          message: err.message || 'An unexpected error occurred during dataset processing.',
-          location: 'Dataset Loading',
-        })
-      }
-      setErrors(newErrors)
+      issues = BidsHedIssue.transformToBids([err], { path: 'Dataset Loading' })
     } finally {
+      const processedIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
+      if (processedIssues.length > 0) {
+        setErrors(processedIssues)
+        setDataset(null)
+      } else if (createdDataset) {
+        setDataset(createdDataset)
+        setSuccessMessage(`${numFiles} files found. Ready for validation.`)
+      }
       setIsLoading(false)
     }
   }
@@ -80,30 +74,20 @@ function ValidateDatasetApp() {
     setIsLoading(true)
     setErrors([])
     setSuccessMessage('')
+    let issues = []
     try {
-      const issues = await dataset.validate(checkWarnings)
-      if (issues && issues.length > 0) {
-        console.log(issues)
-        setErrors(issues)
+      issues = await dataset.validate(true)
+    } catch (err) {
+      console.error('[ValidateDatasetApp] Error during validation:', err)
+      issues = BidsHedIssue.transformToBids([err], { path: 'Dataset Validation' })
+    } finally {
+      const processedIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
+      if (processedIssues.length > 0) {
+        setErrors(processedIssues)
       } else {
         setSuccessMessage('No validation errors found.')
       }
-    } catch (err) {
-      console.error('[ValidateDatasetApp] Error during validation:', err)
-      const newErrors = []
-      if (err instanceof IssueError) {
-        newErrors.push(err.issue)
-      } else {
-        newErrors.push({
-          code: err.code || 'VALIDATION_ERROR',
-          message: err.message || 'An unexpected error occurred during validation.',
-          location: 'Dataset Validation',
-        })
-      }
-      setErrors(newErrors)
-    } finally {
       setIsLoading(false)
-      console.log(errors)
     }
   }
 
