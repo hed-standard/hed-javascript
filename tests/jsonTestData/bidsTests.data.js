@@ -142,6 +142,34 @@ export const bidsTestData = [
         ],
       },
       {
+        testname: 'invalid-bad-value-tag-in-JSON',
+        explanation: 'Sidecar has a bad takes value tag but tsv HED column tag is valid',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Red, Blue)',
+            },
+          },
+          bad_tag: {
+            HED: 'Glabel/#',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\n' + '7\t4\tface\tGreen',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Glabel/#' }), {
+            path: 'invalid-bad-value-tag-in-JSON.json',
+          }),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Glabel/#' }), {
+            path: 'invalid-bad-value-tag-in-JSON.tsv',
+          }),
+        ],
+      },
+      {
         testname: 'invalid-bad-tag-in-JSON-no-use',
         explanation: 'Bad tag in JSON',
         schemaVersion: '8.3.0',

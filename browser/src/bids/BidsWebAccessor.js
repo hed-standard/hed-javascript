@@ -69,8 +69,4 @@ export class BidsWebAccessor extends BidsFileAccessor {
       throw new Error(`Cannot read file ${relativePath}: File object in map lacks .text() method.`)
     }
   }
-
-  getAllFilePaths() {
-    return Array.from(this.fileMap.keys())
-  }
 }
