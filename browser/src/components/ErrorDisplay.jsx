@@ -1,7 +1,7 @@
 import React from 'react'
 
 // Component to display validation errors
-export const ErrorDisplay = ({ errors }) => {
+export const ErrorDisplay = ({ errors, downloadableErrors }) => {
   if (!errors || errors.length === 0) {
     return (
       <div className="mt-8 text-center">
@@ -15,9 +15,31 @@ export const ErrorDisplay = ({ errors }) => {
     return 'border-red-500' // Default to error
   }
 
+  const handleDownload = () => {
+    const errorsToDownload = downloadableErrors || errors
+    const data = JSON.stringify(errorsToDownload, null, 2)
+    const blob = new Blob([data], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'hed_validation_issues.txt'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="mt-8">
-      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Validation Issues Found</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Validation Issues Found</h3>
+        <button
+          onClick={handleDownload}
+          className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300"
+        >
+          Download Errors
+        </button>
+      </div>
       <div className="space-y-4">
         {errors.map((error, index) => {
           let locationString = ''

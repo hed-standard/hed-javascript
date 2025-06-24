@@ -19,6 +19,7 @@ function ValidateFileApp() {
   const [jsonFile, setJsonFile] = useState(null)
   const [hedVersion, setHedVersion] = useState('8.4.0')
   const [errors, setErrors] = useState([])
+  const [downloadableErrors, setDownloadableErrors] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [checkWarnings, setCheckWarnings] = useState(false)
   const [limitErrors, setLimitErrors] = useState(false) // This state is not used by performHedValidation yet
@@ -31,6 +32,7 @@ function ValidateFileApp() {
     setJsonFile(null)
     setHedVersion('8.4.0')
     setErrors([])
+    setDownloadableErrors([])
     setSuccessMessage('')
     setValidated(false)
     setFileInputKey(Date.now())
@@ -53,6 +55,7 @@ function ValidateFileApp() {
   async function handleValidation() {
     setIsLoading(true)
     setErrors([])
+    setDownloadableErrors([])
     setSuccessMessage('')
     setValidated(true)
     let issues = []
@@ -101,6 +104,8 @@ function ValidateFileApp() {
     } catch (err) {
       issues = BidsHedIssue.transformToBids([err], { path: defaultPath })
     } finally {
+      const issuesForDownload = BidsHedIssue.processIssues(issues, checkWarnings, false)
+      setDownloadableErrors(issuesForDownload)
       const processedIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
       if (processedIssues.length > 0) {
         setErrors(processedIssues)
@@ -201,13 +206,13 @@ function ValidateFileApp() {
             <button
               onClick={handleValidation}
               disabled={!tsvFile || !jsonFile || !hedVersion.trim() || isLoading}
-              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 disabled:dark:bg-gray-600"
+              className="w-36 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 disabled:dark:bg-gray-600"
             >
               {isLoading ? 'Validating...' : 'Validate'}
             </button>
             <button
               onClick={handleClear}
-              className="ml-4 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300"
+              className="ml-4 w-36 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300"
             >
               Clear
             </button>
@@ -218,7 +223,7 @@ function ValidateFileApp() {
               <p className="text-green-600 dark:text-green-400">{successMessage}</p>
             </div>
           )}
-          {validated && errors.length > 0 && <ErrorDisplay errors={errors} />}
+          {validated && errors.length > 0 && <ErrorDisplay errors={errors} downloadableErrors={downloadableErrors} />}
         </main>
       </div>
     </div>

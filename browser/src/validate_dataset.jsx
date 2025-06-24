@@ -22,6 +22,7 @@ import { BidsHedIssue } from '@hed-javascript-root/src/bids/types/issues.js'
 function ValidateDatasetApp() {
   const [dataset, setDataset] = useState(null)
   const [errors, setErrors] = useState([])
+  const [downloadableErrors, setDownloadableErrors] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [fileInputKey, setFileInputKey] = useState(Date.now())
@@ -31,6 +32,7 @@ function ValidateDatasetApp() {
   const handleClear = () => {
     setDataset(null)
     setErrors([])
+    setDownloadableErrors([])
     setSuccessMessage('')
     setFileInputKey(Date.now())
     setCheckWarnings(false)
@@ -44,6 +46,7 @@ function ValidateDatasetApp() {
     const numFiles = selectedFiles.length
     setIsLoading(true)
     setErrors([])
+    setDownloadableErrors([])
     setDataset(null)
     setSuccessMessage('')
     let issues = []
@@ -55,6 +58,8 @@ function ValidateDatasetApp() {
       console.error('[ValidateDatasetApp] Error during dataset processing:', err)
       issues = BidsHedIssue.transformToBids([err], { path: 'Dataset Loading' })
     } finally {
+      const issuesForDownload = BidsHedIssue.processIssues(issues, checkWarnings, false)
+      setDownloadableErrors(issuesForDownload)
       const processedIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
       if (processedIssues.length > 0) {
         setErrors(processedIssues)
@@ -73,6 +78,7 @@ function ValidateDatasetApp() {
     }
     setIsLoading(true)
     setErrors([])
+    setDownloadableErrors([])
     setSuccessMessage('')
     let issues = []
     try {
@@ -81,6 +87,8 @@ function ValidateDatasetApp() {
       console.error('[ValidateDatasetApp] Error during validation:', err)
       issues = BidsHedIssue.transformToBids([err], { path: 'Dataset Validation' })
     } finally {
+      const issuesForDownload = BidsHedIssue.processIssues(issues, checkWarnings, false)
+      setDownloadableErrors(issuesForDownload)
       const processedIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
       if (processedIssues.length > 0) {
         setErrors(processedIssues)
@@ -150,13 +158,13 @@ function ValidateDatasetApp() {
             <button
               onClick={handleValidate}
               disabled={!dataset || isLoading}
-              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 disabled:dark:bg-gray-600"
+              className="w-36 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 disabled:dark:bg-gray-600"
             >
               {isLoading ? 'Validating...' : 'Validate'}
             </button>
             <button
               onClick={handleClear}
-              className="ml-4 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300"
+              className="ml-4 w-36 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300"
             >
               Clear
             </button>
@@ -166,7 +174,7 @@ function ValidateDatasetApp() {
               <p className="text-green-600 dark:text-green-400">{successMessage}</p>
             </div>
           )}
-          {errors.length > 0 && <ErrorDisplay errors={errors} />}
+          {errors.length > 0 && <ErrorDisplay errors={errors} downloadableErrors={downloadableErrors} />}
         </main>
       </div>
     </div>
