@@ -32,7 +32,7 @@ function App() {
           Welcome to the HED JavaScript Validator
         </h1>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          A suite of tools to ensure your HED (Hierarchical Event Descriptor) tags are valid.
+          A suite of tools to validate HED (Hierarchical Event Descriptor) tags.
           <br />
           These tools are browser-based -- all data remains local.
         </p>
