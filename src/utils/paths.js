@@ -1,4 +1,9 @@
 /**
+ * This module provides utility functions for working with BIDS paths.
+ * @module
+ */
+
+/**
  * Checks if one path is a subpath of another.
  *
  * This function normalizes the input paths before comparison. Normalization includes:
@@ -130,6 +135,13 @@ export function organizePaths(relativeFilePaths, suffixes, specialDirs) {
   return { candidates, organizedPaths }
 }
 
+/**
+ * Updates the entity dictionary with a new entity.
+ *
+ * @param {object} nameDict The dictionary of BIDS filename parts.
+ * @param {string} entity The entity string to parse and add.
+ * @private
+ */
 function _updateEntity(nameDict, entity) {
   const parts = entity.split('-')
   if (parts.length === 2 && parts[0] && parts[1]) {
@@ -145,7 +157,7 @@ function _updateEntity(nameDict, entity) {
  * This is a JavaScript implementation of the Python code provided by the user.
  *
  * @param {string} filePath Path to be parsed.
- * @returns {{basename: string, suffix: string, prefix: string, ext: string, bad: string[], entities: Record<string, string>}}
+ * @returns {{basename: string, suffix: string, prefix: string, ext: string, bad: string[], entities: Record<string, string>}} An object containing the parts of the BIDS filename.
  */
 export function parseBidsFilename(filePath) {
   const nameDict = {
@@ -259,6 +271,9 @@ export function _getCandidates(jsonList, tsvDir, tsvParsed) {
 
 /**
  * Sort a list of candidate sidecar paths from least to most specific.
+ *
+ * The sorting is done based on path depth and number of entities.
+ *
  * @param {string[]} candidates A list of candidate JSON sidecar paths.
  * @private
  */
@@ -277,10 +292,16 @@ export function _sortCandidates(candidates) {
 
 /**
  * Get the merged sidecar for a given TSV file.
+ *
+ * This function implements the BIDS inheritance principle for sidecar files.
+ * It finds all applicable sidecars for a given TSV file, sorts them by specificity,
+ * checks for conflicts, and then merges them.
+ *
  * @param {string} tsvPath The path to the TSV file.
  * @param {string[]} jsonList A list of relative paths of JSON sidecars.
  * @param {Map<string, BidsSidecar>} sidecarMap A map of sidecars.
  * @returns {object} The merged sidecar data.
+ * @throws {Error} If a BIDS inheritance conflict is detected.
  */
 export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
   const tsvDir = _getDir(tsvPath)
@@ -338,7 +359,7 @@ export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
  * A generator function that yields the paths of a given file extension from a BIDS-style organized path mapping.
  *
  * @param {Map<string, Map<string, string[]>>} organizedPaths A BIDS-style organized path mapping.
- * @param {string} targetExtension The file extension to search for.
+ * @param {string} targetExtension The file extension to search for (e.g., '.json').
  * @yields {string} The paths of the given file extension.
  */
 export function* organizedPathsGenerator(organizedPaths, targetExtension) {
@@ -356,7 +377,13 @@ export function* organizedPathsGenerator(organizedPaths, targetExtension) {
   }
 }
 
-// Helper function to initialize organized paths
+/**
+ * Initialize the organized paths map.
+ *
+ * @param {string[]} keys The keys to initialize the map with.
+ * @returns {Map<string, Map<string, string[]>>} The initialized map.
+ * @private
+ */
 const _initializeOrganizedPaths = (keys) => {
   const map = new Map()
   for (const key of keys) {
