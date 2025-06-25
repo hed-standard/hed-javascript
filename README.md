@@ -5,7 +5,7 @@
 
 # hed-validator
 
-This package contains a JavaScript validator for HED (Hierarchical Event Descriptor) strings.
+This package contains a JavaScript validator for HED (Hierarchical Event Descriptor).
 
 [HED](https://www.hedtags.org/) is a system for annotating events using comma-separated path strings.
 Any type of event can be annotated using HED-type syntax.
@@ -16,9 +16,42 @@ annotation of events in an understandable, machine-actionable format.
 The current focus of the `hed-validator` package is to support full validation of HED in
 [BIDS datasets](https://bids-specification.readthedocs.io/en/stable/) under the BIDS validator 2.0.
 
-HED validation is currently also supported in an [online version of the HED validator](https://hedtools.org/hed),
-which is implemented in Python and developed in a [public GitHub repository](https://github.com/hed-standard/hed-python/).
-Validation and other HED operations are also available through web-services and a docker module.
+## Online validation
+
+A browser-based validator that uses this package is available at
+[www.hedtags.org/hed-javascript](https://www.hedtags.org/hed-javascript).
+This online validator allows users to validate HED annotations in a web
+browser without needing to install any software or upload files to a server.
+
+A number of tools for HED, including validation are also available in a Python-based
+[online validator](https://hedtools.org/hed).
+
+All source code for these tools as well as
+the HED specification and other resources are available on the GitHub [hed-standard](https://github.com/hed-standard)
+organization. The HED project homepage is [www.hedtags.org](https://www.hedtags.org).
+
+## Usage in node environment
+
+The `hed-validator` package can be used in a Node.js environment to validate HED annotations.
+
+```javascript
+// In a Node.js environment:
+const { BidsDataset, BidsDirectoryAccessor } = require('hed-validator')
+const path = require('path')
+
+async function main() {
+  const dataRoot = path.join(__dirname, 'path/to/bids/dataset')
+  const [dataset, issues] = await BidsDataset.create(dataRoot, BidsDirectoryAccessor)
+  if (dataset) {
+    const validationIssues = await dataset.validate()
+    // process issues
+  } else {
+    // process creation issues
+  }
+}
+
+main()
+```
 
 ## Usage from JavaScript
 

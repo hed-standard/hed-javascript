@@ -1,3 +1,8 @@
+/**
+ * This module contains classes for representing BIDS TSV files and their components.
+ *
+ * @module tsv
+ */
 import isPlainObject from 'lodash/isPlainObject'
 
 import { BidsFile } from './file'
@@ -24,19 +29,10 @@ export class BidsTsvFile extends BidsFile {
 
   /**
    * The pseudo-sidecar object representing the merged sidecar data.
-   * @type {import('./json.js').BidsSidecar}
+   * @type {BidsSidecar}
    */
   mergedSidecar
 
-  /**
-   * Constructor.
-   *
-   * @param {string} name - The name of the TSV file.
-   * @param {Object} file - The file object representing this file.
-   * @param {{headers: string[], rows: string[][]}|Map|string} tsvData - This file's TSV data.
-   * @param {Object} mergedDictionary - The merged sidecar data.
-   * @param {import('../../parser/definitionManager.js').DefinitionManager} defManager - The definition manager for this file.
-   */
   constructor(name, file, tsvData, mergedDictionary = {}, defManager = undefined) {
     super(name, file, BidsHedTsvValidator)
 
@@ -112,6 +108,9 @@ export class BidsTsvFile extends BidsFile {
   }
 }
 
+/**
+ * An element in a BIDS TSV file.
+ */
 export class BidsTsvElement {
   /**
    * The string representation of this row
@@ -143,14 +142,6 @@ export class BidsTsvElement {
    */
   tsvLine
 
-  /**
-   * Constructor.
-   *
-   * @param {string} hedString The HED string representing this row
-   * @param {BidsTsvFile} tsvFile The file this row belongs to.
-   * @param {number} onset - The onset for this element or undefined if none
-   * @param {string} tsvLine The line number(s) (string) corresponding to the lines in the TSV file this line is located at.
-   */
   constructor(hedString, tsvFile, onset, tsvLine) {
     this.hedString = hedString
     this.parsedHedString = null
@@ -190,14 +181,6 @@ export class BidsTsvRow extends BidsTsvElement {
    */
   rowCells
 
-  /**
-   * Constructor.
-   *
-   * @param {string} hedString The parsed string representing this row.
-   * @param {Map<string, string>} rowCells The column-to-value mapping for this row.
-   * @param {BidsTsvFile} tsvFile The file this row belongs to.
-   * @param {number} tsvLine The line number in the TSV file this line is located at.
-   */
   constructor(hedString, tsvFile, tsvLine, rowCells) {
     const onset = rowCells.has('onset') ? rowCells.get('onset') : undefined
     super(hedString, tsvFile, onset, tsvLine.toString())

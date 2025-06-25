@@ -1,3 +1,8 @@
+/**
+ * This module contains the {@link BidsFile} class, which is the base class for BIDS files.
+ *
+ * @module file
+ */
 import path from 'path'
 
 import { BidsHedIssue } from './issues'
@@ -27,13 +32,6 @@ export class BidsFile {
    */
   _validatorClass
 
-  /**
-   * Constructor.
-   *
-   * @param {string} name - The name of the file -- used for messages.
-   * @param {Object} file - The representation of the file for error messages.
-   * @param {function} validatorClass - The validator class corresponding to this file.
-   */
   constructor(name, file, validatorClass) {
     this.name = name
     this.file = file
