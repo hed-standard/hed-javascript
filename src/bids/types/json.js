@@ -20,11 +20,13 @@ export class BidsJsonFile extends BidsFile {
   jsonData
 
   /**
-   * Constructor.
+   * Constructor for a BIDS JSON file.
    *
-   * @param {string} name - The name of the JSON file.
-   * @param {Object} file - The object representing this file.
-   * @param {Object} jsonData - The JSON data for this file.
+   * Note: This class is used for non-sidecars such as dataset_description.json and does not have a validation method.
+   *
+   * @param {string} name The name of the JSON file.
+   * @param {Object} file The file object representing this file.
+   * @param {Object} jsonData The JSON data for this file.
    */
   constructor(name, file, jsonData) {
     super(name, file, BidsHedSidecarValidator)
@@ -45,6 +47,16 @@ export class BidsJsonFile extends BidsFile {
   }
 }
 
+/**
+ * @property {Map} sidecarKeys
+ * @property {Map} hedData
+ * @property {Map} parsedHedData
+ * @property {string[]} hedValueStrings
+ * @property {string[]} hedCategoricalStrings
+ * @property {Map} columnSpliceMapping
+ * @property {Set<string>} columnSpliceReferences
+ * @property {DefinitionManager} definitions
+ */
 export class BidsSidecar extends BidsJsonFile {
   /**
    * The extracted keys for this sidecar (string --> BidsSidecarKey)
@@ -95,12 +107,12 @@ export class BidsSidecar extends BidsJsonFile {
   definitions
 
   /**
-   * Constructor.
+   * Constructor for a BIDS sidecar. Used for files like events.json, participants.json, etc.
    *
    * @param {string} name The name of the sidecar file.
    * @param {Object} file The file object representing this file.
    * @param {Object} sidecarData The raw JSON data.
-   * @param {DefinitionManager } defManager - The external definitions to use
+   * @param {DefinitionManager} defManager The external definitions to use.
    */
   constructor(name, file, sidecarData = {}, defManager = undefined) {
     super(name, file, sidecarData)
@@ -334,7 +346,7 @@ export class BidsSidecar extends BidsJsonFile {
 
 export class BidsSidecarKey {
   /**
-   * The name of this key.
+   * The name of this key -- usually corresponds to a column name in a TSV file.
    * @type {string}
    */
   name
@@ -376,7 +388,7 @@ export class BidsSidecarKey {
   hasDefinitions
 
   /**
-   * Constructor.
+   * Constructor for BidsSidecarKey..
    *
    * @param {string} key The name of this key.
    * @param {string|Object<string, string>} data The data for this key.

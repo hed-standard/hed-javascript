@@ -4,6 +4,9 @@ import { generateIssue, IssueError } from '../../issues/issues.js'
  * @typedef {import('../../issues/issues.js').Issue} Issue
  */
 
+/**
+ * A wrapper for a HED validation issue that is compatible with the BIDS validator.
+ */
 export class BidsHedIssue {
   /**
    * The file associated with this issue.
