@@ -1,3 +1,8 @@
+/**
+ * This module contains the {@link BidsFile} class, which is the base class for BIDS files.
+ *
+ * @module file
+ */
 import path from 'path'
 
 import { BidsHedIssue } from './issues'

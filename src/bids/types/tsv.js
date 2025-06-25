@@ -1,3 +1,8 @@
+/**
+ * This module contains classes for representing BIDS TSV files and their components.
+ *
+ * @module tsv
+ */
 import isPlainObject from 'lodash/isPlainObject'
 
 import { BidsFile } from './file'

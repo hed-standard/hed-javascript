@@ -1,6 +1,7 @@
 /**
- * Module for parsing TSV files.
+ * This module provides functions for parsing TSV files.
  *
+ * @module tsvParser
  */
 
 const stripBOM = (str) => str.replace(/^\uFEFF/, '')

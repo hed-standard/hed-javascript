@@ -1,10 +1,11 @@
 /**
- * This module is the entry point for the HED JavaScript library.
+ * This module is the primary entry point for BIDS-related functionality.
  *
- * It provides access to the main BIDS data structures and the schema
- * builder used for HED validation and processing.
+ * It exports the primary data structures and functions for working with BIDS datasets,
+ * including {@link BidsDataset}, file-specific classes like {@link BidsTsvFile} and {@link BidsSidecar},
+ * and the {@link buildBidsSchemas} function for schema management.
  *
- * @module Bids
+ * @module bids
  */
 
 import { buildBidsSchemas } from './schema'
