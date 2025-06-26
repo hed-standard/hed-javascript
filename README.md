@@ -5,7 +5,9 @@
 
 # hed-validator
 
-This package contains a JavaScript validator for HED (Hierarchical Event Descriptor).
+This package contains a JavaScript validator for HED (Hierarchical Event Descriptor) annotations for
+tabular files and their associated JSON metadata files such as those found in datasets formatted
+in [BIDS (Brain Imaging Data Structure)](https://bids.neuroimaging.io/).
 
 [HED](https://www.hedtags.org/) is a system for annotating events using comma-separated path strings.
 Any type of event can be annotated using HED-type syntax.
