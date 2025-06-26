@@ -16,7 +16,7 @@ export class ParsedHedString {
 
   /**
    * The parsed substring data in unfiltered form.
-   * @type {ParsedHedSubstring[]}
+   * @type {import('./parsedHedSubstring.js').default[]}
    */
   parseTree
 
@@ -52,14 +52,14 @@ export class ParsedHedString {
 
   /**
    * The top-level definition tag groups in the string.
-   * @type {ParsedHedGroup[]}
+   * @type {import('./parsedHedGroup.js').default[]}
    */
   definitions
 
   /**
    * Constructor.
    * @param {string} hedString The original HED string.
-   * @param {ParsedHedSubstring[]} parsedTags The nested list of parsed HED tags and groups.
+   * @param {import('./parsedHedSubstring.js').default[]} parsedTags The nested list of parsed HED tags and groups.
    */
   constructor(hedString, parsedTags) {
     this.hedString = hedString
@@ -84,15 +84,17 @@ export class ParsedHedString {
    * Nicely format this HED string. (Doesn't allow column splices).
    *
    * @param {boolean} long Whether the tags should be in long form.
-   * @returns {string}
+   * @returns {string} The formatted HED string.
    */
   format(long = true) {
     return this.parseTree.map((substring) => substring.format(long)).join(', ')
   }
 
   /**
-   * Return a normalized string representation
-   * @returns {string}
+   * Return a normalized string representation.
+   *
+   * @returns {string} The normalized HED string.
+   * @private
    */
   _getNormalized() {
     // This is an implicit recursion as the items have the same call.
@@ -109,9 +111,9 @@ export class ParsedHedString {
   }
 
   /**
-   * Override of {@link Object.prototype.toString}.
+   * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
    *
-   * @returns {string}
+   * @returns {string} The original HED string.
    */
   toString() {
     return this.hedString

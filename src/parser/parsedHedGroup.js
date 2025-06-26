@@ -12,7 +12,7 @@ import { filterByClass, categorizeTagsByName, getDuplicates, filterByTagName } f
 export default class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * The parsed HED tags, groups, or splices in the HED tag group at the top level.
-   * @type {ParsedHedSubstring[]}
+   * @type {import('./parsedHedSubstring.js').default[]}
    */
   tags
 
@@ -30,7 +30,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * The top-level column splices in this string
-   * @type {ParsedHedColumnSplice[]}
+   * @type {import('./parsedHedColumnSplice.js').ParsedHedColumnSplice[]}
    */
   topSplices
 
@@ -78,13 +78,13 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * The unique top-level tag requiring a Def or Def-expand group, if any.
-   * @type {ParsedHedTag[] | null}
+   * @type {import('./parsedHedTag.js').default[] | null}
    */
   requiresDefTag
 
   /**
    * Constructor.
-   * @param {ParsedHedSubstring[]} parsedHedTags The parsed HED tags, groups or column splices in the HED tag group.
+   * @param {import('./parsedHedSubstring.js').default[]} parsedHedTags The parsed HED tags, groups or column splices in the HED tag group.
    * @param {string} hedString The original HED string.
    * @param {number[]} originalBounds The bounds of the HED tag in the original HED string.
    */
@@ -132,7 +132,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * Filter top tags by tag name.
    *
    * @param {string} tagName - The schemaTag name to filter by.
-   * @returns {Array} - An array of
+   * @returns {import('./parsedHedTag.js').default[]} An array of top-level tags with the given name.
    * @private
    *
    */
@@ -144,7 +144,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * Filter top subgroups that include a tag at the top-level of the group.
    *
    * @param {string} tagName - The schemaTag name to filter by.
-   * @returns {Array} - Array of subgroups containing the specified tag.
+   * @returns {ParsedHedGroup[]} Array of subgroups containing the specified tag.
    * @private
    */
   _filterSubgroupsByTagName(tagName) {
@@ -157,12 +157,18 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * Nicely format this tag group.
    *
    * @param {boolean} long Whether the tags should be in long form.
-   * @returns {string}
+   * @returns {string} The formatted tag group.
    */
   format(long = true) {
     return '(' + this.tags.map((substring) => substring.format(long)).join(', ') + ')'
   }
 
+  /**
+   * Determine if this group is equivalent to another.
+   *
+   * @param {ParsedHedGroup} other The other group.
+   * @returns {boolean} Whether the two groups are equivalent.
+   */
   equivalent(other) {
     if (!(other instanceof ParsedHedGroup)) {
       return false
@@ -176,7 +182,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
 
   /**
    * Return a normalized string representation
-   * @returns {string}
+   * @returns {string} The normalized string representation of this group.
    */
   get normalized() {
     if (this._normalized) {
@@ -201,9 +207,18 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   }
 
   /**
+   * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
+   *
+   * @returns {string} The original string for this group.
+   */
+  toString() {
+    return this.originalTag
+  }
+
+  /**
    * Iterator over the ParsedHedGroup objects in this HED tag group.
    * @param {string | null} tagName - The name of the tag whose groups are to be iterated over or null if all tags.
-   * @yields {ParsedHedGroup} - This object and the ParsedHedGroup objects belonging to this tag group.
+   * @yields {ParsedHedGroup} This object and the ParsedHedGroup objects belonging to this tag group.
    */
   *subParsedGroupIterator(tagName = null) {
     if (!tagName || filterByTagName(this.topTags, tagName)) {
@@ -219,7 +234,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Iterator over the parsed HED tags in this HED tag group.
    *
-   * @yields {ParsedHedTag} This tag group's HED tags.
+   * @yields {import('./parsedHedTag.js').default} This tag group's HED tags.
    */
   *tagIterator() {
     for (const innerTag of this.tags) {
@@ -234,7 +249,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Iterator over the parsed HED column splices in this HED tag group.
    *
-   * @yields {ParsedHedColumnSplice} This tag group's HED column splices.
+   * @yields {import('./parsedHedColumnSplice.js').ParsedHedColumnSplice} This tag group's HED column splices.
    */
   *columnSpliceIterator() {
     for (const innerTag of this.tags) {
@@ -249,7 +264,7 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
   /**
    * Iterator over the top-level parsed HED groups in this HED tag group.
    *
-   * @yields {ParsedHedTag} This tag group's top-level HED groups.
+   * @yields {ParsedHedGroup} This tag group's top-level HED groups.
    */
   *topLevelGroupIterator() {
     for (const innerTag of this.tags) {

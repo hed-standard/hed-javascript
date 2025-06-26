@@ -212,7 +212,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Override of {@link Object.prototype.toString}.
+   * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
    *
    * @returns {string} The original form of this HED tag.
    */
@@ -239,8 +239,8 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    *
    * Note: HED tags are deemed equivalent if they have the same schema and normalized tag string.
    *
-   * @param {ParsedHedTag} other - A HED tag to compare with this one.
-   * @returns {boolean} Whether {@link other} True, if other is equivalent to this HED tag.
+   * @param {ParsedHedTag} other A HED tag to compare with this one.
+   * @returns {boolean} Whether the other tag is equivalent to this HED tag.
    */
   equivalent(other) {
     return other instanceof ParsedHedTag && this.formattedTag === other.formattedTag && this.schema === other.schema
@@ -288,24 +288,21 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
-   * Checks if this HED tag has the {@code takesValue} attribute.
+   * Checks if this HED tag has the `takesValue` attribute.
    *
-   * @returns {boolean} Whether this HED tag has the {@code takesValue} attribute.
+   * @returns {boolean} Whether this HED tag has the `takesValue` attribute.
    */
-  get takesValue() {
+  takesValue() {
     return this.takesValueTag !== undefined
   }
 
   /**
-   * Checks if this HED tag has the {@code unitClass} attribute.
+   * Checks if this HED tag has the `unitClass` attribute.
    *
-   * @returns {boolean} Whether this HED tag has the {@code unitClass} attribute.
+   * @returns {boolean} Whether this HED tag has the `unitClass` attribute.
    */
-  get hasUnitClass() {
-    if (!this.takesValueTag) {
-      return false
-    }
-    return this.takesValueTag.hasUnitClasses
+  isUnitClass() {
+    return this.hasAttribute('unitClass')
   }
 
   /**

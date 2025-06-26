@@ -5,7 +5,7 @@ import issueData from './data'
 export class IssueError extends Error {
   /**
    * The associated HED issue.
-   * @type {Issue}
+   * @type {import('./issues.js').Issue}
    */
   issue
 
@@ -13,7 +13,7 @@ export class IssueError extends Error {
    * Constructor.
    *
    * @param {Issue} issue The associated HED issue.
-   * @param {...*} params Extra parameters (to be forwarded to the {@link Error} constructor).
+   * @param {...*} params Extra parameters (to be forwarded to the {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error | Error} constructor).
    */
   constructor(issue, ...params) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
@@ -109,7 +109,7 @@ export class Issue {
   }
 
   /**
-   * Override of {@link Object.prototype.toString}.
+   * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
    *
    * @returns {string} This issue's message.
    */
@@ -145,7 +145,16 @@ export class Issue {
    */
   _parseMessageTemplate() {
     const bounds = this.parameters.bounds ?? []
-    const messageTemplate = issueData[this.internalCode].message
+    const issueCodeData = issueData[this.internalCode]
+    if (issueCodeData === undefined) {
+      const messageTemplate = issueData.genericError.message
+      const tempParameters = {
+        internalCode: this.internalCode,
+        parameters: JSON.stringify(this.parameters),
+      }
+      return messageTemplate(tempParameters)
+    }
+    const messageTemplate = issueCodeData.message
     return messageTemplate(...bounds, this.parameters)
   }
 
@@ -184,7 +193,7 @@ export class Issue {
  * @param {Object} parameters The error string parameters.
  * @returns {Issue} An object representing the issue.
  */
-export const generateIssue = function (internalCode, parameters) {
+export const generateIssue = function (internalCode, parameters = {}) {
   const issueCodeData = issueData[internalCode] ?? issueData.genericError
   const { hedCode, level } = issueCodeData
   if (issueCodeData === issueData.genericError) {

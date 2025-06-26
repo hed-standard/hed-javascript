@@ -44,8 +44,8 @@ export class BidsHedTsvValidator extends BidsValidator {
     if (this.tsvFile.mergedSidecar) {
       const issues = this.tsvFile.mergedSidecar.validate(this.hedSchemas)
       const splitErrors = BidsHedIssue.splitErrors(issues)
-      this.errors.push(...(splitErrors.error ?? []))
-      this.warnings.push(...(splitErrors.warning ?? []))
+      this.errors.push(...(splitErrors.get('error') ?? []))
+      this.warnings.push(...(splitErrors.get('warning') ?? []))
       if (this.errors.length > 0) {
         return
       }

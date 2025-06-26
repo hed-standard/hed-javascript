@@ -1,3 +1,8 @@
+/**
+ * This module contains classes for representing BIDS JSON files, including {@link BidsJsonFile} and {@link BidsSidecar}.
+ *
+ * @module json
+ */
 import isPlainObject from 'lodash/isPlainObject'
 
 import { parseHedString } from '../../parser/parser'
@@ -20,18 +25,43 @@ export class BidsJsonFile extends BidsFile {
   jsonData
 
   /**
-   * Constructor.
+   * Constructor for a BIDS JSON file.
    *
-   * @param {string} name - The name of the JSON file.
-   * @param {Object} file - The object representing this file.
-   * @param {Object} jsonData - The JSON data for this file.
+   * Note: This class is used for non-sidecars such as dataset_description.json and does not have a validation method.
+   *
+   * @param {string} name The name of the JSON file.
+   * @param {Object} file The file object representing this file.
+   * @param {Object} jsonData The JSON data for this file.
    */
   constructor(name, file, jsonData) {
     super(name, file, BidsHedSidecarValidator)
     this.jsonData = jsonData
   }
+
+  /**
+   * Parse a BIDS JSON file from a BIDS dataset path.
+   *
+   * @param {string} datasetRoot The root path of the dataset.
+   * @param {string} relativePath The relative path of the file within the dataset.
+   * @returns {Promise<BidsJsonFile>} The built JSON file object.
+   */
+  static async createFromBidsDatasetPath(datasetRoot, relativePath) {
+    const [contents, fileObject] = await BidsFile.readBidsFileFromDatasetPath(datasetRoot, relativePath)
+    const jsonData = JSON.parse(contents)
+    return new BidsJsonFile(relativePath, fileObject, jsonData)
+  }
 }
 
+/**
+ * @property {Map} sidecarKeys
+ * @property {Map} hedData
+ * @property {Map} parsedHedData
+ * @property {string[]} hedValueStrings
+ * @property {string[]} hedCategoricalStrings
+ * @property {Map} columnSpliceMapping
+ * @property {Set<string>} columnSpliceReferences
+ * @property {DefinitionManager} definitions
+ */
 export class BidsSidecar extends BidsJsonFile {
   /**
    * The extracted keys for this sidecar (string --> BidsSidecarKey)
@@ -82,12 +112,12 @@ export class BidsSidecar extends BidsJsonFile {
   definitions
 
   /**
-   * Constructor.
+   * Constructor for a BIDS sidecar. Used for files like events.json, participants.json, etc.
    *
    * @param {string} name The name of the sidecar file.
    * @param {Object} file The file object representing this file.
    * @param {Object} sidecarData The raw JSON data.
-   * @param {DefinitionManager } defManager - The external definitions to use
+   * @param {DefinitionManager} defManager The external definitions to use.
    */
   constructor(name, file, sidecarData = {}, defManager = undefined) {
     super(name, file, sidecarData)
@@ -96,6 +126,19 @@ export class BidsSidecar extends BidsJsonFile {
     this._setDefinitions(defManager)
     this._filterHedStrings()
     this._categorizeHedStrings()
+  }
+
+  /**
+   * Parse a BIDS sidecar from a BIDS dataset path.
+   *
+   * @param {string} datasetRoot The root path of the dataset.
+   * @param {string} relativePath The relative path of the file within the dataset.
+   * @returns {Promise<BidsSidecar>} The built sidecar object.
+   */
+  static async createFromBidsDatasetPath(datasetRoot, relativePath) {
+    const [contents, fileObject] = await BidsFile.readBidsFileFromDatasetPath(datasetRoot, relativePath)
+    const jsonData = JSON.parse(contents)
+    return new BidsSidecar(relativePath, fileObject, jsonData)
   }
 
   /**
@@ -308,7 +351,7 @@ export class BidsSidecar extends BidsJsonFile {
 
 export class BidsSidecarKey {
   /**
-   * The name of this key.
+   * The name of this key -- usually corresponds to a column name in a TSV file.
    * @type {string}
    */
   name
@@ -350,7 +393,7 @@ export class BidsSidecarKey {
   hasDefinitions
 
   /**
-   * Constructor.
+   * Constructor for BidsSidecarKey..
    *
    * @param {string} key The name of this key.
    * @param {string|Object<string, string>} data The data for this key.

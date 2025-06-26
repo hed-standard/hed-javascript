@@ -3,6 +3,12 @@ import { getTagSlashIndices } from '../utils/hedStrings'
 import { ReservedChecker } from './reservedChecker'
 
 /**
+ * @typedef {import('../schema/entries.js').SchemaTag} SchemaTag
+ * @typedef {import('../schema/containers.js').Schemas} Schemas
+ * @typedef {import('./tokenizer.js').TagSpec} TagSpec
+ */
+
+/**
  * Converter from a tag specification to a schema-based tag object.
  */
 export default class TagConverter {
@@ -74,8 +80,8 @@ export default class TagConverter {
   /**
    * Retrieve the {@link SchemaTag} object for a tag specification.
    *
-   * @returns {Array} - [SchemaTag, string] representing schema's corresponding tag object and the remainder of the tag string.
-   * @throws {IssueError} If tag conversion.
+   * @returns {[SchemaTag, string]} The schema's corresponding tag object and the remainder of the tag string.
+   * @throws {IssueError} If tag conversion fails.
    */
   convert() {
     let parentTag = undefined

@@ -1,0 +1,15 @@
+onset	duration	event_type	face_type	rep_status	trial	rep_lag	value	stim_file
+24.20981818	n/a	show_face_initial	unfamiliar_face	first_show	1	n/a	13	u032.bmp
+25.03527273	n/a	show_circle	n/a	n/a	1	n/a	0	circle.bmp
+25.158	n/a	left_press	n/a	n/a	1	n/a	256	n/a
+26.73527273	n/a	show_cross	n/a	n/a	2	n/a	1	cross.bmp
+27.24981818	n/a	show_face	unfamiliar_face	immediate_repeat	2	1	14	u032.bmp
+27.89709091	n/a	left_press	n/a	n/a	2	n/a	256	n/a
+28.09981818	n/a	show_circle	n/a	n/a	2	n/a	0	circle.bmp
+29.79981818	n/a	show_cross	n/a	n/a	3	n/a	1	cross.bmp
+30.35709091	n/a	show_face	unfamiliar_face	first_show	3	n/a	13	u088.bmp
+31.188	n/a	show_circle	n/a	n/a	3	n/a	0	circle.bmp
+32.888	n/a	show_cross	n/a	n/a	4	n/a	1	cross.bmp
+33.36436364	n/a	show_face	unfamiliar_face	first_show	4	n/a	13	u084.bmp
+34.368	n/a	show_circle	n/a	n/a	4	n/a	0	circle.bmp
+36.068	n/a	show_cross	n/a	n/a	5	n/a	1	cross.bmp

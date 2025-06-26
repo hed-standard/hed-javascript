@@ -11,7 +11,7 @@ import { BidsSidecar, BidsTsvFile } from '../src/bids'
 import { generateIssue, IssueError } from '../src/issues/issues'
 import { DefinitionManager } from '../src/parser/definitionManager'
 import parseTSV from '../src/bids/tsvParser'
-import { shouldRun } from '../tests/testUtilities'
+import { shouldRun } from '../tests/testHelpers/testUtilities'
 const fs = require('fs')
 
 const skipMap = new Map()
@@ -25,6 +25,36 @@ const skippedErrors = {}
 const readFileSync = fs.readFileSync
 const test_file_name = 'javascriptTests.json'
 // const test_file_name = 'temp6.json'
+
+
+function toMatchIssue(receivedError, expectedCode, expectedParams = {}) {
+  const expectedIssue = generateIssue(expectedCode, expectedParams)
+
+  const passType = receivedError instanceof IssueError
+  const passMessage = receivedError.message === expectedIssue.message
+
+  if (passType && passMessage) {
+    return {
+      pass: true,
+      message: () =>
+        `Expected error not to match IssueError with message "${expectedIssue.message}", but it did.`,
+    }
+  } else {
+    return {
+      pass: false,
+      message: () => {
+        let msg = ''
+        if (!passType) {
+          msg += `Expected error to be instance of IssueError but got ${receivedError.constructor.name}\n`
+        }
+        if (!passMessage) {
+          msg += `Expected message:\n  "${expectedIssue.message}"\nReceived:\n  "${receivedError.message}"`
+        }
+        return msg
+      },
+    }
+  }
+}
 
 function comboListToStrings(items) {
   const comboItems = []
@@ -71,6 +101,12 @@ function tsvToString(events) {
   return events.map((row) => row.join('\t')).join('\n')
 }
 
+  expect.extend({
+    toMatchIssue(receivedError, expectedCode, expectedParams) {
+      return toMatchIssue(receivedError, expectedCode, expectedParams)
+    }
+  })
+
 describe('HED validation using JSON tests', () => {
   const schemaMap = new Map([
     ['8.2.0', undefined],
@@ -88,10 +124,10 @@ describe('HED validation using JSON tests', () => {
     const spec4 = new SchemaSpec('', '8.4.0', '', path.join(__dirname, '../src/data/schemas/HED8.4.0.xml'))
     const specs4 = new SchemasSpec().addSchemaSpec(spec4)
 
-    const spec3Lib = new SchemaSpec('ts', '8.3.0', '', path.join(__dirname, '../src/data/schemas/HED8.3.0.xml'))
+    const spec3Lib = new SchemaSpec('ts', '8.4.0', '', path.join(__dirname, '../src/data/schemas/HED8.4.0.xml'))
     const specs3Lib = new SchemasSpec().addSchemaSpec(spec3Lib)
 
-    const specScore = new SchemaSpec('sc', '1.0.0', 'score', path.join(__dirname, '../tests/data/HED_score_1.0.0.xml'))
+    const specScore = new SchemaSpec('sc', '1.0.0', 'score', path.join(__dirname, '../tests/otherTestData/HED_score_1.0.0.xml'))
     const specsScore = new SchemasSpec().addSchemaSpec(specScore)
 
     const [schemas2, schemas3, schemas4, schemas3lib, schemaScore] = await Promise.all([

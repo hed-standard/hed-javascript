@@ -45,7 +45,7 @@ export class ParsedHedSubstring {
   }
 
   /**
-   * Override of {@link Object.prototype.toString}.
+   * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
    *
    * @returns {string} The original form of this HED substring.
    */
