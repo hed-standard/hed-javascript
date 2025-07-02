@@ -395,7 +395,7 @@ export default {
   invalidSchemaSpecification: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`The supplied schema specification is invalid. Specification: ${'spec'}.`,
+    message: stringTemplate`The supplied HED schema specification is invalid. Specification: ${'spec'}.`,
   },
   missingSchemaSpecification: {
     hedCode: 'SCHEMA_LOAD_FAILED',
@@ -478,6 +478,16 @@ export default {
     hedCode: 'INTERNAL_ERROR',
     level: 'error',
     message: stringTemplate`Internal error - message: "${'message'}".`,
+  },
+  networkReadError: {
+    hedCode: 'INTERNAL_ERROR',
+    level: 'error',
+    message: stringTemplate`I/O error when reading from network - server responded to URL "${'url'}" with HTTP status code ${'statusCode'} ${'statusText'}.`,
+  },
+  fileReadError: {
+    hedCode: 'INTERNAL_ERROR',
+    level: 'error',
+    message: stringTemplate`I/O error when reading file or directory "${'fileName'}" - message: "${'message'}".`,
   },
   genericError: {
     hedCode: 'INTERNAL_ERROR',

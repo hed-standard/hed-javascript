@@ -19,7 +19,7 @@ permissions:
 
 # Allow only one concurrent deployment, cancelling any previously running ones.
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: true
 
 jobs:
@@ -41,12 +41,20 @@ jobs:
           node-version: 20
           # Cache npm dependencies to speed up future builds
           cache: 'npm'
-          cache-dependency-path: browser/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            browser/package-lock.json
 
-      - name: Install dependencies
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install browser dependencies
         # Specifies the working directory for the command
         working-directory: ./browser
         run: npm ci
+
+      - name: Build documentation
+        run: npx typedoc
 
       - name: Build Vite site
         working-directory: ./browser

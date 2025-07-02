@@ -6,7 +6,7 @@ import xml2js from 'xml2js'
 import * as files from '../utils/files'
 import { IssueError } from '../issues/issues'
 
-import { localSchemaList } from './config'
+import { localSchemaNames } from './config' // Changed from localSchemaList
 
 /**
  * Load schema XML data from a schema version or path description.
@@ -35,7 +35,8 @@ async function loadPromise(schemaDef) {
     return null
   } else if (schemaDef.localPath) {
     return loadLocalSchema(schemaDef.localPath)
-  } else if (localSchemaList.has(schemaDef.localName)) {
+  } else if (localSchemaNames.includes(schemaDef.localName)) {
+    // Changed condition
     return loadBundledSchema(schemaDef)
   } else {
     return loadRemoteSchema(schemaDef)
@@ -78,8 +79,33 @@ function loadLocalSchema(path) {
  * @throws {IssueError} If the schema could not be loaded.
  */
 async function loadBundledSchema(schemaDef) {
+  let xmlString
+  const schemaFileName = `${schemaDef.localName}.xml`
+  const relativeSchemaPath = `../data/schemas/${schemaFileName}`
+
   try {
-    return parseSchemaXML(localSchemaList.get(schemaDef.localName))
+    if (typeof __VITE_ENV__ !== 'undefined' && __VITE_ENV__) {
+      // Vite/browser environment: Use import.meta.glob for dynamic, async imports
+      // @ts-ignore - import.meta.glob is Vite-specific
+      const viteSchemaLoaders = import.meta.glob('../data/schemas/*.xml', { query: '?raw', import: 'default' })
+      const loadFn = viteSchemaLoaders[relativeSchemaPath]
+      if (loadFn) {
+        xmlString = await loadFn()
+      } else {
+        IssueError.generateAndThrow('bundledSchemaLoadFailed', {
+          spec: JSON.stringify(schemaDef),
+          error: `Schema file ${schemaFileName} not found by Vite loader. Expected path: ${relativeSchemaPath}`,
+        })
+      }
+    } else {
+      // Node.js/Jest environment: Use fs.promises.readFile
+      const path = require('path')
+      const fsp = require('fs').promises
+      // __dirname in loader.js is i:\HEDJavascript\hed-javascript\src\schema
+      const absoluteSchemaPath = path.resolve(__dirname, '../data/schemas', schemaFileName)
+      xmlString = await fsp.readFile(absoluteSchemaPath, 'utf-8')
+    }
+    return parseSchemaXML(xmlString)
   } catch (error) {
     const issueArgs = { spec: JSON.stringify(schemaDef), error: error.message }
     IssueError.generateAndThrow('bundledSchemaLoadFailed', issueArgs)

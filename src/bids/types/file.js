@@ -1,5 +1,13 @@
+/**
+ * This module contains the {@link BidsFile} class, which is the base class for BIDS files.
+ *
+ * @module file
+ */
+import path from 'path'
+
 import { BidsHedIssue } from './issues'
 import { generateIssue } from '../../issues/issues'
+import { readFile } from '../../utils/files'
 
 /**
  * A BIDS file.
@@ -24,13 +32,6 @@ export class BidsFile {
    */
   _validatorClass
 
-  /**
-   * Constructor.
-   *
-   * @param {string} name - The name of the file -- used for messages.
-   * @param {Object} file - The representation of the file for error messages.
-   * @param {BidsValidator} validatorClass - The validator class corresponding to this file.
-   */
   constructor(name, file, validatorClass) {
     this.name = name
     this.file = file
@@ -38,12 +39,27 @@ export class BidsFile {
   }
 
   /**
-   * Whether this is a TSV file timeline file.
+   * Read a BIDS file from a relative path within a dataset.
    *
-   * @returns {boolean}
+   * @param {string} datasetRoot The root path of the dataset.
+   * @param {string} relativePath The relative path of the file within the dataset.
+   * @returns {Promise<Array>} A Promise that resolves to a two-element array containing the file contents and a mocked BIDS-type file object.
    */
-  get isTimelineFile() {
-    return false
+  static async readBidsFileFromDatasetPath(datasetRoot, relativePath) {
+    const filePath = path.join(datasetRoot, relativePath)
+    const fileObject = { path: filePath }
+    return [await readFile(filePath), fileObject]
+  }
+
+  /**
+   * Read a BIDS file from a path.
+   *
+   * @param {string} filePath The actual path of the file.
+   * @returns {Promise<Array>} A Promise that resolves to a two-element array containing the file contents and a mocked BIDS-type file object.
+   */
+  static async readBidsFile(filePath) {
+    const fileObject = { path: filePath }
+    return [await readFile(filePath), fileObject]
   }
 
   /**
@@ -78,6 +94,15 @@ export class BidsFile {
   }
 
   /**
+   * Whether this is a TSV file timeline file.
+   *
+   * @returns {boolean}
+   */
+  get isTimelineFile() {
+    return false
+  }
+
+  /**
    * Determine whether this file has any HED data.
    *
    * @returns {boolean}
@@ -89,7 +114,7 @@ export class BidsFile {
   /**
    * The validator class used to validate this file.
    *
-   * @returns {function} (typeof BidsValidator) A subclass constructor of {@link BidsValidator}.
+   * @returns {function} The validator class used to validate this file.
    */
   get validatorClass() {
     return this._validatorClass

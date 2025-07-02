@@ -1,8 +1,7 @@
 /**
- * Module for parsing TSV files.
+ * This module provides functions for parsing TSV files.
  *
- * Adapted from https://github.com/bids-standard/bids-validator/blob/6fc6d152b52266934575442e61f1477ba18f42ec/bids-validator/validators/tsv/tsvParser.js
- * and https://github.com/bids-standard/bids-validator/blob/a5c63b445e3103bcc0843deac192033a9f0b4c5b/bids-validator/src/files/tsv.ts
+ * @module tsvParser
  */
 
 const stripBOM = (str) => str.replace(/^\uFEFF/, '')
@@ -10,7 +9,7 @@ const normalizeEOL = (str) => str.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 const isContentfulRow = (row) => row && !/^\s*$/.test(row)
 
 /**
- * Parse a TSV file.
+ * Parse a TSV file
  *
  * @param {string} contents The contents of a TSV file.
  * @returns {Map<string, string[]>} The parsed contents of the TSV file.

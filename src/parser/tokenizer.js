@@ -107,7 +107,12 @@ export class ColumnSpliceSpec extends SubstringSpec {
   }
 }
 
-class TokenizerState {
+/**
+ * A class representing the current state of the HED string tokenizer.
+ *
+ * @internal
+ */
+export class TokenizerState {
   constructor() {
     this.currentToken = '' // Characters in the token currently being parsed
     this.groupDepth = 0
@@ -124,6 +129,27 @@ class TokenizerState {
  * Class for tokenizing HED strings.
  */
 export class HedStringTokenizer {
+  /**
+   * The HED string being tokenized.
+   * @type {string}
+   */
+  hedString
+  /**
+   * The issues found during tokenization.
+   * @type {Issue[]}
+   */
+  issues
+  /**
+   * The current state of the tokenizer.
+   * @type {TokenizerState}
+   * @internal
+   */
+  state
+
+  /**
+   * Constructor.
+   * @param {string} hedString The HED string to tokenize.
+   */
   constructor(hedString) {
     this.hedString = hedString
     this.issues = []
@@ -157,6 +183,11 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Reset the current token.
+   * @param {number} i The current index in the HED string.
+   * @internal
+   */
   resetToken(i) {
     this.state.startingIndex = i + 1
     this.state.currentToken = ''
@@ -164,6 +195,10 @@ export class HedStringTokenizer {
     this.state.lastSlash = '-1'
   }
 
+  /**
+   * Finalize the tokenization process.
+   * @internal
+   */
   finalizeTokenizer() {
     if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
       // Extra opening brace
@@ -193,12 +228,22 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Initialize the tokenizer.
+   * @internal
+   */
   initializeTokenizer() {
     this.issues = []
     this.state = new TokenizerState()
     this.state.parenthesesStack = [new GroupSpec(0, this.hedString.length, [])]
   }
 
+  /**
+   * Handle a single character during tokenization.
+   * @param {number} i The index of the character.
+   * @param {string} character The character to handle.
+   * @internal
+   */
   handleCharacter(i, character) {
     const characterHandler = {
       [CHARACTERS.OPENING_GROUP]: () => this.handleOpeningGroup(i),
@@ -219,6 +264,11 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Handle a comma character.
+   * @param {number} i The index of the comma.
+   * @internal
+   */
   handleComma(i) {
     const trimmed = this.hedString.slice(this.state.lastDelimiter[1] + 1, i).trim()
     if (
@@ -243,6 +293,11 @@ export class HedStringTokenizer {
     this.state.lastDelimiter = [CHARACTERS.COMMA, i]
   }
 
+  /**
+   * Handle a slash character.
+   * @param {number} i The index of the slash.
+   * @internal
+   */
   handleSlash(i) {
     if (this.state.currentToken.trim().length === 0) {
       // Slash at beginning of tag.
@@ -261,6 +316,11 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Handle an opening group character.
+   * @param {number} i The index of the opening group character.
+   * @internal
+   */
   handleOpeningGroup(i) {
     if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
       this.pushIssue('unclosedCurlyBrace', this.state.lastDelimiter[1]) // After open curly brace Ex: "{  ("
@@ -279,6 +339,11 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Handle a closing group character.
+   * @param {number} i The index of the closing group character.
+   * @internal
+   */
   handleClosingGroup(i) {
     if (this.state.groupDepth <= 0) {
       this.pushIssue('unopenedParenthesis', i) // No corresponding opening group
@@ -294,6 +359,11 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Handle an opening column character.
+   * @param {number} i The index of the opening column character.
+   * @internal
+   */
   handleOpeningColumn(i) {
     if (this.state.currentToken.trim().length > 0) {
       this.pushInvalidCharacterIssue(CHARACTERS.OPENING_COLUMN, i) // Middle of a token Ex: "x {"
@@ -304,6 +374,11 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Handle a closing column character.
+   * @param {number} i The index of the closing column character.
+   * @internal
+   */
   handleClosingColumn(i) {
     if (this.state.lastDelimiter[0] !== CHARACTERS.OPENING_COLUMN) {
       this.pushIssue('unopenedCurlyBrace', i) // No matching open brace Ex: " x}"
@@ -319,6 +394,11 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Handle a colon character.
+   * @param {number} i The index of the colon.
+   * @internal
+   */
   handleColon(i) {
     const trimmed = this.state.currentToken.trim()
     if (this.state.librarySchema || trimmed.includes(CHARACTERS.BLANK) || trimmed.includes(CHARACTERS.SLASH)) {
@@ -332,6 +412,10 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Unwind the group stack to handle unclosed groups.
+   * @internal
+   */
   unwindGroupStack() {
     while (this.state.groupDepth > 0) {
       this.pushIssue(
@@ -342,6 +426,11 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Push a tag to the current group stack.
+   * @param {number} i The current index in the HED string.
+   * @internal
+   */
   pushTag(i) {
     if (this.state.currentToken.trim().length === 0) {
       this.pushIssue('emptyTagFound', i)
@@ -361,6 +450,11 @@ export class HedStringTokenizer {
     }
   }
 
+  /**
+   * Check for issues related to placeholders in the current token.
+   * @returns {boolean} Whether any placeholder issues were found.
+   * @internal
+   */
   checkForBadPlaceholderIssues() {
     const tokenSplit = this.state.currentToken.split(CHARACTERS.PLACEHOLDER)
     if (tokenSplit.length === 1) {
@@ -374,6 +468,11 @@ export class HedStringTokenizer {
     )
   }
 
+  /**
+   * Close the current group.
+   * @param {number} i The current index in the HED string.
+   * @internal
+   */
   closeGroup(i) {
     const groupSpec = this.state.parenthesesStack.pop()
     groupSpec.bounds[1] = i + 1
@@ -385,14 +484,33 @@ export class HedStringTokenizer {
     this.state.groupDepth--
   }
 
+  /**
+   * Push an issue to the issue list.
+   * @param {string} issueCode The issue code.
+   * @param {number} index The index of the issue.
+   * @internal
+   */
   pushIssue(issueCode, index) {
     this.issues.push(generateIssue(issueCode, { index, string: this.hedString }))
   }
 
+  /**
+   * Push an invalid tag issue to the issue list.
+   * @param {string} issueCode The issue code.
+   * @param {number} index The index of the issue.
+   * @param {string} tag The invalid tag.
+   * @internal
+   */
   pushInvalidTag(issueCode, index, tag) {
     this.issues.push(generateIssue(issueCode, { index, tag: tag, string: this.hedString }))
   }
 
+  /**
+   * Push an invalid character issue to the issue list.
+   * @param {string} character The invalid character.
+   * @param {number} index The index of the character.
+   * @internal
+   */
   pushInvalidCharacterIssue(character, index) {
     this.issues.push(
       generateIssue('invalidCharacter', { character: unicodeName(character), index, string: this.hedString }),

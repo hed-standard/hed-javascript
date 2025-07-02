@@ -1,3 +1,7 @@
+/**
+ * This module contains functions for building HED schemas for BIDS datasets.
+ * @module schema
+ */
 import castArray from 'lodash/castArray'
 import semver from 'semver'
 

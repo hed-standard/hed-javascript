@@ -543,7 +543,6 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
    * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this unit class.
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this unit class.
    * @param {Map<string, SchemaUnit>} units The units for this unit class.
-   * @constructor
    */
   constructor(name, booleanAttributes, valueAttributes, units) {
     super(name, booleanAttributes, valueAttributes)
@@ -701,7 +700,6 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this tag.
    * @param {SchemaUnitClass[]} unitClasses The unit classes for this tag.
    * @param {SchemaValueClass[]} valueClasses The value classes for this tag.
-   * @constructor
    */
   constructor(name, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
     super(name, booleanAttributes, valueAttributes)

@@ -9,6 +9,11 @@ spec_tests/temp*.json
 spec_tests/temp.spec.js
 tests/temp.spec.js
 
+# Ignore local build output
+/build/
+/docs/html/
+/browser/buildweb/
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
