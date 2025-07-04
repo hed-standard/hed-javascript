@@ -12,9 +12,9 @@ export const localSchemaNames = [
   'HED8.3.0',
   'HED8.4.0',
   'HED_lang_1.0.0',
+  'HED_lang_1.1.0',
   'HED_score_1.2.0',
   'HED_score_2.0.0',
-  'HED_testlib_1.0.2',
-  'HED_testlib_2.0.0',
+  'HED_score_2.1.0',
   // Add other bundled schema base names here if needed
 ]
