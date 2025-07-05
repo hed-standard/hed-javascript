@@ -151,14 +151,6 @@ export class BidsSidecar extends BidsJsonFile {
   }
 
   /**
-   * The extracted HED strings.
-   * @returns {string[]}
-   */
-  get hedStrings() {
-    return this.hedValueStrings.concat(this.hedCategoricalStrings)
-  }
-
-  /**
    * Parse this sidecar's HED strings within the sidecar structure.
    *
    * The parsed strings are placed into {@link parsedHedData}.
@@ -196,12 +188,13 @@ export class BidsSidecar extends BidsJsonFile {
   _setDefinitions(defManager) {
     if (defManager instanceof DefinitionManager) {
       this.definitions = defManager
-    } else if (!defManager) {
+    } else if (!defManager || defManager === null) {
       this.definitions = new DefinitionManager()
     } else {
-      IssueError.generateAndThrowInternalError(
-        'Improper format for defManager parameter -- must be null or DefinitionManager',
-      )
+      IssueError.generateAndThrow('invalidDefinitionManager', {
+        defManager: String(defManager),
+        filePath: this.file.path,
+      })
     }
   }
 
@@ -217,18 +210,46 @@ export class BidsSidecar extends BidsJsonFile {
           const lowerKey = trimmedKey.toLowerCase()
 
           if (ILLEGAL_SIDECAR_KEYS.has(lowerKey)) {
-            IssueError.generateAndThrow('illegalSidecarHedKey')
+            IssueError.generateAndThrow('illegalSidecarHedKey', {
+              filePath: this.file.path,
+              sidecarKey: trimmedKey,
+            })
           }
 
           if (BidsSidecar._sidecarValueHasHed(value)) {
             return [trimmedKey, new BidsSidecarKey(trimmedKey, value.HED, this)]
           }
 
-          BidsSidecar._verifyKeyHasNoDeepHed(key, value)
+          this._verifyKeyHasNoDeepHed(key, value, key)
           return null
         })
         .filter(Boolean),
     )
+  }
+
+  /**
+   * Verify that a column has no deeply nested "HED" keys.
+   *
+   * @param {string} key An object key.
+   * @param {*} value An object value.
+   * @param {string|null} topKey The top-level key, if any.
+   * @throws {IssueError} If an invalid "HED" key is found.
+   * @private
+   */
+  _verifyKeyHasNoDeepHed(key, value, topKey = null) {
+    if (key.toUpperCase() === 'HED') {
+      IssueError.generateAndThrow('illegalSidecarHedDeepKey', {
+        key: topKey,
+        filePath: this.file.path,
+        sidecarKey: topKey,
+      })
+    }
+    if (!isPlainObject(value)) {
+      return
+    }
+    for (const [subkey, subvalue] of Object.entries(value)) {
+      this._verifyKeyHasNoDeepHed(subkey, subvalue, topKey)
+    }
   }
 
   /**
@@ -240,26 +261,6 @@ export class BidsSidecar extends BidsJsonFile {
    */
   static _sidecarValueHasHed(sidecarValue) {
     return sidecarValue !== null && typeof sidecarValue === 'object' && sidecarValue.HED !== undefined
-  }
-
-  /**
-   * Verify that a column has no deeply nested "HED" keys.
-   *
-   * @param {string} key An object key.
-   * @param {*} value An object value.
-   * @throws {IssueError} If an invalid "HED" key is found.
-   * @private
-   */
-  static _verifyKeyHasNoDeepHed(key, value) {
-    if (key.toUpperCase() === 'HED') {
-      IssueError.generateAndThrow('illegalSidecarHedDeepKey')
-    }
-    if (!isPlainObject(value)) {
-      return
-    }
-    for (const [subkey, subvalue] of Object.entries(value)) {
-      BidsSidecar._verifyKeyHasNoDeepHed(subkey, subvalue)
-    }
   }
 
   /**
@@ -296,7 +297,7 @@ export class BidsSidecar extends BidsJsonFile {
       } else if (hedData instanceof Map) {
         this._parseCategorySplice(sidecarKey, hedData)
       } else if (hedData) {
-        IssueError.generateAndThrowInternalError('Unexpected type found in sidecar parsedHedData map.')
+        IssueError.generateAndThrow('illegalSidecarData', { key: sidecarKey, filePath: this.file.path })
       }
     }
   }
@@ -317,7 +318,7 @@ export class BidsSidecar extends BidsJsonFile {
   /**
    *
    * @param {BidsSidecarKey} sidecarKey - The column to be checked for column splices.
-   * @param {ParsedHedString} hedData - The parsed HED string to check for column splices.
+   * @param {Map} hedData - The parsed HED string to check for column splices.
    * @private
    */
   _parseCategorySplice(sidecarKey, hedData) {
@@ -393,7 +394,7 @@ export class BidsSidecarKey {
   hasDefinitions
 
   /**
-   * Constructor for BidsSidecarKey..
+   * Constructor for BidsSidecarKey.
    *
    * @param {string} key The name of this key.
    * @param {string|Object<string, string>} data The data for this key.
