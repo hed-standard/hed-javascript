@@ -1,8 +1,8 @@
 import chai from 'chai'
 const assert = chai.assert
 import { describe, test } from '@jest/globals'
-import { BidsHedIssue } from '../../../src/bids/types/issues'
-import { Issue } from '../../../src/issues/issues'
+import { BidsHedIssue } from '../../src/bids/types/issues'
+import { Issue } from '../../src/issues/issues'
 
 describe('BidsHedIssue', () => {
   describe('splitErrors', () => {

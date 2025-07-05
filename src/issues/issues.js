@@ -60,6 +60,7 @@ export class Issue {
     ['sidecarKey', 'Sidecar key'],
     ['tsvLine', 'TSV line'],
     ['hedString', 'HED string'],
+    ['filePath', 'File path'],
   ])
 
   /**
