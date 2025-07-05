@@ -21,6 +21,7 @@ jobs:
         run: ./node_modules/.bin/jest --coverage
       - name: Upload coverage to Quality
         uses: qltysh/qlty-action/coverage@v1
+        env:
+          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
         with:
-          token: ${{secrets.QLTY_COVERAGE_TOKEN}}
           files: coverage/lcov.info

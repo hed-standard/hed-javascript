@@ -8,7 +8,7 @@ on:
       branch:
         description: 'The branch to build and deploy from'
         required: true
-        default: 'web-interface' # Or set your most common branch, like 'web-interface'
+        default: 'main' # Or set your most common branch
         type: string
 
 # Set permissions for the GITHUB_TOKEN to allow deployment to GitHub Pages
