@@ -17,9 +17,10 @@ jobs:
           node-version: lts/*
       - name: Download dependencies
         run: npm ci
-      - name: Test & publish code coverage
-        uses: paambaati/codeclimate-action@v9.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      - name: Generate coverage report
+        run: ./node_modules/.bin/jest --coverage
+      - name: Upload coverage to Quality
+        uses: qltysh/qlty-action/coverage@v1
         with:
-          coverageCommand: ./node_modules/.bin/jest --coverage
+          token: ${{secrets.QLTY_COVERAGE_TOKEN}}
+          files: coverage/lcov.info

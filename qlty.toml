@@ -1,0 +1,32 @@
+# See https://docs.qlty.com/getting-started/configuration
+
+exclude = [
+  ".github/",
+  ".husky/",
+  "browser/",
+  "docs/",
+  "dist/",
+  "spec_tests/",
+  "**/tests/",
+  "**/node_modules/",
+  "**/*.yml",
+  "**/*.yaml",
+  "**/*.json",
+  "**/.gitignore",
+  "**/README*",
+  "**/LICENSE",
+  ".codespellrc",
+]
+
+[checks]
+argument-count = { threshold = 4 }
+complex-logic = { threshold = 4 }
+file-lines = { threshold = 300 }
+method-complexity = { threshold = 8 }
+method-count = { threshold = 20 }
+method-lines = { threshold = 50 }
+nested-control-flow = { threshold = 4 }
+return-statements = { threshold = 4 }
+similar-code = { threshold = 100 }
+identical-code = { threshold = 100 }
+
