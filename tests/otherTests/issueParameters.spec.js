@@ -174,7 +174,7 @@ describe('Issue Parameters Tests', () => {
       }
 
       expectError(thrownError, 'illegalSidecarData', 'SIDECAR_INVALID')
-      expect(thrownError.issue.parameters.key).toBe('event_code')
+      expect(thrownError.issue.parameters.sidecarKey).toBe('event_code')
       expect(thrownError.issue.parameters.filePath).toBe('test.json')
       return thrownError
     }
@@ -225,7 +225,7 @@ describe('Issue Parameters Tests', () => {
       }
 
       expectError(thrownError, 'illegalSidecarData', 'SIDECAR_INVALID')
-      expect(thrownError.issue.parameters.key).toBe('column_name')
+      expect(thrownError.issue.parameters.sidecarKey).toBe('column_name')
       expect(thrownError.issue.parameters.filePath).toBe('custom_file.json')
     })
 

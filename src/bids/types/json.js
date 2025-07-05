@@ -188,7 +188,7 @@ export class BidsSidecar extends BidsJsonFile {
   _setDefinitions(defManager) {
     if (defManager instanceof DefinitionManager) {
       this.definitions = defManager
-    } else if (!defManager || defManager === null) {
+    } else if (defManager == null) {
       this.definitions = new DefinitionManager()
     } else {
       IssueError.generateAndThrow('invalidDefinitionManager', {
@@ -297,7 +297,7 @@ export class BidsSidecar extends BidsJsonFile {
       } else if (hedData instanceof Map) {
         this._parseCategorySplice(sidecarKey, hedData)
       } else if (hedData) {
-        IssueError.generateAndThrow('illegalSidecarData', { key: sidecarKey, filePath: this.file.path })
+        IssueError.generateAndThrow('illegalSidecarData', { sidecarKey: sidecarKey, filePath: this.file.path })
       }
     }
   }

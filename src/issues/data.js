@@ -147,7 +147,7 @@ export default {
   invalidDefinitionManager: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Invalid definition manager "${'defManager'}" --- this usually occurs because invalid external definitions were provided to a sidecar or tsv- .`,
+    message: stringTemplate`Invalid definition manager "${'defManager'}", usually because invalid external definitions were provided to a sidecar or tsv.`,
   },
   nestedDefinition: {
     hedCode: 'DEFINITION_INVALID',
@@ -471,7 +471,7 @@ export default {
   illegalSidecarData: {
     hedCode: 'SIDECAR_INVALID',
     level: 'error',
-    message: stringTemplate`The data associated with sidecar key "${'key'}" cannot be parsed.`,
+    message: stringTemplate`The data associated with sidecar key "${'sidecarKey'}" cannot be parsed.`,
   },
   illegalSidecarHedCategoricalValue: {
     hedCode: 'SIDECAR_INVALID',
@@ -481,7 +481,7 @@ export default {
   illegalSidecarHedDeepKey: {
     hedCode: 'SIDECAR_INVALID',
     level: 'error',
-    message: stringTemplate`An illegal "HED" appeared as a key below level 2 in a sidecar entry with top-level key "${'key'}".`,
+    message: stringTemplate`An illegal "HED" appeared as a key below level 2 in a sidecar entry with top-level key "${'sidecarKey'}".`,
   },
   // Internal errors
   internalError: {
