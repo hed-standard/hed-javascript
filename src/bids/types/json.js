@@ -318,7 +318,7 @@ export class BidsSidecar extends BidsJsonFile {
   /**
    *
    * @param {BidsSidecarKey} sidecarKey - The column to be checked for column splices.
-   * @param {Map} hedData - A Map with columnValue --> parsed HED string for a sidecar key to check for column splices.
+   * @param {{Map<string, ParsedHedString>} hedData - A Map with columnValue --> parsed HED string for a sidecar key to check for column splices.
    * @private
    */
   _parseCategorySplice(sidecarKey, hedData) {
