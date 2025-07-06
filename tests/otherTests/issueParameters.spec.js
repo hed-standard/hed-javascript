@@ -67,7 +67,7 @@ describe('Issue Parameters Tests', () => {
       [3, 'level 3'],
       [4, 'level 4'],
       [5, 'level 5'],
-    ])('should throw error with correct parameter for HED at %s', (levels, description) => {
+    ])('should throw error with correct parameter for HED at %s', (levels) => {
       const invalidData = createInvalidData(levels)
       const thrownError = captureError(invalidData)
 
@@ -163,7 +163,7 @@ describe('Issue Parameters Tests', () => {
       return sidecar
     }
 
-    const testCorruptedData = (corruptedValue, description) => {
+    const testCorruptedData = (corruptedValue) => {
       const sidecar = createCorruptedSidecar(corruptedValue)
       let thrownError
       try {
@@ -298,6 +298,116 @@ describe('Issue Parameters Tests', () => {
         'Invalid definition manager "invalid_defmanager"',
         'File path: "custom_file.json"',
         'definition-invalid',
+      ])
+    })
+  })
+
+  describe('IllegalSidecarHedType', () => {
+    const runTest = (value) => {
+      const invalidData = {
+        event_code: {
+          HED: value,
+        },
+      }
+      const thrownError = captureError(invalidData)
+
+      expectError(thrownError, 'illegalSidecarHedType', 'SIDECAR_INVALID')
+      expect(thrownError.issue.parameters.sidecarKey).toBe('event_code')
+      expect(thrownError.issue.parameters.filePath).toBe('test.json')
+    }
+
+    test('should throw an error when HED data is a number', () => {
+      runTest(42)
+    })
+
+    test('should throw an error when HED data is an array', () => {
+      runTest(['invalid', 'array'])
+    })
+
+    test('should throw an error when HED data is a boolean', () => {
+      runTest(true)
+      runTest(false)
+    })
+
+    test('should throw an error when HED data is a function', () => {
+      runTest(() => 'test')
+    })
+
+    test('should throw an error when HED data is null', () => {
+      runTest(null)
+    })
+
+    // test('should throw an error when HED data is undefined', () => {
+    //   runTest(undefined)
+    // })
+
+    test('should not throw error for valid HED data types', () => {
+      const validStringData = {
+        event_code: {
+          HED: 'Label/#',
+        },
+      }
+      expect(() => {
+        new BidsSidecar('test.json', { path: 'test.json' }, validStringData)
+      }).not.toThrow()
+
+      const validObjectData = {
+        event_code: {
+          HED: {
+            stim1: 'Blue',
+            stim2: 'Green',
+          },
+        },
+      }
+      expect(() => {
+        new BidsSidecar('test.json', { path: 'test.json' }, validObjectData)
+      }).not.toThrow()
+    })
+
+    // test('should throw error when categorical value is not a string', () => {
+    //   const invalidData = {
+    //     event_code: {
+    //       HED: {
+    //         stim1: 'Blue',
+    //         stim2: 42, // This should be a string
+    //       },
+    //     },
+    //   }
+    //   const thrownError = captureError(invalidData)
+    //
+    //   expectError(thrownError, 'illegalSidecarHedType', 'SIDECAR_INVALID')
+    //   expect(thrownError.issue.parameters.key).toBe('stim2')
+    //   expect(thrownError.issue.parameters.file).toBe('test.json')
+    // })
+
+    test('should handle different file paths correctly', () => {
+      const invalidData = {
+        column_name: {
+          HED: 123,
+        },
+      }
+      const thrownError = captureError(invalidData, 'custom_file.json')
+
+      expectError(thrownError, 'illegalSidecarHedType', 'SIDECAR_INVALID')
+      expect(thrownError.issue.parameters.sidecarKey).toBe('column_name')
+      expect(thrownError.issue.parameters.filePath).toBe('custom_file.json')
+    })
+
+    test('should validate complete error structure', () => {
+      const invalidData = {
+        event_code: {
+          HED: ['invalid', 'array'],
+        },
+      }
+      const thrownError = captureError(invalidData)
+
+      expectError(thrownError, 'illegalSidecarHedType', 'SIDECAR_INVALID')
+      expect(thrownError.issue.parameters.sidecarKey).toBe('event_code')
+      expect(thrownError.issue.parameters.filePath).toBe('test.json')
+
+      expectCompleteErrorMessage(thrownError, 'SIDECAR_INVALID', [
+        'The HED data for sidecar key "event_code" of file "test.json" is not either a key-value dictionary or a string',
+        'sidecar-invalid',
       ])
     })
   })

@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'The branch to build and deploy from'
+        description: 'The branch to deploy'
         required: true
-        default: 'main' # Or set your most common branch
+        default: 'main'
         type: string
 
 # Set permissions for the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -81,6 +81,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
       - name: Deploy to GitHub Pages
         # This is the official action for deploying the artifact to GitHub Pages
         id: deployment

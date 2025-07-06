@@ -7,4 +7,5 @@ module.exports = {
     '\\.xml$': '<rootDir>/fileTransformer.js',
   },
   transformIgnorePatterns: ['node_modules/(?!unicode-name)'],
+  coveragePathIgnorePatterns: ['/node_modules/', '/browser/', '/tests/', '/spec_tests/'],
 }
