@@ -5,7 +5,6 @@ import { toMatchIssue } from '../testHelpers/toMatchIssue'
 import { BidsDataset } from '../../src/bids/types/dataset'
 import { BidsDirectoryAccessor, BidsFileAccessor } from '../../src/bids/datasetParser'
 import { Schemas } from '../../src/schema/containers'
-import { BidsSidecar } from '../../src/bids/types/json'
 
 expect.extend({
   toMatchIssue(receivedError, expectedCode, expectedParams) {

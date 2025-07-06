@@ -2,7 +2,6 @@
 import { describe, it, expect, beforeAll } from '@jest/globals'
 import { BidsFileAccessor, BidsDirectoryAccessor } from '../../src/bids/datasetParser'
 import path from 'path'
-import fs from 'fs'
 
 describe('BidsFileAccessor', () => {
   const datasetRoot = '/my/dataset'

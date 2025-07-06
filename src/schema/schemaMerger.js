@@ -1,6 +1,6 @@
 import { IssueError } from '../issues/issues'
 import { SchemaTag, SchemaValueTag } from './entries'
-import { PartneredSchema, Schema } from './containers'
+import { PartneredSchema } from './containers'
 
 export default class PartneredSchemaMerger {
   /**

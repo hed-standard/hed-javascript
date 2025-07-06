@@ -9,9 +9,7 @@ import semver from 'semver'
 import * as xpath from '../utils/xpath'
 
 import {
-  nodeProperty,
   SchemaAttribute,
-  schemaAttributeProperty,
   SchemaEntries,
   SchemaEntryManager,
   SchemaProperty,

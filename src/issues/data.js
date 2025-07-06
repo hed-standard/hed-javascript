@@ -461,7 +461,7 @@ export default {
   illegalSidecarHedType: {
     hedCode: 'SIDECAR_INVALID',
     level: 'error',
-    message: stringTemplate`The HED data for sidecar key "${'key'}" of file "${'file'}" is not either a key-value dictionary or a string.`,
+    message: stringTemplate`The HED data for sidecar key "${'sidecarKey'}" of file "${'filePath'}" is not either a key-value dictionary or a string.`,
   },
   illegalSidecarHedKey: {
     hedCode: 'SIDECAR_INVALID',

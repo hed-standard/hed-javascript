@@ -407,7 +407,7 @@ export class BidsSidecarKey {
     if (typeof data === 'string') {
       this.valueString = data
     } else if (!isPlainObject(data)) {
-      IssueError.generateAndThrow('illegalSidecarHedType', { key: key, file: sidecar.file.path })
+      IssueError.generateAndThrow('illegalSidecarHedType', { sidecarKey: key, filePath: sidecar.file.path })
     } else {
       this.categoryMap = new Map(Object.entries(data))
     }

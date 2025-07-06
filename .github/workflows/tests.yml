@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main, develop, web-interface]
 
+permissions:
+  contents: read
+
 jobs:
   Build:
     runs-on: ubuntu-latest
