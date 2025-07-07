@@ -317,7 +317,7 @@ export class BidsSidecar extends BidsJsonFile {
   /**
    *
    * @param {BidsSidecarKey} sidecarKey - The column to be checked for column splices.
-   * @param {{Map<string, ParsedHedString>} hedData - A Map with columnValue --> parsed HED string for a sidecar key to check for column splices.
+   * @param {Map<string, ParsedHedString>} hedData - A Map with columnValue --> parsed HED string for a sidecar key to check for column splices.
    * @private
    */
   _parseCategorySplice(sidecarKey, hedData) {
@@ -448,9 +448,9 @@ export class BidsSidecarKey {
       fullValidation,
     )
     this.parsedValueString = parsedString
-    const updateObject = { sidecarKey: this.name, filePath: this.sidecar?.file?.path }
-    updateIssueParameters(errorIssues, updateObject)
-    updateIssueParameters(warningIssues, updateObject)
+    const updateParams = { sidecarKey: this.name, filePath: this.sidecar?.file?.path }
+    updateIssueParameters(errorIssues, updateParams)
+    updateIssueParameters(warningIssues, updateParams)
     return [errorIssues, warningIssues]
   }
 
@@ -465,23 +465,23 @@ export class BidsSidecarKey {
     this.parsedCategoryMap = new Map()
     const errors = []
     const warnings = []
-    const errorParms = { sidecarKey: this.name, filePath: this.sidecar?.file?.path }
+    const updateParams = { sidecarKey: this.name, filePath: this.sidecar?.file?.path }
     for (const [value, string] of this.categoryMap) {
       const trimmedValue = value.trim()
       if (ILLEGAL_SIDECAR_KEYS.has(trimmedValue.toLowerCase())) {
-        IssueError.generateAndThrow('illegalSidecarHedCategoricalValue', errorParms)
+        IssueError.generateAndThrow('illegalSidecarHedCategoricalValue', updateParams)
       } else if (typeof string !== 'string') {
-        IssueError.generateAndThrow('illegalSidecarHedType', errorParms)
+        IssueError.generateAndThrow('illegalSidecarHedType', updateParams)
       }
       const [parsedString, errorIssues, warningIssues] = parseHedString(string, hedSchemas, true, true, fullValidation)
       this.parsedCategoryMap.set(value, parsedString)
-      updateIssueParameters(warningIssues, errorParms)
+      updateIssueParameters(warningIssues, updateParams)
       warnings.push(...warningIssues)
-      updateIssueParameters(errorIssues, errorParms)
+      updateIssueParameters(errorIssues, updateParams)
       errors.push(...errorIssues)
       if (errorIssues.length === 0) {
         const defIssues = this._checkDefinitions(parsedString)
-        updateIssueParameters(defIssues, errorParms)
+        updateIssueParameters(defIssues, updateParams)
         errors.push(...defIssues)
       }
     }

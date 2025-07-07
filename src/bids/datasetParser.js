@@ -203,9 +203,8 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
     }
 
     try {
-      return await fsp.readFile(absolutePath, 'utf8')
-    } catch (err) {
-      // console.warn(`BidsDirectoryAccessor: Error reading file ${absolutePath}:`, err);
+      return String(await fsp.readFile(absolutePath, 'utf8'))
+    } catch {
       return null // Resolve with null on error like file not found
     }
   }

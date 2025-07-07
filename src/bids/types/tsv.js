@@ -43,7 +43,8 @@ export class BidsTsvFile extends BidsFile {
     } else if (isPlainObject(tsvData)) {
       this.parsedTsv = convertParsedTSVData(tsvData)
     } else {
-      IssueError.generateAndThrowInternalError('parsedTsv has an invalid type')
+      const msg = 'The tsvData was not a string, Map or plain object, so a BidsTsvFile could not be created/'
+      IssueError.generateAndThrow('internalError', { message: msg, filePath: file.path })
     }
 
     this.mergedSidecar = new BidsSidecar(name, this.file, mergedDictionary, defManager)

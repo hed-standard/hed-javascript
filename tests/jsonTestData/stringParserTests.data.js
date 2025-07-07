@@ -1393,7 +1393,9 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: true,
         fullValidation: false,
-        errors: [generateIssue('curlyBracesInDefinition', { column: 'event_code', definition: 'Definition/Blech' })],
+        errors: [
+          generateIssue('curlyBracesInDefinition', { sidecarKey: 'event_code', definition: 'Definition/Blech' }),
+        ],
         warnings: [],
       },
       {
@@ -1409,7 +1411,7 @@ export const parseTestData = [
         fullValidation: false,
         errors: [
           generateIssue('curlyBracesInDefinition', {
-            column: 'event_code',
+            sidecarKey: 'event_code',
             definition: 'Def-expand/Blech',
           }),
         ],
@@ -1426,7 +1428,9 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: true,
         fullValidation: false,
-        errors: [generateIssue('curlyBracesInDefinition', { column: 'event_code', definition: 'Def-expand/Blech' })],
+        errors: [
+          generateIssue('curlyBracesInDefinition', { sidecarKey: 'event_code', definition: 'Def-expand/Blech' }),
+        ],
         warnings: [],
       },
     ],

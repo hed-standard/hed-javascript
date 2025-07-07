@@ -48,7 +48,7 @@ export class IssueError extends Error {
    * @throws {IssueError} Corresponding to the generated internal error {@link Issue}.
    */
   static generateAndThrowInternalError(message = 'Unknown internal error') {
-    IssueError.generateAndThrow('internalError', { message })
+    IssueError.generateAndThrow('internalError', { message: message })
   }
 }
 

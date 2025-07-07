@@ -221,13 +221,19 @@ export class BidsDataset {
               const sidecar = new BidsSidecar(fileName, { path: jsonPath, name: fileName }, jsonData)
               this.sidecarMap.set(jsonPath, sidecar)
             } catch (e) {
-              const errorMessage = `Could not parse the JSON file: ${jsonPath}`
-              sidecarIssues.push(
-                BidsHedIssue.fromHedIssue(
-                  generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
-                  { path: jsonPath, name: fileName },
-                ),
-              )
+              if (e instanceof IssueError) {
+                // Use the detailed information from the IssueError
+                sidecarIssues.push(BidsHedIssue.fromHedIssue(e.issue, { path: jsonPath, name: fileName }))
+              } else {
+                // Fall back to generic fileReadError for other exceptions
+                const errorMessage = `Could not parse the JSON file: ${jsonPath}`
+                sidecarIssues.push(
+                  BidsHedIssue.fromHedIssue(
+                    generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
+                    { path: jsonPath, name: fileName },
+                  ),
+                )
+              }
             }
             return sidecarIssues
           })

@@ -945,13 +945,13 @@ export const bidsTestData = [
         },
         eventsString: 'onset\tduration\tevent_code\tball_type\n' + '19\t6\tball\tn/a\tPurple\n',
         sidecarErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('undefinedCurlyBraces', { column: 'ball_type' }), {
+          BidsHedIssue.fromHedIssue(generateIssue('undefinedCurlyBraces', { sidecarKey: 'ball_type' }), {
             path: 'invalid-curly-brace-column-slice-has-no hed.json',
           }),
         ],
         tsvErrors: [],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('undefinedCurlyBraces', { column: 'ball_type' }), {
+          BidsHedIssue.fromHedIssue(generateIssue('undefinedCurlyBraces', { sidecarKey: 'ball_type' }), {
             path: 'invalid-curly-brace-column-slice-has-no hed.tsv',
           }),
         ],
@@ -1032,13 +1032,13 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tevent_code\n' + '19\t6\tball\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('recursiveCurlyBracesWithKey', { column: 'type', referrer: 'event_code' }),
+            generateIssue('recursiveCurlyBracesWithKey', { sidecarKey: 'type', referrer: 'event_code' }),
             {
               path: 'invalid-recursive-curly-braces.json',
             },
           ),
           BidsHedIssue.fromHedIssue(
-            generateIssue('recursiveCurlyBracesWithKey', { column: 'event_code', referrer: 'type' }),
+            generateIssue('recursiveCurlyBracesWithKey', { sidecarKey: 'event_code', referrer: 'type' }),
             {
               path: 'invalid-recursive-curly-braces.json',
             },
@@ -1047,13 +1047,13 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('recursiveCurlyBracesWithKey', { column: 'type', referrer: 'event_code' }),
+            generateIssue('recursiveCurlyBracesWithKey', { sidecarKey: 'type', referrer: 'event_code' }),
             {
               path: 'invalid-recursive-curly-braces.tsv',
             },
           ),
           BidsHedIssue.fromHedIssue(
-            generateIssue('recursiveCurlyBracesWithKey', { column: 'event_code', referrer: 'type' }),
+            generateIssue('recursiveCurlyBracesWithKey', { sidecarKey: 'event_code', referrer: 'type' }),
             {
               path: 'invalid-recursive-curly-braces.tsv',
             },
@@ -1076,7 +1076,7 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tevent_code\n' + '19\t6\tball\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('recursiveCurlyBracesWithKey', { column: 'event_code', referrer: 'event_code' }),
+            generateIssue('recursiveCurlyBracesWithKey', { sidecarKey: 'event_code', referrer: 'event_code' }),
             {
               path: 'invalid-self-recursive-curly-braces.json',
             },
@@ -1085,7 +1085,7 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('recursiveCurlyBracesWithKey', { column: 'event_code', referrer: 'event_code' }),
+            generateIssue('recursiveCurlyBracesWithKey', { sidecarKey: 'event_code', referrer: 'event_code' }),
             {
               path: 'invalid-self-recursive-curly-braces.tsv',
             },
@@ -1115,7 +1115,7 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tevent_code\tball_type\tball_size\n' + '19\t6\tball\tadvanced\t10\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('recursiveCurlyBracesWithKey', { column: 'ball_type', referrer: 'event_code' }),
+            generateIssue('recursiveCurlyBracesWithKey', { sidecarKey: 'ball_type', referrer: 'event_code' }),
             {
               path: 'invalid-recursive-curly-brace-chain.json',
             },
@@ -1124,7 +1124,7 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('recursiveCurlyBracesWithKey', { column: 'ball_type', referrer: 'event_code' }),
+            generateIssue('recursiveCurlyBracesWithKey', { sidecarKey: 'ball_type', referrer: 'event_code' }),
             {
               path: 'invalid-recursive-curly-brace-chain.tsv',
             },
@@ -1197,15 +1197,21 @@ export const bidsTestData = [
         },
         eventsString: 'onset\tduration\tvehicle\tspeed\n' + '19\t6\ttrain\t5\n',
         sidecarErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('missingPlaceholder', { string: 'Blue,Speed', column: 'speed' }), {
-            path: 'invalid-no-placeholder-value-column.json',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingPlaceholder', { string: 'Blue,Speed', sidecarKey: 'speed' }),
+            {
+              path: 'invalid-no-placeholder-value-column.json',
+            },
+          ),
         ],
         tsvErrors: [],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('missingPlaceholder', { string: 'Blue,Speed', column: 'speed' }), {
-            path: 'invalid-no-placeholder-value-column.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingPlaceholder', { string: 'Blue,Speed', sidecarKey: 'speed' }),
+            {
+              path: 'invalid-no-placeholder-value-column.tsv',
+            },
+          ),
         ],
       },
       {
@@ -1221,7 +1227,7 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tvehicle\tspeed\n' + '19\t6\ttrain\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidSidecarPlaceholder', { column: 'speed', string: 'Label/#, Speed/# mph' }),
+            generateIssue('invalidSidecarPlaceholder', { sidecarKey: 'speed', string: 'Label/#, Speed/# mph' }),
             {
               path: 'invalid-multiple-placeholders-in-value-column.json',
             },
@@ -1230,7 +1236,7 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidSidecarPlaceholder', { column: 'speed', string: 'Label/#, Speed/# mph' }),
+            generateIssue('invalidSidecarPlaceholder', { sidecarKey: 'speed', string: 'Label/#, Speed/# mph' }),
             {
               path: 'invalid-multiple-placeholders-in-value-column.tsv',
             },
@@ -1403,7 +1409,7 @@ export const bidsTestData = [
             generateIssue('defExpandContentsInvalid', {
               contents: '',
               defContents: '(Acceleration/4.5 m-per-s^2,Red)',
-              sidecarKeyName: 'speed',
+              sidecarKey: 'speed',
             }),
             {
               path: 'invalid-def-expand-no-group.json',
@@ -1416,7 +1422,7 @@ export const bidsTestData = [
             generateIssue('defExpandContentsInvalid', {
               contents: '',
               defContents: '(Acceleration/4.5 m-per-s^2,Red)',
-              sidecarKeyName: 'speed',
+              sidecarKey: 'speed',
             }),
             {
               path: 'invalid-def-expand-no-group.tsv',
@@ -1437,7 +1443,7 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('missingDefinitionForDef', { definition: 'missingdef', sidecarKeyName: 'speed' }),
+            generateIssue('missingDefinitionForDef', { definition: 'missingdef', sidecarKey: 'speed' }),
             {
               path: 'invalid-missing-definition-for-def.json',
             },
@@ -1446,7 +1452,7 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('missingDefinitionForDef', { definition: 'missingdef', sidecarKeyName: 'speed' }),
+            generateIssue('missingDefinitionForDef', { definition: 'missingdef', sidecarKey: 'speed' }),
             {
               path: 'invalid-missing-definition-for-def.tsv',
             },
@@ -1466,7 +1472,7 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('missingDefinitionForDefExpand', { definition: 'missingdefexpand', sidecarKeyName: 'speed' }),
+            generateIssue('missingDefinitionForDefExpand', { definition: 'missingdefexpand', sidecarKey: 'speed' }),
             {
               path: 'invalid-missing-definition-for-def-expand.json',
             },
@@ -1475,7 +1481,7 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('missingDefinitionForDefExpand', { definition: 'missingdefexpand', sidecarKeyName: 'speed' }),
+            generateIssue('missingDefinitionForDefExpand', { definition: 'missingdefexpand', sidecarKey: 'speed' }),
             {
               path: 'invalid-missing-definition-for-def-expand.tsv',
             },
@@ -2445,7 +2451,7 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('sidecarKeyMissing', { column: 'event_code', values: '[ball, bat]' }),
+            generateIssue('sidecarKeyMissing', { sidecarKey: 'event_code', values: '[ball, bat]' }),
             {
               path: 'tsv-has-categorical-value-missing-from-sidecar.tsv',
             },

@@ -116,7 +116,7 @@ export default {
   invalidSidecarPlaceholder: {
     hedCode: 'PLACEHOLDER_INVALID',
     level: 'error',
-    message: stringTemplate`"${'string'}" of column "${'column'}" has an invalid # placeholder.`,
+    message: stringTemplate`"${'string'}" of sidecar key "${'sidecarKey'}" has an invalid # placeholder.`,
   },
   // HED 3-specific validation issues
   invalidPlaceholder: {
@@ -127,12 +127,12 @@ export default {
   missingPlaceholder: {
     hedCode: 'PLACEHOLDER_INVALID',
     level: 'error',
-    message: stringTemplate`HED value string "${'string'}" is missing a required # placeholder for column "${'column'}".`,
+    message: stringTemplate`HED value string "${'string'}" is missing a required # placeholder for sidecar key "${'sidecarKey'}".`,
   },
   extraPlaceholder: {
     hedCode: 'PLACEHOLDER_INVALID',
     level: 'error',
-    message: stringTemplate`HED value string "${'string'}" has too many placeholders in column "${'column'}".`,
+    message: stringTemplate`HED value string "${'string'}" has too many placeholders in sidecar key "${'sidecarKey'}".`,
   },
   invalidPlaceholderInDefinition: {
     hedCode: 'DEFINITION_INVALID',
@@ -369,7 +369,7 @@ export default {
   curlyBracesInDefinition: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Illegal curly brace expression "${'column'}" found in HED string containing definition "${'definition'}".`,
+    message: stringTemplate`Illegal curly brace expression "${'sidecarKey'}" found in HED string containing definition "${'definition'}".`,
   },
   curlyBracesInHedColumn: {
     hedCode: 'CHARACTER_INVALID',
@@ -384,17 +384,17 @@ export default {
   recursiveCurlyBraces: {
     hedCode: 'SIDECAR_BRACES_INVALID',
     level: 'error',
-    message: stringTemplate`Column name "${'column'}", which has curly braces, is illegally referred to by a string using curly braces.`,
+    message: stringTemplate`Sidecar key "${'sidecarKey'}", which has curly braces, is illegally referred to by a string using curly braces.`,
   },
   recursiveCurlyBracesWithKey: {
     hedCode: 'SIDECAR_BRACES_INVALID',
     level: 'error',
-    message: stringTemplate`Column name "${'column'}", which has curly braces, is referred to by column "${'referrer'}", which also has curly braces.`,
+    message: stringTemplate`Sidecar key "${'sidecarKey'}", which has curly braces, is referred to by sidecar key "${'referrer'}", which also has curly braces.`,
   },
   undefinedCurlyBraces: {
     hedCode: 'SIDECAR_BRACES_INVALID',
     level: 'error',
-    message: stringTemplate`Column name "${'column'}", used in curly braces, is not mapped to a defined column.`,
+    message: stringTemplate`Sidecar key "${'sidecarKey'}", used in curly braces, is not mapped to a defined column.`,
   },
   // Schema issues
   invalidSchemaSpecification: {
@@ -451,7 +451,7 @@ export default {
   sidecarKeyMissing: {
     hedCode: 'SIDECAR_KEY_MISSING',
     level: 'warning',
-    message: stringTemplate`Values "${'values'}" appear in column "${'column'}" of file "${'file'}", but were not defined in any associated sidecar.`,
+    message: stringTemplate`Values "${'values'}" appear for sidecar key "${'sidecarKey'}" of file "${'file'}", but were not defined in any associated sidecar.`,
   },
   hedUsedAsSpliceButNoTsvHed: {
     hedCode: 'SIDECAR_KEY_MISSING',
