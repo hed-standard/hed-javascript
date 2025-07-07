@@ -59,7 +59,8 @@ describe('Issue Parameters Tests', () => {
 
     test('should not throw error for valid sidecar with HED at level 2', () => {
       expect(() => {
-        new BidsSidecar('test.json', { path: 'test.json' }, validSidecarData)
+        const sidecar = new BidsSidecar('test.json', { path: 'test.json' }, validSidecarData)
+        expect(sidecar).toBeInstanceOf(BidsSidecar)
       }).not.toThrow()
     })
 
@@ -114,12 +115,18 @@ describe('Issue Parameters Tests', () => {
     })
 
     test('should handle edge cases without error', () => {
-      expect(() => new BidsSidecar('test.json', { path: 'test.json' }, {})).not.toThrow()
+      expect(() => {
+        const sidecar = new BidsSidecar('test.json', { path: 'test.json' }, {})
+        expect(sidecar).toBeInstanceOf(BidsSidecar)
+      }).not.toThrow()
 
       const noHedSidecar = {
         event_code: { Level: { stim1: 'Blue', stim2: 'Green' } },
       }
-      expect(() => new BidsSidecar('test.json', { path: 'test.json' }, noHedSidecar)).not.toThrow()
+      expect(() => {
+        const sidecar = new BidsSidecar('test.json', { path: 'test.json' }, noHedSidecar)
+        expect(sidecar).toBeInstanceOf(BidsSidecar)
+      }).not.toThrow()
     })
   })
 
@@ -234,7 +241,8 @@ describe('Issue Parameters Tests', () => {
       ['Map', { event_code: { HED: { stim1: 'Blue', stim2: 'Green' } } }],
     ])('should not throw error when parsedHedData contains valid %s', (type, data) => {
       expect(() => {
-        new BidsSidecar('test.json', { path: 'test.json' }, data)
+        const sidecar = new BidsSidecar('test.json', { path: 'test.json' }, data)
+        expect(sidecar).toBeInstanceOf(BidsSidecar)
       }).not.toThrow()
     })
 
@@ -277,13 +285,16 @@ describe('Issue Parameters Tests', () => {
 
     test('should not throw error when defManager is null, undefined, or not provided', () => {
       expect(() => {
-        new BidsSidecar('test.json', { path: 'test.json' }, validSidecarData, null)
+        const sidecar = new BidsSidecar('test.json', { path: 'test.json' }, validSidecarData, null)
+        expect(sidecar).toBeInstanceOf(BidsSidecar)
       }).not.toThrow()
       expect(() => {
-        new BidsSidecar('test.json', { path: 'test.json' }, validSidecarData, undefined)
+        const sidecar = new BidsSidecar('test.json', { path: 'test.json' }, validSidecarData, undefined)
+        expect(sidecar).toBeInstanceOf(BidsSidecar)
       }).not.toThrow()
       expect(() => {
-        new BidsSidecar('test.json', { path: 'test.json' }, validSidecarData)
+        const sidecar = new BidsSidecar('test.json', { path: 'test.json' }, validSidecarData)
+        expect(sidecar).toBeInstanceOf(BidsSidecar)
       }).not.toThrow()
     })
 
@@ -348,7 +359,8 @@ describe('Issue Parameters Tests', () => {
         },
       }
       expect(() => {
-        new BidsSidecar('test.json', { path: 'test.json' }, validStringData)
+        const sidecar = new BidsSidecar('test.json', { path: 'test.json' }, validStringData)
+        expect(sidecar).toBeInstanceOf(BidsSidecar)
       }).not.toThrow()
 
       const validObjectData = {
@@ -360,7 +372,8 @@ describe('Issue Parameters Tests', () => {
         },
       }
       expect(() => {
-        new BidsSidecar('test.json', { path: 'test.json' }, validObjectData)
+        const sidecar = new BidsSidecar('test.json', { path: 'test.json' }, validObjectData)
+        expect(sidecar).toBeInstanceOf(BidsSidecar)
       }).not.toThrow()
     })
 
@@ -420,7 +433,7 @@ describe('Issue Parameters Tests', () => {
       expect(BidsSidecar._sidecarValueHasHed(['HED'])).toBe(false) // An array is an object
     })
 
-    test('should return false for an object with a "HED" key whose value is undefined', () => {
+    test('should return true for an object with a "HED" key whose value is undefined', () => {
       const obj = { HED: undefined }
       expect(BidsSidecar._sidecarValueHasHed(obj)).toBe(true)
     })

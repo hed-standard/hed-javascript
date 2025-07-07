@@ -52,7 +52,7 @@ export class DefinitionChecker {
       return [
         generateIssue('curlyBracesInDefinition', {
           definition: getTagListString(this.definitionTags),
-          column: this.hedString.columnSplices[0].originalTag,
+          sidecarKey: this.hedString.columnSplices[0].originalTag,
         }),
       ]
     // If any Def-expand or Definition tags are at the top level of the HED string
@@ -150,7 +150,7 @@ export class DefinitionChecker {
         return [
           generateIssue('curlyBracesInDefinition', {
             definition: getTagListString(group.defExpandTags),
-            column: columnSplices[0].originalTag,
+            sidecarKey: columnSplices[0].originalTag,
           }),
         ]
       }

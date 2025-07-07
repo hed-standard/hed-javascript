@@ -96,7 +96,7 @@ export class BidsHedTsvValidator extends BidsValidator {
         const values = '[' + missingValues.join(', ') + ']'
         this.warnings.push(
           BidsHedIssue.fromHedIssue(
-            generateIssue('sidecarKeyMissing', { column: columnName, values: values }),
+            generateIssue('sidecarKeyMissing', { sidecarKey: columnName, values: values }),
             this.tsvFile.file,
           ),
         )
