@@ -205,3 +205,34 @@ export const generateIssue = function (internalCode, parameters = {}) {
 
   return new Issue(internalCode, hedCode, level, parameters)
 }
+
+/**
+ * Update the parameters of a list of issues.
+ *
+ * @param {IssueError[]} issues The list of issues.
+ * @param {Object<string, string>} parameters The parameters to add.
+ */
+export const updateIssueParameters = function (issues, parameters) {
+  for (const issue of issues) {
+    // Ensure issue.issue exists and has parameters
+    if (!issue?.issue) {
+      continue
+    }
+
+    // Initialize parameters if it doesn't exist
+    if (!issue.issue.parameters) {
+      issue.issue.parameters = {}
+    }
+
+    let changed = false
+    for (const [key, value] of Object.entries(parameters)) {
+      if (!Object.hasOwn(issue.issue.parameters, key)) {
+        issue.issue.parameters[key] = value
+        changed = true
+      }
+    }
+    if (changed) {
+      issue.issue.generateMessage()
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import { describe, test } from '@jest/globals'
 import { BidsSidecar } from '../../src/bids/types/json'
-import { IssueError } from '../../src/issues/issues'
+import { IssueError, generateIssue, updateIssueParameters } from '../../src/issues/issues'
 
 describe('Issue Parameters Tests', () => {
   // Common test data
@@ -337,9 +337,9 @@ describe('Issue Parameters Tests', () => {
       runTest(null)
     })
 
-    // test('should throw an error when HED data is undefined', () => {
-    //   runTest(undefined)
-    // })
+    test('should throw an error when HED data is undefined', () => {
+      runTest(undefined)
+    })
 
     test('should not throw error for valid HED data types', () => {
       const validStringData = {
@@ -363,22 +363,6 @@ describe('Issue Parameters Tests', () => {
         new BidsSidecar('test.json', { path: 'test.json' }, validObjectData)
       }).not.toThrow()
     })
-
-    // test('should throw error when categorical value is not a string', () => {
-    //   const invalidData = {
-    //     event_code: {
-    //       HED: {
-    //         stim1: 'Blue',
-    //         stim2: 42, // This should be a string
-    //       },
-    //     },
-    //   }
-    //   const thrownError = captureError(invalidData)
-    //
-    //   expectError(thrownError, 'illegalSidecarHedType', 'SIDECAR_INVALID')
-    //   expect(thrownError.issue.parameters.key).toBe('stim2')
-    //   expect(thrownError.issue.parameters.file).toBe('test.json')
-    // })
 
     test('should handle different file paths correctly', () => {
       const invalidData = {
@@ -409,6 +393,101 @@ describe('Issue Parameters Tests', () => {
         'The HED data for sidecar key "event_code" of file "test.json" is not either a key-value dictionary or a string',
         'sidecar-invalid',
       ])
+    })
+  })
+
+  describe('_sidecarValueHasHed', () => {
+    test('should return true for an object with a "HED" key', () => {
+      const obj = { HED: 'some value' }
+      expect(BidsSidecar._sidecarValueHasHed(obj)).toBe(true)
+    })
+
+    test('should return true for an object with a "HED" key and other keys', () => {
+      const obj = { otherKey: 'value', HED: 'some value' }
+      expect(BidsSidecar._sidecarValueHasHed(obj)).toBe(true)
+    })
+
+    test('should return false for an object without a "HED" key', () => {
+      const obj = { otherKey: 'value' }
+      expect(BidsSidecar._sidecarValueHasHed(obj)).toBe(false)
+    })
+
+    test('should return false for various non-objects', () => {
+      expect(BidsSidecar._sidecarValueHasHed('a string')).toBe(false)
+      expect(BidsSidecar._sidecarValueHasHed(123)).toBe(false)
+      expect(BidsSidecar._sidecarValueHasHed(null)).toBe(false)
+      expect(BidsSidecar._sidecarValueHasHed(undefined)).toBe(false)
+      expect(BidsSidecar._sidecarValueHasHed(['HED'])).toBe(false) // An array is an object
+    })
+
+    test('should return false for an object with a "HED" key whose value is undefined', () => {
+      const obj = { HED: undefined }
+      expect(BidsSidecar._sidecarValueHasHed(obj)).toBe(true)
+    })
+
+    test('should return true for an object with a "HED" key whose value is null', () => {
+      const obj = { HED: null }
+      expect(BidsSidecar._sidecarValueHasHed(obj)).toBe(true)
+    })
+  })
+
+  describe('updateIssueParameters', () => {
+    test('should add new parameters to a list of issues', () => {
+      const issue1 = new IssueError(generateIssue('genericError', { parameter1: 'value1' }))
+      const issue2 = new IssueError(generateIssue('genericError', { parameterA: 'valueA' }))
+      const issues = [issue1, issue2]
+      const oldMessage1 = issue1.issue.message
+
+      const newParameters = {
+        parameter2: 'value2',
+        parameterB: 'valueB',
+      }
+
+      updateIssueParameters(issues, newParameters)
+
+      expect(issue1.issue.parameters).toHaveProperty('parameter1', 'value1')
+      expect(issue1.issue.parameters).toHaveProperty('parameter2', 'value2')
+      expect(issue1.issue.parameters).toHaveProperty('parameterB', 'valueB')
+
+      expect(issue2.issue.parameters).toHaveProperty('parameterA', 'valueA')
+      expect(issue2.issue.parameters).toHaveProperty('parameter2', 'value2')
+      expect(issue2.issue.parameters).toHaveProperty('parameterB', 'valueB')
+
+      expect(issue1.issue.message).not.toBe(oldMessage1)
+    })
+
+    test('should not overwrite existing parameters', () => {
+      const issue = new IssueError(generateIssue('genericError', { parameter1: 'originalValue' }))
+      const issues = [issue]
+
+      const newParameters = {
+        parameter1: 'newValue',
+        parameter2: 'value2',
+      }
+
+      updateIssueParameters(issues, newParameters)
+
+      expect(issue.issue.parameters).toHaveProperty('parameter1', 'originalValue')
+      expect(issue.issue.parameters).toHaveProperty('parameter2', 'value2')
+    })
+
+    test('should handle an empty list of issues', () => {
+      const issues = []
+      const newParameters = { parameter1: 'value1' }
+
+      expect(() => updateIssueParameters(issues, newParameters)).not.toThrow()
+    })
+
+    test('should handle an empty parameters object', () => {
+      const issue = new IssueError(generateIssue('genericError', { parameter1: 'originalValue' }))
+      const issues = [issue]
+      const originalParameters = { ...issue.issue.parameters }
+
+      const newParameters = {}
+
+      updateIssueParameters(issues, newParameters)
+
+      expect(issue.issue.parameters).toEqual(originalParameters)
     })
   })
 })
