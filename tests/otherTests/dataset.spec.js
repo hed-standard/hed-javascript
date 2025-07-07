@@ -143,15 +143,16 @@ describe('BidsDataset', () => {
     it('should collect validation issues from sidecars', async () => {
       const [dataset, tissues] = await BidsDataset.create(demoDataRoot, BidsDirectoryAccessor)
       expect(tissues).toEqual([])
+      expect(dataset).toBeInstanceOf(BidsDataset)
     })
 
     it('should skip validation for sidecars not in the sidecarMap', async () => {
-      let [dataset, issues] = await BidsDataset.create(demoDataRoot, BidsDirectoryAccessor)
+      const [dataset, issues] = await BidsDataset.create(demoDataRoot, BidsDirectoryAccessor)
       expect(dataset).toBeInstanceOf(BidsDataset)
       expect(issues).toEqual([])
 
-      issues = await dataset.validate()
-      expect(issues).toEqual([])
+      const tissues = await dataset.validate()
+      expect(tissues).toEqual([])
     })
   })
 })

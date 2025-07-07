@@ -476,7 +476,7 @@ export default {
   illegalSidecarHedCategoricalValue: {
     hedCode: 'SIDECAR_INVALID',
     level: 'error',
-    message: stringTemplate`The string 'HED' or 'n/a' was illegally used as a sidecar categorical value.`,
+    message: stringTemplate`The string 'HED' or 'n/a' was illegally used as a sidecar categorical value for sidecar key "${'sidecarKey'}" in sidecar "${'filePath'}".`,
   },
   illegalSidecarHedDeepKey: {
     hedCode: 'SIDECAR_INVALID',
@@ -502,6 +502,7 @@ export default {
   genericError: {
     hedCode: 'INTERNAL_ERROR',
     level: 'error',
-    message: stringTemplate`Unknown HED error "${'internalCode'}" - parameters: "${'parameters'}".`,
+    message: (parameters) =>
+      `Unknown HED error "${parameters.internalCode}" - parameters: "${JSON.stringify(parameters)}".`,
   },
 }

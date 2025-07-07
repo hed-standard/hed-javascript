@@ -12,8 +12,6 @@ import { IssueError, generateIssue } from '../issues/issues'
 export async function readFile(fileName) {
   // @ts-ignore __VITE_ENV__ is defined by Vite in browser builds
   if (typeof __VITE_ENV__ !== 'undefined' && __VITE_ENV__) {
-    console.error('readFile function was called in a browser environment. This is not supported.')
-    // Use generateIssue if available and appropriate, otherwise construct IssueError directly or use IssueError.generateAndThrow
     throw new IssueError(
       generateIssue('internalError', {
         message: 'Local file reading (readFile) is not supported in the browser environment.',

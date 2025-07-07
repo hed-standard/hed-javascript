@@ -217,7 +217,7 @@ export class BidsHedTsvValidator extends BidsValidator {
       }
       // Assemble the HED strings associated with same onset into single string. Use the parse duplicate detection.
       const rowString = elementList.map((element) => element.hedString).join(',')
-      const [parsedString, errorIssues, warningIssues] = parseHedString(rowString, this.hedSchemas, false, false, true)
+      const [, errorIssues, warningIssues] = parseHedString(rowString, this.hedSchemas, false, false, true)
       const tsvLines = BidsTsvElement.getTsvLines(elementList)
       this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: tsvLines }))
       this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: tsvLines }))

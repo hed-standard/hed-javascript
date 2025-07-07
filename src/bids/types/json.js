@@ -9,7 +9,7 @@ import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './file'
 import BidsHedSidecarValidator from '../validator/sidecarValidator'
-import { IssueError } from '../../issues/issues'
+import { IssueError, updateIssueParameters } from '../../issues/issues'
 import { DefinitionManager, Definition } from '../../parser/definitionManager'
 
 const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
@@ -208,7 +208,6 @@ export class BidsSidecar extends BidsJsonFile {
         .map(([key, value]) => {
           const trimmedKey = key.trim()
           const lowerKey = trimmedKey.toLowerCase()
-
           if (ILLEGAL_SIDECAR_KEYS.has(lowerKey)) {
             IssueError.generateAndThrow('illegalSidecarHedKey', {
               filePath: this.file.path,
@@ -260,7 +259,7 @@ export class BidsSidecar extends BidsJsonFile {
    * @private
    */
   static _sidecarValueHasHed(sidecarValue) {
-    return sidecarValue !== null && typeof sidecarValue === 'object' && sidecarValue.HED !== undefined
+    return sidecarValue !== null && typeof sidecarValue === 'object' && 'HED' in sidecarValue
   }
 
   /**
@@ -449,6 +448,9 @@ export class BidsSidecarKey {
       fullValidation,
     )
     this.parsedValueString = parsedString
+    const updateObject = { sidecarKey: this.name, filePath: this.sidecar?.file?.path }
+    updateIssueParameters(errorIssues, updateObject)
+    updateIssueParameters(warningIssues, updateObject)
     return [errorIssues, warningIssues]
   }
 
@@ -463,22 +465,24 @@ export class BidsSidecarKey {
     this.parsedCategoryMap = new Map()
     const errors = []
     const warnings = []
+    const errorParms = { sidecarKey: this.name, filePath: this.sidecar?.file?.path }
     for (const [value, string] of this.categoryMap) {
       const trimmedValue = value.trim()
       if (ILLEGAL_SIDECAR_KEYS.has(trimmedValue.toLowerCase())) {
-        IssueError.generateAndThrow('illegalSidecarHedCategoricalValue')
+        IssueError.generateAndThrow('illegalSidecarHedCategoricalValue', errorParms)
       } else if (typeof string !== 'string') {
-        IssueError.generateAndThrow('illegalSidecarHedType', {
-          key: value,
-          file: this.sidecar?.file?.path,
-        })
+        IssueError.generateAndThrow('illegalSidecarHedType', errorParms)
       }
       const [parsedString, errorIssues, warningIssues] = parseHedString(string, hedSchemas, true, true, fullValidation)
       this.parsedCategoryMap.set(value, parsedString)
+      updateIssueParameters(warningIssues, errorParms)
       warnings.push(...warningIssues)
+      updateIssueParameters(errorIssues, errorParms)
       errors.push(...errorIssues)
       if (errorIssues.length === 0) {
-        errors.push(...this._checkDefinitions(parsedString))
+        const defIssues = this._checkDefinitions(parsedString)
+        updateIssueParameters(defIssues, errorParms)
+        errors.push(...defIssues)
       }
     }
     return [errors, warnings]
