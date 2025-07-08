@@ -168,6 +168,9 @@ export class BidsSidecar extends BidsJsonFile {
         hedSchemas,
         fullValidation && !this.columnSpliceReferences.has(name),
       )
+      const updateParams = { sidecarKey: this.name, filePath: this.file?.path }
+      updateIssueParameters(errorIssues, updateParams)
+      updateIssueParameters(warningIssues, updateParams)
       errors.push(...errorIssues)
       warnings.push(...warningIssues)
       if (sidecarKey.isValueKey) {
@@ -448,9 +451,6 @@ export class BidsSidecarKey {
       fullValidation,
     )
     this.parsedValueString = parsedString
-    const updateParams = { sidecarKey: this.name, filePath: this.sidecar?.file?.path }
-    updateIssueParameters(errorIssues, updateParams)
-    updateIssueParameters(warningIssues, updateParams)
     return [errorIssues, warningIssues]
   }
 
@@ -465,23 +465,26 @@ export class BidsSidecarKey {
     this.parsedCategoryMap = new Map()
     const errors = []
     const warnings = []
-    const updateParams = { sidecarKey: this.name, filePath: this.sidecar?.file?.path }
+
     for (const [value, string] of this.categoryMap) {
       const trimmedValue = value.trim()
       if (ILLEGAL_SIDECAR_KEYS.has(trimmedValue.toLowerCase())) {
-        IssueError.generateAndThrow('illegalSidecarHedCategoricalValue', updateParams)
+        IssueError.generateAndThrow('illegalSidecarHedCategoricalValue', {
+          sidecarKey: this.name,
+          filePath: this.sidecar?.file?.path,
+        })
       } else if (typeof string !== 'string') {
-        IssueError.generateAndThrow('illegalSidecarHedType', updateParams)
+        IssueError.generateAndThrow('illegalSidecarHedType', {
+          sidecarKey: this.name,
+          filePath: this.sidecar?.file?.path,
+        })
       }
       const [parsedString, errorIssues, warningIssues] = parseHedString(string, hedSchemas, true, true, fullValidation)
       this.parsedCategoryMap.set(value, parsedString)
-      updateIssueParameters(warningIssues, updateParams)
       warnings.push(...warningIssues)
-      updateIssueParameters(errorIssues, updateParams)
       errors.push(...errorIssues)
       if (errorIssues.length === 0) {
         const defIssues = this._checkDefinitions(parsedString)
-        updateIssueParameters(defIssues, updateParams)
         errors.push(...defIssues)
       }
     }

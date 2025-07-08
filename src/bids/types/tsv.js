@@ -43,7 +43,7 @@ export class BidsTsvFile extends BidsFile {
     } else if (isPlainObject(tsvData)) {
       this.parsedTsv = convertParsedTSVData(tsvData)
     } else {
-      const msg = 'The tsvData was not a string, Map or plain object, so a BidsTsvFile could not be created/'
+      const msg = 'The tsvData was not a string, Map or plain object, so a BidsTsvFile could not be created.'
       IssueError.generateAndThrow('internalError', { message: msg, filePath: file.path })
     }
 
@@ -51,31 +51,31 @@ export class BidsTsvFile extends BidsFile {
     this._parseHedColumn()
   }
 
-  /**
-   * Parse a BIDS TSV file from a BIDS dataset path and sidecar.
-   *
-   * @param {string} datasetRoot The root path of the dataset.
-   * @param {string} relativePath The relative path of the file within the dataset.
-   * @param {import('./json.js').BidsSidecar} sidecar The BIDS sidecar to use with this file.
-   * @returns {Promise<BidsTsvFile>} The built TSV file object.
-   */
-  static async createFromBidsDatasetPathAndSidecar(datasetRoot, relativePath, sidecar) {
-    const jsonData = sidecar.jsonData
-    return BidsTsvFile.createFromBidsDatasetPathAndJson(datasetRoot, relativePath, jsonData)
-  }
-
-  /**
-   * Parse a BIDS TSV file from a BIDS dataset path and sidecar JSON data.
-   *
-   * @param {string} datasetRoot The root path of the dataset.
-   * @param {string} relativePath The relative path of the file within the dataset.
-   * @param {object} jsonData The BIDS sidecar data to use with this file.
-   * @returns {Promise<BidsTsvFile>} The built TSV file object.
-   */
-  static async createFromBidsDatasetPathAndJson(datasetRoot, relativePath, jsonData) {
-    const [contents, fileObject] = await BidsFile.readBidsFileFromDatasetPath(datasetRoot, relativePath)
-    return new BidsTsvFile(relativePath, fileObject, contents, jsonData)
-  }
+  // /**
+  //  * Parse a BIDS TSV file from a BIDS dataset path and sidecar.
+  //  *
+  //  * @param {string} datasetRoot The root path of the dataset.
+  //  * @param {string} relativePath The relative path of the file within the dataset.
+  //  * @param {import('./json.js').BidsSidecar} sidecar The BIDS sidecar to use with this file.
+  //  * @returns {Promise<BidsTsvFile>} The built TSV file object.
+  //  */
+  // static async createFromBidsDatasetPathAndSidecar(datasetRoot, relativePath, sidecar) {
+  //   const jsonData = sidecar.jsonData
+  //   return BidsTsvFile.createFromBidsDatasetPathAndJson(datasetRoot, relativePath, jsonData)
+  // }
+  //
+  // /**
+  //  * Parse a BIDS TSV file from a BIDS dataset path and sidecar JSON data.
+  //  *
+  //  * @param {string} datasetRoot The root path of the dataset.
+  //  * @param {string} relativePath The relative path of the file within the dataset.
+  //  * @param {object} jsonData The BIDS sidecar data to use with this file.
+  //  * @returns {Promise<BidsTsvFile>} The built TSV file object.
+  //  */
+  // static async createFromBidsDatasetPathAndJson(datasetRoot, relativePath, jsonData) {
+  //   const [contents, fileObject] = await BidsFile.readBidsFileFromDatasetPath(datasetRoot, relativePath)
+  //   return new BidsTsvFile(relativePath, fileObject, contents, jsonData)
+  // }
 
   /**
    * Parse the HED column from the TSV data.
