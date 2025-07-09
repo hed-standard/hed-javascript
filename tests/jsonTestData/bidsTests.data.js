@@ -130,15 +130,27 @@ export const bidsTestData = [
         },
         eventsString: 'onset\tduration\tevent_code\tHED\n' + '7\t4\tface\tGreen',
         sidecarErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
-            path: 'invalid-bad-tag-in-JSON.json',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', {
+              tag: 'Baloney',
+              sidecarKey: 'event_code',
+              filePath: 'invalid-bad-tag-in-JSON.json',
+            }),
+            { path: 'invalid-bad-tag-in-JSON.json' },
+          ),
         ],
         tsvErrors: [],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
-            path: 'invalid-bad-tag-in-JSON.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', {
+              tag: 'Baloney',
+              sidecarKey: 'event_code',
+              filePath: 'invalid-bad-tag-in-JSON.tsv',
+            }),
+            {
+              path: 'invalid-bad-tag-in-JSON.tsv',
+            },
+          ),
         ],
       },
       {
@@ -158,15 +170,29 @@ export const bidsTestData = [
         },
         eventsString: 'onset\tduration\tevent_code\tHED\n' + '7\t4\tface\tGreen',
         sidecarErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Glabel/#' }), {
-            path: 'invalid-bad-value-tag-in-JSON.json',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', {
+              tag: 'Glabel/#',
+              sidecarKey: 'bad_tag',
+              filePath: 'invalid-bad-value-tag-in-JSON.json',
+            }),
+            {
+              path: 'invalid-bad-value-tag-in-JSON.json',
+            },
+          ),
         ],
         tsvErrors: [],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Glabel/#' }), {
-            path: 'invalid-bad-value-tag-in-JSON.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', {
+              tag: 'Glabel/#',
+              sidecarKey: 'bad_tag',
+              filePath: 'invalid-bad-value-tag-in-JSON.tsv',
+            }),
+            {
+              path: 'invalid-bad-value-tag-in-JSON.tsv',
+            },
+          ),
         ],
       },
       {
@@ -183,15 +209,29 @@ export const bidsTestData = [
         },
         eventsString: 'onset\tduration\tHED\n' + '7\t4\tGreen',
         sidecarErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
-            path: 'invalid-bad-tag-in-JSON-no-use.json',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', {
+              tag: 'Baloney',
+              sidecarKey: 'event_code',
+              filePath: 'invalid-bad-tag-in-JSON-no-use.json',
+            }),
+            {
+              path: 'invalid-bad-tag-in-JSON-no-use.json',
+            },
+          ),
         ],
         tsvErrors: [],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney' }), {
-            path: 'invalid-bad-tag-in-JSON-no-use.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', {
+              tag: 'Baloney',
+              sidecarKey: 'event_code',
+              filePath: 'invalid-bad-tag-in-JSON-no-use.tsv',
+            }),
+            {
+              path: 'invalid-bad-tag-in-JSON-no-use.tsv',
+            },
+          ),
         ],
       },
       {
@@ -686,6 +726,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               tag: 'Duration/#',
               string: 'Duration/#, (Red, Blue)',
+              sidecarKey: 'duration',
+              filePath: 'bad-group-for-top-level-tag-no-splice.json',
             }),
             {
               path: 'bad-group-for-top-level-tag-no-splice.json',
@@ -698,6 +740,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               tag: 'Duration/#',
               string: 'Duration/#, (Red, Blue)',
+              sidecarKey: 'duration',
+              filePath: 'bad-group-for-top-level-tag-no-splice.tsv',
             }),
             {
               path: 'bad-group-for-top-level-tag-no-splice.tsv',
@@ -731,6 +775,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               tag: 'Duration/#',
               string: 'Duration/#, (Red, Blue)',
+              filePath: 'bad-group-for-top-level-tag-other-splice.json',
+              sidecarKey: 'duration',
             }),
             {
               path: 'bad-group-for-top-level-tag-other-splice.json',
@@ -743,6 +789,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               tag: 'Duration/#',
               string: 'Duration/#, (Red, Blue)',
+              filePath: 'bad-group-for-top-level-tag-other-splice.tsv',
+              sidecarKey: 'duration',
             }),
             {
               path: 'bad-group-for-top-level-tag-other-splice.tsv',
@@ -1279,6 +1327,8 @@ export const bidsTestData = [
           BidsHedIssue.fromHedIssue(
             generateIssue('unitClassInvalidUnit', {
               tag: 'Speed/# Hz',
+              filePath: 'wrong-units-on-a-placeholder.json',
+              sidecarKey: 'speed',
             }),
             {
               path: 'wrong-units-on-a-placeholder.json',
@@ -1287,9 +1337,16 @@ export const bidsTestData = [
         ],
         tsvErrors: [],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('unitClassInvalidUnit', { tag: 'Speed/# Hz' }), {
-            path: 'wrong-units-on-a-placeholder.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('unitClassInvalidUnit', {
+              tag: 'Speed/# Hz',
+              filePath: 'wrong-units-on-a-placeholder.tsv',
+              sidecarKey: 'speed',
+            }),
+            {
+              path: 'wrong-units-on-a-placeholder.tsv',
+            },
+          ),
         ],
       },
     ],
@@ -1509,6 +1566,8 @@ export const bidsTestData = [
             generateIssue('invalidDefinitionForbidden', {
               tag: 'Definition/NestedDef',
               tagGroup: '(Definition/NestedDef, (Definition/Junk, (Blue)))',
+              filePath: 'invalid-nested-definition.json',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-nested-definition.json',
@@ -1521,6 +1580,8 @@ export const bidsTestData = [
             generateIssue('invalidDefinitionForbidden', {
               tag: 'Definition/NestedDef',
               tagGroup: '(Definition/NestedDef, (Definition/Junk, (Blue)))',
+              filePath: 'invalid-nested-definition.tsv',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-nested-definition.tsv',
@@ -1549,6 +1610,8 @@ export const bidsTestData = [
             generateIssue('invalidDefinitionGroupStructure', {
               tagGroup: '(Definition/Apple, Definition/Banana, (Blue))',
               tag: 'Definition/Apple',
+              filePath: 'invalid-multiple-definition-tags.json',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-multiple-definition-tags.json',
@@ -1561,6 +1624,8 @@ export const bidsTestData = [
             generateIssue('invalidDefinitionGroupStructure', {
               tagGroup: '(Definition/Apple, Definition/Banana, (Blue))',
               tag: 'Definition/Apple',
+              filePath: 'invalid-multiple-definition-tags.tsv',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-multiple-definition-tags.tsv',
@@ -1589,6 +1654,8 @@ export const bidsTestData = [
             generateIssue('invalidDefinitionGroupStructure', {
               tag: 'Definition/ExtraGroupDef',
               tagGroup: '(Definition/ExtraGroupDef, (Red), (Blue))',
+              filePath: 'invalid-definition-with-extra-groups.json',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-definition-with-extra-groups.json',
@@ -1601,6 +1668,8 @@ export const bidsTestData = [
             generateIssue('invalidDefinitionGroupStructure', {
               tag: 'Definition/ExtraGroupDef',
               tagGroup: '(Definition/ExtraGroupDef, (Red), (Blue))',
+              filePath: 'invalid-definition-with-extra-groups.tsv',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-definition-with-extra-groups.tsv',
@@ -1629,6 +1698,8 @@ export const bidsTestData = [
             generateIssue('invalidDefinitionGroupStructure', {
               tagGroup: '(Definition/ExtraSiblingDef, Red, (Blue))',
               tag: 'Definition/ExtraSiblingDef',
+              filePath: 'invalid-definition-with-extra-sibling.json',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-definition-with-extra-sibling.json',
@@ -1641,6 +1712,8 @@ export const bidsTestData = [
             generateIssue('invalidDefinitionGroupStructure', {
               tagGroup: '(Definition/ExtraSiblingDef, Red, (Blue))',
               tag: 'Definition/ExtraSiblingDef',
+              filePath: 'invalid-definition-with-extra-sibling.tsv',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-definition-with-extra-sibling.tsv',
@@ -1699,7 +1772,11 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidPlaceholderInDefinition', { definition: '(Definition/MySpeed/#, (Speed, Red))' }),
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: '(Definition/MySpeed/#, (Speed, Red))',
+              filePath: 'invalid-definition-with-missing-placeholder.json',
+              sidecarKey: 'mydefs',
+            }),
             {
               path: 'invalid-definition-with-missing-placeholder.json',
             },
@@ -1708,7 +1785,11 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidPlaceholderInDefinition', { definition: '(Definition/MySpeed/#, (Speed, Red))' }),
+            generateIssue('invalidPlaceholderInDefinition', {
+              definition: '(Definition/MySpeed/#, (Speed, Red))',
+              filePath: 'invalid-definition-with-missing-placeholder.tsv',
+              sidecarKey: 'mydefs',
+            }),
             {
               path: 'invalid-definition-with-missing-placeholder.tsv',
             },
@@ -1735,6 +1816,8 @@ export const bidsTestData = [
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: '(Definition/GreenDef/Test, (Red, Triangle))',
+              filePath: 'invalid-definition-with-fixed-placeholder.json',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-definition-with-fixed-placeholder.json',
@@ -1746,6 +1829,8 @@ export const bidsTestData = [
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: '(Definition/GreenDef/Test, (Red, Triangle))',
+              filePath: 'invalid-definition-with-fixed-placeholder.tsv',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-definition-with-fixed-placeholder.tsv',
@@ -1773,6 +1858,8 @@ export const bidsTestData = [
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: '(Definition/SpeedDef/#, (Speed/# mph, (Label/#, Red, Triangle)))',
+              filePath: 'invalid-definition-has-multiple-placeholders.json',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-definition-has-multiple-placeholders.json',
@@ -1784,6 +1871,8 @@ export const bidsTestData = [
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidPlaceholderInDefinition', {
               definition: '(Definition/SpeedDef/#, (Speed/# mph, (Label/#, Red, Triangle)))',
+              filePath: 'invalid-definition-has-multiple-placeholders.tsv',
+              sidecarKey: 'mydefs',
             }),
             {
               path: 'invalid-definition-has-multiple-placeholders.tsv',
@@ -1812,8 +1901,12 @@ export const bidsTestData = [
             generateIssue('illegalInExclusiveContext', {
               tag: 'Definition/SpeedDef/#',
               string: 'Red, (Definition/SpeedDef/#, (Speed/# mph))',
+              filePath: 'invalid-definition-not-isolated.json',
+              sidecarKey: 'mydefs',
             }),
-            { path: 'invalid-definition-not-isolated.json' },
+            {
+              path: 'invalid-definition-not-isolated.json',
+            },
           ),
         ],
         tsvErrors: [],
@@ -1822,8 +1915,12 @@ export const bidsTestData = [
             generateIssue('illegalInExclusiveContext', {
               tag: 'Definition/SpeedDef/#',
               string: 'Red, (Definition/SpeedDef/#, (Speed/# mph))',
+              filePath: 'invalid-definition-not-isolated.tsv',
+              sidecarKey: 'mydefs',
             }),
-            { path: 'invalid-definition-not-isolated.tsv' },
+            {
+              path: 'invalid-definition-not-isolated.tsv',
+            },
           ),
         ],
       },
@@ -1851,6 +1948,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
               tag: 'Delay/5.0 s',
+              filePath: 'nested-delay.json',
+              sidecarKey: 'event_code',
             }),
             {
               path: 'nested-delay.json',
@@ -1860,6 +1959,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
               tag: 'Onset',
+              filePath: 'nested-delay.json',
+              sidecarKey: 'event_code',
             }),
             {
               path: 'nested-delay.json',
@@ -1893,6 +1994,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
               tag: 'Delay/5.0 s',
+              filePath: 'nested-delay.tsv',
+              sidecarKey: 'event_code',
             }),
             {
               path: 'nested-delay.tsv',
@@ -1902,6 +2005,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
               tag: 'Onset',
+              filePath: 'nested-delay.tsv',
+              sidecarKey: 'event_code',
             }),
             {
               path: 'nested-delay.tsv',
@@ -1987,6 +2092,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
               tag: 'Delay/5.0 s',
+              filePath: 'nested-delay.json',
+              sidecarKey: 'event_code',
             }),
             {
               path: 'nested-delay.json',
@@ -1996,6 +2103,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
               tag: 'Onset',
+              filePath: 'nested-delay.json',
+              sidecarKey: 'event_code',
             }),
             {
               path: 'nested-delay.json',
@@ -2029,6 +2138,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
               tag: 'Delay/5.0 s',
+              filePath: 'nested-delay.tsv',
+              sidecarKey: 'event_code',
             }),
             {
               path: 'nested-delay.tsv',
@@ -2038,6 +2149,8 @@ export const bidsTestData = [
             generateIssue('invalidTopLevelTagGroupTag', {
               string: '((Delay/5.0 s, Onset, Def/MyColor), Red)',
               tag: 'Onset',
+              filePath: 'nested-delay.tsv',
+              sidecarKey: 'event_code',
             }),
             {
               path: 'nested-delay.tsv',
@@ -2064,6 +2177,8 @@ export const bidsTestData = [
             generateIssue('invalidGroupTopTags', {
               string: '(Def/Acc/3.0, Onset, Event-context)',
               tags: 'Def/Acc/3.0, Onset, Event-context',
+              filePath: 'event-context-with-other-special-tags.json',
+              sidecarKey: 'event_code',
             }),
             {
               path: 'event-context-with-other-special-tags.json',
@@ -2074,11 +2189,11 @@ export const bidsTestData = [
           BidsHedIssue.fromHedIssue(
             generateIssue('tooManyGroupTopTags', {
               string: '(Def/MyColor, Event-context)',
+              tsvLine: '2',
             }),
             {
               path: 'event-context-with-other-special-tags.tsv',
             },
-            { tsvLine: '2' },
           ),
         ],
         comboErrors: [
@@ -2086,6 +2201,8 @@ export const bidsTestData = [
             generateIssue('invalidGroupTopTags', {
               string: '(Def/Acc/3.0, Onset, Event-context)',
               tags: 'Def/Acc/3.0, Onset, Event-context',
+              filePath: 'event-context-with-other-special-tags.tsv',
+              sidecarKey: 'event_code',
             }),
             {
               path: 'event-context-with-other-special-tags.tsv',
