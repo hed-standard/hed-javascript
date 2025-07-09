@@ -168,7 +168,7 @@ export class BidsSidecar extends BidsJsonFile {
         hedSchemas,
         fullValidation && !this.columnSpliceReferences.has(name),
       )
-      const updateParams = { sidecarKey: this.name, filePath: this.file?.path }
+      const updateParams = { sidecarKey: name, filePath: this.file?.path }
       updateIssueParameters(errorIssues, updateParams)
       updateIssueParameters(warningIssues, updateParams)
       errors.push(...errorIssues)

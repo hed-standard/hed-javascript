@@ -209,30 +209,41 @@ export const generateIssue = function (internalCode, parameters = {}) {
 /**
  * Update the parameters of a list of issues.
  *
- * @param {IssueError[]} issues The list of issues.
+ * @param {IssueError[] | Issue[]} issues The list of issues (different types can be intermixed).
  * @param {Object<string, string>} parameters The parameters to add.
  */
 export const updateIssueParameters = function (issues, parameters) {
-  for (const issue of issues) {
-    // Ensure issue.issue exists and has parameters
-    if (!issue?.issue) {
-      continue
+  for (const thisIssue of issues) {
+    if (thisIssue instanceof IssueError) {
+      _updateIssueParameters(thisIssue.issue, parameters)
+    } else if (thisIssue instanceof Issue) {
+      _updateIssueParameters(thisIssue, parameters)
     }
+  }
+}
 
-    // Initialize parameters if it doesn't exist
-    if (!issue.issue.parameters) {
-      issue.issue.parameters = {}
-    }
+/**
+ * Update the parameters for an Issue.
+ *
+ * Note: the issue is modified in place.
+ *
+ * @param {Issue} issue The issue to be updated.
+ * @param {Object<string, string>} parameters The parameters to add.
+ */
+const _updateIssueParameters = function (issue, parameters) {
+  if (!issue.parameters) {
+    issue.parameters = {}
+  }
 
-    let changed = false
-    for (const [key, value] of Object.entries(parameters)) {
-      if (!Object.hasOwn(issue.issue.parameters, key)) {
-        issue.issue.parameters[key] = value
-        changed = true
-      }
+  let changed = false
+  for (const [key, value] of Object.entries(parameters)) {
+    if (!Object.hasOwn(issue.parameters, key)) {
+      issue.parameters[key] = value
+      changed = true
     }
-    if (changed) {
-      issue.issue.generateMessage()
-    }
+  }
+
+  if (changed) {
+    issue.generateMessage()
   }
 }

@@ -205,10 +205,8 @@ export class BidsHedIssue {
    * @returns {BidsHedIssue} The BIDS-compatible issue.
    */
   static fromHedIssue(hedIssue, file, extraParameters) {
-    if (extraParameters) {
-      Object.assign(hedIssue.parameters, extraParameters)
-      hedIssue.generateMessage()
-    }
+    Object.assign(hedIssue.parameters, extraParameters)
+    hedIssue.generateMessage()
     return new BidsHedIssue(hedIssue, file)
   }
 
