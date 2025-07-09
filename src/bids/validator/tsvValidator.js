@@ -56,7 +56,7 @@ export class BidsHedTsvValidator extends BidsValidator {
     if (this.errors.length > 0) {
       return
     }
-    // Now do a full validation
+    // Now assemble the events and do a full validation.
     const bidsHedTsvParser = new BidsHedTsvParser(this.tsvFile, this.hedSchemas)
     const [bidsEvents, errorIssues, warningIssues] = bidsHedTsvParser.parse()
     this.errors.push(...errorIssues)
@@ -71,6 +71,10 @@ export class BidsHedTsvValidator extends BidsValidator {
     }
   }
 
+  /**
+   * Check for a warning if the HED column is used as a splice but no HED column exists.
+   * @private
+   */
   _checkMissingHedWarning() {
     // Check for HED column used as splice but no HED column
     if (this.tsvFile.mergedSidecar.columnSpliceReferences.has('HED') && !this.tsvFile.parsedTsv.has('HED')) {

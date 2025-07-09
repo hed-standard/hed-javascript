@@ -33,8 +33,15 @@ export class Definition {
    * A single definition
    *
    * @param {ParsedHedGroup} definitionGroup - the parsedHedGroup representing the definition.
+   * @param {boolean} _isPrivateConstruction - Internal parameter to prevent direct construction
+   * @private
    */
-  constructor(definitionGroup) {
+  constructor(definitionGroup, _isPrivateConstruction = false) {
+    if (!_isPrivateConstruction) {
+      throw new Error(
+        'Definition instances must be created using Definition.createDefinition() or Definition.createDefinitionFromGroup() static methods',
+      )
+    }
     this.defGroup = definitionGroup
     this._initializeDefinition(definitionGroup)
   }
@@ -113,8 +120,8 @@ export class Definition {
     if (errorIssues.length > 0) {
       return [null, errorIssues, warningIssues]
     }
-    if (parsedString.topLevelTags.length !== 0 || parsedString.tagGroups.length > 1) {
-      return [null, [generateIssue('invalidDefinition', { definition: hedString }), warningIssues]]
+    if (parsedString.topLevelTags.length !== 0 || parsedString.tagGroups.length !== 1) {
+      return [null, [generateIssue('invalidDefinition', { definition: hedString })], warningIssues]
     }
     return Definition.createDefinitionFromGroup(parsedString.tagGroups[0])
   }
@@ -125,11 +132,15 @@ export class Definition {
    * @returns {Array} - Returns [Definition, Issue[], Issue[]] with the definition and any issues. (The definition will be null if issues.)
    */
   static createDefinitionFromGroup(group) {
-    const def = new Definition(group)
-    if (def._checkDefinitionPlaceholderCount()) {
-      return [def, [], []]
+    try {
+      const def = new Definition(group, true)
+      if (def._checkDefinitionPlaceholderCount()) {
+        return [def, [], []]
+      }
+      return [null, [generateIssue('invalidPlaceholderInDefinition', { definition: def.defGroup.originalTag })], []]
+    } catch {
+      return [null, [generateIssue('invalidDefinition', { definition: group.originalTag })], []]
     }
-    return [null, [generateIssue('invalidPlaceholderInDefinition', { definition: def.defGroup.originalTag })], []]
   }
 }
 
@@ -307,9 +318,12 @@ export class DefinitionManager {
     const defList = []
     const issues = []
     for (const defString of defStrings) {
-      const [nextDef, defIssues] = Definition.createDefinition(defString, hedSchemas)
-      defList.push(nextDef)
-      issues.push(...defIssues)
+      const [nextDef, defErrors, defWarnings] = Definition.createDefinition(defString, hedSchemas)
+      if (nextDef) {
+        defList.push(nextDef)
+      }
+      issues.push(...defErrors)
+      issues.push(...defWarnings)
     }
     return [defList, issues]
   }
