@@ -318,11 +318,12 @@ export class DefinitionManager {
     const defList = []
     const issues = []
     for (const defString of defStrings) {
-      const [nextDef, defIssues] = Definition.createDefinition(defString, hedSchemas)
+      const [nextDef, defErrors, defWarnings] = Definition.createDefinition(defString, hedSchemas)
       if (nextDef) {
         defList.push(nextDef)
       }
-      issues.push(...defIssues)
+      issues.push(...defErrors)
+      issues.push(...defWarnings)
     }
     return [defList, issues]
   }

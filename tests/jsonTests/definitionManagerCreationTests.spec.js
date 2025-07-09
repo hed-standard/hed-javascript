@@ -52,8 +52,8 @@ const testDefinitions = function (test, thisSchema, defManager) {
       defErrorIssues1,
       test.errors,
       `${header}: expected ${defErrorIssues1} errors but received ${test.errors}\n`,
-      assert.strictEqual(defWarningIssues1.length, 0),
     )
+    assert.strictEqual(defWarningIssues1.length, 0)
   }
 }
 
