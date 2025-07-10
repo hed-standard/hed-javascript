@@ -1,4 +1,4 @@
-import { generateIssue, IssueError } from '../issues/issues'
+import { generateIssue } from '../issues/issues'
 import { parseHedString } from './parser'
 import { filterByTagName } from './parseUtils'
 
@@ -43,17 +43,6 @@ export class Definition {
       )
     }
     this.defGroup = definitionGroup
-    this._initializeDefinition(definitionGroup)
-  }
-
-  _initializeDefinition(definitionGroup) {
-    if (definitionGroup.topTags?.length !== 1 || definitionGroup.topGroups?.length > 1) {
-      IssueError.generateAndThrow('invalidDefinition', { definition: definitionGroup.originalTag })
-    }
-    this.defTag = definitionGroup.topTags[0]
-    this.name = this.defTag._value
-    this.placeholder = this.defTag._splitValue
-    this.defContents = this.defGroup.topGroups.length > 0 ? this.defGroup.topGroups[0] : null
   }
 
   /**
@@ -100,18 +89,23 @@ export class Definition {
 
   /**
    * Verify that the placeholder count is correct in the definition.
-   * @returns {boolean} - True if the placeholder count is as expected.
+   * @returns {string} - The empty string if the placeholder count is correct, otherwise an error message.
    * @private
    */
   _checkDefinitionPlaceholderCount() {
     const placeholderCount = this.defContents ? this.defContents.originalTag.split('#').length - 1 : 0
-    return !((placeholderCount !== 1 && this.placeholder) || (placeholderCount !== 0 && !this.placeholder))
+    if (this.placeholder && placeholderCount !== 1) {
+      return `The definition should have 1 placeholder but has ${placeholderCount} #s.`
+    } else if (!this.placeholder && placeholderCount !== 0) {
+      return `The definition should have no placeholders but has ${placeholderCount} #s.`
+    }
+    return ''
   }
 
   /**
    * Create a list of Definition objects from a list of strings.
    *
-   * @param {string} hedString - A list of string definitions.
+   * @param {string} hedString - A string representing a definition.
    * @param {Schemas} hedSchemas - The HED schemas to use in creation.
    * @returns {Array} - Returns [Definition, Issue[], Issue[]] with the definition and any issues.
    */
@@ -120,8 +114,28 @@ export class Definition {
     if (errorIssues.length > 0) {
       return [null, errorIssues, warningIssues]
     }
-    if (parsedString.topLevelTags.length !== 0 || parsedString.tagGroups.length !== 1) {
-      return [null, [generateIssue('invalidDefinition', { definition: hedString })], warningIssues]
+    if (parsedString.topLevelTags.length !== 0) {
+      return [
+        null,
+        [
+          generateIssue('invalidDefinition', {
+            definition: hedString,
+            msg: `There are extra tags outside the definition's defining group`,
+          }),
+        ],
+        warningIssues,
+      ]
+    } else if (parsedString.tagGroups.length !== 1 && parsedString.tagGroups.length !== 0) {
+      return [
+        null,
+        [
+          generateIssue('invalidDefinition', {
+            definition: hedString,
+            msg: `There are too many tag groups inside the definition.`,
+          }),
+        ],
+        warningIssues,
+      ]
     }
     return Definition.createDefinitionFromGroup(parsedString.tagGroups[0])
   }
@@ -132,15 +146,27 @@ export class Definition {
    * @returns {Array} - Returns [Definition, Issue[], Issue[]] with the definition and any issues. (The definition will be null if issues.)
    */
   static createDefinitionFromGroup(group) {
-    try {
-      const def = new Definition(group, true)
-      if (def._checkDefinitionPlaceholderCount()) {
-        return [def, [], []]
-      }
-      return [null, [generateIssue('invalidPlaceholderInDefinition', { definition: def.defGroup.originalTag })], []]
-    } catch {
-      return [null, [generateIssue('invalidDefinition', { definition: group.originalTag })], []]
+    const def = new Definition(group, true)
+    if (group.topTags.length !== 1 || group.topTags[0].schemaTag.name !== 'Definition') {
+      return [
+        null,
+        [generateIssue('invalidDefinition', { definition: group.originalTag, msg: `There was no Definition tag.` })],
+        [],
+      ]
     }
+    def.defTag = group.topTags[0]
+    def.name = def.defTag._value
+    def.placeholder = def.defTag._splitValue
+    def.defContents = group.topGroups.length > 0 ? group.topGroups[0] : null
+    const countErrorMsg = def._checkDefinitionPlaceholderCount()
+    if (countErrorMsg.length === 0) {
+      return [def, [], []]
+    }
+    return [
+      null,
+      [generateIssue('invalidPlaceholderInDefinition', { definition: def.defGroup.originalTag, msg: countErrorMsg })],
+      [],
+    ]
   }
 }
 

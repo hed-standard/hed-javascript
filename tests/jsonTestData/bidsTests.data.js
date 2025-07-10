@@ -1823,6 +1823,7 @@ export const bidsTestData = [
               definition: '(Definition/MySpeed/#, (Speed, Red))',
               filePath: 'invalid-definition-with-missing-placeholder.json',
               sidecarKey: 'mydefs',
+              msg: 'The definition should have 1 placeholder but has 0 #s.',
             }),
             {
               path: 'invalid-definition-with-missing-placeholder.json',
@@ -1836,6 +1837,7 @@ export const bidsTestData = [
               definition: '(Definition/MySpeed/#, (Speed, Red))',
               filePath: 'invalid-definition-with-missing-placeholder.tsv',
               sidecarKey: 'mydefs',
+              msg: 'The definition should have 1 placeholder but has 0 #s.',
             }),
             {
               path: 'invalid-definition-with-missing-placeholder.tsv',
@@ -1865,6 +1867,7 @@ export const bidsTestData = [
               definition: '(Definition/GreenDef/Test, (Red, Triangle))',
               filePath: 'invalid-definition-with-fixed-placeholder.json',
               sidecarKey: 'mydefs',
+              msg: 'The definition should have 1 placeholder but has 0 #s.',
             }),
             {
               path: 'invalid-definition-with-fixed-placeholder.json',
@@ -1878,6 +1881,7 @@ export const bidsTestData = [
               definition: '(Definition/GreenDef/Test, (Red, Triangle))',
               filePath: 'invalid-definition-with-fixed-placeholder.tsv',
               sidecarKey: 'mydefs',
+              msg: 'The definition should have 1 placeholder but has 0 #s.',
             }),
             {
               path: 'invalid-definition-with-fixed-placeholder.tsv',
@@ -1907,6 +1911,7 @@ export const bidsTestData = [
               definition: '(Definition/SpeedDef/#, (Speed/# mph, (Label/#, Red, Triangle)))',
               filePath: 'invalid-definition-has-multiple-placeholders.json',
               sidecarKey: 'mydefs',
+              msg: 'The definition should have 1 placeholder but has 2 #s.',
             }),
             {
               path: 'invalid-definition-has-multiple-placeholders.json',
@@ -1920,6 +1925,7 @@ export const bidsTestData = [
               definition: '(Definition/SpeedDef/#, (Speed/# mph, (Label/#, Red, Triangle)))',
               filePath: 'invalid-definition-has-multiple-placeholders.tsv',
               sidecarKey: 'mydefs',
+              msg: 'The definition should have 1 placeholder but has 2 #s.',
             }),
             {
               path: 'invalid-definition-has-multiple-placeholders.tsv',

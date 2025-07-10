@@ -81,7 +81,7 @@ export default {
   childRequired: {
     hedCode: 'TAG_REQUIRES_CHILD',
     level: 'error',
-    message: stringTemplate`Descendant tag required - "${'tag'}".`,
+    message: stringTemplate`Descendant tag required - "${'tag'}". ${'msg'}`,
   },
   valueRequired: {
     hedCode: 'TAG_REQUIRES_CHILD',
@@ -137,12 +137,12 @@ export default {
   invalidPlaceholderInDefinition: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Invalid placeholder or missing placeholder in definition - "${'definition'}".`,
+    message: stringTemplate`Invalid placeholder or missing placeholder in definition - "${'definition'}". ${'msg'}`,
   },
   invalidDefinition: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
-    message: stringTemplate`Invalid definition - "${'definition'}".`,
+    message: stringTemplate`Invalid definition - "${'definition'}". ${'msg'}`,
   },
   invalidDefinitionManager: {
     hedCode: 'DEFINITION_INVALID',
@@ -212,7 +212,7 @@ export default {
   illegalInExclusiveContext: {
     hedCode: 'TAG_INVALID',
     level: 'error',
-    message: stringTemplate`"${'tag'}" can only appear in groups of the same type but "${'string'}" has other groups or tags.`,
+    message: stringTemplate`"${'tag'}" can only appear in groups with other definitions but "${'string'}" has other types of groups or tags.`,
   },
   inactiveOnset: {
     hedCode: 'TEMPORAL_TAG_ERROR',
@@ -323,7 +323,7 @@ export default {
   invalidParentNode: {
     hedCode: 'TAG_EXTENSION_INVALID',
     level: 'error',
-    message: stringTemplate`"${'tag'}" appears as "${'parentTag'}" and cannot be used as an extension. Indices (${0}, ${1}).`,
+    message: stringTemplate`"${'tag'}" does not have "${'parentTag'}" as its parent in the schema. ${'msg'}`,
   },
   invalidExtension: {
     hedCode: 'TAG_EXTENSION_INVALID',
