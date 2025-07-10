@@ -269,7 +269,10 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: true,
-        error: generateIssue('childRequired', { tag: 'Duration' }),
+        error: generateIssue('childRequired', {
+          tag: 'Duration',
+          msg: `The tag "Duration" requires a child tag, but none was provided.`,
+        }),
       },
       {
         testname: 'invalid-tag-does-not-allow-extension',
@@ -282,7 +285,11 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: false,
-        error: generateIssue('invalidExtension', { parentTag: 'Sensory-event', tag: 'Blech' }),
+        error: generateIssue('invalidExtension', {
+          parentTag: 'Sensory-event',
+          tag: 'Blech',
+          msg: `The tag "Blech" is an extension, but the parent tag "Sensory-event" does not allow extensions.`,
+        }),
       },
       {
         testname: 'invalid-tag-does-not-allow-cascade-extension',
@@ -295,7 +302,11 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: false,
-        error: generateIssue('invalidExtension', { parentTag: 'Event/Agent-action', tag: 'Good' }),
+        error: generateIssue('invalidExtension', {
+          parentTag: 'Event/Agent-action',
+          tag: 'Good',
+          msg: `The tag "Good" is an extension, but the parent tag "Agent-action" does not allow extensions.`,
+        }),
       },
       {
         testname: 'invalid-no-extension-tag-in-extension-allowed',
@@ -308,7 +319,11 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: true,
-        error: generateIssue('invalidExtension', { parentTag: 'Onset', tag: 'Blech' }),
+        error: generateIssue('invalidExtension', {
+          parentTag: 'Onset',
+          tag: 'Blech',
+          msg: `The tag "Blech" is an extension, but the parent tag "Onset" does not allow extensions.`,
+        }),
       },
       {
         testname: 'invalid-duplicate-tag-in-path',
@@ -321,7 +336,11 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: true,
-        error: generateIssue('invalidParentNode', { parentTag: 'Item/Object/Geometric-object/Blech', tag: 'Object' }),
+        error: generateIssue('invalidParentNode', {
+          parentTag: 'Item/Object/Geometric-object/Blech',
+          tag: 'Object',
+          msg: `The tag "Object" is a schema tag, but it appears after an extension tag "Blech".`,
+        }),
       },
       {
         testname: 'invalid-top-node',
@@ -350,7 +369,11 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: false,
-        error: generateIssue('invalidExtension', { parentTag: 'Object', tag: 'blec h' }),
+        error: generateIssue('invalidExtension', {
+          parentTag: 'Object',
+          tag: 'blec h',
+          msg: `The tag extension "blec h" is not in the HED name class, so it cannot be used as a tag extension.`,
+        }),
       },
       {
         testname: 'invalid-tag-should-not-have-a-placeholder',
@@ -363,7 +386,11 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: false,
-        error: generateIssue('invalidExtension', { parentTag: 'object', tag: '#' }),
+        error: generateIssue('invalidExtension', {
+          parentTag: 'object',
+          tag: '#',
+          msg: `The tag extension "#" is not in the HED name class, so it cannot be used as a tag extension.`,
+        }),
       },
       {
         testname: 'invalid-tag-bad-parent',
@@ -376,7 +403,11 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: false,
-        error: generateIssue('invalidParentNode', { parentTag: 'object', tag: 'property' }),
+        error: generateIssue('invalidParentNode', {
+          parentTag: 'object',
+          tag: 'property',
+          msg: `The parent tag "Object" does not match the expected parent "undefined" in the schema.`,
+        }),
       },
       {
         testname: 'invalid-tag-bad-parent-after extension',
@@ -389,7 +420,11 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: false,
-        error: generateIssue('invalidParentNode', { parentTag: 'object/Junk/baloney', tag: 'Red' }),
+        error: generateIssue('invalidParentNode', {
+          parentTag: 'object/Junk/baloney',
+          tag: 'Red',
+          msg: `The tag "Red" is a schema tag, but it appears after an extension tag "Junk".`,
+        }),
       },
       {
         testname: 'invalid-tag-bad-unit-class',

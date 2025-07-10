@@ -43,7 +43,9 @@ export const definitionTestData = [
         explanation: 'Definition with no top tags should return invalidDefinition error',
         stringIn: '((Label/NoTopTag))',
         placeholderAllowed: false,
-        errors: [generateIssue('invalidDefinition', { definition: '((Label/NoTopTag))' })],
+        errors: [
+          generateIssue('invalidDefinition', { definition: '((Label/NoTopTag))', msg: 'There was no Definition tag.' }),
+        ],
       },
       {
         testname: 'invalid-definition-wrong-placeholder-count-too-many',
@@ -67,6 +69,7 @@ export const definitionTestData = [
         errors: [
           generateIssue('invalidPlaceholderInDefinition', {
             definition: '(Definition/MissingPlaceholder/#, (Label/NoPlaceholder))',
+            msg: 'The definition should have 1 placeholder but has 0 #s.',
           }),
         ],
       },
@@ -78,6 +81,7 @@ export const definitionTestData = [
         errors: [
           generateIssue('invalidPlaceholderInDefinition', {
             definition: '(Definition/UnexpectedPlaceholder, (Label/#))',
+            msg: 'The definition should have no placenolders but has 1 #s.',
           }),
         ],
       },
@@ -122,6 +126,7 @@ export const definitionTestData = [
         errors: [
           generateIssue('invalidDefinition', {
             definition: '(Definition/MultiGroup, (Label/First)), (Definition/Another, (Label/Second))',
+            msg: 'There are too many tag groups inside the definition.',
           }),
         ],
       },

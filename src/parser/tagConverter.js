@@ -120,6 +120,7 @@ export default class TagConverter {
         IssueError.generateAndThrow('invalidExtension', {
           tag: this.tagLevels[tagLevelIndex],
           parentTag: this.tagLevels.slice(0, tagLevelIndex).join('/'),
+          msg: `The tag "${this.tagLevels[tagLevelIndex]}" is an extension, but the parent tag "${parentTag.name}" does not allow extensions.`,
         })
       }
       this._checkExtensions(tagLevelIndex)
@@ -130,6 +131,7 @@ export default class TagConverter {
       IssueError.generateAndThrow('invalidParentNode', {
         tag: this.tagLevels[tagLevelIndex],
         parentTag: this.tagLevels.slice(0, tagLevelIndex).join('/'),
+        msg: `The parent tag "${parentTag?.name}" does not match the expected parent "${childTag.parent?.name}" in the schema.`,
       })
     }
 
@@ -146,6 +148,7 @@ export default class TagConverter {
         IssueError.generateAndThrow('invalidParentNode', {
           tag: child.name,
           parentTag: this.tagLevels.slice(0, index).join('/'),
+          msg: `The tag "${child.name}" is a schema tag, but it appears after an extension tag "${this.tagLevels[tagLevelIndex]}".`,
         })
       }
       this._checkNameClass(index)
@@ -164,7 +167,10 @@ export default class TagConverter {
     this.schemaTag = schemaTag
     this.remainder = this.tagLevels.slice(remainderStartLevelIndex).join('/')
     if (this.schemaTag?.hasAttribute('requireChild') && !this.remainder) {
-      IssueError.generateAndThrow('childRequired', { tag: this.tagString })
+      IssueError.generateAndThrow('childRequired', {
+        tag: this.tagString,
+        msg: `The tag "${this.schemaTag?.name}" requires a child tag, but none was provided.`,
+      })
     }
   }
 
@@ -175,6 +181,7 @@ export default class TagConverter {
       IssueError.generateAndThrow('invalidExtension', {
         tag: this.tagLevels[index],
         parentTag: this.tagLevels.slice(0, index).join('/'),
+        msg: `The tag extension "${this.tagLevels[index]}" is not in the HED name class, so it cannot be used as a tag extension.`,
       })
     }
   }

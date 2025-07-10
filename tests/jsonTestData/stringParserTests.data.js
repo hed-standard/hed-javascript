@@ -282,7 +282,13 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidParentNode', { tag: 'Event', parentTag: 'Item/Sound' })],
+        errors: [
+          generateIssue('invalidParentNode', {
+            tag: 'Event',
+            parentTag: 'Item/Sound',
+            msg: `The parent tag "Sound" does not match the expected parent "undefined" in the schema.`,
+          }),
+        ],
         warnings: [],
       },
       {
@@ -295,7 +301,13 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidParentNode', { parentTag: 'Item/Sound/Environmental-sound', tag: 'Event' })],
+        errors: [
+          generateIssue('invalidParentNode', {
+            parentTag: 'Item/Sound/Environmental-sound',
+            tag: 'Event',
+            msg: `The parent tag "Environmental-sound" does not match the expected parent "undefined" in the schema.`,
+          }),
+        ],
         warnings: [],
       },
       {
@@ -308,7 +320,13 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidParentNode', { parentTag: 'Item/Sound', tag: 'Event' })],
+        errors: [
+          generateIssue('invalidParentNode', {
+            parentTag: 'Item/Sound',
+            tag: 'Event',
+            msg: `The parent tag "Sound" does not match the expected parent "undefined" in the schema.`,
+          }),
+        ],
         warnings: [],
       },
       {
@@ -373,7 +391,13 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidParentNode', { parentTag: 'Item/Object/Junk', tag: 'Geometric-object' })],
+        errors: [
+          generateIssue('invalidParentNode', {
+            parentTag: 'Item/Object/Junk',
+            tag: 'Geometric-object',
+            msg: `The tag "Geometric-object" is a schema tag, but it appears after an extension tag "Junk".`,
+          }),
+        ],
         warnings: [],
       },
       {
@@ -386,7 +410,13 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidExtension', { parentTag: 'Event/Agent-action', tag: 'Baloney' })],
+        errors: [
+          generateIssue('invalidExtension', {
+            parentTag: 'Event/Agent-action',
+            tag: 'Baloney',
+            msg: `The tag "Baloney" is an extension, but the parent tag "Agent-action" does not allow extensions.`,
+          }),
+        ],
         warnings: [],
       },
     ],
@@ -433,7 +463,13 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidExtension', { tag: '#', parentTag: 'Object' })],
+        errors: [
+          generateIssue('invalidExtension', {
+            tag: '#',
+            parentTag: 'Object',
+            msg: `The tag extension "#" is not in the HED name class, so it cannot be used as a tag extension.`,
+          }),
+        ],
         warnings: [],
       },
       {
@@ -446,7 +482,13 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidExtension', { parentTag: 'Object/Thingie', tag: '#' })],
+        errors: [
+          generateIssue('invalidExtension', {
+            parentTag: 'Object/Thingie',
+            tag: '#',
+            msg: `The tag extension "#" is not in the HED name class, so it cannot be used as a tag extension.`,
+          }),
+        ],
         warnings: [],
       },
       {
@@ -506,7 +548,12 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('childRequired', { tag: 'Duration' })],
+        errors: [
+          generateIssue('childRequired', {
+            tag: 'Duration',
+            msg: `The tag "Duration" requires a child tag, but none was provided.`,
+          }),
+        ],
         warnings: [],
       },
       {
