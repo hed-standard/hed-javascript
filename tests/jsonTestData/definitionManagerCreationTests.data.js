@@ -81,7 +81,7 @@ export const definitionTestData = [
         errors: [
           generateIssue('invalidPlaceholderInDefinition', {
             definition: '(Definition/UnexpectedPlaceholder, (Label/#))',
-            msg: 'The definition should have no placenolders but has 1 #s.',
+            msg: 'The definition should have no placeholders but has 1 #s.',
           }),
         ],
       },

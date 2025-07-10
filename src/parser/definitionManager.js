@@ -97,7 +97,7 @@ export class Definition {
     if (this.placeholder && placeholderCount !== 1) {
       return `The definition should have 1 placeholder but has ${placeholderCount} #s.`
     } else if (!this.placeholder && placeholderCount !== 0) {
-      return `The definition should have no placenolders but has ${placeholderCount} #s.`
+      return `The definition should have no placeholders but has ${placeholderCount} #s.`
     }
     return ''
   }
