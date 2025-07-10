@@ -2,14 +2,9 @@
 name: Deploy Vite App to GitHub Pages
 
 on:
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'The branch to deploy'
-        required: true
-        default: 'main'
-        type: string
+  push:
+    branches:
+      - main
 
 # Allow only one concurrent deployment, cancelling any previously running ones.
 concurrency:
@@ -25,11 +20,8 @@ jobs:
       contents: read # Or another more restrictive permission if possible.
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout selected branch (${{ github.event.inputs.branch }})
+      - name: Checkout main branch
         uses: actions/checkout@v4
-        with:
-          # Checks out the branch specified in the manual trigger input
-          ref: ${{ github.event.inputs.branch }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
