@@ -99,7 +99,12 @@ export const definitionTestData = [
         definition: null,
         stringIn: 'def/Acc/4.5/3',
         placeholderAllowed: false,
-        errors: [generateIssue('invalidValue', { tag: 'Acceleration/4.5/3 m-per-s^2' })],
+        errors: [
+          generateIssue('invalidValue', {
+            tag: 'Acceleration/4.5/3 m-per-s^2',
+            msg: 'Tag "Acceleration" has value classes [numericClass] but has value "4.5/3" is not in any of them.',
+          }),
+        ],
       },
       {
         testname: 'invalid-def-expand-invalid-value',
@@ -108,7 +113,12 @@ export const definitionTestData = [
         definition: null,
         stringIn: '(Def-expand/Acc/4.5/3, (Acceleration/4.5/3 m-per-s^2, Red))',
         placeholderAllowed: false,
-        errors: [generateIssue('invalidValue', { tag: 'Acceleration/4.5/3 m-per-s^2' })],
+        errors: [
+          generateIssue('invalidValue', {
+            tag: 'Acceleration/4.5/3 m-per-s^2',
+            msg: 'Tag "Acceleration" has value classes [numericClass] but has value "4.5/3" is not in any of them.',
+          }),
+        ],
       },
       {
         testname: 'invalid-def-expand-invalid-substitution',

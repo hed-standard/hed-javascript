@@ -108,7 +108,10 @@ export default class TagConverter {
       // This is an extended tag
       if (tagLevelIndex === 0) {
         // Top level tags can't be extensions
-        IssueError.generateAndThrow('invalidTag', { tag: this.tagString })
+        IssueError.generateAndThrow('invalidTag', {
+          tag: this.tagString,
+          msg: 'Tag extensions must have a parent in the HED schema.',
+        })
       }
       if (
         parentTag !== undefined &&
