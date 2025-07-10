@@ -141,8 +141,9 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     if (actualUnit === null && actualUnitString !== null) {
       IssueError.generateAndThrow('unitClassInvalidUnit', { tag: this.originalTag })
     }
-    if (!this.checkValue(actualValueString)) {
-      IssueError.generateAndThrow('invalidValue', { tag: this.originalTag })
+    const valueErrorMsg = this.checkValue(actualValueString)
+    if (valueErrorMsg !== '') {
+      IssueError.generateAndThrow('invalidValue', { tag: this.originalTag, msg: valueErrorMsg })
     }
   }
 
@@ -321,26 +322,30 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * Check if value is a valid value for this tag.
    *
    * @param {string} value - The value to be checked.
-   * @returns {boolean} The result of check -- false if not a valid value.
+   * @returns {string} An empty string if value is value, otherwise an indication of failure.
    */
   checkValue(value) {
     if (!this.takesValue) {
-      return false
+      return `Tag "${this.schemaTag.name}" does not take a value but has value "${value}"`
     }
     if (value === '#') {
       // Placeholders work
-      return true
+      return ''
     }
     const valueAttributeNames = this._schemaTag.valueAttributeNames
     const valueClassNames = valueAttributeNames?.get('valueClass')
     if (!valueClassNames) {
       // No specified value classes
-      return allowedRegEx.test(value)
+      const allowed = allowedRegEx.test(value)
+      if (allowed) {
+        return ''
+      }
+      return `Tag "${this.schemaTag.name}" has a value containing either curly braces or a comma, which is not allowed for tags without specific value class properties.`
     }
     const entryManager = this.schema.entries.valueClasses
     for (let i = 0; i < valueClassNames.length; i++) {
-      if (entryManager.getEntry(valueClassNames[i]).validateValue(value)) return true
+      if (entryManager.getEntry(valueClassNames[i]).validateValue(value)) return ''
     }
-    return false
+    return `Tag "${this.schemaTag.name}" has value classes [${valueClassNames.join(', ')}] but has value "${value}" is not in any of them.`
   }
 }

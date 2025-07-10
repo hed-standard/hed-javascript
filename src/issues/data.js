@@ -51,7 +51,7 @@ export default {
   invalidTag: {
     hedCode: 'TAG_INVALID',
     level: 'error',
-    message: stringTemplate`Invalid tag - "${'tag'}".`,
+    message: stringTemplate`Invalid tag - "${'tag'}". ${'msg'}`,
   },
   extraSlash: {
     hedCode: 'TAG_INVALID',
@@ -106,7 +106,7 @@ export default {
   invalidValue: {
     hedCode: 'VALUE_INVALID',
     level: 'error',
-    message: stringTemplate`Invalid placeholder value for tag "${'tag'}".`,
+    message: stringTemplate`Invalid placeholder value for tag "${'tag'}". ${'msg'}`,
   },
   invalidPlaceholderContext: {
     hedCode: 'PLACEHOLDER_INVALID',
@@ -328,7 +328,7 @@ export default {
   invalidExtension: {
     hedCode: 'TAG_EXTENSION_INVALID',
     level: 'error',
-    message: stringTemplate`"${'tag'}" appears as an extension of "${'parentTag'}", which does not allow this tag extension.`,
+    message: stringTemplate`"${'tag'}" appears as an extension of "${'parentTag'}". ${'msg'}`,
   },
   emptyTagFound: {
     hedCode: 'TAG_EMPTY',

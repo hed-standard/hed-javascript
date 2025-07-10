@@ -321,7 +321,12 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidTag', { tag: 'Junk/Item/Sound/Event/Sensory-event/Environmental-sound' })],
+        errors: [
+          generateIssue('invalidTag', {
+            tag: 'Junk/Item/Sound/Event/Sensory-event/Environmental-sound',
+            msg: 'Tag extensions must have a parent in the HED schema.',
+          }),
+        ],
         warnings: [],
       },
       {
@@ -334,7 +339,9 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidTag', { tag: 'Junk' })],
+        errors: [
+          generateIssue('invalidTag', { tag: 'Junk', msg: 'Tag extensions must have a parent in the HED schema.' }),
+        ],
         warnings: [],
       },
       {
@@ -347,7 +354,12 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidTag', { tag: 'Junk/Blech' })],
+        errors: [
+          generateIssue('invalidTag', {
+            tag: 'Junk/Blech',
+            msg: 'Tag extensions must have a parent in the HED schema.',
+          }),
+        ],
         warnings: [],
       },
       {

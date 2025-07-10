@@ -104,15 +104,25 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tHED\n' + '7\t4\tBaloney',
         sidecarErrors: [],
         tsvErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('invalidTag', { tag: 'Baloney', tsvLine: '2' }), {
-            path: 'invalid-bad-tag-in-tsv.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidTag', {
+              tag: 'Baloney',
+              msg: 'Tag extensions must have a parent in the HED schema.',
+              tsvLine: '2',
+            }),
+            {
+              path: 'invalid-bad-tag-in-tsv.tsv',
+            },
+          ),
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTag', { tag: 'Baloney' }),
+            generateIssue('invalidTag', {
+              tag: 'Baloney',
+              msg: 'Tag extensions must have a parent in the HED schema.',
+              tsvLine: 2,
+            }),
             { path: 'invalid-bad-tag-in-tsv.tsv' },
-            { tsvLine: 2 },
           ),
         ],
       },
@@ -135,6 +145,7 @@ export const bidsTestData = [
               tag: 'Baloney',
               sidecarKey: 'event_code',
               filePath: 'invalid-bad-tag-in-JSON.json',
+              msg: 'Tag extensions must have a parent in the HED schema.',
             }),
             { path: 'invalid-bad-tag-in-JSON.json' },
           ),
@@ -146,6 +157,7 @@ export const bidsTestData = [
               tag: 'Baloney',
               sidecarKey: 'event_code',
               filePath: 'invalid-bad-tag-in-JSON.tsv',
+              msg: 'Tag extensions must have a parent in the HED schema.',
             }),
             {
               path: 'invalid-bad-tag-in-JSON.tsv',
@@ -174,6 +186,7 @@ export const bidsTestData = [
             generateIssue('invalidTag', {
               tag: 'Glabel/#',
               sidecarKey: 'bad_tag',
+              msg: 'Tag extensions must have a parent in the HED schema.',
               filePath: 'invalid-bad-value-tag-in-JSON.json',
             }),
             {
@@ -187,10 +200,42 @@ export const bidsTestData = [
             generateIssue('invalidTag', {
               tag: 'Glabel/#',
               sidecarKey: 'bad_tag',
+              msg: 'Tag extensions must have a parent in the HED schema.',
               filePath: 'invalid-bad-value-tag-in-JSON.tsv',
             }),
             {
               path: 'invalid-bad-value-tag-in-JSON.tsv',
+            },
+          ),
+        ],
+      },
+      {
+        testname: 'valid-json-invalid-value-class-on-combo',
+        explanation: 'Sidecar is valid but when combined with tsv, tag value has invalid value class',
+        schemaVersion: '8.3.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: '(Red, Blue)',
+            },
+          },
+          bad_value: {
+            HED: 'label/#',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tbad_value\n' + '7\t4\tface\tapple blank',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidValue', {
+              tag: 'label/apple blank',
+              msg: 'Tag "Label" has value classes [nameClass] but has value "apple blank" is not in any of them.',
+              tsvLine: '2',
+            }),
+            {
+              path: 'valid-json-invalid-value-class-on-combo.tsv',
             },
           ),
         ],
@@ -213,6 +258,7 @@ export const bidsTestData = [
             generateIssue('invalidTag', {
               tag: 'Baloney',
               sidecarKey: 'event_code',
+              msg: 'Tag extensions must have a parent in the HED schema.',
               filePath: 'invalid-bad-tag-in-JSON-no-use.json',
             }),
             {
@@ -226,6 +272,7 @@ export const bidsTestData = [
             generateIssue('invalidTag', {
               tag: 'Baloney',
               sidecarKey: 'event_code',
+              msg: 'Tag extensions must have a parent in the HED schema.',
               filePath: 'invalid-bad-tag-in-JSON-no-use.tsv',
             }),
             {
@@ -2440,7 +2487,10 @@ export const bidsTestData = [
         sidecarErrors: [],
         tsvErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTag', { tag: 'Baloney' }),
+            generateIssue('invalidTag', {
+              tag: 'Baloney',
+              msg: 'Tag extensions must have a parent in the HED schema.',
+            }),
             {
               path: 'na-in-onset column-but-invalid-hed.tsv',
             },
@@ -2449,7 +2499,10 @@ export const bidsTestData = [
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidTag', { tag: 'Baloney' }),
+            generateIssue('invalidTag', {
+              tag: 'Baloney',
+              msg: 'Tag extensions must have a parent in the HED schema.',
+            }),
             {
               path: 'na-in-onset column-but-invalid-hed.tsv',
             },

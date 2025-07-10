@@ -253,7 +253,10 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: false,
-        error: generateIssue('invalidTag', { tag: 'Blech' }),
+        error: generateIssue('invalidTag', {
+          tag: 'Blech',
+          msg: 'Tag extensions must have a parent in the HED schema.',
+        }),
       },
       {
         testname: 'invalid-tag-requires-value',
@@ -331,7 +334,10 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: true,
-        error: generateIssue('invalidTag', { tag: 'InvalidEvent' }),
+        error: generateIssue('invalidTag', {
+          tag: 'InvalidEvent',
+          msg: 'Tag extensions must have a parent in the HED schema.',
+        }),
       },
       {
         testname: 'invalid-tag-with-blank-in-extension',
@@ -500,7 +506,10 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: false,
-        error: generateIssue('invalidValue', { tag: 'Label/Blec h' }),
+        error: generateIssue('invalidValue', {
+          tag: 'Label/Blec h',
+          msg: 'Tag "Label" has value classes [nameClass] but has value "Blec h" is not in any of them.',
+        }),
       },
     ],
   },
