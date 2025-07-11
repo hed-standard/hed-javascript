@@ -57,6 +57,7 @@ export const definitionTestData = [
             index: '50',
             string: '(Definition/TooManyPlaceholders/#, (Label/#/More/#))',
             tag: 'Label/#/More/#',
+            msg: '2 placeholders found, but only one is allowed.',
           }),
         ],
       },
@@ -104,7 +105,13 @@ export const definitionTestData = [
         explanation: 'Malformed definition string should return invalidDefinition error',
         stringIn: 'Definition/Malformed, Label/Invalid)',
         placeholderAllowed: false,
-        errors: [generateIssue('unopenedParenthesis', { index: '35', string: 'Definition/Malformed, Label/Invalid)' })],
+        errors: [
+          generateIssue('unopenedParenthesis', {
+            index: '35',
+            string: 'Definition/Malformed, Label/Invalid)',
+            msg: 'A ")" appears before a matching "("',
+          }),
+        ],
       },
       {
         testname: 'invalid-definition-with-top-level-tags',

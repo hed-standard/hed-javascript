@@ -69,7 +69,12 @@ export const bidsTestData = [
         sidecarErrors: [],
         tsvErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('unclosedParenthesis', { index: '0', string: '(Red, Def/MyColor', tsvLine: '2' }),
+            generateIssue('unclosedParenthesis', {
+              index: '0',
+              string: '(Red, Def/MyColor',
+              tsvLine: '2',
+              msg: 'Unclosed group due to unmatched "(".',
+            }),
             {
               path: 'mismatched-parentheses-in-tsv.tsv',
             },
@@ -77,7 +82,12 @@ export const bidsTestData = [
         ],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('unclosedParenthesis', { index: '0', string: '(Red, Def/MyColor', tsvLine: '2' }),
+            generateIssue('unclosedParenthesis', {
+              index: '0',
+              string: '(Red, Def/MyColor',
+              tsvLine: '2',
+              msg: 'Unclosed group due to unmatched "(".',
+            }),
             { path: 'mismatched-parentheses-in-tsv.tsv' },
             { tsvLine: 2 },
           ),

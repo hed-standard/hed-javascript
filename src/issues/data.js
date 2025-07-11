@@ -17,15 +17,10 @@ export default {
     level: 'error',
     message: stringTemplate`Opening parenthesis at index ${'index'} of string "${'string'}" does not have a corresponding closing parenthesis.`,
   },
-  extraDelimiter: {
-    hedCode: 'TAG_EMPTY',
-    level: 'error',
-    message: stringTemplate`Extra delimiter "${'character'}" at index ${'index'} of string "${'string'}".`,
-  },
   commaMissing: {
     hedCode: 'COMMA_MISSING',
     level: 'error',
-    message: stringTemplate`Comma missing after - "${'tag'}".`,
+    message: stringTemplate`Comma missing at position ${'index'} of string "${'string'}". ${'msg'}`,
   },
   deprecatedTag: {
     hedCode: 'ELEMENT_DEPRECATED',
@@ -71,7 +66,7 @@ export default {
   invalidTagPrefix: {
     hedCode: 'TAG_NAMESPACE_PREFIX_INVALID',
     level: 'error',
-    message: stringTemplate`Either tag prefix at index ${'index'} contains non-alphabetic characters or does not have an associated schema.`,
+    message: stringTemplate`Either tag prefix at index ${'index'} contains non-alphabetic characters or does not have an associated schema. ${'msg'}`,
   },
   multipleUniqueTags: {
     hedCode: 'TAG_NOT_UNIQUE',
@@ -349,12 +344,12 @@ export default {
   unopenedCurlyBrace: {
     hedCode: 'SIDECAR_BRACES_INVALID',
     level: 'error',
-    message: stringTemplate`Closing curly brace at index ${'index'} of string "${'string'}" does not have a corresponding opening curly brace.`,
+    message: stringTemplate`Closing curly brace at index ${'index'} of string "${'string'}" does not have a corresponding opening curly brace. ${'msg'}`,
   },
   unclosedCurlyBrace: {
     hedCode: 'SIDECAR_BRACES_INVALID',
     level: 'error',
-    message: stringTemplate`Opening curly brace at index ${'index'} of string "${'string'}" does not have a corresponding closing curly brace.`,
+    message: stringTemplate`Opening curly brace at index ${'index'} of string "${'string'}" does not have a corresponding closing curly brace. ${'msg'}`,
   },
   nestedCurlyBrace: {
     hedCode: 'SIDECAR_BRACES_INVALID',
@@ -364,7 +359,7 @@ export default {
   emptyCurlyBrace: {
     hedCode: 'SIDECAR_BRACES_INVALID',
     level: 'error',
-    message: stringTemplate`Curly brace expression of string "${'string'}" is empty.`,
+    message: stringTemplate`Curly brace expression of string "${'string'}" is empty. ${'msg'}`,
   },
   curlyBracesInDefinition: {
     hedCode: 'DEFINITION_INVALID',

@@ -502,7 +502,12 @@ export const parseTestData = [
         definitionsAllowed: false,
         fullValidation: false,
         errors: [
-          generateIssue('invalidPlaceholder', { index: '13', string: 'Label/#/Blech, Red', tag: 'Label/#/Blech' }),
+          generateIssue('invalidPlaceholder', {
+            index: '13',
+            string: 'Label/#/Blech, Red',
+            tag: 'Label/#/Blech',
+            msg: 'Units following a placeholder must be preceded by a blank space.',
+          }),
         ],
         warnings: [],
       },
@@ -516,7 +521,14 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidPlaceholder', { index: '8', string: 'Label/##, Red', tag: 'Label/##' })],
+        errors: [
+          generateIssue('invalidPlaceholder', {
+            index: '8',
+            string: 'Label/##, Red',
+            tag: 'Label/##',
+            msg: '2 placeholders found, but only one is allowed.',
+          }),
+        ],
         warnings: [],
       },
     ],
