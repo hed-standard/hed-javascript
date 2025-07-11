@@ -309,7 +309,7 @@ export const tokenizerTests = [
         string: '/x',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('extraSlash', { index: '0', string: '/x' })],
+        errors: [generateIssue('extraSlash', { index: '0', string: '/x', msg: '"/" at the beginning of tag.' })],
       },
       {
         testname: 'double-slash',
@@ -317,7 +317,7 @@ export const tokenizerTests = [
         string: 'x//y',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('extraSlash', { index: '2', string: 'x//y' })],
+        errors: [generateIssue('extraSlash', { index: '2', string: 'x//y', msg: 'Slashes with only blanks between' })],
       },
       {
         testname: 'triple-slash',
@@ -325,7 +325,7 @@ export const tokenizerTests = [
         explanation: '"x///y" should not have double slash',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('extraSlash', { index: '2', string: 'x///y' })],
+        errors: [generateIssue('extraSlash', { index: '2', string: 'x///y', msg: 'Slashes with only blanks between' })],
       },
       {
         testname: 'trailing-slash',
@@ -333,7 +333,13 @@ export const tokenizerTests = [
         string: 'x/y/',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('extraSlash', { index: '3', string: 'x/y/' })],
+        errors: [
+          generateIssue('extraSlash', {
+            index: '3',
+            string: 'x/y/',
+            msg: 'Usually the result of multiple consecutive slashes or a slash at the end.',
+          }),
+        ],
       },
       {
         testname: 'value-slash',
@@ -341,7 +347,13 @@ export const tokenizerTests = [
         string: 'x /y',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('extraBlank', { index: '1', string: 'x /y' })],
+        errors: [
+          generateIssue('extraBlank', {
+            index: '1',
+            string: 'x /y',
+            msg: 'Blank before an internal slash -- often a slash in a value',
+          }),
+        ],
       },
       {
         testname: 'group-leading-slash',
@@ -349,7 +361,7 @@ export const tokenizerTests = [
         string: '(/x)',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('extraSlash', { index: '1', string: '(/x)' })],
+        errors: [generateIssue('extraSlash', { index: '1', string: '(/x)', msg: '"/" at the beginning of tag.' })],
       },
     ],
   },
@@ -363,7 +375,7 @@ export const tokenizerTests = [
         string: 'x,y,',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '3', string: 'x,y,' })],
+        errors: [generateIssue('emptyTagFound', { index: '3', string: 'x,y,', msg: 'Probably extra commas at end.' })],
       },
       {
         testname: 'double-comma',
@@ -371,7 +383,13 @@ export const tokenizerTests = [
         string: 'x,,y,',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '2', string: 'x,,y,' })],
+        errors: [
+          generateIssue('emptyTagFound', {
+            index: '2',
+            string: 'x,,y,',
+            msg: 'Usually a comma after another comma or an open parenthesis or at beginning of string.',
+          }),
+        ],
       },
       {
         testname: 'leading-comma',
@@ -379,7 +397,13 @@ export const tokenizerTests = [
         explanation: '",x,y" should not have a leading comma',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '0', string: ',x,y' })],
+        errors: [
+          generateIssue('emptyTagFound', {
+            index: '0',
+            string: ',x,y',
+            msg: 'Usually a comma after another comma or an open parenthesis or at beginning of string.',
+          }),
+        ],
       },
       {
         testname: 'missing-comma-before-open',
@@ -387,7 +411,9 @@ export const tokenizerTests = [
         string: 'x, y(z)',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('commaMissing', { index: '4', string: 'x, y(z)', tag: 'y' })],
+        errors: [
+          generateIssue('commaMissing', { index: '4', string: 'x, y(z)', tag: 'y', msg: 'Missing comma before "(".' }),
+        ],
       },
       {
         testname: 'missing-comma-before-close',
@@ -395,7 +421,14 @@ export const tokenizerTests = [
         string: 'x, (y)zp, (w)',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('invalidTag', { index: '8', string: 'x, (y)zp, (w)' })],
+        errors: [
+          generateIssue('invalidTag', {
+            index: '8',
+            string: 'x, (y)zp, (w)',
+            tag: 'zp',
+            msg: 'Tag found after group or column without a comma.',
+          }),
+        ],
       },
       {
         testname: 'missing-comma-before-close-at-end',
@@ -403,15 +436,27 @@ export const tokenizerTests = [
         string: 'x, (y)z',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('commaMissing', { index: '6', string: 'x, (y)z' })],
+        errors: [
+          generateIssue('commaMissing', {
+            index: '6',
+            string: 'x, (y)z',
+            msg: 'This likely occurred near the end of "x, (y)z"',
+          }),
+        ],
       },
       {
-        testname: 'extra-comma-before-open-group',
-        explanation: '"(, x, y), z" should have a comma before open brace',
+        testname: 'extra-comma-after-open-group',
+        explanation: '"(, x, y), z" should not have a comma after an open parenthesis',
         string: '(, x, y), z',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '1', string: '(, x, y), z' })],
+        errors: [
+          generateIssue('emptyTagFound', {
+            index: '1',
+            string: '(, x, y), z',
+            msg: 'Usually a comma after another comma or an open parenthesis or at beginning of string.',
+          }),
+        ],
       },
       {
         testname: 'missing-comma-before-open-column',
@@ -419,7 +464,13 @@ export const tokenizerTests = [
         string: 'x, y, {(z)',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('unclosedCurlyBrace', { index: '6', string: 'x, y, {(z)' })],
+        errors: [
+          generateIssue('unclosedCurlyBrace', {
+            index: '6',
+            string: 'x, y, {(z)',
+            msg: 'Previous "{" is not closed and braces or parentheses cannot appear inside braces.',
+          }),
+        ],
       },
       {
         testname: 'missing-comma-between groups',
@@ -427,7 +478,9 @@ export const tokenizerTests = [
         string: '(x, y)(z, (w))',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('commaMissing', { index: '6', string: '(x, y)(z, (w))' })],
+        errors: [
+          generateIssue('commaMissing', { index: '6', string: '(x, y)(z, (w))', msg: 'Missing comma after ")".' }),
+        ],
       },
       {
         testname: 'missing-close-brace-before-parentheses',
@@ -435,15 +488,21 @@ export const tokenizerTests = [
         string: 'x, y, {w(z)',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('unclosedCurlyBrace', { index: '6', string: 'x, y, {w(z)' })],
+        errors: [
+          generateIssue('unclosedCurlyBrace', {
+            index: '6',
+            string: 'x, y, {w(z)',
+            msg: 'Previous "{" is not closed and braces or parentheses cannot appear inside braces.',
+          }),
+        ],
       },
       {
-        testname: 'missing-comma-before-closing-column',
-        explanation: '"x, {y}(z)" should have a comma before closing brace',
+        testname: 'missing-comma-after-closing-column',
+        explanation: '"x, {y}(z)" should have a comma after closing brace',
         string: 'x, {y}(z)',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('commaMissing', { index: '5', string: 'x, {y}(z)' })],
+        errors: [generateIssue('commaMissing', { index: '5', string: 'x, {y}(z)', msg: 'Missing comma after "}".' })],
       },
       {
         testname: 'extra-leading-comma',
@@ -451,7 +510,13 @@ export const tokenizerTests = [
         string: ',x, (y), z',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '0', string: ',x, (y), z' })],
+        errors: [
+          generateIssue('emptyTagFound', {
+            index: '0',
+            string: ',x, (y), z',
+            msg: 'Usually a comma after another comma or an open parenthesis or at beginning of string.',
+          }),
+        ],
       },
       {
         testname: 'extra-closing-comma',
@@ -459,7 +524,9 @@ export const tokenizerTests = [
         string: 'x, (y), z,',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '9', string: 'x, (y), z,' })],
+        errors: [
+          generateIssue('emptyTagFound', { index: '9', string: 'x, (y), z,', msg: 'Probably extra commas at end.' }),
+        ],
       },
       {
         testname: 'multiple-leading-commas',
@@ -467,7 +534,13 @@ export const tokenizerTests = [
         string: ',,x, (y), z',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '0', string: ',,x, (y), z' })],
+        errors: [
+          generateIssue('emptyTagFound', {
+            index: '0',
+            string: ',,x, (y), z',
+            msg: 'Usually a comma after another comma or an open parenthesis or at beginning of string.',
+          }),
+        ],
       },
       {
         testname: 'multiple-closing-commas',
@@ -475,7 +548,13 @@ export const tokenizerTests = [
         string: 'x, (y), z,,',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '10', string: 'x, (y), z,,' })],
+        errors: [
+          generateIssue('emptyTagFound', {
+            index: '10',
+            string: 'x, (y), z,,',
+            msg: 'Usually a comma after another comma or an open parenthesis or at beginning of string.',
+          }),
+        ],
       },
       {
         testname: 'multiple-internal-commas',
@@ -483,7 +562,13 @@ export const tokenizerTests = [
         string: 'x, (y),, z',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('emptyTagFound', { index: '7', string: 'x, (y),, z' })],
+        errors: [
+          generateIssue('emptyTagFound', {
+            index: '7',
+            string: 'x, (y),, z',
+            msg: 'Usually a comma after another comma or an open parenthesis or at beginning of string.',
+          }),
+        ],
       },
     ],
   },
@@ -497,7 +582,9 @@ export const tokenizerTests = [
         string: '}x',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('unopenedCurlyBrace', { index: '0', string: '}x' })],
+        errors: [
+          generateIssue('unopenedCurlyBrace', { index: '0', string: '}x', msg: 'No matching open brace Ex: " x}"' }),
+        ],
       },
       {
         testname: 'parenthesis-after-open-brace',
@@ -505,7 +592,13 @@ export const tokenizerTests = [
         string: 'x, {y(z)}',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('unclosedCurlyBrace', { index: '3', string: 'x, {y(z)}' })],
+        errors: [
+          generateIssue('unclosedCurlyBrace', {
+            index: '3',
+            string: 'x, {y(z)}',
+            msg: 'Previous "{" is not closed and braces or parentheses cannot appear inside braces.',
+          }),
+        ],
       },
       {
         testname: 'comma-inside-braces',
@@ -513,7 +606,13 @@ export const tokenizerTests = [
         string: 'x, {y,z}',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('unclosedCurlyBrace', { index: '3', string: 'x, {y,z}' })],
+        errors: [
+          generateIssue('unclosedCurlyBrace', {
+            index: '3',
+            string: 'x, {y,z}',
+            msg: 'A "{" appears before the previous "{" was closed.',
+          }),
+        ],
       },
       {
         testname: 'unclosed-brace',
@@ -521,7 +620,13 @@ export const tokenizerTests = [
         string: 'x, {y, z',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('unclosedCurlyBrace', { index: '3', string: 'x, {y, z' })],
+        errors: [
+          generateIssue('unclosedCurlyBrace', {
+            index: '3',
+            string: 'x, {y, z',
+            msg: 'A "{" appears before the previous "{" was closed.',
+          }),
+        ],
       },
       {
         testname: 'nested-braces',
@@ -529,7 +634,13 @@ export const tokenizerTests = [
         string: '{x}, {{y, z}}',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('nestedCurlyBrace', { index: '6', string: '{x}, {{y, z}}' })],
+        errors: [
+          generateIssue('nestedCurlyBrace', {
+            index: '6',
+            string: '{x}, {{y, z}}',
+            msg: 'Often after another open brace Ex:  Ex: "{x{"',
+          }),
+        ],
       },
     ],
   },
@@ -543,7 +654,13 @@ export const tokenizerTests = [
         string: 'x, (((y, z), w), u',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('unclosedParenthesis', { index: '3', string: 'x, (((y, z), w), u' })],
+        errors: [
+          generateIssue('unclosedParenthesis', {
+            index: '3',
+            string: 'x, (((y, z), w), u',
+            msg: 'Unclosed group due to unmatched "(".',
+          }),
+        ],
       },
       {
         testname: 'unmatched-opening-parentheses',
@@ -551,7 +668,13 @@ export const tokenizerTests = [
         string: 'x, (((y, z), w), u',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('unclosedParenthesis', { index: '3', string: 'x, (((y, z), w), u' })],
+        errors: [
+          generateIssue('unclosedParenthesis', {
+            index: '3',
+            string: 'x, (((y, z), w), u',
+            msg: 'Unclosed group due to unmatched "(".',
+          }),
+        ],
       },
       {
         testname: 'extra-closing-parentheses',
@@ -559,7 +682,13 @@ export const tokenizerTests = [
         string: 'x, (y, z)), w',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('unopenedParenthesis', { index: '9', string: 'x, (y, z)), w' })],
+        errors: [
+          generateIssue('unopenedParenthesis', {
+            index: '9',
+            string: 'x, (y, z)), w',
+            msg: 'A ")" appears before a matching "("',
+          }),
+        ],
       },
       {
         testname: 'parentheses-in-wrong-order',
@@ -567,7 +696,13 @@ export const tokenizerTests = [
         string: '((x),y))(z',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('unopenedParenthesis', { index: '7', string: '((x),y))(z' })],
+        errors: [
+          generateIssue('unopenedParenthesis', {
+            index: '7',
+            string: '((x),y))(z',
+            msg: 'A ")" appears before a matching "("',
+          }),
+        ],
       },
     ],
   },
@@ -581,7 +716,14 @@ export const tokenizerTests = [
         string: '#/x, y',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('invalidPlaceholder', { index: '3', string: '#/x, y', tag: '#/x' })],
+        errors: [
+          generateIssue('invalidPlaceholder', {
+            index: '3',
+            string: '#/x, y',
+            tag: '#/x',
+            msg: 'A placeholder must be preceded by a slash in the tag.',
+          }),
+        ],
       },
       {
         testname: 'extra-placeholder-extension',
@@ -589,7 +731,14 @@ export const tokenizerTests = [
         string: 'x/#/#, z/#',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('invalidPlaceholder', { index: '5', string: 'x/#/#, z/#', tag: 'x/#/#' })],
+        errors: [
+          generateIssue('invalidPlaceholder', {
+            index: '5',
+            string: 'x/#/#, z/#',
+            tag: 'x/#/#',
+            msg: '2 placeholders found, but only one is allowed.',
+          }),
+        ],
       },
       {
         testname: 'placeholder-before-group',
@@ -597,7 +746,14 @@ export const tokenizerTests = [
         string: 'x/#(yz)',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('commaMissing', { index: '3', string: 'x/#(yz)', tag: 'x/#' })],
+        errors: [
+          generateIssue('commaMissing', {
+            index: '3',
+            string: 'x/#(yz)',
+            tag: 'x/#',
+            msg: 'Missing comma before "(".',
+          }),
+        ],
       },
       {
         testname: 'placeholder-before-column',
@@ -605,7 +761,14 @@ export const tokenizerTests = [
         string: 'x/#{yz}',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('invalidCharacter', { character: 'LEFT CURLY BRACKET', index: '3', string: 'x/#{yz}' })],
+        errors: [
+          generateIssue('invalidCharacter', {
+            character: 'LEFT CURLY BRACKET',
+            index: '3',
+            string: 'x/#{yz}',
+            msg: 'Brace in the middle of a tag Ex: "x {"',
+          }),
+        ],
       },
     ],
   },
