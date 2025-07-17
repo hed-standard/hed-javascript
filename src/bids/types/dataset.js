@@ -9,7 +9,7 @@ import { buildBidsSchemas } from '../schema'
 import { generateIssue, IssueError } from '../../issues/issues'
 import { getMergedSidecarData, organizedPathsGenerator } from '../../utils/paths'
 import { BidsHedIssue } from './issues'
-
+import path from 'path'
 /**
  * A BIDS dataset.
  *
@@ -267,6 +267,25 @@ export class BidsDataset {
    * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues found during validation.
    */
   async validate() {
+    const issues = this._validateSidecars()
+    if (issues.some((issue) => issue.severity === 'error')) {
+      return issues
+    }
+    const tsvIssues = await this._validateTsvFiles()
+    issues.push(...tsvIssues)
+    return issues
+  }
+
+  /**
+   * Validate the JSON sidecars in the dataset.
+   *
+   * This method iterates through all JSON sidecars and validates the HED data within them.
+   * Note: The data has already been parsed into BidsSidecar objects.
+   *
+   * @returns {BidsHedIssue[]} An array of issues.
+   * @private
+   */
+  _validateSidecars() {
     const issues = []
 
     for (const relativePath of organizedPathsGenerator(this.fileAccessor.organizedPaths, '.json')) {
@@ -276,8 +295,6 @@ export class BidsDataset {
         issues.push(...validationIssues)
       }
     }
-    const tsvIssues = await this._validateTsvFiles()
-    issues.push(...tsvIssues)
     return issues
   }
 
@@ -296,30 +313,51 @@ export class BidsDataset {
       const tsvPaths = catMap.get('tsv') || []
       const jsonPaths = catMap.get('json') || []
       for (const tsvPath of tsvPaths) {
-        const tsvName = tsvPath.substring(tsvPath.lastIndexOf('/') + 1)
-        const tsvContents = await this.fileAccessor.getFileContent(tsvPath)
-        if (tsvContents === null) {
-          const message = `Could not read TSV file: ${tsvPath} in category ${category}`
-          issues.push(
-            BidsHedIssue.fromHedIssue(generateIssue('fileReadError', { filename: tsvPath, message: `${message}` })),
-            { path: tsvPath, name: tsvName },
-          )
-          continue
+        const tsvIssues = await this._validateTsvFile(tsvPath, category, jsonPaths)
+        if (tsvIssues.length > 0) {
+          issues.push(...tsvIssues)
         }
-        if (!tsvContents) {
-          continue
-        }
-
-        const mergedSidecarData = getMergedSidecarData(tsvPath, jsonPaths, this.sidecarMap)
-        const tsvFile = new BidsTsvFile(tsvPath, { path: `${tsvPath}` }, tsvContents, mergedSidecarData)
-        if (!tsvFile.hasHedData) {
-          continue
-        }
-
-        const validationIssues = tsvFile.validate(this.hedSchemas)
-        issues.push(...validationIssues)
       }
     }
     return issues
+  }
+
+  async _validateTsvFile(tsvPath, category, jsonPaths) {
+    // Read the TSV file content -- if none do not proceed.
+    const parsedPath = path.parse(tsvPath)
+    const tsvContents = await this.fileAccessor.getFileContent(tsvPath)
+    if (tsvContents === null) {
+      const message = `Could not read TSV file: ${tsvPath}`
+      return [
+        BidsHedIssue.fromHedIssue(generateIssue('fileReadError', { filename: tsvPath, message: `${message}` }), {
+          path: tsvPath,
+          name: parsedPath.base,
+        }),
+      ]
+    } else if (!tsvContents) {
+      return []
+    }
+
+    const mergedSidecarData = this._getSidecarData(tsvPath, category, jsonPaths)
+    const tsvFile = new BidsTsvFile(tsvPath, { path: `${tsvPath}` }, tsvContents, mergedSidecarData)
+    if (!tsvFile.hasHedData) {
+      return []
+    }
+    return tsvFile.validate(this.hedSchemas)
+  }
+
+  _getSidecarData(tsvPath, category, jsonPaths) {
+    const parsedPath = path.parse(tsvPath)
+
+    if (BidsFileAccessor.SPECIAL_DIRS.includes(category)) {
+      const expectedJsonPath = `${parsedPath.dir ? parsedPath.dir + '/' : ''}${parsedPath.name}.json`
+      const sidecar = this.sidecarMap.get(expectedJsonPath)
+      if (sidecar !== undefined) {
+        return sidecar.jsonData
+      }
+      return {}
+    }
+    const mergedSidecarData = getMergedSidecarData(tsvPath, jsonPaths, this.sidecarMap)
+    return mergedSidecarData
   }
 }

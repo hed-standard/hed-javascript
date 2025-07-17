@@ -3,6 +3,8 @@
  * @module
  */
 
+import path from 'path'
+
 /**
  * Checks if one path is a subpath of another.
  *
@@ -224,33 +226,6 @@ export function parseBidsFilename(filePath) {
 }
 
 /**
- * Handle special directory case for sidecar merging.
- *
- * For a TSV file in a special directory (e.g. 'phenotype'), the only valid sidecar
- * is a JSON file with the exact same name in the same directory.
- *
- * @param {string} tsvPath The path to the TSV file.
- * @param {string[]} jsonList A list of relative paths of JSON sidecars.
- * @param {Map<string, BidsSidecar>} sidecarMap A map of sidecars.
- * @returns {object} The sidecar data if a matching sidecar is found, otherwise an empty object.
- * @private
- */
-function _handleSpecial(tsvPath, jsonList, sidecarMap) {
-  const tsvDir = getDir(tsvPath)
-  const tsvBasename = parseBidsFilename(tsvPath).basename
-  const expectedJsonPath = `${tsvDir ? tsvDir + '/' : ''}${tsvBasename}.json`
-
-  if (jsonList.includes(expectedJsonPath)) {
-    const sidecar = sidecarMap.get(expectedJsonPath)
-    if (sidecar && sidecar.jsonData) {
-      return { ...sidecar.jsonData }
-    }
-  }
-
-  return {}
-}
-
-/**
  * Get the directory part of a path.
  * @param {string} path The path.
  * @returns {string} The directory part of the path.
@@ -271,7 +246,7 @@ export function getDir(path) {
  */
 export function _getCandidates(jsonList, tsvDir, tsvParsed) {
   return jsonList.filter((jsonPath) => {
-    const jsonDir = getDir(jsonPath)
+    const jsonDir = path.dirname(jsonPath)
 
     // Sidecar must be in the tsv file's directory hierarchy.
     if (!isSubpath(tsvDir, jsonDir)) {
@@ -306,8 +281,8 @@ export function _getCandidates(jsonList, tsvDir, tsvParsed) {
  */
 export function _sortCandidates(candidates) {
   candidates.sort((a, b) => {
-    const aDir = getDir(a)
-    const bDir = getDir(b)
+    const aDir = path.dirname(a)
+    const bDir = path.dirname(b)
     if (aDir.length !== bDir.length) {
       return aDir.length - bDir.length
     }
@@ -324,56 +299,38 @@ export function _sortCandidates(candidates) {
  * It finds all applicable sidecars for a given TSV file, sorts them by specificity,
  * checks for conflicts, and then merges them.
  *
+ * Note: This function assumes that the sidecars are already parsed and stored in a Map.
+ *
+ * Note: This function should not be called for files in directories with special association rules such as 'phenotype'.
+ *
  * @param {string} tsvPath The path to the TSV file.
  * @param {string[]} jsonList A list of relative paths of JSON sidecars.
  * @param {Map<string, BidsSidecar>} sidecarMap A map of sidecars.
- * @param {string[]} [specialDirs=[]] A list of special directories to handle separately.
  * @returns {object} The merged sidecar data.
  * @throws {Error} If a BIDS inheritance conflict is detected.
  */
-export function getMergedSidecarData(tsvPath, jsonList, sidecarMap, specialDirs = []) {
-  const tsvDir = getDir(tsvPath)
+export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
+  const tsvDir = path.dirname(tsvPath)
   const tsvParsed = parseBidsFilename(tsvPath)
-
-  // 0. Handle special directories separately
-  const firstComponent = tsvPath.split('/')[0]
-  if (specialDirs.includes(firstComponent)) {
-    return _handleSpecial(tsvPath, jsonList, sidecarMap)
-  }
 
   // 1. Filter to find applicable sidecars
   const candidates = _getCandidates(jsonList, tsvDir, tsvParsed)
 
   // 2. Sort applicable sidecars from least to most specific.
   _sortCandidates(candidates)
-
   // 3. Check for conflicts
-  const groupedByDir = candidates.reduce((acc, path) => {
-    const dir = getDir(path)
+  const groupedByDir = candidates.reduce((acc, xpath) => {
+    const dir = path.dirname(xpath)
     if (!acc.has(dir)) {
       acc.set(dir, [])
     }
-    acc.get(dir).push(path)
+    acc.get(dir).push(xpath)
     return acc
   }, new Map())
 
   for (const [dir, sidecarsInDir] of groupedByDir.entries()) {
     if (sidecarsInDir.length > 1) {
-      for (let i = 0; i < sidecarsInDir.length; i++) {
-        for (let j = i + 1; j < sidecarsInDir.length; j++) {
-          const aParsed = parseBidsFilename(sidecarsInDir[i])
-          const bParsed = parseBidsFilename(sidecarsInDir[j])
-          const aEntities = Object.keys(aParsed.entities)
-          const bEntities = Object.keys(bParsed.entities)
-          const aIsSubset = aEntities.every((k) => bEntities.includes(k) && aParsed.entities[k] === bParsed.entities[k])
-          const bIsSubset = bEntities.every((k) => aEntities.includes(k) && bParsed.entities[k] === aParsed.entities[k])
-          if (aIsSubset === bIsSubset) {
-            throw new Error(
-              `BIDS inheritance conflict in directory '${dir}': sidecars '${sidecarsInDir[i]}' and '${sidecarsInDir[j]}' are not hierarchically related.`,
-            )
-          }
-        }
-      }
+      _testSameDir(dir, sidecarsInDir)
     }
   }
 
@@ -387,6 +344,37 @@ export function getMergedSidecarData(tsvPath, jsonList, sidecarMap, specialDirs 
   }
 
   return merged
+}
+
+/**
+ * Tests that sidecar files in the same directory do not have conflicting inheritance relationships.
+ *
+ * In BIDS inheritance, sidecar files must be hierarchically related - one must be a
+ * subset of another in terms of entities. This function validates that no two sidecars
+ * in the same directory have conflicting inheritance relationships (i.e., neither is
+ * a subset of the other, or both are subsets of each other).
+ *
+ * @param {string} dir - The directory path being tested
+ * @param {string[]} sidecarsInDir - Array of sidecar filenames in the directory
+ * @throws {Error} Throws an error if any two sidecars are hierarchically related
+ * @private
+ */
+const _testSameDir = (dir, sidecarsInDir) => {
+  for (let i = 0; i < sidecarsInDir.length; i++) {
+    for (let j = i + 1; j < sidecarsInDir.length; j++) {
+      const aParsed = parseBidsFilename(sidecarsInDir[i])
+      const bParsed = parseBidsFilename(sidecarsInDir[j])
+      const aEntities = Object.keys(aParsed.entities)
+      const bEntities = Object.keys(bParsed.entities)
+      const aIsSubset = aEntities.every((k) => bEntities.includes(k) && aParsed.entities[k] === bParsed.entities[k])
+      const bIsSubset = bEntities.every((k) => aEntities.includes(k) && bParsed.entities[k] === aParsed.entities[k])
+      if (aIsSubset === bIsSubset) {
+        throw new Error(
+          `BIDS inheritance conflict in directory '${dir}': sidecars '${sidecarsInDir[i]}' and '${sidecarsInDir[j]}' are not hierarchically related.`,
+        )
+      }
+    }
+  }
 }
 
 /**
