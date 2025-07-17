@@ -224,12 +224,39 @@ export function parseBidsFilename(filePath) {
 }
 
 /**
+ * Handle special directory case for sidecar merging.
+ *
+ * For a TSV file in a special directory (e.g. 'phenotype'), the only valid sidecar
+ * is a JSON file with the exact same name in the same directory.
+ *
+ * @param {string} tsvPath The path to the TSV file.
+ * @param {string[]} jsonList A list of relative paths of JSON sidecars.
+ * @param {Map<string, BidsSidecar>} sidecarMap A map of sidecars.
+ * @returns {object} The sidecar data if a matching sidecar is found, otherwise an empty object.
+ * @private
+ */
+function _handleSpecial(tsvPath, jsonList, sidecarMap) {
+  const tsvDir = getDir(tsvPath)
+  const tsvBasename = parseBidsFilename(tsvPath).basename
+  const expectedJsonPath = `${tsvDir ? tsvDir + '/' : ''}${tsvBasename}.json`
+
+  if (jsonList.includes(expectedJsonPath)) {
+    const sidecar = sidecarMap.get(expectedJsonPath)
+    if (sidecar && sidecar.jsonData) {
+      return { ...sidecar.jsonData }
+    }
+  }
+
+  return {}
+}
+
+/**
  * Get the directory part of a path.
  * @param {string} path The path.
  * @returns {string} The directory part of the path.
  * @private
  */
-function _getDir(path) {
+export function getDir(path) {
   const lastSlash = path.lastIndexOf('/')
   return lastSlash === -1 ? '' : path.substring(0, lastSlash)
 }
@@ -244,7 +271,7 @@ function _getDir(path) {
  */
 export function _getCandidates(jsonList, tsvDir, tsvParsed) {
   return jsonList.filter((jsonPath) => {
-    const jsonDir = _getDir(jsonPath)
+    const jsonDir = getDir(jsonPath)
 
     // Sidecar must be in the tsv file's directory hierarchy.
     if (!isSubpath(tsvDir, jsonDir)) {
@@ -279,8 +306,8 @@ export function _getCandidates(jsonList, tsvDir, tsvParsed) {
  */
 export function _sortCandidates(candidates) {
   candidates.sort((a, b) => {
-    const aDir = _getDir(a)
-    const bDir = _getDir(b)
+    const aDir = getDir(a)
+    const bDir = getDir(b)
     if (aDir.length !== bDir.length) {
       return aDir.length - bDir.length
     }
@@ -300,12 +327,19 @@ export function _sortCandidates(candidates) {
  * @param {string} tsvPath The path to the TSV file.
  * @param {string[]} jsonList A list of relative paths of JSON sidecars.
  * @param {Map<string, BidsSidecar>} sidecarMap A map of sidecars.
+ * @param {string[]} [specialDirs=[]] A list of special directories to handle separately.
  * @returns {object} The merged sidecar data.
  * @throws {Error} If a BIDS inheritance conflict is detected.
  */
-export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
-  const tsvDir = _getDir(tsvPath)
+export function getMergedSidecarData(tsvPath, jsonList, sidecarMap, specialDirs = []) {
+  const tsvDir = getDir(tsvPath)
   const tsvParsed = parseBidsFilename(tsvPath)
+
+  // 0. Handle special directories separately
+  const firstComponent = tsvPath.split('/')[0]
+  if (specialDirs.includes(firstComponent)) {
+    return _handleSpecial(tsvPath, jsonList, sidecarMap)
+  }
 
   // 1. Filter to find applicable sidecars
   const candidates = _getCandidates(jsonList, tsvDir, tsvParsed)
@@ -315,7 +349,7 @@ export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
 
   // 3. Check for conflicts
   const groupedByDir = candidates.reduce((acc, path) => {
-    const dir = _getDir(path)
+    const dir = getDir(path)
     if (!acc.has(dir)) {
       acc.set(dir, [])
     }

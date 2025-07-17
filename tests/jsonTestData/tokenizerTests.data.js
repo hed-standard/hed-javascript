@@ -317,7 +317,7 @@ export const tokenizerTests = [
         string: 'x//y',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('extraSlash', { index: '2', string: 'x//y', msg: 'Slashes with only blanks between' })],
+        errors: [generateIssue('extraSlash', { index: '2', string: 'x//y', msg: 'Slashes with only blanks between.' })],
       },
       {
         testname: 'triple-slash',
@@ -325,7 +325,9 @@ export const tokenizerTests = [
         explanation: '"x///y" should not have double slash',
         tagSpecs: [],
         groupSpec: null,
-        errors: [generateIssue('extraSlash', { index: '2', string: 'x///y', msg: 'Slashes with only blanks between' })],
+        errors: [
+          generateIssue('extraSlash', { index: '2', string: 'x///y', msg: 'Slashes with only blanks between.' }),
+        ],
       },
       {
         testname: 'trailing-slash',
@@ -351,7 +353,7 @@ export const tokenizerTests = [
           generateIssue('extraBlank', {
             index: '1',
             string: 'x /y',
-            msg: 'Blank before an internal slash -- often a slash in a value',
+            msg: 'Blank before an internal slash -- often a slash in a value.',
           }),
         ],
       },
@@ -440,7 +442,7 @@ export const tokenizerTests = [
           generateIssue('commaMissing', {
             index: '6',
             string: 'x, (y)z',
-            msg: 'This likely occurred near the end of "x, (y)z"',
+            msg: 'This likely occurred near the end of "x, (y)z".',
           }),
         ],
       },
@@ -583,7 +585,7 @@ export const tokenizerTests = [
         tagSpecs: [],
         groupSpec: null,
         errors: [
-          generateIssue('unopenedCurlyBrace', { index: '0', string: '}x', msg: 'No matching open brace Ex: " x}"' }),
+          generateIssue('unopenedCurlyBrace', { index: '0', string: '}x', msg: 'No matching open brace Ex: " x}".' }),
         ],
       },
       {
@@ -638,7 +640,7 @@ export const tokenizerTests = [
           generateIssue('nestedCurlyBrace', {
             index: '6',
             string: '{x}, {{y, z}}',
-            msg: 'Often after another open brace Ex:  Ex: "{x{"',
+            msg: 'Often after another open brace Ex:  Ex: "{x{".',
           }),
         ],
       },
@@ -686,7 +688,7 @@ export const tokenizerTests = [
           generateIssue('unopenedParenthesis', {
             index: '9',
             string: 'x, (y, z)), w',
-            msg: 'A ")" appears before a matching "("',
+            msg: 'A ")" appears before a matching "(".',
           }),
         ],
       },
@@ -700,7 +702,7 @@ export const tokenizerTests = [
           generateIssue('unopenedParenthesis', {
             index: '7',
             string: '((x),y))(z',
-            msg: 'A ")" appears before a matching "("',
+            msg: 'A ")" appears before a matching "(".',
           }),
         ],
       },
@@ -766,7 +768,7 @@ export const tokenizerTests = [
             character: 'LEFT CURLY BRACKET',
             index: '3',
             string: 'x/#{yz}',
-            msg: 'Brace in the middle of a tag Ex: "x {"',
+            msg: 'Brace in the middle of a tag Ex: "x {".',
           }),
         ],
       },

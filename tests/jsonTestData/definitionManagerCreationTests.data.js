@@ -109,7 +109,7 @@ export const definitionTestData = [
           generateIssue('unopenedParenthesis', {
             index: '35',
             string: 'Definition/Malformed, Label/Invalid)',
-            msg: 'A ")" appears before a matching "("',
+            msg: 'A ")" appears before a matching "(".',
           }),
         ],
       },
