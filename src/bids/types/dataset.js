@@ -47,47 +47,6 @@ import { BidsHedIssue } from './issues'
  */
 export class BidsDataset {
   /**
-   * Factory method to create a BidsDataset. This method, rather than the constructor should always
-   * be used to create a BidsDataset instance.
-   *
-   * Note: This method will fail to create a BidsDataset if a valid HED schema cannot be loaded or any of the
-   * JSON sidecars cannot be loaded. It does not perform HED validation.
-   *
-   * @param {string | object} rootOrFiles The root directory of the dataset or a file-like object.
-   * @param {function} fileAccessorClass The BidsFileAccessor class to use for accessing files.
-   * @returns {Promise<[BidsDataset|null, BidsHedIssue[]]>} A Promise that resolves to a two-element array containing the BidsDataset instance (or null if creation failed) and an array of issues.
-   */
-  static async create(rootOrFiles, fileAccessorClass) {
-    let dataset = null
-    const issues = []
-    try {
-      const accessor = await fileAccessorClass.create(rootOrFiles)
-      dataset = new BidsDataset(accessor)
-      const schemaIssues = await dataset.setHedSchemas()
-      issues.push(...schemaIssues)
-      if (dataset.hedSchemas === null) {
-        return [null, issues]
-      }
-      const sidecarIssues = await dataset.setSidecars()
-      issues.push(...sidecarIssues)
-    } catch (error) {
-      if (error instanceof IssueError) {
-        issues.push(error.issue)
-      } else {
-        issues.push({
-          code: 'INTERNAL_ERROR',
-          message: `An unexpected error occurred while creating the BidsDataset: ${error.message}`,
-          location: typeof rootOrFiles === 'string' ? rootOrFiles : 'Uploaded files',
-        })
-      }
-    }
-    if (issues.length > 0) {
-      dataset = null
-    }
-    return [dataset, issues]
-  }
-
-  /**
    * Map of BIDS sidecar files that contain HED annotations.
    * The keys are relative paths and the values are BidsSidecar objects.
    * @type {Map<string, BidsSidecar>}
@@ -128,6 +87,47 @@ export class BidsDataset {
     this.datasetRootDirectory = accessor.datasetRootDirectory // Set from fileAccessor
     this.sidecarMap = new Map()
     this.hedSchemas = null
+  }
+
+  /**
+   * Factory method to create a BidsDataset. This method, rather than the constructor should always
+   * be used to create a BidsDataset instance.
+   *
+   * Note: This method will fail to create a BidsDataset if a valid HED schema cannot be loaded or any of the
+   * JSON sidecars cannot be loaded. It does not perform HED validation.
+   *
+   * @param {string | object} rootOrFiles The root directory of the dataset or a file-like object.
+   * @param {function} fileAccessorClass The BidsFileAccessor class to use for accessing files.
+   * @returns {Promise<[BidsDataset|null, BidsHedIssue[]]>} A Promise that resolves to a two-element array containing the BidsDataset instance (or null if creation failed) and an array of issues.
+   */
+  static async create(rootOrFiles, fileAccessorClass) {
+    let dataset = null
+    const issues = []
+    try {
+      const accessor = await fileAccessorClass.create(rootOrFiles)
+      dataset = new BidsDataset(accessor)
+      const schemaIssues = await dataset.setHedSchemas()
+      issues.push(...schemaIssues)
+      if (dataset.hedSchemas === null) {
+        return [null, issues]
+      }
+      const sidecarIssues = await dataset.setSidecars()
+      issues.push(...sidecarIssues)
+    } catch (error) {
+      if (error instanceof IssueError) {
+        issues.push(error.issue)
+      } else {
+        issues.push({
+          code: 'INTERNAL_ERROR',
+          message: `An unexpected error occurred while creating the BidsDataset: ${error.message}`,
+          location: typeof rootOrFiles === 'string' ? rootOrFiles : 'Uploaded files',
+        })
+      }
+    }
+    if (issues.length > 0) {
+      dataset = null
+    }
+    return [dataset, issues]
   }
 
   /**

@@ -165,7 +165,7 @@ export class HedStringTokenizer {
     this.initializeTokenizer()
     // Empty strings cannot be tokenized
     if (this.hedString.trim().length === 0) {
-      this.pushIssue('emptyTagFound', 0, 'Empty commas at the beginning Ex: ",x"')
+      this.pushIssue('emptyTagFound', 0, 'Empty commas at the beginning Ex: ",x".')
       return [[], null, this.issues]
     }
     for (let i = 0; i < this.hedString.length; i++) {
@@ -234,7 +234,7 @@ export class HedStringTokenizer {
       this.pushIssue(
         'commaMissing',
         this.state.lastDelimiter[1] + 1,
-        `This likely occurred near the end of "${this.hedString}"`,
+        `This likely occurred near the end of "${this.hedString}".`,
       )
     } else {
       if (this.state.currentToken.trim().length > 0) {
@@ -327,13 +327,13 @@ export class HedStringTokenizer {
       // Slash at beginning of tag.
       this.pushIssue('extraSlash', i, '"/" at the beginning of tag.') // Slash at beginning of tag.
     } else if (this.state.lastSlash >= 0 && this.hedString.slice(this.state.lastSlash + 1, i).trim().length === 0) {
-      this.pushIssue('extraSlash', i, 'Slashes with only blanks between') // Slashes with only blanks between
+      this.pushIssue('extraSlash', i, 'Slashes with only blanks between.') // Slashes with only blanks between
     } else if (i > 0 && this.hedString.charAt(i - 1) === CHARACTERS.BLANK) {
-      this.pushIssue('extraBlank', i - 1, 'Blank before an internal slash -- often a slash in a value') // Blank before slash such as slash in value
+      this.pushIssue('extraBlank', i - 1, 'Blank before an internal slash -- often a slash in a value.') // Blank before slash such as slash in value
     } else if (i < this.hedString.length - 1 && this.hedString.charAt(i + 1) === CHARACTERS.BLANK) {
       this.pushIssue('extraBlank', i + 1, 'Blank after a slash.') //Blank after a slash
     } else if (this.hedString.slice(i).trim().length === 0) {
-      this.pushIssue('extraSlash', this.state.startingIndex, 'Extra slash at the end') // Extra slash at the end
+      this.pushIssue('extraSlash', this.state.startingIndex, 'Extra slash at the end.') // Extra slash at the end
     } else {
       this.state.currentToken += CHARACTERS.SLASH
       this.state.lastSlash = i
@@ -374,7 +374,7 @@ export class HedStringTokenizer {
    */
   handleClosingGroup(i) {
     if (this.state.groupDepth <= 0) {
-      this.pushIssue('unopenedParenthesis', i, 'A ")" appears before a matching "("') // No corresponding opening group
+      this.pushIssue('unopenedParenthesis', i, 'A ")" appears before a matching "(".')
     } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
       this.pushIssue(
         'unclosedCurlyBrace',
@@ -398,9 +398,9 @@ export class HedStringTokenizer {
    */
   handleOpeningColumn(i) {
     if (this.state.currentToken.trim().length > 0) {
-      this.pushInvalidCharacterIssue(CHARACTERS.OPENING_COLUMN, i, 'Brace in the middle of a tag Ex: "x {"')
+      this.pushInvalidCharacterIssue(CHARACTERS.OPENING_COLUMN, i, 'Brace in the middle of a tag Ex: "x {".')
     } else if (this.state.lastDelimiter[0] === CHARACTERS.OPENING_COLUMN) {
-      this.pushIssue('nestedCurlyBrace', i, 'Often after another open brace Ex:  Ex: "{x{"')
+      this.pushIssue('nestedCurlyBrace', i, 'Often after another open brace Ex:  Ex: "{x{".')
     } else {
       this.state.lastDelimiter = [CHARACTERS.OPENING_COLUMN, i]
     }
@@ -413,9 +413,9 @@ export class HedStringTokenizer {
    */
   handleClosingColumn(i) {
     if (this.state.lastDelimiter[0] !== CHARACTERS.OPENING_COLUMN) {
-      this.pushIssue('unopenedCurlyBrace', i, 'No matching open brace Ex: " x}"')
+      this.pushIssue('unopenedCurlyBrace', i, 'No matching open brace Ex: " x}".')
     } else if (!this.state.currentToken.trim()) {
-      this.pushIssue('emptyCurlyBrace', i, 'Column slice cannot be empty Ex: "{  }"')
+      this.pushIssue('emptyCurlyBrace', i, 'Column slice cannot be empty Ex: "{  }".')
     } else {
       // Close column by updating bounds and moving it to the parent group, push a column splice on the stack.
       this.state.currentGroupStack[this.state.groupDepth].push(
@@ -436,7 +436,7 @@ export class HedStringTokenizer {
     if (this.state.librarySchema || trimmed.includes(CHARACTERS.BLANK) || trimmed.includes(CHARACTERS.SLASH)) {
       this.state.currentToken += CHARACTERS.COLON // If colon has been seen or is part of a value.
     } else if (/[^A-Za-z]/.test(trimmed)) {
-      this.pushIssue('invalidTagPrefix', i, `The prefix ${trimmed} is not alphabetic`) // Prefix not alphabetic Ex:  "1a:xxx"
+      this.pushIssue('invalidTagPrefix', i, `The prefix ${trimmed} is not alphabetic.`) // Prefix not alphabetic Ex:  "1a:xxx"
     } else {
       const lib = this.state.currentToken.trimStart()
       this.resetToken(i)
@@ -466,7 +466,7 @@ export class HedStringTokenizer {
    */
   pushTag(i) {
     if (this.state.currentToken.trim().length === 0) {
-      this.pushIssue('emptyTagFound', i, 'Empty tag found likely between commas, before ")" or after "("')
+      this.pushIssue('emptyTagFound', i, 'Empty tag found likely between commas, before ")" or after "(".')
       return
     }
     const msg = this._checkForBadPlaceholderIssues()
@@ -515,7 +515,7 @@ export class HedStringTokenizer {
     const groupSpec = this.state.parenthesesStack.pop()
     groupSpec.bounds[1] = i + 1
     if (this.hedString.slice(groupSpec.bounds[0] + 1, i).trim().length === 0) {
-      this.pushIssue('emptyTagFound', i, 'Empty group, e.g. "(  )"') //The group is empty
+      this.pushIssue('emptyTagFound', i, 'Empty group, e.g. "(  )".') //The group is empty
     }
     this.state.parenthesesStack[this.state.groupDepth - 1].children.push(groupSpec)
     this.state.currentGroupStack[this.state.groupDepth - 1].push(this.state.currentGroupStack.pop())
