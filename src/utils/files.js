@@ -21,7 +21,7 @@ export async function readFile(fileName) {
     // Node.js/Jest environment
     try {
       const fsp = require('fs').promises // Changed from dynamic import to require
-      return await fsp.readFile(fileName, 'utf8')
+      return fsp.readFile(fileName, 'utf8')
     } catch (error) {
       IssueError.generateAndThrow('fileReadError', { fileName: fileName, message: error.message })
     }

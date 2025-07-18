@@ -17,6 +17,8 @@ annotation of events in an understandable, machine-actionable format.
 
 The current focus of the `hed-validator` package is to support full validation of HED in
 [BIDS datasets](https://bids-specification.readthedocs.io/en/stable/) under the BIDS validator 2.0.
+A sample of current `hed-validator` usage in BIDS can be found in the BIDS validator in
+[`hed.ts`](https://github.com/bids-standard/bids-validator/blob/43be01517aaf338aa8bf87676be192dd57087c50/src/validators/hed.ts).
 
 ## Online validation
 
@@ -24,6 +26,8 @@ A browser-based validator that uses this package is available at
 [www.hedtags.org/hed-javascript](https://www.hedtags.org/hed-javascript).
 This online validator allows users to validate HED annotations in a web
 browser without needing to install any software or upload files to a server.
+The API documentation for this package is available at
+[www.hedtags.org/hed-javascript/docs](https://www.hedtags.org/hed-javascript/docs).
 
 A number of tools for HED, including validation are also available in a Python-based
 [online validator](https://hedtools.org/hed).
@@ -35,6 +39,8 @@ organization. The HED project homepage is [www.hedtags.org](https://www.hedtags.
 ## Usage in node environment
 
 The `hed-validator` package can be used in a Node.js environment to validate HED annotations.
+You must install the npm `hed-validator` package and add:
+`require('hed-validator')`.
 
 ```javascript
 // In a Node.js environment:
@@ -55,20 +61,7 @@ async function main() {
 main()
 ```
 
-## Usage from JavaScript
-
-The JavaScript version of the HED validator, implemented in this package, is meant primarily to be
-called during validation of BIDS datasets and is called by the
-[bids-validator](https://github.com/bids-standard/bids-validator).
-This package has been deployed on npm as [hed-validator](https://www.npmjs.com/package/hed-validator).
-
-To use the `hed-validator`, you must install the npm `hed-validator` package and add:
-`import hedValidator from 'hed-validator'` to your JavaScript program.
-
-A sample of current `hed-validator` usage can be found in the BIDS validator in
-[`hed.ts`](https://github.com/bids-standard/bids-validator/blob/43be01517aaf338aa8bf87676be192dd57087c50/src/validators/hed.ts).
-
-## Repository notes:
+## Repository notes
 
 The `main` branch is now the default branch. All changes to the repository should
 be done as PRs (pull requests) to the `main` branch.
