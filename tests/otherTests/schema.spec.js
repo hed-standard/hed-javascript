@@ -6,7 +6,9 @@ import { generateIssue } from '../../src/issues/issues'
 import { PartneredSchema } from '../../src/schema/containers'
 import { buildSchemas } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
-import { parseSchemaSpec, parseSchemasSpec } from '../../src/bids/schema'
+import { parseSchemaSpec, parseSchemasSpec, buildSchemasFromVersion, buildSchemasSpec } from '../../src/bids/schema'
+import { BidsJsonFile } from '../../src/bids/index.js'
+import { IssueError } from '../../src/issues/issues.js'
 
 describe('HED schemas', () => {
   describe('Schema loading', () => {
@@ -30,7 +32,7 @@ describe('HED schemas', () => {
         assert.strictEqual(hedSchemas.baseSchema.library, spec1.library, 'Schema has wrong library name')
       })
 
-      it('a base schema with a nickname can be loaded from locally stored schema', async () => {
+      it('a base schema with a prefix can be loaded from locally stored schema', async () => {
         const spec1 = new SchemaSpec('nk', '8.0.0', '', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1)
 
@@ -331,6 +333,261 @@ describe('HED schemas', () => {
         PartneredSchema,
         'Parsed testlib schema (combined 2.0.0 and 3.0.0) is not an instance of PartneredSchema',
       )
+    })
+  })
+
+  describe('Schema parsing and building functions', () => {
+    describe('buildSchemasFromVersion', () => {
+      it('should build schemas from a single version string', async () => {
+        const versionString = '8.0.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+
+        assert.isNotNull(schemas, 'Schemas should not be null')
+        assert.strictEqual(schemas.baseSchema.version, '8.0.0', 'Schema version should match')
+        assert.strictEqual(schemas.baseSchema.library, '', 'Base schema should have empty library')
+      })
+
+      it('should build schemas from a library version string', async () => {
+        const versionString = 'testlib_2.0.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+
+        assert.isNotNull(schemas, 'Schemas should not be null')
+        assert.strictEqual(schemas.baseSchema.version, '2.0.0', 'Schema version should match')
+        assert.strictEqual(schemas.baseSchema.library, 'testlib', 'Schema library should match')
+      })
+
+      it('should build schemas from comma-separated version strings', async () => {
+        const versionString = '8.2.0, testlib_2.0.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+
+        assert.isNotNull(schemas, 'Schemas should not be null')
+        // Should have multiple schemas available
+        assert.isNotNull(schemas.baseSchema, 'Should have a base schema')
+      })
+
+      it('should build schemas from comma-separated version strings with spaces', async () => {
+        const versionString = '  8.2.0  ,  testlib_2.0.0  '
+        const schemas = await buildSchemasFromVersion(versionString)
+
+        assert.isNotNull(schemas, 'Schemas should not be null')
+        assert.instanceOf(schemas.baseSchema, PartneredSchema)
+        assert.strictEqual(schemas.baseSchema.withStandard, '8.2.0')
+      })
+
+      it('should build schemas from multiple partnered schemas', async () => {
+        const versionString = '8.4.0, lang_1.1.0, score_2.1.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+
+        assert.isNotNull(schemas, 'Schemas should not be null')
+        assert.instanceOf(schemas.baseSchema, PartneredSchema)
+        assert.strictEqual(schemas.baseSchema.withStandard, '8.4.0')
+        assert.strictEqual(schemas.baseSchema.entries.tags._definitions.size, 1994)
+      })
+
+      it('should handle version strings with prefix', async () => {
+        const versionString = 'nick:8.0.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+        assert.isNotNull(schemas, 'Schemas should not be null')
+        assert.strictEqual(schemas.schemas.get('nick').version, '8.0.0', 'Schema version should match')
+      })
+
+      it('should throw error for invalid version specification', async () => {
+        const invalidVersionString = 'invalid_version_format'
+
+        try {
+          await buildSchemasFromVersion(invalidVersionString)
+          assert.fail('Should have thrown an error for invalid version')
+        } catch (error) {
+          assert.instanceOf(error, IssueError)
+          assert.strictEqual(error.issue.internalCode, 'invalidSchemaSpecification')
+        }
+      })
+
+      it('should throw error for empty version string', async () => {
+        try {
+          await buildSchemasFromVersion('')
+          assert.fail('Should have thrown an error for empty version')
+        } catch (error) {
+          assert.instanceOf(error, IssueError)
+          assert.strictEqual(error.issue.internalCode, 'invalidSchemaSpecification')
+        }
+      })
+    })
+
+    describe('parseSchemaSpec', () => {
+      it('should parse a simple version specification', () => {
+        const spec = parseSchemaSpec('8.0.0')
+
+        assert.strictEqual(spec.prefix, '', 'Prefix should be empty')
+        assert.strictEqual(spec.version, '8.0.0', 'Version should match')
+        assert.strictEqual(spec.library, '', 'Library should be empty')
+      })
+
+      it('should parse a library version specification', () => {
+        const spec = parseSchemaSpec('testlib_2.0.0')
+
+        assert.strictEqual(spec.prefix, '', 'Prefix should be empty')
+        assert.strictEqual(spec.version, '2.0.0', 'Version should match')
+        assert.strictEqual(spec.library, 'testlib', 'Library should match')
+      })
+
+      it('should parse a specification with prefix', () => {
+        const spec = parseSchemaSpec('nick:8.0.0')
+
+        assert.strictEqual(spec.prefix, 'nick', 'Prefix should match')
+        assert.strictEqual(spec.version, '8.0.0', 'Version should match')
+        assert.strictEqual(spec.library, '', 'Library should be empty')
+      })
+
+      it('should parse a specification with prefix and library', () => {
+        const spec = parseSchemaSpec('nick:testlib_2.0.0')
+
+        assert.strictEqual(spec.prefix, 'nick', 'Prefix should match')
+        assert.strictEqual(spec.version, '2.0.0', 'Version should match')
+        assert.strictEqual(spec.library, 'testlib', 'Library should match')
+      })
+
+      it('should throw IssueError for invalid version format', async () => {
+        try {
+          await buildSchemasFromVersion('invalid_version')
+          assert.fail('Should have thrown an error for empty version')
+        } catch (error) {
+          assert.instanceOf(error, IssueError)
+          assert.strictEqual(error.issue.internalCode, 'invalidSchemaSpecification')
+        }
+      })
+
+      it('should throw IssueError for too many colons', async () => {
+        try {
+          await parseSchemaSpec('nick:more:colons:8.0.0')
+        } catch (error) {
+          assert.instanceOf(error, IssueError)
+          assert.strictEqual(error.issue.internalCode, 'invalidSchemaSpecification')
+        }
+      })
+
+      it('should throw IssueError for too many underscores', async () => {
+        try {
+          await parseSchemaSpec('lib_more_underscores_8.0.0')
+        } catch (error) {
+          assert.instanceOf(error, IssueError)
+          assert.strictEqual(error.issue.internalCode, 'invalidSchemaSpecification')
+        }
+      })
+
+      it('should throw error for non-alphabetic prefix', async () => {
+        try {
+          await parseSchemaSpec('nick123:8.0.0')
+        } catch (error) {
+          assert.instanceOf(error, IssueError)
+          assert.strictEqual(error.issue.internalCode, 'invalidSchemaSpecification')
+        }
+      })
+
+      it('should throw IssueError for non-alphabetic library name', async () => {
+        try {
+          await parseSchemaSpec('lib123_8.0.0')
+        } catch (error) {
+          assert.instanceOf(error, IssueError)
+          assert.strictEqual(error.issue.internalCode, 'invalidSchemaSpecification')
+        }
+      })
+    })
+
+    describe('parseSchemasSpec', () => {
+      it('should parse a single schema specification string', () => {
+        const specsObj = parseSchemasSpec('8.0.0')
+
+        assert.instanceOf(specsObj, SchemasSpec, 'Should return SchemasSpec instance')
+        assert.strictEqual(specsObj.data.size, 1, 'Should contain one prefix entry')
+        const specs = specsObj.data.get('')
+        assert.isArray(specs, 'Should have array of specs for empty prefix')
+        assert.lengthOf(specs, 1, 'Should contain one spec')
+        assert.strictEqual(specs[0].version, '8.0.0', 'Version should match')
+      })
+
+      it('should parse an array of schema specification strings', () => {
+        const specsObj = parseSchemasSpec(['8.0.0', 'testlib_2.0.0'])
+
+        assert.instanceOf(specsObj, SchemasSpec, 'Should return SchemasSpec instance')
+        assert.strictEqual(specsObj.data.size, 1, 'Should contain one prefix entry (both have empty prefix)')
+        const specs = specsObj.data.get('')
+        assert.lengthOf(specs, 2, 'Should contain two specs')
+        assert.strictEqual(specs[0].version, '8.0.0', 'First version should match')
+        assert.strictEqual(specs[1].version, '2.0.0', 'Second version should match')
+        assert.strictEqual(specs[1].library, 'testlib', 'Second library should match')
+      })
+
+      it('should handle mixed specification formats with different prefixes', () => {
+        const specsObj = parseSchemasSpec(['nick:8.0.0', 'testlib_2.0.0', 'other:8.1.0'])
+
+        assert.strictEqual(specsObj.data.size, 3, 'Should contain three prefix entries')
+
+        const nickSpecs = specsObj.data.get('nick')
+        assert.lengthOf(nickSpecs, 1, 'Should have one spec for nick prefix')
+        assert.strictEqual(nickSpecs[0].prefix, 'nick', 'Nick prefix should match')
+        assert.strictEqual(nickSpecs[0].version, '8.0.0', 'Nick version should match')
+
+        const emptySpecs = specsObj.data.get('')
+        assert.lengthOf(emptySpecs, 1, 'Should have one spec for empty prefix')
+        assert.strictEqual(emptySpecs[0].library, 'testlib', 'Library should match')
+
+        const otherSpecs = specsObj.data.get('other')
+        assert.lengthOf(otherSpecs, 1, 'Should have one spec for other prefix')
+        assert.strictEqual(otherSpecs[0].version, '8.1.0', 'Other version should match')
+      })
+    })
+
+    describe('buildSchemasSpec', () => {
+      it('should build schemas spec from BidsJsonFile with HEDVersion', () => {
+        const jsonData = { HEDVersion: '8.0.0' }
+        const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, jsonData)
+
+        const specsObj = buildSchemasSpec(bidsFile)
+
+        assert.isNotNull(specsObj, 'Should return schemas spec object')
+        assert.instanceOf(specsObj, SchemasSpec, 'Should return SchemasSpec instance')
+        assert.strictEqual(specsObj.data.size, 1, 'Should contain one prefix entry')
+        const specs = specsObj.data.get('')
+        assert.lengthOf(specs, 1, 'Should contain one spec')
+        assert.strictEqual(specs[0].version, '8.0.0', 'Version should match')
+      })
+
+      it('should build schemas spec from BidsJsonFile with array HEDVersion', () => {
+        const jsonData = { HEDVersion: ['8.0.0', 'testlib_2.0.0'] }
+        const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, jsonData)
+
+        const specsObj = buildSchemasSpec(bidsFile)
+
+        assert.isNotNull(specsObj, 'Should return schemas spec object')
+        const specs = specsObj.data.get('')
+        assert.lengthOf(specs, 2, 'Should contain two specs')
+      })
+
+      it('should return null for BidsJsonFile without HEDVersion', () => {
+        const jsonData = { otherField: 'value' }
+        const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, jsonData)
+
+        const specsObj = buildSchemasSpec(bidsFile)
+
+        assert.isNull(specsObj, 'Should return null when no HEDVersion')
+      })
+
+      it('should return null for BidsJsonFile with null jsonData', () => {
+        const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, null)
+
+        const specsObj = buildSchemasSpec(bidsFile)
+
+        assert.isNull(specsObj, 'Should return null when jsonData is null')
+      })
+
+      it('should return null for BidsJsonFile with undefined jsonData', () => {
+        const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, undefined)
+
+        const specsObj = buildSchemasSpec(bidsFile)
+
+        assert.isNull(specsObj, 'Should return null when jsonData is undefined')
+      })
     })
   })
 })
