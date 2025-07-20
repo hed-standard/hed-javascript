@@ -100,6 +100,29 @@ class HedStringParser {
   }
 
   /**
+   * Parse a full HED string in a standalone context, such as in the HED column of a BIDS tabular file.
+   *
+   * @param {DefinitionManager} defManager - The definition manager to use for parsing definitions.
+   * @returns {Array} - [ParsedHedString|null, Issue[], Issue[]] representing the parsed HED string and any parsing issues.
+   */
+  parseStandalone(defManager = null) {
+    // Find basic parsing issues and return if unable to parse the string. (Warnings are okay.)
+    const [parsedString, errorIssues, warningIssues] = this.parse(true)
+
+    if (parsedString !== null && parsedString.columnSplices.length > 0) {
+      errorIssues.push(generateIssue('curlyBracesInHedColumn', { string: parsedString.hedString }))
+    }
+    if (errorIssues.length === 0 && parsedString && defManager) {
+      errorIssues.push(...defManager.validateDefs(parsedString, this.hedSchemas, false))
+      errorIssues.push(...defManager.validateDefExpands(parsedString, this.hedSchemas, false))
+    }
+    if (errorIssues.length > 0) {
+      return [null, errorIssues, warningIssues]
+    }
+    return [parsedString, errorIssues, warningIssues]
+  }
+
+  /**
    * Get warnings applicable for a parsed HED string.
    * @param {ParsedHedString} parsedString - HED string object to check for warnings.
    * @returns {Issue[]} - Warnings for the parsed HED string
@@ -191,6 +214,18 @@ export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeh
 }
 
 /**
+ * Parse a HED string in a standalone context.
+ *
+ * @param {string|ParsedHedString} hedString - A (possibly already parsed) HED string.
+ * @param {Schemas} hedSchemas - The collection of HED schemas.
+ * @param {DefinitionManager} defManager - The definition manager to use for parsing definitions.
+ * @returns {Array} - [ParsedHedString, Issue[], Issue[]] representing the parsed HED string and any issues found.
+ */
+export function parseStandaloneString(hedString, hedSchemas, defManager = null) {
+  return new HedStringParser(hedString, hedSchemas, false, false).parseStandalone(defManager)
+}
+
+/**
  * Parse a list of HED strings.
  *
  * ###Note: now separates errors and warnings for easier handling.
@@ -199,6 +234,7 @@ export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeh
  * @param {Schemas} hedSchemas - The collection of HED schemas.
  * @param {boolean} definitionsAllowed - True if definitions are allowed
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed
+ * @param {boolean} fullValidation - True if full validation is required.
  * @returns {Array} - [ParsedHedString[], Issue[], Issue[]] representing the parsed HED strings and any issues found.
  */
 export function parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed, fullValidation) {

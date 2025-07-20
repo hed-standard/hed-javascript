@@ -1,7 +1,7 @@
 import { BidsHedIssue } from '../types/issues'
 import { BidsTsvElement, BidsTsvRow } from '../types/tsv'
 import { BidsValidator } from './validator'
-import { parseHedString } from '../../parser/parser'
+import { parseHedString, parseStandaloneString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../issues/issues'
 import { ReservedChecker } from '../../parser/reservedChecker'
@@ -132,35 +132,14 @@ export class BidsHedTsvValidator extends BidsValidator {
     if (!hedString) {
       return
     }
+    const [parsedString, errorIssues, warningIssues] = parseStandaloneString(
+      hedString,
+      this.hedSchemas,
+      this.tsvFile.mergedSidecar.definitions,
+    )
 
-    // Find basic parsing issues and return if unable to parse the string. (Warnings are okay.)
-    const [parsedString, errorIssues, warningIssues] = parseHedString(hedString, this.hedSchemas, false, false, false)
     this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: rowIndex }))
     this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: rowIndex }))
-    if (parsedString === null) {
-      return
-    }
-
-    // The HED column is not allowed to have column splices.
-    if (parsedString.columnSplices.length > 0) {
-      this.errors.push(
-        BidsHedIssue.fromHedIssue(
-          generateIssue('curlyBracesInHedColumn', {
-            string: parsedString.hedString,
-            tsvLine: rowIndex.toString(),
-          }),
-          this.tsvFile.file,
-        ),
-      )
-      return
-    }
-
-    // Check whether definitions used exist and are used correctly.
-    const defIssues = [
-      ...this.tsvFile.mergedSidecar.definitions.validateDefs(parsedString, this.hedSchemas, false),
-      ...this.tsvFile.mergedSidecar.definitions.validateDefExpands(parsedString, this.hedSchemas, false),
-    ]
-    this.errors.push(...BidsHedIssue.fromHedIssues(defIssues, this.tsvFile.file, { tsvLine: rowIndex }))
   }
 
   /**

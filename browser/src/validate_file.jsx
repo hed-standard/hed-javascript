@@ -8,6 +8,7 @@ import {
   BidsSidecar,
   BidsTsvFile,
   buildBidsSchemas,
+  buildSchemasFromVersion,
 } from '@hed-javascript-root/src/bids/index.js'
 import { generateIssue, IssueError } from '@hed-javascript-root/src/issues/issues.js'
 import parseTSV from '@hed-javascript-root/src/bids/tsvParser.js'
@@ -63,27 +64,9 @@ function ValidateFileApp() {
 
     try {
       // Load HED Schemas
-      let hedVersionValue = hedVersion.trim()
-      if (hedVersionValue.includes(',')) {
-        hedVersionValue = hedVersionValue
-          .split(',')
-          .map((v) => v.trim())
-          .filter(Boolean)
-      }
-
-      const hedVersionSpec = new BidsJsonFile(
-        'HED schema input',
-        { path: 'HED schema version input' },
-        { HEDVersion: hedVersionValue },
-      )
       defaultPath = 'HED schema input'
-      const hedSchemas = await buildBidsSchemas(hedVersionSpec)
+      const hedSchemas = await buildSchemasFromVersion(hedVersion)
 
-      if (!hedSchemas) {
-        throw BidsHedIssue.fromHedIssue(
-          generateIssue('invalidSchemaSpecification', { spec: originalVersion }, { path: defaultPath }),
-        )
-      }
       defaultPath = jsonFile.name
       const jsonText = await jsonFile.text()
       const jsonData = JSON.parse(jsonText)

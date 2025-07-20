@@ -49,27 +49,20 @@ function ValidateDatasetApp() {
     setDownloadableErrors([])
     setDataset(null)
     setSuccessMessage('')
-    let issues = []
-    let createdDataset = null
 
-    try {
-      ;[createdDataset, issues] = await BidsDataset.create(selectedFiles, BidsWebAccessor)
-    } catch (err) {
-      console.error('[ValidateDatasetApp] Error during dataset processing:', err)
-      issues = BidsHedIssue.transformToBids([err], { path: 'Dataset Loading' })
-    } finally {
-      const issuesForDownload = BidsHedIssue.processIssues(issues, checkWarnings, false)
-      setDownloadableErrors(issuesForDownload)
-      const processedIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
-      if (processedIssues.length > 0) {
-        setErrors(processedIssues)
-        setDataset(null)
-      } else if (createdDataset) {
-        setDataset(createdDataset)
-        setSuccessMessage(`${numFiles} files found. Ready for validation.`)
-      }
-      setIsLoading(false)
+    const [createdDataset, issues] = await BidsDataset.create(selectedFiles, BidsWebAccessor)
+
+    const issuesForDownload = BidsHedIssue.processIssues(issues, checkWarnings, false)
+    setDownloadableErrors(issuesForDownload)
+    const processedIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
+    if (processedIssues.length > 0) {
+      setErrors(processedIssues)
+      setDataset(null)
+    } else if (createdDataset) {
+      setDataset(createdDataset)
+      setSuccessMessage(`${numFiles} files found. Ready for validation.`)
     }
+    setIsLoading(false)
   }
 
   const handleValidate = async () => {

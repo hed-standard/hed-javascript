@@ -8,7 +8,7 @@
  * @module bids
  */
 
-import { buildBidsSchemas } from './schema'
+import { buildBidsSchemas, buildSchemasFromVersion } from './schema'
 import { BidsJsonFile, BidsSidecar } from './types/json'
 import { BidsTsvFile } from './types/tsv'
 import { BidsDataset } from './types/dataset'
@@ -22,6 +22,7 @@ export {
   BidsSidecar,
   BidsHedIssue,
   buildBidsSchemas,
+  buildSchemasFromVersion,
   BidsFileAccessor,
   BidsDirectoryAccessor,
 }
@@ -33,6 +34,7 @@ export default {
   BidsSidecar,
   BidsHedIssue,
   buildBidsSchemas,
+  buildSchemasFromVersion,
   BidsFileAccessor,
   BidsDirectoryAccessor,
 }
