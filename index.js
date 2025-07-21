@@ -23,7 +23,4 @@ export { Definition, DefinitionManager } from './src/parser/definitionManager'
 export { parseStandaloneString, parseHedString, parseHedStrings } from './src/parser/parser'
 
 // Export schema functions
-export { buildSchemas } from './src/schema/init'
-
-// Export schema functions
-export { localSchemaNames } from './src/schema/config'
+export { getLocalSchemaVersions } from './src/schema/config'

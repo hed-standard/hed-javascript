@@ -18,3 +18,8 @@ export const localSchemaNames = [
   'HED_score_2.1.0',
   // Add other bundled schema base names here if needed
 ]
+
+export const getLocalSchemaVersions = function () {
+  // Return a copy of the local schema names to avoid external modifications
+  return [...localSchemaNames]
+}
