@@ -6,6 +6,9 @@ import { setParent } from '../utils/xml2js'
 import SchemaParser from './parser'
 import PartneredSchemaMerger from './schemaMerger'
 import { Schema, Schemas } from './containers'
+import { IssueError } from '../issues/issues'
+import { splitStringTrimAndRemoveBlanks } from '../utils/string'
+import { SchemasSpec } from './specs'
 
 /**
  * Build a single schema container object from an XML file.
@@ -54,4 +57,18 @@ export async function buildSchemas(schemaSpecs) {
   const schemaObjects = schemaXmlData.map(buildSchemaObjects)
   const schemas = new Map(zip(schemaPrefixes, schemaObjects))
   return new Schemas(schemas)
+}
+
+/**
+ * Build HED schemas from a version specification string.
+ *
+ * @param {string} hedVersionString The HED version specification string (can contain comma-separated versions).
+ * @returns {Promise<Schemas>} A Promise that resolves to the built schemas.
+ * @throws {IssueError} If the schema specification is invalid or schemas cannot be built.
+ */
+export async function buildSchemasFromVersion(hedVersionString) {
+  hedVersionString ??= ''
+  const hedVersionSpecStrings = splitStringTrimAndRemoveBlanks(hedVersionString, ',')
+  const hedVersionSpecs = SchemasSpec.parseVersionSpecs(hedVersionSpecStrings)
+  return buildSchemas(hedVersionSpecs)
 }

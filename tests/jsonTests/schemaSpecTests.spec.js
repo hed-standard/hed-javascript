@@ -7,6 +7,7 @@ import { BidsJsonFile } from '../../src/bids'
 
 import { shouldRun } from '../testHelpers/testUtilities'
 import { schemaSpecTestData } from '../jsonTestData/schemaBuildTests.data'
+import { SchemasSpec } from '../../src/schema/specs'
 
 // Ability to select individual tests to run
 const skipMap = new Map()
@@ -29,17 +30,10 @@ describe('Schema validation', () => {
 
   describe.each(schemaSpecTestData)('$name : $description', ({ name, tests }) => {
     const validateSpec = function (test) {
-      const desc = new BidsJsonFile(
-        '/dataset_description.json',
-        {
-          path: '/dataset_description.json',
-        },
-        test.schemaVersion,
-      )
       let schemaSpec = null
       let caughtError = null
       try {
-        schemaSpec = buildSchemasSpec(desc, null)
+        schemaSpec = SchemasSpec.parseVersionSpecs(test.schemaVersion.HEDVersion)
       } catch (error) {
         caughtError = error
       }
