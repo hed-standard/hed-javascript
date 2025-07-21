@@ -21,7 +21,7 @@ await esbuild.build({
   bundle: true,
   sourcemap: true,
   format: 'esm',
-  external: ['pluralize'],
+  external: ['pluralize', 'fs/promises', 'fs', 'path'],
   define: {
     global: 'globalThis',
     window: 'globalThis',
