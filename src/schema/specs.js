@@ -1,3 +1,8 @@
+import castArray from 'lodash/castArray'
+import semver from 'semver'
+
+import { IssueError } from '../issues/issues'
+
 /**
  * A schema version specification.
  */
@@ -53,6 +58,73 @@ export class SchemaSpec {
       return 'HED_' + this.library + '_' + this.version
     }
   }
+
+  /**
+   * Parse a single schema specification string into a SchemaSpec object.
+   *
+   * @param {string} versionSpec A schema version specification string (e.g., "nickname:library_version").
+   * @returns {SchemaSpec} A schema specification object with parsed nickname, library, and version.
+   * @throws {IssueError} If the schema specification format is invalid.
+   * @public
+   */
+  static parseVersionSpec(versionSpec) {
+    const [nickname, schema] = SchemaSpec._splitPrefixAndSchema(versionSpec)
+    const [library, version] = SchemaSpec._splitLibraryAndVersion(schema, versionSpec)
+    return new SchemaSpec(nickname, version, library)
+  }
+
+  /**
+   * Split a schema version string into prefix (nickname) and schema parts using colon delimiter.
+   *
+   * @param {string} prefixSchemaSpec The schema version string to split.
+   * @returns {string[]} An array with [nickname, schema] where nickname may be empty string.
+   * @throws {IssueError} If the schema specification format is invalid.
+   * @private
+   */
+  static _splitPrefixAndSchema(prefixSchemaSpec) {
+    return SchemaSpec._splitVersionSegments(prefixSchemaSpec, prefixSchemaSpec, ':')
+  }
+
+  /**
+   * Split a schema string into library and version parts using underscore delimiter.
+   *
+   * @param {string} libraryVersionSpec The schema string to split (library_version format).
+   * @param {string} originalVersion The original version string for error reporting.
+   * @returns {string[]} An array with [library, version] where library may be empty string.
+   * @throws {IssueError} If the schema specification format is invalid or version is not valid semver.
+   * @private
+   */
+  static _splitLibraryAndVersion(libraryVersionSpec, originalVersion) {
+    const [library, version] = SchemaSpec._splitVersionSegments(libraryVersionSpec, originalVersion, '_')
+    if (!semver.valid(version)) {
+      IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
+    }
+    return [library, version]
+  }
+
+  /**
+   * Split a version string into two segments using the specified delimiter.
+   *
+   * @param {string} versionSpec The version string to split.
+   * @param {string} originalVersion The original version string for error reporting.
+   * @param {string} splitCharacter The character to use as delimiter (':' or '_').
+   * @returns {string[]} An array with [firstSegment, secondSegment] where firstSegment may be empty string.
+   * @throws {IssueError} If the schema specification format is invalid or contains non-alphabetic characters in first segment.
+   * @private
+   */
+  static _splitVersionSegments(versionSpec, originalVersion, splitCharacter) {
+    const alphabeticRegExp = new RegExp('^[a-zA-Z]+$')
+    const versionSplit = versionSpec.split(splitCharacter)
+    const secondSegment = versionSplit.pop()
+    const firstSegment = versionSplit.pop()
+    if (versionSplit.length > 0) {
+      IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
+    }
+    if (firstSegment !== undefined && !alphabeticRegExp.test(firstSegment)) {
+      IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
+    }
+    return [firstSegment ?? '', secondSegment]
+  }
 }
 
 /**
@@ -96,5 +168,26 @@ export class SchemasSpec {
       this.data.set(schemaSpec.prefix, [schemaSpec])
     }
     return this
+  }
+
+  /**
+   * Parse a HED version specification into a schemas specification object.
+   *
+   * @param {string|string[]} versionSpecs The HED version specification, can be a single version string or array of version strings.
+   * @returns {SchemasSpec} A schemas specification object containing parsed schema specifications.
+   * @throws {IssueError} If any schema specification is invalid.
+   * @public
+   */
+  static parseVersionSpecs(versionSpecs) {
+    const schemasSpec = new SchemasSpec()
+    const processVersion = castArray(versionSpecs)
+    if (processVersion.length === 0) {
+      IssueError.generateAndThrow('missingSchemaSpecification')
+    }
+    for (const schemaVersion of processVersion) {
+      const schemaSpec = SchemaSpec.parseVersionSpec(schemaVersion)
+      schemasSpec.addSchemaSpec(schemaSpec)
+    }
+    return schemasSpec
   }
 }
