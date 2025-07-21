@@ -7,7 +7,7 @@ const DEF_GROUP_TAGS = new Set(['Definition', 'Def-expand'])
 
 export class DefinitionChecker {
   /**
-   * Check Def-expand or definition syntax for compatible tags and number of groups
+   * Check Def-expand or Definition syntax for compatible tags and number of groups
    * @param {ParsedHedString} hedString - A group to check for Def-expand syntax.
    */
   constructor(hedString) {

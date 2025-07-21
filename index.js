@@ -9,8 +9,18 @@ export {
   BidsSidecar,
   BidsHedIssue,
   buildBidsSchemas,
+  buildSchemasFromVersion,
   BidsFileAccessor,
   BidsDirectoryAccessor,
 } from './src/bids'
 
 export { IssueError } from './src/issues/issues'
+
+// Export parser functions for HED string validation
+
+export { Definition, DefinitionManager } from './src/parser/definitionManager'
+
+export { parseStandaloneString, parseHedString, parseHedStrings } from './src/parser/parser'
+
+// Export schema functions
+export { getLocalSchemaVersions } from './src/schema/config'

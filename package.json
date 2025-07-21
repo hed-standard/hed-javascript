@@ -73,11 +73,6 @@
     "typedoc": "^0.28.0",
     "typescript": "^5.4.5"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "pretty-quick --staged"
-    }
-  },
   "browser": {
     "fs": false
   },
