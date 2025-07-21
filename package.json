@@ -43,6 +43,7 @@
     "date-and-time": "^3.1.1",
     "date-fns": "^4.1.0",
     "events": "^3.3.0",
+    "hed-validator": "file:i:/HEDJavascript/hed-javascript",
     "lodash": "^4.17.21",
     "path": "^0.12.7",
     "pluralize": "^8.0.0",

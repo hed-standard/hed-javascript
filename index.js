@@ -9,6 +9,7 @@ export {
   BidsSidecar,
   BidsHedIssue,
   buildBidsSchemas,
+  buildSchemasFromVersion,
   BidsFileAccessor,
   BidsDirectoryAccessor,
 } from './src/bids'
@@ -23,3 +24,6 @@ export { parseStandaloneString, parseHedString, parseHedStrings } from './src/pa
 
 // Export schema functions
 export { buildSchemas } from './src/schema/init'
+
+// Export schema functions
+export { localSchemaNames } from './src/schema/config'
