@@ -1,14 +1,21 @@
-# See https://docs.qlty.com/getting-started/configuration
+# This configuration is used by both Qlty CLI and Qlty Cloud.
+#
+#     Qlty CLI -- Code quality toolkit for developers
+#     Qlty Cloud -- Fully automated Code Health Platform
+#
+# Try Qlty Cloud: https://qlty.sh
+#
+# For a guide to configuration, visit https://qlty.sh/d/config
+# Or for a full reference, visit https://qlty.sh/d/qlty-toml
 
-exclude = [
+config_version = "0"
+
+exclude_patterns = [
   ".github/",
   ".husky/",
   "browser/",
   "docs/",
   "dist/",
-  "spec_tests/",
-  "tests/",
-  "**/tests/",
   "**/node_modules/",
   "**/*.yml",
   "**/*.yaml",
@@ -17,17 +24,65 @@ exclude = [
   "**/README*",
   "**/LICENSE",
   ".codespellrc",
+  "tests/*Data/**"
 ]
 
-[checks]
-argument-count = { threshold = 4 }
-complex-logic = { threshold = 4 }
-file-lines = { threshold = 300 }
-method-complexity = { threshold = 8 }
-method-count = { threshold = 20 }
-method-lines = { threshold = 50 }
-nested-control-flow = { threshold = 4 }
-return-statements = { threshold = 4 }
-similar-code = { threshold = 100 }
-identical-code = { threshold = 100 }
+test_patterns = [
+  "spec_tests/",
+  "tests/",
+  "**/tests/",
+]
+
+[smells]
+mode = "monitor"
+
+[[source]]
+name = "default"
+default = true
+
+
+[[plugin]]
+name = "actionlint"
+
+[[plugin]]
+name = "checkov"
+
+[[plugin]]
+name = "eslint"
+version = "9.31.0"
+package_file = "package.json"
+package_filters = ["eslint", "jest", "prettier"]
+
+[[plugin]]
+name = "markdownlint"
+mode = "monitor"
+
+[[plugin]]
+name = "osv-scanner"
+
+[[plugin]]
+name = "prettier"
+version = "3.6.2"
+package_file = "package.json"
+package_filters = ["prettier"]
+
+[[plugin]]
+name = "radarlint-js"
+
+[[plugin]]
+name = "ripgrep"
+mode = "monitor"
+
+[[plugin]]
+name = "trivy"
+drivers = [
+  "config",
+  "fs-vuln",
+]
+
+[[plugin]]
+name = "trufflehog"
+
+[[plugin]]
+name = "yamllint"
 
