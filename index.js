@@ -13,7 +13,7 @@ export {
   BidsDirectoryAccessor,
 } from './src/bids'
 
-export { IssueError } from './src/issues/issues'
+export { IssueError, Issue } from './src/issues/issues'
 
 // Export parser functions for HED string validation
 

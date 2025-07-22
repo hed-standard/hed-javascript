@@ -2,9 +2,6 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
 
-import { buildSchemasSpec } from '../../src/bids/schema'
-import { BidsJsonFile } from '../../src/bids'
-
 import { shouldRun } from '../testHelpers/testUtilities'
 import { schemaSpecTestData } from '../jsonTestData/schemaBuildTests.data'
 import { SchemasSpec } from '../../src/schema/specs'

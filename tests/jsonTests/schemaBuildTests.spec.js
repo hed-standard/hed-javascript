@@ -51,7 +51,7 @@ describe('Schema build validation', () => {
       let schema = undefined
       let caughtError = null
       try {
-        schema = await buildBidsSchemas(desc, null)
+        schema = await buildBidsSchemas(desc)
       } catch (error) {
         caughtError = error
       }
