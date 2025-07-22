@@ -160,8 +160,8 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     let actualUnit = null
     let actualUnitString = null
     let actualValueString = remainder // If no unit class, the remainder is the value
-    for (let i = 0; i < unitClasses.length; i++) {
-      ;[actualUnit, actualUnitString, actualValueString] = unitClasses[i].extractUnit(remainder)
+    for (const unitClass of unitClasses) {
+      ;[actualUnit, actualUnitString, actualValueString] = unitClass.extractUnit(remainder)
       if (actualUnit !== null) {
         break // found the unit
       }
@@ -343,8 +343,8 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       return `Tag "${this.schemaTag.name}" has a value containing either curly braces or a comma, which is not allowed for tags without specific value class properties.`
     }
     const entryManager = this.schema.entries.valueClasses
-    for (let i = 0; i < valueClassNames.length; i++) {
-      if (entryManager.getEntry(valueClassNames[i]).validateValue(value)) return ''
+    if (valueClassNames.some((valueClassName) => entryManager.getEntry(valueClassName).validateValue(value))) {
+      return ''
     }
     return `Tag "${this.schemaTag.name}" has value classes [${valueClassNames.join(', ')}] but has value "${value}" is not in any of them.`
   }
