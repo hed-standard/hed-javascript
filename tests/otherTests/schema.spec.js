@@ -9,6 +9,7 @@ import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { buildSchemasSpec } from '../../src/bids/schema'
 import { BidsJsonFile } from '../../src/bids/index.js'
 import { IssueError } from '../../src/issues/issues.js'
+import { getLocalSchemaVersions } from '../../src/schema/config.js'
 
 describe('HED schemas', () => {
   describe('Schema loading', () => {
@@ -588,6 +589,45 @@ describe('HED schemas', () => {
 
         assert.isNull(specsObj, 'Should return null when jsonData is undefined')
       })
+    })
+  })
+
+  describe('getLocalSchemaVersions', () => {
+    it('should return schema versions without HED or HED_ prefixes', () => {
+      const versions = getLocalSchemaVersions()
+
+      // Verify that the function returns an array
+      assert.isArray(versions, 'Should return an array')
+      assert.isAbove(versions.length, 0, 'Should return at least one version')
+
+      // Test specific known transformations
+      assert.include(versions, '8.0.0', 'Should include 8.0.0 (from HED8.0.0)')
+      assert.include(versions, '8.1.0', 'Should include 8.1.0 (from HED8.1.0)')
+      assert.include(versions, 'lang_1.0.0', 'Should include lang_1.0.0 (from HED_lang_1.0.0)')
+      assert.include(versions, 'score_2.0.0', 'Should include score_2.0.0 (from HED_score_2.0.0)')
+
+      // Verify that no versions start with "HED"
+      const hedPrefixedVersions = versions.filter((version) => version.startsWith('HED'))
+      assert.lengthOf(hedPrefixedVersions, 0, 'No versions should start with "HED"')
+
+      // Verify that no versions start with "HED_"
+      const hedUnderscorePrefixedVersions = versions.filter((version) => version.startsWith('HED_'))
+      assert.lengthOf(hedUnderscorePrefixedVersions, 0, 'No versions should start with "HED_"')
+    })
+
+    it('should return a copy of the versions array to avoid external modifications', () => {
+      const versions1 = getLocalSchemaVersions()
+      const versions2 = getLocalSchemaVersions()
+
+      // Modify the first array
+      versions1.push('test-version')
+
+      // Verify the second array is unchanged
+      assert.notInclude(
+        versions2,
+        'test-version',
+        'Second array should not be affected by modifications to first array',
+      )
     })
   })
 })

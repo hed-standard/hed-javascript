@@ -9,74 +9,135 @@ export class BidsDataset {
   /** The dataset's root directory as an absolute path (Node.js context) */
   datasetRootDirectory: string | null
   /** The HED schemas used to validate this dataset */
-  hedSchemas: Schemas
+  hedSchemas: Schemas | null
   /** The BIDS file accessor */
-  accessor: BidsFileAccessor
+  fileAccessor: BidsFileAccessor
 
   /** Factory method to create a BidsDataset */
-  static create(datasetPath: string, accessor: typeof BidsFileAccessor): Promise<[BidsDataset | null, Issue[]]>
+  static create(
+    rootOrFiles: string | object,
+    fileAccessorClass: typeof BidsFileAccessor,
+  ): Promise<[BidsDataset | null, BidsHedIssue[]]>
+
+  /** Load and set the HED schemas for this dataset */
+  setHedSchemas(): Promise<BidsHedIssue[]>
+
+  /** Find and parse all JSON sidecar files in the dataset */
+  setSidecars(): Promise<BidsHedIssue[]>
 
   /** Validate the dataset and return any issues */
-  validate(): Promise<Issue[]>
+  validate(): Promise<BidsHedIssue[]>
 }
 
-export class BidsTsvFile {
-  /** The file path */
-  filePath: string
-  /** The parsed TSV data */
-  data: any[][]
-  /** Column headers */
-  headers: string[]
+export class BidsFile {
+  /** The name of this file */
+  name: string
+  /** The Object representing this file data */
+  file: any
 
-  constructor(filePath: string, data: any[][], headers: string[])
+  /** Constructor for BidsFile */
+  constructor(name: string, file: any, validatorClass: any)
+
+  /** Read a BIDS file from a relative path within a dataset */
+  static readBidsFileFromDatasetPath(datasetRoot: string, relativePath: string): Promise<[string, any]>
 }
 
-export class BidsJsonFile {
-  /** The file path */
-  filePath: string
-  /** The parsed JSON data */
-  data: Record<string, any>
+export class BidsJsonFile extends BidsFile {
+  /** This file's JSON data */
+  jsonData: Record<string, any>
 
-  constructor(filePath: string, data: Record<string, any>)
+  /** Constructor for a BIDS JSON file */
+  constructor(name: string, file: any, jsonData: Record<string, any>)
+
+  /** Parse a BIDS JSON file from a BIDS dataset path */
+  static createFromBidsDatasetPath(datasetRoot: string, relativePath: string): Promise<BidsJsonFile>
 }
 
 export class BidsSidecar extends BidsJsonFile {
-  /** HED-related metadata from the sidecar */
-  hedData: Record<string, any>
+  /** The extracted keys for this sidecar */
+  sidecarKeys: Map<string, any>
+  /** The extracted HED data for this sidecar */
+  hedData: Map<string, any>
+  /** The parsed HED data for this sidecar */
+  parsedHedData: Map<string, any>
+  /** The extracted HED value strings */
+  hedValueStrings: string[]
+  /** The extracted HED categorical strings */
+  hedCategoricalStrings: string[]
+  /** The mapping of column splice references */
+  columnSpliceMapping: Map<string, Set<string>>
 
-  /** Get merged sidecar data for a specific file */
-  getMergedData(filePath: string): Record<string, any>
+  /** Constructor for BidsSidecar */
+  constructor(name: string, file: any, jsonData: Record<string, any>, defManager?: any)
+
+  /** Whether this sidecar has any HED data */
+  get hasHedData(): boolean
+}
+
+export class BidsTsvFile extends BidsFile {
+  /** This file's parsed TSV data */
+  parsedTsv: Map<string, string[]>
+  /** HED strings in the "HED" column of the TSV data */
+  hedColumnHedStrings: string[]
+  /** The pseudo-sidecar object representing the merged sidecar data */
+  mergedSidecar: BidsSidecar
+
+  /** Constructor for BidsTsvFile */
+  constructor(
+    name: string,
+    file: any,
+    tsvData: string | Map<string, string[]> | Record<string, any>,
+    mergedDictionary?: Record<string, any>,
+    defManager?: any,
+  )
+
+  /** Determine whether this file has any HED data */
+  get hasHedData(): boolean
+
+  /** Whether this TSV file is a timeline file */
+  get isTimelineFile(): boolean
 }
 
 export class BidsHedIssue extends Issue {
   /** The BIDS file associated with this issue */
   file: string
 
-  constructor(code: string, message: string, file: string, parameters?: Record<string, any>)
+  constructor(
+    internalCode: string,
+    hedCode: string,
+    level: 'error' | 'warning',
+    parameters: Record<string, any>,
+    file: string,
+  )
 }
 
 export class BidsFileAccessor {
   /** The dataset root path */
-  rootPath: string
+  datasetRootDirectory: string
+  /** Map of relative file paths to file representations */
+  fileMap: Map<string, any>
+  /** Organized paths */
+  organizedPaths: Map<string, Map<string, string[]>>
 
-  constructor(rootPath: string)
+  /** Factory method to create a BidsFileAccessor */
+  static create(rootOrFiles: string | object): Promise<BidsFileAccessor>
 
-  /** Read a file's contents */
-  readFile(filePath: string): Promise<string>
-
-  /** List files in a directory */
-  listFiles(dirPath: string): Promise<string[]>
+  /** Get file content */
+  getFileContent(filePath: string): Promise<string | null>
 }
 
 export class BidsDirectoryAccessor extends BidsFileAccessor {
-  /** Check if a path exists */
-  pathExists(filePath: string): Promise<boolean>
+  /** Constructor for BidsDirectoryAccessor */
+  constructor(datasetRootDirectory?: string, fileMap?: Map<string, string>)
 
-  /** Get file stats */
-  getStats(filePath: string): Promise<any>
+  /** Factory method to create a BidsDirectoryAccessor */
+  static create(datasetRootDirectory: string): Promise<BidsDirectoryAccessor>
+
+  /** Get file content from the filesystem */
+  getFileContent(relativePath: string): Promise<string | null>
 }
 
-export function buildBidsSchemas(datasetDescription: Record<string, any>): Promise<Schemas>
+export function buildBidsSchemas(datasetDescription: { jsonData: Record<string, any> }): Promise<Schemas>
 
 // Issues exports
 export class IssueError extends Error {
@@ -93,16 +154,18 @@ export class IssueError extends Error {
 }
 
 export class Issue {
-  /** The issue code */
-  code: string
-  /** The issue message */
-  message: string
+  /** The internal error code */
+  internalCode: string
+  /** The HED 3 error code */
+  hedCode: string
   /** Issue severity level */
   level: 'error' | 'warning'
+  /** The detailed error message */
+  message: string
   /** Additional parameters */
   parameters: Record<string, any>
 
-  constructor(code: string, message: string, level?: 'error' | 'warning', parameters?: Record<string, any>)
+  constructor(internalCode: string, hedCode: string, level: 'error' | 'warning', parameters?: Record<string, any>)
 }
 
 // Parser exports
@@ -205,9 +268,6 @@ export function parseHedStrings(
 ): [ParsedHedString[], Issue[]]
 
 // Schema exports
-export function getLocalSchemaVersions(): Promise<string[]>
+export function getLocalSchemaVersions(): string[]
 
 export function buildSchemasFromVersion(version: string): Promise<Schemas>
-
-// Utility function to generate issues
-export function generateIssue(code: string, parameters?: Record<string, any>): Issue
