@@ -21,5 +21,5 @@ export const localSchemaNames = [
 
 export const getLocalSchemaVersions = function () {
   // Return a copy of the local schema names to avoid external modifications
-  return [...localSchemaNames]
+  return localSchemaNames.map((name) => name.replace(/^HED_?/, ''))
 }

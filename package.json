@@ -3,8 +3,10 @@
   "version": "4.0.1",
   "description": "A JavaScript validator for HED (Hierarchical Event Descriptor) strings.",
   "main": "./dist/commonjs/index.js",
+  "types": "./types/index.d.ts",
   "exports": {
     ".": {
+      "types": "./types/index.d.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/commonjs/index.js"
     }
@@ -22,6 +24,11 @@
     "lint": "eslint ./src/**/*.js",
     "test": "jest --testPathIgnorePatterns=spec_tests",
     "testSpecs": "jest spec_tests --silent --noStackTrace",
+    "test-types": "npx tsx types/test.ts",
+    "test-types-local": "node scripts/test-types-local.js",
+    "test-types-local-windows": "powershell -ExecutionPolicy Bypass -File ./scripts/test-types-local-windows.ps1",
+    "test-types-local-unix": "bash ./scripts/test-types-local-unix.sh",
+    "type-check": "tsc --noEmit",
     "coverage": "jest --coverage",
     "prepare": "husky",
     "docs": "typedoc --options typedoc.json",
@@ -70,6 +77,7 @@
     "jsdoc": "^4.0.4",
     "prettier": "^3.2.5",
     "pretty-quick": "^4.0.0",
+    "tsx": "^4.20.3",
     "typedoc": "^0.28.0",
     "typescript": "^5.4.5"
   },
@@ -77,6 +85,7 @@
     "fs": false
   },
   "files": [
-    "dist/*"
+    "dist/*",
+    "types/*"
   ]
 }

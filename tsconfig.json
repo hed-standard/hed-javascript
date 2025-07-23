@@ -5,7 +5,9 @@
     "target": "es2020",
     "module": "es2020",
     "moduleResolution": "node",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "types/**/*"]
 }

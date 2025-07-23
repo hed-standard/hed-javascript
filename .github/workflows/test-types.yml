@@ -1,0 +1,70 @@
+name: Test TypeScript Definitions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-types:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, lts/*]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the package
+        run: npm run build
+
+      - name: Pack the package
+        run: npm pack
+
+      - name: Create test directory
+        run: mkdir -p test-package
+
+      - name: Install packed package
+        run: |
+          cd test-package
+          npm init -y
+          npm install ../hed-validator-*.tgz
+          npm install typescript @types/node
+
+      - name: Copy test file
+        run: cp types/test.ts test-package/
+
+      - name: Test TypeScript definitions
+        run: |
+          cd test-package
+          npx tsc --noEmit --strict test.ts
+
+      - name: Test runtime execution (basic smoke test)
+        run: |
+          cd test-package
+          # Create a simple test that just imports and checks types
+          cat > runtime-test.ts << 'EOF'
+          import { getLocalSchemaVersions } from 'hed-validator'
+
+          // Simple runtime test
+          const versions = getLocalSchemaVersions()
+          console.log('Available schema versions:', versions.length)
+          console.log('First version:', versions[0])
+
+          // Type check: ensure it returns string[]
+          const firstVersion: string = versions[0]
+          console.log('Type test passed')
+          EOF
+
+          npx tsx runtime-test.ts
