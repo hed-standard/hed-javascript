@@ -47,17 +47,7 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 Write-Host "Creating runtime test..." -ForegroundColor Green
-@"
-import { getLocalSchemaVersions } from 'hed-validator'
-
-const versions = getLocalSchemaVersions()
-console.log('✅ Available schema versions:', versions.length)
-console.log('✅ First version:', versions[0])
-
-// Type check
-const firstVersion: string = versions[0]
-console.log('✅ Type test passed')
-"@ | Out-File -FilePath "runtime-test.ts" -Encoding UTF8
+Copy-Item "../scripts/runtime-test.template.ts" "runtime-test.ts"
 
 Write-Host "Running runtime test..." -ForegroundColor Green
 npx tsx runtime-test.ts
