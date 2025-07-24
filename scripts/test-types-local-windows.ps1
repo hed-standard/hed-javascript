@@ -32,9 +32,17 @@ if ($tarball) {
 
 Write-Host "Copying test file..." -ForegroundColor Green
 Copy-Item "../types/test.ts" "./test.ts"
+Copy-Item "../types/tsconfig.json" "./tsconfig.json"
+Copy-Item "../tsconfig.json" "./tsconfig.base.json"
+
+# Correctly modify the tsconfig.json for the test environment
+$config = Get-Content -Path ./tsconfig.json -Raw | ConvertFrom-Json
+$config.extends = "./tsconfig.base.json"
+$config.compilerOptions.baseUrl = "."
+$config | ConvertTo-Json -Depth 100 | Set-Content -Path ./tsconfig.json
 
 Write-Host "Testing TypeScript compilation..." -ForegroundColor Green
-npx tsc --noEmit --strict test.ts
+npx tsc --project tsconfig.json
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ TypeScript compilation passed!" -ForegroundColor Green

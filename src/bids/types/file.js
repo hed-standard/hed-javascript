@@ -3,11 +3,9 @@
  *
  * @module file
  */
-import path from 'path'
 
 import { BidsHedIssue } from './issues'
 import { generateIssue } from '../../issues/issues'
-import { readFile } from '../../utils/files'
 
 /**
  * A BIDS file.
@@ -39,30 +37,6 @@ export class BidsFile {
   }
 
   /**
-   * Read a BIDS file from a relative path within a dataset.
-   *
-   * @param {string} datasetRoot The root path of the dataset.
-   * @param {string} relativePath The relative path of the file within the dataset.
-   * @returns {Promise<Array>} A Promise that resolves to a two-element array containing the file contents and a mocked BIDS-type file object.
-   */
-  static async readBidsFileFromDatasetPath(datasetRoot, relativePath) {
-    const filePath = path.join(datasetRoot, relativePath)
-    const fileObject = { path: filePath }
-    return [await readFile(filePath), fileObject]
-  }
-
-  /**
-   * Read a BIDS file from a path.
-   *
-   * @param {string} filePath The actual path of the file.
-   * @returns {Promise<Array>} A Promise that resolves to a two-element array containing the file contents and a mocked BIDS-type file object.
-   */
-  static async readBidsFile(filePath) {
-    const fileObject = { path: filePath }
-    return [await readFile(filePath), fileObject]
-  }
-
-  /**
    * Validate this validator's tsv file.
    *
    * @param {Schemas} schemas - The HED schemas used to validate this file.
@@ -91,15 +65,6 @@ export class BidsFile {
       // The low-level parsing throws exceptions with the issue encapsulated.
       return BidsHedIssue.fromHedIssues(error, this.file)
     }
-  }
-
-  /**
-   * Whether this is a TSV file timeline file.
-   *
-   * @returns {boolean}
-   */
-  get isTimelineFile() {
-    return false
   }
 
   /**

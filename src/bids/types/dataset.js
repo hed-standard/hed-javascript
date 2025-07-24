@@ -10,6 +10,7 @@ import { generateIssue, IssueError } from '../../issues/issues'
 import { getMergedSidecarData, organizedPathsGenerator } from '../../utils/paths'
 import { BidsHedIssue } from './issues'
 import path from 'path'
+import { readFile } from '../../utils/files'
 /**
  * A BIDS dataset.
  *

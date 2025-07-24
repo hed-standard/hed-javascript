@@ -59,7 +59,7 @@ export class ParsedHedString {
   /**
    * Constructor.
    * @param {string} hedString The original HED string.
-   * @param {import('./parsedHedSubstring.js').default[]} parsedTags The nested list of parsed HED tags and groups.
+   * @param {import('./parsedHedSubstring.js').default[]} parsedTags The nested list of parsed HED tags, groups, and column splices.
    */
   constructor(hedString, parsedTags) {
     this.hedString = hedString
