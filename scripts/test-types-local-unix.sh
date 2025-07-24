@@ -16,34 +16,41 @@ npm init -y
 npm install ../hed-validator-*.tgz
 npm install typescript @types/node tsx
 
-echo "Copying test file..."
+echo "Copying test files and tsconfig..."
 cp ../types/test.ts ./
+cp ../types/tsconfig.json ./
+cp ../tsconfig.json ./tsconfig.base.json
+cp ../scripts/runtime-test.template.ts ./runtime-test.ts
+
+echo "Updating tsconfig paths..."
+sed -i 's|"../tsconfig.json"|"./tsconfig.base.json"|' tsconfig.json
+sed -i 's|"baseUrl": ".."|"baseUrl": "."|' tsconfig.json
 
 echo "Testing TypeScript compilation..."
-npx tsc --noEmit --strict test.ts
+npx tsc --project tsconfig.json
 
 if [ $? -eq 0 ]; then
     echo "✅ TypeScript compilation passed!"
 else
     echo "❌ TypeScript compilation failed!"
+    cd ..
+    rm -rf test-types-local
+    rm hed-validator-*.tgz
     exit 1
 fi
 
-echo "Creating runtime test..."
-cat > runtime-test.ts << 'EOF'
-import { getLocalSchemaVersions } from 'hed-validator'
-
-const versions = getLocalSchemaVersions()
-console.log('✅ Available schema versions:', versions.length)
-console.log('✅ First version:', versions[0])
-
-// Type check
-const firstVersion: string = versions[0]
-console.log('✅ Type test passed')
-EOF
-
 echo "Running runtime test..."
 npx tsx runtime-test.ts
+
+if [ $? -eq 0 ]; then
+    echo "✅ Runtime test passed!"
+else
+    echo "❌ Runtime test failed!"
+    cd ..
+    rm -rf test-types-local
+    rm hed-validator-*.tgz
+    exit 1
+fi
 
 echo "Cleaning up..."
 cd ..

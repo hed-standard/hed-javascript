@@ -40,31 +40,27 @@ jobs:
           cd test-package
           npm init -y
           npm install ../hed-validator-*.tgz
-          npm install typescript @types/node
+          npm install typescript @types/node tsx
 
-      - name: Copy test file
-        run: cp types/test.ts test-package/
+      - name: Copy test files and tsconfig
+        run: |
+          cp types/test.ts test-package/
+          cp types/tsconfig.json test-package/
+          cp tsconfig.json test-package/tsconfig.base.json
+          cp scripts/runtime-test.template.ts test-package/runtime-test.ts
+
+      - name: Update tsconfig paths
+        run: |
+          cd test-package
+          sed -i 's|"../tsconfig.json"|"./tsconfig.base.json"|' tsconfig.json
+          sed -i 's|"baseUrl": ".."|"baseUrl": "."|' tsconfig.json
 
       - name: Test TypeScript definitions
         run: |
           cd test-package
-          npx tsc --noEmit --strict test.ts
+          npx tsc --project tsconfig.json
 
       - name: Test runtime execution (basic smoke test)
         run: |
           cd test-package
-          # Create a simple test that just imports and checks types
-          cat > runtime-test.ts << 'EOF'
-          import { getLocalSchemaVersions } from 'hed-validator'
-
-          // Simple runtime test
-          const versions = getLocalSchemaVersions()
-          console.log('Available schema versions:', versions.length)
-          console.log('First version:', versions[0])
-
-          // Type check: ensure it returns string[]
-          const firstVersion: string = versions[0]
-          console.log('Type test passed')
-          EOF
-
           npx tsx runtime-test.ts

@@ -27,6 +27,10 @@ export class Definition {
    */
   defContents
 
+  /**
+   * If definition, this is the second value, otherwise empty string.
+   * @type {string}
+   */
   placeholder
 
   /**
