@@ -55,7 +55,7 @@ import {
 
 // Mock data and objects
 const fakePath = '/fake/path'
-const fakeFile = { name: 'fake.json', path: fakePath }
+const fakeFile: object = { name: 'fake.json', path: fakePath }
 const fakeHedString = 'Event'
 
 async function testBids(schemas: Schemas) {
@@ -182,13 +182,15 @@ function testParser(
   // ParsedHedTag
   const tagSpec: TagSpec = { tag: 'tag', library: 'lib', start: 0, end: 3 }
   const parsedHedTag = new ParsedHedTag(tagSpec, schemas, fakeHedString)
+  const schema: Schema = parsedHedTag.schema
+  const schemaTag: SchemaTag = parsedHedTag.schemaTag
   console.log(
     parsedHedTag.originalTag,
     parsedHedTag.originalBounds,
     parsedHedTag.formattedTag,
     parsedHedTag.canonicalTag,
-    parsedHedTag.schema,
-    parsedHedTag.schemaTag,
+    schema,
+    schemaTag,
   )
   parsedHedTag.format(true)
   parsedHedTag.toString()
@@ -197,10 +199,11 @@ function testParser(
 
   // ParsedHedGroup
   const parsedHedGroup = new ParsedHedGroup([parsedTag, parsedGroup], fakeHedString, [0, 1])
+  const tags: (ParsedHedTag | ParsedHedGroup | ParsedHedColumnSplice)[] = parsedHedGroup.tags
   console.log(
     parsedHedGroup.originalTag,
     parsedHedGroup.originalBounds,
-    parsedHedGroup.tags,
+    tags,
     parsedHedGroup.topTags,
     parsedHedGroup.topGroups,
     parsedHedGroup.allTags,
@@ -220,7 +223,7 @@ function testParser(
   console.log(splice)
 
   // ParsedHedString
-  const parsedHedString = new ParsedHedString(fakeHedString, [parsedTag, parsedGroup])
+  const parsedHedString = new ParsedHedString(fakeHedString, [parsedTag, parsedGroup, splice])
   console.log(
     parsedHedString.hedString,
     parsedHedString.tagGroups,

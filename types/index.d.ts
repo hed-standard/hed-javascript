@@ -30,12 +30,12 @@ export class BidsJsonFile {
   /** The name of this file */
   name: string
   /** The Object representing this file data */
-  file: any
+  file: object
   /** This file's JSON data */
   jsonData: Record<string, any>
 
   /** Constructor for a BIDS JSON file */
-  constructor(name: string, file: any, jsonData: Record<string, any>)
+  constructor(name: string, file: object, jsonData: Record<string, any>)
 
   /** Validate this file against HED schemas */
   validate(schemas: Schemas): BidsHedIssue[]
@@ -81,7 +81,7 @@ export class BidsTsvFile {
   /** The name of this file */
   name: string
   /** The Object representing this file data */
-  file: any
+  file: object
   /** This file's parsed TSV data */
   parsedTsv: Map<string, string[]>
   /** HED strings in the "HED" column of the TSV data */
@@ -92,10 +92,10 @@ export class BidsTsvFile {
   /** Constructor for BidsTsvFile */
   constructor(
     name: string,
-    file: any,
+    file: object,
     tsvData: string | Map<string, string[]> | Record<string, any>,
     mergedDictionary?: Record<string, any>,
-    defManager?: any,
+    defManager?: DefinitionManager,
   )
 
   /** Determine whether this file has any HED data */
@@ -295,9 +295,9 @@ export class ParsedHedTag {
   /** The canonical form of the HED tag */
   canonicalTag: string
   /** The HED schema this tag belongs to */
-  schema: any
+  schema: Schema
   /** The schema's representation of this tag */
-  schemaTag: any
+  schemaTag: SchemaTag
   /** The tag value */
   _value: string
   /** Split value for two-level tags */
@@ -332,7 +332,7 @@ export class ParsedHedGroup {
   /** The normalized group string */
   normalized: string
   /** The parsed HED tags, groups, or splices in the HED tag group at the top level */
-  tags: any[]
+  tags: (ParsedHedTag | ParsedHedGroup | ParsedHedColumnSplice)[]
   /** The top-level parsed HED tags in this string */
   topTags: ParsedHedTag[]
   /** The top-level parsed HED groups in this string */
