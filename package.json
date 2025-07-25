@@ -86,6 +86,7 @@
   },
   "files": [
     "dist/*",
-    "types/*"
+    "types/*",
+    "data/*"
   ]
 }
