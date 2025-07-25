@@ -47,6 +47,7 @@ import {
   // Schema functions
   getLocalSchemaVersions,
   buildSchemasFromVersion,
+  generateIssue,
 } from 'hed-validator'
 
 // This is a type-only test file.
@@ -106,12 +107,13 @@ async function testBids(schemas: Schemas) {
   bidsTsvFile.validate(schemas)
 
   // BidsHedIssue
-  const issue = new Issue('code', 'hedCode', 'error')
+  const issue = generateIssue('genericError', { hedCode: 'code' })
   const bidsHedIssue = new BidsHedIssue(issue, fakeFile)
   console.log(
     bidsHedIssue.file,
     bidsHedIssue.hedIssue,
     bidsHedIssue.code,
+    bidsHedIssue.subCode,
     bidsHedIssue.severity,
     bidsHedIssue.issueMessage,
     bidsHedIssue.line,
@@ -134,16 +136,21 @@ async function testBids(schemas: Schemas) {
 
 function testIssues() {
   // Issue
-  const issue = new Issue('internalCode', 'hedCode', 'warning', { a: 1 })
+  const issue = generateIssue('genericError', { a: 1 })
   console.log(issue.internalCode, issue.hedCode, issue.level, issue.message, issue.parameters)
   issue.generateMessage()
   console.log(issue.toString())
 
   // IssueError
-  const issueError = new IssueError(issue)
-  console.log(issueError.issue)
   try {
     IssueError.generateAndThrow('internalCode', { param: [1, 2] })
+  } catch (e: unknown) {
+    if (e instanceof IssueError) {
+      console.log(e.issue)
+    }
+  }
+  try {
+    IssueError.generateAndThrowInternalError('internal error message')
   } catch (e: unknown) {
     if (e instanceof IssueError) {
       console.log(e.issue)
@@ -351,16 +358,16 @@ async function testSchemaFunctions() {
       schemas.getSchema('')
 
       // parseStandaloneString
-      const [parsedString, issues] = parseStandaloneString(fakeHedString)
-      console.log(parsedString, issues)
+      const [parsedString, issues, issues5] = parseStandaloneString(fakeHedString, schemas)
+      console.log(parsedString, issues, issues5)
 
       // parseHedString
       const [parsedHedString, issues2, issues3] = parseHedString(fakeHedString, schemas, true, true, true)
       console.log(parsedHedString, issues2, issues3)
 
       // parseHedStrings
-      const [parsedHedStrings, issues4] = parseHedStrings([fakeHedString], schemas, true)
-      console.log(parsedHedStrings, issues4)
+      const [parsedHedStrings, issues4, issues6] = parseHedStrings([fakeHedString], schemas, true, true, true)
+      console.log(parsedHedStrings, issues4, issues6)
 
       // Run other tests that require schemas
       await testBids(schemas)

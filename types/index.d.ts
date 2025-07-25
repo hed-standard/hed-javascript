@@ -118,6 +118,8 @@ export class BidsHedIssue {
   hedIssue: Issue
   /** The BIDS-compliant issue code */
   code: string
+  /** The HED-specific issue code. */
+  subCode: string
   /** The severity of the issue (e.g., 'error' or 'warning') */
   severity: string
   /** The human-readable issue message */
@@ -171,10 +173,13 @@ export class IssueError extends Error {
   /** The associated HED issue */
   issue: Issue
 
-  constructor(issue: Issue, ...params: any[])
+  protected constructor(issue: Issue, ...params: any[])
 
   /** Generate a new Issue and immediately throw it as an IssueError */
   static generateAndThrow(internalCode: string, parameters?: Record<string, string | number[]>): never
+
+  /** Generate and throw an internal error */
+  static generateAndThrowInternalError(message?: string): never
 }
 
 export class Issue {
@@ -197,6 +202,23 @@ export class Issue {
   /** (Re-)generate the issue message */
   generateMessage(): void
 }
+
+/**
+ * Generate a new issue object.
+ *
+ * @param internalCode The internal error code.
+ * @param parameters The error string parameters.
+ * @returns An object representing the issue.
+ */
+export function generateIssue(internalCode: string, parameters?: Record<string, any>): Issue
+
+/**
+ * Update the parameters of a list of issues.
+ *
+ * @param issues The list of issues (different types can be intermixed).
+ * @param parameters The parameters to add.
+ */
+export function updateIssueParameters(issues: (IssueError | Issue)[], parameters: Record<string, string>): void
 
 // Parser exports
 export class Definition {
@@ -579,24 +601,58 @@ export class Schemas {
   get baseSchema(): Schema
 }
 
-// Parser functions
-export function parseStandaloneString(hedString: string): [ParsedHedString, Issue[]]
-
-export function parseHedString(
-  hedString: string,
-  hedSchemas: Schemas,
-  checkForWarnings?: boolean,
-  expectValuePlaceholder?: boolean,
-  expectDefinition?: boolean,
-): [ParsedHedString, Issue[], Issue[]]
-
-export function parseHedStrings(
-  hedStrings: string[],
-  hedSchemas: Schemas,
-  checkForWarnings?: boolean,
-): [ParsedHedString[], Issue[]]
-
 // Schema exports
 export function getLocalSchemaVersions(): string[]
 
 export function buildSchemasFromVersion(version: string): Promise<Schemas>
+
+// Parser exports
+/**
+ * Parse a HED string.
+ *
+ * @param hedString A (possibly already parsed) HED string.
+ * @param hedSchemas The collection of HED schemas.
+ * @param definitionsAllowed True if definitions are allowed.
+ * @param placeholdersAllowed True if placeholders are allowed.
+ * @param fullValidation True if full validation is required.
+ * @returns The parsed HED string and any issues found.
+ */
+export function parseHedString(
+  hedString: string | ParsedHedString,
+  hedSchemas: Schemas,
+  definitionsAllowed: boolean,
+  placeholdersAllowed: boolean,
+  fullValidation: boolean,
+): [ParsedHedString, Issue[], Issue[]]
+
+/**
+ * Parse a HED string in a standalone context.
+ *
+ * @param hedString A (possibly already parsed) HED string.
+ * @param hedSchemas The collection of HED schemas.
+ * @param defManager The definition manager to use for parsing definitions.
+ * @returns The parsed HED string and any issues found.
+ */
+export function parseStandaloneString(
+  hedString: string | ParsedHedString,
+  hedSchemas: Schemas,
+  defManager?: DefinitionManager,
+): [ParsedHedString, Issue[], Issue[]]
+
+/**
+ * Parse a list of HED strings.
+ *
+ * @param hedStrings A list of HED strings.
+ * @param hedSchemas The collection of HED schemas.
+ * @param definitionsAllowed True if definitions are allowed
+ * @param placeholdersAllowed True if placeholders are allowed
+ * @param fullValidation True if full validation is required.
+ * @returns The parsed HED strings and any issues found.
+ */
+export function parseHedStrings(
+  hedStrings: (string | ParsedHedString)[],
+  hedSchemas: Schemas,
+  definitionsAllowed: boolean,
+  placeholdersAllowed: boolean,
+  fullValidation: boolean,
+): [ParsedHedString[], Issue[], Issue[]]
