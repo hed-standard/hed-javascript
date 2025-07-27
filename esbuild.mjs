@@ -1,10 +1,6 @@
 import path from 'path'
 import esbuild from 'esbuild'
 import GlobalsPlugin from 'esbuild-plugin-globals'
-import { cp } from 'fs/promises'
-
-// copy data directory to dist
-await cp(path.join(process.cwd(), 'src', 'data'), path.join(process.cwd(), 'dist', 'data'), { recursive: true })
 
 // Node.js target build
 await esbuild.build({
