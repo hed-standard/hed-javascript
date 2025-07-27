@@ -87,6 +87,6 @@
   "files": [
     "dist/*",
     "types/*",
-    "data/*"
+    "esbuild.mjs"
   ]
 }
