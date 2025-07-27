@@ -6,7 +6,7 @@ export const splitterTestData = [
       {
         testname: 'no-groups',
         explanation: '"Event, Item" has no groups',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Event, Item',
         allGroupTagCount: 0,
         allSubgroupCount: [],
@@ -16,7 +16,7 @@ export const splitterTestData = [
       {
         testname: 'multiple-nested-groups',
         explanation: '"Event, (Item, Red, (Blue, (Green))), (Item, Blue)" is a single level tag',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Event, (Item, Red, (Blue, (Green))), (Item, Blue)',
         allGroupTagCount: [4, 2],
         allSubgroupCount: 2,
@@ -26,7 +26,7 @@ export const splitterTestData = [
       {
         testname: 'single-multiple-nested-groups',
         explanation: '"(((Event, (Item, Red, (Blue, (Green))), (Item, Blue))))" is a single multiple nested group',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(((Event, (Item, Red, (Blue, (Green))), (Item, Blue))))',
         allGroupTagCount: [7],
         allSubgroupCount: 1,
@@ -36,7 +36,7 @@ export const splitterTestData = [
       {
         testname: 'empty-string',
         explanation: '"" is a an empty string',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '',
         allGroupTagCount: [0],
         allSubgroupCount: 0,
@@ -46,7 +46,7 @@ export const splitterTestData = [
       {
         testname: 'date-time-value-string',
         explanation: '"Creation-date/2009-04-09T12:04:14" is a an empty string',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Creation-date/2009-04-09T12:04:14',
         allGroupTagCount: [0],
         allSubgroupCount: 0,

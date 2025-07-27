@@ -10,7 +10,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-tag-one-level',
         explanation: '"Item" is a top-level-tag.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Item',
         tagSpec: new TagSpec('Item', 0, 4, ''),
         tagLong: 'Item',
@@ -23,7 +23,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-tag-with-blanks',
         explanation: '" Item " has surrounding blanks.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: ' Item ',
         tagSpec: new TagSpec('Item', 1, 5, ''),
         tagLong: 'Item',
@@ -36,7 +36,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-tag-with-extension-and-blanks',
         explanation: '" Item/Blech " has surrounding blanks.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: ' Item/Blech ',
         tagSpec: new TagSpec('Item/Blech', 1, 11, ''),
         tagLong: 'Item/Blech',
@@ -49,7 +49,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-Two-level-tag',
         explanation: '" Item/object " is two-level and mixed case.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: ' Item/object ',
         tagSpec: new TagSpec('Item/object', 1, 12, ''),
         tagLong: 'Item/Object',
@@ -62,7 +62,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-tag-with-extension',
         explanation: '" Object/blech " is two-level and mixed case.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: ' Object/blech ',
         tagSpec: new TagSpec('object/Blech', 1, 13, ''),
         tagLong: 'Item/Object/Blech',
@@ -75,7 +75,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-long-tag-with-value',
         explanation: '"Property/Agent-property/Agent-trait/Age/15" is a valid long form tag with value.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Property/Agent-property/Agent-trait/Age/15"',
         tagSpec: new TagSpec('Property/Agent-property/Agent-trait/Age/15', 1, 43, ''),
         tagLong: 'Property/Agent-property/Agent-trait/Age/15',
@@ -89,7 +89,7 @@ export const parsedHedTagTests = [
         testname: 'valid-long-tag-with-cascade-extension',
         explanation:
           '"Property/Agent-property/Agent-state/Agent-emotional-state/Awed/Cascade-Extension" is two-level and mixed case.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Property/Agent-property/Agent-state/Agent-emotional-state/Awed/Cascade-Extension',
         tagSpec: new TagSpec(
           'Property/Agent-property/Agent-state/Agent-emotional-state/Awed/Cascade-Extension',
@@ -108,7 +108,7 @@ export const parsedHedTagTests = [
         testname: 'valid-short-tag-with-cascade-extension',
         explanation:
           '"Environmental-sound/Long-Unique-Value-With/Slash-Marks" is a valid short tag with cascade extension.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Environmental-sound/Long-Unique-Value-With/Slash-Marks',
         tagSpec: new TagSpec('Environmental-sound/Long-Unique-Value-With/Slash-Marks', 1, 43, ''),
         tagLong: 'Item/Sound/Environmental-sound/Long-Unique-Value-With/Slash-Marks',
@@ -121,7 +121,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-tag-with-two-level-value',
         explanation: '"Definition/BlueSquare/Blech" is a two-level-value.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Definition/BlueSquare/Blech',
         tagSpec: new TagSpec('Definition/BlueSquare/Blech', 1, 27, ''),
         tagLong: 'Property/Organizational-property/Definition/BlueSquare/Blech',
@@ -134,7 +134,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-tag-with-two-level-value-placeholder',
         explanation: '"Definition/BlueSquare/#" is a two-level value with a placeholder.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Definition/BlueSquare/#',
         tagSpec: new TagSpec('Definition/BlueSquare/#', 1, 22, ''),
         tagLong: 'Property/Organizational-property/Definition/BlueSquare/#',
@@ -147,7 +147,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-tag-with-two-level-value-node',
         explanation: '"Definition/Blue/Red" uses node names for values.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Definition/Blue/Red',
         tagSpec: new TagSpec('Definition/Blue/Red', 1, 22, ''),
         tagLong: 'Property/Organizational-property/Definition/Blue/Red',
@@ -160,7 +160,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-tag-with-one-level-value-node',
         explanation: '"Definition/Blue" uses node names for values.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Definition/Blue',
         tagSpec: new TagSpec('Definition/Blue', 1, 18, ''),
         tagLong: 'Property/Organizational-property/Definition/Blue',
@@ -173,7 +173,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-tag-with-value-no-units',
         explanation: '" Age/5 " has a value but no units.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: ' Age/5 ',
         tagSpec: new TagSpec(' Age/5 ', 1, 6, ''),
         tagLong: 'Property/Agent-property/Agent-trait/Age/5',
@@ -186,7 +186,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-tag-with-value-and-units',
         explanation: '" Length/3 m " has a value and valid units.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: ' Length/3 m ',
         tagSpec: new TagSpec(' Length/3 m ', 1, 11, ''),
         tagLong: 'Property/Data-property/Data-value/Spatiotemporal-value/Spatial-value/Size/Length/3 m',
@@ -199,7 +199,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-value-tag-with-placeholder',
         explanation: '" Label/# " is a valid tag with placeholder.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: ' Label/# ',
         tagSpec: new TagSpec(' Label/# ', 1, 8, ''),
         tagLong: 'Property/Informational-property/Label/#',
@@ -212,7 +212,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-numeric-value-tag-no-units',
         explanation: '"Weight/30" is a valid numeric value tag.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Weight/30',
         tagSpec: new TagSpec('Weight/30', 0, 9, ''),
         tagLong: 'Property/Data-property/Data-value/Physical-value/Weight/30',
@@ -225,7 +225,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-numeric-scientific-value',
         explanation: '"Weight/3.0e10 kg" is a valid numeric value tag with scientific notation.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Weight/30',
         tagSpec: new TagSpec('Weight/3.0e10 kg', 0, 16, ''),
         tagLong: 'Property/Data-property/Data-value/Physical-value/Weight/3.0e10 kg',
@@ -245,7 +245,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-top-level-tag',
         explanation: '"Blech" is not a valid tag.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Blech',
         tagSpec: new TagSpec('Blech', 0, 6, ''),
         tagLong: undefined,
@@ -261,7 +261,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-requires-value',
         explanation: '"Duration" should have a value.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Duration',
         tagSpec: new TagSpec('Duration', 0, 8, ''),
         tagLong: undefined,
@@ -277,7 +277,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-does-not-allow-extension',
         explanation: '"Sensory-event/Blech" should not have a child.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Sensory-event/Blech',
         tagSpec: new TagSpec('Sensory-event/Blech', 0, 19, ''),
         tagLong: undefined,
@@ -294,7 +294,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-does-not-allow-cascade-extension',
         explanation: '"Event/Agent-action/Good/Time" should not allow cascade extension.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Event/Agent-action/Good/Time',
         tagSpec: new TagSpec('Event/Agent-action/Good/Time', 0, 29, ''),
         tagLong: undefined,
@@ -311,7 +311,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-no-extension-tag-in-extension-allowed',
         explanation: '"Onset/Blech" should not have an extension.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Onset/Blech',
         tagSpec: new TagSpec('Onset/Blech', 0, 11, ''),
         tagLong: undefined,
@@ -328,7 +328,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-duplicate-tag-in-path',
         explanation: '"Item/Object/Geometric-object/Blech/Object" should not reused Object.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Item/Object/Geometric-object/Blech/Object',
         tagSpec: new TagSpec('Item/Object/Geometric-object/Blech/Object', 0, 41, ''),
         tagLong: undefined,
@@ -345,7 +345,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-top-node',
         explanation: '"InvalidEvent" is not a valid node.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'InvalidEvent',
         tagSpec: new TagSpec('InvalidEvent', 0, 41, ''),
         tagLong: undefined,
@@ -361,7 +361,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-with-blank-in-extension',
         explanation: '" Object/blec h " has a blank in the tag extension',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: ' Object/blec h ',
         tagSpec: new TagSpec(' Object/blec h ', 1, 14, ''),
         tagLong: undefined,
@@ -378,7 +378,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-should-not-have-a-placeholder',
         explanation: '"object/#" should not have a placeholder.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'object/#',
         tagSpec: new TagSpec('object/#', 0, 8, ''),
         tagLong: undefined,
@@ -395,7 +395,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-bad-parent',
         explanation: '"object/property/Red" -- property is not a child of object.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'object/property/Red',
         tagSpec: new TagSpec('object/property/Red', 0, 19, ''),
         tagLong: undefined,
@@ -412,7 +412,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-bad-parent-after extension',
         explanation: '"object/Junk/baloney/Red" -- Red is not a child of baloney.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'object/Junk/baloney/Red',
         tagSpec: new TagSpec('object/Junk/baloney/Red', 0, 22, ''),
         tagLong: undefined,
@@ -429,7 +429,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-bad-unit-class',
         explanation: '"Length/2 s" has wrong unit class.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Length/2 s',
         tagSpec: new TagSpec('Length/2 s', 0, 10, ''),
         tagLong: undefined,
@@ -442,7 +442,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-bad-unit-plural',
         explanation: '"Frequency/3 hertzs" is not the plural of hertz.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Frequency/3 hertzs',
         tagSpec: new TagSpec('Frequency/3 hertzs', 0, 18, ''),
         tagLong: undefined,
@@ -455,7 +455,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-incorrect-unit-symbol-caps',
         explanation: '"Frequency/3 hz" has unit symbol not correctly capitalized.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Frequency/3 hz',
         tagSpec: new TagSpec('Frequency/3 hz', 0, 14, ''),
         tagLong: undefined,
@@ -468,7 +468,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-incorrect-unit-modifier caps',
         explanation: '"Frequency/3 KHz" has unit modifier not correctly capitalized.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Frequency/3 KHz',
         tagSpec: new TagSpec('Frequency/3 KHz', 0, 15, ''),
         tagLong: undefined,
@@ -481,7 +481,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-non-SI-unit-modified',
         explanation: '"Time-value/1 millihour" has a non-SI unit with unit modifier.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Time-value/1 millihour',
         tagSpec: new TagSpec('Time-value/1 millihour', 0, 22, ''),
         tagLong: undefined,
@@ -494,7 +494,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-bad-unit-symbol-modifier',
         explanation: '"Speed/100 Mkph" has a bad unit symbol.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Speed/100 Mkph',
         tagSpec: new TagSpec('Speed/100 Mkph', 0, 14, ''),
         tagLong: undefined,
@@ -507,7 +507,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-bad-units-double-blank',
         explanation: '"Length/5  m" has a double blank.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Length/5  m',
         tagSpec: new TagSpec('Length/5  m', 0, 11, ''),
         tagLong: undefined,
@@ -520,7 +520,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-bad-unit-capitalization',
         explanation: '"Time-value/5 Milliseconds" is not a valid unit.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Time-value/5 Milliseconds',
         tagSpec: new TagSpec('Length/2 s', 0, 25, ''),
         tagLong: undefined,
@@ -533,7 +533,7 @@ export const parsedHedTagTests = [
       {
         testname: 'invalid-tag-value-no-units',
         explanation: '"Label/Blec h" does not have a valid value.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         fullString: 'Label/Blec h',
         tagSpec: new TagSpec('Label/Blec h', 0, 12, ''),
         tagLong: undefined,
@@ -556,7 +556,7 @@ export const parsedHedTagTests = [
       {
         testname: 'valid-date-time',
         explanation: '"Creation-date/2009-04-09T12:04:14" is valid and no namespace.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         tagPrefix: null,
         fullString: 'Creation-date/2009-04-09T12:04:14',
         tagSpec: new TagSpec('Creation-date/2009-04-09T12:04:14', 0, 33, ''),

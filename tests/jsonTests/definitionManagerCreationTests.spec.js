@@ -10,7 +10,6 @@ import { definitionTestData } from '../jsonTestData/definitionManagerCreationTes
 import { shouldRun } from '../testHelpers/testUtilities'
 import { Definition, DefinitionManager } from '../../src/parser/definitionManager'
 import { Issue } from '../../src/issues/issues'
-import ParsedHedString from '../../src/parser/parsedHedString'
 
 const skipMap = new Map()
 const runAll = true
@@ -58,13 +57,13 @@ const testDefinitions = function (test, thisSchema, defManager) {
 }
 
 describe('DefinitionManager tests', () => {
-  const schemaMap = new Map([['8.3.0', undefined]])
+  const schemaMap = new Map([['8.4.0', undefined]])
 
   beforeAll(async () => {
-    const spec3 = new SchemaSpec('', '8.3.0', '', path.join(__dirname, '../../src/data/schemas/HED8.4.0.xml'))
+    const spec3 = new SchemaSpec('', '8.4.0', '', path.join(__dirname, '../../src/data/schemas/HED8.4.0.xml'))
     const specs3 = new SchemasSpec().addSchemaSpec(spec3)
     const schemas3 = await buildSchemas(specs3)
-    schemaMap.set('8.3.0', schemas3)
+    schemaMap.set('8.4.0', schemas3)
   })
 
   afterAll(() => {})

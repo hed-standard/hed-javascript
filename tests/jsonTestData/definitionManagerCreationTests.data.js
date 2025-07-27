@@ -4,7 +4,7 @@ export const definitionTestData = [
   {
     name: 'definition-creation-validation',
     description: 'Tests for Definition creation validation and error handling',
-    schemaVersion: '8.3.0',
+    schemaVersion: '8.4.0',
     definitions: ['(Definition/ValidDef, (Label/Valid))'],
     tests: [
       {

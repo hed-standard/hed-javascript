@@ -19,6 +19,10 @@ export const localSchemaNames = [
   // Add other bundled schema base names here if needed
 ]
 
+export const localSchemaMap = new Map(
+  localSchemaNames.map((localSchema) => [localSchema, require(`../data/schemas/${localSchema}.xml`)]),
+)
+
 export const getLocalSchemaVersions = function () {
   // Return a copy of the local schema names to avoid external modifications
   return localSchemaNames.map((name) => name.replace(/^HED_?/, ''))

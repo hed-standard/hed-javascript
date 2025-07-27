@@ -8,7 +8,7 @@ export const parseTestData = [
       {
         testname: 'single-tag-single-level',
         explanation: '"Event" is a single level tag"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Event',
         stringLong: 'Event',
         stringShort: 'Event',
@@ -21,7 +21,7 @@ export const parseTestData = [
       {
         testname: 'single-tag-two-level',
         explanation: '"Event/Sensory-event" is a two-level tag',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Event/Sensory-event',
         stringLong: 'Event/Sensory-event',
         stringShort: 'Sensory-event',
@@ -34,7 +34,7 @@ export const parseTestData = [
       {
         testname: 'single-tag-multi-level',
         explanation: '"Item/Object/Geometric-object" is a full multi-level tag',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Item/Object/Geometric-object',
         stringLong: 'Item/Object/Geometric-object',
         stringShort: 'Geometric-object',
@@ -47,7 +47,7 @@ export const parseTestData = [
       {
         testname: 'single-partial-level-tag',
         explanation: '"Object/Geometric-object" is a partial path',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Object/Geometric-object',
         stringLong: 'Item/Object/Geometric-object',
         stringShort: 'Geometric-object',
@@ -60,7 +60,7 @@ export const parseTestData = [
       {
         testname: 'already-short-tag',
         explanation: '"Geometric-object" is already a short tag',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Geometric-object',
         stringLong: 'Item/Object/Geometric-object',
         stringShort: 'Geometric-object',
@@ -73,7 +73,7 @@ export const parseTestData = [
       {
         testname: 'single-tag-extension',
         explanation: '"Unique-value" is a valid extension for "Item/Sound/Environmental-sound/Unique-value"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Item/Sound/Environmental-sound/Unique-value',
         stringLong: 'Item/Sound/Environmental-sound/Unique-value',
         stringShort: 'Environmental-sound/Unique-value',
@@ -91,7 +91,7 @@ export const parseTestData = [
       {
         testname: 'multiple-extended-tags',
         explanation: '"Item/Junk1, Item/Junk2" has two extended tags"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Item/Junk1, Item/Junk2',
         stringLong: 'Item/Junk1, Item/Junk2',
         stringShort: 'Item/Junk1, Item/Junk2',
@@ -106,7 +106,7 @@ export const parseTestData = [
       {
         testname: 'multi-level-tag-extension',
         explanation: '"Unique-value/Junk" is a valid extension for "Item/Sound/Environmental-sound/Unique-value/Junk"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Item/Sound/Environmental-sound/Unique-value/Junk',
         stringLong: 'Item/Sound/Environmental-sound/Unique-value/Junk',
         stringShort: 'Environmental-sound/Unique-value/Junk',
@@ -124,7 +124,7 @@ export const parseTestData = [
       {
         testname: 'multi-level-tag-extension-for-partial-path-to-short',
         explanation: '"Unique-value/Junk" is a valid extension for "Sound/Environmental-sound/Unique-value/Junk"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Sound/Environmental-sound/Unique-value/Junk',
         stringLong: 'Item/Sound/Environmental-sound/Unique-value/Junk',
         stringShort: 'Environmental-sound/Unique-value/Junk',
@@ -142,7 +142,7 @@ export const parseTestData = [
       {
         testname: 'deprecated-tag',
         explanation: '"Deprecated tag should give a warning"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Agent-action, Gentalia',
         stringLong:
           'Event/Agent-action, Item/Biological-item/Anatomical-item/Body-part/Torso-part/Pelvis-part/Gentalia',
@@ -156,7 +156,7 @@ export const parseTestData = [
       {
         testname: 'multiple-deprecated-tags',
         explanation: '"Multiple deprecated tags should give 1 warning"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Agent-action, Gentalia, (Item, Gentalia)',
         stringLong:
           'Event/Agent-action, Item/Biological-item/Anatomical-item/Body-part/Torso-part/Pelvis-part/Gentalia, (Item, Item/Biological-item/Anatomical-item/Body-part/Torso-part/Pelvis-part/Gentalia)',
@@ -181,7 +181,7 @@ export const parseTestData = [
       {
         testname: 'long-form-tag-with-value',
         explanation: '"Agent-property/Agent-trait/Age/15" can take a value"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Agent-property/Agent-trait/Age/15',
         stringLong: 'Property/Agent-property/Agent-trait/Age/15',
         stringShort: 'Age/15',
@@ -194,7 +194,7 @@ export const parseTestData = [
       {
         testname: 'long-form-tag-with-value',
         explanation: '"Agent-trait/Age" does not require a value"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Agent-trait/Age',
         stringLong: 'Property/Agent-property/Agent-trait/Age',
         stringShort: 'Age',
@@ -207,7 +207,7 @@ export const parseTestData = [
       {
         testname: 'value-tag-does-not-require-value',
         explanation: '"Label" does not have to take a value"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Label',
         stringLong: 'Property/Informational-property/Label',
         stringShort: 'Label',
@@ -220,7 +220,7 @@ export const parseTestData = [
       {
         testname: 'date-time-value-tag',
         explanation: '"Label" does not have to take a value"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Creation-date/2009-04-09T12:04:14',
         stringLong: 'Property/Informational-property/Metadata/Creation-date/2009-04-09T12:04:14',
         stringShort: 'Creation-date/2009-04-09T12:04:14',
@@ -239,7 +239,7 @@ export const parseTestData = [
       {
         testname: 'extensions-and-values',
         explanation: '"(Train/Maglev,Age/15,RGB-red/0.5),Operate" has extensions and values',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Train/Maglev,Age/15,RGB-red/0.5),Operate',
         stringLong:
           '(Item/Object/Man-made-object/Vehicle/Train/Maglev, Property/Agent-property/Agent-trait/Age/15, Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/RGB-color/RGB-red/0.5), Action/Perform/Operate',
@@ -255,7 +255,7 @@ export const parseTestData = [
       {
         testname: 'value with units',
         explanation: '"(Time-value/20 ms),Perform/Operate" has valid units',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Time-value/20 ms),Perform/Operate',
         stringLong:
           '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Time-value/20 ms), Action/Perform/Operate',
@@ -275,7 +275,7 @@ export const parseTestData = [
       {
         testname: 'single-level-extension-already-a-tag',
         explanation: '"Event" in "Item/Sound/Event" is already a tag',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Item/Sound/Event',
         stringLong: null,
         stringShort: null,
@@ -294,7 +294,7 @@ export const parseTestData = [
       {
         testname: 'multi-level-extension-already-tags',
         explanation: '"Sensory-event" in "Item/Sound/Environmental-sound/Event/Sensory-event" is already a tag',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Item/Sound/Environmental-sound/Event/Sensory-event',
         stringLong: null,
         stringShort: null,
@@ -313,7 +313,7 @@ export const parseTestData = [
       {
         testname: 'mixed-extension-path',
         explanation: '"Sensory-event" in "Item/Sound/Event/Sensory-event/Environmental-sound"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Item/Sound/Event/Sensory-event/Environmental-sound',
         stringLong: null,
         stringShort: null,
@@ -332,7 +332,7 @@ export const parseTestData = [
       {
         testname: 'invalid-leading-tag',
         explanation: '"Junk" in "Junk/Item/Sound/Event/Sensory-event/Environmental-sound" is invalid',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Junk/Item/Sound/Event/Sensory-event/Environmental-sound',
         stringLong: null,
         stringShort: null,
@@ -350,7 +350,7 @@ export const parseTestData = [
       {
         testname: 'invalid-single-tag',
         explanation: '"Junk" in "Junk" is invalid',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Junk',
         stringLong: null,
         stringShort: null,
@@ -365,7 +365,7 @@ export const parseTestData = [
       {
         testname: 'invalid-single-tag-with-extension',
         explanation: '"Junk/Blech" in "Junk" is invalid',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Junk/Blech',
         stringLong: null,
         stringShort: null,
@@ -384,7 +384,7 @@ export const parseTestData = [
         testname: 'invalid-tag-in-middle',
         explanation:
           '"Geometric-object" in "Item/Object/Junk/Geometric-object/2D-shape" expects "Object" not "junk" to be parent',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Item/Object/Junk/Geometric-object/2D-shape',
         stringLong: null,
         stringShort: null,
@@ -403,7 +403,7 @@ export const parseTestData = [
       {
         testname: 'invalid-extension-not-allowed',
         explanation: '"Agent-action" in "Event/Agent-action/Baloney/Blech" cannot have an added extension',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Event/Agent-action/Baloney/Blech',
         stringLong: null,
         stringShort: null,
@@ -428,7 +428,7 @@ export const parseTestData = [
       {
         testname: 'valid-string-with-placeholder',
         explanation: '"Label/#, Red" is okay',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Label/#, Red',
         stringLong:
           'Property/Informational-property/Label/#, Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red',
@@ -442,7 +442,7 @@ export const parseTestData = [
       {
         testname: 'valid-string-with-placeholder-and-units',
         explanation: '"Time-value/# ms, Red" is okay',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Time-value/# ms, Red',
         stringLong:
           'Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Time-value/# ms, Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red',
@@ -456,7 +456,7 @@ export const parseTestData = [
       {
         testname: 'string-with-placeholder-not-allowed',
         explanation: '"Object/#, Red" -- Object does not allow placeholder',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Object/#, Red',
         stringLong: null,
         stringShort: null,
@@ -475,7 +475,7 @@ export const parseTestData = [
       {
         testname: 'place-holder-on-extension',
         explanation: '"Object/Thingie/#, Red" -- an extended tag does not allow placeholder',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Object/Thingie/#, Red',
         stringLong: null,
         stringShort: null,
@@ -494,7 +494,7 @@ export const parseTestData = [
       {
         testname: 'place-holder-in-wrong-place',
         explanation: '"Label/#/Blech, Red" -- a placeholder cannot be followed by something else',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Label/#/Blech, Red',
         stringLong: null,
         stringShort: null,
@@ -514,7 +514,7 @@ export const parseTestData = [
       {
         testname: 'multiple-placeholders-not-allowed',
         explanation: '"Label/##, Red" -- a placeholder cannot be followed by another placeholder',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Label/##, Red',
         stringLong: null,
         stringShort: null,
@@ -540,7 +540,7 @@ export const parseTestData = [
       {
         testname: 'single-valid-tag-with-value',
         explanation: '"Age/5" has a valid value with no units',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Age/5',
         stringLong: 'Property/Agent-property/Agent-trait/Age/5',
         stringShort: 'Age/5',
@@ -553,7 +553,7 @@ export const parseTestData = [
       {
         testname: 'single-level-missing-required-value',
         explanation: '"Duration" must have a value',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Duration',
         stringLong: null,
         stringShort: null,
@@ -571,7 +571,7 @@ export const parseTestData = [
       {
         testname: 'value with invalid units (BAD)',
         explanation: '"(Time-value/20 cm),Perform/Operate" has valid units',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Time-value/20 ms),Perform/Operate',
         stringLong:
           '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Time-value/20 ms), Action/Perform/Operate',
@@ -591,7 +591,7 @@ export const parseTestData = [
       {
         testname: 'multiple-valid-tags',
         explanation: '"Age, Perform/Operate" is a valid HED string',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Age, Perform/Operate',
         stringLong: 'Property/Agent-property/Agent-trait/Age, Action/Perform/Operate',
         stringShort: 'Age, Operate',
@@ -604,7 +604,7 @@ export const parseTestData = [
       {
         testname: 'valid-empty-string',
         explanation: '"" is a valid HED string',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '',
         stringLong: '',
         stringShort: '',
@@ -617,7 +617,7 @@ export const parseTestData = [
       {
         testname: 'valid-string-with-groups',
         explanation: '"Red, (Blue,Green)" is a valid HED string',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Red, (Blue,Green)',
         stringLong:
           'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red, (Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Blue-color/Blue, Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Green-color/Green)',
@@ -631,7 +631,7 @@ export const parseTestData = [
       {
         testname: 'valid-string-with-nested-groups',
         explanation: '"Red, (Blue,(Green))" is a valid HED string',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Red, (Blue,(Green))',
         stringLong:
           'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red, (Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Blue-color/Blue, (Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Green-color/Green))',
@@ -645,7 +645,7 @@ export const parseTestData = [
       {
         testname: 'invalid-null-string',
         explanation: '"null" is not a valid HED string',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: null,
         stringLong: null,
         stringShort: null,
@@ -658,7 +658,7 @@ export const parseTestData = [
       {
         testname: 'invalid-undefined-string',
         explanation: '"undefined" is not a valid HED string',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: undefined,
         stringLong: null,
         stringShort: null,
@@ -672,7 +672,7 @@ export const parseTestData = [
         testname: 'multiple-complex-duplicates',
         explanation:
           '"(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange, (White, (((Purple, Black), Blue, Orange)),  Green)" is a complex group with multiple duplicates',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn:
           '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange, (White, (((Purple, Black), Blue, Orange)),  Green)',
         stringLong: null,
@@ -698,7 +698,7 @@ export const parseTestData = [
       {
         testname: 'definition-in-nested-group',
         explanation: '"((Definition/Green1, (Green)))" is not top level',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '((Definition/Green1, (Green)))',
         stringLong: null,
         stringShort: null,
@@ -716,7 +716,7 @@ export const parseTestData = [
       {
         testname: 'definition-at-top-level-but-splices',
         explanation: '"Definition/Green1, (Green)" is not in group (not allowed to be in a splice)',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Definition/Green1, (Green)',
         stringLong: null,
         stringShort: null,
@@ -734,7 +734,7 @@ export const parseTestData = [
       {
         testname: 'definition-with-extra-tags',
         explanation: '"(Definition/IllegalSibling, Train, (Circle))" should not have an extra tag in definition',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Definition/IllegalSibling, Train, (Circle))',
         stringLong: null,
         stringShort: null,
@@ -753,7 +753,7 @@ export const parseTestData = [
         testname: 'definition-with-deep-defs-inside',
         explanation:
           '"(Definition/DefNested, (Def/Nested, (Red, Blue, (Def/Blech)), Triangle))" cannot have Def in definition',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Definition/DefNested, (Def/Nested, (Red, Blue, (Def/Blech)), Triangle))',
         stringLong: null,
         stringShort: null,
@@ -772,7 +772,7 @@ export const parseTestData = [
         testname: 'definition-with-nested-definition',
         explanation:
           '"(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))" should not have an extra tag in definition',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Definition/NestedDefinition, (Touchscreen, (Definition/InnerDefinition, (Square))))',
         stringLong: null,
         stringShort: null,
@@ -791,7 +791,7 @@ export const parseTestData = [
         testname: 'definition-with-multiple-groups',
         explanation:
           '"(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))" should only have 1 inner group',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Definition/MultipleTagGroupDefinition, (Touchscreen), (Square))',
         stringLong: null,
         stringShort: null,
@@ -808,7 +808,7 @@ export const parseTestData = [
       {
         testname: 'definition-group-with-multiple-definition-tags',
         explanation: '"(Definition/Apple, Definition/Banana, (Blue))" has two definition tags in the same group.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Definition/Apple, Definition/Banana, (Blue))',
         stringLong: null,
         stringShort: null,
@@ -826,7 +826,7 @@ export const parseTestData = [
       {
         testname: 'definition-with-event-context-in-subgroup',
         explanation: '"(Definition/Blech, (Event-context, (Blue)))" is a invalid because of Event-context',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Definition/Blech, (Event-context, (Blue)))',
         stringLong: null,
         stringShort: null,
@@ -844,7 +844,7 @@ export const parseTestData = [
       {
         testname: 'def-expand-tag-not-in-group',
         explanation: '"Def-expand/Green1, (Red, Blue)" is not in a tag group',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Def-expand/Green1, (Red, Blue)',
         stringLong: null,
         stringShort: null,
@@ -859,7 +859,7 @@ export const parseTestData = [
       {
         testname: 'def-expand-tag-with-extra-group-tag',
         explanation: '"(Def-expand/Acc/5.4, (Acceleration/5.4 m-per-s^2, Red), Blue)" has an extra tag in the group',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Def-expand/Acc/5.4, (Acceleration/5.4 m-per-s^2, Red), Blue)',
         stringLong: null,
         stringShort: null,
@@ -877,7 +877,7 @@ export const parseTestData = [
       {
         testname: 'def-expand-ok-in-second-level-group',
         explanation: '"(Agent-action, (Def-expand/Blech, (Item, Sensory-event)))" is a valid group',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Agent-action, (Def-expand/Blech, (Item, Sensory-event)))',
         stringLong:
           '(Event/Agent-action, (Property/Organizational-property/Def-expand/Blech, (Item, Event/Sensory-event)))',
@@ -892,7 +892,7 @@ export const parseTestData = [
         testname: 'def-expand-ok-deep-in-groups',
         explanation:
           '"Item, (Event, Object, (Item, (Def-expand/Blech, (Agent-action, Item))))" is a valid deep tag group',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Item, (Event, Object, (Item, (Def-expand/Blech, (Agent-action, Item))))',
         stringLong:
           'Item, (Event, Item/Object, (Item, (Property/Organizational-property/Def-expand/Blech, (Event/Agent-action, Item))))',
@@ -907,7 +907,7 @@ export const parseTestData = [
         testname: 'def-expand-with-inner-def-expand',
         explanation:
           '"Item, (Event, Object, (Item, (Def-expand/Blech, (Agent-action, Item))))" has a Def-expand inside a Def-expand',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Item, (Event, Object, (Item, (Def-expand/Blech, (Agent-action, (Def-expand/Temp), Item))))',
         stringLong: null,
         stringShort: null,
@@ -925,7 +925,7 @@ export const parseTestData = [
       {
         testname: 'def-expand-with-value',
         explanation: '"(Def-expand/Acc/4.5, (Acceleration/4.5, Red))" is okay.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Def-expand/Acc/4.5, (Acceleration/4.5, Red))',
         stringLong:
           '(Property/Organizational-property/Def-expand/Acc/4.5, (Property/Data-property/Data-value/Spatiotemporal-value/Rate-of-change/Acceleration/4.5, Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red))',
@@ -939,7 +939,7 @@ export const parseTestData = [
       {
         testname: 'def-expand-not-in-group',
         explanation: '"Def-expand/Acc/4.5, (Acceleration/4.5, Red)" needs a group on full-check.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red)',
         stringLong: null,
         stringShort: null,
@@ -957,7 +957,7 @@ export const parseTestData = [
       {
         testname: 'def-expand-not-in-group',
         explanation: '"Def-expand/Acc/4.5, (Acceleration/4.5, Red)" does not have group detected if not full check.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Def-expand/Acc/4.5, (Acceleration/4.5 m-per-s^2, Red)',
         stringLong: null,
         stringShort: null,
@@ -981,7 +981,7 @@ export const parseTestData = [
       {
         testname: 'event-context-in-group',
         explanation: '"(Event-context, (Item))" is a valid event context',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Event-context, (Item))',
         stringLong: '(Property/Organizational-property/Event-context, (Item))',
         stringShort: '(Event-context, (Item))',
@@ -994,7 +994,7 @@ export const parseTestData = [
       {
         testname: 'event-context-in-subgroup',
         explanation: '"(Red, (Event-context, (Blue)))" has Event-context not in a top-level-tag group',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Red, (Event-context, (Blue)))',
         stringLong: null,
         stringShort: null,
@@ -1012,7 +1012,7 @@ export const parseTestData = [
       {
         testname: 'unique-tags-in-same-string',
         explanation: '"(Event-context, (Red, Blue)), (Event-context, (Green, Yellow))" has two event contexts',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Event-context, (Red, Blue)), (Event-context, (Green, Yellow))',
         stringLong: null,
         stringShort: null,
@@ -1030,7 +1030,7 @@ export const parseTestData = [
       {
         testname: 'duration-with-group',
         explanation: '"(Duration/10, (Event))" has a single group and no complications.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Duration/10, (Event))',
         stringLong: '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Duration/10, (Event))',
         stringShort: '(Duration/10, (Event))',
@@ -1043,7 +1043,7 @@ export const parseTestData = [
       {
         testname: 'duration-without-a-group',
         explanation: '"(Duration/10)" should have a modifying group.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Duration/10)',
         stringLong: null,
         stringShort: null,
@@ -1057,7 +1057,7 @@ export const parseTestData = [
         testname: 'duration-without-a-group-with-a-splice',
         explanation:
           '"(Duration/10, ({event_code}))" should have a non-empty modifying group (column splices might be empty).',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Duration/10, ({event_code}))',
         stringLong: null,
         stringShort: null,
@@ -1072,7 +1072,7 @@ export const parseTestData = [
       {
         testname: 'delay-duration-same-group',
         explanation: '"(Delay/5, Duration/10, (Event))" is an appropriate top-level-tag group',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Delay/5, Duration/10, (Event))',
         stringLong:
           '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Duration/10, (Event))',
@@ -1087,7 +1087,7 @@ export const parseTestData = [
         testname: 'delay-duration-same-group-with-splice',
         explanation:
           '"(Delay/5, Duration/10, (Event, {event_code}))" is an appropriate top-level-tag group -- splice is ignored.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Delay/5, Duration/10, (Event, {event_code}))',
         stringLong:
           '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Duration/10, (Event, {event_code}))',
@@ -1101,7 +1101,7 @@ export const parseTestData = [
       {
         testname: 'delay-with-unnested-def-expand',
         explanation: '"(Delay/5, (Def-expand/MyColor, (Label/Pie)))" needs an extra group for Def-expand.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Delay/5, (Def-expand/MyColor, (Label/Pie)))',
         stringLong: null,
         stringShort: null,
@@ -1114,7 +1114,7 @@ export const parseTestData = [
       {
         testname: 'delay-duration-same-group',
         explanation: '"(Delay/5, Duration/10, (Event))" is an appropriate top-level-tag group',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Delay/5, Duration/10, (Event))',
         stringLong:
           '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Duration/10, (Event))',
@@ -1128,7 +1128,7 @@ export const parseTestData = [
       {
         testname: 'def-in-a-group',
         explanation: '"Label/1, (Def/Acc/3.5), (Item-count/2, Label/1)" is okay.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Label/1, (Def/Acc/3.5), (Item-count/2, Label/1)',
         stringLong:
           'Property/Informational-property/Label/1, (Property/Organizational-property/Def/Acc/3.5), (Property/Data-property/Data-value/Quantitative-value/Item-count/2, Property/Informational-property/Label/1)',
@@ -1142,7 +1142,7 @@ export const parseTestData = [
       {
         testname: 'onset-with-def',
         explanation: '"(Def/MyColor, Onset)" is okay.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Def/MyColor, Onset)',
         stringLong:
           '(Property/Organizational-property/Def/MyColor, Property/Data-property/Data-marker/Temporal-marker/Onset)',
@@ -1156,7 +1156,7 @@ export const parseTestData = [
       {
         testname: 'onset-with-def-expand',
         explanation: '"((Def-expand/MyColor, (Label/Pie)), Onset)" is okay.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '((Def-expand/MyColor, (Label/Pie)), Onset)',
         stringLong:
           '((Property/Organizational-property/Def-expand/MyColor, (Property/Informational-property/Label/Pie)), Property/Data-property/Data-marker/Temporal-marker/Onset)',
@@ -1170,7 +1170,7 @@ export const parseTestData = [
       {
         testname: 'onset-with-def-expand-extra-tag',
         explanation: '"(Onset, (Def-expand/MyColor, (Label/Pie)), (Red))" is okay.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Onset, (Def-expand/MyColor, (Label/Pie)), (Red))',
         stringLong:
           '(Property/Data-property/Data-marker/Temporal-marker/Onset, (Property/Organizational-property/Def-expand/MyColor, (Property/Informational-property/Label/Pie)), (Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red))',
@@ -1184,7 +1184,7 @@ export const parseTestData = [
       {
         testname: 'onset-delay-no-def',
         explanation: '"(Onset, Delay/5 s)" does not have a Def for Onset.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Onset, Delay/5 s)',
         stringLong: null,
         stringShort: null,
@@ -1197,7 +1197,7 @@ export const parseTestData = [
       {
         testname: 'onset-offset-in-same-group',
         explanation: '"(Def/MyColor, Onset, Offset)" has multiple temporal tags in same group.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Def/MyColor, Onset, Offset)',
         stringLong: null,
         stringShort: null,
@@ -1215,7 +1215,7 @@ export const parseTestData = [
       {
         testname: 'onset-delay-in-same-group',
         explanation: '"(Delay/5.0 s, Onset, Def/MyColor)" does not have group detected if not full check.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Delay/5.0 s, Onset, Def/MyColor)',
         stringLong:
           '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5.0 s, Property/Data-property/Data-marker/Temporal-marker/Onset, Property/Organizational-property/Def/MyColor)',
@@ -1230,7 +1230,7 @@ export const parseTestData = [
         testname: 'onset-delay-def-expand-in-same-group',
         explanation:
           '"(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)))" does not have group detected if not full check.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)))',
         stringLong:
           '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5.0 s, Property/Data-property/Data-marker/Temporal-marker/Onset, (Property/Organizational-property/Def-expand/MyColor, (Property/Informational-property/Label/Pie)))',
@@ -1245,7 +1245,7 @@ export const parseTestData = [
         testname: 'onset-delay-def-expand-extra-tag-group',
         explanation:
           '"(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Item))" does not have group detected if not full check.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Delay/5.0 s, Onset, (Def-expand/MyColor, (Label/Pie)), (Item))',
         stringLong:
           '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5.0 s, Property/Data-property/Data-marker/Temporal-marker/Onset, (Property/Organizational-property/Def-expand/MyColor, (Property/Informational-property/Label/Pie)), (Item))',
@@ -1259,7 +1259,7 @@ export const parseTestData = [
       {
         testname: 'Inset-with-def',
         explanation: '"(Def/MyColor, Inset)" is okay.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Def/MyColor, Inset)',
         stringLong:
           '(Property/Organizational-property/Def/MyColor, Property/Data-property/Data-marker/Temporal-marker/Inset)',
@@ -1273,7 +1273,7 @@ export const parseTestData = [
       {
         testname: 'inset-delay-def',
         explanation: '"(Inset, Delay/5 s, Def/myDef)" has an Inset, Delay and Def.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Inset, Delay/5 s, Def/myDef)',
         stringLong:
           '(Property/Data-property/Data-marker/Temporal-marker/Inset, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5 s, Property/Organizational-property/Def/myDef)',
@@ -1287,7 +1287,7 @@ export const parseTestData = [
       {
         testname: 'inset-with delay-no-def',
         explanation: '"(Inset, Delay/5 s)" does not have a Def for Inset.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Inset, Delay/5 s)',
         stringLong: null,
         stringShort: null,
@@ -1300,7 +1300,7 @@ export const parseTestData = [
       {
         testname: 'inset-delay-with-def',
         explanation: '"(Inset, Delay/5 s, Def/myDef)" has an Inset, Delay and Def.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Inset, Delay/5 s, Def/myDef)',
         stringLong:
           '(Property/Data-property/Data-marker/Temporal-marker/Inset, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5 s, Property/Organizational-property/Def/myDef)',
@@ -1314,7 +1314,7 @@ export const parseTestData = [
       {
         testname: 'inset-group-has-other-tag',
         explanation: '"((Def-expand/MyColor, (Label/Pie)), Inset, Blue)" should not have an extra tag.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '((Def-expand/MyColor, (Label/Pie)), Inset, Blue)',
         stringLong: null,
         stringShort: null,
@@ -1332,7 +1332,7 @@ export const parseTestData = [
       {
         testname: 'inset-with-def-and-group',
         explanation: '"(Inset, Def/myDef, (Def/Blech, Item))" has a def and a grpi[.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Inset, Def/myDef, (Def/Blech, Item))',
         stringLong:
           '(Property/Data-property/Data-marker/Temporal-marker/Inset, Property/Organizational-property/Def/myDef, (Property/Organizational-property/Def/Blech, Item))',
@@ -1346,7 +1346,7 @@ export const parseTestData = [
       {
         testname: 'inset-with-def-expand-and-group',
         explanation: '"(Inset, (Def-expand/myDef), (Def/Blech, Item))" has a Def-expand and a group.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Inset, (Def-expand/myDef), (Def/Blech, Item))',
         stringLong:
           '(Property/Data-property/Data-marker/Temporal-marker/Inset, (Property/Organizational-property/Def-expand/myDef), (Property/Organizational-property/Def/Blech, Item))',
@@ -1361,7 +1361,7 @@ export const parseTestData = [
         testname: 'inset-with-bad-def-expand-and-group',
         explanation:
           '"(Inset, (Def-expand/myDef, (Item,(Def/Temp))), (Def/Blech, Item))" has a bad Def-expand and a group.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Inset, (Def-expand/myDef, (Item,(Def/Temp))), (Def/Blech, Item))',
         stringLong: null,
         stringShort: null,
@@ -1379,7 +1379,7 @@ export const parseTestData = [
       {
         testname: 'offset-with-delay-no-def',
         explanation: '"(Offset, Delay/5 s)" does not have a Def for Inset.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Offset, Delay/5 s)',
         stringLong: null,
         stringShort: null,
@@ -1392,7 +1392,7 @@ export const parseTestData = [
       {
         testname: 'offset-with-extra-group',
         explanation: '"((Def-expand/MyColor, (Label/Pie)), Offset, (Red))" does not have a Def for Inset.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '((Def-expand/MyColor, (Label/Pie)), Offset, (Red))',
         stringLong: null,
         stringShort: null,
@@ -1410,7 +1410,7 @@ export const parseTestData = [
       {
         testname: 'offset-delay-with-def',
         explanation: '"(Offset, Delay/5 s, Def/myDef)" has an Offset, Delay and Def.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Offset, Delay/5 s, Def/myDef)',
         stringLong:
           '(Property/Data-property/Data-marker/Temporal-marker/Offset, Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Delay/5 s, Property/Organizational-property/Def/myDef)',
@@ -1424,7 +1424,7 @@ export const parseTestData = [
       {
         testname: 'offset-in-group-with-other-tags',
         explanation: '"(Offset, Item)" has an extra tag and needs a def tag.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Offset, Item)',
         stringLong: null,
         stringShort: null,
@@ -1443,7 +1443,7 @@ export const parseTestData = [
       {
         testname: 'column-splice-in nested-group',
         explanation: '"Red, (({event_code}, Blue), Green)" is allowed.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: 'Red, (({event_code}, Blue), Green)',
         stringLong:
           'Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Red-color/Red, (({event_code}, Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Blue-color/Blue), Property/Sensory-property/Sensory-attribute/Visual-attribute/Color/CSS-color/Green-color/Green)',
@@ -1457,7 +1457,7 @@ export const parseTestData = [
       {
         testname: 'column-splice-in-definition',
         explanation: '"(Definition/Blech, ({event_code}, Blue))" cannot have a column splice in definition',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Definition/Blech, ({event_code}, Blue))',
         stringLong: null,
         stringShort: null,
@@ -1473,7 +1473,7 @@ export const parseTestData = [
         testname: 'column-splice-in-deep-def-expand-top-tags',
         explanation:
           '"(Red, ((Def-expand/Blech, ({event_code}, Label/Pie)), (Blue))), Green))" cannot have a column splice in def-expand',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Red, ((Def-expand/Blech, {event_code}, (Label/Pie))), Green)',
         stringLong: null,
         stringShort: null,
@@ -1492,7 +1492,7 @@ export const parseTestData = [
         testname: 'column-splice-in deep-def-expand group',
         explanation:
           '"(Red, ((Def-expand/Blech, ({event_code}, Label/Pie))))" cannot have a column splice with def-expand',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         stringIn: '(Red, ((Def-expand/Blech, ({event_code}, Label/Pie))))',
         stringLong: null,
         stringShort: null,

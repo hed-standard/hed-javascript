@@ -6,7 +6,7 @@ import xml2js from 'xml2js'
 import * as files from '../utils/files'
 import { IssueError } from '../issues/issues'
 
-import { localSchemaNames } from './config' // Changed from localSchemaList
+import { localSchemaMap, localSchemaNames } from './config' // Changed from localSchemaList
 
 /**
  * Load schema XML data from a schema version or path description.
@@ -79,33 +79,54 @@ function loadLocalSchema(path) {
  * @throws {IssueError} If the schema could not be loaded.
  */
 async function loadBundledSchema(schemaDef) {
+  if (typeof __VITE_ENV__ !== 'undefined' && __VITE_ENV__) {
+    return loadViteSpecificBundle(schemaDef)
+  } else {
+    return loadSchemaFromDist(schemaDef)
+  }
+}
+/**
+ * Load schema XML data from a vie-specific glob (for web environments)
+ *
+ * @param {SchemaSpec} schemaDef The description of which schema to use.
+ * @returns {Promise<object>} The schema XML data.
+ * @throws {IssueError} If the schema could not be loaded.
+ */
+async function loadViteSpecificBundle(schemaDef) {
   let xmlString
   const schemaFileName = `${schemaDef.localName}.xml`
   const relativeSchemaPath = `../data/schemas/${schemaFileName}`
 
   try {
-    if (typeof __VITE_ENV__ !== 'undefined' && __VITE_ENV__) {
-      // Vite/browser environment: Use import.meta.glob for dynamic, async imports
-      // @ts-ignore - import.meta.glob is Vite-specific
-      const viteSchemaLoaders = import.meta.glob('../data/schemas/*.xml', { query: '?raw', import: 'default' })
-      const loadFn = viteSchemaLoaders[relativeSchemaPath]
-      if (loadFn) {
-        xmlString = await loadFn()
-      } else {
-        IssueError.generateAndThrow('bundledSchemaLoadFailed', {
-          spec: JSON.stringify(schemaDef),
-          error: `Schema file ${schemaFileName} not found by Vite loader. Expected path: ${relativeSchemaPath}`,
-        })
-      }
+    // Vite/browser environment: Use import.meta.glob for dynamic, async imports
+    // @ts-ignore - import.meta.glob is Vite-specific
+    const viteSchemaLoaders = import.meta.glob('../data/schemas/*.xml', { query: '?raw', import: 'default' })
+    const loadFn = viteSchemaLoaders[relativeSchemaPath]
+    if (loadFn) {
+      xmlString = await loadFn()
     } else {
-      // Node.js/Jest environment: Use fs.promises.readFile
-      const path = require('path')
-      const fsp = require('fs').promises
-      // __dirname in loader.js is i:\HEDJavascript\hed-javascript\src\schema
-      const absoluteSchemaPath = path.resolve(__dirname, '../data/schemas', schemaFileName)
-      xmlString = await fsp.readFile(absoluteSchemaPath, 'utf-8')
+      IssueError.generateAndThrow('bundledSchemaLoadFailed', {
+        spec: JSON.stringify(schemaDef),
+        error: `Schema file ${schemaFileName} not found by Vite loader. Expected path: ${relativeSchemaPath}`,
+      })
     }
     return parseSchemaXML(xmlString)
+  } catch (error) {
+    const issueArgs = { spec: JSON.stringify(schemaDef), error: error.message }
+    IssueError.generateAndThrow('bundledSchemaLoadFailed', issueArgs)
+  }
+}
+
+/**
+ * Load schema XML data from a bundled dist.
+ *
+ * @param {SchemaSpec} schemaDef The description of which schema to use.
+ * @returns {Promise<object>} The schema XML data.
+ * @throws {IssueError} If the schema could not be loaded.
+ */
+async function loadSchemaFromDist(schemaDef) {
+  try {
+    return parseSchemaXML(localSchemaMap.get(schemaDef.localName))
   } catch (error) {
     const issueArgs = { spec: JSON.stringify(schemaDef), error: error.message }
     IssueError.generateAndThrow('bundledSchemaLoadFailed', issueArgs)
