@@ -4,7 +4,7 @@ export const definitionTestData = [
   {
     name: 'def-or-def-expand',
     description: '"Event" is a single level tag"',
-    schemaVersion: '8.3.0',
+    schemaVersion: '8.4.0',
     definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
     tests: [
       {

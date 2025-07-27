@@ -9,7 +9,7 @@ export const bidsTestData = [
       {
         testname: 'no-hed-at-all-but-both-tsv-json-non-empty',
         explanation: 'Neither the sidecar or tsv has HED but neither non-empty',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           duration: {
@@ -24,7 +24,7 @@ export const bidsTestData = [
       {
         testname: 'only-header-in-tsv-with-return',
         explanation: 'TSV only has header and trailing return and white space',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           duration: {
@@ -39,7 +39,7 @@ export const bidsTestData = [
       {
         testname: 'empty-json-empty-tsv',
         explanation: 'Both sidecar and tsv are empty except for white space',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString: '\n  \n',
@@ -56,7 +56,7 @@ export const bidsTestData = [
       {
         testname: 'mismatched-parentheses-in-tsv',
         explanation: 'HED column has mismatched parentheses',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -102,7 +102,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-bad-tag-in-tsv',
         explanation: 'Unrelated sidecar is valid but HED column tag is invalid',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -139,7 +139,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-bad-tag-in-JSON',
         explanation: 'Sidecar has a bad tag but tsv HED column tag is valid',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -178,7 +178,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-bad-value-tag-in-JSON',
         explanation: 'Sidecar has a bad takes value tag but tsv HED column tag is valid',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -222,7 +222,7 @@ export const bidsTestData = [
       {
         testname: 'valid-json-invalid-value-class-on-combo',
         explanation: 'Sidecar is valid but when combined with tsv, tag value has invalid value class',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -253,7 +253,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-bad-tag-in-JSON-no-use',
         explanation: 'Bad tag in JSON',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -294,7 +294,7 @@ export const bidsTestData = [
       {
         testname: 'valid-sidecar-tsv-curly-brace',
         explanation: 'The sidecar is valid, but tsv HED column has braces}',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -325,7 +325,7 @@ export const bidsTestData = [
       {
         testname: 'valid-no-duplicate-tsv',
         explanation: 'No duplicates in tsv, no groups, no JSON',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString: 'onset\tduration\tHED\n' + '19\t6\tEvent/Sensory-event,Item/Object, Purple\n',
@@ -336,7 +336,7 @@ export const bidsTestData = [
       {
         testname: 'valid-duplicate-tsv',
         explanation: 'Duplicate at different level in tsv',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -355,7 +355,7 @@ export const bidsTestData = [
       {
         testname: 'valid-repeats-different-nesting-tsv',
         explanation: 'Duplicate groups not at same level in tsv',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString: 'onset\tduration\tHED\n' + '19\t6\t(Red, Blue, (Green)), (Red, Blue, ((Green)))\n',
@@ -366,7 +366,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-duplicate-groups-first-level-tsv',
         explanation: 'The HED string has first level duplicate groups',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           vehicle: {
@@ -399,7 +399,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-different-forms-same-tag-tsv',
         explanation: 'Duplicate tags in different forms',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString: 'onset\tduration\tHED\n' + '19\t6\tTrain,Vehicle/Train\n',
@@ -418,7 +418,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-repeated-nested-groups-tsv',
         explanation: 'The HED string has first level repeated nested groups',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           vehicle: {
@@ -459,7 +459,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-first-level-duplicate-combo',
         explanation: 'Each is okay but when combined, duplicate tag',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           vehicle: {
@@ -496,7 +496,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-first-level-duplicate-combo-reordered',
         explanation: 'Each is okay but when combined, duplicate group in different order',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -523,7 +523,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-nested-duplicate-json-reordered',
         explanation: 'Deeply nested duplicates in JSON entry reordered',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -562,7 +562,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-nested-duplicate-combo-reordered',
         explanation: 'Deeply nested duplicates reordered',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -591,7 +591,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-duplicate-multiple-rows',
         explanation: 'Duplicates across rows.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -632,7 +632,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-duplicate-multiple-onset',
         explanation: 'Duplicates across rows because onsets are the same.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -679,7 +679,7 @@ export const bidsTestData = [
       {
         testname: 'valid-curly-brace-in-sidecar-with-value-splice',
         explanation: 'Valid curly brace in sidecar and valid value is spliced in',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -701,7 +701,7 @@ export const bidsTestData = [
       {
         testname: 'splice-of-top-level-tag',
         explanation: 'A top-level tag group tag is part of a splice',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           duration: {
@@ -726,7 +726,7 @@ export const bidsTestData = [
       {
         testname: 'bad-splice-of-top-level-tag',
         explanation: 'A top-level tag group tag is part of a splice but gives invalid combo',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           duration: {
@@ -760,7 +760,7 @@ export const bidsTestData = [
       {
         testname: 'bad-group-for-top-level-tag-no-splice',
         explanation: 'A top-level tag group tag has no group and no splice should give sidecar error',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           duration: {
@@ -809,7 +809,7 @@ export const bidsTestData = [
       {
         testname: 'bad-group-for-top-level-tag-other-splice',
         explanation: 'A non-spliced top-level tag group tag has no group should give sidecar error',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           duration: {
@@ -858,7 +858,7 @@ export const bidsTestData = [
       {
         testname: 'splice-of-non-top-level-tag',
         explanation: 'A top-level tag group tag is part of a splice',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           duration: {
@@ -883,7 +883,7 @@ export const bidsTestData = [
       {
         testname: 'splice-of-non-existent-column',
         explanation: 'A splice corresponds to a non-existent column in the tsv, but should not result in empty tag.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           duration: {
@@ -908,7 +908,7 @@ export const bidsTestData = [
       {
         testname: 'valid-curly-brace-in-sidecar-with-tsv-n/a',
         explanation: 'Valid curly brace in sidecar and valid tsv with n/a',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -931,7 +931,7 @@ export const bidsTestData = [
       {
         testname: 'valid-curly-brace-in-sidecar-with-category-splice',
         explanation: 'Valid curly brace in sidecar and valid value is spliced in',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -955,7 +955,7 @@ export const bidsTestData = [
       {
         testname: 'valid-curly-brace-in-sidecar-with-n/a-splice',
         explanation: 'Valid curly brace in sidecar and but tsv splice entry is n/a',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -977,7 +977,7 @@ export const bidsTestData = [
       {
         testname: 'valid-HED-column-splice',
         explanation: 'Valid curly brace in sidecar with valid HED column splice',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -999,7 +999,7 @@ export const bidsTestData = [
       {
         testname: 'valid-HED-column-splice-with-n/a',
         explanation: 'Valid curly brace in sidecar with HED column entry n/a',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -1016,7 +1016,7 @@ export const bidsTestData = [
       {
         testname: 'valid-HED-curly-brace-but-tsv-has-no-HED-column',
         explanation: 'A {HED} column splice is used in a sidecar but the tsv has no HED column',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -1038,7 +1038,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-curly-brace-column-slice-has-no hed',
         explanation: 'A column name is used in a splice but does not have a HED key',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -1064,7 +1064,7 @@ export const bidsTestData = [
       {
         testname: 'valid-curly-brace-but-splice-column-missing',
         explanation: 'Curly braces but one of them for a splice that has no tsv column.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           duration: {
@@ -1089,7 +1089,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-curly-brace-in-HED-tsv-column',
         explanation: 'Curly braces are used in the HED column of a tsv.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -1119,7 +1119,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-recursive-curly-braces',
         explanation: 'Mutually recursive curly braces in sidecar.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -1168,7 +1168,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-self-recursive-curly-braces',
         explanation: 'Mutually recursive curly braces in sidecar.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -1200,7 +1200,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-recursive-curly-brace-chain',
         explanation: 'Curly braces column A -> column B -> Column C.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -1245,7 +1245,7 @@ export const bidsTestData = [
       {
         testname: 'valid-placeholder-used-in-tsv',
         explanation: 'The sidecar has a placeholder that is used in the tsv',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           vehicle: {
@@ -1266,7 +1266,7 @@ export const bidsTestData = [
       {
         testname: 'valid-placeholder-not-used',
         explanation: 'The sidecar has a placeholder that is not used in the tsv',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           vehicle: {
@@ -1287,7 +1287,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-no-placeholder-value-column',
         explanation: 'The sidecar has a value column with no placeholder tag',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           vehicle: {
@@ -1322,7 +1322,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-multiple-placeholders-in-value-column',
         explanation: 'The sidecar has a value column with no placeholder tag',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1357,7 +1357,7 @@ export const bidsTestData = [
       {
         testname: 'valid-units-on-a-placeholder',
         explanation: 'The sidecar has invalid units on a placeholder',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1372,7 +1372,7 @@ export const bidsTestData = [
       {
         testname: 'wrong-units-on-a-placeholder',
         explanation: 'The sidecar has wrong units on a placeholder',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1415,7 +1415,7 @@ export const bidsTestData = [
       {
         testname: 'valid-definition-no-placeholder',
         explanation: 'Simple definition in sidecar',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1435,7 +1435,7 @@ export const bidsTestData = [
       {
         testname: 'valid-definition-with-placeholder',
         explanation: 'Definition in sidecar has a placeholder',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1455,7 +1455,7 @@ export const bidsTestData = [
       {
         testname: 'valid-def-with-placeholder',
         explanation: 'Def in sidecar has a placeholder',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1470,7 +1470,7 @@ export const bidsTestData = [
       {
         testname: 'valid-definition-with-nested-placeholder',
         explanation: 'Definition in sidecar has nested placeholder',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1490,7 +1490,7 @@ export const bidsTestData = [
       {
         testname: 'valid-definition-no-group',
         explanation: 'The sidecar with definition that has no internal group.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1510,7 +1510,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-def-expand-no-group',
         explanation: 'The sidecar with definition that has no internal group.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1547,7 +1547,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-missing-definition-for-def',
         explanation: 'The sidecar uses a def with no definition',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1576,7 +1576,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-missing-definition-for-def-expand',
         explanation: 'The sidecar uses a def-expand with no definition',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1605,7 +1605,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-nested-definition',
         explanation: 'The sidecar has a definition inside a definition',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1649,7 +1649,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-multiple-definition-tags',
         explanation: 'The sidecar has multiple definition tags in same definition',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1693,7 +1693,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-definition-with-extra-groups',
         explanation: 'The sidecar has a definition with extra internal group',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1737,7 +1737,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-definition-with-extra-sibling',
         explanation: 'The sidecar has a definition with an extra internal sibling',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1781,7 +1781,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-definition-in-HED-column',
         explanation: 'The tsv has a definition in HED column',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1814,7 +1814,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-definition-with-missing-placeholder',
         explanation: 'Definition in sidecar has missing placeholder',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1858,7 +1858,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-definition-with-fixed-placeholder',
         explanation: 'Definition in sidecar has a fixed value instead of placeholder',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1902,7 +1902,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-definition-has-multiple-placeholders',
         explanation: 'Definition in sidecar has multiple placeholders',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1946,7 +1946,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-definition-not-isolated',
         explanation: 'Definition in sidecar appears with other tags',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           speed: {
@@ -1996,7 +1996,7 @@ export const bidsTestData = [
       {
         testname: 'nested-delay',
         explanation: 'A delay tag with nesting',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2080,7 +2080,7 @@ export const bidsTestData = [
       {
         testname: 'delay-non-timeline-file',
         explanation: 'A delay tag in not allowed in a file without a timeline',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2117,7 +2117,7 @@ export const bidsTestData = [
       {
         testname: 'duration-non-timeline-file',
         explanation: 'A duration tag is allowed a file without a timeline',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2140,7 +2140,7 @@ export const bidsTestData = [
       {
         testname: 'nested-delay',
         explanation: 'A delay tag with nesting',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2224,7 +2224,7 @@ export const bidsTestData = [
       {
         testname: 'event-context-with-other-special-tags',
         explanation: 'Event context with other special tags.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2276,7 +2276,7 @@ export const bidsTestData = [
       {
         testname: 'duration-non-timeline-file',
         explanation: 'A duration tag is allowed a file without a timeline',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2299,7 +2299,7 @@ export const bidsTestData = [
       {
         testname: 'valid-offset-after-onset',
         explanation: 'An offset after an inset at an earlier time',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString: 'onset\tduration\tHED\n4.5\t0\t(Onset, Def/MyColor)\n6.0\t0\t(Offset, Def/MyColor)\n',
@@ -2310,7 +2310,7 @@ export const bidsTestData = [
       {
         testname: 'valid-offset-after-onset-with-def-expand',
         explanation: 'An offset after an inset at an earlier time but one is a Def and the other is a Def-expand',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString:
@@ -2322,7 +2322,7 @@ export const bidsTestData = [
       {
         testname: 'valid-offset-after-onset-with-def-expand-with-value',
         explanation: 'An offset after an inset, the defs have a value and one is a Def and the other is a Def-expand',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString:
@@ -2334,7 +2334,7 @@ export const bidsTestData = [
       {
         testname: 'simultaneous-temporal-onset',
         explanation: 'temporal onsets at same time',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString: 'onset\tduration\tHED\n4.5\t0\t(Onset, Def/MyColor, (Red)),(Onset, Def/MyColor, (Blue))\n',
@@ -2373,7 +2373,7 @@ export const bidsTestData = [
       {
         testname: 'missing-temporal-onset',
         explanation: 'offset appears before an onset',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString: 'onset\tduration\tHED\n4.5\t0\t(Offset, Def/MyColor)\n',
@@ -2400,7 +2400,7 @@ export const bidsTestData = [
       {
         testname: 'delayed-onset-with-offset-okay',
         explanation: 'onset has delay, but offset appears after anyway',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString:
@@ -2412,7 +2412,7 @@ export const bidsTestData = [
       {
         testname: 'delayed-onset-with-offset-before',
         explanation: 'offset appears before an onset in delay scenario',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
         eventsString:
@@ -2440,7 +2440,7 @@ export const bidsTestData = [
       {
         testname: 'delayed-onset-with-offset-before-with-sidecar',
         explanation: 'offset appears before an onset with a sidecar in complex delayed scenario',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2469,7 +2469,7 @@ export const bidsTestData = [
       {
         testname: 'na-in-onset column-but-valid-hed',
         explanation: 'n/a in some onset columns but valid HED',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2488,7 +2488,7 @@ export const bidsTestData = [
       {
         testname: 'na-in-onset column-but-invalid-hed',
         explanation: 'n/a in some onset columns but invalid HED',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2529,7 +2529,7 @@ export const bidsTestData = [
       {
         testname: 'all-na-in-onset column-with-duration',
         explanation: 'all n/a in onset column but one has allowed Duration tag',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2547,7 +2547,7 @@ export const bidsTestData = [
       {
         testname: 'all-na-in-onset-column-invalid-onset',
         explanation: 'all n/a in onset column with an invalid onset',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2581,7 +2581,7 @@ export const bidsTestData = [
       {
         testname: 'all-na-in-onset-column-invalid-delay',
         explanation: 'all n/a in onset column with an invalid delay',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2621,7 +2621,7 @@ export const bidsTestData = [
       {
         testname: 'tsv-has-categorical-value-missing-from-sidecar',
         explanation: '(Warning) A categorical value in the tsv is missing from the sidecar.',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2647,7 +2647,7 @@ export const bidsTestData = [
       {
         testname: 'hed-used-as-splice-but-no-tsv-hed',
         explanation: '(Warning) {HED} appears in sidecar but no HED column in tsv,',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {
@@ -2669,7 +2669,7 @@ export const bidsTestData = [
       {
         testname: 'hed-used-as-splice-and-tsv-has-hed',
         explanation: '{HED} appears in sidecar and the tsv has a HED column,',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
           event_code: {

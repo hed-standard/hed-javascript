@@ -12,7 +12,7 @@ import { Schemas } from '../../src/schema/containers'
 // Ability to select individual tests to run
 const skipMap = new Map()
 const runAll = true
-const runMap = new Map([['invalid-schemas', ['lazy-partnered-with conflicting-tags-build']]])
+const runMap = new Map([['valid-schema-build', ['simple-standard-schema-build']]])
 
 describe('Schema build validation', () => {
   beforeAll(async () => {})

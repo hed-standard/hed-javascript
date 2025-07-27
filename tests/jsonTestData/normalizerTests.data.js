@@ -8,7 +8,7 @@ export const normalizerTestData = [
       {
         testname: 'single-tag',
         explanation: '"" is a single level tag"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         string: 'Item',
         stringNormalized: 'Item',
         errors: [],
@@ -16,7 +16,7 @@ export const normalizerTestData = [
       {
         testname: 'empty-string',
         explanation: '"" is an empty string"',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         string: '',
         stringNormalized: '',
         errors: [],
@@ -24,7 +24,7 @@ export const normalizerTestData = [
       {
         testname: 'non-duplicate-tags',
         explanation: '"Red,  Blue, Green" is a simple list of non-duplicate tags',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         string: 'Red,  Blue, Green',
         stringNormalized: 'Blue,Green,Red',
         errors: [],
@@ -32,7 +32,7 @@ export const normalizerTestData = [
       {
         testname: 'duplicate-tags',
         explanation: '"Red,  Blue, Red" has duplicate tags',
-        schemaVersion: '8.3.0',
+        schemaVersion: '8.4.0',
         string: 'Red,  Blue, Red',
         stringNormalized: null,
         errors: [generateIssue('duplicateTag', { tags: '[Red]', string: 'Red,  Blue, Red' })],
