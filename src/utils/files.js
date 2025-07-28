@@ -62,6 +62,39 @@ export const fsp = {
   },
 }
 
+let loadBundledFile
+// @ts-ignore __VITE_ENV__ is defined by Vite in browser builds
+if (typeof __VITE_ENV__ !== 'undefined' && __VITE_ENV__) {
+  // Browser environment
+  // @ts-ignore - import.meta.glob is Vite-specific
+  const viteSchemaLoaders = import.meta.glob('../../data/schemas/*.xml', { query: '?raw', import: 'default' })
+  loadBundledFile = async (localName) => {
+    const schemaFileName = `${localName}.xml`
+    const relativeSchemaPath = `../../data/schemas/${schemaFileName}`
+    const loadFn = viteSchemaLoaders[relativeSchemaPath]
+    if (loadFn) {
+      return await loadFn()
+    } else {
+      throw new Error(`Bundled schema file ${schemaFileName} not found by Vite loader.`)
+    }
+  }
+} else {
+  // Node.js/Deno environment
+  const { localSchemaMap } = require('../schema/config.js')
+  loadBundledFile = async (localName) => {
+    return localSchemaMap.get(localName)
+  }
+}
+
+/**
+ * Load a bundled schema file.
+ * This function is environment-specific.
+ *
+ * @param {string} localName The local name of the schema file.
+ * @returns {Promise<string>} The file contents.
+ */
+export { loadBundledFile }
+
 /**
  * Read a local file.
  *

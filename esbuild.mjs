@@ -11,6 +11,9 @@ await esbuild.build({
   bundle: true,
   sourcemap: true,
   platform: 'node',
+  define: {
+    'import.meta.glob': 'false',
+  },
 })
 
 // Browser target build
