@@ -6,7 +6,7 @@ import ParsedHedTag from '../../src/parser/parsedHedTag'
 import { shouldRun } from '../testHelpers/testUtilities'
 import { parsedHedTagTests } from '../jsonTestData/tagParserTests.data'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
-import path from 'path'
+import path from 'node:path'
 import { buildSchemas } from '../../src/schema/init'
 import { SchemaValueTag } from '../../src/schema/entries'
 

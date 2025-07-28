@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, jest } from '@jest/globals'
-import path from 'path'
-import fs from 'fs'
+import path from 'node:path'
+import fs from 'node:fs'
 import { toMatchIssue } from '../testHelpers/toMatchIssue'
 import { BidsDataset } from '../../src/bids/types/dataset'
 import { BidsDirectoryAccessor, BidsFileAccessor } from '../../src/bids/datasetParser'

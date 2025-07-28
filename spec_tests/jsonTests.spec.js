@@ -6,7 +6,7 @@ import { BidsHedIssue } from '../src/bids/types/issues'
 import { buildSchemas } from '../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import { Schemas } from '../src/schema/containers'
-import path from 'path'
+import path from 'node:path'
 import { BidsSidecar, BidsTsvFile } from '../src/bids'
 import { generateIssue, IssueError } from '../src/issues/issues'
 import { DefinitionManager } from '../src/parser/definitionManager'
@@ -26,7 +26,6 @@ const readFileSync = fs.readFileSync
 const test_file_name = 'javascriptTests.json'
 // const test_file_name = 'temp6.json'
 
-
 function toMatchIssue(receivedError, expectedCode, expectedParams = {}) {
   const expectedIssue = generateIssue(expectedCode, expectedParams)
 
@@ -36,8 +35,7 @@ function toMatchIssue(receivedError, expectedCode, expectedParams = {}) {
   if (passType && passMessage) {
     return {
       pass: true,
-      message: () =>
-        `Expected error not to match IssueError with message "${expectedIssue.message}", but it did.`,
+      message: () => `Expected error not to match IssueError with message "${expectedIssue.message}", but it did.`,
     }
   } else {
     return {
@@ -101,11 +99,11 @@ function tsvToString(events) {
   return events.map((row) => row.join('\t')).join('\n')
 }
 
-  expect.extend({
-    toMatchIssue(receivedError, expectedCode, expectedParams) {
-      return toMatchIssue(receivedError, expectedCode, expectedParams)
-    }
-  })
+expect.extend({
+  toMatchIssue(receivedError, expectedCode, expectedParams) {
+    return toMatchIssue(receivedError, expectedCode, expectedParams)
+  },
+})
 
 describe('HED validation using JSON tests', () => {
   const schemaMap = new Map([
@@ -127,7 +125,12 @@ describe('HED validation using JSON tests', () => {
     const spec3Lib = new SchemaSpec('ts', '8.4.0', '', path.join(__dirname, '../src/data/schemas/HED8.4.0.xml'))
     const specs3Lib = new SchemasSpec().addSchemaSpec(spec3Lib)
 
-    const specScore = new SchemaSpec('sc', '1.0.0', 'score', path.join(__dirname, '../tests/otherTestData/HED_score_1.0.0.xml'))
+    const specScore = new SchemaSpec(
+      'sc',
+      '1.0.0',
+      'score',
+      path.join(__dirname, '../tests/otherTestData/HED_score_1.0.0.xml'),
+    )
     const specsScore = new SchemasSpec().addSchemaSpec(specScore)
 
     const [schemas2, schemas3, schemas4, schemas3lib, schemaScore] = await Promise.all([
