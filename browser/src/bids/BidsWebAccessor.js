@@ -12,26 +12,44 @@ function _processFileList(fileInput) {
     return { datasetRootDirectory: '', fileMap: new Map() }
   }
 
-  // Determine the dataset root directory from the common path prefix.
-  // Assumes the first file's path is representative.
-  const firstPath = fileList[0].webkitRelativePath || ''
-  const rootDirEndIndex = firstPath.indexOf('/')
-  const datasetRootDirectory = rootDirEndIndex > -1 ? firstPath.substring(0, rootDirEndIndex) : ''
+  // Find dataset_description.json to determine the root path prefix.
+  const descriptionFile = fileList.find((f) => (f.webkitRelativePath || f.name).endsWith('dataset_description.json'))
 
+  let prefix = ''
+  if (descriptionFile) {
+    const path = descriptionFile.webkitRelativePath || descriptionFile.name
+    const lastSlashIndex = path.lastIndexOf('/')
+    // Check if the file is in a subdirectory
+    if (lastSlashIndex > -1) {
+      prefix = path.substring(0, lastSlashIndex)
+    }
+    // If lastSlashIndex is -1, the file is at the root, and prefix remains ''. This is correct.
+  } else {
+    // Fallback: if no dataset_description.json, assume the first directory level is the root.
+    const firstPath = fileList[0]?.webkitRelativePath || ''
+    const rootDirEndIndex = firstPath.indexOf('/')
+    if (rootDirEndIndex > -1) {
+      prefix = firstPath.substring(0, rootDirEndIndex)
+    }
+  }
+
+  const datasetRootDirectory = prefix
   const fileMap = new Map()
-  const prefix = datasetRootDirectory ? datasetRootDirectory + '/' : ''
+  const prefixWithSlash = prefix ? prefix + '/' : ''
+
   for (const file of fileList) {
     const webkitRelativePath = file.webkitRelativePath || file.name
-    if (!webkitRelativePath) {
-      continue
-    }
-    const relativePath = webkitRelativePath.startsWith(prefix)
-      ? webkitRelativePath.substring(prefix.length)
+    if (!webkitRelativePath) continue
+
+    const relativePath = webkitRelativePath.startsWith(prefixWithSlash)
+      ? webkitRelativePath.substring(prefixWithSlash.length)
       : webkitRelativePath
+
     if (relativePath) {
       fileMap.set(relativePath, file)
     }
   }
+
   return { datasetRootDirectory, fileMap }
 }
 
