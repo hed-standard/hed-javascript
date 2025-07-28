@@ -91,6 +91,22 @@ export default defineConfig(({ command }) => {
           }
         },
       },
+
+      // Custom plugin to copy schemas after the build.
+      isProduction && {
+        name: 'copy-schemas-after-build',
+        closeBundle: () => {
+          const sourceDir = path.resolve(__dirname, '../src/data/schemas')
+          const targetDir = path.resolve(__dirname, 'buildweb/schemas')
+
+          if (fs.existsSync(sourceDir)) {
+            fs.cpSync(sourceDir, targetDir, { recursive: true })
+            console.log('✅ Copied src/data/schemas → buildweb/schemas after build')
+          } else {
+            console.warn('⚠️  src/data/schemas not found — skipping copy')
+          }
+        },
+      },
     ],
   }
 })
