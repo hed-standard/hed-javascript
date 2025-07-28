@@ -10,8 +10,8 @@
  * @module datasetParser
  */
 
-import fsp from 'fs/promises'
 import path from 'path'
+import { fsp } from '../utils/files.js'
 import { organizePaths } from '../utils/paths.js'
 import { generateIssue } from '../issues/issues'
 import { BidsHedIssue } from './types/issues'
