@@ -146,14 +146,14 @@ function testIssues() {
     IssueError.generateAndThrow('internalCode', { param: [1, 2] })
   } catch (e: unknown) {
     if (e instanceof IssueError) {
-      console.log(e.issue)
+      console.log((e as IssueError).issue)
     }
   }
   try {
     IssueError.generateAndThrowInternalError('internal error message')
   } catch (e: unknown) {
     if (e instanceof IssueError) {
-      console.log(e.issue)
+      console.log((e as IssueError).issue)
     }
   }
 }
