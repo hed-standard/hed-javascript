@@ -19,9 +19,18 @@ export const localSchemaNames = [
   // Add other bundled schema base names here if needed
 ]
 
-export const localSchemaMap = new Map(
-  localSchemaNames.map((localSchema) => [localSchema, require(`../data/schemas/${localSchema}.xml`)]),
-)
+export let localSchemaMap
+
+// @ts-ignore __VITE_ENV__ is defined by Vite in browser builds
+if (typeof __VITE_ENV__ !== 'undefined' && __VITE_ENV__) {
+  // In the browser, this map is not used. The loader uses import.meta.glob.
+  localSchemaMap = new Map()
+} else {
+  // For Node.js, pre-load the schemas.
+  localSchemaMap = new Map(
+    localSchemaNames.map((localSchema) => [localSchema, require(`../data/schemas/${localSchema}.xml`)]),
+  )
+}
 
 export const getLocalSchemaVersions = function () {
   // Return a copy of the local schema names to avoid external modifications
