@@ -12,7 +12,7 @@ await esbuild.build({
   sourcemap: true,
   platform: 'node',
   define: {
-    'import.meta.glob': 'false',
+    'import.meta.env': 'undefined',
   },
 })
 
