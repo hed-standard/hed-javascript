@@ -3,7 +3,7 @@
 /* Imports */
 import xml2js from 'xml2js'
 
-import * as files from '../utils/files'
+import { fsp, readHTTPSFile } from '../utils/files'
 import { IssueError } from '../issues/issues'
 
 import { localSchemaMap, localSchemaNames } from './config' // Changed from localSchemaList
@@ -57,7 +57,8 @@ function loadRemoteSchema(schemaDef) {
   } else {
     url = `https://raw.githubusercontent.com/hed-standard/hed-schemas/refs/heads/main/standard_schema/hedxml/HED${schemaDef.version}.xml`
   }
-  return loadSchemaFile(files.readHTTPSFile(url), 'remoteSchemaLoadFailed', { spec: JSON.stringify(schemaDef) })
+  // Import readHTTPSFile separately since it doesn't have environment restrictions
+  return loadSchemaFile(readHTTPSFile(url), 'remoteSchemaLoadFailed', { spec: JSON.stringify(schemaDef) })
 }
 
 /**
@@ -68,7 +69,8 @@ function loadRemoteSchema(schemaDef) {
  * @throws {IssueError} If the schema could not be loaded.
  */
 function loadLocalSchema(path) {
-  return loadSchemaFile(files.readFile(path), 'localSchemaLoadFailed', { path: path })
+  // Use fsp.readFile directly to avoid browser environment checks
+  return loadSchemaFile(fsp.readFile(path, 'utf8'), 'localSchemaLoadFailed', { path: path })
 }
 
 /**

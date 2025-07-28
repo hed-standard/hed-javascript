@@ -24,6 +24,7 @@ export default [
       globals: {
         ...globals.node,
         ...globals.jest,
+        __VITE_ENV__: 'readonly',
       },
 
       ecmaVersion: 'latest',
