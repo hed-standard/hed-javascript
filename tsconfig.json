@@ -8,7 +8,9 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "typeRoots": ["./node_modules/@types", "./types"]
   },
-  "include": ["src/**/*", "types/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
