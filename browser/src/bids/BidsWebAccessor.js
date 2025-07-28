@@ -11,10 +11,8 @@ function _processFileList(fileInput) {
   if (fileList.length === 0) {
     return { datasetRootDirectory: '', fileMap: new Map() }
   }
-
   // Find dataset_description.json to determine the root path prefix.
   const descriptionFile = fileList.find((f) => (f.webkitRelativePath || f.name).endsWith('dataset_description.json'))
-
   let prefix = ''
   if (descriptionFile) {
     const path = descriptionFile.webkitRelativePath || descriptionFile.name
@@ -49,16 +47,16 @@ function _processFileList(fileInput) {
       fileMap.set(relativePath, file)
     }
   }
-
   return { datasetRootDirectory, fileMap }
 }
 
 // Subclass for web environment
 export class BidsWebAccessor extends BidsFileAccessor {
   /**
-   * Factory method to create a BidsWebAccessor.
+   * Factory method to create a BidsWebAccessor from a browser FileList.
    * @param {FileList|File[]} fileInput The files from a webkitdirectory upload.
    * @returns {Promise<BidsWebAccessor>}
+   * @override
    */
   static async create(fileInput) {
     const { datasetRootDirectory, fileMap } = _processFileList(fileInput)

@@ -68,7 +68,8 @@ if (typeof __VITE_ENV__ !== 'undefined' && __VITE_ENV__) {
   // Browser environment
   loadBundledFile = async (localName) => {
     const schemaFileName = `${localName}.xml`
-    const schemaPath = `/schemas/${schemaFileName}`
+    // Use Vite's import.meta.env.BASE_URL to construct the correct path in both dev and prod.
+    const schemaPath = `${import.meta.env.BASE_URL}schemas/${schemaFileName}`
     const response = await fetch(schemaPath)
     if (!response.ok) {
       throw new Error(`Bundled schema file ${schemaFileName} not found at ${schemaPath}.`)
