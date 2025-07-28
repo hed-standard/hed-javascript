@@ -15,7 +15,7 @@ export const fsp = {
   async readFile(filePath, encoding = 'utf8') {
     if (typeof globalThis.Deno !== 'undefined') {
       return await globalThis.Deno.readTextFile(filePath)
-    } else {
+    } else if (typeof window === 'undefined') {
       // Fallback for Node.js environments - use require instead of dynamic import
       const fs = require('fs').promises
       return await fs.readFile(filePath, encoding)
@@ -30,7 +30,7 @@ export const fsp = {
   async stat(path) {
     if (typeof globalThis.Deno !== 'undefined') {
       return await globalThis.Deno.stat(path)
-    } else {
+    } else if (typeof window === 'undefined') {
       // Fallback for Node.js environments - use require instead of dynamic import
       const fs = require('fs').promises
       return await fs.stat(path)
