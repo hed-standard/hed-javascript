@@ -49,8 +49,12 @@ jobs:
       - name: Link hed-validator package
         run: npm link
 
+      - name: Link dependency for browser build
+        working-directory: ./browser
+        run: npm link hed-validator
+
       - name: Build documentation
-        run: npx typedoc --options typedoc.json
+        run: npx typedoc --options typedoc.json --tsconfig tsconfig.json
 
       - name: Build Vite site
         working-directory: ./browser
