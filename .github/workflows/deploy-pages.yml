@@ -43,8 +43,14 @@ jobs:
         working-directory: ./browser
         run: npm ci
 
+      - name: Build hed-validator package
+        run: npm run build
+
+      - name: Link hed-validator package
+        run: npm link
+
       - name: Build documentation
-        run: npx typedoc
+        run: npx typedoc --options typedoc.json
 
       - name: Build Vite site
         working-directory: ./browser
