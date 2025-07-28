@@ -28,6 +28,7 @@ export default defineConfig(({ command }) => {
     optimizeDeps: {
       // Add this section
       include: ['xml2js', 'lodash', 'path-browserify'], // Added 'path-browserify'
+      exclude: ['core-js-pure'],
     },
 
     resolve: {
