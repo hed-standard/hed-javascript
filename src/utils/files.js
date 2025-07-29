@@ -3,97 +3,6 @@ import fetch from 'cross-fetch'
 import { IssueError, generateIssue } from '../issues/issues'
 
 /**
- * Cross-platform file system operations that work in both Node.js and Deno environments.
- */
-export const fsp = {
-  /**
-   * Read a file asynchronously.
-   * @param {string} filePath The path to the file.
-   * @param {string} encoding The encoding to use (defaults to 'utf8').
-   * @returns {Promise<string>} The file contents.
-   */
-  async readFile(filePath, encoding = 'utf8') {
-    if (typeof globalThis.Deno !== 'undefined') {
-      return await globalThis.Deno.readTextFile(filePath)
-    } else if (typeof window === 'undefined') {
-      // Fallback for Node.js environments - use require instead of dynamic import
-      const fs = require('fs').promises
-      return await fs.readFile(filePath, encoding)
-    }
-  },
-
-  /**
-   * Get file/directory statistics.
-   * @param {string} path The path to stat.
-   * @returns {Promise<object>} File stats object.
-   */
-  async stat(path) {
-    if (typeof globalThis.Deno !== 'undefined') {
-      return await globalThis.Deno.stat(path)
-    } else if (typeof window === 'undefined') {
-      // Fallback for Node.js environments - use require instead of dynamic import
-      const fs = require('fs').promises
-      return await fs.stat(path)
-    }
-  },
-
-  /**
-   * Read directory contents.
-   * @param {string} path The directory path.
-   * @param {object} options Options for reading directory.
-   * @returns {Promise<Array>} Array of directory entries.
-   */
-  async readdir(path, options = {}) {
-    if (typeof globalThis.Deno !== 'undefined') {
-      const entries = []
-      for await (const entry of globalThis.Deno.readDir(path)) {
-        entries.push({
-          name: entry.name,
-          isDirectory: () => entry.isDirectory,
-          isFile: () => entry.isFile,
-        })
-      }
-      return entries
-    } else {
-      // Fallback for Node.js environments - use require instead of dynamic import
-      const fs = require('fs').promises
-      return await fs.readdir(path, options)
-    }
-  },
-}
-
-let loadBundledFile
-// @ts-ignore __VITE_ENV__ is defined by Vite in browser builds
-if (typeof __VITE_ENV__ !== 'undefined' && __VITE_ENV__) {
-  // Browser environment
-  loadBundledFile = async (localName) => {
-    const schemaFileName = `${localName}.xml`
-    // Use Vite's import.meta.env.BASE_URL to construct the correct path in both dev and prod.
-    const schemaPath = `${import.meta.env.BASE_URL}schemas/${schemaFileName}`
-    const response = await fetch(schemaPath)
-    if (!response.ok) {
-      throw new Error(`Bundled schema file ${schemaFileName} not found at ${schemaPath}.`)
-    }
-    return response.text()
-  }
-} else {
-  // Node.js/Deno environment
-  const { localSchemaMap } = require('../schema/config.js')
-  loadBundledFile = async (localName) => {
-    return localSchemaMap.get(localName)
-  }
-}
-
-/**
- * Load a bundled schema file.
- * This function is environment-specific.
- *
- * @param {string} localName The local name of the schema file.
- * @returns {Promise<string>} The file contents.
- */
-export { loadBundledFile }
-
-/**
  * Read a local file.
  *
  * @param {string} fileName The file path.
@@ -109,8 +18,10 @@ export async function readFile(fileName) {
       }),
     )
   } else {
+    // Node.js/Jest environment
     try {
-      return await fsp.readFile(fileName, 'utf8')
+      const fsp = require('node:fs').promises // Changed from dynamic import to require
+      return fsp.readFile(fileName, 'utf8')
     } catch (error) {
       IssueError.generateAndThrow('fileReadError', { fileName: fileName, message: error.message })
     }

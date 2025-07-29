@@ -9,7 +9,7 @@ import { buildBidsSchemas } from '../schema'
 import { generateIssue, IssueError } from '../../issues/issues'
 import { getMergedSidecarData, organizedPathsGenerator } from '../../utils/paths'
 import { BidsHedIssue } from './issues'
-import path from 'path'
+import path from 'node:path'
 
 /**
  * A BIDS dataset.

@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import esbuild from 'esbuild'
 import GlobalsPlugin from 'esbuild-plugin-globals'
 
@@ -24,7 +24,8 @@ await esbuild.build({
   bundle: true,
   sourcemap: true,
   format: 'esm',
-  external: ['pluralize', 'fs/promises', 'fs', 'path'],
+  external: ['cross-fetch', 'pluralize', 'xml2js'],
+  platform: 'node',
   define: {
     global: 'globalThis',
     window: 'globalThis',

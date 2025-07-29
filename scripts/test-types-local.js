@@ -5,8 +5,8 @@
  * Automatically detects the platform and runs the appropriate script
  */
 
-const { spawn } = require('child_process')
-const path = require('path')
+const { spawn } = require('node:child_process')
+const path = require('node:path')
 
 function runScript() {
   const isWindows = process.platform === 'win32'

@@ -3,7 +3,7 @@
  * @module
  */
 
-import path from 'path'
+import path from 'node:path'
 
 /**
  * Checks if one path is a subpath of another.
