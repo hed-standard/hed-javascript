@@ -12,7 +12,7 @@ import { generateIssue, IssueError } from '../src/issues/issues'
 import { DefinitionManager } from '../src/parser/definitionManager'
 import parseTSV from '../src/bids/tsvParser'
 import { shouldRun } from '../tests/testHelpers/testUtilities'
-const fs = require('fs')
+const fs = require('node:fs')
 
 const skipMap = new Map()
 const runAll = true

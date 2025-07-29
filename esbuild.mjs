@@ -24,7 +24,7 @@ await esbuild.build({
   bundle: true,
   sourcemap: true,
   format: 'esm',
-  external: ['pluralize', 'fs/promises', 'fs', 'path'],
+  external: ['cross-fetch', 'pluralize', 'xml2js'],
   platform: 'node',
   define: {
     global: 'globalThis',

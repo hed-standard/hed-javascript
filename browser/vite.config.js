@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import fs from 'fs'
-import * as path from 'path'
-import { createRequire } from 'module' // Add this line
+import fs from 'node:fs'
+import * as path from 'node:path'
+import { createRequire } from 'node:module' // Add this line
 const require = createRequire(import.meta.url) // Add this line
 
 // This configuration combines your specific project needs (React, multi-page, custom scripts)
@@ -28,12 +28,11 @@ export default defineConfig(({ command }) => {
     optimizeDeps: {
       // Add this section
       include: ['xml2js', 'lodash', 'path-browserify'], // Added 'path-browserify'
-      exclude: ['core-js-pure'],
     },
 
     resolve: {
       alias: {
-        path: require.resolve('path-browserify'), // Modified this line
+        'node:path': require.resolve('path-browserify'), // Modified this line
         stream: require.resolve('readable-stream'),
         timers: require.resolve('timers-browserify'), // Modified this line
         '@hed-javascript-root': path.resolve(__dirname, '..'), // Added alias to project root
