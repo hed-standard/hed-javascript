@@ -102,7 +102,7 @@ class HedStringParser {
   /**
    * Parse a full HED string in a standalone context, such as in the HED column of a BIDS tabular file.
    *
-   * @param {DefinitionManager} defManager - The definition manager to use for parsing definitions.
+   * @param {DefinitionManager | null} defManager - The definition manager to use for parsing definitions.
    * @returns {Array} - [ParsedHedString|null, Issue[], Issue[]] representing the parsed HED string and any parsing issues.
    */
   parseStandalone(defManager = null) {
@@ -218,7 +218,7 @@ export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeh
  *
  * @param {string|ParsedHedString} hedString - A (possibly already parsed) HED string.
  * @param {Schemas} hedSchemas - The collection of HED schemas.
- * @param {DefinitionManager} defManager - The definition manager to use for parsing definitions.
+ * @param {DefinitionManager|null} defManager - The definition manager to use for parsing definitions.
  * @returns {Array} - [ParsedHedString, Issue[], Issue[]] representing the parsed HED string and any issues found.
  */
 export function parseStandaloneString(hedString, hedSchemas, defManager = null) {
