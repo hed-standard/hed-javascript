@@ -127,6 +127,8 @@ export class BidsSidecar extends BidsJsonFile {
   /**
    * Parse this sidecar's HED strings within the sidecar structure.
    *
+   * Note: This is called during the sidecar validation process.
+   *
    * The parsed strings are placed into {@link parsedHedData}.
    *
    * @param {Schemas} hedSchemas - The HED schema collection.

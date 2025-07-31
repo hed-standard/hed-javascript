@@ -79,6 +79,9 @@
     "typedoc": "^0.28.0",
     "typescript": "^5.4.5"
   },
+  "overrides": {
+    "glob": "^10.0.0"
+  },
   "browser": {
     "fs": false
   },
