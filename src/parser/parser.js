@@ -50,7 +50,7 @@ class HedStringParser {
   /**
    * Parse a full HED string.
    *
-   * @param {boolean} fullValidation - True if full full validation should be performed -- with assemploy
+   * @param {boolean} fullValidation - True if full validation should be performed -- with assemploy
    * ###Note: now separates errors and warnings for easier handling.
    *
    * @returns {Array} - [ParsedHedString|null, Issue[], Issue[]] representing the parsed HED string and any parsing issues.

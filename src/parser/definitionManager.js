@@ -51,7 +51,7 @@ export class Definition {
 
   /**
    * Return the evaluated definition contents and any issues.
-   * @param {ParsedHedTag} tag - The parsed HEd tag whose details should be checked.
+   * @param {ParsedHedTag} tag - The parsed HED tag whose details should be checked.
    * @param {Schemas} hedSchema - The HED schemas used to validate against.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
    * @returns {Array} - Returns [string, Issue[], Issue[]] containing the evaluated normalized definition string and any issues in the evaluation,
@@ -141,7 +141,8 @@ export class Definition {
         warningIssues,
       ]
     }
-    return Definition.createDefinitionFromGroup(parsedString.tagGroups[0])
+    const [def, defIssues, defWarnings] = Definition.createDefinitionFromGroup(parsedString.tagGroups[0])
+    return [def, defIssues, [...defWarnings, ...warningIssues]]
   }
 
   /**
