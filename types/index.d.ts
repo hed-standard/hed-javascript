@@ -636,7 +636,7 @@ export function parseHedString(
 export function parseStandaloneString(
   hedString: string | ParsedHedString,
   hedSchemas: Schemas,
-  defManager?: DefinitionManager,
+  defManager?: DefinitionManager | null,
 ): [ParsedHedString, Issue[], Issue[]]
 
 /**
