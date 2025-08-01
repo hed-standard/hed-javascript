@@ -41,7 +41,7 @@ jobs:
       - name: Install browser dependencies
         # Specifies the working directory for the command
         working-directory: ./browser
-        run: npm ci
+        run: npm install
 
       - name: Build hed-validator package
         run: npm run build
