@@ -38,6 +38,10 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      - name: Remove browser package-lock.json and node_modules
+        working-directory: ./browser
+        run: rm -rf package-lock.json node_modules
+
       - name: Install browser dependencies
         # Specifies the working directory for the command
         working-directory: ./browser
