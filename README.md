@@ -65,3 +65,12 @@ main()
 
 The `main` branch is now the default branch. All changes to the repository should
 be done as PRs (pull requests) to the `main` branch.
+
+### Running the browser locally
+
+```code
+cd browser
+npm install
+npm run build
+npm run preview
+```
