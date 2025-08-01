@@ -15,6 +15,7 @@ import path from 'node:path'
 import { organizePaths } from '../utils/paths.js'
 import { generateIssue } from '../issues/issues'
 import { BidsHedIssue } from './types/issues'
+import { buildBidsSchemas } from './schema'
 
 /**
  * Base class for BIDS file accessors.
@@ -40,6 +41,12 @@ export class BidsFileAccessor {
    * @type {Map<string, Map<string, string[]>>}
    */
   organizedPaths
+
+  /**
+   * The HED schema builder function.
+   * @type {function}
+   */
+  schemaBuilder
 
   /**
    * BIDS suffixes.
@@ -69,6 +76,7 @@ export class BidsFileAccessor {
     }
     this.datasetRootDirectory = datasetRootDirectory
     this._initialize(fileMap)
+    this.schemaBuilder = null
   }
 
   /**
@@ -169,6 +177,7 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
       )
     }
     super(datasetRootDirectory, fileMap)
+    this.schemaBuilder = buildBidsSchemas
   }
 
   /**

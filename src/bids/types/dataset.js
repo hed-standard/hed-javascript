@@ -5,7 +5,6 @@
 import { BidsFileAccessor } from '../datasetParser'
 import { BidsSidecar } from './json'
 import { BidsTsvFile } from './tsv'
-import { buildBidsSchemas } from '../schema'
 import { generateIssue, IssueError } from '../../issues/issues'
 import { getMergedSidecarData, organizedPathsGenerator } from '../../utils/paths'
 import { BidsHedIssue } from './issues'
@@ -159,7 +158,7 @@ export class BidsDataset {
     }
 
     try {
-      this.hedSchemas = await buildBidsSchemas(description)
+      this.hedSchemas = await this.fileAccessor.schemaBuilder(description)
       if (this.hedSchemas === null) {
         throw new IssueError(
           generateIssue('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null }),

@@ -1,4 +1,23 @@
 import { BidsFileAccessor } from '../../../src/bids/datasetParser.js'
+import { buildSchemasFromVersion } from '../schema/init.js'
+import { BidsHedIssue } from '../../../src/bids/types/issues.js'
+
+/**
+ * Build HED schemas from a dataset description for the browser environment.
+ * @param {object} description The dataset_description.json data.
+ * @returns {Promise<Schemas|null>} The HED schemas.
+ */
+async function buildBidsSchemas(description) {
+  const hedVersionString = description.jsonData?.HEDVersion
+  if (!hedVersionString) {
+    return null
+  }
+  try {
+    return await buildSchemasFromVersion(hedVersionString)
+  } catch (e) {
+    throw new BidsHedIssue(e.issue)
+  }
+}
 
 /**
  * Processes a list of files to determine the dataset root and create a relative file map.
@@ -72,6 +91,7 @@ export class BidsWebAccessor extends BidsFileAccessor {
    */
   constructor(datasetRootDirectory, fileMap) {
     super(datasetRootDirectory, fileMap)
+    this.schemaBuilder = buildBidsSchemas
   }
 
   async getFileContent(relativePath) {
