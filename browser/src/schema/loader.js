@@ -1,22 +1,18 @@
 /** HED schema loading functions. */
 
 /* Imports */
-import xml2js from 'xml2js'
-
-import * as files from '../utils/files'
-import { IssueError } from '../issues/issues'
-import { parseSchemaXML } from '../utils/xml2js'
-
-import { localSchemaMap, localSchemaNames } from './config' // Changed from localSchemaList
+import { IssueError } from '../../../src/issues/issues'
+import { parseSchemaXML } from '../../../src/utils/xml2js'
+import { schemaData } from './vite-importer.js'
 
 /**
  * Load schema XML data from a schema version or path description.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @returns {Promise<Object>} The schema XML data.
+ * @returns {Promise<object>} The schema XML data.
  * @throws {IssueError} If the schema could not be loaded.
  */
-export default async function loadSchema(schemaDef = null) {
+export async function loadSchema(schemaDef = null) {
   const xmlData = await loadPromise(schemaDef)
   if (xmlData === null) {
     IssueError.generateAndThrow('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })
@@ -28,7 +24,7 @@ export default async function loadSchema(schemaDef = null) {
  * Choose the schema Promise from a schema version or path description.
  *
  * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @returns {Promise<Object>} The schema XML data.
+ * @returns {Promise<object>} The schema XML data.
  * @throws {IssueError} If the schema could not be loaded.
  */
 async function loadPromise(schemaDef) {
@@ -36,8 +32,7 @@ async function loadPromise(schemaDef) {
     return null
   } else if (schemaDef.localPath) {
     return loadLocalSchema(schemaDef.localPath)
-  } else if (localSchemaNames.includes(schemaDef.localName)) {
-    // Changed condition
+  } else if (schemaDef.localName) {
     return loadBundledSchema(schemaDef)
   } else {
     return loadRemoteSchema(schemaDef)
@@ -58,7 +53,7 @@ function loadRemoteSchema(schemaDef) {
   } else {
     url = `https://raw.githubusercontent.com/hed-standard/hed-schemas/refs/heads/main/standard_schema/hedxml/HED${schemaDef.version}.xml`
   }
-  return loadSchemaFile(files.readHTTPSFile(url), 'remoteSchemaLoadFailed', { spec: JSON.stringify(schemaDef) })
+  return loadSchemaFile(fetch(url).then(res => res.text()), 'remoteSchemaLoadFailed', { spec: JSON.stringify(schemaDef) })
 }
 
 /**
@@ -69,7 +64,7 @@ function loadRemoteSchema(schemaDef) {
  * @throws {IssueError} If the schema could not be loaded.
  */
 function loadLocalSchema(path) {
-  return loadSchemaFile(files.readFile(path), 'localSchemaLoadFailed', { path: path })
+    throw new Error('Local schema loading is not supported in the browser.')
 }
 
 /**
@@ -80,8 +75,15 @@ function loadLocalSchema(path) {
  * @throws {IssueError} If the schema could not be loaded.
  */
 async function loadBundledSchema(schemaDef) {
+  const localPath = `../../../src/data/schemas/${schemaDef.localName}.xml`
+  const schemaLoader = schemaData[localPath]
+  if (!schemaLoader) {
+    // This occurs in the test environment or if the schema is not found.
+    return
+  }
   try {
-    return parseSchemaXML(localSchemaMap.get(schemaDef.localName))
+    const data = await schemaLoader()
+    return parseSchemaXML(data)
   } catch (error) {
     const issueArgs = { spec: JSON.stringify(schemaDef), error: error.message }
     IssueError.generateAndThrow('bundledSchemaLoadFailed', issueArgs)
@@ -94,7 +96,7 @@ async function loadBundledSchema(schemaDef) {
  * @param {Promise<string>} xmlDataPromise The Promise containing the unparsed XML data.
  * @param {string} issueCode The issue code.
  * @param {Object<string, string>} issueArgs The issue arguments passed from the calling function.
- * @returns {Promise<object>} The parsed schema XML data.
+ *returns {Promise<object>} The parsed schema XML data.
  * @throws {IssueError} If the schema could not be loaded.
  */
 async function loadSchemaFile(xmlDataPromise, issueCode, issueArgs) {

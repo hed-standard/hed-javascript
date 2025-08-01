@@ -1,3 +1,5 @@
+import xml2js from 'xml2js'
+
 /**
  * Recursively set a field on each node of the tree pointing to the node's parent.
  *
@@ -29,4 +31,14 @@ export const setParent = function (node, parent) {
   } else {
     setNodeParent(node, parent)
   }
+}
+
+/**
+ * Parse the schema XML data.
+ *
+ * @param {string} data The XML data.
+ * @returns {Promise<object>} The schema XML data.
+ */
+export function parseSchemaXML(data) {
+  return xml2js.parseStringPromise(data, { explicitCharkey: true })
 }

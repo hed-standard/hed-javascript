@@ -32,6 +32,7 @@ export default defineConfig(({ command }) => {
 
     resolve: {
       alias: {
+        path: require.resolve('path-browserify'),
         'node:path': require.resolve('path-browserify'), // Modified this line
         stream: require.resolve('readable-stream'),
         timers: require.resolve('timers-browserify'), // Modified this line
