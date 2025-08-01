@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: 'jsdom',
+  coverageProvider: 'v8',
   transform: {
     '\\.xml$': '<rootDir>/xml-transformer.js',
     '^.+\\.(t|j)sx?$': ['@swc/jest'],
