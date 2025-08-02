@@ -19,7 +19,7 @@ import path from 'node:path'
  * The BidsDataset should not be created with the constructor. Instead, it should be created using the asynchronous
  * {@link BidsDataset.create} factory method. This method handles the initial setup and file discovery.
  *
- *  BidsDataset creation will return a null dataset if any of the sidecars have invalid JSON,
+ * BidsDataset creation will return a null dataset if any of the sidecars have invalid JSON,
  * or it cannot find and load the needed HED schemas.
  *
  * @example
@@ -43,7 +43,7 @@ import path from 'node:path'
  * @property {Map<string, BidsSidecar>} sidecarMap Map of BIDS sidecar files that contain HED annotations.
  * @property {string|null} datasetRootDirectory The dataset's root directory as an absolute path (Node.js context).
  * @property {Schemas} hedSchemas The HED schemas used to validate this dataset.
- * @property {BidsFileAccessor} accessor The BIDS file fileAccessor.
+ * @property {BidsFileAccessor} fileAccessor The BIDS file accessor.
  */
 export class BidsDataset {
   /**
@@ -76,6 +76,7 @@ export class BidsDataset {
    * Constructor for a BIDS dataset.
    *
    * @param {BidsFileAccessor} accessor An instance of BidsFileAccessor (or its subclasses).
+   * @throws {Error} If accessor is not an instance of BidsFileAccessor.
    * @private
    * @see BidsDataset.create
    */
@@ -99,6 +100,7 @@ export class BidsDataset {
    * @param {string | object} rootOrFiles The root directory of the dataset or a file-like object.
    * @param {function} fileAccessorClass The BidsFileAccessor class to use for accessing files.
    * @returns {Promise<[BidsDataset|null, BidsHedIssue[]]>} A Promise that resolves to a two-element array containing the BidsDataset instance (or null if creation failed) and an array of issues.
+   * @static
    */
   static async create(rootOrFiles, fileAccessorClass) {
     let dataset = null
@@ -261,7 +263,7 @@ export class BidsDataset {
    * - HED strings in JSON sidecars.
    * - HED columns in TSV files, evaluated against their corresponding merged sidecars.
    *
-   * Note: If any of the sidecars have errors (not just warnings), the tsv files will not be validated.
+   * Note: If any of the sidecars have errors (not just warnings), the TSV files will not be validated.
    * This is because a single error in a sidecar can result in errors on every line of a TSV file.
    *
    * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues found during validation.
@@ -282,7 +284,7 @@ export class BidsDataset {
    * This method iterates through all JSON sidecars and validates the HED data within them.
    * Note: The data has already been parsed into BidsSidecar objects.
    *
-   * @returns {BidsHedIssue[]} An array of issues.
+   * @returns {BidsHedIssue[]} An array of issues found during sidecar validation.
    * @private
    */
   _validateSidecars() {
@@ -322,6 +324,18 @@ export class BidsDataset {
     return issues
   }
 
+  /**
+   * Validate a single TSV file in the dataset.
+   *
+   * This method reads the TSV file content, merges it with corresponding sidecar data,
+   * creates a BidsTsvFile object, and validates the HED data within it.
+   *
+   * @param {string} tsvPath The relative path to the TSV file.
+   * @param {string} category The BIDS category (e.g., 'sub-001/ses-001/func').
+   * @param {string[]} jsonPaths Array of JSON sidecar paths for this category of tsv.
+   * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues found during validation of this TSV file.
+   * @private
+   */
   async _validateTsvFile(tsvPath, category, jsonPaths) {
     // Read the TSV file content -- if none do not proceed.
     const parsedPath = path.parse(tsvPath)
@@ -346,6 +360,19 @@ export class BidsDataset {
     return tsvFile.validate(this.hedSchemas)
   }
 
+  /**
+   * Get merged sidecar data for a TSV file.
+   *
+   * This method retrieves and merges JSON sidecar data according to BIDS inheritance rules.
+   * For special directories (phenotype, stimuli), it looks for a direct JSON counterpart.
+   * For other files, it uses the BIDS inheritance hierarchy to merge multiple sidecars.
+   *
+   * @param {string} tsvPath The relative path to the TSV file.
+   * @param {string} category The BIDS category (e.g., 'sub-001/ses-001/func').
+   * @param {string[]} jsonPaths Array of JSON sidecar paths for this category.
+   * @returns {object} The merged sidecar data object, or empty object if no applicable sidecars found.
+   * @private
+   */
   _getSidecarData(tsvPath, category, jsonPaths) {
     const parsedPath = path.parse(tsvPath)
 

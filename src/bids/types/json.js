@@ -106,7 +106,7 @@ export class BidsSidecar extends BidsJsonFile {
    * @param {Object} sidecarData The raw JSON data.
    * @param {DefinitionManager} defManager The external definitions to use.
    */
-  constructor(name, file, sidecarData = {}, defManager = undefined) {
+  constructor(name, file, sidecarData = {}, defManager = null) {
     super(name, file, sidecarData)
     this.columnSpliceMapping = new Map()
     this.columnSpliceReferences = new Set()

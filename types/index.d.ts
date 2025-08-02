@@ -62,7 +62,7 @@ export class BidsSidecar extends BidsJsonFile {
   definitions: DefinitionManager
 
   /** Constructor for BidsSidecar */
-  constructor(name: string, file: any, sidecarData?: Record<string, any>, defManager?: DefinitionManager)
+  constructor(name: string, file: any, sidecarData?: Record<string, any>, defManager?: DefinitionManager | null)
 
   /** Whether this file has any HED data */
   get hasHedData(): boolean
@@ -95,7 +95,7 @@ export class BidsTsvFile {
     file: object,
     tsvData: string | Map<string, string[]> | Record<string, any>,
     mergedDictionary?: Record<string, any>,
-    defManager?: DefinitionManager,
+    defManager?: DefinitionManager | null,
   )
 
   /** Determine whether this file has any HED data */
