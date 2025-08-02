@@ -68,7 +68,7 @@ export class BidsSidecar extends BidsJsonFile {
   get hasHedData(): boolean
 
   /** Parse this sidecar's HED strings within the sidecar structure */
-  parseHed(hedSchemas: Schemas, fullValidation?: boolean): [Issue[], Issue[]]
+  parseSidecarKeys(hedSchemas: Schemas, fullValidation?: boolean): [Issue[], Issue[]]
 
   /** Validate this file against HED schemas */
   validate(schemas: Schemas): BidsHedIssue[]

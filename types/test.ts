@@ -90,7 +90,7 @@ async function testBids(schemas: Schemas) {
     bidsSidecar.definitions,
     bidsSidecar.hasHedData,
   )
-  bidsSidecar.parseHed(schemas, true)
+  bidsSidecar.parseSidecarKeys(schemas, true)
   bidsSidecar.validate(schemas)
 
   // BidsTsvFile
