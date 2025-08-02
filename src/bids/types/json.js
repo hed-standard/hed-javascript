@@ -135,7 +135,7 @@ export class BidsSidecar extends BidsJsonFile {
    * @param {boolean} fullValidation - True if full validation should be performed.
    * @returns {Array} [Issue[], Issue[]] Any errors and warnings found
    */
-  parseHed(hedSchemas, fullValidation = false) {
+  parseSidecarKeys(hedSchemas, fullValidation = false) {
     this.parsedHedData = new Map()
     const errors = []
     const warnings = []

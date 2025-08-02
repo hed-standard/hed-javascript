@@ -31,7 +31,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
    */
   validate() {
     // Allow schema to be set a validation time -- this is checked by the superclass of BIDS file
-    const [errorIssues, warningIssues] = this.sidecar.parseHed(this.hedSchemas, false)
+    const [errorIssues, warningIssues] = this.sidecar.parseSidecarKeys(this.hedSchemas, false)
     this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.sidecar.file))
     this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.sidecar.file))
     if (errorIssues.length > 0) {
@@ -44,7 +44,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
     }
 
     // Columns that aren't splices should have an annotation that stands on its own.
-    const [errors, warnings] = this.sidecar.parseHed(this.hedSchemas, true)
+    const [errors, warnings] = this.sidecar.parseSidecarKeys(this.hedSchemas, true)
     this.errors.push(...BidsHedIssue.fromHedIssues(errors, this.sidecar.file))
     this.warnings.push(...BidsHedIssue.fromHedIssues(warnings, this.sidecar.file))
   }
