@@ -33,7 +33,7 @@ export class BidsTsvFile extends BidsFile {
    */
   mergedSidecar
 
-  constructor(name, file, tsvData, mergedDictionary = {}, defManager = undefined) {
+  constructor(name, file, tsvData, mergedDictionary = {}, defManager = null) {
     super(name, file, BidsHedTsvValidator)
 
     if (typeof tsvData === 'string') {
