@@ -100,7 +100,7 @@ export class BidsDataset {
    * @param {string | object} rootOrFiles The root directory of the dataset or a file-like object.
    * @param {function} fileAccessorClass The BidsFileAccessor class to use for accessing files.
    * @returns {Promise<[BidsDataset|null, BidsHedIssue[]]>} A Promise that resolves to a two-element array containing the BidsDataset instance (or null if creation failed) and an array of issues.
-   * @static
+   *
    */
   static async create(rootOrFiles, fileAccessorClass) {
     let dataset = null
