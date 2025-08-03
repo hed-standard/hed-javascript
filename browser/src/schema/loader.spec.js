@@ -1,13 +1,12 @@
-/** @jest-environment jsdom */
-
-import { describe, it, expect } from '@jest/globals'
+import { describe, it, expect } from 'vitest'
 import { loadSchema } from './loader.js'
 import { SchemaSpec } from '../../../src/schema/specs.js'
 
 describe('Browser Schema Loader', () => {
-  it('should not error when loading a bundled schema', async () => {
-    const spec = new SchemaSpec('', '8.0.0', '', '')
-    // In a test environment, this will do nothing, but it shouldn't error.
+  it('should return undefined when loading a bundled schema in test environment', async () => {
+    // Create a spec with localName to trigger bundled schema loading
+    const spec = new SchemaSpec('', '8.0.0', 'HED8.0.0', '')
+    // In a test environment, this will return undefined since schemaData is empty
     const schema = await loadSchema(spec)
     expect(schema).toBeUndefined()
   })

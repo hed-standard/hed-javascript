@@ -55,3 +55,34 @@ jobs:
         run: npm ci
       - name: Run JSON spec tests with Node.js ${{ matrix.node-version }}
         run: npm run testSpecs
+
+  Browser-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, lts/*, 'node']
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+      - name: Set up with Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Print Node.js version and CI environment
+        run: |
+          echo "Node.js version: $(node -v)"
+          echo "Environment: CI=${{ env.CI }}"
+      - name: Download root dependencies
+        run: npm ci
+      - name: Clean browser dependencies
+        working-directory: ./browser
+        run: |
+          rm -rf package-lock.json node_modules
+      - name: Install browser dependencies
+        working-directory: ./browser
+        run: npm install
+      - name: Run browser tests with Node.js ${{ matrix.node-version }}
+        working-directory: ./browser
+        run: npm test

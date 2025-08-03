@@ -1,6 +1,4 @@
-/** @jest-environment jsdom */
-
-import { describe, it, expect } from '@jest/globals'
+import { describe, it, expect } from 'vitest'
 import { BidsWebAccessor } from './BidsWebAccessor.js'
 
 // Mock File object for BidsWebAccessor tests
