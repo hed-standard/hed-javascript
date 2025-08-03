@@ -76,6 +76,10 @@ jobs:
           echo "Environment: CI=${{ env.CI }}"
       - name: Download root dependencies
         run: npm ci
+      - name: Clean browser dependencies
+        working-directory: ./browser
+        run: |
+          rm -rf package-lock.json node_modules
       - name: Install browser dependencies
         working-directory: ./browser
         run: npm install
