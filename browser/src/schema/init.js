@@ -78,4 +78,3 @@ export async function buildSchemasFromVersion(hedVersionString) {
   const hedVersionSpecs = SchemasSpec.parseVersionSpecs(hedVersionSpecStrings)
   return buildSchemas(hedVersionSpecs)
 }
-
