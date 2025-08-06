@@ -30,15 +30,15 @@ export class BidsJsonFile {
   /** The name of this file */
   name: string
   /** The Object representing this file data */
-  file: object
+  file: object | null
   /** This file's JSON data */
   jsonData: Record<string, any>
 
   /** Constructor for a BIDS JSON file */
-  constructor(name: string, file: object, jsonData: Record<string, any>)
+  constructor(name: string, file: object | null, jsonData: Record<string, any>)
 
   /** Validate this file against HED schemas */
-  validate(schemas: Schemas): BidsHedIssue[]
+  validate(schemas: Schemas | undefined): BidsHedIssue[]
 
   /** Whether this file has any HED data */
   get hasHedData(): boolean
@@ -62,7 +62,12 @@ export class BidsSidecar extends BidsJsonFile {
   definitions: DefinitionManager
 
   /** Constructor for BidsSidecar */
-  constructor(name: string, file: any, sidecarData?: Record<string, any>, defManager?: DefinitionManager | null)
+  constructor(
+    name: string,
+    file: object | null,
+    sidecarData?: Record<string, any>,
+    defManager?: DefinitionManager | null,
+  )
 
   /** Whether this file has any HED data */
   get hasHedData(): boolean
@@ -71,7 +76,7 @@ export class BidsSidecar extends BidsJsonFile {
   parseSidecarKeys(hedSchemas: Schemas, fullValidation?: boolean): [Issue[], Issue[]]
 
   /** Validate this file against HED schemas */
-  validate(schemas: Schemas): BidsHedIssue[]
+  validate(schemas: Schemas | undefined): BidsHedIssue[]
 
   /** The validator class used to validate this file */
   get validatorClass(): any
@@ -81,7 +86,7 @@ export class BidsTsvFile {
   /** The name of this file */
   name: string
   /** The Object representing this file data */
-  file: object
+  file: object | null
   /** This file's parsed TSV data */
   parsedTsv: Map<string, string[]>
   /** HED strings in the "HED" column of the TSV data */
@@ -92,7 +97,7 @@ export class BidsTsvFile {
   /** Constructor for BidsTsvFile */
   constructor(
     name: string,
-    file: object,
+    file: object | null,
     tsvData: string | Map<string, string[]> | Record<string, any>,
     mergedDictionary?: Record<string, any>,
     defManager?: DefinitionManager | null,
@@ -105,7 +110,7 @@ export class BidsTsvFile {
   get isTimelineFile(): boolean
 
   /** Validate this file against HED schemas */
-  validate(schemas: Schemas): BidsHedIssue[]
+  validate(schemas: Schemas | undefined): BidsHedIssue[]
 
   /** The validator class used to validate this file */
   get validatorClass(): any
@@ -121,7 +126,7 @@ export class BidsHedIssue {
   /** The HED-specific issue code. */
   subCode: string
   /** The severity of the issue (e.g., 'error' or 'warning') */
-  severity: string
+  severity: 'error' | 'warning'
   /** The human-readable issue message */
   issueMessage: string
   /** The line number where the issue occurred */
@@ -129,7 +134,16 @@ export class BidsHedIssue {
   /** The path to the file where the issue occurred */
   location: string | undefined
 
-  constructor(hedIssue: Issue, file: object)
+  constructor(hedIssue: Issue, file: object | null)
+
+  /**
+   * Converts one or more HED issues into BIDS-compatible issues.
+   */
+  static fromHedIssues(
+    hedIssues: Error | Issue[],
+    file: object | null,
+    extraParameters?: Record<string, any>,
+  ): BidsHedIssue[]
 }
 
 export class BidsFileAccessor {

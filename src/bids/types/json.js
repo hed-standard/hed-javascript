@@ -172,7 +172,7 @@ export class BidsSidecar extends BidsJsonFile {
     } else {
       IssueError.generateAndThrow('invalidDefinitionManager', {
         defManager: String(defManager),
-        filePath: this.file.path,
+        filePath: this.file?.path,
       })
     }
   }
@@ -189,7 +189,7 @@ export class BidsSidecar extends BidsJsonFile {
           const lowerKey = trimmedKey.toLowerCase()
           if (ILLEGAL_SIDECAR_KEYS.has(lowerKey)) {
             IssueError.generateAndThrow('illegalSidecarHedKey', {
-              filePath: this.file.path,
+              filePath: this.file?.path,
               sidecarKey: trimmedKey,
             })
           }
@@ -218,7 +218,7 @@ export class BidsSidecar extends BidsJsonFile {
     if (key.toUpperCase() === 'HED') {
       IssueError.generateAndThrow('illegalSidecarHedDeepKey', {
         key: topKey,
-        filePath: this.file.path,
+        filePath: this.file?.path,
         sidecarKey: topKey,
       })
     }
@@ -275,7 +275,7 @@ export class BidsSidecar extends BidsJsonFile {
       } else if (hedData instanceof Map) {
         this._parseCategorySplice(sidecarKey, hedData)
       } else if (hedData) {
-        IssueError.generateAndThrow('illegalSidecarData', { sidecarKey: sidecarKey, filePath: this.file.path })
+        IssueError.generateAndThrow('illegalSidecarData', { sidecarKey: sidecarKey, filePath: this.file?.path })
       }
     }
   }
@@ -385,7 +385,7 @@ export class BidsSidecarKey {
     if (typeof data === 'string') {
       this.valueString = data
     } else if (!isPlainObject(data)) {
-      IssueError.generateAndThrow('illegalSidecarHedType', { sidecarKey: key, filePath: sidecar.file.path })
+      IssueError.generateAndThrow('illegalSidecarHedType', { sidecarKey: key, filePath: sidecar?.file?.path })
     } else {
       this.categoryMap = new Map(Object.entries(data))
     }
