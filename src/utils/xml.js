@@ -1,4 +1,4 @@
-import xml2js from 'xml2js'
+import { XMLParser } from 'fast-xml-parser'
 
 /**
  * Recursively set a field on each node of the tree pointing to the node's parent.
@@ -27,7 +27,7 @@ const setNodeParent = function (node, parent) {
 export const setParent = function (node, parent) {
   if (node.schema) {
     node.$parent = null
-    setNodeParent(node.schema[0], null)
+    setNodeParent(node.schema, null)
   } else {
     setNodeParent(node, parent)
   }
@@ -39,6 +39,19 @@ export const setParent = function (node, parent) {
  * @param {string} data The XML data.
  * @returns {Promise<object>} The schema XML data.
  */
-export function parseSchemaXML(data) {
-  return xml2js.parseStringPromise(data, { explicitCharkey: true })
+export async function parseSchemaXML(data) {
+  const alwaysArray = new Set(['node', 'property', 'attribute', 'value', 'unit'])
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: '',
+    alwaysCreateTextNode: true,
+    textNodeName: '_',
+    ignoreDeclaration: true,
+    ignorePiTags: true,
+    attributesGroupName: '$',
+    isArray: (name) => {
+      return alwaysArray.has(name)
+    },
+  })
+  return parser.parse(data)
 }

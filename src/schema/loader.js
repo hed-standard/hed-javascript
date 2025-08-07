@@ -1,11 +1,9 @@
 /** HED schema loading functions. */
 
 /* Imports */
-import xml2js from 'xml2js'
-
 import * as files from '../utils/files'
 import { IssueError } from '../issues/issues'
-import { parseSchemaXML } from '../utils/xml2js'
+import { parseSchemaXML } from '../utils/xml'
 
 import { localSchemaMap, localSchemaNames } from './config' // Changed from localSchemaList
 

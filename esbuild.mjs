@@ -36,7 +36,7 @@ await esbuild.build({
   bundle: true,
   sourcemap: true,
   format: 'esm',
-  external: ['cross-fetch', 'pluralize', 'xml2js'],
+  external: ['cross-fetch', 'pluralize'],
   platform: 'browser',
   plugins: [nodeModulesPolyfillPlugin()],
 })

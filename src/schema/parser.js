@@ -137,7 +137,7 @@ export default class SchemaParser {
    * @returns {string} The name of the element.
    */
   getElementTagName(element) {
-    return element.name[0]._
+    return element.name._
   }
 
   /**
@@ -148,7 +148,7 @@ export default class SchemaParser {
    * @returns {string} The value of the tag in the element.
    */
   getElementTagValue(element, tagName) {
-    return element[tagName][0]._
+    return element[tagName]._
   }
 
   /**

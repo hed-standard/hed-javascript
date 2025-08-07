@@ -19,12 +19,12 @@ export const find = function (element, query) {
   const { elementName, attributeName } = parseXPath(query)
 
   if (elementName === 'node') {
-    const parentElement = element.schema?.[0] ?? element
+    const parentElement = element.schema ?? element
     const nodeList = parentElement.node ?? []
     return nodeList.flatMap((child) => search(child, elementName, attributeName))
   }
 
-  return element?.[childToParent[elementName]]?.[0][elementName] ?? []
+  return element?.[childToParent[elementName]]?.[elementName] ?? []
 }
 
 /**
