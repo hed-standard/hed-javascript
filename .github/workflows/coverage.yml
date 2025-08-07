@@ -2,10 +2,13 @@ name: Test coverage
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   Coverage:
@@ -24,7 +27,6 @@ jobs:
         run: ./node_modules/.bin/jest --coverage
       - name: Upload coverage to Quality
         uses: qltysh/qlty-action/coverage@v2
-        env:
-          QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
         with:
+          oidc: true
           files: coverage/lcov.info
