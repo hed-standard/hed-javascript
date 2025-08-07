@@ -23,7 +23,7 @@ jobs:
       - name: Generate coverage report
         run: ./node_modules/.bin/jest --coverage
       - name: Upload coverage to Quality
-        uses: qltysh/qlty-action/coverage@v1
+        uses: qltysh/qlty-action/coverage@v2
         env:
           QLTY_COVERAGE_TOKEN: ${{ secrets.QLTY_COVERAGE_TOKEN }}
         with:
