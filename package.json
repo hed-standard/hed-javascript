@@ -7,7 +7,8 @@
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
-      "import": "./dist/esm/index.js",
+      "node": "./dist/esm/index.js",
+      "import": "./dist/browser/index.js",
       "require": "./dist/commonjs/index.js"
     }
   },
@@ -61,7 +62,7 @@
     "@types/node": "^24.2.0",
     "chai": "^4.3.6",
     "esbuild": "^0.25.0",
-    "esbuild-plugin-globals": "^0.2.0",
+    "esbuild-plugins-node-modules-polyfill": "^1.7.1",
     "esbuild-runner": "^2.2.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
