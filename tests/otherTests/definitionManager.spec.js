@@ -5,7 +5,6 @@ import { parseHedString } from '../../src/parser/parser'
 import { buildSchemas } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 
-
 describe('Definition and DefinitionManager', () => {
   let hedSchemas
 
@@ -20,16 +19,18 @@ describe('Definition and DefinitionManager', () => {
       it('should prevent direct construction', () => {
         expect(() => {
           new Definition({})
-        }).toThrow('Definition instances must be created using Definition.createDefinition() or Definition.createDefinitionFromGroup() static methods')
+        }).toThrow(
+          'Definition instances must be created using Definition.createDefinition() or Definition.createDefinitionFromGroup() static methods',
+        )
       })
 
       it('should allow construction with private flag', () => {
         const testDef = '(Definition/TestDef, (Red, Blue))'
-        const [hedString, errors, warnings] =  parseHedString(testDef, hedSchemas, true, true, false)
+        const [hedString, errors, warnings] = parseHedString(testDef, hedSchemas, true, true, false)
         expect(errors.length).toBe(0)
         expect(warnings.length).toBe(0)
         expect(() => {
-          new Definition(hedString.tagGroups[0],true)
+          new Definition(hedString.tagGroups[0], true)
         }).not.toThrow()
       })
     })
@@ -38,7 +39,7 @@ describe('Definition and DefinitionManager', () => {
       it('should create a valid definition from a simple definition string', async () => {
         const definitionString = '(Definition/TestDef, (Red, Blue))'
         const [definition, errorIssues, warningIssues] = Definition.createDefinition(definitionString, hedSchemas)
-        
+
         expect(definition).not.toBeNull()
         expect(errorIssues).toHaveLength(0)
         expect(warningIssues).toHaveLength(0)
@@ -55,11 +56,10 @@ describe('Definition and DefinitionManager', () => {
         expect(definition.name).toBe('TestDef')
       })
 
-
       it('should create a valid definition with placeholder', async () => {
         const definitionString = '(Definition/TestDef/#, (Label/#, Blue))'
         const [definition, errorIssues, warningIssues] = Definition.createDefinition(definitionString, hedSchemas)
-        
+
         expect(definition).not.toBeNull()
         expect(errorIssues).toHaveLength(0)
         expect(warningIssues).toHaveLength(0)
@@ -70,15 +70,18 @@ describe('Definition and DefinitionManager', () => {
       it('should return error for invalid definition string', async () => {
         const invalidDefinitionString = 'Invalid definition'
         const [definition, errorIssues] = Definition.createDefinition(invalidDefinitionString, hedSchemas)
-        
+
         expect(definition).toBeNull()
         expect(errorIssues.length).toBeGreaterThan(0)
       })
 
       it('should return error for definition with extra tags outside group', async () => {
         const invalidDefinitionString = '(Definition/TestDef, (Red, Blue), Green)'
-        const [definition, errorIssues, warningIssues] = Definition.createDefinition(invalidDefinitionString, hedSchemas)
-        
+        const [definition, errorIssues, warningIssues] = Definition.createDefinition(
+          invalidDefinitionString,
+          hedSchemas,
+        )
+
         expect(definition).toBeNull()
         expect(errorIssues.length).toBeGreaterThan(0)
         expect(errorIssues[0].hedCode).toBe('DEFINITION_INVALID')
@@ -87,8 +90,11 @@ describe('Definition and DefinitionManager', () => {
 
       it('should return error for definition with too many tag groups', async () => {
         const invalidDefinitionString = '(Definition/TestDef, (Red, Blue)), (Definition/TestDef2, (Green, Yellow))'
-        const [definition, errorIssues, warningIssues] = Definition.createDefinition(invalidDefinitionString, hedSchemas)
-        
+        const [definition, errorIssues, warningIssues] = Definition.createDefinition(
+          invalidDefinitionString,
+          hedSchemas,
+        )
+
         expect(definition).toBeNull()
         expect(errorIssues.length).toBeGreaterThan(0)
         expect(errorIssues[0].hedCode).toBe('DEFINITION_INVALID')
@@ -101,9 +107,9 @@ describe('Definition and DefinitionManager', () => {
         const definitionString = '(Definition/TestDef, (Red, Blue))'
         const [parsedString] = parseHedString(definitionString, hedSchemas, true, true, true)
         const group = parsedString.tagGroups[0]
-        
+
         const [definition, errorIssues] = Definition.createDefinitionFromGroup(group)
-        
+
         expect(definition).not.toBeNull()
         expect(errorIssues).toHaveLength(0)
         expect(definition.name).toBe('TestDef')
@@ -113,9 +119,9 @@ describe('Definition and DefinitionManager', () => {
         const nonDefinitionString = '(Red, Blue)'
         const [parsedString] = parseHedString(nonDefinitionString, hedSchemas, true, true, true)
         const group = parsedString.tagGroups[0]
-        
+
         const [definition, errorIssues] = Definition.createDefinitionFromGroup(group)
-        
+
         expect(definition).toBeNull()
         expect(errorIssues.length).toBeGreaterThan(0)
         expect(errorIssues[0].hedCode).toBe('DEFINITION_INVALID')
@@ -125,9 +131,9 @@ describe('Definition and DefinitionManager', () => {
         const invalidPlaceholderString = '(Definition/TestDef/#, (Label/#, Item-count/#, Blue))'
         const [parsedString] = parseHedString(invalidPlaceholderString, hedSchemas, true, true, true)
         const group = parsedString.tagGroups[0]
-        
+
         const [definition, errorIssues] = Definition.createDefinitionFromGroup(group)
-        
+
         expect(definition).toBeNull()
         expect(errorIssues.length).toBeGreaterThan(0)
         expect(errorIssues[0].hedCode).toBe('DEFINITION_INVALID')
@@ -148,25 +154,24 @@ describe('Definition and DefinitionManager', () => {
         const testTagString = 'Def/TestDef'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [result, errorIssues, warningIssues] = testDefinition.evaluateDefinition(tag, hedSchemas, false)
-        
+
         expect(result).not.toBeNull()
         expect(errorIssues).toHaveLength(0)
         expect(warningIssues).toHaveLength(0)
       })
 
       it('should evaluate definition with placeholder', async () => {
-
         const definitionString = '(Definition/TestDef/#, (Label/#, Blue))'
         const [definition] = Definition.createDefinition(definitionString, hedSchemas)
-        
+
         const testTagString = 'Def/TestDef/Blech'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [result, errorIssues, warningIssues] = definition.evaluateDefinition(tag, hedSchemas, false)
-        
+
         expect(result).not.toBeNull()
         expect(errorIssues).toHaveLength(0)
         expect(warningIssues).toHaveLength(0)
@@ -176,9 +181,9 @@ describe('Definition and DefinitionManager', () => {
         const testTagString = 'Def/TestDef/ExtraValue'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [result, errorIssues] = testDefinition.evaluateDefinition(tag, hedSchemas, false)
-        
+
         expect(result).toBeNull()
         expect(errorIssues.length).toBeGreaterThan(0)
       })
@@ -186,13 +191,13 @@ describe('Definition and DefinitionManager', () => {
       it('should handle empty definition contents', async () => {
         const definitionString = '(Definition/EmptyDef)'
         const [definition] = Definition.createDefinition(definitionString, hedSchemas)
-        
+
         const testTagString = 'Def/EmptyDef'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [result, errorIssues, warningIssues] = definition.evaluateDefinition(tag, hedSchemas, false)
-        
+
         expect(result).toBe('')
         expect(errorIssues).toHaveLength(0)
         expect(warningIssues).toHaveLength(0)
@@ -204,7 +209,7 @@ describe('Definition and DefinitionManager', () => {
         const definitionString = '(Definition/TestDef, (Red, Blue))'
         const [definition1] = Definition.createDefinition(definitionString, hedSchemas)
         const [definition2] = Definition.createDefinition(definitionString, hedSchemas)
-        
+
         expect(definition1.equivalent(definition2)).toBe(true)
       })
 
@@ -213,7 +218,7 @@ describe('Definition and DefinitionManager', () => {
         const definitionString2 = '(Definition/TestDef2, (Red, Blue))'
         const [definition1] = Definition.createDefinition(definitionString1, hedSchemas)
         const [definition2] = Definition.createDefinition(definitionString2, hedSchemas)
-        
+
         expect(definition1.equivalent(definition2)).toBe(false)
       })
 
@@ -222,7 +227,7 @@ describe('Definition and DefinitionManager', () => {
         const definitionString2 = '(Definition/TestDef/#, (Label/#, Blue))'
         const [definition1] = Definition.createDefinition(definitionString1, hedSchemas)
         const [definition2] = Definition.createDefinition(definitionString2, hedSchemas)
-        
+
         expect(definition1.equivalent(definition2)).toBe(false)
       })
 
@@ -231,7 +236,7 @@ describe('Definition and DefinitionManager', () => {
         const definitionString2 = '(Definition/TestDef, (Green, Yellow))'
         const [definition1] = Definition.createDefinition(definitionString1, hedSchemas)
         const [definition2] = Definition.createDefinition(definitionString2, hedSchemas)
-        
+
         expect(definition1.equivalent(definition2)).toBe(false)
       })
     })
@@ -256,9 +261,9 @@ describe('Definition and DefinitionManager', () => {
         // TODO: Create test definition
         const definitionString = '(Definition/TestDef, (Red, Blue))'
         const [definition] = Definition.createDefinition(definitionString, hedSchemas)
-        
+
         const issues = manager.addDefinition(definition)
-        
+
         expect(issues).toHaveLength(0)
         expect(manager.definitions.size).toBe(1)
         expect(manager.definitions.has('testdef')).toBe(true)
@@ -269,10 +274,10 @@ describe('Definition and DefinitionManager', () => {
         const definitionString = '(Definition/TestDef, (Red, Blue))'
         const [definition1] = Definition.createDefinition(definitionString, hedSchemas)
         const [definition2] = Definition.createDefinition(definitionString, hedSchemas)
-        
+
         manager.addDefinition(definition1)
         const issues = manager.addDefinition(definition2)
-        
+
         expect(issues).toHaveLength(0)
         expect(manager.definitions.size).toBe(1)
       })
@@ -282,10 +287,10 @@ describe('Definition and DefinitionManager', () => {
         const definitionString2 = '(Definition/TestDef, (Green, Yellow))'
         const [definition1] = Definition.createDefinition(definitionString1, hedSchemas)
         const [definition2] = Definition.createDefinition(definitionString2, hedSchemas)
-        
+
         manager.addDefinition(definition1)
         const issues = manager.addDefinition(definition2)
-        
+
         expect(issues.length).toBeGreaterThan(0)
         expect(issues[0].hedCode).toBe('DEFINITION_INVALID')
       })
@@ -293,35 +298,29 @@ describe('Definition and DefinitionManager', () => {
 
     describe('addDefinitions method', () => {
       it('should add multiple definitions successfully', async () => {
-        const definitionStrings = [
-          '(Definition/TestDef1, (Red, Blue))',
-          '(Definition/TestDef2, (Green, Yellow))'
-        ]
+        const definitionStrings = ['(Definition/TestDef1, (Red, Blue))', '(Definition/TestDef2, (Green, Yellow))']
         const definitions = []
         for (const defString of definitionStrings) {
           const [definition] = Definition.createDefinition(defString, hedSchemas)
           definitions.push(definition)
         }
-        
+
         const issues = manager.addDefinitions(definitions)
-        
+
         expect(issues).toHaveLength(0)
         expect(manager.definitions.size).toBe(2)
       })
 
       it('should collect issues from all definitions', async () => {
-        const definitionStrings = [
-          '(Definition/TestDef, (Red, Blue))',
-          '(Definition/TestDef, (Green, Yellow))'
-        ]
+        const definitionStrings = ['(Definition/TestDef, (Red, Blue))', '(Definition/TestDef, (Green, Yellow))']
         const definitions = []
         for (const defString of definitionStrings) {
           const [definition] = Definition.createDefinition(defString, hedSchemas)
           definitions.push(definition)
         }
-        
+
         const issues = manager.addDefinitions(definitions)
-        
+
         expect(issues.length).toBeGreaterThan(0)
       })
     })
@@ -330,7 +329,7 @@ describe('Definition and DefinitionManager', () => {
       beforeEach(async () => {
         const definitionStrings = [
           '(Definition/TestDef, (Red, Blue))',
-          '(Definition/TestDefWithPlaceholder/#, (Label/#, Blue))'
+          '(Definition/TestDefWithPlaceholder/#, (Label/#, Blue))',
         ]
         for (const defString of definitionStrings) {
           const [definition] = Definition.createDefinition(defString, hedSchemas)
@@ -342,9 +341,9 @@ describe('Definition and DefinitionManager', () => {
         const testTagString = 'Def/TestDef'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [definition, issues] = manager.findDefinition(tag)
-        
+
         expect(definition).not.toBeNull()
         expect(issues).toHaveLength(0)
         expect(definition.name).toBe('TestDef')
@@ -354,9 +353,9 @@ describe('Definition and DefinitionManager', () => {
         const testTagString = 'Def/NonExistentDef'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [definition, issues] = manager.findDefinition(tag)
-        
+
         expect(definition).toBeNull()
         expect(issues.length).toBeGreaterThan(0)
         expect(issues[0].hedCode).toBe('DEF_INVALID')
@@ -366,9 +365,9 @@ describe('Definition and DefinitionManager', () => {
         const testTagString = 'Red'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [definition, issues] = manager.findDefinition(tag)
-        
+
         expect(definition).toBeNull()
         expect(issues).toHaveLength(0)
       })
@@ -378,9 +377,9 @@ describe('Definition and DefinitionManager', () => {
         const testTagString = 'Def/testdef'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [definition, issues] = manager.findDefinition(tag)
-        
+
         expect(definition).not.toBeNull()
         expect(issues).toHaveLength(0)
       })
@@ -399,9 +398,9 @@ describe('Definition and DefinitionManager', () => {
         const testTagString = 'Def/TestDef'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [result, issues] = manager.evaluateTag(tag, hedSchemas, false)
-        
+
         expect(result).not.toBeNull()
         expect(issues).toHaveLength(0)
       })
@@ -411,9 +410,9 @@ describe('Definition and DefinitionManager', () => {
         const testTagString = 'Def/MissingDef'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [result, issues] = manager.evaluateTag(tag, hedSchemas, false)
-        
+
         expect(result).toBeNull()
         expect(issues.length).toBeGreaterThan(0)
       })
@@ -423,9 +422,9 @@ describe('Definition and DefinitionManager', () => {
         const testTagString = 'Red'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
         const tag = parsedString.topLevelTags[0]
-        
+
         const [result, issues] = manager.evaluateTag(tag, hedSchemas, false)
-        
+
         expect(result).toBeNull()
         expect(issues).toHaveLength(0)
       })
@@ -443,9 +442,9 @@ describe('Definition and DefinitionManager', () => {
         // TODO: Create HED string with valid Def tags
         const hedString = 'Def/TestDef, Green'
         const [parsedString] = parseHedString(hedString, hedSchemas, false, false, true)
-        
+
         const issues = manager.validateDefs(parsedString, hedSchemas, false)
-        
+
         expect(issues).toHaveLength(0)
       })
 
@@ -453,9 +452,9 @@ describe('Definition and DefinitionManager', () => {
         // TODO: Create HED string with invalid Def tags
         const hedString = 'Def/MissingDef, Green'
         const [parsedString] = parseHedString(hedString, hedSchemas, false, false, true)
-        
+
         const issues = manager.validateDefs(parsedString, hedSchemas, false)
-        
+
         expect(issues.length).toBeGreaterThan(0)
       })
 
@@ -463,9 +462,9 @@ describe('Definition and DefinitionManager', () => {
         // TODO: Create HED string without Def tags
         const hedString = 'Red, Green, Blue'
         const [parsedString] = parseHedString(hedString, hedSchemas, false, false, true)
-        
+
         const issues = manager.validateDefs(parsedString, hedSchemas, false)
-        
+
         expect(issues).toHaveLength(0)
       })
     })
@@ -482,9 +481,9 @@ describe('Definition and DefinitionManager', () => {
         // TODO: Create HED string with valid Def-expand tags
         const hedString = '(Def-expand/TestDef, (Red, Blue))'
         const [parsedString] = parseHedString(hedString, hedSchemas, false, false, true)
-        
+
         const issues = manager.validateDefExpands(parsedString, hedSchemas, false)
-        
+
         expect(issues).toHaveLength(0)
       })
 
@@ -492,9 +491,9 @@ describe('Definition and DefinitionManager', () => {
         // TODO: Create HED string without Def-expand tags
         const hedString = 'Red, Green, Blue'
         const [parsedString] = parseHedString(hedString, hedSchemas, false, false, true)
-        
+
         const issues = manager.validateDefExpands(parsedString, hedSchemas, false)
-        
+
         expect(issues).toHaveLength(0)
       })
 
@@ -502,9 +501,9 @@ describe('Definition and DefinitionManager', () => {
         // TODO: Create HED string with invalid Def-expand contents
         const hedString = '(Def-expand/TestDef, (Green, Yellow))'
         const [parsedString] = parseHedString(hedString, hedSchemas, false, false, true)
-        
+
         const issues = manager.validateDefExpands(parsedString, hedSchemas, false)
-        
+
         expect(issues.length).toBeGreaterThan(0)
       })
     })
@@ -512,35 +511,29 @@ describe('Definition and DefinitionManager', () => {
     describe('createDefinitions static method', () => {
       it('should create multiple definitions from string array', async () => {
         // TODO: Create array of definition strings
-        const definitionStrings = [
-          '(Definition/TestDef1, (Red, Blue))',
-          '(Definition/TestDef2, (Green, Yellow))'
-        ]
-        
+        const definitionStrings = ['(Definition/TestDef1, (Red, Blue))', '(Definition/TestDef2, (Green, Yellow))']
+
         const [definitions, issues] = DefinitionManager.createDefinitions(definitionStrings, hedSchemas)
-        
+
         expect(definitions).toHaveLength(2)
         expect(issues).toHaveLength(0)
       })
 
       it('should collect issues from invalid definitions', async () => {
         // TODO: Create array with invalid definition strings
-        const definitionStrings = [
-          '(Definition/TestDef1, (Red, Blue))',
-          'Invalid definition string'
-        ]
-        
+        const definitionStrings = ['(Definition/TestDef1, (Red, Blue))', 'Invalid definition string']
+
         const [definitions, issues] = DefinitionManager.createDefinitions(definitionStrings, hedSchemas)
-        
+
         expect(definitions).toHaveLength(1)
         expect(issues.length).toBeGreaterThan(0)
       })
 
       it('should handle empty array', async () => {
         const definitionStrings = []
-        
+
         const [definitions, issues] = DefinitionManager.createDefinitions(definitionStrings, hedSchemas)
-        
+
         expect(definitions).toHaveLength(0)
         expect(issues).toHaveLength(0)
       })

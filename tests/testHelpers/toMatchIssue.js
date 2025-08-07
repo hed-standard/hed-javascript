@@ -1,6 +1,5 @@
 import { generateIssue, IssueError } from '../../src/issues/issues'
 
-
 export function toMatchIssue(receivedError, expectedCode, expectedParams = {}) {
   const expectedIssue = generateIssue(expectedCode, expectedParams)
 
@@ -10,8 +9,7 @@ export function toMatchIssue(receivedError, expectedCode, expectedParams = {}) {
   if (passType && passMessage) {
     return {
       pass: true,
-      message: () =>
-        `Expected error not to match IssueError with message "${expectedIssue.message}", but it did.`,
+      message: () => `Expected error not to match IssueError with message "${expectedIssue.message}", but it did.`,
     }
   } else {
     return {
