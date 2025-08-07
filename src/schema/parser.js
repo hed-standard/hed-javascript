@@ -3,11 +3,6 @@ import flattenDeep from 'lodash/flattenDeep'
 import zip from 'lodash/zip'
 import semver from 'semver'
 
-// TODO: Switch require once upstream bugs are fixed.
-// import xpath from 'xml2js-xpath'
-// Temporary
-import * as xpath from '../utils/xpath'
-
 import {
   SchemaAttribute,
   SchemaEntries,
@@ -103,26 +98,23 @@ export default class SchemaParser {
     this.parseTags()
   }
 
-  getAllChildTags(parentElement, elementName = 'node', excludeTakeValueTags = true) {
-    if (excludeTakeValueTags && this.getElementTagName(parentElement) === '#') {
+  getAllChildTags(parentElement, excludeTakeValueTags = true) {
+    if (excludeTakeValueTags && SchemaParser.getElementTagName(parentElement) === '#') {
       return []
     }
-    const tagElementChildren = this.getElementsByName(elementName, parentElement)
-    const childTags = flattenDeep(
-      tagElementChildren.map((child) => this.getAllChildTags(child, elementName, excludeTakeValueTags)),
-    )
-    childTags.push(parentElement)
+    const childTags = []
+    if (parentElement.$parent) {
+      childTags.push(parentElement)
+    }
+    const tagElementChildren = parentElement.node ?? []
+    childTags.push(...flattenDeep(tagElementChildren.map((child) => this.getAllChildTags(child, excludeTakeValueTags))))
     return childTags
   }
 
-  getElementsByName(elementName = 'node', parentElement = this.rootElement) {
-    return xpath.find(parentElement, '//' + elementName)
-  }
-
-  getParentTagName(tagElement) {
+  static getParentTagName(tagElement) {
     const parentTagElement = tagElement.$parent
-    if (parentTagElement && parentTagElement.$parent) {
-      return this.getElementTagName(parentTagElement)
+    if (parentTagElement?.$parent) {
+      return SchemaParser.getElementTagName(parentTagElement)
     } else {
       return ''
     }
@@ -131,45 +123,32 @@ export default class SchemaParser {
   /**
    * Extract the name of an XML element.
    *
-   * NOTE: This method cannot be merged into {@link getElementTagValue} because it is used as a first-class object.
-   *
    * @param {Object} element An XML element.
    * @returns {string} The name of the element.
    */
-  getElementTagName(element) {
+  static getElementTagName(element) {
     return element.name._
-  }
-
-  /**
-   * Extract a value from an XML element.
-   *
-   * @param {Object} element An XML element.
-   * @param {string} tagName The tag value to extract.
-   * @returns {string} The value of the tag in the element.
-   */
-  getElementTagValue(element, tagName) {
-    return element[tagName]._
   }
 
   /**
    * Retrieve all the tags in the schema.
    *
-   * @param {string} tagElementName The name of the tag element.
    * @returns {Map<Object, string>} The tag names and XML elements.
    */
-  getAllTags(tagElementName = 'node') {
-    const tagElements = xpath.find(this.rootElement, '//' + tagElementName)
-    const tags = tagElements.map((element) => this.getElementTagName(element))
+  getAllTags() {
+    const nodeRoot = this.rootElement.schema
+    const tagElements = this.getAllChildTags(nodeRoot, false)
+    const tags = tagElements.map((element) => SchemaParser.getElementTagName(element))
     return new Map(zip(tagElements, tags))
   }
 
   // Rewrite starts here.
 
   parseProperties() {
-    const propertyDefinitions = this.getElementsByName('propertyDefinition')
+    const propertyDefinitions = this._getDefinitionElements('property')
     this.properties = new Map()
     for (const definition of propertyDefinitions) {
-      const propertyName = this.getElementTagName(definition)
+      const propertyName = SchemaParser.getElementTagName(definition)
       if (this._versionDefinitions.categoryProperties?.has(propertyName)) {
         this.properties.set(
           propertyName,
@@ -194,17 +173,12 @@ export default class SchemaParser {
   }
 
   parseAttributes() {
-    const attributeDefinitions = this.getElementsByName('schemaAttributeDefinition')
+    const attributeDefinitions = this._getDefinitionElements('schemaAttribute')
     this.attributes = new Map()
     for (const definition of attributeDefinitions) {
-      const attributeName = this.getElementTagName(definition)
-      const propertyElements = definition.property
-      let properties
-      if (propertyElements === undefined) {
-        properties = []
-      } else {
-        properties = propertyElements.map((element) => this.properties.get(this.getElementTagName(element)))
-      }
+      const attributeName = SchemaParser.getElementTagName(definition)
+      const propertyElements = definition.property ?? []
+      const properties = propertyElements.map((element) => this.properties.get(SchemaParser.getElementTagName(element)))
       this.attributes.set(attributeName, new SchemaAttribute(attributeName, properties))
     }
     this._addCustomAttributes()
@@ -258,10 +232,10 @@ export default class SchemaParser {
 
   parseUnits() {
     const unitClassUnits = new Map()
-    const unitClassElements = this.getElementsByName('unitClassDefinition')
+    const unitClassElements = this._getDefinitionElements('unitClass')
     const unitModifiers = this.unitModifiers
     for (const element of unitClassElements) {
-      const elementName = this.getElementTagName(element)
+      const elementName = SchemaParser.getElementTagName(element)
       const units = new Map()
       unitClassUnits.set(elementName, units)
       if (element.unit === undefined) {
@@ -269,7 +243,7 @@ export default class SchemaParser {
       }
       const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] = this._parseAttributeElements(
         element.unit,
-        this.getElementTagName,
+        SchemaParser.getElementTagName,
       )
       for (const [name, valueAttributes] of unitValueAttributeDefinitions) {
         const booleanAttributes = unitBooleanAttributeDefinitions.get(name)
@@ -317,9 +291,9 @@ export default class SchemaParser {
     const shortTags = new Map()
     for (const tagElement of tags.keys()) {
       const shortKey =
-        this.getElementTagName(tagElement) === '#'
-          ? this.getParentTagName(tagElement) + '-#'
-          : this.getElementTagName(tagElement)
+        SchemaParser.getElementTagName(tagElement) === '#'
+          ? SchemaParser.getParentTagName(tagElement) + '-#'
+          : SchemaParser.getElementTagName(tagElement)
       shortTags.set(tagElement, shortKey)
     }
     return shortTags
@@ -365,7 +339,7 @@ export default class SchemaParser {
 
     for (const [tagElement, recursiveAttributes] of recursiveAttributeMap) {
       for (const childTag of this.getAllChildTags(tagElement)) {
-        const childTagName = this.getElementTagName(childTag)
+        const childTagName = SchemaParser.getElementTagName(childTag)
         const newBooleanAttributes = booleanAttributeDefinitions.get(childTagName)?.union(recursiveAttributes)
         booleanAttributeDefinitions.set(childTagName, newBooleanAttributes)
       }
@@ -455,17 +429,21 @@ export default class SchemaParser {
         tagEntries.get(lc(tagName)).parent = tagEntries.get(lc(parentTagName))
       }
 
-      if (this.getElementTagName(tagElement) === '#') {
+      if (SchemaParser.getElementTagName(tagElement) === '#') {
         tagEntries.get(lc(parentTagName)).valueTag = tagEntries.get(lc(tagName))
       }
     }
   }
 
   _parseDefinitions(category) {
-    const categoryTagName = category + 'Definition'
-    const definitionElements = this.getElementsByName(categoryTagName)
+    const definitionElements = this._getDefinitionElements(category)
+    return this._parseAttributeElements(definitionElements, SchemaParser.getElementTagName)
+  }
 
-    return this._parseAttributeElements(definitionElements, this.getElementTagName)
+  _getDefinitionElements(category) {
+    const categoryTagName = category + 'Definition'
+    const categoryParentTagName = categoryTagName + 's'
+    return this.rootElement[categoryParentTagName][categoryTagName]
   }
 
   _parseAttributeElements(elements, namer) {
@@ -490,7 +468,7 @@ export default class SchemaParser {
     const tagAttributes = element.attribute ?? []
 
     for (const tagAttribute of tagAttributes) {
-      const attributeName = this.getElementTagName(tagAttribute)
+      const attributeName = SchemaParser.getElementTagName(tagAttribute)
       if (tagAttribute.value === undefined) {
         booleanAttributes.add(this.attributes.get(attributeName))
         continue
