@@ -1,7 +1,7 @@
 import zip from 'lodash/zip'
 
 import loadSchema from './loader'
-import { setParent } from '../utils/xml2js'
+import { setParent } from '../utils/xml'
 
 import SchemaParser from './parser'
 import PartneredSchemaMerger from './schemaMerger'

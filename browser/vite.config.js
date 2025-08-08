@@ -27,7 +27,7 @@ export default defineConfig(({ command }) => {
 
     optimizeDeps: {
       // Add this section
-      include: ['xml2js', 'lodash', 'path-browserify'], // Added 'path-browserify'
+      include: ['lodash', 'path-browserify'], // Added 'path-browserify'
     },
 
     resolve: {
@@ -53,9 +53,6 @@ export default defineConfig(({ command }) => {
         },
         output: {
           manualChunks(id) {
-            if (id.includes('node_modules/xml2js')) {
-              return 'xml2js'
-            }
             if (id.includes('node_modules/lodash')) {
               return 'lodash'
             }

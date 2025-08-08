@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config'
-import { resolve } from 'path'
-import { fileURLToPath } from 'url'
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
@@ -17,6 +17,6 @@ export default defineConfig({
   },
   define: {
     // Define the Vite environment variable that the config.js file checks for
-    '__VITE_ENV__': 'true',
+    __VITE_ENV__: 'true',
   },
 })

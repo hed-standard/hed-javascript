@@ -2,7 +2,7 @@
 
 /* Imports */
 import { IssueError } from '../../../src/issues/issues'
-import { parseSchemaXML } from '../../../src/utils/xml2js'
+import { parseSchemaXML } from '../../../src/utils/xml.js'
 import { schemaData } from './vite-importer.js'
 
 /**
@@ -53,7 +53,11 @@ function loadRemoteSchema(schemaDef) {
   } else {
     url = `https://raw.githubusercontent.com/hed-standard/hed-schemas/refs/heads/main/standard_schema/hedxml/HED${schemaDef.version}.xml`
   }
-  return loadSchemaFile(fetch(url).then(res => res.text()), 'remoteSchemaLoadFailed', { spec: JSON.stringify(schemaDef) })
+  return loadSchemaFile(
+    fetch(url).then((res) => res.text()),
+    'remoteSchemaLoadFailed',
+    { spec: JSON.stringify(schemaDef) },
+  )
 }
 
 /**
@@ -64,7 +68,7 @@ function loadRemoteSchema(schemaDef) {
  * @throws {IssueError} If the schema could not be loaded.
  */
 function loadLocalSchema(path) {
-    throw new Error('Local schema loading is not supported in the browser.')
+  throw new Error('Local schema loading is not supported in the browser.')
 }
 
 /**

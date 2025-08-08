@@ -1,6 +1,6 @@
 import path from 'node:path'
 import esbuild from 'esbuild'
-import GlobalsPlugin from 'esbuild-plugin-globals'
+import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill'
 
 // Node.js target build
 await esbuild.build({
@@ -16,7 +16,7 @@ await esbuild.build({
   },
 })
 
-// Browser target build
+// ESM/Deno target build
 await esbuild.build({
   entryPoints: [path.join(process.cwd(), 'index.js')],
   loader: { '.xml': 'text' },
@@ -24,29 +24,19 @@ await esbuild.build({
   bundle: true,
   sourcemap: true,
   format: 'esm',
-  external: ['cross-fetch', 'pluralize', 'xml2js'],
+  external: ['pluralize'],
   platform: 'node',
-  define: {
-    global: 'globalThis',
-    window: 'globalThis',
-    crypto: 'globalThis',
-    os: 'globalThis',
-    timers: 'globalThis',
-    process: JSON.stringify({
-      env: {},
-      argv: [],
-      stdout: '',
-      stderr: '',
-      stdin: '',
-      version: 'v12.14.1',
-    }),
-  },
-  plugins: [
-    GlobalsPlugin({
-      crypto: 'globalThis',
-      os: 'globalThis',
-      timers: 'globalThis',
-      process: 'globalThis',
-    }),
-  ],
+})
+
+// Browser target build
+await esbuild.build({
+  entryPoints: [path.join(process.cwd(), 'index.js')],
+  loader: { '.xml': 'text' },
+  outdir: path.join(process.cwd(), 'dist', 'browser'),
+  bundle: true,
+  sourcemap: true,
+  format: 'esm',
+  external: ['cross-fetch', 'pluralize'],
+  platform: 'browser',
+  plugins: [nodeModulesPolyfillPlugin()],
 })

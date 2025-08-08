@@ -7,7 +7,7 @@
 import zip from 'lodash/zip'
 
 import { loadSchema } from './loader'
-import { setParent } from '../../../src/utils/xml2js'
+import { setParent } from '../../../src/utils/xml.js'
 
 import SchemaParser from '../../../src/schema/parser'
 import PartneredSchemaMerger from '../../../src/schema/schemaMerger'
