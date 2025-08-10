@@ -17,14 +17,14 @@
     "url": "https://github.com/hed-standard/hed-javascript.git"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "build": "node esbuild.mjs",
     "prepublishOnly": "npm run build",
     "lint": "eslint ./src/**/*.js",
-    "test": "jest",
-    "testSpecs": "jest spec_tests --silent --noStackTrace",
+    "test": "jest --testPathPatterns='/tests/'",
+    "testSpecs": "jest --testPathPatterns='/spec_tests/' --silent --noStackTrace",
     "test-types": "npx tsx types/test.ts",
     "test-types-local": "node scripts/test-types-local.js",
     "test-types-local-windows": "powershell -ExecutionPolicy Bypass -File ./scripts/test-types-local-windows.ps1",
@@ -46,7 +46,6 @@
   "homepage": "https://github.com/hed-standard/hed-javascript",
   "dependencies": {
     "core-js-pure": "^3.41.0",
-    "cross-fetch": "^4.0.0",
     "fast-xml-parser": "^5.2.5",
     "lodash": "^4.17.21",
     "pluralize": "^8.0.0",
@@ -70,7 +69,6 @@
     "husky": "^9.0.11",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.0.2",
-    "jest-environment-jsdom": "^30.0.2",
     "jest-environment-node": "^30.0.0",
     "prettier": "^3.2.5",
     "pretty-quick": "^4.0.0",
