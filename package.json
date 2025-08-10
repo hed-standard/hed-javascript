@@ -53,11 +53,13 @@
     "unicode-name": "^1.0.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@jest/globals": "^30.0.0",
-    "@swc/jest": "^0.2.39",
     "@types/node": "^24.2.0",
+    "babel-jest": "^30.0.5",
     "chai": "^4.3.6",
     "esbuild": "^0.25.0",
     "esbuild-plugins-node-modules-polyfill": "^1.7.1",
