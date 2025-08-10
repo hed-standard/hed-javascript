@@ -11,7 +11,7 @@ import { IssueError } from '../issues/issues'
  */
 export async function readFile(fileName) {
   try {
-    return (await readFilePromise(fileName, 'utf8')).toString()
+    return await readFilePromise(fileName, 'utf8')
   } catch (error) {
     IssueError.generateAndThrow('fileReadError', { fileName: fileName, message: error.message })
   }
