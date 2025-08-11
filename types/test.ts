@@ -25,7 +25,7 @@ import {
   ParsedHedColumnSplice,
 
   // Schema
-  Schema,
+  HedSchema,
   SchemaEntries,
   SchemaEntryManager,
   SchemaEntry,
@@ -37,7 +37,7 @@ import {
   SchemaUnitModifier,
   SchemaValueClass,
   SchemaTag,
-  Schemas,
+  HedSchemas,
 
   // Parser functions
   parseStandaloneString,
@@ -59,7 +59,7 @@ const fakePath = '/fake/path'
 const fakeFile: object = { name: 'fake.json', path: fakePath }
 const fakeHedString = 'Event'
 
-async function testBids(schemas: Schemas) {
+async function testBids(schemas: HedSchemas) {
   // BidsDataset
   const [dataset, bidsIssues] = await BidsDataset.create(fakePath, BidsDirectoryAccessor)
   if (dataset) {
@@ -159,7 +159,7 @@ function testIssues() {
 }
 
 function testParser(
-  schemas: Schemas,
+  schemas: HedSchemas,
   parsedString: ParsedHedString,
   parsedTag: ParsedHedTag,
   parsedGroup: ParsedHedGroup,
@@ -189,7 +189,7 @@ function testParser(
   // ParsedHedTag
   const tagSpec: TagSpec = { tag: 'tag', library: 'lib', start: 0, end: 3 }
   const parsedHedTag = new ParsedHedTag(tagSpec, schemas, fakeHedString)
-  const schema: Schema = parsedHedTag.schema
+  const schema: HedSchema = parsedHedTag.schema
   const schemaTag: SchemaTag = parsedHedTag.schemaTag
   console.log(
     parsedHedTag.originalTag,
@@ -245,13 +245,13 @@ function testParser(
   parsedHedString.toString()
 }
 
-function testSchemaTypes(schemas: Schemas) {
-  // Schema
-  const schema: Schema = schemas.getSchema('')
+function testSchemaTypes(schemas: HedSchemas) {
+  // HedSchema
+  const schema: HedSchema = schemas.getSchema('')
   if (!schema) {
     return
   }
-  console.log(schema.version, schema.library, schema.prefix, schema.entries, schema.withStandard)
+  console.log(schema.prefix, schema.entries, schema.withStandard)
 
   // SchemaEntries
   const entries: SchemaEntries = schema.entries

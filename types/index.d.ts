@@ -8,7 +8,7 @@ export class BidsDataset {
   sidecarMap: Map<string, BidsSidecar>
 
   /** The HED schemas used to validate this dataset */
-  hedSchemas: Schemas | null
+  hedSchemas: HedSchemas | null
 
   /** Factory method to create a BidsDataset */
   static create(
@@ -38,7 +38,7 @@ export class BidsJsonFile {
   constructor(name: string, file: object | null, jsonData: Record<string, any>)
 
   /** Validate this file against HED schemas */
-  validate(schemas: Schemas | undefined): BidsHedIssue[]
+  validate(schemas: HedSchemas | undefined): BidsHedIssue[]
 
   /** Whether this file has any HED data */
   get hasHedData(): boolean
@@ -73,10 +73,10 @@ export class BidsSidecar extends BidsJsonFile {
   get hasHedData(): boolean
 
   /** Parse this sidecar's HED strings within the sidecar structure */
-  parseSidecarKeys(hedSchemas: Schemas, fullValidation?: boolean): [Issue[], Issue[]]
+  parseSidecarKeys(hedSchemas: HedSchemas, fullValidation?: boolean): [Issue[], Issue[]]
 
   /** Validate this file against HED schemas */
-  validate(schemas: Schemas | undefined): BidsHedIssue[]
+  validate(schemas: HedSchemas | undefined): BidsHedIssue[]
 
   /** The validator class used to validate this file */
   get validatorClass(): any
@@ -110,7 +110,7 @@ export class BidsTsvFile {
   get isTimelineFile(): boolean
 
   /** Validate this file against HED schemas */
-  validate(schemas: Schemas | undefined): BidsHedIssue[]
+  validate(schemas: HedSchemas | undefined): BidsHedIssue[]
 
   /** The validator class used to validate this file */
   get validatorClass(): any
@@ -248,7 +248,7 @@ export class Definition {
   /** Evaluate the definition and return contents with any issues */
   evaluateDefinition(
     tag: ParsedHedTag,
-    hedSchema: Schemas,
+    hedSchema: HedSchemas,
     placeholderAllowed: boolean,
   ): [string | null, Issue[], Issue[]]
 
@@ -256,7 +256,7 @@ export class Definition {
   equivalent(other: Definition): boolean
 
   /** Create a definition from a HED string */
-  static createDefinition(hedString: string, hedSchemas: Schemas): [Definition | null, Issue[], Issue[]]
+  static createDefinition(hedString: string, hedSchemas: HedSchemas): [Definition | null, Issue[], Issue[]]
 
   /** Factory method to create a Definition from a group */
   static createDefinitionFromGroup(definitionGroup: ParsedHedGroup): [Definition | null, Issue[], Issue[]]
@@ -275,10 +275,10 @@ export class DefinitionManager {
   addDefinition(definition: Definition): Issue[]
 
   /** Check Def tags in a HED string for missing or incorrectly used definitions */
-  validateDefs(hedString: ParsedHedString, hedSchemas: Schemas, placeholderAllowed: boolean): Issue[]
+  validateDefs(hedString: ParsedHedString, hedSchemas: HedSchemas, placeholderAllowed: boolean): Issue[]
 
   /** Check Def-expand tags in a HED string for missing or incorrectly used definitions */
-  validateDefExpands(hedString: ParsedHedString, hedSchemas: Schemas, placeholderAllowed: boolean): Issue[]
+  validateDefExpands(hedString: ParsedHedString, hedSchemas: HedSchemas, placeholderAllowed: boolean): Issue[]
 }
 
 // Parsed HED types (used by Definition)
@@ -331,7 +331,7 @@ export class ParsedHedTag {
   /** The canonical form of the HED tag */
   canonicalTag: string
   /** The HED schema this tag belongs to */
-  schema: Schema
+  schema: HedSchema
   /** The schema's representation of this tag */
   schemaTag: SchemaTag
   /** The tag value */
@@ -346,7 +346,7 @@ export class ParsedHedTag {
   _units: string
 
   /** Constructor for ParsedHedTag */
-  constructor(tagSpec: TagSpec, hedSchemas: Schemas, hedString: string)
+  constructor(tagSpec: TagSpec, hedSchemas: HedSchemas, hedString: string)
 
   /** Format this tag nicely */
   format(long?: boolean): string
@@ -431,11 +431,7 @@ export class ParsedHedString {
 }
 
 // Schema types
-export class Schema {
-  /** The HED schema version */
-  version: string
-  /** The HED library schema name */
-  library: string
+export class HedSchema {
   /** This schema's prefix in the active schema set */
   prefix: string
   /** The collection of schema entries */
@@ -602,17 +598,17 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   parentHasAttribute(attributeName: string): boolean
 }
 
-export class Schemas {
+export class HedSchemas {
   /** The imported HED schemas */
-  schemas: Map<string, Schema>
+  schemas: Map<string, HedSchema>
 
-  constructor(schemas: Schema | Map<string, Schema>)
+  constructor(schemas: HedSchema | Map<string, HedSchema>)
 
   /** Get schema by name */
-  getSchema(name?: string): Schema
+  getSchema(name?: string): HedSchema | undefined
 
   /** The base schema, i.e. the schema with no prefix, if one is defined. */
-  get baseSchema(): Schema
+  get baseSchema(): HedSchema | undefined
 }
 
 // Schema exports
@@ -633,7 +629,7 @@ export function buildSchemasFromVersion(version: string): Promise<Schemas>
  */
 export function parseHedString(
   hedString: string | ParsedHedString,
-  hedSchemas: Schemas,
+  hedSchemas: HedSchemas,
   definitionsAllowed: boolean,
   placeholdersAllowed: boolean,
   fullValidation: boolean,
@@ -649,7 +645,7 @@ export function parseHedString(
  */
 export function parseStandaloneString(
   hedString: string | ParsedHedString,
-  hedSchemas: Schemas,
+  hedSchemas: HedSchemas,
   defManager?: DefinitionManager | null,
 ): [ParsedHedString, Issue[], Issue[]]
 
@@ -665,7 +661,7 @@ export function parseStandaloneString(
  */
 export function parseHedStrings(
   hedStrings: (string | ParsedHedString)[],
-  hedSchemas: Schemas,
+  hedSchemas: HedSchemas,
   definitionsAllowed: boolean,
   placeholdersAllowed: boolean,
   fullValidation: boolean,

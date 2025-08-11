@@ -42,7 +42,7 @@ import path from 'node:path'
  *
  * @property {Map<string, BidsSidecar>} sidecarMap Map of BIDS sidecar files that contain HED annotations.
  * @property {string|null} datasetRootDirectory The dataset's root directory as an absolute path (Node.js context).
- * @property {Schemas} hedSchemas The HED schemas used to validate this dataset.
+ * @property {HedSchemas} hedSchemas The HED schemas used to validate this dataset.
  * @property {BidsFileAccessor} fileAccessor The BIDS file accessor.
  */
 export class BidsDataset {
@@ -61,7 +61,7 @@ export class BidsDataset {
 
   /**
    * The HED schemas used to validate this dataset.
-   * @type {Schemas}
+   * @type {HedSchemas}
    */
   hedSchemas
 

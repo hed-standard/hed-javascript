@@ -2,7 +2,7 @@
  * Provides a wrapper for HED validation issues that is compatible with the BIDS validator.
  * @module issues
  */
-import { generateIssue, IssueError } from '../../issues/issues.js'
+import { generateIssue, IssueError } from '../../issues/issues'
 
 /**
  * @typedef {import('../../issues/issues.js').Issue} Issue

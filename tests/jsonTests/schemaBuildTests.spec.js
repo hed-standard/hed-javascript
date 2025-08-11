@@ -7,7 +7,7 @@ import { BidsJsonFile } from '../../src/bids'
 
 import { shouldRun } from '../testHelpers/testUtilities'
 import { schemaBuildTestData } from '../jsonTestData/schemaBuildTests.data'
-import { Schemas } from '../../src/schema/containers'
+import { HedSchemas } from '../../src/schema/containers'
 
 // Ability to select individual tests to run
 const skipMap = new Map()
@@ -31,7 +31,7 @@ describe('Schema build validation', () => {
 
     assert.strictEqual(caughtErrorString, expectedErrorString, header)
     if (expectedErrorCode === null) {
-      assert.instanceOf(schema, Schemas, header + caughtErrorString)
+      assert.instanceOf(schema, HedSchemas, header + caughtErrorString)
     }
   }
 

@@ -7,9 +7,9 @@ import { PartneredSchema } from '../../src/schema/containers'
 import { buildSchemas, buildSchemasFromVersion } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { buildSchemasSpec } from '../../src/bids/schema'
-import { BidsJsonFile } from '../../src/bids/index.js'
-import { IssueError } from '../../src/issues/issues.js'
-import { getLocalSchemaVersions } from '../../src/schema/config.js'
+import { BidsJsonFile } from '../../src/bids/index'
+import { IssueError } from '../../src/issues/issues'
+import { getLocalSchemaVersions } from '../../src/schema/config'
 
 describe('HED schemas', () => {
   describe('Schema loading', () => {

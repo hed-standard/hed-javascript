@@ -1,5 +1,5 @@
-import { BidsHedIssue } from '../../src/bids/types/issues.js'
-import { Issue, IssueError, generateIssue } from '../../src/issues/issues.js'
+import { BidsHedIssue } from '../../src/bids/types/issues'
+import { Issue, IssueError, generateIssue } from '../../src/issues/issues'
 
 describe('BidsHedIssue', () => {
   describe('transformToBids', () => {

@@ -5,13 +5,13 @@ import { PartneredSchema } from './containers'
 export default class PartneredSchemaMerger {
   /**
    * The sources of data to be merged.
-   * @type {Schema[]}
+   * @type {HedSchema[]}
    */
   sourceSchemas
 
   /**
    * The current source of data to be merged.
-   * @type {Schema}
+   * @type {HedSchema}
    */
   currentSource
 
@@ -24,7 +24,7 @@ export default class PartneredSchemaMerger {
   /**
    * Constructor.
    *
-   * @param {Schema[]} sourceSchemas The sources of data to be merged.
+   * @param {HedSchema[]} sourceSchemas The sources of data to be merged.
    */
   constructor(sourceSchemas) {
     this.sourceSchemas = sourceSchemas

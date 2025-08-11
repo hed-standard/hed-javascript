@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { BidsWebAccessor } from './BidsWebAccessor.js'
+import { BidsWebAccessor } from './BidsWebAccessor'
 
 // Mock File object for BidsWebAccessor tests
 const MockFile = class {
