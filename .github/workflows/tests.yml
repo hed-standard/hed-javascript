@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, lts/*, 'node']
+        node-version: [22.x, lts/*, 'node']
 
     steps:
       - name: Check out the code
