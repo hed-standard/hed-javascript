@@ -128,7 +128,7 @@ export class SchemasSpec {
   /**
    * The specification mapping data.
    */
-  #data: Map<string, SchemaSpec[]>
+  readonly #data: Map<string, SchemaSpec[]>
 
   /**
    * Constructor.
