@@ -27,7 +27,7 @@
     "test-types": "npx tsx types/test.ts",
     "test-types-local": "node scripts/test-types-local.js",
     "test-types-local-windows": "powershell -ExecutionPolicy Bypass -File ./scripts/test-types-local-windows.ps1",
-    "test-types-local-unix": "bash ./scripts/test-types-local-unix.sh",
+    "test-types-local-unix": "sh ./scripts/test-types-local-unix.sh",
     "type-check": "tsc --noEmit",
     "coverage": "jest --coverage",
     "prepare": "husky",

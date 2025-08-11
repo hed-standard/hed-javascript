@@ -19,7 +19,7 @@ function runScript() {
     args = ['-ExecutionPolicy', 'Bypass', '-File', './scripts/test-types-local-windows.ps1']
   } else {
     // Unix/Linux/macOS: Run bash script
-    command = 'bash'
+    command = 'sh'
     args = ['./scripts/test-types-local-unix.sh']
   }
 

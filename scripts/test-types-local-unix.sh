@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Local TypeScript definition testing script
 echo "Building package..."
