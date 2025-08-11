@@ -14,7 +14,7 @@ import PartneredSchemaMerger from '../../../src/schema/schemaMerger'
 import { Schema, Schemas } from '../../../src/schema/containers'
 import { IssueError } from '../../../src/issues/issues'
 import { splitStringTrimAndRemoveBlanks } from '../../../src/utils/string'
-import { SchemasSpec } from '../../../src/schema/specs'
+import { SchemasSpec } from '../../../src/schema/specs.js'
 
 /**
  * Build a single schema container object from an XML file.

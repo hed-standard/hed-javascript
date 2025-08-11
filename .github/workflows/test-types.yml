@@ -2,9 +2,9 @@ name: Test TypeScript Definitions
 
 on:
   push:
-    branches: [main]
+    branches: [main, typescript]
   pull_request:
-    branches: [main]
+    branches: [main, typescript]
 
 jobs:
   test-types:

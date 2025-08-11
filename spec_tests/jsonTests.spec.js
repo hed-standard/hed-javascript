@@ -1,18 +1,19 @@
+import * as fs from 'node:fs'
+import path from 'node:path'
+
 import chai from 'chai'
 const assert = chai.assert
-import { beforeAll, describe, afterAll } from '@jest/globals'
 
+import { beforeAll, describe, afterAll } from '@jest/globals'
 import { BidsHedIssue } from '../src/bids/types/issues'
 import { buildSchemas } from '../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
 import { Schemas } from '../src/schema/containers'
-import path from 'node:path'
 import { BidsSidecar, BidsTsvFile } from '../src/bids'
 import { generateIssue, IssueError } from '../src/issues/issues'
 import { DefinitionManager } from '../src/parser/definitionManager'
 import parseTSV from '../src/bids/tsvParser'
 import { shouldRun } from '../tests/testHelpers/testUtilities'
-const fs = require('node:fs')
 
 const skipMap = new Map()
 const runAll = true

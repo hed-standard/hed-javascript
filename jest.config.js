@@ -1,8 +1,9 @@
-module.exports = {
+export default {
   testEnvironment: 'node',
   transform: {
-    '\\.xml$': '<rootDir>/xml-transformer.js',
+    '\\.xml$': '<rootDir>/xml-transformer.cjs',
     '^.+\\.(js|jsx)$': 'babel-jest',
+    '^.+\\.(ts|tsx)$': 'babel-jest',
   },
   transformIgnorePatterns: ['/node_modules/(?!unicode-name|semver)'],
   testPathIgnorePatterns: ['node_modules/', '<rootDir>/types/test.ts', '<rootDir>/browser/'],
