@@ -2,6 +2,7 @@
   "name": "hed-validator",
   "version": "4.1.4",
   "description": "A JavaScript validator for HED (Hierarchical Event Descriptor) strings.",
+  "type": "module",
   "main": "./dist/commonjs/index.js",
   "types": "./types/index.d.ts",
   "exports": {
@@ -48,16 +49,19 @@
     "fast-xml-parser": "^5.2.5",
     "lodash": "^4.17.21",
     "pluralize": "^8.0.0",
-    "semver": "^7.6.0",
+    "semver": "^7.7.2",
     "unicode-name": "^1.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
     "@babel/preset-env": "^7.28.0",
+    "@babel/preset-typescript": "^7.27.1",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@jest/globals": "^30.0.0",
+    "@types/lodash": "^4.17.20",
     "@types/node": "^24.2.0",
+    "@types/semver": "^7.7.0",
     "babel-jest": "^30.0.5",
     "chai": "^4.3.6",
     "esbuild": "^0.25.0",
@@ -74,6 +78,7 @@
     "prettier": "^3.2.5",
     "pretty-quick": "^4.0.0",
     "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
     "tsx": "^4.20.3",
     "typedoc": "^0.28.0",
     "typescript": "^5.4.5"
