@@ -16,23 +16,11 @@ await esbuild.build({
   },
 })
 
-// ESM/Deno target build
-await esbuild.build({
-  entryPoints: [path.join(process.cwd(), 'index.js')],
-  loader: { '.xml': 'text' },
-  outdir: path.join(process.cwd(), 'dist', 'esm'),
-  bundle: true,
-  sourcemap: true,
-  format: 'esm',
-  external: ['pluralize'],
-  platform: 'node',
-})
-
 // Browser target build
 await esbuild.build({
   entryPoints: [path.join(process.cwd(), 'index.js')],
   loader: { '.xml': 'text' },
-  outdir: path.join(process.cwd(), 'dist', 'browser'),
+  outdir: path.join(process.cwd(), 'dist', 'esm'),
   bundle: true,
   sourcemap: true,
   format: 'esm',

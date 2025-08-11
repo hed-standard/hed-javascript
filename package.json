@@ -7,8 +7,7 @@
   "exports": {
     ".": {
       "types": "./types/index.d.ts",
-      "node": "./dist/esm/index.js",
-      "import": "./dist/browser/index.js",
+      "import": "./dist/esm/index.js",
       "require": "./dist/commonjs/index.js"
     }
   },
