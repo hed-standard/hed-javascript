@@ -3,6 +3,7 @@ pluralize.addUncountableRule('hertz')
 
 import { IssueError } from '../issues/issues'
 import Memoizer from '../utils/memoizer'
+import SchemaParser from './parser'
 
 /**
  * SchemaEntries class
@@ -10,45 +11,39 @@ import Memoizer from '../utils/memoizer'
 export class SchemaEntries extends Memoizer {
   /**
    * The schema's properties.
-   * @type {SchemaEntryManager<SchemaProperty>}
    */
-  properties
+  readonly properties: SchemaEntryManager<SchemaProperty>
 
   /**
    * The schema's attributes.
-   * @type {SchemaEntryManager<SchemaAttribute>}
    */
-  attributes
+  readonly attributes: SchemaEntryManager<SchemaAttribute>
 
   /**
    * The schema's value classes.
-   * @type {SchemaEntryManager<SchemaValueClass>}
    */
-  valueClasses
+  readonly valueClasses: SchemaEntryManager<SchemaValueClass>
 
   /**
    * The schema's unit classes.
-   * @type {SchemaEntryManager<SchemaUnitClass>}
    */
-  unitClasses
+  readonly unitClasses: SchemaEntryManager<SchemaUnitClass>
 
   /**
    * The schema's unit modifiers.
-   * @type {SchemaEntryManager<SchemaUnitModifier>}
    */
-  unitModifiers
+  readonly unitModifiers: SchemaEntryManager<SchemaUnitModifier>
 
   /**
    * The schema's tags.
-   * @type {SchemaEntryManager<SchemaTag>}
    */
-  tags
+  readonly tags: SchemaEntryManager<SchemaTag>
 
   /**
    * Constructor.
-   * @param {SchemaParser} schemaParser A constructed schema parser.
+   * @param schemaParser A constructed schema parser.
    */
-  constructor(schemaParser) {
+  constructor(schemaParser: SchemaParser) {
     super()
     this.properties = new SchemaEntryManager(schemaParser.properties)
     this.attributes = new SchemaEntryManager(schemaParser.attributes)
@@ -61,81 +56,71 @@ export class SchemaEntries extends Memoizer {
 
 /**
  * A manager of {@link SchemaEntry} objects.
- *
- * @template T
  */
-export class SchemaEntryManager extends Memoizer {
+export class SchemaEntryManager<T extends SchemaEntry> extends Memoizer {
   /**
    * The definitions managed by this entry manager.
-   * @type {Map<string, T>}
    */
-  _definitions
+  readonly _definitions: Map<string, T>
 
   /**
    * Constructor.
    *
-   * @param {Map<string, T>} definitions A map of schema entry definitions.
+   * @param definitions A map of schema entry definitions.
    */
-  constructor(definitions) {
+  constructor(definitions: Map<string, T>) {
     super()
     this._definitions = definitions
   }
 
   /**
    * Iterator over the entry manager's entries.
-   *
-   * @template T
-   * @returns {IterableIterator} - [string, T]
    */
-  [Symbol.iterator]() {
+  public [Symbol.iterator](): MapIterator<[string, T]> {
     return this._definitions.entries()
   }
 
   /**
    * Iterator over the entry manager's keys.
-   *
-   * @returns {IterableIterator} - [string]
    */
-  keys() {
+  public keys(): MapIterator<string> {
     return this._definitions.keys()
   }
 
   /**
    * Iterator over the entry manager's keys.
-   *
-   * @returns {IterableIterator} - [T]
    */
-  values() {
+  public values(): MapIterator<T> {
     return this._definitions.values()
   }
 
   /**
    * Determine whether the entry with the given name exists.
    *
-   * @param {string} name The name of the entry.
-   * @return {boolean} Whether the entry exists.
+   * @param name The name of the entry.
+   * @return Whether the entry exists.
    */
-  hasEntry(name) {
+  public hasEntry(name: string): boolean {
     return this._definitions.has(name)
   }
 
   /**
    * Get the entry with the given name.
    *
-   * @param {string} name - The name of the entry to retrieve.
-   * @returns {T} - The entry with that name.
+   * @param name The name of the entry to retrieve.
+   * @returns The entry with that name.
    */
-  getEntry(name) {
+  public getEntry(name: string): T {
     return this._definitions.get(name)
   }
 
   /**
    * Get a collection of entries with the given boolean attribute.
    *
-   * @param {string} booleanAttributeName - The name of boolean attribute to filter on.
-   * @returns {Map} - string->T representing a  collection of entries with that attribute.
+   * @param booleanAttributeName The name of boolean attribute to filter on.
+   * @returns A subset of the managed collection with the given boolean attribute.
    */
-  getEntriesWithBooleanAttribute(booleanAttributeName) {
+  public getEntriesWithBooleanAttribute(booleanAttributeName: string): Map<string, T> {
     return this._memoize(booleanAttributeName, () => {
       return this.filter(([, v]) => {
         return v.hasBooleanAttribute(booleanAttributeName)
@@ -146,33 +131,20 @@ export class SchemaEntryManager extends Memoizer {
   /**
    * Filter the map underlying this manager.
    *
-   * @param {function} fn -  ([string, T]): boolean specifying the filtering function.
-   * @returns {Map} - string->T representing a  collection of entries with that attribute.
+   * @param fn The filtering function.
+   * @returns A subset of the managed collection satisfying the filter.
    */
-  filter(fn) {
-    return SchemaEntryManager._filterDefinitionMap(this._definitions, fn)
-  }
-
-  /**
-   * Filter a definition map.
-   *
-   * @template T
-   * @param {Map<string, T>} definitionMap The definition map.
-   * @param {function} fn -  ([string, T]):boolean specifying the filtering function.
-   * @returns {Map} - string->T representing the filtered definitions.
-   * @protected
-   */
-  static _filterDefinitionMap(definitionMap, fn) {
-    const pairArray = Array.from(definitionMap.entries())
+  public filter(fn: (entry: [string, T]) => boolean): Map<string, T> {
+    const pairArray = Array.from(this._definitions.entries())
     return new Map(pairArray.filter((entry) => fn(entry)))
   }
 
   /**
    * The number of entries in this collection.
    *
-   * @returns {number} The number of entries in this collection.
+   * @returns The number of entries in this collection.
    */
-  get length() {
+  public get length(): number {
     return this._definitions.size
   }
 }
@@ -183,20 +155,18 @@ export class SchemaEntryManager extends Memoizer {
 export class SchemaEntry extends Memoizer {
   /**
    * The name of this schema entry.
-   * @type {string}
    */
-  _name
+  private readonly _name: string
 
-  constructor(name) {
+  constructor(name: string) {
     super()
     this._name = name
   }
 
   /**
    * The name of this schema entry.
-   * @returns {string}
    */
-  get name() {
+  public get name(): string {
     return this._name
   }
 
@@ -205,16 +175,17 @@ export class SchemaEntry extends Memoizer {
    *
    * This method is a stub to be overridden in {@link SchemaEntryWithAttributes}.
    *
-   * @param {string} attributeName The attribute to check for.
-   * @returns {boolean} Whether this schema entry has this attribute.
+   * @param attributeName The attribute to check for.
+   * @returns Whether this schema entry has this attribute.
    */
   // eslint-disable-next-line no-unused-vars
-  hasBooleanAttribute(attributeName) {
+  public hasBooleanAttribute(attributeName: string): boolean {
     return false
   }
 }
 
 // TODO: Switch back to class constant once upstream bug is fixed.
+type SchemaPropertyType = 'categoryProperty' | 'typeProperty' | 'roleProperty'
 const categoryProperty = 'categoryProperty'
 const typeProperty = 'typeProperty'
 const roleProperty = 'roleProperty'
@@ -225,36 +196,32 @@ const roleProperty = 'roleProperty'
 export class SchemaProperty extends SchemaEntry {
   /**
    * The type of the property.
-   * @type {string}
    */
-  _propertyType
+  private readonly _propertyType: SchemaPropertyType
 
-  constructor(name, propertyType) {
+  constructor(name: string, propertyType: SchemaPropertyType) {
     super(name)
     this._propertyType = propertyType
   }
 
   /**
    * Whether this property describes a schema category.
-   * @returns {boolean}
    */
-  get isCategoryProperty() {
+  public get isCategoryProperty(): boolean {
     return this._propertyType === categoryProperty
   }
 
   /**
    * Whether this property describes a data type.
-   * @returns {boolean}
    */
-  get isTypeProperty() {
+  public get isTypeProperty(): boolean {
     return this._propertyType === typeProperty
   }
 
   /**
    * Whether this property describes a role.
-   * @returns {boolean}
    */
-  get isRoleProperty() {
+  public get isRoleProperty(): boolean {
     return this._propertyType === roleProperty
   }
 }
@@ -272,30 +239,27 @@ const stringProperty = new SchemaProperty('stringProperty', typeProperty)
 export class SchemaAttribute extends SchemaEntry {
   /**
    * The categories of elements this schema attribute applies to.
-   * @type {Set<SchemaProperty>}
    */
-  _categoryProperties
+  private readonly _categoryProperties: Set<SchemaProperty>
 
   /**
    * The data type of this schema attribute.
-   * @type {SchemaProperty}
    */
-  _typeProperty
+  private readonly _typeProperty: SchemaProperty
 
   /**
    * The set of role properties for this schema attribute.
-   * @type {Set<SchemaProperty>}
    */
-  _roleProperties
+  private readonly _roleProperties: Set<SchemaProperty>
 
   /**
    * Constructor.
    *
-   * @param {string} name The name of the schema attribute.
-   * @param {SchemaProperty[]} properties The properties assigned to this schema attribute.
+   * @param name The name of the schema attribute.
+   * @param properties The properties assigned to this schema attribute.
    */
-  constructor(name, properties) {
-    super(name, new Set(), new Map())
+  constructor(name: string, properties: SchemaProperty[]) {
+    super(name)
 
     // Parse properties
     const categoryProperties = properties.filter((property) => property?.isCategoryProperty)
@@ -307,9 +271,8 @@ export class SchemaAttribute extends SchemaEntry {
 
   /**
    * The categories of elements this schema attribute applies to.
-   * @returns {Set<SchemaProperty>|SchemaProperty|undefined}
    */
-  get categoryProperty() {
+  public get categoryProperty(): Set<SchemaProperty> | SchemaProperty | undefined {
     switch (this._categoryProperties.size) {
       case 0:
         return undefined
@@ -322,17 +285,15 @@ export class SchemaAttribute extends SchemaEntry {
 
   /**
    * The data type property of this schema attribute.
-   * @returns {SchemaProperty}
    */
-  get typeProperty() {
+  public get typeProperty(): SchemaProperty {
     return this._typeProperty
   }
 
   /**
    * The set of role properties for this schema attribute.
-   * @returns {Set<SchemaProperty>}
    */
-  get roleProperties() {
+  public get roleProperties(): Set<SchemaProperty> {
     return new Set(this._roleProperties)
   }
 }
@@ -343,41 +304,28 @@ export class SchemaAttribute extends SchemaEntry {
 export class SchemaEntryWithAttributes extends SchemaEntry {
   /**
    * The set of boolean attributes this schema entry has.
-   * @type {Set<SchemaAttribute>}
    */
-  booleanAttributes
+  readonly booleanAttributes: Set<SchemaAttribute>
 
   /**
    * The collection of value attributes this schema entry has.
-   * @type {Map<SchemaAttribute, *>}
    */
-  valueAttributes
+  readonly valueAttributes: Map<SchemaAttribute, any>
 
   /**
    * The set of boolean attribute names this schema entry has.
-   * @type {Set<string>}
    */
-  booleanAttributeNames
+  readonly booleanAttributeNames: Set<string>
 
   /**
    * The collection of value attribute names this schema entry has.
-   * @type {Map<string, *>}
    */
-  valueAttributeNames
+  readonly valueAttributeNames: Map<string, any>
 
-  constructor(name, booleanAttributes, valueAttributes) {
+  constructor(name: string, booleanAttributes: Set<SchemaAttribute>, valueAttributes: Map<SchemaAttribute, any>) {
     super(name)
     this.booleanAttributes = booleanAttributes
     this.valueAttributes = valueAttributes
-    this._parseAttributeNames()
-  }
-
-  /**
-   * Create aliases of the attribute collections keyed on their names.
-   *
-   * @private
-   */
-  _parseAttributeNames() {
     this.booleanAttributeNames = new Set()
     for (const attribute of this.booleanAttributes) {
       this.booleanAttributeNames.add(attribute.name)
@@ -390,43 +338,41 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
 
   /**
    * Whether this schema entry has this attribute (by name).
-   * @param {string} attributeName The attribute to check for.
-   * @returns {boolean} Whether this schema entry has this attribute.
+   * @param attributeName The attribute to check for.
+   * @returns Whether this schema entry has this attribute.
    */
-  hasAttribute(attributeName) {
+  public hasAttribute(attributeName: string): boolean {
     return this.booleanAttributeNames.has(attributeName) || this.valueAttributeNames.has(attributeName)
   }
 
   /**
    * Whether this schema entry has this boolean attribute (by name).
-   * @param {string} attributeName The attribute to check for.
-   * @returns {boolean} Whether this schema entry has this attribute.
+   * @param attributeName The attribute to check for.
+   * @returns Whether this schema entry has this attribute.
    */
-  hasBooleanAttribute(attributeName) {
+  public hasBooleanAttribute(attributeName: string): boolean {
     return this.booleanAttributeNames.has(attributeName)
   }
 
   /**
    * Retrieve the value of a value attribute (by name) on this schema entry.
-   * @param {string} attributeName The attribute whose value should be returned.
-   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
-   * @returns {*} The value of the attribute.
+   * @param attributeName The attribute whose value should be returned.
+   * @param alwaysReturnArray Whether to return a singleton array instead of a scalar value.
+   * @returns The value of the attribute.
    */
-  getAttributeValue(attributeName, alwaysReturnArray = false) {
+  public getAttributeValue(attributeName: string, alwaysReturnArray = false): any {
     return SchemaEntryWithAttributes._getMapArrayValue(this.valueAttributeNames, attributeName, alwaysReturnArray)
   }
 
   /**
    * Return a map value, with a scalar being returned in lieu of a singleton array if alwaysReturnArray is false.
    *
-   * @template K,V
-   * @param {Map<K,V>} map The map to search.
-   * @param {K} key A key in the map.
-   * @param {boolean} alwaysReturnArray Whether to return a singleton array instead of a scalar value.
-   * @returns {V|V[]} The value for the key in the passed map.
-   * @private
+   * @param map The map to search.
+   * @param key A key in the map.
+   * @param alwaysReturnArray Whether to return a singleton array instead of a scalar value.
+   * @returns The value for the key in the passed map.
    */
-  static _getMapArrayValue(map, key, alwaysReturnArray) {
+  private static _getMapArrayValue<K, V>(map: Map<K, V>, key: K, alwaysReturnArray: boolean): V | V[] {
     const value = map.get(key)
     if (!alwaysReturnArray && Array.isArray(value) && value.length === 1) {
       return value[0]
@@ -442,19 +388,23 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
 export class SchemaUnit extends SchemaEntryWithAttributes {
   /**
    * The legal derivatives of this unit.
-   * @type {string[]}
    */
-  _derivativeUnits
+  private readonly _derivativeUnits: string[]
 
   /**
    * Constructor.
    *
-   * @param {string} name The name of the unit.
-   * @param {Set<SchemaAttribute>} booleanAttributes This unit's boolean attributes.
-   * @param {Map<SchemaAttribute, *>} valueAttributes This unit's key-value attributes.
-   * @param {SchemaEntryManager<SchemaUnitModifier>} unitModifiers The collection of unit modifiers.
+   * @param name The name of the unit.
+   * @param booleanAttributes This unit's boolean attributes.
+   * @param valueAttributes This unit's key-value attributes.
+   * @param unitModifiers The collection of unit modifiers.
    */
-  constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
+  constructor(
+    name: string,
+    booleanAttributes: Set<SchemaAttribute>,
+    valueAttributes: Map<SchemaAttribute, any>,
+    unitModifiers: SchemaEntryManager<SchemaUnitModifier>,
+  ) {
     super(name, booleanAttributes, valueAttributes)
 
     this._derivativeUnits = [name]
@@ -476,40 +426,40 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
     }
   }
 
-  _pushPluralUnit() {
+  private _pushPluralUnit(): string | null {
     if (!this.isUnitSymbol) {
-      const pluralUnit = pluralize.plural(this._name)
+      const pluralUnit = pluralize.plural(this.name)
       this._derivativeUnits.push(pluralUnit)
       return pluralUnit
     }
     return null
   }
 
-  *derivativeUnits() {
+  public *derivativeUnits(): Generator<string, void, void> {
     for (const unit of this._derivativeUnits) {
       yield unit
     }
   }
 
-  get isPrefixUnit() {
+  public get isPrefixUnit(): boolean {
     return this.hasAttribute('unitPrefix')
   }
 
-  get isSIUnit() {
+  public get isSIUnit(): boolean {
     return this.hasAttribute('SIUnit')
   }
 
-  get isUnitSymbol() {
+  public get isUnitSymbol(): boolean {
     return this.hasAttribute('unitSymbol')
   }
 
   /**
    * Determine if a value has this unit.
    *
-   * @param {string} value -- either the whole value or the part after a blank (if not a prefix unit)
-   * @returns {boolean} Whether the value has these units.
+   * @param value Either the whole value or the part after a blank (if not a prefix unit)
+   * @returns Whether the value has these units.
    */
-  validateUnit(value) {
+  public validateUnit(value: string): boolean {
     if (value == null || value === '') {
       return false
     }
@@ -534,42 +484,45 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
    * The units for this unit class.
    * @type {Map<string, SchemaUnit>}
    */
-  _units
+  private readonly _units: Map<string, SchemaUnit>
 
   /**
    * Constructor.
    *
-   * @param {string} name The name of this unit class.
-   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this unit class.
-   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this unit class.
-   * @param {Map<string, SchemaUnit>} units The units for this unit class.
+   * @param name The name of this unit class.
+   * @param booleanAttributes The boolean attributes for this unit class.
+   * @param valueAttributes The value attributes for this unit class.
+   * @param units The units for this unit class.
    */
-  constructor(name, booleanAttributes, valueAttributes, units) {
+  constructor(
+    name: string,
+    booleanAttributes: Set<SchemaAttribute>,
+    valueAttributes: Map<SchemaAttribute, any>,
+    units: Map<string, SchemaUnit>,
+  ) {
     super(name, booleanAttributes, valueAttributes)
     this._units = units
   }
 
   /**
    * Get the units for this unit class.
-   * @returns {Map<string, SchemaUnit>}
    */
-  get units() {
+  public get units(): Map<string, SchemaUnit> {
     return new Map(this._units)
   }
 
   /**
    * Get the default unit for this unit class.
-   * @returns {SchemaUnit}
    */
-  get defaultUnit() {
+  public get defaultUnit(): SchemaUnit {
     return this._units.get(this.getAttributeValue('defaultUnits'))
   }
 
   /**
    * Extracts the Unit class and remainder
-   * @returns {Array} [SchemaUnit, string, string] containing unit class, unit string, and value string
+   * @returns Unit class, unit string, and value string
    */
-  extractUnit(value) {
+  public extractUnit(value: string): [SchemaUnit | null, string | null, string] {
     let actualUnit = null // The Unit class of the value
     let actualValueString = null // The actual value part of the value
     let actualUnitString = null
@@ -610,11 +563,7 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
 /**
  * SchemaUnitModifier class
  */
-export class SchemaUnitModifier extends SchemaEntryWithAttributes {
-  constructor(name, booleanAttributes, valueAttributes) {
-    super(name, booleanAttributes, valueAttributes)
-  }
-}
+export class SchemaUnitModifier extends SchemaEntryWithAttributes {}
 
 /**
  * SchemaValueClass class
@@ -622,28 +571,30 @@ export class SchemaUnitModifier extends SchemaEntryWithAttributes {
 export class SchemaValueClass extends SchemaEntryWithAttributes {
   /**
    * The character class-based regular expression.
-   * @type {RegExp}
-   * @private
    */
-  _charClassRegex
+  private readonly _charClassRegex: RegExp
   /**
    * The "word form"-based regular expression.
-   * @type {RegExp}
-   * @private
    */
-  _wordRegex
+  private readonly _wordRegex: RegExp
 
   /**
    * Constructor.
    *
-   * @param {string} name The name of this value class.
-   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this value class.
-   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this value class.
-   * @param {RegExp} charClassRegex The character class-based regular expression for this value class.
-   * @param {RegExp} wordRegex The "word form"-based regular expression for this value class.
+   * @param name The name of this value class.
+   * @param booleanAttributes The boolean attributes for this value class.
+   * @param valueAttributes The value attributes for this value class.
+   * @param charClassRegex The character class-based regular expression for this value class.
+   * @param wordRegex The "word form"-based regular expression for this value class.
    */
 
-  constructor(name, booleanAttributes, valueAttributes, charClassRegex, wordRegex) {
+  constructor(
+    name: string,
+    booleanAttributes: Set<SchemaAttribute>,
+    valueAttributes: Map<SchemaAttribute, any>,
+    charClassRegex: RegExp,
+    wordRegex: RegExp,
+  ) {
     super(name, booleanAttributes, valueAttributes)
     this._charClassRegex = charClassRegex
     this._wordRegex = wordRegex
@@ -652,10 +603,10 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
   /**
    * Determine if a value is valid according to this value class.
    *
-   * @param {string} value A HED value.
-   * @returns {boolean} Whether the value conforms to this value class.
+   * @param value A HED value.
+   * @returns Whether the value conforms to this value class.
    */
-  validateValue(value) {
+  public validateValue(value: string): boolean {
     return this._wordRegex.test(value) && this._charClassRegex.test(value)
   }
 }
@@ -666,42 +617,40 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
 export class SchemaTag extends SchemaEntryWithAttributes {
   /**
    * This tag's parent tag.
-   * @type {SchemaTag}
-   * @private
    */
-  _parent
+  private _parent: SchemaTag
 
   /**
    * This tag's unit classes.
-   * @type {SchemaUnitClass[]}
-   * @private
    */
-  _unitClasses
+  private readonly _unitClasses: SchemaUnitClass[]
 
   /**
    * This tag's value-classes
-   * @type {SchemaValueClass[]}
-   * @private
    */
-  _valueClasses
+  private readonly _valueClasses: SchemaValueClass[]
 
   /**
    * This tag's value-taking child.
-   * @type {SchemaValueTag}
-   * @private
    */
-  _valueTag
+  private _valueTag: SchemaValueTag
 
   /**
    * Constructor.
    *
-   * @param {string} name The name of this tag.
-   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this tag.
-   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this tag.
-   * @param {SchemaUnitClass[]} unitClasses The unit classes for this tag.
-   * @param {SchemaValueClass[]} valueClasses The value classes for this tag.
+   * @param name The name of this tag.
+   * @param booleanAttributes The boolean attributes for this tag.
+   * @param valueAttributes The value attributes for this tag.
+   * @param unitClasses The unit classes for this tag.
+   * @param valueClasses The value classes for this tag.
    */
-  constructor(name, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
+  constructor(
+    name: string,
+    booleanAttributes: Set<SchemaAttribute>,
+    valueAttributes: Map<SchemaAttribute, any>,
+    unitClasses: SchemaUnitClass[],
+    valueClasses: SchemaValueClass[],
+  ) {
     super(name, booleanAttributes, valueAttributes)
     this._unitClasses = unitClasses ?? []
     this._valueClasses = valueClasses ?? []
@@ -709,41 +658,37 @@ export class SchemaTag extends SchemaEntryWithAttributes {
 
   /**
    * This tag's unit classes.
-   * @type {SchemaUnitClass[]}
    */
-  get unitClasses() {
+  public get unitClasses(): SchemaUnitClass[] {
     return this._unitClasses.slice() // The slice prevents modification
   }
 
   /**
    * Whether this tag has any unit classes.
-   * @returns {boolean}
    */
-  get hasUnitClasses() {
+  public get hasUnitClasses(): boolean {
     return this._unitClasses.length !== 0
   }
 
   /**
    * This tag's value classes.
-   * @type {SchemaValueClass[]}
    */
-  get valueClasses() {
+  public get valueClasses(): SchemaValueClass[] {
     return this._valueClasses.slice()
   }
 
   /**
    * This tag's value-taking child tag.
-   * @returns {SchemaValueTag}
    */
-  get valueTag() {
+  public get valueTag(): SchemaValueTag {
     return this._valueTag
   }
 
   /**
    * Set the tag's value-taking child tag.
-   * @param {SchemaValueTag} newValueTag The new value-taking child tag.
+   * @param newValueTag The new value-taking child tag.
    */
-  set valueTag(newValueTag) {
+  public set valueTag(newValueTag: SchemaValueTag) {
     if (!this._isPrivateFieldSet(this._valueTag, 'value tag')) {
       this._valueTag = newValueTag
     }
@@ -751,17 +696,16 @@ export class SchemaTag extends SchemaEntryWithAttributes {
 
   /**
    * This tag's parent tag.
-   * @type {SchemaTag}
    */
-  get parent() {
+  public get parent(): SchemaTag {
     return this._parent
   }
 
   /**
    * Set the tag's parent tag.
-   * @param {SchemaTag} newParent The new parent tag.
+   * @param newParent The new parent tag.
    */
-  set parent(newParent) {
+  public set parent(newParent: SchemaTag) {
     if (!this._isPrivateFieldSet(this._parent, 'parent')) {
       this._parent = newParent
     }
@@ -770,13 +714,13 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   /**
    * Throw an error if a private field is already set.
    *
-   * @param {*} field The field being set.
-   * @param {string} fieldName The name of the field (for error reporting).
-   * @return {boolean} Whether the field is set (never returns true).
+   * @param field The field being set.
+   * @param fieldName The name of the field (for error reporting).
+   * @return Whether the field is set (never returns true).
    * @throws {IssueError} If the field is already set.
    * @private
    */
-  _isPrivateFieldSet(field, fieldName) {
+  private _isPrivateFieldSet(field: any, fieldName: string): boolean {
     if (field !== undefined) {
       IssueError.generateAndThrowInternalError(
         `Attempted to set ${fieldName} for schema tag ${this.longName} when it already has one.`,
@@ -787,9 +731,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
 
   /**
    * Return all of this tag's ancestors.
-   * @returns {Array}
    */
-  get ancestors() {
+  public get ancestors(): SchemaTag[] {
     return this._memoize('ancestors', () => {
       if (this.parent) {
         return [this.parent, ...this.parent.ancestors]
@@ -800,9 +743,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
 
   /**
    * This tag's long name.
-   * @returns {string}
    */
-  get longName() {
+  public get longName(): string {
     const nameParts = this.ancestors.map((parentTag) => parentTag.name)
     nameParts.reverse().push(this.name)
     return nameParts.join('/')
@@ -811,10 +753,10 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   /**
    * Extend this tag's short name.
    *
-   * @param {string} extension The extension.
-   * @returns {string} The extended short string.
+   * @param extension The extension.
+   * @returns The extended short string.
    */
-  extend(extension) {
+  public extend(extension: string): string {
     if (extension) {
       return this.name + '/' + extension
     } else {
@@ -825,10 +767,10 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   /**
    * Extend this tag's long name.
    *
-   * @param {string} extension The extension.
-   * @returns {string} The extended long string.
+   * @param extension The extension.
+   * @returns The extended long string.
    */
-  longExtend(extension) {
+  public longExtend(extension: string): string {
     if (extension) {
       return this.longName + '/' + extension
     } else {
@@ -843,9 +785,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
 export class SchemaValueTag extends SchemaTag {
   /**
    * This tag's long name.
-   * @returns {string}
    */
-  get longName() {
+  public get longName(): string {
     const nameParts = this.ancestors.map((parentTag) => parentTag.name)
     nameParts.reverse().push('#')
     return nameParts.join('/')
@@ -854,20 +795,20 @@ export class SchemaValueTag extends SchemaTag {
   /**
    * Extend this tag's short name.
    *
-   * @param {string} extension The extension.
-   * @returns {string} The extended short string.
+   * @param extension The extension.
+   * @returns The extended short string.
    */
-  extend(extension) {
+  public extend(extension: string): string {
     return this.parent.extend(extension)
   }
 
   /**
    * Extend this tag's long name.
    *
-   * @param {string} extension The extension.
-   * @returns {string} The extended long string.
+   * @param extension The extension.
+   * @returns The extended long string.
    */
-  longExtend(extension) {
+  public longExtend(extension: string): string {
     return this.parent.longExtend(extension)
   }
 }

@@ -126,7 +126,7 @@ export class HedSchemas {
     this.#addPrefixesToSchemas()
   }
 
-  #addPrefixesToSchemas() {
+  #addPrefixesToSchemas(): void {
     for (const [prefix, schema] of this.schemas) {
       schema.prefix = prefix
     }

@@ -3,7 +3,7 @@ import { getTagSlashIndices } from '../utils/hedStrings'
 import { ReservedChecker } from './reservedChecker'
 
 /**
- * @typedef {import('../schema/entries.js').SchemaTag} SchemaTag
+ * @typedef {import('../schema/entries.ts').SchemaTag} SchemaTag
  * @typedef {import('../schema/containers.ts').HedSchemas} Schemas
  * @typedef {import('./tokenizer.js').TagSpec} TagSpec
  */
