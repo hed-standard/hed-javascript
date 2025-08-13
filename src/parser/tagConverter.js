@@ -3,8 +3,8 @@ import { getTagSlashIndices } from '../utils/hedStrings'
 import { ReservedChecker } from './reservedChecker'
 
 /**
- * @typedef {import('../schema/entries.js').SchemaTag} SchemaTag
- * @typedef {import('../schema/containers.js').Schemas} Schemas
+ * @typedef {import('../schema/entries.ts').SchemaTag} SchemaTag
+ * @typedef {import('../schema/containers.ts').HedSchemas} Schemas
  * @typedef {import('./tokenizer.js').TagSpec} TagSpec
  */
 
@@ -38,7 +38,7 @@ export default class TagConverter {
 
   /**
    * A HED schema collection.
-   * @type {Schemas}
+   * @type {HedSchemas}
    */
   hedSchemas
 
@@ -64,7 +64,7 @@ export default class TagConverter {
    * Constructor.
    *
    * @param {TagSpec} tagSpec The tag specification to convert.
-   * @param {Schemas} hedSchemas The HED schema collection.
+   * @param {HedSchemas} hedSchemas The HED schema collection.
    */
   constructor(tagSpec, hedSchemas) {
     this.hedSchemas = hedSchemas

@@ -1,5 +1,5 @@
 import { generateIssue } from '../issues/issues'
-import { BidsHedIssue } from '../bids/types/issues.js'
+import { BidsHedIssue } from '../bids/types/issues'
 
 export class Event {
   /**

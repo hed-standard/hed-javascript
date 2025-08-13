@@ -14,7 +14,7 @@ export default class HedStringSplitter {
 
   /**
    * The collection of HED schemas.
-   * @type {Schemas}
+   * @type {HedSchemas}
    */
   hedSchemas
 
@@ -28,7 +28,7 @@ export default class HedStringSplitter {
    * Constructor.
    *
    * @param {string} hedString The HED string to be split and parsed.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {HedSchemas} hedSchemas The collection of HED schemas.
    */
   constructor(hedString, hedSchemas) {
     this.hedString = hedString

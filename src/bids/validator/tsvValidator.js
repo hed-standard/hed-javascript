@@ -28,7 +28,7 @@ export class BidsHedTsvValidator extends BidsValidator {
    * Constructor.
    *
    * @param {BidsTsvFile} tsvFile - The BIDS TSV file being validated.
-   * @param {Schemas} hedSchemas - The HED schemas used to validate the tsv file.
+   * @param {HedSchemas} hedSchemas - The HED schemas used to validate the tsv file.
    */
   constructor(tsvFile, hedSchemas) {
     super(hedSchemas)
@@ -285,7 +285,7 @@ export class BidsHedTsvParser {
 
   /**
    * The HED schema collection being parsed against.
-   * @type {Schemas}
+   * @type {HedSchemas}
    */
   hedSchemas
 
@@ -293,7 +293,7 @@ export class BidsHedTsvParser {
    * Constructor.
    *
    * @param {BidsTsvFile} tsvFile The BIDS TSV file being parsed.
-   * @param {Schemas} hedSchemas The HED schema collection being parsed against.
+   * @param {HedSchemas} hedSchemas The HED schema collection being parsed against.
    */
   constructor(tsvFile, hedSchemas) {
     this.tsvFile = tsvFile

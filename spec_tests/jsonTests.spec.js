@@ -8,7 +8,7 @@ import { beforeAll, describe, afterAll } from '@jest/globals'
 import { BidsHedIssue } from '../src/bids/types/issues'
 import { buildSchemas } from '../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../src/schema/specs'
-import { Schemas } from '../src/schema/containers'
+import { HedSchemas } from '../src/schema/containers'
 import { BidsSidecar, BidsTsvFile } from '../src/bids'
 import { generateIssue, IssueError } from '../src/issues/issues'
 import { DefinitionManager } from '../src/parser/definitionManager'
@@ -332,7 +332,7 @@ describe('HED validation using JSON tests', () => {
             hedMap.set(prefix, schema)
           }
         }
-        return new Schemas(hedMap)
+        return new HedSchemas(hedMap)
       }
 
       beforeAll(async () => {
