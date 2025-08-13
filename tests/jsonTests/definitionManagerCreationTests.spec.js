@@ -1,12 +1,13 @@
+import path from 'node:path'
+
 import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, afterAll } from '@jest/globals'
-import path from 'node:path'
 
 import { buildSchemas } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { parseHedString } from '../../src/parser/parser'
-import { definitionTestData } from '../jsonTestData/definitionManagerCreationTests.data.js'
+import { definitionTestData } from '../jsonTestData/definitionManagerCreationTests.data'
 import { shouldRun } from '../testHelpers/testUtilities'
 import { Definition, DefinitionManager } from '../../src/parser/definitionManager'
 import { Issue } from '../../src/issues/issues'

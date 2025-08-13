@@ -120,12 +120,10 @@ export class HedSchemas {
   constructor(schemas: Map<string, HedSchema> | HedSchema) {
     if (schemas instanceof Map) {
       this.schemas = schemas
-    } else if (schemas instanceof HedSchema) {
+    } else {
       this.schemas = new Map([['', schemas]])
     }
-    if (this.schemas) {
-      this.#addPrefixesToSchemas()
-    }
+    this.#addPrefixesToSchemas()
   }
 
   #addPrefixesToSchemas() {
