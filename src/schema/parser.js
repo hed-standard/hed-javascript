@@ -142,32 +142,12 @@ export default class SchemaParser {
     return new Map(zip(tagElements, tags))
   }
 
-  // Rewrite starts here.
-
   parseProperties() {
     const propertyDefinitions = this._getDefinitionElements('property')
     this.properties = new Map()
     for (const definition of propertyDefinitions) {
       const propertyName = SchemaParser.getElementTagName(definition)
-      if (this._versionDefinitions.categoryProperties?.has(propertyName)) {
-        this.properties.set(
-          propertyName,
-          // TODO: Switch back to class constant once upstream bug is fixed.
-          new SchemaProperty(propertyName, 'categoryProperty'),
-        )
-      } else if (this._versionDefinitions.typeProperties?.has(propertyName)) {
-        this.properties.set(
-          propertyName,
-          // TODO: Switch back to class constant once upstream bug is fixed.
-          new SchemaProperty(propertyName, 'typeProperty'),
-        )
-      } else if (this._versionDefinitions.roleProperties?.has(propertyName)) {
-        this.properties.set(
-          propertyName,
-          // TODO: Switch back to class constant once upstream bug is fixed.
-          new SchemaProperty(propertyName, 'roleProperty'),
-        )
-      }
+      this.properties.set(propertyName, new SchemaProperty(propertyName))
     }
     this._addCustomProperties()
   }
@@ -179,7 +159,7 @@ export default class SchemaParser {
       const attributeName = SchemaParser.getElementTagName(definition)
       const propertyElements = definition.property ?? []
       const properties = propertyElements.map((element) => this.properties.get(SchemaParser.getElementTagName(element)))
-      this.attributes.set(attributeName, new SchemaAttribute(attributeName, properties))
+      this.attributes.set(attributeName, new SchemaAttribute(attributeName, new Set(properties)))
     }
     this._addCustomAttributes()
   }
@@ -370,11 +350,11 @@ export default class SchemaParser {
 
     if (semver.lt(this.rootElement.$.version, '8.3.0')) {
       filteredAttributeArray = attributeArray.filter((attribute) =>
-        attribute.roleProperties.has(this.properties.get('isInheritedProperty')),
+        attribute.properties.has(this.properties.get('isInheritedProperty')),
       )
     } else {
       filteredAttributeArray = attributeArray.filter(
-        (attribute) => !attribute.roleProperties.has(this.properties.get('annotationProperty')),
+        (attribute) => !attribute.properties.has(this.properties.get('annotationProperty')),
       )
     }
 
@@ -484,17 +464,17 @@ export default class SchemaParser {
     const isInheritedProperty = this.properties.get('isInheritedProperty')
     const extensionAllowedAttribute = this.attributes.get('extensionAllowed')
     if (this.rootElement.$.library === undefined && semver.lt(this.rootElement.$.version, '8.2.0')) {
-      extensionAllowedAttribute._roleProperties.add(isInheritedProperty)
+      extensionAllowedAttribute._properties.add(isInheritedProperty)
     }
     const inLibraryAttribute = this.attributes.get('inLibrary')
     if (inLibraryAttribute && semver.lt(this.rootElement.$.version, '8.3.0')) {
-      inLibraryAttribute._roleProperties.add(isInheritedProperty)
+      inLibraryAttribute._properties.add(isInheritedProperty)
     }
   }
 
   _addCustomProperties() {
     if (this.rootElement.$.library === undefined && semver.lt(this.rootElement.$.version, '8.2.0')) {
-      const recursiveProperty = new SchemaProperty('isInheritedProperty', 'roleProperty')
+      const recursiveProperty = new SchemaProperty('isInheritedProperty')
       this.properties.set('isInheritedProperty', recursiveProperty)
     }
   }

@@ -184,73 +184,19 @@ export class SchemaEntry extends Memoizer {
   }
 }
 
-// TODO: Switch back to class constant once upstream bug is fixed.
-type SchemaPropertyType = 'categoryProperty' | 'typeProperty' | 'roleProperty'
-const categoryProperty = 'categoryProperty'
-const typeProperty = 'typeProperty'
-const roleProperty = 'roleProperty'
-
 /**
  * A schema property.
  */
-export class SchemaProperty extends SchemaEntry {
-  /**
-   * The type of the property.
-   */
-  private readonly _propertyType: SchemaPropertyType
-
-  constructor(name: string, propertyType: SchemaPropertyType) {
-    super(name)
-    this._propertyType = propertyType
-  }
-
-  /**
-   * Whether this property describes a schema category.
-   */
-  public get isCategoryProperty(): boolean {
-    return this._propertyType === categoryProperty
-  }
-
-  /**
-   * Whether this property describes a data type.
-   */
-  public get isTypeProperty(): boolean {
-    return this._propertyType === typeProperty
-  }
-
-  /**
-   * Whether this property describes a role.
-   */
-  public get isRoleProperty(): boolean {
-    return this._propertyType === roleProperty
-  }
-}
-
-// Pseudo-properties
-
-// TODO: Switch back to class constant once upstream bug is fixed.
-export const nodeProperty = new SchemaProperty('nodeProperty', categoryProperty)
-export const schemaAttributeProperty = new SchemaProperty('schemaAttributeProperty', categoryProperty)
-const stringProperty = new SchemaProperty('stringProperty', typeProperty)
+export class SchemaProperty extends SchemaEntry {}
 
 /**
  * A schema attribute.
  */
 export class SchemaAttribute extends SchemaEntry {
   /**
-   * The categories of elements this schema attribute applies to.
+   * The properties assigned to this schema attribute.
    */
-  private readonly _categoryProperties: Set<SchemaProperty>
-
-  /**
-   * The data type of this schema attribute.
-   */
-  private readonly _typeProperty: SchemaProperty
-
-  /**
-   * The set of role properties for this schema attribute.
-   */
-  private readonly _roleProperties: Set<SchemaProperty>
+  readonly _properties: Set<SchemaProperty>
 
   /**
    * Constructor.
@@ -258,43 +204,16 @@ export class SchemaAttribute extends SchemaEntry {
    * @param name The name of the schema attribute.
    * @param properties The properties assigned to this schema attribute.
    */
-  constructor(name: string, properties: SchemaProperty[]) {
+  constructor(name: string, properties: Set<SchemaProperty>) {
     super(name)
-
-    // Parse properties
-    const categoryProperties = properties.filter((property) => property?.isCategoryProperty)
-    this._categoryProperties = categoryProperties.length === 0 ? new Set([nodeProperty]) : new Set(categoryProperties)
-    const typeProperties = properties.filter((property) => property?.isTypeProperty)
-    this._typeProperty = typeProperties.length === 0 ? stringProperty : typeProperties[0]
-    this._roleProperties = new Set(properties.filter((property) => property?.isRoleProperty))
+    this._properties = properties
   }
 
   /**
-   * The categories of elements this schema attribute applies to.
+   * The collection of properties for this schema attribute.
    */
-  public get categoryProperty(): Set<SchemaProperty> | SchemaProperty | undefined {
-    switch (this._categoryProperties.size) {
-      case 0:
-        return undefined
-      case 1:
-        return Array.from(this._categoryProperties)[0]
-      default:
-        return this._categoryProperties
-    }
-  }
-
-  /**
-   * The data type property of this schema attribute.
-   */
-  public get typeProperty(): SchemaProperty {
-    return this._typeProperty
-  }
-
-  /**
-   * The set of role properties for this schema attribute.
-   */
-  public get roleProperties(): Set<SchemaProperty> {
-    return new Set(this._roleProperties)
+  public get properties(): Set<SchemaProperty> {
+    return new Set(this._properties)
   }
 }
 
@@ -746,7 +665,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    */
   public get longName(): string {
     const nameParts = this.ancestors.map((parentTag) => parentTag.name)
-    nameParts.reverse().push(this.name)
+    nameParts.reverse()
+    nameParts.push(this.name)
     return nameParts.join('/')
   }
 
@@ -788,7 +708,8 @@ export class SchemaValueTag extends SchemaTag {
    */
   public get longName(): string {
     const nameParts = this.ancestors.map((parentTag) => parentTag.name)
-    nameParts.reverse().push('#')
+    nameParts.reverse()
+    nameParts.push('#')
     return nameParts.join('/')
   }
 
