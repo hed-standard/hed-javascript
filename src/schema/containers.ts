@@ -67,9 +67,9 @@ export class PrimarySchema extends HedSchema {
 
     super(entries, withStandard)
 
-    if (!this.library && this.version && lt(this.version, '8.0.0')) {
+    if (!library && version && lt(version, '8.0.0')) {
       IssueError.generateAndThrow('deprecatedStandardSchemaVersion', {
-        version: this.version,
+        version,
       })
     }
 
