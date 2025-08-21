@@ -37,7 +37,7 @@ export class SchemaEntries extends Memoizer {
   /**
    * The schema's tags.
    */
-  readonly tags: SchemaEntryManager<SchemaTag>
+  tags: SchemaEntryManager<SchemaTag>
 
   /**
    * Constructor.
@@ -61,7 +61,7 @@ export class SchemaEntryManager<T extends SchemaEntry> extends Memoizer {
   /**
    * The definitions managed by this entry manager.
    */
-  readonly _definitions: Map<string, T>
+  private readonly _definitions: Map<string, T>
 
   /**
    * Constructor.
@@ -71,6 +71,13 @@ export class SchemaEntryManager<T extends SchemaEntry> extends Memoizer {
   constructor(definitions: Map<string, T>) {
     super()
     this._definitions = definitions
+  }
+
+  /**
+   * Return a copy of the managed definition map.
+   */
+  public get definitions(): Map<string, T> {
+    return new Map(this._definitions)
   }
 
   /**
