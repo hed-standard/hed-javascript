@@ -2,8 +2,7 @@ import lt from 'semver/functions/lt'
 
 import { IssueError } from '../issues/issues'
 import { SchemaEntries } from './entries'
-
-type HedSchemaXMLObject = { HED: { $: { version: string; library?: string; withStandard?: string } } }
+import { HedSchemaXMLObject } from './xmlType'
 
 export class HedSchema {
   /**
