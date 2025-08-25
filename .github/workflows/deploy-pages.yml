@@ -65,7 +65,7 @@ jobs:
         run: npm run build
 
       - name: Upload artifact for deployment
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           # Specifies the directory to upload. This should match your build output folder.
           path: ./browser/buildweb
