@@ -1,3 +1,6 @@
+/** This module holds the classes for populating a schema from XML.
+ * @module schema/parser
+ */
 import Set from 'core-js-pure/actual/set'
 import flattenDeep from 'lodash/flattenDeep'
 import zip from 'lodash/zip'

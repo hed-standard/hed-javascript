@@ -1,5 +1,6 @@
 /**
  * A parsed HED substring.
+ * @module parser/arsedHedSubstring
  */
 export class ParsedHedSubstring {
   /**

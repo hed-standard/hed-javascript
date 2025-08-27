@@ -1,3 +1,7 @@
+/** This module holds the sidecar validator class.
+ * @module bids/validator/sidecarValidator
+ */
+
 import { BidsHedIssue } from '../types/issues'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue, IssueError, updateIssueParameters } from '../../issues/issues'

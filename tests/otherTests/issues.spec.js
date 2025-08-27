@@ -149,8 +149,8 @@ describe('BidsHedIssue', () => {
       expect(reduced.length).toBe(2)
       const reducedError1 = reduced.find((issue) => issue.subCode === 'HED_ERROR_1')
       const reducedError2 = reduced.find((issue) => issue.subCode === 'HED_ERROR_2')
-      expect(reducedError1.issueMessage).toContain('There are 2 total errors of this type in 2 unique files.')
-      expect(reducedError2.issueMessage).toContain('There are 1 total errors of this type in 1 unique files.')
+      expect(reducedError1.issueMessage).toContain('There are 2 total issues of this type in 2 unique files.')
+      expect(reducedError2.issueMessage).toContain('There are 1 total issues of this type in 1 unique files.')
     })
 
     it('should handle a list with one of each issue type', () => {
@@ -165,8 +165,8 @@ describe('BidsHedIssue', () => {
       expect(reduced.length).toBe(2)
       const reducedError1 = reduced.find((issue) => issue.subCode === 'HED_ERROR_1')
       const reducedError2 = reduced.find((issue) => issue.subCode === 'HED_ERROR_2')
-      expect(reducedError1.issueMessage).toContain('There are 1 total errors of this type in 1 unique files.')
-      expect(reducedError2.issueMessage).toContain('There are 1 total errors of this type in 1 unique files.')
+      expect(reducedError1.issueMessage).toContain('There are 1 total issues of this type in 1 unique files.')
+      expect(reducedError2.issueMessage).toContain('There are 1 total issues of this type in 1 unique files.')
     })
 
     it('should handle an empty list of issues', () => {
@@ -202,7 +202,7 @@ describe('BidsHedIssue', () => {
 
       const reduced = BidsHedIssue.reduceIssues(issues)
       expect(reduced.length).toBe(1)
-      expect(reduced[0].issueMessage).toContain('There are 3 total errors of this type in 2 unique files.')
+      expect(reduced[0].issueMessage).toContain('There are 3 total issues of this type in 2 unique files.')
     })
   })
 
@@ -234,7 +234,7 @@ describe('BidsHedIssue', () => {
       const processed = BidsHedIssue.processIssues(issues, false, true)
       expect(processed.length).toBe(2)
       const error1 = processed.find((issue) => issue.subCode === 'HED_ERROR_1')
-      expect(error1.issueMessage).toContain('There are 2 total errors of this type in 2 unique files.')
+      expect(error1.issueMessage).toContain('There are 2 total issues of this type in 2 unique files.')
     })
 
     it('should return reduced errors and warnings when checkWarnings is true and limitErrors is true', () => {
@@ -242,8 +242,8 @@ describe('BidsHedIssue', () => {
       expect(processed.length).toBe(3)
       const error1 = processed.find((issue) => issue.subCode === 'HED_ERROR_1')
       const warning1 = processed.find((issue) => issue.subCode === 'HED_WARNING_1')
-      expect(error1.issueMessage).toContain('There are 2 total errors of this type in 2 unique files.')
-      expect(warning1.issueMessage).toContain('There are 1 total errors of this type in 1 unique files.')
+      expect(error1.issueMessage).toContain('There are 2 total issues of this type in 2 unique files.')
+      expect(warning1.issueMessage).toContain('There are 1 total issues of this type in 1 unique files.')
     })
   })
 })

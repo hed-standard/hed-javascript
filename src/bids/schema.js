@@ -1,12 +1,10 @@
 /**
  * This module contains functions for building HED schemas for BIDS datasets.
- * @module schema
+ * @module bids/schema
  */
 
 import { buildSchemas } from '../schema/init'
-import { IssueError } from '../issues/issues'
 import { SchemasSpec } from '../schema/specs'
-import { BidsJsonFile } from './types/json'
 
 /**
  * Build a HED schema collection based on the defined BIDS schemas.

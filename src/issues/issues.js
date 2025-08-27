@@ -1,3 +1,6 @@
+/** This module holds the issue classes.
+ * @module issues/issues
+ */
 import mapValues from 'lodash/mapValues'
 
 import issueData from './data'

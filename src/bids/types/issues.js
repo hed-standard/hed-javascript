@@ -1,6 +1,6 @@
 /**
  * Provides a wrapper for HED validation issues that is compatible with the BIDS validator.
- * @module issues
+ * @module bids/types/issues
  */
 import { generateIssue, IssueError } from '../../issues/issues.js'
 
@@ -140,7 +140,7 @@ export class BidsHedIssue {
 
       const numErrors = issueList.length
       const numFiles = new Set(issueList.map((issue) => issue.location)).size
-      newIssue.issueMessage += ` There are ${numErrors} total errors of this type in ${numFiles} unique files.`
+      newIssue.issueMessage += ` There are ${numErrors} total issues of this type in ${numFiles} unique files.`
 
       reducedIssues.push(newIssue)
     }

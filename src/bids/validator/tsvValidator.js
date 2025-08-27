@@ -1,3 +1,6 @@
+/** This module holds the tsv validator class.
+ * @module bids/validator/tsvValidator
+ */
 import { BidsHedIssue } from '../types/issues'
 import { BidsTsvElement, BidsTsvRow } from '../types/tsv'
 import { BidsValidator } from './validator'
