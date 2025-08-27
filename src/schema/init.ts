@@ -9,8 +9,7 @@ import { HedSchema, PrimarySchema, HedSchemas } from './containers'
 import { IssueError } from '../issues/issues'
 import { splitStringTrimAndRemoveBlanks } from '../utils/string'
 import { SchemasSpec } from './specs'
-
-type HedSchemaXMLObject = { HED: { $: { version: string; library?: string; withStandard?: string } } }
+import { HedSchemaXMLObject } from './xmlType'
 
 /**
  * Build a single schema container object from an XML file.

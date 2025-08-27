@@ -19,6 +19,11 @@ export default class PartneredSchemaMerger {
   destination: PartneredSchema
 
   /**
+   * The tag definitions of the partnered schema
+   */
+  destinationTagDefinitions: Map<string, SchemaTag>
+
+  /**
    * Constructor.
    *
    * @param sourceSchemas The sources of data to be merged.
@@ -26,6 +31,7 @@ export default class PartneredSchemaMerger {
   constructor(sourceSchemas: HedSchema[]) {
     this.sourceSchemas = sourceSchemas
     this.destination = new PartneredSchema(sourceSchemas)
+    this.destinationTagDefinitions = this.destination.entries.tags.definitions
     this._validate()
   }
 
@@ -64,13 +70,6 @@ export default class PartneredSchemaMerger {
   }
 
   /**
-   * The destination schema's tag collection.
-   */
-  get destinationTags(): SchemaEntryManager<SchemaTag> {
-    return this.destination.entries.tags
-  }
-
-  /**
    * Merge two lazy partnered schemas.
    */
   private _mergeData(): void {
@@ -84,6 +83,7 @@ export default class PartneredSchemaMerger {
     for (const tag of this.sourceTags.values()) {
       this._mergeTag(tag)
     }
+    this.destination.entries.tags = new SchemaEntryManager(this.destinationTagDefinitions)
   }
 
   /**
@@ -92,19 +92,19 @@ export default class PartneredSchemaMerger {
    * @param tag The tag to copy.
    */
   private _mergeTag(tag: SchemaTag): void {
-    if (!tag.getAttributeValue('inLibrary')) {
+    if (!tag.getAttributeValues('inLibrary')) {
       return
     }
 
     const shortName = tag.name
-    if (this.destinationTags.hasEntry(shortName.toLowerCase())) {
+    if (this.destinationTagDefinitions.has(shortName.toLowerCase())) {
       IssueError.generateAndThrow('lazyPartneredSchemasShareTag', { tag: shortName })
     }
 
-    const rootedTagShortName = tag.getAttributeValue('rooted')
+    const rootedTagShortName = tag.getSingleAttributeValue('rooted')
     if (rootedTagShortName) {
       const parentTag = tag.parent
-      if (parentTag?.name?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
+      if (parentTag?.name?.toLowerCase() !== rootedTagShortName.toLowerCase()) {
         IssueError.generateAndThrowInternalError(`Node ${shortName} is improperly rooted.`)
       }
     }
@@ -141,7 +141,7 @@ export default class PartneredSchemaMerger {
     } else {
       newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses, valueClasses)
     }
-    const destinationParentTag = this.destinationTags.getEntry(tag.parent?.name?.toLowerCase())
+    const destinationParentTag = this.destinationTagDefinitions.get(tag.parent?.name?.toLowerCase())
     if (destinationParentTag) {
       newTag.parent = destinationParentTag
       if (newTag instanceof SchemaValueTag) {
@@ -149,6 +149,6 @@ export default class PartneredSchemaMerger {
       }
     }
 
-    this.destinationTags._definitions.set(newTag.name.toLowerCase(), newTag)
+    this.destinationTagDefinitions.set(newTag.name.toLowerCase(), newTag)
   }
 }
