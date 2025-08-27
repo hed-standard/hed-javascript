@@ -102,7 +102,7 @@ function ValidateDatasetApp() {
     let issues = []
     try {
       setValidationStatus('Validating sidecars...')
-      issues.push(...dataset.validateSidecars())
+      issues = dataset.validateSidecars()
 
       const processedSidecarIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
       if (processedSidecarIssues.some((issue) => issue.severity === 'error')) {
@@ -115,7 +115,7 @@ function ValidateDatasetApp() {
       }
       setSuccessMessage('Preliminary sidecar validation passed. Continuing with TSV validation...')
       setValidationStatus('Validating TSV files...')
-      issues.push(...await dataset.validateTsvFiles())
+      issues = issues.concat(await dataset.validateTsvFiles())
     } catch (err) {
       console.error('[ValidateDatasetApp] Error during validation:', err)
       issues = BidsHedIssue.transformToBids([err], { path: 'Dataset Validation' })

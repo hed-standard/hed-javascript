@@ -273,9 +273,7 @@ export class BidsDataset {
     if (issues.some((issue) => issue.severity === 'error')) {
       return issues
     }
-    const tsvIssues = await this.validateTsvFiles()
-    issues.push(...tsvIssues)
-    return issues
+    return issues.concat(await this.validateTsvFiles())
   }
 
   /**
@@ -288,13 +286,12 @@ export class BidsDataset {
    * @private
    */
   validateSidecars() {
-    const issues = []
+    let issues = []
 
     for (const relativePath of organizedPathsGenerator(this.fileAccessor.organizedPaths, '.json')) {
       const sidecar = this.sidecarMap.get(relativePath)
       if (sidecar) {
-        const validationIssues = sidecar.validate(this.hedSchemas)
-        issues.push(...validationIssues)
+        issues = issues.concat(sidecar.validate(this.hedSchemas))
       }
     }
     return issues
@@ -310,15 +307,12 @@ export class BidsDataset {
    * @private
    */
   async validateTsvFiles() {
-    const issues = []
+    let issues = []
     for (const [category, catMap] of this.fileAccessor.organizedPaths) {
       const tsvPaths = catMap.get('tsv') || []
       const jsonPaths = catMap.get('json') || []
       for (const tsvPath of tsvPaths) {
-        const tsvIssues = await this._validateTsvFile(tsvPath, category, jsonPaths)
-        if (tsvIssues.length > 0) {
-          issues.push(...tsvIssues)
-        }
+        issues = issues.concat(await this._validateTsvFile(tsvPath, category, jsonPaths))
       }
     }
     return issues
