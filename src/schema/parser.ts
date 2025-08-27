@@ -119,9 +119,7 @@ export default class SchemaParser {
       childTags.push(parentElement)
     }
     const tagElementChildren = parentElement.node ?? []
-    childTags.push(
-      ...flattenDeep(tagElementChildren.map((child: NodeElement) => this.getAllChildTags(child, excludeTakeValueTags))),
-    )
+    childTags.push(...flattenDeep(tagElementChildren.map((child) => this.getAllChildTags(child, excludeTakeValueTags))))
     return childTags
   }
 
@@ -153,8 +151,8 @@ export default class SchemaParser {
     const nodeRoot = this.rootElement.schema
     const tagElements = []
     const tagElementChildren = nodeRoot.node
-    tagElements.push(...flattenDeep(tagElementChildren.map((child: NodeElement) => this.getAllChildTags(child, false))))
-    const tags = tagElements.map((element: NodeElement) => SchemaParser.getElementTagName(element))
+    tagElements.push(...flattenDeep(tagElementChildren.map((child) => this.getAllChildTags(child, false))))
+    const tags = tagElements.map((element) => SchemaParser.getElementTagName(element))
     return new Map(zip(tagElements, tags))
   }
 
@@ -174,9 +172,7 @@ export default class SchemaParser {
     for (const definition of attributeDefinitions) {
       const attributeName = SchemaParser.getElementTagName(definition)
       const propertyElements = definition.property ?? []
-      const properties = propertyElements.map((element: NamedElement) =>
-        this.properties.get(SchemaParser.getElementTagName(element)),
-      )
+      const properties = propertyElements.map((element) => this.properties.get(SchemaParser.getElementTagName(element)))
       this.attributes.set(attributeName, new SchemaAttribute(attributeName, new Set(properties)))
     }
     this._addCustomAttributes()
@@ -312,7 +308,7 @@ export default class SchemaParser {
    */
   private _processTagUnitClasses(
     shortTags: Map<NodeElement, string>,
-    valueAttributeDefinitions: Map<string, Map<SchemaAttribute, any>>,
+    valueAttributeDefinitions: Map<string, Map<SchemaAttribute, string[]>>,
   ): Map<string, SchemaUnitClass[]> {
     const tagUnitClassAttribute = this.attributes.get('unitClass')
     const tagUnitClassDefinitions = new Map<string, SchemaUnitClass[]>()
@@ -322,7 +318,7 @@ export default class SchemaParser {
       if (valueAttributes.has(tagUnitClassAttribute)) {
         tagUnitClassDefinitions.set(
           tagName,
-          valueAttributes.get(tagUnitClassAttribute).map((unitClassName: string) => {
+          valueAttributes.get(tagUnitClassAttribute).map((unitClassName) => {
             return this.unitClasses.getEntry(unitClassName)
           }),
         )
@@ -342,7 +338,7 @@ export default class SchemaParser {
    */
   private _processTagValueClasses(
     shortTags: Map<NodeElement, string>,
-    valueAttributeDefinitions: Map<string, Map<SchemaAttribute, any>>,
+    valueAttributeDefinitions: Map<string, Map<SchemaAttribute, string[]>>,
   ): Map<string, SchemaValueClass[]> {
     const tagValueClassAttribute = this.attributes.get('valueClass')
     const tagValueClassDefinitions = new Map<string, SchemaValueClass[]>()
@@ -352,10 +348,11 @@ export default class SchemaParser {
       if (valueAttributes.has(tagValueClassAttribute)) {
         tagValueClassDefinitions.set(
           tagName,
-          valueAttributes.get(tagValueClassAttribute).map((valueClassName: string) => {
+          valueAttributes.get(tagValueClassAttribute).map((valueClassName) => {
             return this.valueClasses.getEntry(valueClassName)
           }),
         )
+        // TODO: Uncomment once value validation uses value classes.
         // valueAttributes.delete(tagValueClassAttribute)
       }
     }
@@ -432,7 +429,7 @@ export default class SchemaParser {
    */
   private _createSchemaTags(
     booleanAttributeDefinitions: Map<string, Set<SchemaAttribute>>,
-    valueAttributeDefinitions: Map<string, Map<SchemaAttribute, any>>,
+    valueAttributeDefinitions: Map<string, Map<SchemaAttribute, string[]>>,
     tagUnitClassDefinitions: Map<string, SchemaUnitClass[]>,
     tagValueClassDefinitions: Map<string, SchemaValueClass[]>,
   ): Map<string, SchemaTag> {
@@ -489,16 +486,16 @@ export default class SchemaParser {
 
   private _parseDefinitions(
     definitionElements: Iterable<DefinitionElement>,
-  ): [Map<string, Set<SchemaAttribute>>, Map<string, Map<SchemaAttribute, any>>] {
+  ): [Map<string, Set<SchemaAttribute>>, Map<string, Map<SchemaAttribute, string[]>>] {
     return this._parseAttributeElements(definitionElements, SchemaParser.getElementTagName)
   }
 
   private _parseAttributeElements(
     elements: Iterable<DefinitionElement>,
     namer: (element: NamedElement) => string,
-  ): [Map<string, Set<SchemaAttribute>>, Map<string, Map<SchemaAttribute, any>>] {
+  ): [Map<string, Set<SchemaAttribute>>, Map<string, Map<SchemaAttribute, string[]>>] {
     const booleanAttributeDefinitions = new Map<string, Set<SchemaAttribute>>()
-    const valueAttributeDefinitions = new Map<string, Map<SchemaAttribute, any>>()
+    const valueAttributeDefinitions = new Map<string, Map<SchemaAttribute, string[]>>()
 
     for (const element of elements) {
       const [booleanAttributes, valueAttributes] = this._parseAttributeElement(element)
@@ -511,9 +508,9 @@ export default class SchemaParser {
     return [booleanAttributeDefinitions, valueAttributeDefinitions]
   }
 
-  private _parseAttributeElement(element: DefinitionElement): [Set<SchemaAttribute>, Map<SchemaAttribute, any>] {
+  private _parseAttributeElement(element: DefinitionElement): [Set<SchemaAttribute>, Map<SchemaAttribute, string[]>] {
     const booleanAttributes = new Set<SchemaAttribute>()
-    const valueAttributes = new Map<SchemaAttribute, any>()
+    const valueAttributes = new Map<SchemaAttribute, string[]>()
 
     const tagAttributes = element.attribute ?? []
 
@@ -523,7 +520,7 @@ export default class SchemaParser {
         booleanAttributes.add(this.attributes.get(attributeName))
         continue
       }
-      const values = tagAttribute.value.map((value: any) => value._)
+      const values = tagAttribute.value.map((value) => value._.toString())
       valueAttributes.set(this.attributes.get(attributeName), values)
     }
 

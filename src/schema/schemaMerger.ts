@@ -92,7 +92,7 @@ export default class PartneredSchemaMerger {
    * @param tag The tag to copy.
    */
   private _mergeTag(tag: SchemaTag): void {
-    if (!tag.getAttributeValue('inLibrary')) {
+    if (!tag.getAttributeValues('inLibrary')) {
       return
     }
 
@@ -101,10 +101,10 @@ export default class PartneredSchemaMerger {
       IssueError.generateAndThrow('lazyPartneredSchemasShareTag', { tag: shortName })
     }
 
-    const rootedTagShortName = tag.getAttributeValue('rooted')
+    const rootedTagShortName = tag.getSingleAttributeValue('rooted')
     if (rootedTagShortName) {
       const parentTag = tag.parent
-      if (parentTag?.name?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
+      if (parentTag?.name?.toLowerCase() !== rootedTagShortName.toLowerCase()) {
         IssueError.generateAndThrowInternalError(`Node ${shortName} is improperly rooted.`)
       }
     }

@@ -1,13 +1,10 @@
 export type NamedElement = { name: { _: string } }
-type AttributeElement = NamedElement & { value?: { _: any }[] }
+export type AttributeValue = string | number
+export type AttributeElement = NamedElement & { value?: { _: AttributeValue }[] }
 export type DefinitionElement = NamedElement & { attribute?: AttributeElement[] }
 export type NodeElement = DefinitionElement & { node?: NodeElement[]; $parent?: NodeElement | null }
-type UnitElement = DefinitionElement
-type UnitClassElement = DefinitionElement & { unit: UnitElement[] }
-type UnitModifierElement = DefinitionElement
-type ValueClassElement = DefinitionElement
+type UnitClassElement = DefinitionElement & { unit: DefinitionElement[] }
 type SchemaAttributeElement = NamedElement & { property: AttributeElement[] }
-type PropertyElement = NamedElement
 
 export type HedSchemaRootElement = {
   $: { version: string; library?: string; withStandard?: string }
@@ -16,16 +13,16 @@ export type HedSchemaRootElement = {
     unitClassDefinition: UnitClassElement[]
   }
   unitModifierDefinitions: {
-    unitModifierDefinition: UnitModifierElement[]
+    unitModifierDefinition: DefinitionElement[]
   }
   valueClassDefinitions: {
-    valueClassDefinition: ValueClassElement[]
+    valueClassDefinition: DefinitionElement[]
   }
   schemaAttributeDefinitions: {
     schemaAttributeDefinition: SchemaAttributeElement[]
   }
   propertyDefinitions: {
-    propertyDefinition: PropertyElement[]
+    propertyDefinition: NamedElement[]
   }
 }
 

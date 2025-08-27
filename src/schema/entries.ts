@@ -236,7 +236,7 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
   /**
    * The collection of value attributes this schema entry has.
    */
-  readonly valueAttributes: Map<SchemaAttribute, any>
+  readonly valueAttributes: Map<SchemaAttribute, string[]>
 
   /**
    * The set of boolean attribute names this schema entry has.
@@ -246,9 +246,9 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
   /**
    * The collection of value attribute names this schema entry has.
    */
-  readonly valueAttributeNames: Map<string, any>
+  readonly valueAttributeNames: Map<string, string[]>
 
-  constructor(name: string, booleanAttributes: Set<SchemaAttribute>, valueAttributes: Map<SchemaAttribute, any>) {
+  constructor(name: string, booleanAttributes: Set<SchemaAttribute>, valueAttributes: Map<SchemaAttribute, string[]>) {
     super(name)
     this.booleanAttributes = booleanAttributes
     this.valueAttributes = valueAttributes
@@ -281,30 +281,30 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
   }
 
   /**
-   * Retrieve the value of a value attribute (by name) on this schema entry.
+   * Retrieve a single value of a value attribute (by name) on this schema entry, throwing an error if more than one value exists.
    * @param attributeName The attribute whose value should be returned.
-   * @param alwaysReturnArray Whether to return a singleton array instead of a scalar value.
    * @returns The value of the attribute.
+   * @throws {IssueError} If the attribute has more than one value.
    */
-  public getAttributeValue(attributeName: string, alwaysReturnArray = false): any {
-    return SchemaEntryWithAttributes._getMapArrayValue(this.valueAttributeNames, attributeName, alwaysReturnArray)
+  public getSingleAttributeValue(attributeName: string): string | undefined {
+    const attributeValues = this.valueAttributeNames.get(attributeName)
+    if (attributeValues === undefined) {
+      return undefined
+    } else if (attributeValues.length > 1) {
+      IssueError.generateAndThrowInternalError(
+        `More than one value exists for attribute ${attributeName}, when only one value was expected.`,
+      )
+    }
+    return attributeValues[0]
   }
 
   /**
-   * Return a map value, with a scalar being returned in lieu of a singleton array if alwaysReturnArray is false.
-   *
-   * @param map The map to search.
-   * @param key A key in the map.
-   * @param alwaysReturnArray Whether to return a singleton array instead of a scalar value.
-   * @returns The value for the key in the passed map.
+   * Retrieve all values of a value attribute (by name) on this schema entry.
+   * @param attributeName The attribute whose value should be returned.
+   * @returns The values of the attribute.
    */
-  private static _getMapArrayValue<K, V>(map: Map<K, V>, key: K, alwaysReturnArray: boolean): V | V[] {
-    const value = map.get(key)
-    if (!alwaysReturnArray && Array.isArray(value) && value.length === 1) {
-      return value[0]
-    } else {
-      return value
-    }
+  public getAttributeValues(attributeName: string): string[] | undefined {
+    return this.valueAttributeNames.get(attributeName)
   }
 }
 
@@ -328,7 +328,7 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
   constructor(
     name: string,
     booleanAttributes: Set<SchemaAttribute>,
-    valueAttributes: Map<SchemaAttribute, any>,
+    valueAttributes: Map<SchemaAttribute, string[]>,
     unitModifiers: SchemaEntryManager<SchemaUnitModifier>,
   ) {
     super(name, booleanAttributes, valueAttributes)
@@ -423,7 +423,7 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
   constructor(
     name: string,
     booleanAttributes: Set<SchemaAttribute>,
-    valueAttributes: Map<SchemaAttribute, any>,
+    valueAttributes: Map<SchemaAttribute, string[]>,
     units: Map<string, SchemaUnit>,
   ) {
     super(name, booleanAttributes, valueAttributes)
@@ -440,8 +440,8 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
   /**
    * Get the default unit for this unit class.
    */
-  public get defaultUnit(): SchemaUnit {
-    return this._units.get(this.getAttributeValue('defaultUnits'))
+  public get defaultUnit(): SchemaUnit | undefined {
+    return this._units.get(this.getSingleAttributeValue('defaultUnits'))
   }
 
   /**
@@ -517,7 +517,7 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
   constructor(
     name: string,
     booleanAttributes: Set<SchemaAttribute>,
-    valueAttributes: Map<SchemaAttribute, any>,
+    valueAttributes: Map<SchemaAttribute, string[]>,
     charClassRegex: RegExp,
     wordRegex: RegExp,
   ) {
@@ -573,7 +573,7 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   constructor(
     name: string,
     booleanAttributes: Set<SchemaAttribute>,
-    valueAttributes: Map<SchemaAttribute, any>,
+    valueAttributes: Map<SchemaAttribute, string[]>,
     unitClasses: SchemaUnitClass[],
     valueClasses: SchemaValueClass[],
   ) {
