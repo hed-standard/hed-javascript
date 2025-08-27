@@ -68,7 +68,7 @@ export default class SchemaParser {
   /**
    * Version-specific definitions.
    */
-  private _versionDefinitions: {
+  private readonly _versionDefinitions: {
     typeProperties: Set<string>
     categoryProperties: Set<string>
     roleProperties: Set<string>
