@@ -1,3 +1,7 @@
+/** This module holds the sidecar validator class.
+ * @module
+ */
+
 /**
  * Apply a function recursively to an array.
  *

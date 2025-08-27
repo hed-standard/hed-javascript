@@ -1,3 +1,6 @@
+/** This module holds the class for encapsulating the rules for "Reserved" tags.
+ * @module parser/reservedChecker
+ */
 import reservedTags from '../data/json/reservedTags.json'
 import { generateIssue, IssueError } from '../issues/issues'
 import { getTagListString } from './parseUtils'

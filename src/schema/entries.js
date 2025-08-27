@@ -1,3 +1,7 @@
+/** This module holds the schema entity classes.
+ * @module schema/entries
+ */
+
 import pluralize from 'pluralize'
 pluralize.addUncountableRule('hertz')
 

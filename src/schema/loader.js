@@ -1,4 +1,6 @@
-/** HED schema loading functions. */
+/** HED schema loading functions.
+ * @module schema/loader
+ * */
 
 /* Imports */
 import * as files from '../utils/files'

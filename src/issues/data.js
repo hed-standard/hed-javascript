@@ -1,3 +1,7 @@
+/** This module contains the templates for the issues.
+ * @module issues/data
+ */
+
 import { stringTemplate } from '../utils/string'
 
 export default {

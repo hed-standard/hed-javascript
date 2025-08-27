@@ -1,3 +1,6 @@
+/** This module holds the definition checker class.
+ * @module parser/definitionChecker
+ */
 import { generateIssue } from '../issues/issues'
 import { getTagListString } from './parseUtils'
 

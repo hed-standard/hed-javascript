@@ -1,3 +1,6 @@
+/** This module holds the class for representing a HED group.
+ * @module parser/parsedHedGroup
+ */
 import differenceWith from 'lodash/differenceWith'
 import { IssueError } from '../issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'

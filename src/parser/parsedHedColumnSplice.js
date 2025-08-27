@@ -1,3 +1,7 @@
+/** This module holds the column splice class.
+ * @module parser/parsedHedColumnSplice
+ */
+
 import ParsedHedSubstring from './parsedHedSubstring'
 import ParsedHedGroup from './parsedHedGroup'
 import ParsedHedString from './parsedHedString'

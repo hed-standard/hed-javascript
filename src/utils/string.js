@@ -1,4 +1,6 @@
-/** String-related utility functions */
+/** String-related utility functions
+ * @module utils/string
+ * */
 
 /**
  * Get number of instances of a character in a string.

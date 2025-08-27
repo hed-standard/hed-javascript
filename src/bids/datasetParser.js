@@ -7,7 +7,7 @@
  * Note: An implementation of the BidsFileAccessor class for web folder access is not included in the
  * hed-javascript Node distribution, but is included in the hed-javascript GitHub repository in the browser folder.
  *
- * @module datasetParser
+ * @module bids/datasetParser
  */
 
 import fsp from 'node:fs/promises'

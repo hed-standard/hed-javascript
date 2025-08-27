@@ -1,6 +1,6 @@
 /**
  * This module contains the {@link BidsDataset} class, which represents a BIDS dataset for HED validation.
- * @module dataset
+ * @module bids/types/dataset
  */
 import { BidsFileAccessor } from '../datasetParser'
 import { BidsSidecar } from './json'

@@ -1,3 +1,6 @@
+/** This module holds the classes for merging partnered schemas.
+ * @module schema/schemaMerger
+ */
 import { IssueError } from '../issues/issues'
 import { SchemaTag, SchemaValueTag } from './entries'
 import { PartneredSchema } from './containers'

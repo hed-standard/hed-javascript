@@ -1,3 +1,6 @@
+/** This module holds a class for tokenizing HED strings.
+ * @module parser/tokenizer
+ */
 import { unicodeName } from 'unicode-name'
 
 import { generateIssue } from '../issues/issues'

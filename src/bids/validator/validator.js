@@ -1,6 +1,6 @@
 /**
  * Validator base class for HED data in BIDS TSV files.
- * @abstract
+ * @abstract bids/validator/validator
  */
 export class BidsValidator {
   /**

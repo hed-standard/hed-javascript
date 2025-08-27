@@ -1,3 +1,6 @@
+/** This module holds classes to encapsulate and manage HED definitions.
+ * @module parser/definitionManager
+ */
 import { generateIssue } from '../issues/issues'
 import { parseHedString } from './parser'
 import { filterByTagName } from './parseUtils'

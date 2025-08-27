@@ -1,3 +1,6 @@
+/** This module holds the class representing a parsed HED tag.
+ * @module parser/parsedHedTag
+ */
 import { IssueError } from '../issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../schema/entries'

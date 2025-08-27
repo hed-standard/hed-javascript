@@ -1,3 +1,6 @@
+/** This module holds the classes for initializing and building schemas.
+ * @module schema/init
+ */
 import zip from 'lodash/zip'
 
 import loadSchema from './loader'

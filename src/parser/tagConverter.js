@@ -1,3 +1,6 @@
+/** This module holds the classes for converting a tag specification into a schema-based tag object.
+ * @module parser/tagConverter
+ */
 import { IssueError } from '../issues/issues'
 import { getTagSlashIndices } from '../utils/hedStrings'
 import { ReservedChecker } from './reservedChecker'

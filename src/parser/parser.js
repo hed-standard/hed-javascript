@@ -1,3 +1,6 @@
+/** This module holds contains the classes for basic HED parsing.
+ * @module parser/parser
+ */
 import ParsedHedString from './parsedHedString'
 import HedStringSplitter from './splitter'
 import { generateIssue } from '../issues/issues'
