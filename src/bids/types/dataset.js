@@ -269,11 +269,11 @@ export class BidsDataset {
    * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues found during validation.
    */
   async validate() {
-    const issues = this._validateSidecars()
+    const issues = this.validateSidecars()
     if (issues.some((issue) => issue.severity === 'error')) {
       return issues
     }
-    const tsvIssues = await this._validateTsvFiles()
+    const tsvIssues = await this.validateTsvFiles()
     issues.push(...tsvIssues)
     return issues
   }
@@ -287,7 +287,7 @@ export class BidsDataset {
    * @returns {BidsHedIssue[]} An array of issues found during sidecar validation.
    * @private
    */
-  _validateSidecars() {
+  validateSidecars() {
     const issues = []
 
     for (const relativePath of organizedPathsGenerator(this.fileAccessor.organizedPaths, '.json')) {
@@ -309,7 +309,7 @@ export class BidsDataset {
    * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues found during TSV validation.
    * @private
    */
-  async _validateTsvFiles() {
+  async validateTsvFiles() {
     const issues = []
     for (const [category, catMap] of this.fileAccessor.organizedPaths) {
       const tsvPaths = catMap.get('tsv') || []
