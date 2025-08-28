@@ -102,7 +102,7 @@ export const definitionTestData = [
         errors: [
           generateIssue('invalidValue', {
             tag: 'Acceleration/4.5/3 m-per-s^2',
-            msg: 'Tag "Acceleration" has value classes [numericClass] but has value "4.5/3" is not in any of them.',
+            msg: 'Tag "Acceleration" has value classes [numericClass] but its value "4.5/3" is not in any of them.',
           }),
         ],
       },
@@ -116,7 +116,7 @@ export const definitionTestData = [
         errors: [
           generateIssue('invalidValue', {
             tag: 'Acceleration/4.5/3 m-per-s^2',
-            msg: 'Tag "Acceleration" has value classes [numericClass] but has value "4.5/3" is not in any of them.',
+            msg: 'Tag "Acceleration" has value classes [numericClass] but its value "4.5/3" is not in any of them.',
           }),
         ],
       },

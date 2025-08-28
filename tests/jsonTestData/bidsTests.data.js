@@ -241,7 +241,7 @@ export const bidsTestData = [
           BidsHedIssue.fromHedIssue(
             generateIssue('invalidValue', {
               tag: 'label/apple blank',
-              msg: 'Tag "Label" has value classes [nameClass] but has value "apple blank" is not in any of them.',
+              msg: 'Tag "Label" has value classes [nameClass] but its value "apple blank" is not in any of them.',
               tsvLine: '2',
             }),
             {
