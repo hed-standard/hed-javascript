@@ -1,8 +1,6 @@
 import zip from 'lodash/zip'
 
 import loadSchema from './loader'
-import { setParent } from '../utils/xml'
-
 import SchemaParser from './parser'
 import PartneredSchemaMerger from './schemaMerger'
 import { HedSchema, PrimarySchema, HedSchemas } from './containers'
@@ -10,34 +8,6 @@ import { IssueError } from '../issues/issues'
 import { splitStringTrimAndRemoveBlanks } from '../utils/string'
 import { SchemasSpec } from './specs'
 import { HedSchemaXMLObject } from './xmlType'
-
-/**
- * Build a single schema container object from an XML file.
- *
- * @param xmlData The schema's XML data
- * @returns The HED schema object.
- */
-function buildSchemaObject(xmlData: HedSchemaXMLObject): PrimarySchema {
-  const rootElement = xmlData.HED
-  setParent(rootElement, null)
-  const schemaEntries = new SchemaParser(rootElement).parse()
-  return new PrimarySchema(xmlData, schemaEntries)
-}
-
-/**
- * Build a single merged schema container object from one or more XML files.
- *
- * @param xmlData The schemas' XML data.
- * @returns The HED schema object.
- */
-function buildSchemaObjects(xmlData: HedSchemaXMLObject[]): HedSchema {
-  const schemas = xmlData.map((data) => buildSchemaObject(data))
-  if (schemas.length === 1) {
-    return schemas[0]
-  }
-  const partneredSchemaMerger = new PartneredSchemaMerger(schemas)
-  return partneredSchemaMerger.mergeSchemas()
-}
 
 /**
  * Build a schema collection object from a schema specification.
@@ -72,4 +42,30 @@ export async function buildSchemasFromVersion(hedVersionString?: string): Promis
   const hedVersionSpecStrings = splitStringTrimAndRemoveBlanks(hedVersionString, ',')
   const hedVersionSpecs = SchemasSpec.parseVersionSpecs(hedVersionSpecStrings)
   return buildSchemas(hedVersionSpecs)
+}
+
+/**
+ * Build a single merged schema container object from one or more XML files.
+ *
+ * @param xmlData The schemas' XML data.
+ * @returns The HED schema object.
+ */
+function buildSchemaObjects(xmlData: HedSchemaXMLObject[]): HedSchema {
+  const schemas = xmlData.map((data) => buildSchemaObject(data))
+  if (schemas.length === 1) {
+    return schemas[0]
+  }
+  const partneredSchemaMerger = new PartneredSchemaMerger(schemas)
+  return partneredSchemaMerger.mergeSchemas()
+}
+
+/**
+ * Build a single schema container object from an XML file.
+ *
+ * @param xmlData The schema's XML data
+ * @returns The HED schema object.
+ */
+function buildSchemaObject(xmlData: HedSchemaXMLObject): PrimarySchema {
+  const schemaEntries = new SchemaParser(xmlData.HED).parse()
+  return new PrimarySchema(xmlData, schemaEntries)
 }
