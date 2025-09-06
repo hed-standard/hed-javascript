@@ -1,12 +1,14 @@
 export default {
   presets: [
-    ['@babel/preset-env', {
-      targets: {
-        node: '22'
-      }
-    }],
-    '@babel/preset-typescript'
+    [
+      '@babel/preset-env',
+      {
+        targets: {
+          node: '22',
+        },
+      },
+    ],
+    '@babel/preset-typescript',
   ],
-  plugins: []
+  plugins: [],
 }
-
