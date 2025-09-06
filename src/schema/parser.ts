@@ -114,13 +114,11 @@ export default class SchemaParser {
     if (excludeTakeValueTags && SchemaParser.getElementTagName(parentElement) === '#') {
       return []
     }
-    const childTags = []
-    if (parentElement.$parent) {
-      childTags.push(parentElement)
-    }
+    const childTags = [parentElement]
     const tagElementChildren = parentElement.node ?? []
-    childTags.push(...flattenDeep(tagElementChildren.map((child) => this.getAllChildTags(child, excludeTakeValueTags))))
-    return childTags
+    return childTags.concat(
+      flattenDeep(tagElementChildren.map((child) => this.getAllChildTags(child, excludeTakeValueTags))),
+    )
   }
 
   private static getParentTagName(tagElement: NodeElement): string {
@@ -166,7 +164,7 @@ export default class SchemaParser {
     this._addCustomProperties()
   }
 
-  private parseAttributes() {
+  private parseAttributes(): void {
     const attributeDefinitions = this.rootElement.schemaAttributeDefinitions.schemaAttributeDefinition
     this.attributes = new Map<string, SchemaAttribute>()
     for (const definition of attributeDefinitions) {
@@ -189,7 +187,7 @@ export default class SchemaParser {
     return new RegExp(classChars)
   }
 
-  private parseValueClasses() {
+  private parseValueClasses(): void {
     const valueClasses = new Map<string, SchemaValueClass>()
     const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions(
       this.rootElement.valueClassDefinitions.valueClassDefinition,
@@ -203,7 +201,7 @@ export default class SchemaParser {
     this.valueClasses = new SchemaEntryManager(valueClasses)
   }
 
-  private parseUnitModifiers() {
+  private parseUnitModifiers(): void {
     const unitModifiers = new Map<string, SchemaUnitModifier>()
     const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions(
       this.rootElement.unitModifierDefinitions.unitModifierDefinition,

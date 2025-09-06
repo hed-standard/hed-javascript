@@ -3,18 +3,20 @@
 /* Imports */
 import * as files from '../utils/files'
 import { IssueError } from '../issues/issues'
-import { parseSchemaXML } from '../utils/xml'
+import parseSchemaXML from '../utils/xml'
 
 import { localSchemaMap, localSchemaNames } from './config' // Changed from localSchemaList
+import { SchemaSpec } from './specs'
+import { HedSchemaXMLObject } from './xmlType'
 
 /**
  * Load schema XML data from a schema version or path description.
  *
- * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @returns {Promise<Object>} The schema XML data.
+ * @param schemaDef The description of which schema to use.
+ * @returns The schema XML data.
  * @throws {IssueError} If the schema could not be loaded.
  */
-export default async function loadSchema(schemaDef = null) {
+export default async function loadSchema(schemaDef: SchemaSpec): Promise<HedSchemaXMLObject> {
   const xmlData = await loadPromise(schemaDef)
   if (xmlData === null) {
     IssueError.generateAndThrow('invalidSchemaSpecification', { spec: JSON.stringify(schemaDef) })
@@ -25,14 +27,12 @@ export default async function loadSchema(schemaDef = null) {
 /**
  * Choose the schema Promise from a schema version or path description.
  *
- * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @returns {Promise<Object>} The schema XML data.
+ * @param schemaDef The description of which schema to use.
+ * @returns The schema XML data.
  * @throws {IssueError} If the schema could not be loaded.
  */
-async function loadPromise(schemaDef) {
-  if (schemaDef === null) {
-    return null
-  } else if (schemaDef.localPath) {
+async function loadPromise(schemaDef: SchemaSpec): Promise<HedSchemaXMLObject> {
+  if (schemaDef.localPath) {
     return loadLocalSchema(schemaDef.localPath)
   } else if (localSchemaNames.includes(schemaDef.localName)) {
     // Changed condition
@@ -45,12 +45,12 @@ async function loadPromise(schemaDef) {
 /**
  * Load schema XML data from the HED GitHub repository.
  *
- * @param {SchemaSpec} schemaDef The standard schema version to load.
- * @returns {Promise<object>} The schema XML data.
+ * @param schemaDef The standard schema version to load.
+ * @returns The schema XML data.
  * @throws {IssueError} If the schema could not be loaded.
  */
-function loadRemoteSchema(schemaDef) {
-  let url
+async function loadRemoteSchema(schemaDef: SchemaSpec): Promise<HedSchemaXMLObject> {
+  let url: string
   if (schemaDef.library) {
     url = `https://raw.githubusercontent.com/hed-standard/hed-schemas/refs/heads/main/library_schemas/${schemaDef.library}/hedxml/HED_${schemaDef.library}_${schemaDef.version}.xml`
   } else {
@@ -62,22 +62,22 @@ function loadRemoteSchema(schemaDef) {
 /**
  * Load schema XML data from a local file.
  *
- * @param {string} path The path to the schema XML data.
- * @returns {Promise<object>} The schema XML data.
+ * @param path The path to the schema XML data.
+ * @returns The schema XML data.
  * @throws {IssueError} If the schema could not be loaded.
  */
-function loadLocalSchema(path) {
+async function loadLocalSchema(path: string): Promise<HedSchemaXMLObject> {
   return loadSchemaFile(files.readFile(path), 'localSchemaLoadFailed', { path: path })
 }
 
 /**
  * Load schema XML data from a bundled file.
  *
- * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @returns {Promise<object>} The schema XML data.
+ * @param schemaDef The description of which schema to use.
+ * @returns The schema XML data.
  * @throws {IssueError} If the schema could not be loaded.
  */
-async function loadBundledSchema(schemaDef) {
+async function loadBundledSchema(schemaDef: SchemaSpec): Promise<HedSchemaXMLObject> {
   try {
     return parseSchemaXML(localSchemaMap.get(schemaDef.localName))
   } catch (error) {
@@ -89,13 +89,17 @@ async function loadBundledSchema(schemaDef) {
 /**
  * Actually load the schema XML file.
  *
- * @param {Promise<string>} xmlDataPromise The Promise containing the unparsed XML data.
- * @param {string} issueCode The issue code.
- * @param {Object<string, string>} issueArgs The issue arguments passed from the calling function.
- * @returns {Promise<object>} The parsed schema XML data.
+ * @param xmlDataPromise The Promise containing the unparsed XML data.
+ * @param issueCode The issue code.
+ * @param issueArgs The issue arguments passed from the calling function.
+ * @returns The parsed schema XML data.
  * @throws {IssueError} If the schema could not be loaded.
  */
-async function loadSchemaFile(xmlDataPromise, issueCode, issueArgs) {
+async function loadSchemaFile(
+  xmlDataPromise: Promise<string>,
+  issueCode: string,
+  issueArgs: Record<string, string>,
+): Promise<HedSchemaXMLObject> {
   try {
     const data = await xmlDataPromise
     return parseSchemaXML(data)

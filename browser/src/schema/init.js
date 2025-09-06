@@ -7,8 +7,6 @@
 import zip from 'lodash/zip'
 
 import { loadSchema } from './loader'
-import { setParent } from '../../../src/utils/xml'
-
 import SchemaParser from '../../../src/schema/parser'
 import PartneredSchemaMerger from '../../../src/schema/schemaMerger'
 import { Schema, HedSchemas } from '../../../src/schema/containers'
@@ -23,9 +21,7 @@ import { SchemasSpec } from '../../../src/schema/specs'
  * @returns {HedSchema} The HED schema object.
  */
 const buildSchemaObject = function (xmlData) {
-  const rootElement = xmlData.HED
-  setParent(rootElement, null)
-  const schemaEntries = new SchemaParser(rootElement).parse()
+  const schemaEntries = new SchemaParser(xmlData.HED).parse()
   return new Schema(xmlData, schemaEntries)
 }
 

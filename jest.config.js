@@ -10,11 +10,7 @@ export default {
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
-  collectCoverageFrom: [
-    'src/**/*.js',
-    '!src/**/*.spec.js',
-    '!src/**/*.test.js',
-  ],
+  collectCoverageFrom: ['src/**/*.js', '!src/**/*.spec.js', '!src/**/*.test.js'],
   coveragePathIgnorePatterns: [
     '/node_modules/',
     '/tests/',

@@ -2,7 +2,7 @@
 
 /* Imports */
 import { IssueError } from '../../../src/issues/issues'
-import { parseSchemaXML } from '../../../src/utils/xml'
+import parseSchemaXML from '../../../src/utils/xml.js'
 import { schemaData } from './vite-importer'
 
 /**
