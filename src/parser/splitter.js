@@ -69,7 +69,7 @@ export default class HedStringSplitter {
   _createParsedTags(tagSpecs, groupSpecs) {
     // Create tags from specifications
     this.issues = []
-    const parsedTags = recursiveMap((tagSpec) => this._createParsedTag(tagSpec), tagSpecs)
+    const parsedTags = recursiveMap(tagSpecs, (tagSpec) => this._createParsedTag(tagSpec))
 
     // Create groups from the parsed tags
     const parsedTagsWithGroups = this._createParsedGroups(parsedTags, groupSpecs.children)
