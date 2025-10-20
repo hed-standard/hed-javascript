@@ -1,3 +1,6 @@
+/** This module holds the class representing a HED string.
+ * @module parser/parsedHedString
+ */
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedGroup from './parsedHedGroup'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'

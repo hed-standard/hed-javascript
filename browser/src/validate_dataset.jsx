@@ -25,15 +25,36 @@ function ValidateDatasetApp() {
   const [downloadableErrors, setDownloadableErrors] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  const [fatalError, setFatalError] = useState('')
+  const [validationStatus, setValidationStatus] = useState('')
   const [fileInputKey, setFileInputKey] = useState(Date.now())
   const [checkWarnings, setCheckWarnings] = useState(false)
   const [limitErrors, setLimitErrors] = useState(false)
+
+  const getFileCounts = (dataset) => {
+    const counts = { json: 0, tsv: 0 }
+    if (!dataset || !dataset.fileAccessor || !dataset.fileAccessor.organizedPaths) {
+      return counts
+    }
+    for (const pathGroup of dataset.fileAccessor.organizedPaths.values()) {
+      const jsonFiles = pathGroup.get('json')
+      if (jsonFiles) {
+        counts.json += jsonFiles.length
+      }
+      const tsvFiles = pathGroup.get('tsv')
+      if (tsvFiles) {
+        counts.tsv += tsvFiles.length
+      }
+    }
+    return counts
+  }
 
   const handleClear = () => {
     setDataset(null)
     setErrors([])
     setDownloadableErrors([])
     setSuccessMessage('')
+    setFatalError('')
     setFileInputKey(Date.now())
     setCheckWarnings(false)
     setLimitErrors(false)
@@ -49,6 +70,7 @@ function ValidateDatasetApp() {
     setDownloadableErrors([])
     setDataset(null)
     setSuccessMessage('')
+    setFatalError('')
 
     const [createdDataset, issues] = await BidsDataset.create(selectedFiles, BidsWebAccessor)
 
@@ -60,7 +82,10 @@ function ValidateDatasetApp() {
       setDataset(null)
     } else if (createdDataset) {
       setDataset(createdDataset)
-      setSuccessMessage(`${numFiles} files found. Ready for validation.`)
+      const { json: numJsonFiles, tsv: numTsvFiles } = getFileCounts(createdDataset)
+      setSuccessMessage(
+        `${numFiles} total files: ${numJsonFiles} json and ${numTsvFiles} tsv HED files. Ready to validate.`,
+      )
     }
     setIsLoading(false)
   }
@@ -73,22 +98,42 @@ function ValidateDatasetApp() {
     setErrors([])
     setDownloadableErrors([])
     setSuccessMessage('')
+    setFatalError('')
     let issues = []
     try {
-      issues = await dataset.validate(true)
+      setValidationStatus('Validating sidecars...')
+      issues = dataset.validateSidecars()
+
+      const processedSidecarIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
+      if (processedSidecarIssues.some((issue) => issue.severity === 'error')) {
+        setErrors(processedSidecarIssues)
+        setDownloadableErrors(BidsHedIssue.processIssues(issues, checkWarnings, false))
+        setFatalError('Validation cannot continue due to serious sidecar errors.')
+        setIsLoading(false)
+        setValidationStatus('')
+        return
+      }
+      setSuccessMessage('Preliminary sidecar validation passed. Continuing with TSV validation...')
+      setValidationStatus('Validating TSV files...')
+      issues = issues.concat(await dataset.validateTsvFiles())
     } catch (err) {
       console.error('[ValidateDatasetApp] Error during validation:', err)
       issues = BidsHedIssue.transformToBids([err], { path: 'Dataset Validation' })
     } finally {
-      const issuesForDownload = BidsHedIssue.processIssues(issues, checkWarnings, false)
-      setDownloadableErrors(issuesForDownload)
       const processedIssues = BidsHedIssue.processIssues(issues, checkWarnings, limitErrors)
+      if (limitErrors) {
+        const issuesForDownload = BidsHedIssue.processIssues(issues, checkWarnings, false)
+        setDownloadableErrors(issuesForDownload)
+      } else {
+        setDownloadableErrors(processedIssues)
+      }
       if (processedIssues.length > 0) {
         setErrors(processedIssues)
       } else {
         setSuccessMessage('No validation errors found.')
       }
       setIsLoading(false)
+      setValidationStatus('')
     }
   }
 
@@ -153,7 +198,7 @@ function ValidateDatasetApp() {
               disabled={!dataset || isLoading}
               className="w-36 px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 disabled:dark:bg-gray-600"
             >
-              {isLoading ? 'Validating...' : 'Validate'}
+              {isLoading ? validationStatus || 'Validating...' : 'Validate'}
             </button>
             <button
               onClick={handleClear}
@@ -165,6 +210,11 @@ function ValidateDatasetApp() {
           {successMessage && (
             <div className="text-center mt-4">
               <p className="text-green-600 dark:text-green-400">{successMessage}</p>
+            </div>
+          )}
+          {fatalError && (
+            <div className="text-center mt-4">
+              <p className="text-red-600 dark:text-red-400">{fatalError}</p>
             </div>
           )}
           {errors.length > 0 && <ErrorDisplay errors={errors} downloadableErrors={downloadableErrors} />}

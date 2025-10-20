@@ -1,3 +1,7 @@
+/**
+ * XML parsing utilities.
+ * @module
+ */
 import { XMLParser } from 'fast-xml-parser'
 
 import { HedSchemaXMLObject, HedSchemaRootElement, NodeElement } from '../schema/xmlType'

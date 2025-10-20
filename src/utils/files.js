@@ -1,3 +1,6 @@
+/** This module holds asynchronous functions for reading files.
+ * @module
+ */
 import { readFile as readFilePromise } from 'node:fs/promises'
 
 import { IssueError } from '../issues/issues'

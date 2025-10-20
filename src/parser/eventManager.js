@@ -1,3 +1,6 @@
+/** This module holds the classes for managing events in BIDS datasets.
+ * @module parser/eventManager
+ */
 import { generateIssue } from '../issues/issues'
 import { BidsHedIssue } from '../bids/types/issues'
 

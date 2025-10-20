@@ -1,3 +1,6 @@
+/** This module holds the specification classes for HED schemas.
+ * @module schema/specs
+ */
 import castArray from 'lodash/castArray'
 import semver from 'semver'
 

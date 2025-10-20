@@ -1,7 +1,7 @@
 /**
  * This module contains the {@link BidsFile} class, which is the base class for BIDS files.
  *
- * @module file
+ * @module bids/types/file
  */
 
 import { BidsHedIssue } from './issues'

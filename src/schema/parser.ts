@@ -1,3 +1,6 @@
+/** This module holds the classes for populating a schema from XML.
+ * @module schema/parser
+ */
 import flattenDeep from 'lodash/flattenDeep'
 import zip from 'lodash/zip'
 import semver from 'semver'

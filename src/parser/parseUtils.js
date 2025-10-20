@@ -1,3 +1,6 @@
+/** This module holds utilities for parsing HED strings.
+ * @module parser/parseUtils
+ */
 import ParsedHedTag from './parsedHedTag'
 
 /**

@@ -1,3 +1,6 @@
+/** This module holds the class representing a parsed HED tag.
+ * @module parser/parsedHedTag
+ */
 import { IssueError } from '../issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
 import { SchemaValueTag } from '../schema/entries'
@@ -346,6 +349,6 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     if (valueClassNames.some((valueClassName) => entryManager.getEntry(valueClassName).validateValue(value))) {
       return ''
     }
-    return `Tag "${this.schemaTag.name}" has value classes [${valueClassNames.join(', ')}] but has value "${value}" is not in any of them.`
+    return `Tag "${this.schemaTag.name}" has value classes [${valueClassNames.join(', ')}] but its value "${value}" is not in any of them.`
   }
 }

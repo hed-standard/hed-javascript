@@ -1,7 +1,7 @@
 /**
  * This module contains classes for representing BIDS JSON files, including {@link BidsJsonFile} and {@link BidsSidecar}.
  *
- * @module json
+ * @module bids/types/json
  */
 import isPlainObject from 'lodash/isPlainObject'
 

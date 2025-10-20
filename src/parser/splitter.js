@@ -1,3 +1,6 @@
+/** This module holds the classes for basic splitting of HED strings.
+ * @module parser/splitter
+ */
 import ParsedHedTag from './parsedHedTag'
 import ParsedHedColumnSplice from './parsedHedColumnSplice'
 import ParsedHedGroup from './parsedHedGroup'

@@ -1,3 +1,6 @@
+/** This module holds the schema container classes.
+ * @module schema/containers
+ */
 import lt from 'semver/functions/lt'
 
 import { IssueError } from '../issues/issues'

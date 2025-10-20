@@ -543,7 +543,7 @@ export const parsedHedTagTests = [
         takesValue: false,
         error: generateIssue('invalidValue', {
           tag: 'Label/Blec h',
-          msg: 'Tag "Label" has value classes [nameClass] but has value "Blec h" is not in any of them.',
+          msg: 'Tag "Label" has value classes [nameClass] but its value "Blec h" is not in any of them.',
         }),
       },
     ],

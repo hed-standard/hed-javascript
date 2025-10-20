@@ -1,6 +1,6 @@
 /**
  * This module contains the {@link BidsDataset} class, which represents a BIDS dataset for HED validation.
- * @module dataset
+ * @module bids/types/dataset
  */
 import { BidsFileAccessor } from '../datasetParser'
 import { BidsSidecar } from './json'
@@ -269,13 +269,11 @@ export class BidsDataset {
    * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues found during validation.
    */
   async validate() {
-    const issues = this._validateSidecars()
+    const issues = this.validateSidecars()
     if (issues.some((issue) => issue.severity === 'error')) {
       return issues
     }
-    const tsvIssues = await this._validateTsvFiles()
-    issues.push(...tsvIssues)
-    return issues
+    return issues.concat(await this.validateTsvFiles())
   }
 
   /**
@@ -287,14 +285,13 @@ export class BidsDataset {
    * @returns {BidsHedIssue[]} An array of issues found during sidecar validation.
    * @private
    */
-  _validateSidecars() {
-    const issues = []
+  validateSidecars() {
+    let issues = []
 
     for (const relativePath of organizedPathsGenerator(this.fileAccessor.organizedPaths, '.json')) {
       const sidecar = this.sidecarMap.get(relativePath)
       if (sidecar) {
-        const validationIssues = sidecar.validate(this.hedSchemas)
-        issues.push(...validationIssues)
+        issues = issues.concat(sidecar.validate(this.hedSchemas))
       }
     }
     return issues
@@ -309,16 +306,13 @@ export class BidsDataset {
    * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues found during TSV validation.
    * @private
    */
-  async _validateTsvFiles() {
-    const issues = []
+  async validateTsvFiles() {
+    let issues = []
     for (const [category, catMap] of this.fileAccessor.organizedPaths) {
       const tsvPaths = catMap.get('tsv') || []
       const jsonPaths = catMap.get('json') || []
       for (const tsvPath of tsvPaths) {
-        const tsvIssues = await this._validateTsvFile(tsvPath, category, jsonPaths)
-        if (tsvIssues.length > 0) {
-          issues.push(...tsvIssues)
-        }
+        issues = issues.concat(await this._validateTsvFile(tsvPath, category, jsonPaths))
       }
     }
     return issues
