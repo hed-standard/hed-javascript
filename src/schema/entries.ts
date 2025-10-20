@@ -5,13 +5,12 @@ import pluralize from 'pluralize'
 pluralize.addUncountableRule('hertz')
 
 import { IssueError } from '../issues/issues'
-import Memoizer from '../utils/memoizer'
 import SchemaParser from './parser'
 
 /**
  * SchemaEntries class
  */
-export class SchemaEntries extends Memoizer {
+export class SchemaEntries {
   /**
    * The schema's properties.
    */
@@ -47,7 +46,6 @@ export class SchemaEntries extends Memoizer {
    * @param schemaParser A constructed schema parser.
    */
   constructor(schemaParser: SchemaParser) {
-    super()
     this.properties = new SchemaEntryManager(schemaParser.properties)
     this.attributes = new SchemaEntryManager(schemaParser.attributes)
     this.valueClasses = schemaParser.valueClasses
@@ -60,7 +58,7 @@ export class SchemaEntries extends Memoizer {
 /**
  * A manager of {@link SchemaEntry} objects.
  */
-export class SchemaEntryManager<T extends SchemaEntry> extends Memoizer {
+export class SchemaEntryManager<T extends SchemaEntry> {
   /**
    * The definitions managed by this entry manager.
    */
@@ -72,7 +70,6 @@ export class SchemaEntryManager<T extends SchemaEntry> extends Memoizer {
    * @param definitions A map of schema entry definitions.
    */
   constructor(definitions: Map<string, T>) {
-    super()
     this._definitions = definitions
   }
 
@@ -131,10 +128,8 @@ export class SchemaEntryManager<T extends SchemaEntry> extends Memoizer {
    * @returns A subset of the managed collection with the given boolean attribute.
    */
   public getEntriesWithBooleanAttribute(booleanAttributeName: string): Map<string, T> {
-    return this._memoize(booleanAttributeName, () => {
-      return this.filter(([, v]) => {
-        return v.hasBooleanAttribute(booleanAttributeName)
-      })
+    return this.filter(([, v]) => {
+      return v.hasBooleanAttribute(booleanAttributeName)
     })
   }
 
@@ -162,14 +157,13 @@ export class SchemaEntryManager<T extends SchemaEntry> extends Memoizer {
 /**
  * SchemaEntry class
  */
-export class SchemaEntry extends Memoizer {
+export class SchemaEntry {
   /**
    * The name of this schema entry.
    */
   private readonly _name: string
 
   constructor(name: string) {
-    super()
     this._name = name
   }
 
@@ -565,6 +559,11 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   private _valueTag: SchemaValueTag
 
   /**
+   * This tag's ancestor tags.
+   */
+  #ancestors: SchemaTag[]
+
+  /**
    * Constructor.
    *
    * @param name The name of this tag.
@@ -662,12 +661,11 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * Return all of this tag's ancestors.
    */
   public get ancestors(): SchemaTag[] {
-    return this._memoize('ancestors', () => {
-      if (this.parent) {
-        return [this.parent, ...this.parent.ancestors]
-      }
-      return []
-    })
+    if (this.#ancestors !== undefined) {
+      return this.#ancestors
+    }
+    this.#ancestors = this.parent ? [this.parent, ...this.parent.ancestors] : []
+    return this.#ancestors
   }
 
   /**
