@@ -57,7 +57,7 @@ export class IssueError extends Error {
  * A HED validation error or warning.
  */
 export class Issue {
-  static SPECIAL_PARAMETERS = new Map([
+  private static SPECIAL_PARAMETERS = new Map([
     ['sidecarKey', 'Sidecar key'],
     ['tsvLine', 'TSV line'],
     ['hedString', 'HED string'],
@@ -136,7 +136,7 @@ export class Issue {
    *
    * @returns The issue parameters.
    */
-  get parameters(): Record<string, string> {
+  public get parameters(): Record<string, string> {
     return this._parameters
   }
 
@@ -145,8 +145,23 @@ export class Issue {
    *
    * @returns The issue bounds within the parent string.
    */
-  get bounds(): [number, number] {
+  public get bounds(): [number, number] {
     return this._bounds
+  }
+
+  /**
+   * Validate and set the issue's bounds.
+   *
+   * @param value The issue bounds within the parent string.
+   */
+  private set bounds(value: [number, number]) {
+    if (this._bounds) {
+      return
+    }
+    if (!Array.isArray(value) || value.length !== 2 || !value.every((bound) => typeof bound === 'number')) {
+      IssueError.generateAndThrowInternalError('Bounds must be a numeric pair')
+    }
+    this._bounds = value
   }
 
   /**
@@ -154,18 +169,33 @@ export class Issue {
    *
    * @param parameters The new issue parameters.
    */
-  set parameters(parameters: Record<string, any>) {
+  public set parameters(parameters: Record<string, any>) {
     this._parameters = {}
     for (const [key, value] of Object.entries(parameters)) {
       if (key === 'bounds') {
-        if (!Array.isArray(value) || value.length !== 2 || !value.every((bound) => typeof bound === 'number')) {
-          IssueError.generateAndThrowInternalError('Passed bounds are not a numeric pair')
-        }
-        this._bounds = value
+        this.bounds = value
         continue
       }
       this._parameters[key] = String(value)
     }
+  }
+
+  /**
+   * Set a new parameter value.
+   *
+   * @param name The parameter name.
+   * @param value The new parameter value.
+   */
+  public setParameter(name: string, value: any): void {
+    if (Object.hasOwn(this._parameters, name)) {
+      return
+    }
+    if (name === 'bounds') {
+      this.bounds = value
+      return
+    }
+    this._parameters[name] = String(value)
+    this.generateMessage()
   }
 
   /**
@@ -239,7 +269,7 @@ export function generateIssue(internalCode: string, parameters: Record<string, a
  * @param issues The list of issues (different types can be intermixed).
  * @param parameters The parameters to add.
  */
-export function updateIssueParameters(issues: IssueError[] | Issue[], parameters: Record<string, any>) {
+export function updateIssueParameters(issues: Array<Issue | IssueError>, parameters: Record<string, any>) {
   for (const thisIssue of issues) {
     if (thisIssue instanceof IssueError) {
       _updateIssueParameters(thisIssue.issue, parameters)
@@ -258,19 +288,7 @@ export function updateIssueParameters(issues: IssueError[] | Issue[], parameters
  * @param parameters The parameters to add.
  */
 function _updateIssueParameters(issue: Issue, parameters: Record<string, any>) {
-  if (!issue._parameters) {
-    issue._parameters = {}
-  }
-
-  let changed = false
   for (const [key, value] of Object.entries(parameters)) {
-    if (!Object.hasOwn(issue._parameters, key)) {
-      issue.parameters[key] = String(value)
-      changed = true
-    }
-  }
-
-  if (changed) {
-    issue.generateMessage()
+    issue.setParameter(key, value)
   }
 }
