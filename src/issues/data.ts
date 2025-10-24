@@ -1,4 +1,5 @@
-/** This module contains the templates for the issues.
+/**
+ * This module contains the templates for the issues.
  * @module issues/data
  */
 

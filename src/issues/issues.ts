@@ -1,4 +1,5 @@
-/** This module holds the issue classes.
+/**
+ * This module holds the issue classes.
  * @module issues/issues
  */
 

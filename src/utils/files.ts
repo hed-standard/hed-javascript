@@ -1,4 +1,5 @@
-/** This module holds asynchronous functions for reading files.
+/**
+ * This module holds asynchronous functions for reading files.
  * @module
  */
 import { readFile as readFilePromise } from 'node:fs/promises'
@@ -33,7 +34,7 @@ export async function readHTTPSFile(url: string): Promise<string> {
   if (!response.ok) {
     IssueError.generateAndThrow('networkReadError', {
       url: url,
-      statusCode: response.status,
+      statusCode: response.status.toString(),
       statusText: response.statusText,
     })
   }
