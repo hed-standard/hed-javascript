@@ -5,26 +5,68 @@
 
 import path from 'node:path'
 
-import { BidsSidecar } from '../bids'
+import zip from 'lodash/zip'
 
-type ParsedBidsFilename = {
+import { BidsSidecar } from '../bids/types/json'
+import { IssueError } from '../issues/issues'
+import { iteratePairwiseCombinations } from './array'
+
+/**
+ * A parsed BIDS file name.
+ */
+class ParsedBidsFilename {
   basename: string
   suffix: string | null
   prefix: string | null
   ext: string
   bad: string[]
   entities: Record<string, string>
+
+  constructor() {
+    this.basename = ''
+    this.suffix = null
+    this.prefix = null
+    this.ext = ''
+    this.bad = []
+    this.entities = {}
+  }
+
+  /**
+   * Whether this file name is equivalent to another one.
+   *
+   * @param other Another parsed BIDS file name.
+   * @returns Whether or not the two names are equivalent.
+   */
+  public equals(other: ParsedBidsFilename): boolean {
+    return this._isSubset(other) && other._isSubset(this)
+  }
+
+  /**
+   * Whether this file name is a subset of another one.
+   *
+   * @param other Another parsed BIDS file name.
+   * @returns Whether or not this file name is a subset of the other one.
+   * @private
+   */
+  private _isSubset(other: ParsedBidsFilename): boolean {
+    const ourEntities = Object.keys(this.entities)
+    return ourEntities.every((key) => Object.hasOwn(other.entities, key) && this.entities[key] === other.entities[key])
+  }
 }
 
 /**
- * An object containing two properties:
- *   - `candidates`: A list of all file paths that were successfully categorized.
- *   - `organizedPaths`: A Map where keys are the suffixes and special directories.
- *        Each value is a Map with 'tsv' and 'json' properties, containing the corresponding
- *        file paths. Keys will be present even if no files are found for them.
+ * A collection of categorized BIDS file paths.
  */
 type OrganizedBidsPaths = {
+  /**
+   * A list of all file paths that were successfully categorized.
+   */
   candidates: string[]
+  /**
+   * A Map where keys are the suffixes and special directories.
+   *   Each value is a Map with 'tsv' and 'json' properties, containing the corresponding
+   *   file paths. Keys will be present even if no files are found for them.
+   */
   organizedPaths: Map<string, Map<string, string[]>>
 }
 
@@ -186,14 +228,7 @@ function _updateEntity(nameDict: ParsedBidsFilename, entity: string): void {
  * @returns An object containing the parts of the BIDS filename.
  */
 export function parseBidsFilename(filePath: string): ParsedBidsFilename {
-  const nameDict: ParsedBidsFilename = {
-    basename: '',
-    suffix: null,
-    prefix: null,
-    ext: '',
-    bad: [],
-    entities: {},
-  }
+  const nameDict = new ParsedBidsFilename()
 
   const strippedPath = filePath.trim()
   const lastSlash = strippedPath.lastIndexOf('/')
@@ -330,7 +365,7 @@ export function _sortCandidates(candidates: string[]) {
  * @param jsonList A list of relative paths of JSON sidecars.
  * @param sidecarMap A map of sidecars.
  * @returns The merged sidecar data.
- * @throws {Error} If a BIDS inheritance conflict is detected.
+ * @throws {IssueError} If a BIDS inheritance conflict is detected.
  */
 export function getMergedSidecarData(
   tsvPath: string,
@@ -365,7 +400,7 @@ export function getMergedSidecarData(
   let merged = {}
   for (const path of candidates) {
     const sidecar = sidecarMap.get(path)
-    if (sidecar && sidecar.jsonData) {
+    if (sidecar?.jsonData) {
       merged = { ...merged, ...sidecar.jsonData }
     }
   }
@@ -383,22 +418,16 @@ export function getMergedSidecarData(
  *
  * @param dir The directory path being tested
  * @param sidecarsInDir Array of sidecar filenames in the directory
- * @throws {Error} Throws an error if any two sidecars are hierarchically related
+ * @throws {IssueError} Throws an error if any two sidecars are hierarchically related
  */
 function _testSameDir(dir: string, sidecarsInDir: string[]) {
-  for (let i = 0; i < sidecarsInDir.length; i++) {
-    for (let j = i + 1; j < sidecarsInDir.length; j++) {
-      const aParsed = parseBidsFilename(sidecarsInDir[i])
-      const bParsed = parseBidsFilename(sidecarsInDir[j])
-      const aEntities = Object.keys(aParsed.entities)
-      const bEntities = Object.keys(bParsed.entities)
-      const aIsSubset = aEntities.every((k) => bEntities.includes(k) && aParsed.entities[k] === bParsed.entities[k])
-      const bIsSubset = bEntities.every((k) => aEntities.includes(k) && bParsed.entities[k] === aParsed.entities[k])
-      if (aIsSubset === bIsSubset) {
-        throw new Error(
-          `BIDS inheritance conflict in directory '${dir}': sidecars '${sidecarsInDir[i]}' and '${sidecarsInDir[j]}' are not hierarchically related.`,
-        )
-      }
+  const parsedBidsFileNames = sidecarsInDir.map((path) => parseBidsFilename(path))
+  const iterator = iteratePairwiseCombinations(zip(sidecarsInDir, parsedBidsFileNames))
+  for (const [[firstName, firstParsed], [secondName, secondParsed]] of iterator) {
+    if (firstParsed.equals(secondParsed)) {
+      IssueError.generateAndThrowInternalError(
+        `BIDS inheritance conflict in directory '${dir}': sidecars '${firstName}' and '${secondName}' are not hierarchically related.`,
+      )
     }
   }
 }

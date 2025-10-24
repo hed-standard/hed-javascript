@@ -58,7 +58,7 @@ export class IssueError extends Error {
  * A HED validation error or warning.
  */
 export class Issue {
-  private static SPECIAL_PARAMETERS = new Map([
+  private static readonly SPECIAL_PARAMETERS = new Map([
     ['sidecarKey', 'Sidecar key'],
     ['tsvLine', 'TSV line'],
     ['hedString', 'HED string'],

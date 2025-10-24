@@ -19,3 +19,14 @@ export function recursiveMap<T, U>(array: NestedArray<T>, fn: (element: T) => U)
     return fn(array)
   }
 }
+
+/**
+ * Generate an iterator over the pairwise combinations of an array.
+ *
+ * @param array The array to combine.
+ * @returns A generator which iterates over the list of combinations as tuples.
+ */
+export function* iteratePairwiseCombinations<T>(array: T[]): Generator<[T, T]> {
+  const pairs = array.flatMap((first, index) => array.slice(index + 1).map((second): [T, T] => [first, second]))
+  yield* pairs
+}
