@@ -195,35 +195,47 @@ export function organizePaths(
     if (typeof relativePath !== 'string' || (!relativePath.endsWith('.tsv') && !relativePath.endsWith('.json'))) {
       continue
     }
-
-    const pathParts = relativePath.split('/')
-    const basename = pathParts[pathParts.length - 1]
-    const firstComponent = pathParts[0]
-
     const ext = relativePath.endsWith('.tsv') ? 'tsv' : 'json'
-
-    // Rule 1: Check if the file is in a special directory.
-    if (specialDirs.includes(firstComponent)) {
-      candidates.addCandidate(relativePath, firstComponent, ext)
-    } else {
-      // Rule 2: Check if it's a top-level file or in a subject directory.
-      const isToplevel = pathParts.length === 1
-      const inSubDir = firstComponent.startsWith('sub-')
-
-      if (isToplevel || inSubDir) {
-        // Rule 3: Either it is the suffix or the suffix starts with an underscore and matches the end of the filename.
-        const filenameNoExt = basename.substring(0, basename.lastIndexOf('.'))
-        for (const suffix of suffixes) {
-          if (filenameNoExt === suffix || (suffix.startsWith('_') && filenameNoExt.endsWith(suffix))) {
-            candidates.addCandidate(relativePath, suffix, ext)
-            break // Stop after first suffix match.
-          }
-        }
-      }
+    const [isCandidate, suffix] = _organizePath(relativePath, suffixes, specialDirs)
+    if (isCandidate) {
+      candidates.addCandidate(relativePath, suffix, ext)
     }
   }
 
   return candidates
+}
+
+/**
+ * Helper function for organizing an individual path.
+ *
+ * @param relativePath A relative file path to organize.
+ * @param suffixes A list of filename suffixes to categorize by (e.g., 'events').
+ * @param specialDirs A list of special directory names (e.g., 'phenotype').
+ * @returns A tuple of whether the path was matched and its suffix.
+ */
+function _organizePath(relativePath: string, suffixes: string[], specialDirs: string[]): [boolean, string] {
+  const pathParts = relativePath.split('/')
+  const basename = pathParts[pathParts.length - 1]
+  const firstComponent = pathParts[0]
+
+  // Rule 1: Check if the file is in a special directory.
+  if (specialDirs.includes(firstComponent)) {
+    return [true, firstComponent]
+  }
+
+  // Rule 2: Check if it's a top-level file or in a subject directory.
+  const isToplevel = pathParts.length === 1
+  const inSubDir = firstComponent.startsWith('sub-')
+  if (!isToplevel && !inSubDir) {
+    return [false, '']
+  }
+
+  // Rule 3: Either it is the suffix or the suffix starts with an underscore and matches the end of the filename.
+  const filenameNoExt = basename.substring(0, basename.lastIndexOf('.'))
+  const matchingSuffix = suffixes.find(
+    (suffix) => filenameNoExt === suffix || (suffix.startsWith('_') && filenameNoExt.endsWith(suffix)),
+  )
+  return [matchingSuffix !== undefined, matchingSuffix]
 }
 
 /**
