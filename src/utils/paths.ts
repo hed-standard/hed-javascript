@@ -55,9 +55,16 @@ class ParsedBidsFilename {
 }
 
 /**
+ * A Map where keys are the suffixes and special directories.
+ *   Each value is a Map with 'tsv' and 'json' properties, containing the corresponding
+ *   file paths. Keys will be present even if no files are found for them.
+ */
+export type OrganizedBidsPaths = Map<string, Map<string, string[]>>
+
+/**
  * A collection of categorized BIDS file paths.
  */
-type OrganizedBidsPaths = {
+class OrganizedBidsCandidates {
   /**
    * A list of all file paths that were successfully categorized.
    */
@@ -67,7 +74,39 @@ type OrganizedBidsPaths = {
    *   Each value is a Map with 'tsv' and 'json' properties, containing the corresponding
    *   file paths. Keys will be present even if no files are found for them.
    */
-  organizedPaths: Map<string, Map<string, string[]>>
+  organizedPaths: OrganizedBidsPaths
+
+  /**
+   * Initialize the organized paths map.
+   *
+   * @param keys The keys to initialize the map with.
+   * @returns The initialized map.
+   */
+  constructor(keys: string[]) {
+    this.candidates = []
+    this.organizedPaths = new Map<string, Map<string, string[]>>()
+    for (const key of keys) {
+      this.organizedPaths.set(
+        key,
+        new Map<string, string[]>([
+          ['json', []],
+          ['tsv', []],
+        ]),
+      )
+    }
+  }
+
+  /**
+   * Add a candidate.
+   *
+   * @param relativePath The candidate's relative path.
+   * @param suffix The candidate's suffix.
+   * @param ext The candidate's suffix.
+   */
+  public addCandidate(relativePath: string, suffix: string, ext: string): void {
+    this.candidates.push(relativePath)
+    this.organizedPaths.get(suffix).get(ext).push(relativePath)
+  }
 }
 
 /**
@@ -148,10 +187,8 @@ export function organizePaths(
   relativeFilePaths: string[],
   suffixes: string[],
   specialDirs: string[],
-): OrganizedBidsPaths {
-  const candidates: string[] = []
-  // Use helper function to initialize organizedPaths
-  const organizedPaths = _initializeOrganizedPaths([...suffixes, ...specialDirs])
+): OrganizedBidsCandidates {
+  const candidates = new OrganizedBidsCandidates([...suffixes, ...specialDirs])
 
   for (const relativePath of relativeFilePaths) {
     // Basic validation and extension check
@@ -165,12 +202,9 @@ export function organizePaths(
 
     const ext = relativePath.endsWith('.tsv') ? 'tsv' : 'json'
 
-    let categorized = false
-
     // Rule 1: Check if the file is in a special directory.
     if (specialDirs.includes(firstComponent)) {
-      organizedPaths.get(firstComponent).get(ext).push(relativePath)
-      categorized = true
+      candidates.addCandidate(relativePath, firstComponent, ext)
     } else {
       // Rule 2: Check if it's a top-level file or in a subject directory.
       const isToplevel = pathParts.length === 1
@@ -180,28 +214,16 @@ export function organizePaths(
         // Rule 3: Either it is the suffix or the suffix starts with an underscore and matches the end of the filename.
         const filenameNoExt = basename.substring(0, basename.lastIndexOf('.'))
         for (const suffix of suffixes) {
-          let match = false
-          if (filenameNoExt === suffix) {
-            match = true
-          } else if (suffix.startsWith('_') && filenameNoExt.endsWith(suffix)) {
-            match = true
-          }
-          if (match) {
-            organizedPaths.get(suffix).get(ext).push(relativePath)
-            categorized = true
+          if (filenameNoExt === suffix || (suffix.startsWith('_') && filenameNoExt.endsWith(suffix))) {
+            candidates.addCandidate(relativePath, suffix, ext)
             break // Stop after first suffix match.
           }
         }
       }
     }
-
-    // If the file was categorized, add it to the candidates list.
-    if (categorized) {
-      candidates.push(relativePath)
-    }
   }
 
-  return { candidates, organizedPaths }
+  return candidates
 }
 
 /**
@@ -337,7 +359,7 @@ export function _getCandidates(jsonList: string[], tsvDir: string, tsvParsed: Pa
  *
  * @param candidates A list of candidate JSON sidecar paths.
  */
-export function _sortCandidates(candidates: string[]) {
+export function _sortCandidates(candidates: string[]): void {
   candidates.sort((a, b) => {
     const aDir = path.dirname(a)
     const bDir = path.dirname(b)
@@ -420,7 +442,7 @@ export function getMergedSidecarData(
  * @param sidecarsInDir Array of sidecar filenames in the directory
  * @throws {IssueError} Throws an error if any two sidecars are hierarchically related
  */
-function _testSameDir(dir: string, sidecarsInDir: string[]) {
+function _testSameDir(dir: string, sidecarsInDir: string[]): void {
   const parsedBidsFileNames = sidecarsInDir.map((path) => parseBidsFilename(path))
   const iterator = iteratePairwiseCombinations(zip(sidecarsInDir, parsedBidsFileNames))
   for (const [[firstName, firstParsed], [secondName, secondParsed]] of iterator) {
@@ -440,7 +462,7 @@ function _testSameDir(dir: string, sidecarsInDir: string[]) {
  * @returns A generator for the paths of the given file extension.
  */
 export function* organizedPathsGenerator(
-  organizedPaths: Map<string, Map<string, string[]>>,
+  organizedPaths: OrganizedBidsPaths,
   targetExtension: string,
 ): Generator<string> {
   if (!organizedPaths) {
@@ -448,31 +470,7 @@ export function* organizedPathsGenerator(
   }
   const extKey = targetExtension.startsWith('.') ? targetExtension.slice(1) : targetExtension
   for (const innerMap of organizedPaths.values()) {
-    const pathArray = innerMap.get(extKey)
-    if (Array.isArray(pathArray)) {
-      for (const path of pathArray) {
-        yield path
-      }
-    }
+    const pathArray = innerMap.get(extKey) ?? []
+    yield* pathArray
   }
-}
-
-/**
- * Initialize the organized paths map.
- *
- * @param keys The keys to initialize the map with.
- * @returns The initialized map.
- */
-function _initializeOrganizedPaths(keys: string[]): Map<string, Map<string, string[]>> {
-  const map = new Map<string, Map<string, string[]>>()
-  for (const key of keys) {
-    map.set(
-      key,
-      new Map<string, string[]>([
-        ['json', []],
-        ['tsv', []],
-      ]),
-    )
-  }
-  return map
 }
