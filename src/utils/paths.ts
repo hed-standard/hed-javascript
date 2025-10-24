@@ -5,6 +5,29 @@
 
 import path from 'node:path'
 
+import { BidsSidecar } from '../bids'
+
+type ParsedBidsFilename = {
+  basename: string
+  suffix: string | null
+  prefix: string | null
+  ext: string
+  bad: string[]
+  entities: Record<string, string>
+}
+
+/**
+ * An object containing two properties:
+ *   - `candidates`: A list of all file paths that were successfully categorized.
+ *   - `organizedPaths`: A Map where keys are the suffixes and special directories.
+ *        Each value is a Map with 'tsv' and 'json' properties, containing the corresponding
+ *        file paths. Keys will be present even if no files are found for them.
+ */
+type OrganizedBidsPaths = {
+  candidates: string[]
+  organizedPaths: Map<string, Map<string, string[]>>
+}
+
 /**
  * Checks if one path is a subpath of another.
  *
@@ -18,16 +41,19 @@ import path from 'node:path'
  * If the normalized parent path is an empty string (e.g., from '.', './', or '/'),
  * any non-empty child path is considered a subpath.
  *
- * @param {string|null|undefined} potentialChild The path to check if it's a subpath.
- * @param {string|null|undefined} potentialParent The path to check if it's a parent.
- * @returns {boolean} True if potentialChild is a subpath of potentialParent, false otherwise.
+ * @param potentialChild The path to check if it's a subpath.
+ * @param potentialParent The path to check if it's a parent.
+ * @returns True if potentialChild is a subpath of potentialParent, false otherwise.
  */
-export function isSubpath(potentialChild, potentialParent) {
+export function isSubpath(
+  potentialChild: string | null | undefined,
+  potentialParent: string | null | undefined,
+): boolean {
   // Normalize paths for consistent comparison
-  const normalizePath = (rawPath) => {
+  const normalizePath = (rawPath: string | null | undefined) => {
     // Handle null/undefined gracefully, and ensure '.' normalizes to an empty string
     // similar to how './' and '/' are effectively treated.
-    let p = String(rawPath == null ? '' : rawPath)
+    let p = rawPath ?? ''
 
     if (p === '.') {
       return '' // Explicitly normalize '.' to an empty string
@@ -71,18 +97,17 @@ export function isSubpath(potentialChild, potentialParent) {
  * 'participants') or by their presence in a special directory. Only files with '.tsv' or '.json'
  * extensions are considered.
  *
- * @param {string[]} relativeFilePaths - A list of relative file paths to organize.
- * @param {string[]} suffixes - A list of filename suffixes to categorize by (e.g., 'events').
- * @param {string[]} specialDirs - A list of special directory names (e.g., 'phenotype').
- * @returns {{candidates: string[], organizedPaths: Map<string, Map<string, string[]>>}}
- *          An object containing two properties:
- *          - `candidates`: A list of all file paths that were successfully categorized.
- *          - `organizedPaths`: A Map where keys are the suffixes and special directories.
- *            Each value is a Map with 'tsv' and 'json' properties, containing the corresponding
- *            file paths. Keys will be present even if no files are found for them.
+ * @param relativeFilePaths A list of relative file paths to organize.
+ * @param suffixes A list of filename suffixes to categorize by (e.g., 'events').
+ * @param specialDirs A list of special directory names (e.g., 'phenotype').
+ * @returns The relative file paths organized according to BIDS naming conventions.
  */
-export function organizePaths(relativeFilePaths, suffixes, specialDirs) {
-  const candidates = []
+export function organizePaths(
+  relativeFilePaths: string[],
+  suffixes: string[],
+  specialDirs: string[],
+): OrganizedBidsPaths {
+  const candidates: string[] = []
   // Use helper function to initialize organizedPaths
   const organizedPaths = _initializeOrganizedPaths([...suffixes, ...specialDirs])
 
@@ -140,11 +165,10 @@ export function organizePaths(relativeFilePaths, suffixes, specialDirs) {
 /**
  * Updates the entity dictionary with a new entity.
  *
- * @param {object} nameDict The dictionary of BIDS filename parts.
- * @param {string} entity The entity string to parse and add.
- * @private
+ * @param nameDict The dictionary of BIDS filename parts.
+ * @param entity The entity string to parse and add.
  */
-function _updateEntity(nameDict, entity) {
+function _updateEntity(nameDict: ParsedBidsFilename, entity: string): void {
   const parts = entity.split('-')
   if (parts.length === 2 && parts[0] && parts[1]) {
     nameDict.entities[parts[0]] = parts[1]
@@ -158,11 +182,11 @@ function _updateEntity(nameDict, entity) {
  *
  * This is a JavaScript implementation of the Python code provided by the user.
  *
- * @param {string} filePath Path to be parsed.
- * @returns {{basename: string, suffix: string, prefix: string, ext: string, bad: string[], entities: Record<string, string>}} An object containing the parts of the BIDS filename.
+ * @param filePath Path to be parsed.
+ * @returns An object containing the parts of the BIDS filename.
  */
-export function parseBidsFilename(filePath) {
-  const nameDict = {
+export function parseBidsFilename(filePath: string): ParsedBidsFilename {
+  const nameDict: ParsedBidsFilename = {
     basename: '',
     suffix: null,
     prefix: null,
@@ -227,24 +251,24 @@ export function parseBidsFilename(filePath) {
 
 /**
  * Get the directory part of a path.
- * @param {string} path The path.
- * @returns {string} The directory part of the path.
- * @private
+ *
+ * @param path The path.
+ * @returns The directory part of the path.
  */
-export function getDir(path) {
+export function getDir(path: string): string {
   const lastSlash = path.lastIndexOf('/')
   return lastSlash === -1 ? '' : path.substring(0, lastSlash)
 }
 
 /**
  * Filter a list of JSON sidecar paths to find candidates for a given TSV file.
- * @param {string[]} jsonList A list of relative paths of JSON sidecars.
- * @param {string} tsvDir The directory of the TSV file.
- * @param {object} tsvParsed The parsed BIDS filename of the TSV file.
- * @returns {string[]} A list of candidate JSON sidecar paths.
- * @private
+ *
+ * @param jsonList A list of relative paths of JSON sidecars.
+ * @param tsvDir The directory of the TSV file.
+ * @param tsvParsed The parsed BIDS filename of the TSV file.
+ * @returns A list of candidate JSON sidecar paths.
  */
-export function _getCandidates(jsonList, tsvDir, tsvParsed) {
+export function _getCandidates(jsonList: string[], tsvDir: string, tsvParsed: ParsedBidsFilename): string[] {
   return jsonList.filter((jsonPath) => {
     const jsonDir = path.dirname(jsonPath)
 
@@ -276,10 +300,9 @@ export function _getCandidates(jsonList, tsvDir, tsvParsed) {
  *
  * The sorting is done based on path depth and number of entities.
  *
- * @param {string[]} candidates A list of candidate JSON sidecar paths.
- * @private
+ * @param candidates A list of candidate JSON sidecar paths.
  */
-export function _sortCandidates(candidates) {
+export function _sortCandidates(candidates: string[]) {
   candidates.sort((a, b) => {
     const aDir = path.dirname(a)
     const bDir = path.dirname(b)
@@ -303,13 +326,17 @@ export function _sortCandidates(candidates) {
  *
  * Note: This function should not be called for files in directories with special association rules such as 'phenotype'.
  *
- * @param {string} tsvPath The path to the TSV file.
- * @param {string[]} jsonList A list of relative paths of JSON sidecars.
- * @param {Map<string, BidsSidecar>} sidecarMap A map of sidecars.
- * @returns {object} The merged sidecar data.
+ * @param tsvPath The path to the TSV file.
+ * @param jsonList A list of relative paths of JSON sidecars.
+ * @param sidecarMap A map of sidecars.
+ * @returns The merged sidecar data.
  * @throws {Error} If a BIDS inheritance conflict is detected.
  */
-export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
+export function getMergedSidecarData(
+  tsvPath: string,
+  jsonList: string[],
+  sidecarMap: Map<string, BidsSidecar>,
+): object {
   const tsvDir = path.dirname(tsvPath)
   const tsvParsed = parseBidsFilename(tsvPath)
 
@@ -354,12 +381,11 @@ export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
  * in the same directory have conflicting inheritance relationships (i.e., neither is
  * a subset of the other, or both are subsets of each other).
  *
- * @param {string} dir - The directory path being tested
- * @param {string[]} sidecarsInDir - Array of sidecar filenames in the directory
+ * @param dir The directory path being tested
+ * @param sidecarsInDir Array of sidecar filenames in the directory
  * @throws {Error} Throws an error if any two sidecars are hierarchically related
- * @private
  */
-const _testSameDir = (dir, sidecarsInDir) => {
+function _testSameDir(dir: string, sidecarsInDir: string[]) {
   for (let i = 0; i < sidecarsInDir.length; i++) {
     for (let j = i + 1; j < sidecarsInDir.length; j++) {
       const aParsed = parseBidsFilename(sidecarsInDir[i])
@@ -380,11 +406,14 @@ const _testSameDir = (dir, sidecarsInDir) => {
 /**
  * A generator function that yields the paths of a given file extension from a BIDS-style organized path mapping.
  *
- * @param {Map<string, Map<string, string[]>>} organizedPaths A BIDS-style organized path mapping.
- * @param {string} targetExtension The file extension to search for (e.g., '.json').
- * @yields {string} The paths of the given file extension.
+ * @param organizedPaths A BIDS-style organized path mapping.
+ * @param targetExtension The file extension to search for (e.g., '.json').
+ * @returns A generator for the paths of the given file extension.
  */
-export function* organizedPathsGenerator(organizedPaths, targetExtension) {
+export function* organizedPathsGenerator(
+  organizedPaths: Map<string, Map<string, string[]>>,
+  targetExtension: string,
+): Generator<string> {
   if (!organizedPaths) {
     return
   }
@@ -402,16 +431,15 @@ export function* organizedPathsGenerator(organizedPaths, targetExtension) {
 /**
  * Initialize the organized paths map.
  *
- * @param {string[]} keys The keys to initialize the map with.
- * @returns {Map<string, Map<string, string[]>>} The initialized map.
- * @private
+ * @param keys The keys to initialize the map with.
+ * @returns The initialized map.
  */
-const _initializeOrganizedPaths = (keys) => {
-  const map = new Map()
+function _initializeOrganizedPaths(keys: string[]): Map<string, Map<string, string[]>> {
+  const map = new Map<string, Map<string, string[]>>()
   for (const key of keys) {
     map.set(
       key,
-      new Map([
+      new Map<string, string[]>([
         ['json', []],
         ['tsv', []],
       ]),
