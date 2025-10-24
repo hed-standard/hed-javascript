@@ -109,6 +109,135 @@ class OrganizedBidsCandidates {
   }
 }
 
+class BidsPathOrganizer {
+  /**
+   * A list of relative file paths to organize.
+   */
+  private readonly relativeFilePaths: string[]
+  /**
+   * A list of filename suffixes to categorize by (e.g., 'events').
+   */
+  private readonly suffixes: string[]
+  /**
+   * A list of special directory names (e.g., 'phenotype').
+   */
+  private readonly specialDirs: string[]
+  /**
+   * The relative file paths organized according to BIDS naming conventions.
+   */
+  private readonly candidates: OrganizedBidsCandidates
+  /**
+   * Whether the candidates have already been organized.
+   * @private
+   */
+  #alreadyOrganized: boolean
+
+  /**
+   * Build the organizer.
+   *
+   * @param relativeFilePaths A list of relative file paths to organize.
+   * @param suffixes A list of filename suffixes to categorize by (e.g., 'events').
+   * @param specialDirs A list of special directory names (e.g., 'phenotype').
+   */
+  constructor(relativeFilePaths: string[], suffixes: string[], specialDirs: string[]) {
+    this.relativeFilePaths = relativeFilePaths
+    this.suffixes = suffixes
+    this.specialDirs = specialDirs
+    this.candidates = new OrganizedBidsCandidates([...suffixes, ...specialDirs])
+    this.#alreadyOrganized = false
+  }
+
+  /**
+   * Organizes a list of relative file paths based on BIDS naming conventions.
+   *
+   * This function filters and categorizes file paths into a structured object. It identifies files
+   * based on whether they are in special directories (like 'phenotype'), are top-level files, or
+   * are located within subject-specific directories ('sub-xxx').
+   *
+   * Files are categorized by matching their filename against a list of suffixes (e.g., 'events',
+   * 'participants') or by their presence in a special directory. Only files with '.tsv' or '.json'
+   * extensions are considered.
+   *
+   * @returns The relative file paths organized according to BIDS naming conventions.
+   */
+  public organizePaths(): OrganizedBidsCandidates {
+    if (this.#alreadyOrganized) {
+      return this.candidates
+    }
+
+    for (const relativePath of this.relativeFilePaths) {
+      // Basic validation and extension check
+      if (typeof relativePath !== 'string' || (!relativePath.endsWith('.tsv') && !relativePath.endsWith('.json'))) {
+        continue
+      }
+      this._organizePath(relativePath)
+    }
+
+    this.#alreadyOrganized = true
+
+    return this.candidates
+  }
+
+  /**
+   * Helper function for organizing an individual path.
+   *
+   * @param relativePath A relative file path to organize.
+   */
+  private _organizePath(relativePath: string): void {
+    const pathParts = relativePath.split('/')
+    const firstComponent = pathParts[0]
+    const ext = relativePath.endsWith('.tsv') ? 'tsv' : 'json'
+
+    // Rule 1: Check if the file is in a special directory.
+    if (this.specialDirs.includes(firstComponent)) {
+      this.candidates.addCandidate(relativePath, firstComponent, ext)
+      return
+    }
+
+    // Rule 2: Check if it's a top-level file or in a subject directory.
+    const isToplevel = pathParts.length === 1
+    const inSubDir = firstComponent.startsWith('sub-')
+    if (!isToplevel && !inSubDir) {
+      return
+    }
+
+    // Rule 3: Either it is the suffix or the suffix starts with an underscore and matches the end of the filename.
+    const basename = pathParts[pathParts.length - 1]
+    const filenameNoExt = basename.substring(0, basename.lastIndexOf('.'))
+    const matchingSuffix = this.suffixes.find(
+      (suffix) => filenameNoExt === suffix || (suffix.startsWith('_') && filenameNoExt.endsWith(suffix)),
+    )
+    if (matchingSuffix) {
+      this.candidates.addCandidate(relativePath, matchingSuffix, ext)
+    }
+  }
+}
+
+/**
+ * Organizes a list of relative file paths based on BIDS naming conventions.
+ *
+ * This function filters and categorizes file paths into a structured object. It identifies files
+ * based on whether they are in special directories (like 'phenotype'), are top-level files, or
+ * are located within subject-specific directories ('sub-xxx').
+ *
+ * Files are categorized by matching their filename against a list of suffixes (e.g., 'events',
+ * 'participants') or by their presence in a special directory. Only files with '.tsv' or '.json'
+ * extensions are considered.
+ *
+ * @param relativeFilePaths A list of relative file paths to organize.
+ * @param suffixes A list of filename suffixes to categorize by (e.g., 'events').
+ * @param specialDirs A list of special directory names (e.g., 'phenotype').
+ * @returns The relative file paths organized according to BIDS naming conventions.
+ */
+export function organizePaths(
+  relativeFilePaths: string[],
+  suffixes: string[],
+  specialDirs: string[],
+): OrganizedBidsCandidates {
+  const organizer = new BidsPathOrganizer(relativeFilePaths, suffixes, specialDirs)
+  return organizer.organizePaths()
+}
+
 /**
  * Checks if one path is a subpath of another.
  *
@@ -165,77 +294,6 @@ export function isSubpath(
 
   // Check if the child path starts with the parent path followed by a directory separator
   return normChild.startsWith(normParent + '/')
-}
-
-/**
- * Organizes a list of relative file paths based on BIDS naming conventions.
- *
- * This function filters and categorizes file paths into a structured object. It identifies files
- * based on whether they are in special directories (like 'phenotype'), are top-level files, or
- * are located within subject-specific directories ('sub-xxx').
- *
- * Files are categorized by matching their filename against a list of suffixes (e.g., 'events',
- * 'participants') or by their presence in a special directory. Only files with '.tsv' or '.json'
- * extensions are considered.
- *
- * @param relativeFilePaths A list of relative file paths to organize.
- * @param suffixes A list of filename suffixes to categorize by (e.g., 'events').
- * @param specialDirs A list of special directory names (e.g., 'phenotype').
- * @returns The relative file paths organized according to BIDS naming conventions.
- */
-export function organizePaths(
-  relativeFilePaths: string[],
-  suffixes: string[],
-  specialDirs: string[],
-): OrganizedBidsCandidates {
-  const candidates = new OrganizedBidsCandidates([...suffixes, ...specialDirs])
-
-  for (const relativePath of relativeFilePaths) {
-    // Basic validation and extension check
-    if (typeof relativePath !== 'string' || (!relativePath.endsWith('.tsv') && !relativePath.endsWith('.json'))) {
-      continue
-    }
-    const ext = relativePath.endsWith('.tsv') ? 'tsv' : 'json'
-    const [isCandidate, suffix] = _organizePath(relativePath, suffixes, specialDirs)
-    if (isCandidate) {
-      candidates.addCandidate(relativePath, suffix, ext)
-    }
-  }
-
-  return candidates
-}
-
-/**
- * Helper function for organizing an individual path.
- *
- * @param relativePath A relative file path to organize.
- * @param suffixes A list of filename suffixes to categorize by (e.g., 'events').
- * @param specialDirs A list of special directory names (e.g., 'phenotype').
- * @returns A tuple of whether the path was matched and its suffix.
- */
-function _organizePath(relativePath: string, suffixes: string[], specialDirs: string[]): [boolean, string] {
-  const pathParts = relativePath.split('/')
-  const basename = pathParts[pathParts.length - 1]
-  const firstComponent = pathParts[0]
-
-  // Rule 1: Check if the file is in a special directory.
-  if (specialDirs.includes(firstComponent)) {
-    return [true, firstComponent]
-  }
-
-  // Rule 2: Check if it's a top-level file or in a subject directory.
-  const isToplevel = pathParts.length === 1
-  const inSubDir = firstComponent.startsWith('sub-')
-  if (!isToplevel && !inSubDir) {
-    return [false, '']
-  }
-
-  // Rule 3: Either it is the suffix or the suffix starts with an underscore and matches the end of the filename.
-  const filenameNoExt = basename.substring(0, basename.lastIndexOf('.'))
-  const matchingSuffix = suffixes.find(
-    (suffix) => filenameNoExt === suffix || (suffix.startsWith('_') && filenameNoExt.endsWith(suffix)),
-  )
-  return [matchingSuffix !== undefined, matchingSuffix]
 }
 
 /**
