@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main, typescript]
 
+permissions:
+  contents: read
+
 jobs:
   test-types:
     runs-on: ubuntu-latest
