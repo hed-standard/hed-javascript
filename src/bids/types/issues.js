@@ -5,7 +5,7 @@
 import { generateIssue, IssueError } from '../../issues/issues'
 
 /**
- * @typedef {import('../../issues/issues.js').Issue} Issue
+ * @typedef {import('../../issues/issues.ts').Issue} Issue
  */
 
 /**

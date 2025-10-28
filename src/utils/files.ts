@@ -1,4 +1,5 @@
-/** This module holds asynchronous functions for reading files.
+/**
+ * This module holds asynchronous functions for reading files.
  * @module
  */
 import { readFile as readFilePromise } from 'node:fs/promises'
@@ -8,11 +9,11 @@ import { IssueError } from '../issues/issues'
 /**
  * Read a local file.
  *
- * @param {string} fileName The file path.
- * @returns {Promise<string>} A promise with the file contents.
+ * @param fileName The file path.
+ * @returns A promise with the file contents.
  * @throws {IssueError} If the file read failed or if called in a browser environment.
  */
-export async function readFile(fileName) {
+export async function readFile(fileName: string): Promise<string> {
   try {
     const stringBuffer = await readFilePromise(fileName, 'utf8')
     return stringBuffer.toString()
@@ -24,16 +25,16 @@ export async function readFile(fileName) {
 /**
  * Read a remote file using HTTPS.
  *
- * @param {string} url The remote URL.
- * @returns {Promise<string>} A promise with the file contents.
+ * @param url The remote URL.
+ * @returns A promise with the file contents.
  * @throws {IssueError} If the network read failed.
  */
-export async function readHTTPSFile(url) {
+export async function readHTTPSFile(url: string): Promise<string> {
   const response = await fetch(url)
   if (!response.ok) {
     IssueError.generateAndThrow('networkReadError', {
       url: url,
-      statusCode: response.status,
+      statusCode: response.status.toString(),
       statusText: response.statusText,
     })
   }

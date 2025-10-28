@@ -20,7 +20,7 @@ const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
 export class BidsJsonFile extends BidsFile {
   /**
    * This file's JSON data.
-   * @type {Object}
+   * @type {Record<string, any>}
    */
   jsonData
 
@@ -31,7 +31,7 @@ export class BidsJsonFile extends BidsFile {
    *
    * @param {string} name The name of the JSON file.
    * @param {Object} file The file object representing this file.
-   * @param {Object} jsonData The JSON data for this file.
+   * @param {Record<string, any>} jsonData The JSON data for this file.
    */
   constructor(name, file, jsonData) {
     super(name, file, BidsHedSidecarValidator)

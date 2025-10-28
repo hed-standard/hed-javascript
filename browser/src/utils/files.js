@@ -8,9 +8,9 @@ import { IssueError } from '../../../src/issues/issues'
  * @throws {IssueError} Always throws since local file reading is not supported in browsers.
  */
 export async function readFile(fileName) {
-  IssueError.generateAndThrow('fileReadError', { 
-    fileName: fileName, 
-    message: 'Local file reading is not supported in browser environment' 
+  IssueError.generateAndThrow('fileReadError', {
+    fileName: fileName,
+    message: 'Local file reading is not supported in browser environment',
   })
 }
 
@@ -26,7 +26,7 @@ export async function readHTTPSFile(url) {
   if (!response.ok) {
     IssueError.generateAndThrow('networkReadError', {
       url: url,
-      statusCode: response.status,
+      statusCode: response.status.toString(),
       statusText: response.statusText,
     })
   }
