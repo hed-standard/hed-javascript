@@ -8,7 +8,7 @@ on:
 
 # Allow only one concurrent deployment, cancelling any previously running ones.
 concurrency:
-  group: 'pages'
+  group: pages
   cancel-in-progress: true
 
 permissions: {}
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: 22
           # Cache npm dependencies to speed up future builds
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: |
             package-lock.json
             browser/package-lock.json
