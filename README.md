@@ -66,6 +66,19 @@ main()
 The `main` branch is now the default branch. All changes to the repository should
 be done as PRs (pull requests) to the `main` branch.
 
+### Dependabot setup
+
+Dependabot is already configured for this repository via the `.github/dependabot.yml` file.
+No additional configuration in GitHub settings is required.
+
+The current configuration automatically:
+- Checks for GitHub Actions updates weekly
+- Checks for npm package updates weekly (ignoring major version updates for `chai`)
+- Checks for git submodule updates daily
+
+All checks target the `main` branch. Dependabot will automatically create pull requests
+when updates are available. You can modify the configuration by editing `.github/dependabot.yml`.
+
 ### Running the browser locally
 
 ```code
