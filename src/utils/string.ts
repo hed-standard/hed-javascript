@@ -51,7 +51,7 @@ export function issueMessageTemplate(
     const bounds = [start, end]
     const result = [strings[0]]
     parameterKeys.forEach((key, i) => {
-      const value = typeof key === 'number' ? bounds[key].toString() : parameterValues[key]
+      const value = typeof key === 'number' ? bounds[key]?.toString() : parameterValues[key]
       result.push(value, strings[i + 1])
     })
     return result.join('')

@@ -101,7 +101,7 @@ class OrganizedBidsCandidates {
    *
    * @param relativePath The candidate's relative path.
    * @param suffix The candidate's suffix.
-   * @param ext The candidate's suffix.
+   * @param ext The candidate's extension.
    */
   public addCandidate(relativePath: string, suffix: string, ext: string): void {
     this.candidates.push(relativePath)

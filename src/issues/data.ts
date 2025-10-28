@@ -510,7 +510,7 @@ const issueData: Record<string, IssueType> = {
   genericError: {
     hedCode: 'INTERNAL_ERROR',
     level: 'error',
-    message: (parameters) =>
+    message: (parameters, ...bounds) =>
       `Unknown HED error "${parameters.internalCode}" - parameters: "${JSON.stringify(parameters)}".`,
   },
 }

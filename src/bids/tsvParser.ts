@@ -60,7 +60,7 @@ function createTsvMap(headers: string[], rows: string[][]): ParsedTSV {
   }
   for (let i = 1; i < rows.length; i++) {
     for (let j = 0; j < headers.length; j++) {
-      columns.get(headers[j]).push(rows[i][j])
+      columns.get(headers[j])?.push(rows[i][j])
     }
   }
 
