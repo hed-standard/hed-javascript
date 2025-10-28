@@ -5,44 +5,54 @@
  */
 
 import { BidsHedIssue } from './issues'
+import { BidsValidator } from '../validator/validator'
 import { generateIssue } from '../../issues/issues'
+import { HedSchemas } from '../../schema/containers'
+
+type BidsValidatorConstructor<ValidatorClass extends BidsValidator> = {
+  new (file: BidsFile<ValidatorClass>, schemas: HedSchemas): ValidatorClass
+}
 
 /**
  * A BIDS file.
  */
-export class BidsFile {
+export class BidsFile<ValidatorClass extends BidsValidator> {
   /**
    * The name of this file.
-   * @type {string}
    */
-  name
+  readonly name: string
 
   /**
    * The Object representing this file data.
    * This is used to generate {@link BidsHedIssue} objects.
-   * @type {Object}
    */
-  file
+  readonly file: any
 
   /**
    * The validator class used to validate this file.
-   * @private
    */
-  _validatorClass
+  private readonly _validatorClass: BidsValidatorConstructor<ValidatorClass>
 
-  constructor(name, file, validatorClass) {
+  /**
+   * Constructor.
+   *
+   * @param name The name of this file.
+   * @param file The Object representing this file data.
+   * @param validatorClass The validator class used to validate this file.
+   */
+  constructor(name: string, file: any, validatorClass: BidsValidatorConstructor<ValidatorClass>) {
     this.name = name
     this.file = file
     this._validatorClass = validatorClass
   }
 
   /**
-   * Validate this validator's tsv file.
+   * Validate this validator's file.
    *
-   * @param {HedSchemas} schemas - The HED schemas used to validate this file.
-   * @returns {BidsHedIssue[]} - Any issues found during validation of this TSV file.
+   * @param schemas The HED schemas used to validate this file.
+   * @returns Any issues found during validation of this TSV file.
    */
-  validate(schemas) {
+  validate(schemas: HedSchemas): BidsHedIssue[] {
     if (!this.hasHedData) {
       return []
     }
@@ -70,18 +80,18 @@ export class BidsFile {
   /**
    * Determine whether this file has any HED data.
    *
-   * @returns {boolean}
+   * @returns Whether this file has any HED data.
    */
-  get hasHedData() {
+  get hasHedData(): boolean {
     return false
   }
 
   /**
    * The validator class used to validate this file.
    *
-   * @returns {function} The validator class used to validate this file.
+   * @returns The validator class used to validate this file.
    */
-  get validatorClass() {
+  get validatorClass(): BidsValidatorConstructor<ValidatorClass> {
     return this._validatorClass
   }
 }

@@ -184,7 +184,7 @@ export class BidsHedIssue {
    * @param {object?} extraParameters Any extra parameters to inject into the {@link Issue} objects.
    * @returns {BidsHedIssue[]} An array of BIDS-compatible issues.
    */
-  static fromHedIssues(hedIssues, file, extraParameters) {
+  static fromHedIssues(hedIssues, file, extraParameters = {}) {
     if (hedIssues.length === 0) {
       return []
     } else if (hedIssues instanceof IssueError) {
@@ -204,7 +204,7 @@ export class BidsHedIssue {
    * @param {object?} extraParameters Any extra parameters to inject into the {@link Issue} object.
    * @returns {BidsHedIssue} The BIDS-compatible issue.
    */
-  static fromHedIssue(hedIssue, file, extraParameters) {
+  static fromHedIssue(hedIssue, file, extraParameters = {}) {
     Object.assign(hedIssue.parameters, extraParameters)
     hedIssue.generateMessage()
     return new BidsHedIssue(hedIssue, file)
