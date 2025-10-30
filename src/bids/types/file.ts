@@ -16,7 +16,7 @@ type BidsValidatorConstructor<ValidatorClass extends BidsValidator> = {
 /**
  * A BIDS file.
  */
-export class BidsFile<ValidatorClass extends BidsValidator> {
+export abstract class BidsFile<ValidatorClass extends BidsValidator> {
   /**
    * The name of this file.
    */
@@ -44,6 +44,15 @@ export class BidsFile<ValidatorClass extends BidsValidator> {
     this.name = name
     this.file = file
     this.#validatorClass = validatorClass
+  }
+
+  /**
+   * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
+   *
+   * @returns The file name.
+   */
+  public toString(): string {
+    return this.name
   }
 
   /**

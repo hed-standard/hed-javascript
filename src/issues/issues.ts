@@ -68,22 +68,17 @@ export class Issue {
   /**
    * The internal error code.
    */
-  internalCode: string
+  public readonly internalCode: string
 
   /**
    * The HED 3 error code.
    */
-  hedCode: string
+  public readonly hedCode: string
 
   /**
    * The issue level (error or warning).
    */
-  level: IssueLevel
-
-  /**
-   * The detailed error message.
-   */
-  message: string
+  public readonly level: IssueLevel
 
   /**
    * The bounds of this issue.
@@ -108,7 +103,6 @@ export class Issue {
     this.hedCode = hedCode
     this.level = level
     this.parameters = parameters
-    this.generateMessage()
   }
 
   /**
@@ -121,15 +115,17 @@ export class Issue {
   }
 
   /**
-   * (Re-)generate the issue message.
+   * Generate the detailed error message.
+   *
+   * @returns This issue's message.
    */
-  public generateMessage(): void {
+  public get message(): string {
     this.parameters = this._parameters
     const baseMessage = this._parseMessageTemplate()
     const specialParameterMessages = this._parseSpecialParameters()
     const hedSpecLink = this._generateHedSpecificationLink()
 
-    this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${baseMessage} ${specialParameterMessages} (${hedSpecLink}.)`
+    return `${this.level.toUpperCase()}: [${this.hedCode}] ${baseMessage} ${specialParameterMessages} (${hedSpecLink}.)`
   }
 
   /**
@@ -182,13 +178,26 @@ export class Issue {
   }
 
   /**
-   * Set a new parameter value.
+   * Determine whether this issue has a given parameter.
+   *
+   * @param name The parameter name to check.
+   * @returns Whether this issue already has a parameter by that name.
+   */
+  public hasParameter(name: string): boolean {
+    if (name === 'bounds') {
+      return this._bounds !== undefined
+    }
+    return Object.hasOwn(this._parameters, name)
+  }
+
+  /**
+   * Add a new parameter value.
    *
    * @param name The parameter name.
    * @param value The new parameter value.
    */
-  public setParameter(name: string, value: any): void {
-    if (Object.hasOwn(this._parameters, name)) {
+  public addParameter(name: string, value: any): void {
+    if (this.hasParameter(name)) {
       return
     }
     if (name === 'bounds') {
@@ -196,7 +205,17 @@ export class Issue {
       return
     }
     this._parameters[name] = String(value)
-    this.generateMessage()
+  }
+
+  /**
+   * Add multiple parameters for this Issue.
+   *
+   * @param parameters The new values of the parameters.
+   */
+  public addParameters(parameters: Record<string, any>): void {
+    for (const [key, value] of Object.entries(parameters)) {
+      this.addParameter(key, value)
+    }
   }
 
   /**
@@ -270,26 +289,12 @@ export function generateIssue(internalCode: string, parameters: Record<string, a
  * @param issues The list of issues (different types can be intermixed).
  * @param parameters The parameters to add.
  */
-export function updateIssueParameters(issues: Array<Issue | IssueError>, parameters: Record<string, any>) {
+export function addIssueParameters(issues: Array<Issue | IssueError>, parameters: Record<string, any>) {
   for (const thisIssue of issues) {
     if (thisIssue instanceof IssueError) {
-      _updateIssueParameters(thisIssue.issue, parameters)
+      thisIssue.issue.addParameters(parameters)
     } else if (thisIssue instanceof Issue) {
-      _updateIssueParameters(thisIssue, parameters)
+      thisIssue.addParameters(parameters)
     }
-  }
-}
-
-/**
- * Update the parameters for an Issue.
- *
- * Note: the issue is modified in place.
- *
- * @param issue The issue to be updated.
- * @param parameters The parameters to add.
- */
-function _updateIssueParameters(issue: Issue, parameters: Record<string, any>) {
-  for (const [key, value] of Object.entries(parameters)) {
-    issue.setParameter(key, value)
   }
 }

@@ -20,17 +20,17 @@ export class BidsTsvFile extends BidsFile<BidsHedTsvValidator> {
   /**
    * This file's parsed TSV data.
    */
-  parsedTsv: ParsedTSV
+  public readonly parsedTsv: ParsedTSV
 
   /**
    * HED strings in the "HED" column of the TSV data.
    */
-  hedColumnHedStrings: string[]
+  public readonly hedColumnHedStrings: string[]
 
   /**
    * The pseudo-sidecar object representing the merged sidecar data.
    */
-  mergedSidecar: BidsSidecar
+  public readonly mergedSidecar: BidsSidecar
 
   /**
    * Constructor.
@@ -50,30 +50,42 @@ export class BidsTsvFile extends BidsFile<BidsHedTsvValidator> {
   ) {
     super(name, file, BidsHedTsvValidator)
 
+    this.parsedTsv = this._parseTsv(tsvData, file)
+    this.hedColumnHedStrings = this._parseHedColumn()
+    this.mergedSidecar = new BidsSidecar(name, this.file, mergedDictionary, defManager)
+  }
+
+  /**
+   * Parse the TSV file.
+   *
+   * @param tsvData This file's TSV data.
+   * @param file The Object representing this file data.
+   * @returns The parsed TSV data.
+   */
+  private _parseTsv(tsvData: string | ParsedTSV | OldParsedTSV, file: any): ParsedTSV {
     if (typeof tsvData === 'string') {
-      this.parsedTsv = parseTSV(tsvData)
+      return parseTSV(tsvData)
     } else if (tsvData instanceof Map) {
-      this.parsedTsv = new Map(tsvData)
+      return new Map(tsvData)
     } else if (isPlainObject(tsvData)) {
-      this.parsedTsv = convertParsedTSVData(tsvData)
+      return convertParsedTSVData(tsvData)
     } else {
       const msg = 'The tsvData was not a string, Map or plain object, so a BidsTsvFile could not be created.'
       IssueError.generateAndThrow('internalError', { message: msg, filePath: file.path })
     }
-
-    this.mergedSidecar = new BidsSidecar(name, this.file, mergedDictionary, defManager)
-    this._parseHedColumn()
   }
 
   /**
    * Parse the HED column from the TSV data.
+   *
+   * @returns The parsed HED column.
    */
-  private _parseHedColumn(): void {
+  private _parseHedColumn(): string[] {
     const hedColumn = this.parsedTsv.get('HED')
     if (hedColumn === undefined) {
-      this.hedColumnHedStrings = []
+      return []
     } else {
-      this.hedColumnHedStrings = hedColumn.map((hedCell) => (hedCell && hedCell !== 'n/a' ? hedCell : ''))
+      return hedColumn.map((hedCell) => (hedCell && hedCell !== 'n/a' ? hedCell : ''))
     }
   }
 
@@ -103,34 +115,34 @@ export class BidsTsvElement {
   /**
    * The string representation of this element.
    */
-  hedString: string
+  public readonly hedString: string
 
   /**
    * The ParsedHedString representation of this element.
    */
-  parsedHedString: ParsedHedString | null
+  public parsedHedString: ParsedHedString | null
 
   /**
    * The file this element belongs to (usually just the path).
    */
-  file: any
+  public readonly file: any
 
   /**
    * The name of the file this element belongs to (usually just the path).
    */
-  fileName: string
+  public readonly fileName: string
 
   /**
    * The onset represented by this element or a NaN.
    *
    * @todo This probably should be a number. Move numeric conversion to this file?
    */
-  onset: string
+  public readonly onset: string
 
   /**
    * The line number(s) (including the header) represented by this element.
    */
-  tsvLine: string
+  public readonly tsvLine: string
 
   /**
    * Constructor.
@@ -177,7 +189,7 @@ export class BidsTsvRow extends BidsTsvElement {
   /**
    * The map of column name to value for this row.
    */
-  rowCells: Map<string, string>
+  public readonly rowCells: Map<string, string>
 
   /**
    * Constructor.

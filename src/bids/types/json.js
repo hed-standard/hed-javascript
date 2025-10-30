@@ -9,7 +9,7 @@ import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './file'
 import BidsHedSidecarValidator from '../validator/sidecarValidator'
-import { IssueError, updateIssueParameters } from '../../issues/issues'
+import { IssueError, addIssueParameters } from '../../issues/issues'
 import { DefinitionManager, Definition } from '../../parser/definitionManager'
 
 const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
@@ -145,8 +145,8 @@ export class BidsSidecar extends BidsJsonFile {
         fullValidation && !this.columnSpliceReferences.has(name),
       )
       const updateParams = { sidecarKey: name, filePath: this.file?.path }
-      updateIssueParameters(errorIssues, updateParams)
-      updateIssueParameters(warningIssues, updateParams)
+      addIssueParameters(errorIssues, updateParams)
+      addIssueParameters(warningIssues, updateParams)
       errors.push(...errorIssues)
       warnings.push(...warningIssues)
       if (sidecarKey.isValueKey) {
