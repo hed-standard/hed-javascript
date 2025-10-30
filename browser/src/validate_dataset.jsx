@@ -3,9 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { FolderInput } from './components/FolderInput'
 import { ErrorDisplay } from './components/ErrorDisplay'
 import { BidsWebAccessor } from './bids/BidsWebAccessor.js'
-import { BidsDataset } from '@hed-javascript-root/src/bids/types/dataset.js'
-import { IssueError } from '@hed-javascript-root/src/issues/issues.js'
-import { BidsHedIssue } from '@hed-javascript-root/src/bids/types/issues.js'
+import { BidsDataset } from '@hed-javascript-root/src/bids/types/dataset'
+import { IssueError } from '@hed-javascript-root/src/issues/issues'
+import { BidsHedIssue } from '@hed-javascript-root/src/bids/types/issues'
 
 // --- Add TailwindCSS to the document head for immediate styling ---
 ;(() => {

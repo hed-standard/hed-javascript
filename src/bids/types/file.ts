@@ -20,18 +20,18 @@ export class BidsFile<ValidatorClass extends BidsValidator> {
   /**
    * The name of this file.
    */
-  readonly name: string
+  public readonly name: string
 
   /**
    * The Object representing this file data.
    * This is used to generate {@link BidsHedIssue} objects.
    */
-  readonly file: any
+  public readonly file: any
 
   /**
    * The validator class used to validate this file.
    */
-  private readonly _validatorClass: BidsValidatorConstructor<ValidatorClass>
+  readonly #validatorClass: BidsValidatorConstructor<ValidatorClass>
 
   /**
    * Constructor.
@@ -40,10 +40,10 @@ export class BidsFile<ValidatorClass extends BidsValidator> {
    * @param file The Object representing this file data.
    * @param validatorClass The validator class used to validate this file.
    */
-  constructor(name: string, file: any, validatorClass: BidsValidatorConstructor<ValidatorClass>) {
+  protected constructor(name: string, file: any, validatorClass: BidsValidatorConstructor<ValidatorClass>) {
     this.name = name
     this.file = file
-    this._validatorClass = validatorClass
+    this.#validatorClass = validatorClass
   }
 
   /**
@@ -52,7 +52,7 @@ export class BidsFile<ValidatorClass extends BidsValidator> {
    * @param schemas The HED schemas used to validate this file.
    * @returns Any issues found during validation of this TSV file.
    */
-  validate(schemas: HedSchemas): BidsHedIssue[] {
+  public validate(schemas: HedSchemas): BidsHedIssue[] {
     if (!this.hasHedData) {
       return []
     }
@@ -82,7 +82,7 @@ export class BidsFile<ValidatorClass extends BidsValidator> {
    *
    * @returns Whether this file has any HED data.
    */
-  get hasHedData(): boolean {
+  public get hasHedData(): boolean {
     return false
   }
 
@@ -91,7 +91,7 @@ export class BidsFile<ValidatorClass extends BidsValidator> {
    *
    * @returns The validator class used to validate this file.
    */
-  get validatorClass(): BidsValidatorConstructor<ValidatorClass> {
-    return this._validatorClass
+  public get validatorClass(): BidsValidatorConstructor<ValidatorClass> {
+    return this.#validatorClass
   }
 }
