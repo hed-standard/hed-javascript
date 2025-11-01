@@ -9,14 +9,14 @@ import { BidsValidator } from '../validator/validator'
 import { generateIssue } from '../../issues/issues'
 import { HedSchemas } from '../../schema/containers'
 
-type BidsValidatorConstructor<ValidatorClass extends BidsValidator> = {
-  new (file: BidsFile<ValidatorClass>, schemas: HedSchemas): ValidatorClass
+type BidsValidatorConstructor = {
+  new (file: BidsFile, schemas: HedSchemas): BidsValidator
 }
 
 /**
  * A BIDS file.
  */
-export abstract class BidsFile<ValidatorClass extends BidsValidator> {
+export abstract class BidsFile {
   /**
    * The name of this file.
    */
@@ -31,7 +31,7 @@ export abstract class BidsFile<ValidatorClass extends BidsValidator> {
   /**
    * The validator class used to validate this file.
    */
-  readonly #validatorClass: BidsValidatorConstructor<ValidatorClass>
+  readonly #validatorClass: BidsValidatorConstructor
 
   /**
    * Constructor.
@@ -40,7 +40,7 @@ export abstract class BidsFile<ValidatorClass extends BidsValidator> {
    * @param file The Object representing this file data.
    * @param validatorClass The validator class used to validate this file.
    */
-  protected constructor(name: string, file: any, validatorClass: BidsValidatorConstructor<ValidatorClass>) {
+  protected constructor(name: string, file: any, validatorClass: BidsValidatorConstructor) {
     this.name = name
     this.file = file
     this.#validatorClass = validatorClass
@@ -100,7 +100,7 @@ export abstract class BidsFile<ValidatorClass extends BidsValidator> {
    *
    * @returns The validator class used to validate this file.
    */
-  public get validatorClass(): BidsValidatorConstructor<ValidatorClass> {
+  public get validatorClass(): BidsValidatorConstructor {
     return this.#validatorClass
   }
 }

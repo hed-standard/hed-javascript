@@ -232,7 +232,7 @@ export class BidsHedIssue {
       if (issue instanceof BidsHedIssue) {
         return issue
       } else if (issue instanceof IssueError) {
-        return BidsHedIssue.fromHedIssue(issue.issue, file, issue.issue.parameters)
+        return BidsHedIssue.fromHedIssue(issue.issue, file)
       } else if (issue instanceof Error) {
         return new BidsHedIssue(generateIssue('internalError', { message: issue.message }), file)
       } else {

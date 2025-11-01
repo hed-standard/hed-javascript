@@ -120,7 +120,6 @@ export class Issue {
    * @returns This issue's message.
    */
   public get message(): string {
-    this.parameters = this._parameters
     const baseMessage = this._parseMessageTemplate()
     const specialParameterMessages = this._parseSpecialParameters()
     const hedSpecLink = this._generateHedSpecificationLink()

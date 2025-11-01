@@ -16,7 +16,7 @@ import ParsedHedString from '../../parser/parsedHedString'
 /**
  * A BIDS TSV file.
  */
-export class BidsTsvFile extends BidsFile<BidsHedTsvValidator> {
+export class BidsTsvFile extends BidsFile {
   /**
    * This file's parsed TSV data.
    */

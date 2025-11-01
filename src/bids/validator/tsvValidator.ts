@@ -449,9 +449,6 @@ export class BidsHedTsvParser {
    * Note: Updates the map in place.
    */
   private _spliceValues(columnMap: Map<string, string>) {
-    if (!(this.tsvFile.mergedSidecar?.columnSpliceMapping?.size > 0)) {
-      return
-    }
     // Only iterate over the column names that have splices
     for (const column of this.tsvFile.mergedSidecar.columnSpliceMapping.keys()) {
       // if (!columnMap.has(column)) {
