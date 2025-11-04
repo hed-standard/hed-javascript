@@ -4,8 +4,8 @@
 import lt from 'semver/functions/lt'
 
 import { IssueError } from '../issues/issues'
-import { SchemaEntries } from './entries'
-import { HedSchemaXMLObject } from './xmlType'
+import { type SchemaEntries } from './entries'
+import { type HedSchemaXMLObject } from './xmlType'
 
 export class HedSchema {
   /**

@@ -5,9 +5,9 @@
  */
 
 import { BidsHedIssue } from './issues'
-import { BidsValidator } from '../validator/validator'
+import { type BidsValidator } from '../validator/validator'
 import { generateIssue } from '../../issues/issues'
-import { HedSchemas } from '../../schema/containers'
+import { type HedSchemas } from '../../schema/containers'
 
 type BidsValidatorConstructor = {
   new (file: BidsFile, schemas: HedSchemas): BidsValidator

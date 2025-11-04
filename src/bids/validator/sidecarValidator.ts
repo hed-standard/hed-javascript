@@ -4,10 +4,10 @@
 
 import { BidsValidator } from './validator'
 import { BidsHedIssue } from '../types/issues'
-import { BidsSidecar } from '../types/json'
+import { type BidsSidecar } from '../types/json'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue, IssueError } from '../../issues/issues'
-import { HedSchemas } from '../../schema/containers'
+import { type HedSchemas } from '../../schema/containers'
 import { getCharacterCount } from '../../utils/string'
 
 /**

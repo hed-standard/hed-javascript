@@ -2,14 +2,13 @@
  * @module schema/loader
  * */
 
-/* Imports */
-import * as files from '../utils/files'
-import { IssueError } from '../issues/issues'
-import parseSchemaXML from '../utils/xml'
-
+// Imports
 import { localSchemaMap, localSchemaNames } from './config' // Changed from localSchemaList
-import { SchemaSpec } from './specs'
-import { HedSchemaXMLObject } from './xmlType'
+import { type SchemaSpec } from './specs'
+import { type HedSchemaXMLObject } from './xmlType'
+import { IssueError, type IssueParameters } from '../issues/issues'
+import * as files from '../utils/files'
+import parseSchemaXML from '../utils/xml'
 
 /**
  * Load schema XML data from a schema version or path description.
@@ -100,7 +99,7 @@ async function loadBundledSchema(schemaDef: SchemaSpec): Promise<HedSchemaXMLObj
 async function loadSchemaFile(
   xmlDataPromise: Promise<string>,
   issueCode: string,
-  issueArgs: Record<string, string>,
+  issueArgs: IssueParameters,
 ): Promise<HedSchemaXMLObject> {
   try {
     const data = await xmlDataPromise

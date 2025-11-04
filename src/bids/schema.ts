@@ -4,10 +4,10 @@
  * @module bids/schema
  */
 
-import { HedSchemas } from '../schema/containers'
+import { type HedSchemas } from '../schema/containers'
 import { buildSchemas } from '../schema/init'
 import { SchemasSpec } from '../schema/specs'
-import { BidsJsonFile } from './types/json'
+import { type BidsJsonFile } from './types/json'
 
 /**
  * Build a HED schema collection based on the defined BIDS schemas.

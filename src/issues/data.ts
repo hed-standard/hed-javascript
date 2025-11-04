@@ -3,7 +3,7 @@
  * @module issues/data
  */
 
-import { issueMessageTemplate, IssueMessageTemplateString } from '../utils/string'
+import { issueMessageTemplate, type IssueMessageTemplateString } from '../utils/string'
 
 export type IssueLevel = 'error' | 'warning'
 

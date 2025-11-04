@@ -37,8 +37,8 @@ describe('BidsDataset', () => {
       fs.mkdirSync(emptyDir, { recursive: true })
       const [, issues] = await BidsDataset.create(emptyDir, BidsDirectoryAccessor)
       expect(issues.length).toBe(1)
-      expect(issues[0].internalCode).toBe('missingSchemaSpecification')
-      expect(issues[0].hedCode).toBe('SCHEMA_LOAD_FAILED')
+      expect(issues[0].hedIssue.internalCode).toBe('missingSchemaSpecification')
+      expect(issues[0].subCode).toBe('SCHEMA_LOAD_FAILED')
     })
   })
 

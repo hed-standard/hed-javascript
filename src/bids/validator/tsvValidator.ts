@@ -2,7 +2,7 @@
  * @module bids/validator/tsvValidator
  */
 import { BidsHedIssue } from '../types/issues'
-import { BidsTsvElement, BidsTsvFile, BidsTsvRow } from '../types/tsv'
+import { BidsTsvElement, type BidsTsvFile, BidsTsvRow } from '../types/tsv'
 import { BidsValidator } from './validator'
 import { parseHedString, parseStandaloneString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
@@ -10,7 +10,7 @@ import { generateIssue } from '../../issues/issues'
 import { ReservedChecker } from '../../parser/reservedChecker'
 import { cleanupEmpties, getTagListString } from '../../parser/parseUtils'
 import { EventManager } from '../../parser/eventManager'
-import { HedSchemas } from '../../schema/containers'
+import { type HedSchemas } from '../../schema/containers'
 
 /**
  * Validator for HED data in BIDS TSV files.

@@ -6,12 +6,12 @@
 import isPlainObject from 'lodash/isPlainObject'
 
 import { BidsFile } from './file'
-import { convertParsedTSVData, parseTSV, OldParsedTSV, ParsedTSV } from '../tsvParser'
+import { convertParsedTSVData, parseTSV, type OldParsedTSV, type ParsedTSV } from '../tsvParser'
 import { BidsSidecar } from './json'
 import BidsHedTsvValidator from '../validator/tsvValidator'
 import { IssueError } from '../../issues/issues'
-import { DefinitionManager } from '../../parser/definitionManager'
-import ParsedHedString from '../../parser/parsedHedString'
+import { type DefinitionManager } from '../../parser/definitionManager'
+import type ParsedHedString from '../../parser/parsedHedString'
 
 /**
  * A BIDS TSV file.

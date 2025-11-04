@@ -19,7 +19,7 @@ import {
 } from './entries'
 import { IssueError } from '../issues/issues'
 
-import { DefinitionElement, HedSchemaRootElement, NamedElement, NodeElement } from './xmlType'
+import { type DefinitionElement, type HedSchemaRootElement, type NamedElement, type NodeElement } from './xmlType'
 
 interface ClassRegex {
   char_regex: {

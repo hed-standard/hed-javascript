@@ -4,7 +4,7 @@
  */
 
 import { BidsHedIssue } from '../types/issues'
-import { HedSchemas } from '../../schema/containers'
+import { type HedSchemas } from '../../schema/containers'
 
 /**
  * Validator base class for HED data in BIDS TSV files.

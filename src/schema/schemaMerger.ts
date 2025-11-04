@@ -2,8 +2,8 @@
  * @module schema/schemaMerger
  */
 import { IssueError } from '../issues/issues'
-import { SchemaAttribute, SchemaEntryManager, SchemaTag, SchemaValueTag } from './entries'
-import { HedSchema, PartneredSchema } from './containers'
+import { type SchemaAttribute, SchemaEntryManager, SchemaTag, SchemaValueTag } from './entries'
+import { type HedSchema, PartneredSchema } from './containers'
 
 export default class PartneredSchemaMerger {
   /**

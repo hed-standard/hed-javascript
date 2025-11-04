@@ -3,10 +3,10 @@
  * @module bids/types/issues
  */
 
-import { generateIssue, Issue, IssueError } from '../../issues/issues'
-import { IssueLevel } from '../../issues/data'
+import { generateIssue, type Issue, IssueError, type IssueParameters } from '../../issues/issues'
+import { type IssueLevel } from '../../issues/data'
 
-type BidsIssueCode = 'HED_ERROR' | 'HED_WARNING'
+type BidsIssueCode = 'HED_ERROR' | 'HED_WARNING' | 'INTERNAL_ERROR'
 
 /**
  * A wrapper for a HED validation issue that is compatible with the BIDS validator.
@@ -68,7 +68,9 @@ export class BidsHedIssue {
     this.file = file
 
     // BIDS fields
-    if (hedIssue.level === 'warning') {
+    if (hedIssue.internalCode === 'internalError') {
+      this.code = 'INTERNAL_ERROR'
+    } else if (hedIssue.level === 'warning') {
       this.code = 'HED_WARNING'
     } else {
       this.code = 'HED_ERROR'
@@ -194,7 +196,7 @@ export class BidsHedIssue {
   public static fromHedIssues(
     hedIssues: Error | Issue[],
     file: object,
-    extraParameters: Record<string, any> = {},
+    extraParameters: IssueParameters = {},
   ): BidsHedIssue[] {
     if (hedIssues instanceof IssueError) {
       return [BidsHedIssue.fromHedIssue(hedIssues.issue, file, extraParameters)]
@@ -215,7 +217,7 @@ export class BidsHedIssue {
    * @param extraParameters Any extra parameters to inject into the {@link Issue} object.
    * @returns The BIDS-compatible issue.
    */
-  public static fromHedIssue(hedIssue: Issue, file: object, extraParameters: Record<string, any> = {}): BidsHedIssue {
+  public static fromHedIssue(hedIssue: Issue, file: object, extraParameters: IssueParameters = {}): BidsHedIssue {
     hedIssue.addParameters(extraParameters)
     return new BidsHedIssue(hedIssue, file)
   }
@@ -247,7 +249,7 @@ export class BidsHedIssue {
    * @param issues A list of BIDS-compatible issues.
    * @param parameters The parameters to add.
    */
-  public static addIssueParameters(issues: BidsHedIssue[], parameters: Record<string, any>): void {
+  public static addIssueParameters(issues: BidsHedIssue[], parameters: IssueParameters): void {
     for (const issue of issues) {
       const hedIssue = issue.hedIssue
       hedIssue.addParameters(parameters)

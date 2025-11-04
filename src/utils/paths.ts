@@ -46,7 +46,6 @@ class ParsedBidsFilename {
    *
    * @param other Another parsed BIDS file name.
    * @returns Whether or not this file name is a subset of the other one.
-   * @private
    */
   private _isSubset(other: ParsedBidsFilename): boolean {
     const ourEntities = Object.keys(this.entities)
@@ -314,8 +313,6 @@ function _updateEntity(nameDict: ParsedBidsFilename, entity: string): void {
 /**
  * Split a filename into BIDS-relevant components.
  *
- * This is a JavaScript implementation of the Python code provided by the user.
- *
  * @param filePath Path to be parsed.
  * @returns An object containing the parts of the BIDS filename.
  */
@@ -463,7 +460,7 @@ export function getMergedSidecarData(
   tsvPath: string,
   jsonList: string[],
   sidecarMap: Map<string, BidsSidecar>,
-): object {
+): Record<string, unknown> {
   const tsvDir = path.dirname(tsvPath)
   const tsvParsed = parseBidsFilename(tsvPath)
 

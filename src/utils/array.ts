@@ -30,3 +30,12 @@ export function* iteratePairwiseCombinations<T>(array: T[]): Generator<[T, T]> {
   const pairs = array.flatMap((first, index) => array.slice(index + 1).map((second): [T, T] => [first, second]))
   yield* pairs
 }
+
+/**
+ * Type predicate for an ordered pair of numbers (e.g. bounds).
+ *
+ * @param value A possible ordered pair of numbers.
+ */
+export function isNumberPair(value: unknown): value is [number, number] {
+  return Array.isArray(value) && value.length === 2 && value.every((bound) => typeof bound === 'number')
+}
