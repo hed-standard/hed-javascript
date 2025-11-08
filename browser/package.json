@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --base=/hed-javascript/",
-    "test": "vitest"
+    "test": "vitest --run"
   },
   "dependencies": {
     "lodash": "^4.17.21",
