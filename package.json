@@ -60,7 +60,7 @@
     "@types/node": "^24.2.0",
     "babel-jest": "^30.0.5",
     "chai": "^4.3.6",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.27.0",
     "esbuild-plugins-node-modules-polyfill": "^1.7.1",
     "esbuild-runner": "^2.2.2",
     "eslint": "^9.18.0",
