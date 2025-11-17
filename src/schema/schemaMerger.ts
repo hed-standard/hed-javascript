@@ -2,44 +2,46 @@
  * @module schema/schemaMerger
  */
 import { IssueError } from '../issues/issues'
-import { SchemaTag, SchemaValueTag } from './entries'
-import { PartneredSchema } from './containers'
+import { SchemaAttribute, SchemaEntryManager, SchemaTag, SchemaValueTag } from './entries'
+import { HedSchema, PartneredSchema } from './containers'
 
 export default class PartneredSchemaMerger {
   /**
    * The sources of data to be merged.
-   * @type {Schema[]}
    */
-  sourceSchemas
+  sourceSchemas: HedSchema[]
 
   /**
    * The current source of data to be merged.
-   * @type {Schema}
    */
-  currentSource
+  currentSource: HedSchema
 
   /**
    * The destination of data to be merged.
-   * @type {PartneredSchema}
    */
-  destination
+  destination: PartneredSchema
+
+  /**
+   * The tag definitions of the partnered schema
+   */
+  destinationTagDefinitions: Map<string, SchemaTag>
 
   /**
    * Constructor.
    *
-   * @param {Schema[]} sourceSchemas The sources of data to be merged.
+   * @param sourceSchemas The sources of data to be merged.
    */
-  constructor(sourceSchemas) {
+  constructor(sourceSchemas: HedSchema[]) {
     this.sourceSchemas = sourceSchemas
     this.destination = new PartneredSchema(sourceSchemas)
+    this.destinationTagDefinitions = this.destination.entries.tags.definitions
     this._validate()
   }
 
   /**
    * Pre-validate the partnered schemas.
-   * @private
    */
-  _validate() {
+  private _validate(): void {
     for (const schema of this.sourceSchemas.slice(1)) {
       if (schema.withStandard !== this.destination.withStandard) {
         IssueError.generateAndThrow('differentWithStandard', {
@@ -53,9 +55,9 @@ export default class PartneredSchemaMerger {
   /**
    * Merge the lazy partnered schemas.
    *
-   * @returns {PartneredSchema} The merged partnered schema.
+   * @returns The merged partnered schema.
    */
-  mergeSchemas() {
+  public mergeSchemas(): PartneredSchema {
     for (const additionalSchema of this.sourceSchemas.slice(1)) {
       this.currentSource = additionalSchema
       this._mergeData()
@@ -65,60 +67,47 @@ export default class PartneredSchemaMerger {
 
   /**
    * The source schema's tag collection.
-   *
-   * @return {SchemaEntryManager<SchemaTag>}
    */
-  get sourceTags() {
+  get sourceTags(): SchemaEntryManager<SchemaTag> {
     return this.currentSource.entries.tags
   }
 
   /**
-   * The destination schema's tag collection.
-   *
-   * @returns {SchemaEntryManager<SchemaTag>}
-   */
-  get destinationTags() {
-    return this.destination.entries.tags
-  }
-
-  /**
    * Merge two lazy partnered schemas.
-   * @private
    */
-  _mergeData() {
+  private _mergeData(): void {
     this._mergeTags()
   }
 
   /**
    * Merge the tags from two lazy partnered schemas.
-   * @private
    */
-  _mergeTags() {
+  private _mergeTags(): void {
     for (const tag of this.sourceTags.values()) {
       this._mergeTag(tag)
     }
+    this.destination.entries.tags = new SchemaEntryManager(this.destinationTagDefinitions)
   }
 
   /**
    * Merge a tag from one schema to another.
    *
-   * @param {SchemaTag} tag The tag to copy.
-   * @private
+   * @param tag The tag to copy.
    */
-  _mergeTag(tag) {
-    if (!tag.getAttributeValue('inLibrary')) {
+  private _mergeTag(tag: SchemaTag): void {
+    if (!tag.getAttributeValues('inLibrary')) {
       return
     }
 
     const shortName = tag.name
-    if (this.destinationTags.hasEntry(shortName.toLowerCase())) {
+    if (this.destinationTagDefinitions.has(shortName.toLowerCase())) {
       IssueError.generateAndThrow('lazyPartneredSchemasShareTag', { tag: shortName })
     }
 
-    const rootedTagShortName = tag.getAttributeValue('rooted')
+    const rootedTagShortName = tag.getSingleAttributeValue('rooted')
     if (rootedTagShortName) {
       const parentTag = tag.parent
-      if (parentTag?.name?.toLowerCase() !== rootedTagShortName?.toLowerCase()) {
+      if (parentTag?.name?.toLowerCase() !== rootedTagShortName.toLowerCase()) {
         IssueError.generateAndThrowInternalError(`Node ${shortName} is improperly rooted.`)
       }
     }
@@ -129,12 +118,11 @@ export default class PartneredSchemaMerger {
   /**
    * Copy a tag from one schema to another.
    *
-   * @param {SchemaTag} tag The tag to copy.
-   * @private
+   * @param tag The tag to copy.
    */
-  _copyTagToSchema(tag) {
-    const booleanAttributes = new Set()
-    const valueAttributes = new Map()
+  private _copyTagToSchema(tag: SchemaTag): void {
+    const booleanAttributes = new Set<SchemaAttribute>()
+    const valueAttributes = new Map<SchemaAttribute, any>()
 
     for (const attribute of tag.booleanAttributes) {
       booleanAttributes.add(this.destination.entries.attributes.getEntry(attribute.name) ?? attribute)
@@ -143,20 +131,20 @@ export default class PartneredSchemaMerger {
       valueAttributes.set(this.destination.entries.attributes.getEntry(key.name) ?? key, value)
     }
 
-    /**
-     * @type {SchemaUnitClass[]}
-     */
     const unitClasses = tag.unitClasses.map(
       (unitClass) => this.destination.entries.unitClasses.getEntry(unitClass.name) ?? unitClass,
+    )
+    const valueClasses = tag.valueClasses.map(
+      (valueClass) => this.destination.entries.valueClasses.getEntry(valueClass.name) ?? valueClass,
     )
 
     let newTag
     if (tag instanceof SchemaValueTag) {
-      newTag = new SchemaValueTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
+      newTag = new SchemaValueTag(tag.name, booleanAttributes, valueAttributes, unitClasses, valueClasses)
     } else {
-      newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses)
+      newTag = new SchemaTag(tag.name, booleanAttributes, valueAttributes, unitClasses, valueClasses)
     }
-    const destinationParentTag = this.destinationTags.getEntry(tag.parent?.name?.toLowerCase())
+    const destinationParentTag = this.destinationTagDefinitions.get(tag.parent?.name?.toLowerCase())
     if (destinationParentTag) {
       newTag.parent = destinationParentTag
       if (newTag instanceof SchemaValueTag) {
@@ -164,6 +152,6 @@ export default class PartneredSchemaMerger {
       }
     }
 
-    this.destinationTags._definitions.set(newTag.name.toLowerCase(), newTag)
+    this.destinationTagDefinitions.set(newTag.name.toLowerCase(), newTag)
   }
 }

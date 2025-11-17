@@ -28,7 +28,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
 
   /**
    * The HED schema this tag belongs to.
-   * @type {Schema}
+   * @type {HedSchema}
    */
 
   schema
@@ -73,7 +73,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * Constructor.
    *
    * @param {TagSpec} tagSpec The token for this tag.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {HedSchemas} hedSchemas The collection of HED schemas.
    * @param {string} hedString The original HED string.
    * @throws {IssueError} If tag conversion or parsing fails.
    */
@@ -86,7 +86,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   /**
    * Convert this tag to its various forms
    *
-   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {HedSchemas} hedSchemas The collection of HED schemas.
    * @param {string} hedString The original HED string.
    * @param {TagSpec} tagSpec The token for this tag.
    * @throws {IssueError} If tag conversion or parsing fails.

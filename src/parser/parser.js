@@ -19,7 +19,7 @@ class HedStringParser {
 
   /**
    * The collection of HED schemas.
-   * @type {Schemas}
+   * @type {HedSchemas}
    */
   hedSchemas
 
@@ -39,7 +39,7 @@ class HedStringParser {
    * Constructor.
    *
    * @param {string|ParsedHedString} hedString - The HED string to be parsed.
-   * @param {Schemas} hedSchemas - The collection of HED schemas.
+   * @param {HedSchemas} hedSchemas - The collection of HED schemas.
    * @param {boolean} definitionsAllowed - True if definitions are allowed
    * @param {boolean} placeholdersAllowed - True if placeholders are allowed
    */
@@ -172,7 +172,7 @@ class HedStringParser {
    * Parse a list of HED strings.
    *
    * @param {string[]|ParsedHedString[]} hedStrings A list of HED strings.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {HedSchemas} hedSchemas The collection of HED schemas.
    * @param {boolean} definitionsAllowed - True if definitions are allowed
    * @param {boolean} placeholdersAllowed - True if placeholders are allowed
    * @returns {Array} - [ParsedHedString[], Issue[], Issue[]] representing the parsed HED strings and any errors and warnings.
@@ -206,7 +206,7 @@ class HedStringParser {
  * ###Note: now separates errors and warnings for easier handling.
  *
  * @param {string|ParsedHedString} hedString A (possibly already parsed) HED string.
- * @param {Schemas} hedSchemas - The collection of HED schemas.
+ * @param {HedSchemas} hedSchemas - The collection of HED schemas.
  * @param {boolean} definitionsAllowed - True if definitions are allowed.
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed.
  * @param {boolean} fullValidation - True if full validation is required.
@@ -220,7 +220,7 @@ export function parseHedString(hedString, hedSchemas, definitionsAllowed, placeh
  * Parse a HED string in a standalone context.
  *
  * @param {string|ParsedHedString} hedString - A (possibly already parsed) HED string.
- * @param {Schemas} hedSchemas - The collection of HED schemas.
+ * @param {HedSchemas} hedSchemas - The collection of HED schemas.
  * @param {DefinitionManager|null} defManager - The definition manager to use for parsing definitions.
  * @returns {Array} - [ParsedHedString, Issue[], Issue[]] representing the parsed HED string and any issues found.
  */
@@ -234,7 +234,7 @@ export function parseStandaloneString(hedString, hedSchemas, defManager = null) 
  * ###Note: now separates errors and warnings for easier handling.
  *
  * @param {string[]|ParsedHedString[]} hedStrings - A list of HED strings.
- * @param {Schemas} hedSchemas - The collection of HED schemas.
+ * @param {HedSchemas} hedSchemas - The collection of HED schemas.
  * @param {boolean} definitionsAllowed - True if definitions are allowed
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed
  * @param {boolean} fullValidation - True if full validation is required.

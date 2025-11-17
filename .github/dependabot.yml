@@ -1,24 +1,24 @@
 version: 2
 updates:
-  - package-ecosystem: 'github-actions'
-    directory: '/'
-    target-branch: 'main'
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: main
     schedule:
-      interval: 'weekly'
-  - package-ecosystem: 'npm'
-    directory: '/'
-    target-branch: 'main'
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /
+    target-branch: main
     schedule:
-      interval: 'weekly'
+      interval: weekly
     ignore:
-      - dependency-name: 'chai'
+      - dependency-name: chai
         update-types:
-          - 'version-update:semver-major'
-      - dependency-name: 'esbuild'
+          - version-update:semver-major
+      - dependency-name: esbuild
         update-types:
-          - 'version-update:semver-minor'
-  - package-ecosystem: 'gitsubmodule'
-    directory: '/'
-    target-branch: 'main'
+          - version-update:semver-minor
+  - package-ecosystem: gitsubmodule
+    directory: /
+    target-branch: main
     schedule:
-      interval: 'daily'
+      interval: daily

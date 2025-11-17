@@ -20,7 +20,7 @@ const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
 export class BidsJsonFile extends BidsFile {
   /**
    * This file's JSON data.
-   * @type {Object}
+   * @type {Record<string, any>}
    */
   jsonData
 
@@ -31,7 +31,7 @@ export class BidsJsonFile extends BidsFile {
    *
    * @param {string} name The name of the JSON file.
    * @param {Object} file The file object representing this file.
-   * @param {Object} jsonData The JSON data for this file.
+   * @param {Record<string, any>} jsonData The JSON data for this file.
    */
   constructor(name, file, jsonData) {
     super(name, file, BidsHedSidecarValidator)
@@ -131,7 +131,7 @@ export class BidsSidecar extends BidsJsonFile {
    *
    * The parsed strings are placed into {@link parsedHedData}.
    *
-   * @param {Schemas} hedSchemas - The HED schema collection.
+   * @param {HedSchemas} hedSchemas - The HED schema collection.
    * @param {boolean} fullValidation - True if full validation should be performed.
    * @returns {Array} [Issue[], Issue[]] Any errors and warnings found
    */
@@ -396,7 +396,7 @@ export class BidsSidecarKey {
    *
    * ###Note: This sets the parsedHedData as a side effect.
    *
-   * @param {Schemas} hedSchemas The HED schema collection.
+   * @param {HedSchemas} hedSchemas The HED schema collection.
    * @param {boolean} fullValidation True if full validation should be performed.
    * @returns {Array} - [Issue[], Issues[]] Errors and warnings that result from parsing.
    */
@@ -413,7 +413,7 @@ export class BidsSidecarKey {
    * ### Note:
    *  The value strings cannot contain definitions.
    *
-   * @param {Schemas} hedSchemas - The HED schemas to use.
+   * @param {HedSchemas} hedSchemas - The HED schemas to use.
    * @param {boolean} fullValidation - True if full validation should be performed.
    * @returns {Array} - [Issue[], Issue[]] - Errors due for the value.
    * @private
@@ -432,7 +432,7 @@ export class BidsSidecarKey {
 
   /**
    * Parse the categorical values associated with this key.
-   * @param {Schemas} hedSchemas - The HED schemas used to check against.
+   * @param {HedSchemas} hedSchemas - The HED schemas used to check against.
    * @param {boolean} fullValidation - True if full validation should be performed.
    * @returns {Array} - Array[Issue[], Issue[]] A list of error issues and warning issues.
    * @private

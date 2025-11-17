@@ -5,7 +5,7 @@
 export class BidsValidator {
   /**
    * The HED schema collection being validated against.
-   * @type {Schemas}
+   * @type {HedSchemas}
    */
   hedSchemas
 
@@ -24,7 +24,7 @@ export class BidsValidator {
   /**
    * Constructor.
    *
-   * @param {Schemas} hedSchemas - The HED schemas used for validation.
+   * @param {HedSchemas} hedSchemas - The HED schemas used for validation.
    */
   constructor(hedSchemas) {
     this.hedSchemas = hedSchemas // Will be set when the file is validated

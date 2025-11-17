@@ -2,8 +2,8 @@
 
 /* Imports */
 import { IssueError } from '../../../src/issues/issues'
-import { parseSchemaXML } from '../../../src/utils/xml.js'
-import { schemaData } from './vite-importer.js'
+import parseSchemaXML from '../../../src/utils/xml.js'
+import { schemaData } from './vite-importer'
 
 /**
  * Load schema XML data from a schema version or path description.

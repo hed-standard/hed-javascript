@@ -2,7 +2,9 @@ name: Test coverage
 
 on:
   push:
-    branches: [main]
+    branches: [main, typescript]
+  pull_request:
+    branches: [main, typescript]
 
 permissions:
   contents: read

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { loadSchema } from './loader.js'
-import { SchemaSpec } from '../../../src/schema/specs.js'
+import { loadSchema } from './loader'
+import { SchemaSpec } from '../../../src/schema/specs.ts'
 
 describe('Browser Schema Loader', () => {
   it('should return undefined when loading a bundled schema in test environment', async () => {

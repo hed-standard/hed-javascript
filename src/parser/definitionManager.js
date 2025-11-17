@@ -55,7 +55,7 @@ export class Definition {
   /**
    * Return the evaluated definition contents and any issues.
    * @param {ParsedHedTag} tag - The parsed HED tag whose details should be checked.
-   * @param {Schemas} hedSchema - The HED schemas used to validate against.
+   * @param {HedSchemas} hedSchema - The HED schemas used to validate against.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
    * @returns {Array} - Returns [string, Issue[], Issue[]] containing the evaluated normalized definition string and any issues in the evaluation,
    */
@@ -113,7 +113,7 @@ export class Definition {
    * Create a list of Definition objects from a list of strings.
    *
    * @param {string} hedString - A string representing a definition.
-   * @param {Schemas} hedSchemas - The HED schemas to use in creation.
+   * @param {HedSchemas} hedSchemas - The HED schemas to use in creation.
    * @returns {Array} - Returns [Definition, Issue[], Issue[]] with the definition and any issues.
    */
   static createDefinition(hedString, hedSchemas) {
@@ -227,7 +227,7 @@ export class DefinitionManager {
   /**
    * Check the Def tags in a HED string for missing or incorrectly used Def tags.
    * @param {ParsedHedString} hedString - A parsed HED string to be checked.
-   * @param {Schemas} hedSchemas - Schemas to validate against.
+   * @param {HedSchemas} hedSchemas - Schemas to validate against.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
    * @returns {Issue[]} - If there is no matching definition or definition applied incorrectly.
    */
@@ -246,7 +246,7 @@ export class DefinitionManager {
   /**
    * Check the Def tags in a HED string for missing or incorrectly used Def-expand tags.
    * @param {ParsedHedString} hedString - A parsed HED string to be checked.
-   * @param {Schemas} hedSchemas - Schemas to validate against.
+   * @param {HedSchemas} hedSchemas - Schemas to validate against.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
    * @returns {Issue[]} - If there is no matching definition or definition applied incorrectly.
    */
@@ -266,7 +266,7 @@ export class DefinitionManager {
   /**
    * Evaluate the definition based on a parsed HED tag.
    * @param {ParsedHedTag} tag - The tag to evaluate against the definitions.
-   * @param {Schemas} hedSchemas - The schemas to be used to assist in the evaluation.
+   * @param {HedSchemas} hedSchemas - The schemas to be used to assist in the evaluation.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
    * @returns {Array} - Returns [string, Issue[]] with definition contents for this tag and any issues.
    *
@@ -285,7 +285,7 @@ export class DefinitionManager {
   /**
    * Recursively check for Def-expand groups in this group.
    * @param {ParsedHedGroup} topGroup - a top group in a HED string to be evaluated for Def-expand groups.
-   * @param {Schemas} hedSchemas - The HED schemas to used in the check.
+   * @param {HedSchemas} hedSchemas - The HED schemas to used in the check.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
    * @returns {Issue[]}
    * @private
@@ -345,7 +345,7 @@ export class DefinitionManager {
    * Create a list of Definition objects from a list of strings.
    *
    * @param {string[]} defStrings - A list of string definitions.
-   * @param {Schemas} hedSchemas - The HED schemas to use in creation.
+   * @param {HedSchemas} hedSchemas - The HED schemas to use in creation.
    * @returns {Array} - Returns [Definition[], Issue[]] with a definition list and any issues found.
    */
   static createDefinitions(defStrings, hedSchemas) {

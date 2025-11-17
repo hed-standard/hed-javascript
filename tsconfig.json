@@ -1,15 +1,18 @@
 {
   "compilerOptions": {
+    "outDir": "./built",
     "allowJs": true,
     "checkJs": false,
-    "target": "es2020",
-    "module": "es2020",
+    "target": "esnext",
+    "module": "esnext",
     "moduleResolution": "node",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "downlevelIteration": true,
-    "typeRoots": ["./node_modules/@types", "./types"]
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "noImplicitAny": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

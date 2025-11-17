@@ -17,7 +17,7 @@ export default class HedStringSplitter {
 
   /**
    * The collection of HED schemas.
-   * @type {Schemas}
+   * @type {HedSchemas}
    */
   hedSchemas
 
@@ -31,7 +31,7 @@ export default class HedStringSplitter {
    * Constructor.
    *
    * @param {string} hedString The HED string to be split and parsed.
-   * @param {Schemas} hedSchemas The collection of HED schemas.
+   * @param {HedSchemas} hedSchemas The collection of HED schemas.
    */
   constructor(hedString, hedSchemas) {
     this.hedString = hedString
@@ -69,7 +69,7 @@ export default class HedStringSplitter {
   _createParsedTags(tagSpecs, groupSpecs) {
     // Create tags from specifications
     this.issues = []
-    const parsedTags = recursiveMap((tagSpec) => this._createParsedTag(tagSpec), tagSpecs)
+    const parsedTags = recursiveMap(tagSpecs, (tagSpec) => this._createParsedTag(tagSpec))
 
     // Create groups from the parsed tags
     const parsedTagsWithGroups = this._createParsedGroups(parsedTags, groupSpecs.children)

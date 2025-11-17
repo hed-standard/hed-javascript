@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, typescript]
   pull_request:
-    branches: [main]
+    branches: [main, typescript]
 
 permissions:
   contents: read
@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22.x, lts/*, 'node']
+        node-version: [22.x, lts/*, node]
 
     steps:
       - name: Check out the code
@@ -38,7 +38,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22.x, lts/*, 'node']
+        node-version: [22.x, lts/*, node]
 
     steps:
       - name: Check out the code
@@ -61,7 +61,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22.x, lts/*, 'node']
+        node-version: [22.x, lts/*, node]
 
     steps:
       - name: Check out the code

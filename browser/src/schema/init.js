@@ -7,11 +7,9 @@
 import zip from 'lodash/zip'
 
 import { loadSchema } from './loader'
-import { setParent } from '../../../src/utils/xml.js'
-
 import SchemaParser from '../../../src/schema/parser'
 import PartneredSchemaMerger from '../../../src/schema/schemaMerger'
-import { Schema, Schemas } from '../../../src/schema/containers'
+import { Schema, HedSchemas } from '../../../src/schema/containers'
 import { IssueError } from '../../../src/issues/issues'
 import { splitStringTrimAndRemoveBlanks } from '../../../src/utils/string'
 import { SchemasSpec } from '../../../src/schema/specs'
@@ -20,12 +18,10 @@ import { SchemasSpec } from '../../../src/schema/specs'
  * Build a single schema container object from an XML file.
  *
  * @param {Object} xmlData The schema's XML data
- * @returns {Schema} The HED schema object.
+ * @returns {HedSchema} The HED schema object.
  */
 const buildSchemaObject = function (xmlData) {
-  const rootElement = xmlData.HED
-  setParent(rootElement, null)
-  const schemaEntries = new SchemaParser(rootElement).parse()
+  const schemaEntries = new SchemaParser(xmlData.HED).parse()
   return new Schema(xmlData, schemaEntries)
 }
 
@@ -33,7 +29,7 @@ const buildSchemaObject = function (xmlData) {
  * Build a single merged schema container object from one or more XML files.
  *
  * @param {Object[]} xmlData The schemas' XML data.
- * @returns {Schema} The HED schema object.
+ * @returns {HedSchema} The HED schema object.
  */
 const buildSchemaObjects = function (xmlData) {
   const schemas = xmlData.map((data) => buildSchemaObject(data))
@@ -48,7 +44,7 @@ const buildSchemaObjects = function (xmlData) {
  * Build a schema collection object from a schema specification.
  *
  * @param {SchemasSpec} schemaSpecs The description of which schemas to use.
- * @returns {Promise<Schemas>} The schema container object and any issues found.
+ * @returns {Promise<HedSchemas>} The schema container object and any issues found.
  */
 export async function buildSchemas(schemaSpecs) {
   const schemaPrefixes = Array.from(schemaSpecs.data.keys())
@@ -62,14 +58,14 @@ export async function buildSchemas(schemaSpecs) {
   )
   const schemaObjects = schemaXmlData.map(buildSchemaObjects)
   const schemas = new Map(zip(schemaPrefixes, schemaObjects))
-  return new Schemas(schemas)
+  return new HedSchemas(schemas)
 }
 
 /**
  * Build HED schemas from a version specification string.
  *
  * @param {string} hedVersionString The HED version specification string (can contain comma-separated versions).
- * @returns {Promise<Schemas>} A Promise that resolves to the built schemas.
+ * @returns {Promise<HedSchemas>} A Promise that resolves to the built schemas.
  * @throws {IssueError} If the schema specification is invalid or schemas cannot be built.
  */
 export async function buildSchemasFromVersion(hedVersionString) {

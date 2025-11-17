@@ -5,7 +5,7 @@
 import { BidsHedIssue } from '../types/issues'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue, IssueError, updateIssueParameters } from '../../issues/issues'
-import { getCharacterCount } from '../../utils/string.js'
+import { getCharacterCount } from '../../utils/string'
 import { BidsValidator } from './validator'
 
 /**
@@ -22,7 +22,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
    * Constructor for the BidsHedSidecarValidator.
    *
    * @param {BidsSidecar} sidecar - The BIDS sidecar being validated.
-   * @param {Schemas} hedSchemas - The schemas used for the sidecar validation.
+   * @param {HedSchemas} hedSchemas - The schemas used for the sidecar validation.
    */
   constructor(sidecar, hedSchemas) {
     super(hedSchemas)
