@@ -4,7 +4,7 @@ name: Deploy Vite App to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - typescript
 
 # Allow only one concurrent deployment, cancelling any previously running ones.
 concurrency:
@@ -28,7 +28,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: lts/*
           # Cache npm dependencies to speed up future builds
           cache: npm
           cache-dependency-path: |

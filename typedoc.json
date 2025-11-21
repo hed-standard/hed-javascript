@@ -4,6 +4,5 @@
   "out": "docs/html",
   "readme": "README.md",
   "name": "HED JavaScript Library",
-  "cleanOutputDir": true,
-  "exclude": ["**/*test.ts"]
+  "cleanOutputDir": true
 }

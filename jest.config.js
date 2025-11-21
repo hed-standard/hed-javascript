@@ -6,7 +6,7 @@ export default {
     '^.+\\.(ts|tsx)$': 'babel-jest',
   },
   transformIgnorePatterns: ['/node_modules/(?!unicode-name|semver)'],
-  testPathIgnorePatterns: ['node_modules/', '<rootDir>/types/test.ts', '<rootDir>/browser/'],
+  testPathIgnorePatterns: ['node_modules/', '<rootDir>/browser/'],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },

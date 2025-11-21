@@ -24,7 +24,7 @@ jobs:
       - name: Download dependencies
         run: npm ci
       - name: Generate coverage report
-        run: ./node_modules/.bin/jest --coverage
+        run: npm run coverage
       - name: Upload coverage to Quality
         uses: qltysh/qlty-action/coverage@v2
         with:
