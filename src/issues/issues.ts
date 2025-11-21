@@ -3,13 +3,17 @@
  * @module issues/issues
  */
 
-import issueData, { IssueLevel } from './data'
+import issueData, { type IssueLevel } from './data'
+import { isNumberPair } from '../utils/array'
+
+export type IssueParameters = Record<string, unknown>
+type IssueSavedParameters = Record<string, string>
 
 export class IssueError extends Error {
   /**
    * The associated HED issue.
    */
-  issue: Issue
+  public readonly issue: Issue
 
   /**
    * Constructor.
@@ -39,17 +43,17 @@ export class IssueError extends Error {
    * @param parameters The error string parameters.
    * @throws {IssueError} Corresponding to the generated {@link Issue}.
    */
-  static generateAndThrow(internalCode: string, parameters: Record<string, string | [number, number]> = {}) {
+  public static generateAndThrow(internalCode: string, parameters: IssueParameters = {}) {
     throw new IssueError(generateIssue(internalCode, parameters))
   }
 
   /**
    * Generate a new {@link Issue} object for an internal error and immediately throw it as an {@link IssueError}.
    *
-   * @param message A message describing the internal error.
+   * @param message A message describing the internal error. The message should not end with any punctuation.
    * @throws {IssueError} Corresponding to the generated internal error {@link Issue}.
    */
-  static generateAndThrowInternalError(message: string = 'Unknown internal error') {
+  public static generateAndThrowInternalError(message: string = 'Unknown internal error') {
     IssueError.generateAndThrow('internalError', { message: message })
   }
 }
@@ -68,32 +72,27 @@ export class Issue {
   /**
    * The internal error code.
    */
-  internalCode: string
+  public readonly internalCode: string
 
   /**
    * The HED 3 error code.
    */
-  hedCode: string
+  public readonly hedCode: string
 
   /**
    * The issue level (error or warning).
    */
-  level: IssueLevel
-
-  /**
-   * The detailed error message.
-   */
-  message: string
+  public readonly level: IssueLevel
 
   /**
    * The bounds of this issue.
    */
-  _bounds: [number, number]
+  _bounds: [number, number] | undefined
 
   /**
    * The parameters to the error message template.
    */
-  _parameters: Record<string, string>
+  _parameters: IssueSavedParameters
 
   /**
    * Constructor.
@@ -103,12 +102,11 @@ export class Issue {
    * @param level The issue level (error or warning).
    * @param parameters The error string parameters.
    */
-  constructor(internalCode: string, hedCode: string, level: IssueLevel, parameters: Record<string, any>) {
+  constructor(internalCode: string, hedCode: string, level: IssueLevel, parameters: IssueParameters) {
     this.internalCode = internalCode
     this.hedCode = hedCode
     this.level = level
     this.parameters = parameters
-    this.generateMessage()
   }
 
   /**
@@ -121,15 +119,16 @@ export class Issue {
   }
 
   /**
-   * (Re-)generate the issue message.
+   * Generate the detailed error message.
+   *
+   * @returns This issue's message.
    */
-  public generateMessage(): void {
-    this.parameters = this._parameters
+  public get message(): string {
     const baseMessage = this._parseMessageTemplate()
     const specialParameterMessages = this._parseSpecialParameters()
     const hedSpecLink = this._generateHedSpecificationLink()
 
-    this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${baseMessage} ${specialParameterMessages} (${hedSpecLink}.)`
+    return `${this.level.toUpperCase()}: [${this.hedCode}] ${baseMessage} ${specialParameterMessages} (${hedSpecLink}.)`
   }
 
   /**
@@ -137,7 +136,7 @@ export class Issue {
    *
    * @returns The issue parameters.
    */
-  public get parameters(): Record<string, string> {
+  public get parameters(): IssueSavedParameters {
     return this._parameters
   }
 
@@ -146,7 +145,7 @@ export class Issue {
    *
    * @returns The issue bounds within the parent string.
    */
-  public get bounds(): [number, number] {
+  public get bounds(): [number, number] | undefined {
     return this._bounds
   }
 
@@ -155,14 +154,15 @@ export class Issue {
    *
    * @param value The issue bounds within the parent string.
    */
-  private set bounds(value: [number, number]) {
+  private set bounds(value: unknown) {
     if (this._bounds) {
       return
     }
-    if (!Array.isArray(value) || value.length !== 2 || !value.every((bound) => typeof bound === 'number')) {
+    if (isNumberPair(value)) {
+      this._bounds = value
+    } else {
       IssueError.generateAndThrowInternalError('Bounds must be a numeric pair')
     }
-    this._bounds = value
   }
 
   /**
@@ -170,25 +170,32 @@ export class Issue {
    *
    * @param parameters The new issue parameters.
    */
-  public set parameters(parameters: Record<string, any>) {
+  public set parameters(parameters: IssueParameters) {
     this._parameters = {}
-    for (const [key, value] of Object.entries(parameters)) {
-      if (key === 'bounds') {
-        this.bounds = value
-        continue
-      }
-      this._parameters[key] = String(value)
-    }
+    this.addParameters(parameters)
   }
 
   /**
-   * Set a new parameter value.
+   * Determine whether this issue has a given parameter.
+   *
+   * @param name The parameter name to check.
+   * @returns Whether this issue already has a parameter by that name.
+   */
+  public hasParameter(name: string): boolean {
+    if (name === 'bounds') {
+      return this._bounds !== undefined
+    }
+    return Object.hasOwn(this._parameters, name)
+  }
+
+  /**
+   * Add a new parameter value.
    *
    * @param name The parameter name.
    * @param value The new parameter value.
    */
-  public setParameter(name: string, value: any): void {
-    if (Object.hasOwn(this._parameters, name)) {
+  public addParameter(name: string, value: unknown): void {
+    if (this.hasParameter(name)) {
       return
     }
     if (name === 'bounds') {
@@ -196,7 +203,17 @@ export class Issue {
       return
     }
     this._parameters[name] = String(value)
-    this.generateMessage()
+  }
+
+  /**
+   * Add multiple parameters for this Issue.
+   *
+   * @param parameters The new values of the parameters.
+   */
+  public addParameters(parameters: IssueParameters): void {
+    for (const [key, value] of Object.entries(parameters)) {
+      this.addParameter(key, value)
+    }
   }
 
   /**
@@ -252,7 +269,7 @@ export class Issue {
  * @param parameters The error string parameters.
  * @returns An object representing the issue.
  */
-export function generateIssue(internalCode: string, parameters: Record<string, any> = {}): Issue {
+export function generateIssue(internalCode: string, parameters: IssueParameters = {}): Issue {
   const issueCodeData = issueData[internalCode] ?? issueData.genericError
   const { hedCode, level } = issueCodeData
   if (issueCodeData === issueData.genericError) {
@@ -270,26 +287,12 @@ export function generateIssue(internalCode: string, parameters: Record<string, a
  * @param issues The list of issues (different types can be intermixed).
  * @param parameters The parameters to add.
  */
-export function updateIssueParameters(issues: Array<Issue | IssueError>, parameters: Record<string, any>) {
+export function addIssueParameters(issues: Array<Issue | IssueError>, parameters: IssueParameters) {
   for (const thisIssue of issues) {
     if (thisIssue instanceof IssueError) {
-      _updateIssueParameters(thisIssue.issue, parameters)
+      thisIssue.issue.addParameters(parameters)
     } else if (thisIssue instanceof Issue) {
-      _updateIssueParameters(thisIssue, parameters)
+      thisIssue.addParameters(parameters)
     }
-  }
-}
-
-/**
- * Update the parameters for an Issue.
- *
- * Note: the issue is modified in place.
- *
- * @param issue The issue to be updated.
- * @param parameters The parameters to add.
- */
-function _updateIssueParameters(issue: Issue, parameters: Record<string, any>) {
-  for (const [key, value] of Object.entries(parameters)) {
-    issue.setParameter(key, value)
   }
 }

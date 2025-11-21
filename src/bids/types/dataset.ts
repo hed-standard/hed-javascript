@@ -2,13 +2,20 @@
  * This module contains the {@link BidsDataset} class, which represents a BIDS dataset for HED validation.
  * @module bids/types/dataset
  */
+
+import path from 'node:path'
+
 import { BidsFileAccessor } from '../datasetParser'
 import { BidsSidecar } from './json'
 import { BidsTsvFile } from './tsv'
 import { generateIssue, IssueError } from '../../issues/issues'
 import { getMergedSidecarData, organizedPathsGenerator } from '../../utils/paths'
 import { BidsHedIssue } from './issues'
-import path from 'node:path'
+import { type HedSchemas } from '../../schema/containers'
+
+type BidsFileAccessorConstructor = {
+  create(datasetRootDirectory: string | object): Promise<BidsFileAccessor>
+}
 
 /**
  * A BIDS dataset.
@@ -49,40 +56,34 @@ export class BidsDataset {
   /**
    * Map of BIDS sidecar files that contain HED annotations.
    * The keys are relative paths and the values are BidsSidecar objects.
-   * @type {Map<string, BidsSidecar>}
    */
-  sidecarMap
+  public sidecarMap: Map<string, BidsSidecar>
 
   /**
    * The dataset's root directory as an absolute path (Node.js context).
-   * @type {string|null}
    */
-  datasetRootDirectory
+  public readonly datasetRootDirectory: string | null
 
   /**
    * The HED schemas used to validate this dataset.
-   * @type {HedSchemas}
    */
-  hedSchemas
+  private hedSchemas: HedSchemas
 
   /**
    * The BIDS file accessor.
-   * @type {BidsFileAccessor}
-   * @public
    */
-  fileAccessor
+  public fileAccessor: BidsFileAccessor
 
   /**
    * Constructor for a BIDS dataset.
    *
-   * @param {BidsFileAccessor} accessor An instance of BidsFileAccessor (or its subclasses).
-   * @throws {Error} If accessor is not an instance of BidsFileAccessor.
-   * @private
+   * @param accessor An instance of BidsFileAccessor (or its subclasses).
+   * @throws {IssueError} If accessor is not an instance of BidsFileAccessor.
    * @see BidsDataset.create
    */
-  constructor(accessor) {
+  private constructor(accessor: BidsFileAccessor) {
     if (!(accessor instanceof BidsFileAccessor)) {
-      throw new Error('BidsDataset constructor requires an instance of BidsFileAccessor.\n')
+      IssueError.generateAndThrowInternalError('BidsDataset constructor requires an instance of BidsFileAccessor')
     }
     this.fileAccessor = accessor
     this.datasetRootDirectory = accessor.datasetRootDirectory // Set from fileAccessor
@@ -97,34 +98,25 @@ export class BidsDataset {
    * Note: This method will fail to create a BidsDataset if a valid HED schema cannot be loaded or any of the
    * JSON sidecars cannot be loaded. It does not perform HED validation.
    *
-   * @param {string | object} rootOrFiles The root directory of the dataset or a file-like object.
-   * @param {function} fileAccessorClass The BidsFileAccessor class to use for accessing files.
-   * @returns {Promise<[BidsDataset|null, BidsHedIssue[]]>} A Promise that resolves to a two-element array containing the BidsDataset instance (or null if creation failed) and an array of issues.
-   *
+   * @param rootOrFiles The root directory of the dataset or a file-like object.
+   * @param fileAccessorClass The BidsFileAccessor class to use for accessing files.
+   * @returns A Promise that resolves to a two-element array containing the BidsDataset instance (or null if creation failed) and an array of issues.
    */
-  static async create(rootOrFiles, fileAccessorClass) {
+  static async create(
+    rootOrFiles: string | object,
+    fileAccessorClass: BidsFileAccessorConstructor,
+  ): Promise<[BidsDataset | null, BidsHedIssue[]]> {
     let dataset = null
-    const issues = []
+    const issues: BidsHedIssue[] = []
     try {
       const accessor = await fileAccessorClass.create(rootOrFiles)
       dataset = new BidsDataset(accessor)
       const schemaIssues = await dataset.setHedSchemas()
       issues.push(...schemaIssues)
-      if (dataset.hedSchemas === null) {
-        return [null, issues]
-      }
       const sidecarIssues = await dataset.setSidecars()
       issues.push(...sidecarIssues)
     } catch (error) {
-      if (error instanceof IssueError) {
-        issues.push(error.issue)
-      } else {
-        issues.push({
-          code: 'INTERNAL_ERROR',
-          message: `An unexpected error occurred while creating the BidsDataset: ${error.message}`,
-          location: typeof rootOrFiles === 'string' ? rootOrFiles : 'Uploaded files',
-        })
-      }
+      issues.push(...BidsHedIssue.fromHedIssues(error, null))
     }
     if (issues.length > 0) {
       dataset = null
@@ -138,16 +130,16 @@ export class BidsDataset {
    * This method reads the `dataset_description.json` file, extracts the `HEDVersion` field,
    * and builds the HED schemas. The result is stored in {@link BidsDataset.hedSchemas}.
    *
-   * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues encountered during schema loading.
+   * @returns A promise that resolves to an array of issues encountered during schema loading.
    * @throws {IssueError} If `dataset_description.json` is missing or contains an invalid HED specification.
    */
-  async setHedSchemas() {
+  async setHedSchemas(): Promise<BidsHedIssue[]> {
     let description
 
     try {
       const descriptionContentString = await this.fileAccessor.getFileContent('dataset_description.json')
       if (descriptionContentString === null || typeof descriptionContentString === 'undefined') {
-        throw new IssueError(generateIssue('missingSchemaSpecification', { file: 'dataset_description.json' }))
+        IssueError.generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
       }
       description = {
         jsonData: JSON.parse(descriptionContentString),
@@ -156,23 +148,19 @@ export class BidsDataset {
       if (e instanceof IssueError) {
         throw e
       }
-      throw new IssueError(generateIssue('missingSchemaSpecification', { file: 'dataset_description.json' }))
+      IssueError.generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
     }
 
     try {
       this.hedSchemas = await this.fileAccessor.schemaBuilder(description)
       if (this.hedSchemas === null) {
-        throw new IssueError(
-          generateIssue('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null }),
-        )
+        IssueError.generateAndThrow('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null })
       }
     } catch (e) {
       if (e instanceof IssueError) {
         throw e
       }
-      throw new IssueError(
-        generateIssue('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null }),
-      )
+      IssueError.generateAndThrow('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null })
     }
     return []
   }
@@ -185,9 +173,9 @@ export class BidsDataset {
    *
    * Note: This method does not validate the HED data within the sidecars; it only parses them.
    *
-   * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues encountered during sidecar parsing.
+   * @returns A promise that resolves to an array of issues encountered during sidecar parsing.
    */
-  async setSidecars() {
+  async setSidecars(): Promise<BidsHedIssue[]> {
     this.sidecarMap = new Map()
     const issues = []
     const organizedPaths = this.fileAccessor.organizedPaths
@@ -204,7 +192,7 @@ export class BidsDataset {
         const promise = this.fileAccessor
           .getFileContent(jsonPath)
           .then((jsonText) => {
-            const sidecarIssues = []
+            const sidecarIssues: BidsHedIssue[] = []
             if (jsonText === null) {
               const errorMessage = `Could not read JSON file: ${jsonPath}`
               sidecarIssues.push(
@@ -266,9 +254,9 @@ export class BidsDataset {
    * Note: If any of the sidecars have errors (not just warnings), the TSV files will not be validated.
    * This is because a single error in a sidecar can result in errors on every line of a TSV file.
    *
-   * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues found during validation.
+   * @returns A promise that resolves to an array of issues found during validation.
    */
-  async validate() {
+  async validate(): Promise<BidsHedIssue[]> {
     const issues = this.validateSidecars()
     if (issues.some((issue) => issue.severity === 'error')) {
       return issues
@@ -282,11 +270,10 @@ export class BidsDataset {
    * This method iterates through all JSON sidecars and validates the HED data within them.
    * Note: The data has already been parsed into BidsSidecar objects.
    *
-   * @returns {BidsHedIssue[]} An array of issues found during sidecar validation.
-   * @private
+   * @returns An array of issues found during sidecar validation.
    */
-  validateSidecars() {
-    let issues = []
+  private validateSidecars(): BidsHedIssue[] {
+    let issues: BidsHedIssue[] = []
 
     for (const relativePath of organizedPathsGenerator(this.fileAccessor.organizedPaths, '.json')) {
       const sidecar = this.sidecarMap.get(relativePath)
@@ -303,11 +290,10 @@ export class BidsDataset {
    * This method iterates through all `.tsv` files, merges them with the corresponding JSON sidecars,
    * and validates the HED data within them.
    *
-   * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues found during TSV validation.
-   * @private
+   * @returns A promise that resolves to an array of issues found during TSV validation.
    */
-  async validateTsvFiles() {
-    let issues = []
+  private async validateTsvFiles(): Promise<BidsHedIssue[]> {
+    let issues: BidsHedIssue[] = []
     for (const [category, catMap] of this.fileAccessor.organizedPaths) {
       const tsvPaths = catMap.get('tsv') || []
       const jsonPaths = catMap.get('json') || []
@@ -324,13 +310,12 @@ export class BidsDataset {
    * This method reads the TSV file content, merges it with corresponding sidecar data,
    * creates a BidsTsvFile object, and validates the HED data within it.
    *
-   * @param {string} tsvPath The relative path to the TSV file.
-   * @param {string} category The BIDS category (e.g., 'sub-001/ses-001/func').
-   * @param {string[]} jsonPaths Array of JSON sidecar paths for this category of tsv.
-   * @returns {Promise<BidsHedIssue[]>} A promise that resolves to an array of issues found during validation of this TSV file.
-   * @private
+   * @param tsvPath The relative path to the TSV file.
+   * @param category The BIDS category (e.g., 'sub-001/ses-001/func').
+   * @param jsonPaths Array of JSON sidecar paths for this category of tsv.
+   * @returns A promise that resolves to an array of issues found during validation of this TSV file.
    */
-  async _validateTsvFile(tsvPath, category, jsonPaths) {
+  private async _validateTsvFile(tsvPath: string, category: string, jsonPaths: string[]): Promise<BidsHedIssue[]> {
     // Read the TSV file content -- if none do not proceed.
     const parsedPath = path.parse(tsvPath)
     const tsvContents = await this.fileAccessor.getFileContent(tsvPath)
@@ -361,13 +346,12 @@ export class BidsDataset {
    * For special directories (phenotype, stimuli), it looks for a direct JSON counterpart.
    * For other files, it uses the BIDS inheritance hierarchy to merge multiple sidecars.
    *
-   * @param {string} tsvPath The relative path to the TSV file.
-   * @param {string} category The BIDS category (e.g., 'sub-001/ses-001/func').
-   * @param {string[]} jsonPaths Array of JSON sidecar paths for this category.
-   * @returns {object} The merged sidecar data object, or empty object if no applicable sidecars found.
-   * @private
+   * @param tsvPath The relative path to the TSV file.
+   * @param category The BIDS category (e.g., 'sub-001/ses-001/func').
+   * @param jsonPaths Array of JSON sidecar paths for this category.
+   * @returns The merged sidecar data object, or empty object if no applicable sidecars found.
    */
-  _getSidecarData(tsvPath, category, jsonPaths) {
+  private _getSidecarData(tsvPath: string, category: string, jsonPaths: string[]): Record<string, unknown> {
     const parsedPath = path.parse(tsvPath)
 
     if (BidsFileAccessor.SPECIAL_DIRS.includes(category)) {
@@ -378,7 +362,6 @@ export class BidsDataset {
       }
       return {}
     }
-    const mergedSidecarData = getMergedSidecarData(tsvPath, jsonPaths, this.sidecarMap)
-    return mergedSidecarData
+    return getMergedSidecarData(tsvPath, jsonPaths, this.sidecarMap)
   }
 }

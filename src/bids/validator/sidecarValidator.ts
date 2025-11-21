@@ -2,11 +2,13 @@
  * @module bids/validator/sidecarValidator
  */
 
-import { BidsHedIssue } from '../types/issues'
-import ParsedHedString from '../../parser/parsedHedString'
-import { generateIssue, IssueError, updateIssueParameters } from '../../issues/issues'
-import { getCharacterCount } from '../../utils/string'
 import { BidsValidator } from './validator'
+import { BidsHedIssue } from '../types/issues'
+import { type BidsSidecar } from '../types/json'
+import ParsedHedString from '../../parser/parsedHedString'
+import { generateIssue, IssueError } from '../../issues/issues'
+import { type HedSchemas } from '../../schema/containers'
+import { getCharacterCount } from '../../utils/string'
 
 /**
  * Validator for HED data in BIDS JSON sidecars.
@@ -14,26 +16,24 @@ import { BidsValidator } from './validator'
 export class BidsHedSidecarValidator extends BidsValidator {
   /**
    * The BIDS sidecar being validated.
-   * @type {BidsSidecar}
    */
-  sidecar
+  private readonly sidecar: BidsSidecar
 
   /**
    * Constructor for the BidsHedSidecarValidator.
    *
-   * @param {BidsSidecar} sidecar - The BIDS sidecar being validated.
-   * @param {HedSchemas} hedSchemas - The schemas used for the sidecar validation.
+   * @param sidecar The BIDS sidecar being validated.
+   * @param hedSchemas The schemas used for the sidecar validation.
    */
-  constructor(sidecar, hedSchemas) {
+  public constructor(sidecar: BidsSidecar, hedSchemas: HedSchemas) {
     super(hedSchemas)
     this.sidecar = sidecar
   }
 
   /**
    * Validate a BIDS JSON sidecar file. Errors and warnings are stored.
-   *
    */
-  validate() {
+  public validate(): void {
     // Allow schema to be set a validation time -- this is checked by the superclass of BIDS file
     const [errorIssues, warningIssues] = this.sidecar.parseSidecarKeys(this.hedSchemas, false)
     this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.sidecar.file))
@@ -56,10 +56,10 @@ export class BidsHedSidecarValidator extends BidsValidator {
   /**
    * Validate this sidecar's HED strings.
    *
-   * @returns {BidsHedIssue[]} All issues found.
+   * @returns All issues found.
    */
-  _validateStrings() {
-    const issues = []
+  private _validateStrings(): BidsHedIssue[] {
+    const issues: BidsHedIssue[] = []
 
     for (const [sidecarKeyName, hedData] of this.sidecar.parsedHedData) {
       if (hedData instanceof ParsedHedString) {
@@ -83,28 +83,26 @@ export class BidsHedSidecarValidator extends BidsValidator {
   /**
    * Check definitions and placeholders for a string associated with a sidecar key.
    *
-   * @param {string} sidecarKeyName - The name of the sidecar key associated with string to be checked.
-   * @param {ParsedHedString} hedString - The parsed string to be checked.
-   * @returns {BidsHedIssue[]} - Issues associated with the check.
-   * @private
+   * @param sidecarKeyName The name of the sidecar key associated with string to be checked.
+   * @param hedString The parsed string to be checked.
+   * @returns Issues associated with the check.
    */
-  _checkDetails(sidecarKeyName, hedString) {
+  private _checkDetails(sidecarKeyName: string, hedString: ParsedHedString): BidsHedIssue[] {
     const issues = this._checkDefs(sidecarKeyName, hedString, true)
     issues.push(...this._checkPlaceholders(sidecarKeyName, hedString))
-    updateIssueParameters(issues, { sidecarKey: sidecarKeyName, filePath: this.sidecar?.file?.path })
+    BidsHedIssue.addIssueParameters(issues, { sidecarKey: sidecarKeyName, filePath: this.sidecar?.file?.path })
     return issues
   }
 
   /**
    * Validate the Def and Def-expand usage against the sidecar definitions.
    *
-   * @param {string} sidecarKeyName - Name of the sidecar key for this HED string
-   * @param {ParsedHedString} hedString - The parsed HED string object associated with this key.
-   * @param {boolean} placeholdersAllowed - If true, placeholders are allowed here.
-   * @returns {BidsHedIssue[]} - Issues encountered such as missing definitions or improper Def-expand values.
-   * @private
+   * @param sidecarKeyName Name of the sidecar key for this HED string
+   * @param hedString The parsed HED string object associated with this key.
+   * @param placeholdersAllowed If true, placeholders are allowed here.
+   * @returns Issues encountered such as missing definitions or improper Def-expand values.
    */
-  _checkDefs(sidecarKeyName, hedString, placeholdersAllowed) {
+  private _checkDefs(sidecarKeyName: string, hedString: ParsedHedString, placeholdersAllowed: boolean): BidsHedIssue[] {
     let issues = this.sidecar.definitions.validateDefs(hedString, this.hedSchemas, placeholdersAllowed)
     if (issues.length > 0) {
       return BidsHedIssue.fromHedIssues(issues, this.sidecar.file, { sidecarKey: sidecarKeyName })
@@ -113,7 +111,14 @@ export class BidsHedSidecarValidator extends BidsValidator {
     return BidsHedIssue.fromHedIssues(issues, this.sidecar.file, { sidecarKey: sidecarKeyName })
   }
 
-  _checkPlaceholders(sidecarKeyName, hedString) {
+  /**
+   * Validate the placeholders.
+   *
+   * @param sidecarKeyName Name of the sidecar key for this HED string
+   * @param hedString The parsed HED string object associated with this key.
+   * @returns Issues encountered relating to invalid placeholders.
+   */
+  private _checkPlaceholders(sidecarKeyName: string, hedString: ParsedHedString): BidsHedIssue[] {
     const numberPlaceholders = getCharacterCount(hedString.hedString, '#')
     const sidecarKey = this.sidecar.sidecarKeys.get(sidecarKeyName)
     if (!sidecarKey.valueString && !sidecarKey.hasDefinitions && numberPlaceholders > 0) {
@@ -145,10 +150,10 @@ export class BidsHedSidecarValidator extends BidsValidator {
   /**
    * Validate this sidecar's curly braces -- checking recursion and missing columns.
    *
-   * @returns {BidsHedIssue[]} All issues found.
+   * @returns All issues found.
    */
-  _validateCurlyBraces() {
-    const issues = []
+  private _validateCurlyBraces(): BidsHedIssue[] {
+    const issues: BidsHedIssue[] = []
     const references = this.sidecar.columnSpliceMapping
 
     for (const [key, referredKeys] of references) {

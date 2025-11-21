@@ -5,7 +5,7 @@ import pluralize from 'pluralize'
 pluralize.addUncountableRule('hertz')
 
 import { IssueError } from '../issues/issues'
-import SchemaParser from './parser'
+import type SchemaParser from './parser'
 
 /**
  * SchemaEntries class

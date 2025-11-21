@@ -10,8 +10,8 @@ import {
   buildBidsSchemas,
 } from '@hed-javascript-root/src/bids/index.js'
 import { buildSchemasFromVersion } from './schema/init.js'
-import { generateIssue, IssueError } from '@hed-javascript-root/src/issues/issues.js'
-import parseTSV from '@hed-javascript-root/src/bids/tsvParser.js'
+import { generateIssue, IssueError } from '@hed-javascript-root/src/issues/issues'
+import parseTSV from '@hed-javascript-root/src/bids/tsvParser'
 
 // --- Main Application Component ---
 

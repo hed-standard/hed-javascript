@@ -12,10 +12,14 @@
 
 import fsp from 'node:fs/promises'
 import path from 'node:path'
+
 import { organizePaths } from '../utils/paths'
-import { generateIssue } from '../issues/issues'
-import { BidsHedIssue } from './types/issues'
+import { IssueError } from '../issues/issues'
 import { buildBidsSchemas } from './schema'
+import { type BidsJsonFile } from './types/json'
+import { type HedSchemas } from '../schema/containers'
+
+type SchemaBuilder = (datasetDescription: BidsJsonFile) => Promise<HedSchemas>
 
 /**
  * Base class for BIDS file accessors.
@@ -23,74 +27,65 @@ import { buildBidsSchemas } from './schema'
  * This class provides a common interface for accessing files in a BIDS dataset, regardless of the underlying storage
  * mechanism. Subclasses must implement the `create` and `getFileContent` methods.
  */
-export class BidsFileAccessor {
+export abstract class BidsFileAccessor<FileType> {
   /**
    * The root directory of the dataset.
-   * @type {string}
    */
-  datasetRootDirectory
+  readonly datasetRootDirectory: string
 
   /**
    * Map of relative file paths to file representations.
-   * @type {Map<string, any>}
    */
-  fileMap
+  fileMap: Map<string, FileType>
 
   /**
    * Organized paths.
-   * @type {Map<string, Map<string, string[]>>}
    */
-  organizedPaths
+  organizedPaths: Map<string, Map<string, string[]>>
 
   /**
    * The HED schema builder function.
-   * @type {function}
    */
-  schemaBuilder
+  protected readonly schemaBuilder: SchemaBuilder
 
   /**
    * BIDS suffixes.
-   * @type {string[]}
    */
-  static SUFFIXES = ['dataset_description', 'participants', '_events', '_beh', '_scans', '_sessions', 'samples']
+  private static readonly SUFFIXES: string[] = [
+    'dataset_description',
+    'participants',
+    '_events',
+    '_beh',
+    '_scans',
+    '_sessions',
+    'samples',
+  ]
 
   /**
    * BIDS special directories.
-   * @type {string[]}
    */
-  static SPECIAL_DIRS = ['phenotype', 'stimuli']
+  private static readonly SPECIAL_DIRS: string[] = ['phenotype', 'stimuli']
 
   /**
    * Constructs a BidsFileAccessor.
    *
-   * @param {string} datasetRootDirectory The root directory of the dataset.
-   * @param {Map<string, any>} fileMap A map of relative file paths to file representations (e.g., `File` objects for web, full paths for Node.js).
+   * @param datasetRootDirectory The root directory of the dataset.
+   * @param fileMap A map of relative file paths to file representations (e.g., `File` objects for web, full paths for Node.js).
+   * @param schemaBuilder The HED schema builder function.
    */
-  constructor(datasetRootDirectory, fileMap) {
+  protected constructor(datasetRootDirectory: string, fileMap: Map<string, FileType>, schemaBuilder: SchemaBuilder) {
     if (typeof datasetRootDirectory !== 'string') {
-      throw new Error('BidsFileAccessor constructor requires a string for datasetRootDirectory.')
+      IssueError.generateAndThrowInternalError(
+        'BidsFileAccessor constructor requires a string for datasetRootDirectory.',
+      )
     }
     if (!(fileMap instanceof Map)) {
       // Ensure fileMap is a Map
-      throw new Error('BidsFileAccessor constructor requires a Map argument for fileMap.')
+      IssueError.generateAndThrowInternalError('BidsFileAccessor constructor requires a Map argument for fileMap.')
     }
     this.datasetRootDirectory = datasetRootDirectory
     this._initialize(fileMap)
-    this.schemaBuilder = null
-  }
-
-  /**
-   * Factory method to create a BidsFileAccessor.
-   *
-   * This method must be implemented by subclasses to handle environment-specific setup.
-   *
-   * @param {string | object} datasetRootDirectory The root directory of the dataset or a file-like object.
-   * @returns {Promise<BidsFileAccessor>} A Promise that resolves to a new BidsFileAccessor instance.
-   * @throws {Error} If the method is not implemented by a subclass.
-   */
-  static async create(datasetRootDirectory) {
-    // Use datasetRootDirectory in the error message to satisfy the linter
-    throw new Error(`BidsFileAccessor.create for '${datasetRootDirectory}' must be implemented by a subclass.`)
+    this.schemaBuilder = schemaBuilder
   }
 
   /**
@@ -98,16 +93,14 @@ export class BidsFileAccessor {
    *
    * This method filters the file map to include only BIDS-related files and organizes them by type and category.
    *
-   * @param {Map<string, any>} fileMap A map of relative file paths to file representations.
-   * @private
+   * @param fileMap A map of relative file paths to file representations.
    */
-  _initialize(fileMap) {
+  private _initialize(fileMap: Map<string, FileType>) {
     const relativeFilePaths = Array.from(fileMap.keys())
     const { candidates, organizedPaths } = organizePaths(
       relativeFilePaths,
       BidsFileAccessor.SUFFIXES,
       BidsFileAccessor.SPECIAL_DIRS,
-      ['json', 'tsv'],
     )
     this.organizedPaths = organizedPaths
 
@@ -123,19 +116,11 @@ export class BidsFileAccessor {
    *
    * This method must be implemented by subclasses to handle environment-specific file reading.
    *
-   * @param {string} relativePath The relative path to the file.
-   * @returns {Promise<string|null>} A promise that resolves with the file content as a string, or null if the file cannot be read.
-   * @throws {Error} If the method is not implemented by a subclass.
+   * @param relativePath The relative path to the file.
+   * @returns A promise that resolves with the file content as a string, or null if the file cannot be read.
+   * @throws {IssueError} If the method is not implemented by a subclass.
    */
-  async getFileContent(relativePath) {
-    if (!this.fileMap.has(relativePath)) {
-      return null
-    }
-    // Use relativePath in the error message to satisfy the linter
-    throw new Error(
-      `getFileContent for '${relativePath}': File found in map, but base class cannot determine how to read content. Subclass must implement.`,
-    )
-  }
+  public abstract getFileContent(relativePath: string): Promise<string | null>
 }
 
 /**
@@ -161,23 +146,20 @@ export class BidsFileAccessor {
  *
  * main();
  */
-export class BidsDirectoryAccessor extends BidsFileAccessor {
+export class BidsDirectoryAccessor extends BidsFileAccessor<string> {
   /**
    * Constructs a BidsDirectoryAccessor.
    *
-   * @param {string} datasetRootDirectory The absolute path to the dataset's root directory.
-   * @param {Map<string, string>} fileMap A map of relative file paths to their absolute paths.
-   * @throws {BidsHedIssue} If the dataset root directory path is invalid.
+   * @param datasetRootDirectory The absolute path to the dataset's root directory.
+   * @param fileMap A map of relative file paths to their absolute paths.
+   * @throws {IssueError} If the dataset root directory path is invalid.
    */
-  constructor(datasetRootDirectory, fileMap) {
+  private constructor(datasetRootDirectory: string, fileMap: Map<string, string>) {
     if (typeof datasetRootDirectory !== 'string' || !datasetRootDirectory) {
       const message = `Bids validation requires a non-empty string for the dataset root directory but received: ${datasetRootDirectory}`
-      throw BidsHedIssue.fromHedIssue(
-        generateIssue('fileReadError', { filename: datasetRootDirectory, message: `${message}` }),
-      )
+      IssueError.generateAndThrow('fileReadError', { filename: datasetRootDirectory, message: `${message}` })
     }
-    super(datasetRootDirectory, fileMap)
-    this.schemaBuilder = buildBidsSchemas
+    super(datasetRootDirectory, fileMap, buildBidsSchemas)
   }
 
   /**
@@ -185,13 +167,13 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
    *
    * This method recursively reads the specified directory and creates a file map.
    *
-   * @param {string} datasetRootDirectory The absolute path to the dataset's root directory.
-   * @returns {Promise<BidsDirectoryAccessor>} A Promise that resolves to a new BidsDirectoryAccessor instance.
-   * @throws {Error} If the dataset root directory path is empty.
+   * @param datasetRootDirectory The absolute path to the dataset's root directory.
+   * @returns A Promise that resolves to a new BidsDirectoryAccessor instance.
+   * @throws {IssueError} If the dataset root directory path is empty.
    */
-  static async create(datasetRootDirectory) {
+  public static async create(datasetRootDirectory: string): Promise<BidsDirectoryAccessor> {
     if (typeof datasetRootDirectory !== 'string' || !datasetRootDirectory) {
-      throw new Error('Must have a non-empty dataset root directory path.')
+      IssueError.generateAndThrowInternalError('Must have a non-empty dataset root directory path.')
     }
     const resolvedDatasetRoot = path.resolve(datasetRootDirectory)
     const fileMap = new Map()
@@ -202,10 +184,10 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
   /**
    * Asynchronously reads the content of a file from the file system.
    *
-   * @param {string} relativePath The relative path to the file within the dataset.
-   * @returns {Promise<string|null>} A promise that resolves with the file content as a string, or null if the file is not found or an error occurs.
+   * @param relativePath The relative path to the file within the dataset.
+   * @returns A promise that resolves with the file content as a string, or null if the file is not found or an error occurs.
    */
-  async getFileContent(relativePath) {
+  public async getFileContent(relativePath: string): Promise<string | null> {
     const absolutePath = this.fileMap.get(relativePath)
     if (!absolutePath) {
       return null
@@ -221,12 +203,11 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
   /**
    * Recursively reads directory contents and populates the file map.
    *
-   * @param {string} dir The directory to read.
-   * @param {string} baseDir The base directory to calculate relative paths from.
-   * @param {Map<string, string>} fileMapRef The Map to populate with relativePath: absolutePath.
-   * @private
+   * @param dir The directory to read.
+   * @param baseDir The base directory to calculate relative paths from.
+   * @param fileMapRef The Map to populate with relativePath: absolutePath.
    */
-  static async _readDirRecursive(dir, baseDir, fileMapRef) {
+  private static async _readDirRecursive(dir: string, baseDir: string, fileMapRef: Map<string, string>): Promise<void> {
     try {
       // Check if the current path is a directory before attempting to read it.
       // This handles cases where datasetRootDirectory itself might be a file or non-existent.

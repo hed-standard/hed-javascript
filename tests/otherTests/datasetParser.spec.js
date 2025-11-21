@@ -74,12 +74,6 @@ describe('BidsFileAccessor', () => {
     expect(accessor.organizedPaths.get('_scans').get('json')).toEqual(['sub-02/sub-02_scans.json'])
     expect(accessor.organizedPaths.get('participants').get('tsv')).toEqual([])
   })
-
-  it('should throw an error when calling the abstract create method', async () => {
-    await expect(BidsFileAccessor.create('/my/dataset')).rejects.toThrow(
-      "BidsFileAccessor.create for '/my/dataset' must be implemented by a subclass.",
-    )
-  })
 })
 
 describe('BidsDirectoryAccessor', () => {

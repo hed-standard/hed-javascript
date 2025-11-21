@@ -90,8 +90,7 @@ export class BidsWebAccessor extends BidsFileAccessor {
    * @private
    */
   constructor(datasetRootDirectory, fileMap) {
-    super(datasetRootDirectory, fileMap)
-    this.schemaBuilder = buildBidsSchemas
+    super(datasetRootDirectory, fileMap, buildBidsSchemas)
   }
 
   async getFileContent(relativePath) {

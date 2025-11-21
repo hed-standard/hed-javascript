@@ -10,7 +10,7 @@ import { HedSchema, PrimarySchema, HedSchemas } from './containers'
 import { IssueError } from '../issues/issues'
 import { splitStringTrimAndRemoveBlanks } from '../utils/string'
 import { SchemasSpec } from './specs'
-import { HedSchemaXMLObject } from './xmlType'
+import { type HedSchemaXMLObject } from './xmlType'
 
 /**
  * Build a schema collection object from a schema specification.

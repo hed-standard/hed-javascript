@@ -5,7 +5,7 @@
  */
 
 export type ParsedTSV = Map<string, string[]>
-type OldParsedTSV = {
+export type OldParsedTSV = {
   headers: string[]
   rows: string[][]
 }

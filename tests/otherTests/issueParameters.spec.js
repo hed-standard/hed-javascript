@@ -1,6 +1,6 @@
 import { describe, test } from '@jest/globals'
 import { BidsSidecar } from '../../src/bids/types/json'
-import { IssueError, generateIssue, updateIssueParameters } from '../../src/issues/issues'
+import { IssueError, generateIssue, addIssueParameters } from '../../src/issues/issues'
 
 describe('Issue Parameters Tests', () => {
   // Common test data
@@ -456,7 +456,7 @@ describe('Issue Parameters Tests', () => {
         parameterB: 'valueB',
       }
 
-      updateIssueParameters(issues, newParameters)
+      addIssueParameters(issues, newParameters)
 
       expect(issue1.issue.parameters).toHaveProperty('parameter1', 'value1')
       expect(issue1.issue.parameters).toHaveProperty('parameter2', 'value2')
@@ -478,7 +478,7 @@ describe('Issue Parameters Tests', () => {
         parameter2: 'value2',
       }
 
-      updateIssueParameters(issues, newParameters)
+      addIssueParameters(issues, newParameters)
 
       expect(issue.issue.parameters).toHaveProperty('parameter1', 'originalValue')
       expect(issue.issue.parameters).toHaveProperty('parameter2', 'value2')
@@ -488,7 +488,7 @@ describe('Issue Parameters Tests', () => {
       const issues = []
       const newParameters = { parameter1: 'value1' }
 
-      expect(() => updateIssueParameters(issues, newParameters)).not.toThrow()
+      expect(() => addIssueParameters(issues, newParameters)).not.toThrow()
     })
 
     test('should handle an empty parameters object', () => {
@@ -498,7 +498,7 @@ describe('Issue Parameters Tests', () => {
 
       const newParameters = {}
 
-      updateIssueParameters(issues, newParameters)
+      addIssueParameters(issues, newParameters)
 
       expect(issue.issue.parameters).toEqual(originalParameters)
     })

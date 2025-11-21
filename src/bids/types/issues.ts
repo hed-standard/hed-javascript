@@ -2,11 +2,11 @@
  * Provides a wrapper for HED validation issues that is compatible with the BIDS validator.
  * @module bids/types/issues
  */
-import { generateIssue, IssueError } from '../../issues/issues'
 
-/**
- * @typedef {import('../../issues/issues.ts').Issue} Issue
- */
+import { generateIssue, type Issue, IssueError, type IssueParameters } from '../../issues/issues'
+import { type IssueLevel } from '../../issues/data'
+
+type BidsIssueCode = 'HED_ERROR' | 'HED_WARNING' | 'INTERNAL_ERROR'
 
 /**
  * A wrapper for a HED validation issue that is compatible with the BIDS validator.
@@ -17,64 +17,60 @@ import { generateIssue, IssueError } from '../../issues/issues'
 export class BidsHedIssue {
   /**
    * The file associated with this issue.
-   * @type {object}
    */
-  file
+  public readonly file: any
 
   /**
    * The underlying HED issue object.
-   * @type {Issue}
    */
-  hedIssue
+  public readonly hedIssue: Issue
 
   /**
    * The BIDS-compliant issue code.
-   * @type {string}
    */
-  code
+  public readonly code: BidsIssueCode
 
   /**
    * The HED-specific issue code.
-   * @type {string}
    */
-  subCode
+  public readonly subCode: string
 
   /**
    * The severity of the issue (e.g., 'error' or 'warning').
-   * @type {string}
    */
-  severity
+  public readonly severity: IssueLevel
 
   /**
    * The human-readable issue message.
-   * @type {string}
    */
-  issueMessage
+  public issueMessage: string
 
   /**
    * The line number where the issue occurred.
-   * @type {number}
    */
-  line
+  public readonly line: string
 
   /**
    * The path to the file where the issue occurred.
-   * @type {string}
    */
-  location
+  public readonly location: string
 
   /**
    * Constructs a BidsHedIssue object.
    *
-   * @param {Issue} hedIssue The HED issue object to be wrapped.
-   * @param {object} file The file object associated with this issue.
+   * @deprecated Direct use of this constructor is not recommended. Use {@link BidsHedIssue.fromHedIssues}.
+   *
+   * @param hedIssue The HED issue object to be wrapped.
+   * @param file The file object associated with this issue.
    */
-  constructor(hedIssue, file) {
+  public constructor(hedIssue: Issue, file: any) {
     this.hedIssue = hedIssue
     this.file = file
 
     // BIDS fields
-    if (hedIssue.level === 'warning') {
+    if (hedIssue.internalCode === 'internalError') {
+      this.code = 'INTERNAL_ERROR'
+    } else if (hedIssue.level === 'warning') {
       this.code = 'HED_WARNING'
     } else {
       this.code = 'HED_ERROR'
@@ -87,13 +83,22 @@ export class BidsHedIssue {
   }
 
   /**
+   * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
+   *
+   * @returns The issue message.
+   */
+  public toString(): string {
+    return this.issueMessage
+  }
+
+  /**
    * Transforms a list of issues into a Map, keyed by severity level.
    *
-   * @param {BidsHedIssue[]} issues A list of BIDS HED issues.
-   * @returns {Map<string, BidsHedIssue[]>} A map where keys are severity levels and values are arrays of issues.
+   * @param issues A list of BIDS HED issues.
+   * @returns A map where keys are severity levels and values are arrays of issues.
    */
-  static splitErrors(issues) {
-    const issueMap = new Map()
+  public static splitErrors(issues: BidsHedIssue[]): Map<IssueLevel, BidsHedIssue[]> {
+    const issueMap = new Map<IssueLevel, BidsHedIssue[]>()
     for (const issue of issues) {
       if (!issueMap.has(issue.severity)) {
         issueMap.set(issue.severity, [])
@@ -106,11 +111,11 @@ export class BidsHedIssue {
   /**
    * Categorizes a list of issues by their subCode values.
    *
-   * @param {BidsHedIssue[]} issues A list of BIDS HED issues.
-   * @returns {Map<string, BidsHedIssue[]>} A map where keys are HED issue codes and values are arrays of issues.
+   * @param issues A list of BIDS HED issues.
+   * @returns A map where keys are HED issue codes and values are arrays of issues.
    */
-  static categorizeByCode(issues) {
-    const codeMap = new Map()
+  public static categorizeByCode(issues: BidsHedIssue[]): Map<string, BidsHedIssue[]> {
+    const codeMap = new Map<string, BidsHedIssue[]>()
     for (const issue of issues) {
       if (!codeMap.has(issue.subCode)) {
         codeMap.set(issue.subCode, [])
@@ -123,12 +128,12 @@ export class BidsHedIssue {
   /**
    * Reduces a list of issues to one of each subCode that occurred in the incoming list, summarizing the occurrences.
    *
-   * @param {BidsHedIssue[]} issues A list of BIDS HED issues.
-   * @returns {BidsHedIssue[]} A new list of issues with one issue of each type.
+   * @param issues A list of BIDS HED issues.
+   * @returns A new list of issues with one issue of each type.
    */
-  static reduceIssues(issues) {
+  public static reduceIssues(issues: BidsHedIssue[]): BidsHedIssue[] {
     const categorizedIssues = BidsHedIssue.categorizeByCode(issues)
-    const reducedIssues = []
+    const reducedIssues: BidsHedIssue[] = []
     for (const issueList of categorizedIssues.values()) {
       if (issueList.length === 0) {
         continue
@@ -154,12 +159,16 @@ export class BidsHedIssue {
    * If `limitErrors` is true, the output will be reduced to one issue of each subCode type in the list.
    * The message of each "representative" issue will be updated to summarize the number of occurrences and files.
    *
-   * @param {BidsHedIssue[]} issues A list of BIDS HED issues.
-   * @param {boolean} checkWarnings Whether to include warnings in the output.
-   * @param {boolean} limitErrors Whether to reduce the list of issues to one of each type.
-   * @returns {BidsHedIssue[]} The processed list of issues.
+   * @param issues A list of BIDS HED issues.
+   * @param checkWarnings Whether to include warnings in the output.
+   * @param limitErrors Whether to reduce the list of issues to one of each type.
+   * @returns The processed list of issues.
    */
-  static processIssues(issues, checkWarnings = false, limitErrors = false) {
+  public static processIssues(
+    issues: BidsHedIssue[],
+    checkWarnings: boolean = false,
+    limitErrors: boolean = false,
+  ): BidsHedIssue[] {
     const issueMap = BidsHedIssue.splitErrors(issues)
     const errorIssues = issueMap.get('error') ?? []
     const warningIssues = issueMap.get('warning') ?? []
@@ -179,18 +188,22 @@ export class BidsHedIssue {
   /**
    * Converts one or more HED issues into BIDS-compatible issues.
    *
-   * @param {Error|Issue[]} hedIssues One or more HED-format issues.
-   * @param {object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
-   * @param {object?} extraParameters Any extra parameters to inject into the {@link Issue} objects.
-   * @returns {BidsHedIssue[]} An array of BIDS-compatible issues.
+   * @param hedIssues One or more HED-format issues.
+   * @param file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
+   * @param extraParameters Any extra parameters to inject into the {@link Issue} objects.
+   * @returns An array of BIDS-compatible issues.
    */
-  static fromHedIssues(hedIssues, file, extraParameters) {
-    if (hedIssues.length === 0) {
-      return []
-    } else if (hedIssues instanceof IssueError) {
+  public static fromHedIssues(
+    hedIssues: Error | Issue[],
+    file: object,
+    extraParameters: IssueParameters = {},
+  ): BidsHedIssue[] {
+    if (hedIssues instanceof IssueError) {
       return [BidsHedIssue.fromHedIssue(hedIssues.issue, file, extraParameters)]
     } else if (hedIssues instanceof Error) {
       return [new BidsHedIssue(generateIssue('internalError', { message: hedIssues.message }), file ?? null)]
+    } else if (hedIssues.length === 0) {
+      return []
     } else {
       return hedIssues.map((hedIssue) => BidsHedIssue.fromHedIssue(hedIssue, file, extraParameters))
     }
@@ -199,36 +212,48 @@ export class BidsHedIssue {
   /**
    * Converts a single HED issue into a BIDS-compatible issue.
    *
-   * @param {Issue} hedIssue A HED-format issue.
-   * @param {object} file A BIDS-format file object used to generate a {@link BidsHedIssue} object.
-   * @param {object?} extraParameters Any extra parameters to inject into the {@link Issue} object.
-   * @returns {BidsHedIssue} The BIDS-compatible issue.
+   * @param hedIssue A HED-format issue.
+   * @param file A BIDS-format file object used to generate a {@link BidsHedIssue} object.
+   * @param extraParameters Any extra parameters to inject into the {@link Issue} object.
+   * @returns The BIDS-compatible issue.
    */
-  static fromHedIssue(hedIssue, file, extraParameters) {
-    Object.assign(hedIssue.parameters, extraParameters)
-    hedIssue.generateMessage()
+  public static fromHedIssue(hedIssue: Issue, file: object, extraParameters: IssueParameters = {}): BidsHedIssue {
+    hedIssue.addParameters(extraParameters)
     return new BidsHedIssue(hedIssue, file)
   }
 
   /**
    * Transforms a list of mixed-format issues into BIDS-compatible issues.
    *
-   * @param {Array<BidsHedIssue|IssueError|Error>} issues A list of mixed-format issues.
-   * @param {object} file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
-   * @returns {BidsHedIssue[]} An array of BIDS-compatible issues.
+   * @param issues A list of mixed-format issues.
+   * @param file A BIDS-format file object used to generate {@link BidsHedIssue} objects.
+   * @returns An array of BIDS-compatible issues.
    */
-  static transformToBids(issues, file = null) {
+  public static transformToBids(issues: Array<BidsHedIssue | Error>, file: object = null): BidsHedIssue[] {
     return issues.map((issue) => {
       if (issue instanceof BidsHedIssue) {
         return issue
       } else if (issue instanceof IssueError) {
-        const issueFile = issue.issue.file || file
-        return BidsHedIssue.fromHedIssue(issue.issue, issueFile, issue.issue.parameters)
+        return BidsHedIssue.fromHedIssue(issue.issue, file)
       } else if (issue instanceof Error) {
         return new BidsHedIssue(generateIssue('internalError', { message: issue.message }), file)
       } else {
         return new BidsHedIssue(generateIssue('internalError', { message: 'Unknown issue type' }), file)
       }
     })
+  }
+
+  /**
+   * Add new parameters to the underlying HED issues of a list of BIDS issues and regenerate the issue messages.
+   *
+   * @param issues A list of BIDS-compatible issues.
+   * @param parameters The parameters to add.
+   */
+  public static addIssueParameters(issues: BidsHedIssue[], parameters: IssueParameters): void {
+    for (const issue of issues) {
+      const hedIssue = issue.hedIssue
+      hedIssue.addParameters(parameters)
+      issue.issueMessage = hedIssue.message
+    }
   }
 }

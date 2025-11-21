@@ -8,9 +8,9 @@ export {
   BidsJsonFile,
   BidsSidecar,
   BidsHedIssue,
-  buildBidsSchemas,
   BidsFileAccessor,
   BidsDirectoryAccessor,
+  buildBidsSchemas,
 } from './src/bids'
 
 export { IssueError, Issue } from './src/issues/issues'

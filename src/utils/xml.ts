@@ -4,7 +4,7 @@
  */
 import { XMLParser } from 'fast-xml-parser'
 
-import { HedSchemaXMLObject, HedSchemaRootElement, NodeElement } from '../schema/xmlType'
+import { type HedSchemaXMLObject, type HedSchemaRootElement, type NodeElement } from '../schema/xmlType'
 
 /**
  * Parse the schema XML data.

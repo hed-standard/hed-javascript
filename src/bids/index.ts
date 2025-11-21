@@ -21,18 +21,7 @@ export {
   BidsJsonFile,
   BidsSidecar,
   BidsHedIssue,
-  buildBidsSchemas,
   BidsFileAccessor,
   BidsDirectoryAccessor,
-}
-
-export default {
-  BidsDataset,
-  BidsTsvFile,
-  BidsJsonFile,
-  BidsSidecar,
-  BidsHedIssue,
   buildBidsSchemas,
-  BidsFileAccessor,
-  BidsDirectoryAccessor,
 }
