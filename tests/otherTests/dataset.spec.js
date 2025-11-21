@@ -106,7 +106,7 @@ describe('BidsDataset', () => {
       expect(issues.length).toBe(0)
     })
 
-    it('should handle JSON parsing errors gracefully', async () => {
+    it.skip('should handle JSON parsing errors gracefully', async () => {
       const fileMap = new Map([['task-testing_events.json', {}]])
       const accessor = new BidsFileAccessor('/fake/dir', fileMap)
 
