@@ -32,7 +32,7 @@ export function* iteratePairwiseCombinations<T>(array: T[]): Generator<[T, T]> {
 }
 
 /**
- * Type predicate for an ordered pair of numbers (e.g. bounds).
+ * Type guard for an ordered pair of numbers (e.g. bounds).
  *
  * @param value A possible ordered pair of numbers.
  */
