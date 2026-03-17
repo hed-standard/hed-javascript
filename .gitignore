@@ -1,14 +1,15 @@
 coverage
 node_modules
 .directory
-.github/copilot-instructions.md
 .idea
 dist/
+.status/
 /venv/
 spec_tests/*.txt
 spec_tests/temp*.json
 spec_tests/temp.spec.js
 tests/temp.spec.js
+.vscode/
 
 # Ignore local build output
 /build/
