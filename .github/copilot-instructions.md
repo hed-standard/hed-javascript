@@ -1,0 +1,150 @@
+# hed-javascript Copilot instructions
+
+> **Local environment:** If `.status/local-environment.md` exists in this repository, read it first.
+> It contains machine-specific overrides (OS, shell, paths) that take precedence over this file.
+
+This is a Node.js/JavaScript project managed with `npm`. Node.js >= 22.0.0 is required.
+Always run `npm install` before building or testing. In CI contexts use `npm ci` instead.
+
+When you create summaries of what you did — always put them in a `.status/` directory at the root of the repository.
+
+Markdown headers in this repository use sentence case: capitalize only the first word (and proper nouns).
+
+## Branch and PR policy
+
+All changes must be submitted as pull requests targeting the `main` branch. Direct pushes to `main` are not permitted.
+
+## Project overview
+
+**hed-validator** (`hed-javascript`) is a JavaScript library for validating HED (Hierarchical Event Descriptor) strings, tags, and BIDS-compatible event files. It is published as the `hed-validator` npm package and supports both Node.js (CommonJS and ESM) and browser environments.
+
+## Architecture overview
+
+Source code is plain JavaScript (`.js`) in `src/`. TypeScript type declarations live in `types/index.d.ts`.
+
+**Entry Point:**
+
+- `index.js` (root): Re-exports the public API
+
+**Source Modules** (`src/`):
+
+- `bids/` — BIDS dataset and TSV/sidecar parsing and validation
+  - `datasetParser.js`, `tsvParser.js`, `schema.js`, `index.js`
+  - `types/` — BIDS-specific type helpers
+  - `validator/` — BIDS validation logic
+
+- `parser/` — HED string parsing pipeline
+  - `tokenizer.js`, `splitter.js`, `parser.js`, `parseUtils.js`
+  - `parsedHedString.js`, `parsedHedTag.js`, `parsedHedGroup.js`, `parsedHedSubstring.js`, `parsedHedColumnSplice.js`
+  - `definitionManager.js`, `definitionChecker.js`, `reservedChecker.js`
+  - `tagConverter.js`, `eventManager.js`
+
+- `schema/` — HED schema loading, parsing, and merging
+  - `loader.js`, `parser.js`, `schemaMerger.js`
+  - `config.js`, `containers.js`, `entries.js`, `specs.js`, `init.js`
+
+- `issues/` — Issue codes and formatting
+  - `issues.js`, `data.js`
+
+- `data/` — Bundled JSON configs and XML schema files
+
+- `utils/` — General utilities
+  - `array.js`, `string.js`, `files.js`, `paths.js`, `hedStrings.js`, `memoizer.js`, `xml.js`
+
+**Browser App** (`browser/`):
+
+- A separate Vite/React app for browser-based HED validation. Has its own `package.json` and `vite.config.js`.
+
+## Common commands
+
+```powershell
+npm install                        # Install dependencies (use npm ci in CI)
+npm run build                      # Build dist/ with esbuild (CommonJS + ESM)
+npm test                           # Run Jest tests in tests/
+npm run testSpecs                  # Run spec tests in spec_tests/
+npm run coverage                   # Run tests with coverage report
+npm run lint                       # ESLint on src/
+npm run build ; npm run test-types-local-windows  # Type-check types/ (build required first)
+npm run docs                       # Generate TypeDoc documentation
+npm run clear_jest_cache           # Clear Jest cache
+```
+
+**Running individual test files:**
+
+```powershell
+npx jest tests/otherTests/hed.spec.js
+```
+
+**Browser app (separate package):**
+
+```powershell
+cd browser ; npm install ; npm test   # Run browser (Vitest) tests
+cd browser ; npm run build            # Build browser app
+cd browser ; npm run preview          # Serve browser app locally
+```
+
+## Testing structure
+
+```
+tests/
+  jsonTests/          # JSON-driven validation tests (spec files)
+  jsonTestData/       # Data files for JSON tests (.data.js)
+  otherTests/         # Additional spec files (bids, schema, issues, etc.)
+  otherTestData/      # Data files for other tests
+  testHelpers/        # Shared test utilities
+  bidsDemoData/       # Sample BIDS dataset used in integration tests
+spec_tests/
+  jsonTests.spec.js   # Runs the HED spec test suite
+  javascriptTests.json
+browser/
+  vitest.config.js    # Separate Vitest suite for browser components
+```
+
+Jest is configured via `jest.config.js` and `babel.config.js`. Note: `jest.config.js` has a
+`transformIgnorePatterns` entry that allows `unicode-name` and `semver` to be transformed —
+do not remove it or those imports will fail in tests.
+
+## Key dependencies
+
+- **fast-xml-parser** — XML schema parsing
+- **lodash**, **semver**, **pluralize**, **unicode-name** — Utility support
+- **esbuild** — Build tool (CommonJS + ESM output)
+- **jest** / **babel-jest** — Testing
+- **eslint** / **prettier** — Linting and formatting
+- **typescript** / **typedoc** — Type declarations and docs generation
+- **husky** — Git hooks (runs prettier on commit)
+
+## File organization
+
+- `src/` — JavaScript source code
+- `tests/` — Jest test suite
+- `spec_tests/` — HED spec-level tests
+- `types/` — TypeScript type declarations (`index.d.ts`, `test.ts`)
+- `browser/` — Vite/React browser demo app
+- `dist/` — Compiled output, generated by `npm run build` (not committed)
+- `scripts/` — Helper scripts for type testing
+- `esbuild.mjs` — Build configuration
+- `.status/` — Local summaries and environment notes (not published)
+
+## CI checks (all must pass on PRs)
+
+CI runs on every push/PR to `main`. Replicate these locally before opening a PR:
+
+| Workflow              | Command                                             | Notes                                              |
+| --------------------- | --------------------------------------------------- | -------------------------------------------------- |
+| `tests.yml`           | `npm ci ; npm test`                                 | Runs `tests/` suite on Node 22, lts/\*, latest     |
+| `tests.yml`           | `npm ci ; npm run testSpecs`                        | Runs `spec_tests/` suite                           |
+| `tests.yml` (browser) | `cd browser ; npm install ; npm test`               | Separate Vitest browser suite                      |
+| `test-types.yml`      | `npm ci ; npm run build ; npm pack` then type-check | **Build required before type check**               |
+| `codeql.yml`          | automatic                                           | CodeQL security scan (JavaScript)                  |
+| `codespell.yaml`      | automatic                                           | Spell check source files                           |
+| `links.yml`           | automatic                                           | Lychee link checker (configured via `lychee.toml`) |
+
+**Type-check locally (without packing):**
+
+```powershell
+npm run build ; npm run test-types-local-windows  # Windows
+npm run build ; npm run test-types-local-unix      # Linux/macOS
+```
+
+Publishing to npm happens automatically via `publish.yml` when a GitHub Release is created.
