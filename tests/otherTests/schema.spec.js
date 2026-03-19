@@ -385,11 +385,119 @@ describe('HED schemas', () => {
         assert.strictEqual(schemas.baseSchema.entries.tags._definitions.size, 1994)
       })
 
+      it('should build schemas from multiple partnered schemas with score before lang', async () => {
+        const versionString = '8.4.0, score_2.1.0, lang_1.1.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+
+        assert.isNotNull(schemas, 'Schemas should not be null')
+        assert.instanceOf(schemas.baseSchema, PartneredSchema)
+        assert.strictEqual(schemas.baseSchema.withStandard, '8.4.0')
+        assert.strictEqual(schemas.baseSchema.entries.tags._definitions.size, 1994)
+      })
+
+      it('should fail when library schemas require different standard versions', async () => {
+        // score_2.0.0 requires withStandard 8.3.0; lang_1.1.0 requires withStandard 8.4.0
+        const versionString = 'score_2.0.0, lang_1.1.0'
+        try {
+          await buildSchemasFromVersion(versionString)
+          assert.fail('Incompatible schemas score_2.0.0 and lang_1.1.0 were incorrectly loaded without an error')
+        } catch (error) {
+          assert.instanceOf(error, IssueError)
+          assert.deepStrictEqual(
+            error.issue,
+            generateIssue('differentWithStandard', { first: '8.4.0', second: '8.3.0' }),
+          )
+        }
+      })
+
       it('should handle version strings with prefix', async () => {
         const versionString = 'nick:8.0.0'
         const schemas = await buildSchemasFromVersion(versionString)
         assert.isNotNull(schemas, 'Schemas should not be null')
         assert.strictEqual(schemas.schemas.get('nick').version, '8.0.0', 'Schema version should match')
+      })
+
+      it('should load a prefixed unmerged library schema with auto-resolved standard partner', async () => {
+        const versionString = 'sc:score_2.1.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+        const schemaGroup = schemas.getSchema('sc')
+        assert.instanceOf(schemaGroup, PartneredSchema, 'Prefixed unmerged library schema group should be a PartneredSchema')
+        assert.strictEqual(schemaGroup.withStandard, '8.4.0', 'Schema group should have correct withStandard')
+      })
+
+      it('should merge two compatible unmerged libraries under the same prefix', async () => {
+        const versionString = 'la:lang_1.1.0, la:score_2.1.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+        const schemaGroup = schemas.getSchema('la')
+        assert.instanceOf(schemaGroup, PartneredSchema, 'Same-prefix library group should be a PartneredSchema')
+        assert.strictEqual(schemaGroup.withStandard, '8.4.0', 'Schema group should have correct withStandard')
+        assert.strictEqual(schemaGroup.entries.tags._definitions.size, 1994, 'Should have correct total tag count')
+      })
+
+      it('should fail when incompatible libraries share the same prefix group', async () => {
+        // score_2.0.0 requires withStandard 8.3.0; lang_1.1.0 requires withStandard 8.4.0
+        const versionString = 'x:score_2.0.0, x:lang_1.1.0'
+        try {
+          await buildSchemasFromVersion(versionString)
+          assert.fail('Incompatible schemas in the same prefix group should have thrown an error')
+        } catch (error) {
+          assert.instanceOf(error, IssueError)
+          assert.deepStrictEqual(
+            error.issue,
+            generateIssue('differentWithStandard', { first: '8.4.0', second: '8.3.0' }),
+          )
+        }
+      })
+
+      it('should succeed when incompatible library versions are in separate prefix groups', async () => {
+        // score_2.0.0 (withStandard 8.3.0) and lang_1.1.0 (withStandard 8.4.0) are independent groups
+        const versionString = 'sc:score_2.0.0, la:lang_1.1.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+        assert.isNotNull(schemas, 'Schemas should not be null')
+        assert.strictEqual(schemas.getSchema('sc').withStandard, '8.3.0', 'sc group should have withStandard 8.3.0')
+        assert.instanceOf(schemas.getSchema('la'), PartneredSchema, 'la group should be a PartneredSchema')
+        assert.strictEqual(schemas.getSchema('la').withStandard, '8.4.0', 'la group should have withStandard 8.4.0')
+      })
+
+      it('should load independent prefix groups for a standard schema and an unmerged library', async () => {
+        const versionString = 'nk:8.4.0, sc:score_2.1.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+        assert.isNotNull(schemas, 'Schemas should not be null')
+        assert.strictEqual(schemas.getSchema('nk').version, '8.4.0', 'nk group should be the standard schema')
+        assert.instanceOf(schemas.getSchema('sc'), PartneredSchema, 'sc group should be a PartneredSchema')
+        assert.strictEqual(schemas.getSchema('sc').withStandard, '8.4.0', 'sc group should have correct withStandard')
+      })
+
+      it('should handle a mix of no-prefix and prefixed schemas as independent groups', async () => {
+        // No-prefix group: 8.4.0 + score_2.1.0 → PartneredSchema at ''
+        // Prefixed group: la:lang_1.1.0 → PartneredSchema at 'la' (standard auto-resolved)
+        const versionString = '8.4.0, score_2.1.0, la:lang_1.1.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+        assert.isNotNull(schemas, 'Schemas should not be null')
+        assert.instanceOf(schemas.baseSchema, PartneredSchema, 'No-prefix group should be a PartneredSchema')
+        assert.strictEqual(schemas.baseSchema.withStandard, '8.4.0', 'No-prefix group should have correct withStandard')
+        assert.instanceOf(schemas.getSchema('la'), PartneredSchema, 'la prefix group should be a PartneredSchema')
+        assert.strictEqual(schemas.getSchema('la').withStandard, '8.4.0', 'la prefix group should have correct withStandard')
+      })
+
+      it('should not load the standard schema twice when it is explicitly listed with an unmerged library', async () => {
+        // 8.4.0 is given explicitly; score_2.1.0 also declares withStandard 8.4.0.
+        // resolveUnmergedSchemas should detect 8.4.0 is already present and skip the auto-load.
+        // Result: actualSchemas = [standard, score] — length 2, not 3.
+        const versionString = '8.4.0, score_2.1.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+        assert.instanceOf(schemas.baseSchema, PartneredSchema)
+        assert.lengthOf(schemas.baseSchema.actualSchemas, 2, 'Standard schema should not be loaded a second time')
+      })
+
+      it('should not load the standard schema twice when two unmerged libraries share the same standard', async () => {
+        // lang_1.1.0 and score_2.1.0 both declare withStandard 8.4.0.
+        // resolveUnmergedSchemas should auto-add 8.4.0 once (before lang) and skip it for score.
+        // Result: actualSchemas = [standard, lang, score] — length 3, not 4.
+        const versionString = 'lang_1.1.0, score_2.1.0'
+        const schemas = await buildSchemasFromVersion(versionString)
+        assert.instanceOf(schemas.baseSchema, PartneredSchema)
+        assert.lengthOf(schemas.baseSchema.actualSchemas, 3, 'Standard schema should be loaded only once for both libraries')
       })
 
       it('should throw error for invalid version specification', async () => {

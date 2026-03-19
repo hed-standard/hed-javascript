@@ -502,3 +502,72 @@ export default class SchemaParser {
     }
   }
 }
+
+/**
+ * A schema parser for unmerged library schemas.
+ *
+ * An unmerged library schema (one with {@code unmerged="True"} in its root element) contains
+ * only library-specific tag nodes; its property, attribute, unit class, unit modifier, and value
+ * class definition sections are empty. This parser borrows those definitions from the standard
+ * partner schema's {@link SchemaEntries} so that library tags can be parsed with the correct
+ * attribute and unit-class context.
+ */
+export class UnmergedLibrarySchemaParser extends SchemaParser {
+  /**
+   * Entries from the standard partner schema.
+   * @type {SchemaEntries}
+   */
+  _standardEntries
+
+  /**
+   * Constructor.
+   *
+   * @param {Object} rootElement The root XML element of the unmerged library schema.
+   * @param {SchemaEntries} standardEntries The entries from the standard partner schema.
+   */
+  constructor(rootElement, standardEntries) {
+    super(rootElement)
+    this._standardEntries = standardEntries
+  }
+
+  /**
+   * Populate dictionaries using the standard schema's definitions for everything except tags,
+   * which are parsed from the unmerged library XML.
+   *
+   * Note: {@link _addCustomAttributes} and {@link _addCustomProperties} are intentionally not
+   * called here. The standard entries are already fully initialised; mutating their shared
+   * SchemaAttribute objects would corrupt the standard schema's state.
+   *
+   * @override
+   */
+  populateDictionaries() {
+    this.properties = new Map(this._standardEntries.properties._definitions)
+    this.attributes = new Map(this._standardEntries.attributes._definitions)
+    this.unitModifiers = this._standardEntries.unitModifiers
+    this.unitClasses = this._standardEntries.unitClasses
+    this.valueClasses = this._standardEntries.valueClasses
+    this.parseTags()
+  }
+
+  /**
+   * Return the recursive (inherited) schema attributes, using the standard partner version
+   * for the semver check rather than the library's own version number.
+   *
+   * @override
+   * @returns {Set<SchemaAttribute>}
+   * @private
+   */
+  _getRecursiveAttributes() {
+    const attributeArray = Array.from(this.attributes.values())
+    const standardVersion = this.rootElement.$.withStandard ?? this.rootElement.$.version
+    if (semver.lt(standardVersion, '8.3.0')) {
+      return new Set(
+        attributeArray.filter((attribute) => attribute.roleProperties.has(this.properties.get('isInheritedProperty'))),
+      )
+    } else {
+      return new Set(
+        attributeArray.filter((attribute) => !attribute.roleProperties.has(this.properties.get('annotationProperty'))),
+      )
+    }
+  }
+}
