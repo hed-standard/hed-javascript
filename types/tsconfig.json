@@ -1,11 +1,9 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "..",
     "paths": {
-      "hed-validator": ["./types/index.d.ts"]
-    },
-    "downlevelIteration": true
+      "hed-validator": ["../types/index.d.ts"]
+    }
   },
   "include": ["./test.ts"]
 }

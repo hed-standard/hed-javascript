@@ -55,8 +55,7 @@ jobs:
       - name: Update tsconfig paths
         run: |
           cd test-package
-          sed -i 's|"../tsconfig.json"|"./tsconfig.base.json"|' tsconfig.json
-          sed -i 's|"baseUrl": ".."|"baseUrl": "."|' tsconfig.json
+          node -e "const fs=require('fs'),c=JSON.parse(fs.readFileSync('tsconfig.json','utf8'));c.extends='./tsconfig.base.json';delete c.compilerOptions.paths;fs.writeFileSync('tsconfig.json',JSON.stringify(c,null,2));"
 
       - name: Test TypeScript definitions
         run: |

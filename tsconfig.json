@@ -4,11 +4,10 @@
     "checkJs": false,
     "target": "es2020",
     "module": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
     "typeRoots": ["./node_modules/@types", "./types"]
   },
   "include": ["src/**/*"],

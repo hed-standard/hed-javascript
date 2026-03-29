@@ -23,8 +23,7 @@ cp ../tsconfig.json ./tsconfig.base.json
 cp ../scripts/runtime-test.template.ts ./runtime-test.ts
 
 echo "Updating tsconfig paths..."
-sed -i 's|"../tsconfig.json"|"./tsconfig.base.json"|' tsconfig.json
-sed -i 's|"baseUrl": ".."|"baseUrl": "."|' tsconfig.json
+node -e "const fs=require('fs'),c=JSON.parse(fs.readFileSync('tsconfig.json','utf8'));c.extends='./tsconfig.base.json';delete c.compilerOptions.paths;fs.writeFileSync('tsconfig.json',JSON.stringify(c,null,2));"
 
 echo "Testing TypeScript compilation..."
 npx tsc --project tsconfig.json
