@@ -23,11 +23,11 @@ A sample of current `hed-validator` usage in BIDS can be found in the BIDS valid
 ## Online validation
 
 A browser-based validator that uses this package is available at
-[www.hedtags.org/hed-javascript](https://www.hedtags.org/hed-javascript).
+[www.hedtags.org/hed-web](https://www.hedtags.org/hed-web/).
 This online validator allows users to validate HED annotations in a web
 browser without needing to install any software or upload files to a server.
 The API documentation for this package is available at
-[www.hedtags.org/hed-javascript/docs](https://www.hedtags.org/hed-javascript/docs).
+[www.hedtags.org/hed-javascript](https://www.hedtags.org/hed-javascript/).
 
 A number of tools for HED, including validation are also available in a Python-based
 [online validator](https://hedtools.org/hed).
@@ -68,8 +68,11 @@ be done as PRs (pull requests) to the `main` branch.
 
 ### Running the browser locally
 
+The browser app has moved to the [hed-web](https://github.com/hed-standard/hed-web) repository.
+
 ```code
-cd browser
+git clone https://github.com/hed-standard/hed-web
+cd hed-web
 npm install
 npm run build
 npm run preview
