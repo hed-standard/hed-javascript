@@ -1,5 +1,17 @@
 # Changelog
 
+## 4.2.1 — unreleased
+
+### Added
+
+### Changed
+
+- Replaced action versions with hashes for security.
+
+### Fixed
+
+### Dependencies
+
 ## 4.2.0 — 2026-05-18
 
 ### Added
