@@ -34,7 +34,7 @@ export const normalizerTestData = [
         explanation: '"Red,  Blue, Red" has duplicate tags',
         schemaVersion: '8.4.0',
         string: 'Red,  Blue, Red',
-        stringNormalized: null,
+        stringNormalized: undefined,
         errors: [generateIssue('duplicateTag', { tags: '[Red]', string: 'Red,  Blue, Red' })],
       },
     ],
