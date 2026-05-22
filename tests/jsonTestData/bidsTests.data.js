@@ -385,6 +385,7 @@ export const bidsTestData = [
             {
               path: 'invalid-duplicate-groups-first-level-tsv.tsv',
             },
+            { tsvLine: '2' },
           ),
         ],
         comboErrors: [
@@ -393,6 +394,7 @@ export const bidsTestData = [
             {
               path: 'invalid-duplicate-groups-first-level-tsv.tsv',
             },
+            { tsvLine: '2' },
           ),
         ],
       },
@@ -405,14 +407,18 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tHED\n' + '19\t6\tTrain,Vehicle/Train\n',
         sidecarErrors: [],
         tsvErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }), {
-            path: 'invalid-different-forms-same-tag-tsv.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }),
+            { path: 'invalid-different-forms-same-tag-tsv.tsv' },
+            { tsvLine: '2' },
+          ),
         ],
         comboErrors: [
-          BidsHedIssue.fromHedIssue(generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }), {
-            path: 'invalid-different-forms-same-tag-tsv.tsv',
-          }),
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }),
+            { path: 'invalid-different-forms-same-tag-tsv.tsv' },
+            { tsvLine: '2' },
+          ),
         ],
       },
       {
@@ -442,6 +448,7 @@ export const bidsTestData = [
             {
               path: 'invalid-repeated-nested-groups-tsv.tsv',
             },
+            { tsvLine: '2' },
           ),
         ],
         comboErrors: [
@@ -453,6 +460,7 @@ export const bidsTestData = [
             {
               path: 'invalid-repeated-nested-groups-tsv.tsv',
             },
+            { tsvLine: '2' },
           ),
         ],
       },
@@ -490,6 +498,7 @@ export const bidsTestData = [
             {
               path: 'invalid-first-level-duplicate-combo.tsv',
             },
+            { tsvLine: '2' },
           ),
         ],
       },
@@ -517,6 +526,7 @@ export const bidsTestData = [
             {
               path: 'invalid-first-level-duplicate-combo-reordered.tsv',
             },
+            { tsvLine: '2' },
           ),
         ],
       },
@@ -543,6 +553,7 @@ export const bidsTestData = [
             {
               path: 'invalid-nested-duplicate-json-reordered.json',
             },
+            { sidecarKey: 'event_code', filePath: 'invalid-nested-duplicate-json-reordered.json' },
           ),
         ],
         tsvErrors: [],
@@ -556,6 +567,7 @@ export const bidsTestData = [
             {
               path: 'invalid-nested-duplicate-json-reordered.tsv',
             },
+            { sidecarKey: 'event_code', filePath: 'invalid-nested-duplicate-json-reordered.tsv' },
           ),
         ],
       },
@@ -585,6 +597,7 @@ export const bidsTestData = [
             {
               path: 'invalid-nested-duplicate-combo-reordered.tsv',
             },
+            { tsvLine: '2' },
           ),
         ],
       },
@@ -614,6 +627,7 @@ export const bidsTestData = [
             {
               path: 'invalid-duplicate-multiple-rows.tsv',
             },
+            { tsvLine: '2,4' },
           ),
         ],
         comboErrors: [
@@ -626,6 +640,7 @@ export const bidsTestData = [
             {
               path: 'invalid-duplicate-multiple-rows.tsv',
             },
+            { tsvLine: '2,4' },
           ),
         ],
       },
@@ -655,6 +670,7 @@ export const bidsTestData = [
             {
               path: 'invalid-duplicate-multiple-onset.tsv',
             },
+            { tsvLine: '2,4' },
           ),
         ],
         comboErrors: [
@@ -667,6 +683,107 @@ export const bidsTestData = [
             {
               path: 'invalid-duplicate-multiple-onset.tsv',
             },
+            { tsvLine: '2,4' },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-duplicate-tags-on-data-rows-1-and-3',
+        explanation:
+          'Duplicate tags on data rows 1 and 3 (TSV lines 2 and 4) — verifies both line numbers are reported',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n' + '19\t0\tRed, Blue\n' + '20\t0\tGreen\n' + '19\t0\tBlue, Red\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              tags: '[Blue],[Red]',
+              string: 'Red, Blue,Blue, Red',
+            }),
+            { path: 'invalid-duplicate-tags-on-data-rows-1-and-3.tsv' },
+            { tsvLine: '2,4' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', {
+              tags: '[Blue],[Red]',
+              string: 'Red, Blue,Blue, Red',
+            }),
+            { path: 'invalid-duplicate-tags-on-data-rows-1-and-3.tsv' },
+            { tsvLine: '2,4' },
+          ),
+        ],
+      },
+      {
+        testname: 'valid-same-onset-rows-1-and-3-no-duplicate-tags',
+        explanation: 'Data rows 1 and 3 share the same onset time but have no duplicate tags — should pass',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n' + '19\t0\tRed\n' + '20\t0\tBlue\n' + '19\t0\tGreen\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'verify-tsv-line-number-on-row-three',
+        explanation: 'Duplicate tag on the third row — verifies the reported tsvLine is 3, not 2',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tGreen\n' + '20\t6\tTrain,Vehicle/Train\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }),
+            { path: 'verify-tsv-line-number-on-row-three.tsv' },
+            { tsvLine: '3' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }),
+            { path: 'verify-tsv-line-number-on-row-three.tsv' },
+            { tsvLine: '3' },
+          ),
+        ],
+      },
+      {
+        testname: 'verify-sidecar-key-name-in-error',
+        explanation:
+          'Sidecar has two HED keys; only one has a duplicate — verifies the correct key name is reported in the error',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          category_a: {
+            HED: {
+              x: 'Blue',
+              y: 'Green',
+            },
+          },
+          category_b: {
+            HED: {
+              x: 'Train,Vehicle/Train',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tcategory_a\tcategory_b\n' + '19\t6\tx\tx\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }),
+            { path: 'verify-sidecar-key-name-in-error.json' },
+            { sidecarKey: 'category_b', filePath: 'verify-sidecar-key-name-in-error.json' },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Train]', string: 'Train,Vehicle/Train' }),
+            { path: 'verify-sidecar-key-name-in-error.tsv' },
+            { sidecarKey: 'category_b', filePath: 'verify-sidecar-key-name-in-error.tsv' },
           ),
         ],
       },
