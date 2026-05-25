@@ -18,8 +18,10 @@ await esbuild.build({
 
 // Browser target build — output is consumed by Vite/Webpack browser bundlers.
 // files.js is redirected to files.browser.js via the "browser" field in
-// package.json, so node:fs/promises is never imported. esbuild honours that
-// field automatically when platform is set to 'browser'.
+// package.json; esbuild honours that field automatically when platform is set
+// to 'browser'. Note: node:fs/promises is still polyfilled (as an empty stub)
+// because src/bids/datasetParser.js imports it directly — that code path is
+// Node-only and is never reached in a browser context.
 await esbuild.build({
   entryPoints: [path.join(process.cwd(), 'index.js')],
   loader: { '.xml': 'text' },
