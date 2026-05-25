@@ -82,7 +82,8 @@
     "glob": "^10.0.0"
   },
   "browser": {
-    "fs": false
+    "fs": false,
+    "./src/utils/files.js": "./src/utils/files.browser.js"
   },
   "files": [
     "dist/*",
