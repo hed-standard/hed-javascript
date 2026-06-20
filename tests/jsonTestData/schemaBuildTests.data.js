@@ -155,13 +155,15 @@ export const schemaBuildTestData = [
         testname: 'lazy-partnered-with wrong-standard-build',
         explanation: '["testlib_2.0.0", "8.3.0"] has wrong standard schema',
         schemaVersion: { Name: 'BadLazyPartnered', HEDVersion: ['testlib_2.0.0', '8.3.0'] },
-        schemaError: new IssueError(generateIssue('differentWithStandard', { first: '8.3.0', second: '8.2.0' })),
+        schemaError: new IssueError(
+          generateIssue('differentWithStandard', { versions: JSON.stringify(['8.2.0', '8.3.0']) }),
+        ),
       },
       {
         testname: 'lazy-partnered-with conflicting-tags-build',
         explanation: '["testlib_2.1.0", "testlib_3.0.0"] have conflicting tags',
         schemaVersion: { Name: 'BadLazyPartnered', HEDVersion: ['testlib_2.1.0', 'testlib_3.0.0'] },
-        schemaError: new IssueError(generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-sound' })),
+        schemaError: new IssueError(generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-subsound2' })),
       },
     ],
   },

@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+<HED version="2.1.0" library="testlib" withStandard="8.2.0" unmerged="True">
+   <prologue>This schema is designed to conflict with testlib 2.0.0 and testlib 3.0.0. For version 2.0.0, the conflict is that Violin-subsound2 has different parents in the two schemas. For 3.0.0, Violin_subsound2 takes value in 2.1.0 but not in 3.0.0.</prologue>
+   <schema>
+      <node>
+         <name>BA-nonextension</name>
+         <description>Does not conflict with testlib 2.0.0 or 3.0.0</description>
+         <node>
+            <name>SubnodeB1A</name>
+         </node>
+         <node>
+            <name>SubnodeB2A</name>
+         </node>
+      </node>
+      <node>
+         <name>A-nonextension</name>
+         <description>These should not be sorted.  A should be second. Conflicts with testlib 2.0.0.</description>
+         <node>
+            <name>SubnodeA3</name>
+         </node>
+         <node>
+            <name>SubnodeA1</name>
+         </node>
+         <node>
+            <name>SubnodeA2</name>
+         </node>
+      </node>
+      <node>
+         <name>Oboe-sound</name>
+         <description>These should be sorted.  Oboe should be second</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Instrument-sound</value>
+         </attribute>
+         <node>
+            <name>Oboe-subsound1</name>
+         </node>
+         <node>
+            <name>Oboe-subsound2</name>
+         </node>
+      </node>
+      <node>
+         <name>Piano-sound</name>
+         <description>Conflicts with testlib 3.0.0.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Instrument-sound</value>
+         </attribute>
+         <node>
+            <name>Piano-subsound1</name>
+         </node>
+         <node>
+            <name>Piano-subsound2</name>
+            <node>
+               <name>#</name>
+            </node>
+         </node>
+         <node>
+            <name>Piano-subsound2A</name>
+         </node>
+      </node>
+      <node>
+         <name>Violin1-sound</name>
+         <description>Conflicts with testlib 2.0.0.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Instrument-sound</value>
+         </attribute>
+         <node>
+            <name>Violin-subsound1</name>
+         </node>
+         <node>
+            <name>Violin-subsound2</name>
+         </node>
+         <node>
+            <name>Violin1-subsound3</name>
+         </node>
+      </node>
+   </schema>
+   <unitClassDefinitions/>
+   <unitModifierDefinitions/>
+   <valueClassDefinitions/>
+   <schemaAttributeDefinitions/>
+   <propertyDefinitions/>
+</HED>
