@@ -47,14 +47,15 @@ export default class SchemaValueTag extends SchemaTag {
    */
   get parent(): SchemaTag
   /**
-   * Determine if this schema tag is equivalent to another schema tag.
+   * Determine if this schema value tag is equivalent to another schema value tag.
    *
    * @remarks
    *
-   * Schema tags are deemed equivalent if they have the same name and equivalent attributes, unit and value classes, and parents.
+   * Schema value tags are deemed equivalent if they have the same name and equivalent attributes, equivalent unit and
+   * value classes, and parent tags equivalent based on their names and attributes *only*.
    *
-   * @param other - A schema tag to compare with this one.
-   * @returns Whether the other tag is equivalent to this schema tag.
+   * @param other - A schema value tag to compare with this one.
+   * @returns Whether the other value tag is equivalent to this schema value tag.
    */
   equivalent(other: unknown): boolean
 }

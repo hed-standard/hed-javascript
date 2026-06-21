@@ -133,7 +133,7 @@ export default class SchemaTag extends SchemaEntryWithAttributes {
    *
    * @remarks
    *
-   * Schema tags are deemed equivalent if they have the same name and equivalent attributes, unit and value classes, and parents.
+   * Schema tags are deemed equivalent if they have the same name and equivalent attributes, parent tags, and value tags.
    *
    * @param other - A schema tag to compare with this one.
    * @returns Whether the other tag is equivalent to this schema tag.

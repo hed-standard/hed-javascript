@@ -194,7 +194,7 @@ export default class TagParser extends SchemaEntryWithAttributesParser {
       for (const childTag of this.getAllChildTags(tagElement)) {
         const childTagName = getElementTagName(childTag)
         const newBooleanAttributes =
-          booleanAttributeDefinitions.get(childTagName)?.union(recursiveAttributes) ?? new Set()
+          booleanAttributeDefinitions.get(childTagName)?.union(recursiveAttributes) ?? new Set(recursiveAttributes)
         booleanAttributeDefinitions.set(childTagName, newBooleanAttributes)
       }
     }
