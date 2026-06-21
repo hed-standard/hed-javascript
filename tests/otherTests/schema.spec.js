@@ -316,25 +316,43 @@ describe('HED schemas', () => {
     it('should fail when trying to merge incompatible schemas', async () => {
       try {
         await buildSchemas(specs1)
-        assert.fail('Incompatible schemas testlib_2.0.0 and testlib_2.1.0 were incorrectly merged without an error')
+        assert.fail()
       } catch (issueError) {
         const issue = issueError.issue
-        assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'Violin-subsound1' }))
+        assert.isDefined(
+          issue,
+          'Incompatible schemas testlib_2.0.0 and testlib_2.1.0 were incorrectly merged without an error',
+        )
+        assert.deepStrictEqual(
+          issue,
+          generateIssue('lazyPartneredSchemasShareTag', { tag: 'Violin-subsound1' }),
+          'Incompatible schemas testlib_2.0.0 and testlib_2.1.0 were incorrectly merged without an error',
+        )
       }
+
+      const schemas2 = await buildSchemas(specs2)
+
+      assert.instanceOf(
+        schemas2.getSchema('testlib'),
+        Schema,
+        'Parsed testlib schema (combined 2.0.0 and 3.0.0) is not an instance of Schema',
+      )
 
       try {
         await buildSchemas(specs3)
-        assert.fail('Incompatible schemas testlib_2.1.0 and testlib_3.0.0 were incorrectly merged without an error')
+        assert.fail()
       } catch (issueError) {
         const issue = issueError.issue
-        assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-subsound2' }))
+        assert.isDefined(
+          issue,
+          'Incompatible schemas testlib_2.1.0 and testlib_3.0.0 were incorrectly merged without an error',
+        )
+        assert.deepStrictEqual(
+          issue,
+          generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-subsound2' }),
+          'Incompatible schemas testlib_2.1.0 and testlib_3.0.0 were incorrectly merged without an error',
+        )
       }
-
-      const schemas = await buildSchemas(specs2)
-      assert.isNotNull(
-        schemas.getSchema('testlib'),
-        'Parsed testlib schema (combined 2.0.0 and 3.0.0) is not an instance of PartneredSchema',
-      )
     })
   })
 
