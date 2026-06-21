@@ -3,7 +3,7 @@
  */
 import { IssueError } from '../issues/issues'
 import ParsedHedSubstring from './parsedHedSubstring'
-import { SchemaValueTag } from '../schema/entries'
+import SchemaValueTag from '../schema/entries/valueTag'
 import TagConverter from './tagConverter'
 import { ReservedChecker } from './reservedChecker'
 

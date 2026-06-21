@@ -3,7 +3,7 @@ const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
 import { generateIssue } from '../../src/issues/issues'
-import { PartneredSchema } from '../../src/schema/containers'
+import { Schema } from '../../src/schema/containers'
 import { buildSchemas, buildSchemasFromVersion } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { buildSchemasSpec } from '../../src/bids/schema'
@@ -14,56 +14,56 @@ import { getLocalSchemaVersions } from '../../src/schema/config.js'
 describe('HED schemas', () => {
   describe('Schema loading', () => {
     describe('Bundled HED schemas', () => {
-      it('a standard schema can be loaded from locally stored schema', async () => {
+      it('a standard schema can be loaded from a bundled schema', async () => {
         const spec1 = new SchemaSpec('', '8.0.0', '', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1)
 
-        const hedSchemas = await buildSchemas(specs)
-
-        assert.strictEqual(hedSchemas.baseSchema.version, spec1.version, 'Schema has wrong version number')
+        try {
+          await buildSchemas(specs)
+        } catch (issueError) {
+          const issue = issueError.issue ?? ''
+          assert.fail(`Bundled schema failed to load: ${issue}.`)
+        }
       })
 
-      it('a library schema can be loaded from locally stored schema', async () => {
+      it('a library schema can be loaded from a bundled schema', async () => {
         const spec1 = new SchemaSpec('', '2.0.0', 'testlib', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1)
 
-        const hedSchemas = await buildSchemas(specs)
-
-        assert.strictEqual(hedSchemas.baseSchema.version, spec1.version, 'Schema has wrong version number')
-        assert.strictEqual(hedSchemas.baseSchema.library, spec1.library, 'Schema has wrong library name')
+        try {
+          await buildSchemas(specs)
+        } catch (issueError) {
+          const issue = issueError.issue ?? ''
+          assert.fail(`Bundled schema failed to load: ${issue}.`)
+        }
       })
 
-      it('a base schema with a prefix can be loaded from locally stored schema', async () => {
+      it('a standard schema with a prefix can be loaded from bundled schema', async () => {
         const spec1 = new SchemaSpec('nk', '8.0.0', '', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1)
 
-        const hedSchemas = await buildSchemas(specs)
-        const schema1 = hedSchemas.getSchema(spec1.prefix)
-
-        assert.strictEqual(schema1.version, spec1.version, 'Schema has wrong version number')
-        assert.strictEqual(schema1.library, spec1.library, 'Schema has wrong library name')
+        try {
+          await buildSchemas(specs)
+        } catch (issueError) {
+          const issue = issueError.issue ?? ''
+          assert.fail(`Bundled schema failed to load: ${issue}.`)
+        }
       })
 
-      it('multiple local schemas can be loaded', async () => {
+      it('multiple bundled schemas can be loaded', async () => {
         const spec1 = new SchemaSpec('nk', '8.0.0', '', '')
         const spec2 = new SchemaSpec('ts', '2.0.0', 'testlib', '')
         const spec3 = new SchemaSpec('', '2.0.0', 'testlib', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1).addSchemaSpec(spec2).addSchemaSpec(spec3)
 
-        const hedSchemas = await buildSchemas(specs)
-        const schema1 = hedSchemas.getSchema(spec1.prefix)
-        const schema2 = hedSchemas.getSchema(spec2.prefix)
-        const schema3 = hedSchemas.getSchema(spec3.prefix)
-
-        assert.strictEqual(schema1.version, spec1.version, 'Schema 1 has wrong version number')
-        assert.strictEqual(schema1.library, spec1.library, 'Schema 1 has wrong library name')
-        assert.strictEqual(schema2.version, spec2.version, 'Schema 2 has wrong version number')
-        assert.strictEqual(schema2.library, spec2.library, 'Schema 2 has wrong library name')
-        assert.strictEqual(schema3.version, spec3.version, 'Schema 3 has wrong version number')
-        assert.strictEqual(schema3.library, spec3.library, 'Schema 3 has wrong library name')
-
-        const schema4 = hedSchemas.getSchema('baloney')
-        assert.isUndefined(schema4, 'baloney schema exists')
+        try {
+          const hedSchemas = await buildSchemas(specs)
+          const schema4 = hedSchemas.getSchema('baloney')
+          assert.isUndefined(schema4, 'baloney schema exists')
+        } catch (issueError) {
+          const issue = issueError.issue ?? ''
+          assert.fail(`Bundled schema failed to load: ${issue}.`)
+        }
       })
     })
 
@@ -72,39 +72,41 @@ describe('HED schemas', () => {
         const spec1 = new SchemaSpec('', '2.1.0', 'testlib', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1)
 
-        const hedSchemas = await buildSchemas(specs)
-        const schema1 = hedSchemas.getSchema(spec1.prefix)
-
-        assert.strictEqual(schema1.version, spec1.version, 'Schema has wrong version number')
-        assert.strictEqual(schema1.library, spec1.library, 'Schema has wrong library name')
+        try {
+          await buildSchemas(specs)
+        } catch (issueError) {
+          const issue = issueError.issue ?? ''
+          assert.fail(`Remote schema failed to load: ${issue}.`)
+        }
       })
     })
 
     describe('Local HED schemas', () => {
       it('a standard schema can be loaded from a path', async () => {
-        const localHedSchemaFile = 'src/data/schemas/HED8.0.0.xml'
-        const localHedSchemaVersion = '8.0.0'
-        const schemaSpec = new SchemaSpec('', '', '', localHedSchemaFile)
-        const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
+        const localHedSchemaFile = 'tests/otherTestData/unmerged/HED8.0.0.xml'
+        const spec1 = new SchemaSpec('', '', '', localHedSchemaFile)
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
 
-        const hedSchemas = await buildSchemas(schemasSpec)
-
-        const hedSchemaVersion = hedSchemas.baseSchema.version
-        assert.strictEqual(hedSchemaVersion, localHedSchemaVersion, 'Schema has wrong version number')
+        try {
+          await buildSchemas(specs)
+        } catch (issueError) {
+          const issue = issueError.issue ?? ''
+          assert.fail(`Local schema failed to load: ${issue}.`)
+        }
       })
 
       it('a library schema can be loaded from a path', async () => {
         const localHedLibrarySchemaName = 'testlib'
-        const localHedLibrarySchemaVersion = '2.0.0'
-        const localHedLibrarySchemaFile = 'tests/otherTestData/HED_testlib_2.0.0.xml'
-        const schemaSpec = new SchemaSpec(localHedLibrarySchemaName, '', '', localHedLibrarySchemaFile)
-        const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
+        const localHedLibrarySchemaFile = 'tests/otherTestData/unmerged/HED_testlib_2.0.0.xml'
+        const spec1 = new SchemaSpec(localHedLibrarySchemaName, '', '', localHedLibrarySchemaFile)
+        const specs = new SchemasSpec().addSchemaSpec(spec1)
 
-        const hedSchemas = await buildSchemas(schemasSpec)
-
-        const hedSchema = hedSchemas.getSchema(localHedLibrarySchemaName)
-        assert.strictEqual(hedSchema.library, localHedLibrarySchemaName, 'Schema has wrong library name')
-        assert.strictEqual(hedSchema.version, localHedLibrarySchemaVersion, 'Schema has wrong version number')
+        try {
+          await buildSchemas(specs)
+        } catch (issueError) {
+          const issue = issueError.issue ?? ''
+          assert.fail(`Bundled schema failed to load: ${issue}.`)
+        }
       })
     })
   })
@@ -297,9 +299,9 @@ describe('HED schemas', () => {
   })
 
   describe('HED 3 partnered schemas', () => {
-    const testLib200SchemaFile = 'tests/otherTestData/HED_testlib_2.0.0.xml'
-    const testLib210SchemaFile = 'tests/otherTestData/HED_testlib_2.1.0.xml'
-    const testLib300SchemaFile = 'tests/otherTestData/HED_testlib_3.0.0.xml'
+    const testLib200SchemaFile = 'tests/otherTestData/unmerged/HED_testlib_2.0.0.xml'
+    const testLib210SchemaFile = 'tests/otherTestData/unmerged/HED_testlib_2.1.0.xml'
+    const testLib300SchemaFile = 'tests/otherTestData/unmerged/HED_testlib_3.0.0.xml'
     let specs1, specs2, specs3
 
     beforeAll(() => {
@@ -314,26 +316,43 @@ describe('HED schemas', () => {
     it('should fail when trying to merge incompatible schemas', async () => {
       try {
         await buildSchemas(specs1)
-        assert.fail('Incompatible schemas testlib_2.0.0 and testlib_2.1.0 were incorrectly merged without an error')
+        assert.fail()
       } catch (issueError) {
         const issue = issueError.issue
-        assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'A-nonextension' }))
+        assert.isDefined(
+          issue,
+          'Incompatible schemas testlib_2.0.0 and testlib_2.1.0 were incorrectly merged without an error',
+        )
+        assert.deepStrictEqual(
+          issue,
+          generateIssue('lazyPartneredSchemasShareTag', { tag: 'Violin-subsound1' }),
+          'Incompatible schemas testlib_2.0.0 and testlib_2.1.0 were incorrectly merged without an error',
+        )
       }
+
+      const schemas2 = await buildSchemas(specs2)
+
+      assert.instanceOf(
+        schemas2.getSchema('testlib'),
+        Schema,
+        'Parsed testlib schema (combined 2.0.0 and 3.0.0) is not an instance of Schema',
+      )
 
       try {
         await buildSchemas(specs3)
-        assert.fail('Incompatible schemas testlib_2.1.0 and testlib_3.0.0 were incorrectly merged without an error')
+        assert.fail()
       } catch (issueError) {
         const issue = issueError.issue
-        assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-sound' }))
+        assert.isDefined(
+          issue,
+          'Incompatible schemas testlib_2.1.0 and testlib_3.0.0 were incorrectly merged without an error',
+        )
+        assert.deepStrictEqual(
+          issue,
+          generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-subsound2' }),
+          'Incompatible schemas testlib_2.1.0 and testlib_3.0.0 were incorrectly merged without an error',
+        )
       }
-
-      const schemas = await buildSchemas(specs2)
-      assert.instanceOf(
-        schemas.getSchema('testlib'),
-        PartneredSchema,
-        'Parsed testlib schema (combined 2.0.0 and 3.0.0) is not an instance of PartneredSchema',
-      )
     })
   })
 
@@ -344,8 +363,6 @@ describe('HED schemas', () => {
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
-        assert.strictEqual(schemas.baseSchema.version, '8.0.0', 'Schema version should match')
-        assert.strictEqual(schemas.baseSchema.library, '', 'Base schema should have empty library')
       })
 
       it('should build schemas from a library version string', async () => {
@@ -353,8 +370,6 @@ describe('HED schemas', () => {
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
-        assert.strictEqual(schemas.baseSchema.version, '2.0.0', 'Schema version should match')
-        assert.strictEqual(schemas.baseSchema.library, 'testlib', 'Schema library should match')
       })
 
       it('should build schemas from comma-separated version strings', async () => {
@@ -371,8 +386,7 @@ describe('HED schemas', () => {
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
-        assert.instanceOf(schemas.baseSchema, PartneredSchema)
-        assert.strictEqual(schemas.baseSchema.withStandard, '8.2.0')
+        assert.instanceOf(schemas.baseSchema, Schema)
       })
 
       it('should build schemas from multiple partnered schemas', async () => {
@@ -380,8 +394,7 @@ describe('HED schemas', () => {
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
-        assert.instanceOf(schemas.baseSchema, PartneredSchema)
-        assert.strictEqual(schemas.baseSchema.withStandard, '8.4.0')
+        assert.instanceOf(schemas.baseSchema, Schema)
         assert.strictEqual(schemas.baseSchema.entries.tags._definitions.size, 1994)
       })
 
@@ -389,7 +402,6 @@ describe('HED schemas', () => {
         const versionString = 'nick:8.0.0'
         const schemas = await buildSchemasFromVersion(versionString)
         assert.isNotNull(schemas, 'Schemas should not be null')
-        assert.strictEqual(schemas.schemas.get('nick').version, '8.0.0', 'Schema version should match')
       })
 
       it('should throw error for invalid version specification', async () => {

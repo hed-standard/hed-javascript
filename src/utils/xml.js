@@ -57,5 +57,7 @@ export async function parseSchemaXML(data) {
       return alwaysArray.has(name)
     },
   })
-  return parser.parse(data)
+  const xmlData = parser.parse(data)
+  setParent(xmlData.HED)
+  return xmlData
 }
