@@ -155,7 +155,7 @@ export const schemaBuildTestData = [
         testname: 'lazy-partnered-with wrong-standard-build',
         explanation: '["testlib_2.0.0", "8.3.0"] has wrong standard schema',
         schemaVersion: { Name: 'BadLazyPartnered', HEDVersion: ['testlib_2.0.0', '8.3.0'] },
-        schemaError: new IssueError(generateIssue('differentWithStandard', { first: '8.3.0', second: '8.2.0' })),
+        schemaError: new IssueError(generateIssue('differentWithStandard', { first: '8.3.0', second: '8.4.0' })),
       },
       {
         testname: 'lazy-partnered-with conflicting-tags-build',
