@@ -358,7 +358,7 @@ describe('HED schemas', () => {
       })
 
       it('should build schemas from comma-separated version strings', async () => {
-        const versionString = '8.2.0, testlib_2.0.0'
+        const versionString = '8.4.0, testlib_2.0.0'
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
@@ -367,12 +367,12 @@ describe('HED schemas', () => {
       })
 
       it('should build schemas from comma-separated version strings with spaces', async () => {
-        const versionString = '  8.2.0  ,  testlib_2.0.0  '
+        const versionString = '  8.4.0  ,  testlib_2.0.0  '
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
         assert.instanceOf(schemas.baseSchema, PartneredSchema)
-        assert.strictEqual(schemas.baseSchema.withStandard, '8.2.0')
+        assert.strictEqual(schemas.baseSchema.withStandard, '8.4.0')
       })
 
       it('should build schemas from multiple partnered schemas', async () => {
