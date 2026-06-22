@@ -58,7 +58,7 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^10.0.1",
     "@jest/globals": "^30.0.0",
-    "@types/node": "^25.0.2",
+    "@types/node": "^26.0.0",
     "babel-jest": "^30.0.5",
     "chai": "^4.3.6",
     "esbuild": "^0.28.1",
