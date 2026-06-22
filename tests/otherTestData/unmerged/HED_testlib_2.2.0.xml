@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<HED version="2.2.0" library="testlib" withStandard="8.4.0" unmerged="True">
+   <prologue>Conflicts: testlib_3.0.0 Piano_subsound2 does not take value; testlib 2.1.0 takes value but no unit class.</prologue>
+   <schema>
+      <node>
+         <name>Piano-sound</name>
+         <attribute>
+            <name>rooted</name>
+            <value>Instrument-sound</value>
+         </attribute>
+         <node>
+            <name>Piano-subsound1</name>
+         </node>
+         <node>
+            <name>Piano-subsound2</name>
+            <node>
+               <name>#</name>
+               <attribute>
+                  <name>unitClass</name>
+                  <value>frequencyUnits</value>
+               </attribute>
+            </node>
+         </node>
+         <node>
+            <name>Piano-subsound2A</name>
+         </node>
+      </node>
+   </schema>
+   <unitClassDefinitions/>
+   <unitModifierDefinitions/>
+   <valueClassDefinitions/>
+   <schemaAttributeDefinitions/>
+   <propertyDefinitions/>
+</HED>
