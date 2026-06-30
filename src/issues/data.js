@@ -434,12 +434,22 @@ export default {
   differentWithStandard: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`Could not merge lazy partnered schemas with different "withStandard" values: "${'first'}" and "${'second'}".`,
+    message: stringTemplate`Could not merge lazy partnered schemas with different "withStandard" values: "${'versions'}".`,
   },
   lazyPartneredSchemasShareTag: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
     message: stringTemplate`Lazy partnered schemas are incompatible because they share the short tag "${'tag'}". These schemas require different prefixes.`,
+  },
+  lazyPartneredSchemasShareEntry: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Lazy partnered schemas are incompatible because they share the entry "${'entryName'}". These schemas require different prefixes.`,
+  },
+  nonPartneredSchemaWithAnotherSchema: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Could not combine a non-partnered schema and another schema with the same prefix "${'prefix'}".`,
   },
   deprecatedStandardSchemaVersion: {
     hedCode: 'VERSION_DEPRECATED',

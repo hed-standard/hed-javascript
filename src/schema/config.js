@@ -1,6 +1,7 @@
-/** Bundled HED schema configuration.
+/**
+ * Bundled HED schema configuration.
  * @module schema/config
- * */
+ */
 
 // Static imports of bundled HED schema XML files. These are resolved at build
 // time by esbuild (loader: { '.xml': 'text' }) for the published bundles, and
