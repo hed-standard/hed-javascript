@@ -186,7 +186,7 @@ export class Issue {
    */
   _generateHedSpecificationLink() {
     const hedCodeAnchor = this.hedCode.toLowerCase().replace(/_/g, '-')
-    return `For more information on this HED ${this.level}, see https://hed-specification.readthedocs.io/en/latest/Appendix_B.html#${hedCodeAnchor}`
+    return `For more information on this HED ${this.level}, see https://www.hedtags.org/hed-specification/Appendix_B.html#${hedCodeAnchor}`
   }
 }
 

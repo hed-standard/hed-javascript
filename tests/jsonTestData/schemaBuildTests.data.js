@@ -156,7 +156,7 @@ export const schemaBuildTestData = [
         explanation: '["testlib_2.0.0", "8.3.0"] has wrong standard schema',
         schemaVersion: { Name: 'BadLazyPartnered', HEDVersion: ['testlib_2.0.0', '8.3.0'] },
         schemaError: new IssueError(
-          generateIssue('differentWithStandard', { versions: JSON.stringify(['8.2.0', '8.3.0']) }),
+          generateIssue('differentWithStandard', { versions: JSON.stringify(['8.3.0', '8.4.0']) }),
         ),
       },
       {

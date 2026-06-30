@@ -32,7 +32,7 @@ describe('Issue Parameters Tests', () => {
     expectedMessageParts.forEach((part) => {
       expect(message).toContain(part)
     })
-    expect(message).toContain('https://hed-specification.readthedocs.io')
+    expect(message).toContain('https://www.hedtags.org/hed-specification')
     expect(message).toContain('For more information on this HED error')
   }
 
