@@ -34,6 +34,13 @@ jobs:
       - name: Build package
         run: npm run build
 
+      # TypeDoc 0.28.x does not support TypeScript 7 (Go rewrite; JS compiler API removed).
+      # Temporarily downgrade TypeScript to 6 for docs generation.
+      # Remove this step once TypeDoc 1.x is officially released with TypeScript 7 support,
+      # and update the typedoc devDependency in package.json accordingly.
+      - name: Install TypeDoc-compatible TypeScript
+        run: npm install --no-save typescript@6
+
       - name: Build documentation
         run: npm run docs
 
