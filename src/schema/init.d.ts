@@ -2,7 +2,8 @@
  * This module holds the classes for initializing and building schemas.
  * @module schema/init
  */
-import HedSchemaLoader from './loader'
+import type { Schemas } from './containers'
+import type { SchemasSpec } from './specs'
 /**
  * Build a schema collection object from a schema specification.
  *
@@ -11,9 +12,7 @@ import HedSchemaLoader from './loader'
  * @param schemaSpecs - The description of which schemas to use.
  * @returns The schema container object and any issues found.
  */
-export async function buildSchemas(schemaSpecs) {
-  return new HedSchemaLoader().buildSchemas(schemaSpecs)
-}
+export declare function buildSchemas(schemaSpecs: SchemasSpec): Promise<Schemas>
 /**
  * Build HED schemas from a version specification string.
  *
@@ -23,6 +22,4 @@ export async function buildSchemas(schemaSpecs) {
  * @returns A Promise that resolves to the built schemas.
  * @throws {IssueError} If the schema specification is invalid or schemas cannot be built.
  */
-export async function buildSchemasFromVersion(hedVersionString) {
-  return new HedSchemaLoader().buildSchemasFromVersion(hedVersionString)
-}
+export declare function buildSchemasFromVersion(hedVersionString?: string): Promise<Schemas>

@@ -8,7 +8,7 @@ import { parsedHedTagTests } from '../jsonTestData/tagParserTests.data'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import path from 'node:path'
 import { buildSchemas } from '../../src/schema/init'
-import { SchemaValueTag } from '../../src/schema/entries'
+import SchemaValueTag from '../../src/schema/entries/valueTag'
 
 // Ability to select individual tests to run
 const skipMap = new Map()

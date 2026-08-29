@@ -1,46 +1,37 @@
-/** This module holds the specification classes for HED schemas.
+/**
+ * This module holds the specification classes for HED schemas.
  * @module schema/specs
  */
 import castArray from 'lodash/castArray'
 import semver from 'semver'
-
 import { IssueError } from '../issues/issues'
-
 /**
  * A schema version specification.
  */
 export class SchemaSpec {
   /**
    * The prefix of this schema.
-   * @type {string}
    */
   prefix
-
   /**
    * The version of this schema.
-   * @type {string}
    */
   version
-
   /**
    * The library name of this schema.
-   * @type {string}
    */
   library
-
   /**
    * The local path for this schema.
-   * @type {string}
    */
   localPath
-
   /**
    * Constructor.
    *
-   * @param {string} prefix The prefix of this schema.
-   * @param {string} version The version of this schema.
-   * @param {string?} library The library name of this schema.
-   * @param {string?} localPath The local path for this schema.
+   * @param prefix - The prefix of this schema.
+   * @param version - The version of this schema.
+   * @param library - The library name of this schema.
+   * @param localPath - The local path for this schema.
    */
   constructor(prefix, version, library = '', localPath = '') {
     this.prefix = prefix
@@ -48,11 +39,8 @@ export class SchemaSpec {
     this.library = library
     this.localPath = localPath
   }
-
   /**
    * Compute the name for the bundled copy of this schema.
-   *
-   * @returns {string}
    */
   get localName() {
     if (!this.library) {
@@ -61,41 +49,56 @@ export class SchemaSpec {
       return 'HED_' + this.library + '_' + this.version
     }
   }
-
+  /**
+   * Determine if this schema specification is equivalent to another schema specification.
+   *
+   * @remarks
+   *
+   * Schema specifications are deemed equivalent if either of the following is true:
+   * - They have the same `localPath`
+   * - They have the same `prefix`, `version`, and `library`.
+   *
+   * @param other - A schema specification to compare with this one.
+   * @returns Whether the other schema specification is equivalent to this one.
+   */
+  equivalent(other) {
+    if (!(other instanceof SchemaSpec)) {
+      return false
+    }
+    if (this.localPath && this.localPath === other.localPath) {
+      return true
+    }
+    return this.prefix === other.prefix && this.version === other.version && this.library === other.library
+  }
   /**
    * Parse a single schema specification string into a SchemaSpec object.
    *
-   * @param {string} versionSpec A schema version specification string (e.g., "nickname:library_version").
-   * @returns {SchemaSpec} A schema specification object with parsed nickname, library, and version.
+   * @param versionSpec - A schema version specification string (e.g., "nickname:library_version").
+   * @returns A schema specification object with parsed nickname, library, and version.
    * @throws {IssueError} If the schema specification format is invalid.
-   * @public
    */
   static parseVersionSpec(versionSpec) {
     const [nickname, schema] = SchemaSpec._splitPrefixAndSchema(versionSpec)
     const [library, version] = SchemaSpec._splitLibraryAndVersion(schema, versionSpec)
     return new SchemaSpec(nickname, version, library)
   }
-
   /**
    * Split a schema version string into prefix (nickname) and schema parts using colon delimiter.
    *
-   * @param {string} prefixSchemaSpec The schema version string to split.
-   * @returns {string[]} An array with [nickname, schema] where nickname may be empty string.
+   * @param prefixSchemaSpec - The schema version string to split.
+   * @returns An array with [nickname, schema] where nickname may be empty string.
    * @throws {IssueError} If the schema specification format is invalid.
-   * @private
    */
   static _splitPrefixAndSchema(prefixSchemaSpec) {
     return SchemaSpec._splitVersionSegments(prefixSchemaSpec, prefixSchemaSpec, ':')
   }
-
   /**
    * Split a schema string into library and version parts using underscore delimiter.
    *
-   * @param {string} libraryVersionSpec The schema string to split (library_version format).
-   * @param {string} originalVersion The original version string for error reporting.
-   * @returns {string[]} An array with [library, version] where library may be empty string.
+   * @param libraryVersionSpec - The schema string to split (library_version format).
+   * @param originalVersion - The original version string for error reporting.
+   * @returns An array with [library, version] where library may be empty string.
    * @throws {IssueError} If the schema specification format is invalid or version is not valid semver.
-   * @private
    */
   static _splitLibraryAndVersion(libraryVersionSpec, originalVersion) {
     const [library, version] = SchemaSpec._splitVersionSegments(libraryVersionSpec, originalVersion, '_')
@@ -104,23 +107,24 @@ export class SchemaSpec {
     }
     return [library, version]
   }
-
   /**
    * Split a version string into two segments using the specified delimiter.
    *
-   * @param {string} versionSpec The version string to split.
-   * @param {string} originalVersion The original version string for error reporting.
-   * @param {string} splitCharacter The character to use as delimiter (':' or '_').
-   * @returns {string[]} An array with [firstSegment, secondSegment] where firstSegment may be empty string.
+   * @param versionSpec - The version string to split.
+   * @param originalVersion - The original version string for error reporting.
+   * @param splitCharacter - The character to use as delimiter (':' or '_').
+   * @returns An array with [firstSegment, secondSegment] where firstSegment may be empty string.
    * @throws {IssueError} If the schema specification format is invalid or contains non-alphabetic characters in first segment.
-   * @private
    */
   static _splitVersionSegments(versionSpec, originalVersion, splitCharacter) {
-    const alphabeticRegExp = new RegExp('^[a-zA-Z]+$')
+    const alphabeticRegExp = /^[a-zA-Z]+$/
     const versionSplit = versionSpec.split(splitCharacter)
     const secondSegment = versionSplit.pop()
     const firstSegment = versionSplit.pop()
     if (versionSplit.length > 0) {
+      IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
+    }
+    if (secondSegment === undefined) {
       IssueError.generateAndThrow('invalidSchemaSpecification', { spec: originalVersion })
     }
     if (firstSegment !== undefined && !alphabeticRegExp.test(firstSegment)) {
@@ -129,65 +133,70 @@ export class SchemaSpec {
     return [firstSegment ?? '', secondSegment]
   }
 }
-
 /**
  * A specification mapping schema prefixes to SchemaSpec objects.
  */
 export class SchemasSpec {
   /**
    * The specification mapping data.
-   * @type {Map<string, SchemaSpec[]>}
    */
-  data
-
+  #data
   /**
    * Constructor.
    */
   constructor() {
-    this.data = new Map()
+    this.#data = new Map()
   }
-
   /**
-   * Iterator over the specifications.
-   *
-   * @yields {Iterator} - [string, SchemaSpec[]]
+   * The specification mapping data.
+   */
+  get data() {
+    return new Map(this.#data)
+  }
+  /**
+   * Iterate over the schema specifications.
    */
   *[Symbol.iterator]() {
-    for (const [prefix, schemaSpecs] of this.data.entries()) {
-      yield [prefix, schemaSpecs]
-    }
+    yield* this.#data.entries()
   }
-
   /**
    * Add a schema to this specification.
    *
-   * @param {SchemaSpec} schemaSpec A schema specification.
-   * @returns {SchemasSpec| map} This object.
+   * @param schemaSpec - A schema specification.
+   * @returns This object.
    */
   addSchemaSpec(schemaSpec) {
-    if (this.data.has(schemaSpec.prefix)) {
-      this.data.get(schemaSpec.prefix).push(schemaSpec)
+    if (this.#data.has(schemaSpec.prefix)) {
+      const existingPrefixSpecs = this.#data.get(schemaSpec.prefix)
+      if (!existingPrefixSpecs.some((spec) => schemaSpec.equivalent(spec))) {
+        this.#data.get(schemaSpec.prefix)?.push(schemaSpec)
+      }
     } else {
-      this.data.set(schemaSpec.prefix, [schemaSpec])
+      this.#data.set(schemaSpec.prefix, [schemaSpec])
     }
     return this
   }
-
   /**
    * Parse a HED version specification into a schemas specification object.
    *
-   * @param {string|string[]} versionSpecs The HED version specification, can be a single version string or array of version strings.
-   * @returns {SchemasSpec} A schemas specification object containing parsed schema specifications.
+   * @param versionSpecs - The HED version specification, can be a single version string or array of version strings.
+   * @returns A schemas specification object containing parsed schema specifications.
    * @throws {IssueError} If any schema specification is invalid.
-   * @public
    */
   static parseVersionSpecs(versionSpecs) {
     const schemasSpec = new SchemasSpec()
-    const processVersion = castArray(versionSpecs)
-    if (processVersion.length === 0) {
+    let processedVersionSpecs
+    if (typeof versionSpecs === 'string') {
+      processedVersionSpecs = castArray(versionSpecs)
+    } else if (!Array.isArray(versionSpecs) || !versionSpecs.every((spec) => typeof spec === 'string')) {
+      IssueError.generateAndThrow('invalidSchemaSpecification', { spec: versionSpecs })
+    } else {
+      processedVersionSpecs = versionSpecs
+    }
+    if (processedVersionSpecs.length === 0) {
       IssueError.generateAndThrow('missingSchemaSpecification')
     }
-    for (const schemaVersion of processVersion) {
+    for (const schemaVersion of processedVersionSpecs) {
       const schemaSpec = SchemaSpec.parseVersionSpec(schemaVersion)
       schemasSpec.addSchemaSpec(schemaSpec)
     }

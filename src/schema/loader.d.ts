@@ -3,9 +3,8 @@
  * @module schema/loader
  */
 import AbstractHedSchemaLoader from './abstractLoader'
-import { localSchemaMap } from './config'
-import { IssueError } from '../issues/issues'
-import * as files from '../utils/files'
+import type { SchemaSpec } from './specs'
+import type { HedSchemaXMLObject } from './xmlType'
 export default class HedSchemaLoader extends AbstractHedSchemaLoader {
   /**
    * Load schema XML data from a local file.
@@ -14,29 +13,19 @@ export default class HedSchemaLoader extends AbstractHedSchemaLoader {
    * @returns The schema XML data.
    * @throws {IssueError} If the schema could not be loaded.
    */
-  async loadLocalSchema(path) {
-    return this.loadSchemaFile(files.readFile(path), 'localSchemaLoadFailed', { path })
-  }
+  protected loadLocalSchema(path: string): Promise<HedSchemaXMLObject>
   /**
    * Determine whether this validator bundles a particular schema.
    *
    * @param schemaDef - The description of which schema to use.
    * @returns Whether this validator bundles a particular schema.
    */
-  hasBundledSchema(schemaDef) {
-    return localSchemaMap.has(schemaDef.localName)
-  }
+  protected hasBundledSchema(schemaDef: SchemaSpec): boolean
   /**
    * Retrieve the contents of a bundled schema.
    *
    * @param schemaDef - The description of which schema to use.
    * @returns The raw schema XML data.
    */
-  async getBundledSchema(schemaDef) {
-    const schemaXml = localSchemaMap.get(schemaDef.localName)
-    if (!schemaXml) {
-      IssueError.generateAndThrowInternalError('Bundled schema could not be found')
-    }
-    return schemaXml
-  }
+  protected getBundledSchema(schemaDef: SchemaSpec): Promise<string>
 }
