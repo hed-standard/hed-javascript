@@ -2,17 +2,17 @@
  * This module holds the schema container classes.
  * @module schema/containers
  */
-import lt from 'semver/functions/lt'
-import { IssueError } from '../issues/issues'
-export class Schema {
+import type SchemaEntries from './entries/schemaEntries'
+import { type HedSchemaXMLObject } from './xmlType'
+export declare class Schema {
   /**
    * The collection of schema entries.
    */
-  entries
+  readonly entries: SchemaEntries
   /**
    * This schema's prefix in the active schema set.
    */
-  prefix
+  readonly prefix: string
   /**
    * Constructor.
    *
@@ -20,18 +20,7 @@ export class Schema {
    * @param entries - A collection of schema entries.
    * @param prefix - This schema's prefix in the active schema set.
    */
-  constructor(xmlData, entries, prefix) {
-    this.entries = entries
-    this.prefix = prefix
-    const rootElement = xmlData.HED
-    const library = rootElement.$.library ?? ''
-    const version = rootElement.$.version
-    if (!library && version && lt(version, '8.0.0')) {
-      IssueError.generateAndThrow('deprecatedStandardSchemaVersion', {
-        version,
-      })
-    }
-  }
+  constructor(xmlData: HedSchemaXMLObject, entries: SchemaEntries, prefix: string)
 
   /**
    * This was formerly the schema version.
@@ -41,9 +30,7 @@ export class Schema {
    *
    * @returns An empty string.
    */
-  get version() {
-    return ''
-  }
+  get version(): string
 
   /**
    * This was formerly the schema's library.
@@ -53,9 +40,7 @@ export class Schema {
    *
    * @returns An empty string.
    */
-  get library() {
-    return ''
-  }
+  get library(): string
 
   /**
    * This was formerly the schema's partnered standard schema version.
@@ -65,14 +50,12 @@ export class Schema {
    *
    * @returns An empty string.
    */
-  get withStandard() {
-    return ''
-  }
+  get withStandard(): string
 }
 /**
  * The collection of active HED schemas.
  */
-export class Schemas {
+export declare class Schemas {
   /**
    * The imported HED schemas.
    *
@@ -80,32 +63,22 @@ export class Schemas {
    * The empty string key ("") corresponds to the schema with no prefix,
    * while other keys correspond to the respective prefixes.
    */
-  schemas
+  readonly schemas: Map<string, Schema>
   /**
    * Constructor.
    *
    * @param schemas - The imported HED schemas.
    */
-  constructor(schemas) {
-    if (schemas instanceof Map) {
-      this.schemas = schemas
-    } else {
-      this.schemas = new Map([['', schemas]])
-    }
-  }
+  constructor(schemas: Map<string, Schema> | Schema)
   /**
    * Return the schema with the given prefix.
    *
    * @param schemaName - A prefix in the schema set.
    * @returns The schema object corresponding to that prefix.
    */
-  getSchema(schemaName) {
-    return this.schemas?.get(schemaName)
-  }
+  getSchema(schemaName: string): Schema | undefined
   /**
    * The base schema, i.e. the schema with no prefix, if one is defined.
    */
-  get baseSchema() {
-    return this.getSchema('')
-  }
+  get baseSchema(): Schema | undefined
 }
