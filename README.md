@@ -66,6 +66,22 @@ main()
 The `main` branch is now the default branch. All changes to the repository should
 be done as PRs (pull requests) to the `main` branch.
 
+### Running the tests
+
+The JSON spec tests in `spec_tests/` read the [hed-tests](https://github.com/hed-standard/hed-tests)
+suite from the git submodule `spec_tests/hed-tests`, so check it out before running them:
+
+```code
+git clone --recurse-submodules https://github.com/hed-standard/hed-javascript
+cd hed-javascript
+npm install
+npm test            # unit tests in tests/
+npm run testSpecs   # hed-tests JSON suite in spec_tests/
+```
+
+In an existing clone, `git submodule update --init` fetches the submodule. See
+`spec_tests/README.md` for how the suite is run and how failing cases are skipped.
+
 ### Running the browser locally
 
 The browser app has moved to the [hed-web](https://github.com/hed-standard/hed-web) repository.

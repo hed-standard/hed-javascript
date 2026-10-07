@@ -5,15 +5,16 @@ module.exports = {
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
   transformIgnorePatterns: ['/node_modules/(?!unicode-name|semver)'],
-  testPathIgnorePatterns: ['node_modules/', '<rootDir>/types/test.ts', '<rootDir>/browser/'],
+  testPathIgnorePatterns: [
+    'node_modules/',
+    '<rootDir>/types/test.ts',
+    '<rootDir>/browser/',
+    '<rootDir>/spec_tests/hed-tests/',
+  ],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
-  collectCoverageFrom: [
-    'src/**/*.js',
-    '!src/**/*.spec.js',
-    '!src/**/*.test.js',
-  ],
+  collectCoverageFrom: ['src/**/*.js', '!src/**/*.spec.js', '!src/**/*.test.js'],
   coveragePathIgnorePatterns: [
     '/node_modules/',
     '/tests/',
