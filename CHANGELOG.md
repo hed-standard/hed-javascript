@@ -7,6 +7,11 @@
 ### Changed
 
 - Replaced action versions with hashes for security.
+- The JSON spec tests now come from the [hed-tests](https://github.com/hed-standard/hed-tests)
+  repository, checked out as the git submodule `spec_tests/hed-tests` instead of the vendored
+  `spec_tests/javascriptTests.json`. Cases this validator does not pass yet are skipped by name
+  in `spec_tests/skippedTests.js`. Clone with `--recurse-submodules` or run
+  `git submodule update --init` before `npm run testSpecs`.
 
 ### Fixed
 
@@ -16,7 +21,7 @@
 
 ### Added
 
-- `BidsWebAccessor` — a new browser-compatible BIDS file accessor that 
+- `BidsWebAccessor` — a new browser-compatible BIDS file accessor that
   reads dataset files from browser `File` objects provided via an
   `<input webkitdirectory>` element or drag-and-drop upload. Schema loading is
   performed via remote HTTPS fetching. This enables in-browser BIDS/HED
