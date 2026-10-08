@@ -167,7 +167,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @throws {IssueError} - If parsing the remainder section fails.
    */
   _separateUnits(schemaTag, remainder) {
-    const unitClasses = schemaTag.unitClasses
+    const unitClasses = this._expandUnitClasses(schemaTag.unitClasses)
     let actualUnit = null
     let actualUnitString = null
     let actualValueString = remainder // If no unit class, the remainder is the value
@@ -185,12 +185,33 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
+   * Expand the anyUnits pseudo class (HED 8.5.0) to every unit class of this tag's schema.
+   *
+   * @param {SchemaUnitClass[]} unitClasses The unit classes of the schema tag.
+   * @returns {SchemaUnitClass[]} The unit classes to search, in schema order.
+   * @private
+   */
+  _expandUnitClasses(unitClasses) {
+    if (!unitClasses.some((unitClass) => unitClass.name === 'anyUnits')) {
+      return unitClasses
+    }
+    const expanded = unitClasses.filter((unitClass) => unitClass.name !== 'anyUnits')
+    for (const unitClass of this.schema.entries.unitClasses.values()) {
+      if (unitClass.name !== 'anyUnits' && !expanded.includes(unitClass)) {
+        expanded.push(unitClass)
+      }
+    }
+    return expanded
+  }
+
+  /**
    * Convert this tag's value to the default unit of its unit class.
    *
-   * A value written without a unit is taken to be in the default unit already.
+   * A value written without a unit is taken to be in the default unit already; a numeric value of a tag
+   * that has no unit class is returned unchanged.
    *
-   * @returns {number|null} The value in default units, or null if the value is not numeric, the tag has no
-   *     unit class, the unit is invalid, or the unit has no conversionFactor (such as month or year).
+   * @returns {number|null} The value in default units, or null if the tag takes no value, the value is not
+   *     numeric, the unit is invalid, or the unit has no conversionFactor (such as month or year).
    */
   valueAsDefaultUnit() {
     if (!this.takesValueTag || this._value === undefined || this._value === null) {

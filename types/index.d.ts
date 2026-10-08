@@ -385,6 +385,9 @@ export class ParsedHedTag {
 
   /** Check if this tag is equivalent to another */
   equivalent(other: ParsedHedTag): boolean
+
+  /** The value converted to the default unit of its unit class, or null if it cannot be converted */
+  valueAsDefaultUnit(): number | null
 }
 
 export class ParsedHedGroup {
@@ -509,10 +512,16 @@ export class SchemaEntryManager<T extends SchemaEntry> {
 export class SchemaEntry {
   /** The name of this schema entry */
   name: string
+  /** The description of this schema entry */
+  description: string
+  /** The names of the library schemas that declare this entry (empty for a standard schema entry) */
+  libraries: string[]
 
   constructor(name: string)
 
   hasBooleanAttribute(attributeName: string): boolean
+  /** Record that another library schema declares this entry */
+  addLibrary(library: string): void
 }
 
 export class SchemaProperty extends SchemaEntry {
@@ -536,6 +545,8 @@ export class SchemaAttribute extends SchemaEntry {
   protected _typeProperty: SchemaProperty
   /** The set of role properties for this schema attribute */
   protected _roleProperties: Set<SchemaProperty>
+  /** The names of the properties assigned to this schema attribute */
+  propertyNames: Set<string>
 
   constructor(name: string, properties: SchemaProperty[])
 
@@ -580,11 +591,18 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
     valueAttributes: Map<SchemaAttribute, any>,
     unitType: SchemaUnitClass,
   )
+
+  /** Whether a unit string is a form of this unit (plural or SI-modified; one modifier per component of a compound unit) */
+  validateUnit(value: string): boolean
+  /** The factor converting a value in the given form of this unit to the unit class's base unit, or null if none */
+  conversionFactor(value: string): number | null
 }
 
 export class SchemaUnitClass extends SchemaEntryWithAttributes {
   /** The units in this class */
   units: SchemaUnit[]
+  /** The default unit of this unit class (a derived defaultUnits value such as mA resolves to its base unit) */
+  get defaultUnit(): SchemaUnit | undefined
 
   constructor(
     name: string,
@@ -592,6 +610,11 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
     valueAttributes: Map<SchemaAttribute, any>,
     units: SchemaUnit[],
   )
+
+  /** Split a value into [unit, unit string, value string]; unit is null when no unit of this class matches */
+  extractUnit(value: string, listedOnly?: boolean): [SchemaUnit | null, string | null, string]
+  /** Add a unit to this unit class */
+  addUnit(unit: SchemaUnit): void
 }
 
 export class SchemaUnitModifier extends SchemaEntryWithAttributes {

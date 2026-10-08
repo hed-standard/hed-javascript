@@ -373,12 +373,10 @@ export default class SchemaParser {
       if (valueAttributes.has(tagUnitClassAttribute)) {
         tagUnitClassDefinitions.set(
           tagName,
-          valueAttributes.get(tagUnitClassAttribute).flatMap((unitClassName) => {
-            if (unitClassName === 'anyUnits') {
-              // The anyUnits pseudo class (HED 8.5.0) stands for every unit class of the schema.
-              return [...this.unitClasses.values()].filter((unitClass) => unitClass.name !== 'anyUnits')
-            }
-            return [this.unitClasses.getEntry(unitClassName)]
+          valueAttributes.get(tagUnitClassAttribute).map((unitClassName) => {
+            // The anyUnits pseudo class (HED 8.5.0) is kept as is; ParsedHedTag expands it to every unit
+            // class of the schema at parse time, so classes merged in later are included.
+            return this.unitClasses.getEntry(unitClassName)
           }),
         )
         valueAttributes.delete(tagUnitClassAttribute)

@@ -51,6 +51,24 @@ describe('Unit expansion and conversion', () => {
     })
   })
 
+  describe('SchemaUnit.conversionFactor with caret factors', () => {
+    // HED 8.2.0 writes modifier factors as powers of ten (10^-15), which must not be read as 10e-15.
+    let schemas820
+
+    beforeAll(async () => {
+      schemas820 = await buildSchemasFromVersion('8.2.0')
+    })
+
+    it.each([
+      ['fs', 1e-15],
+      ['ks', 1000],
+      ['s', 1],
+    ])('"%s" converts to seconds with factor %s', (unitString, expected) => {
+      const unit = schemas820.baseSchema.entries.unitClasses.getEntry('timeUnits').units.get('s')
+      assert.closeTo(unit.conversionFactor(unitString), expected, expected * 1e-9)
+    })
+  })
+
   describe('SchemaUnitClass.defaultUnit', () => {
     it('should return the listed default unit', () => {
       const unitClass = hedSchemas.baseSchema.entries.unitClasses.getEntry('speedUnits')

@@ -561,8 +561,10 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
     if (text === undefined) {
       return null
     }
-    const factor = Number(String(text).replace('^', 'e'))
-    return Number.isFinite(factor) ? factor : null
+    // Schemas write factors as decimals (0.001), in e-notation (1e-6), or as powers (10^-6).
+    const [base, exponent, ...extra] = String(text).split('^')
+    const factor = exponent === undefined ? Number(base) : Number(base) ** Number(exponent)
+    return extra.length === 0 && Number.isFinite(factor) ? factor : null
   }
 
   /**

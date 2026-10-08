@@ -23,7 +23,8 @@
   is a derived form (`mA`, `kOhm` in HED 8.5.0) resolves to its base unit. A placeholder
   with `unitClass=anyUnits` (`Quantity` in HED 8.5.0) accepts a unit from any unit class,
   preferring a listed unit over a derived one (hed-tests `units-invalid-compound-units`,
-  `units-invalid-any-units`).
+  `units-invalid-any-units`). Conversion factors written as powers of ten (`10^-15`) are read as
+  powers, not as `10e-15`.
 - In a timeline file, a `Delay` or `Duration` value that cannot be converted to seconds
   (non-numeric value, invalid unit, or a unit with no `conversionFactor` such as `month`
   or `year`) is reported as TEMPORAL_TAG_ERROR; `Delay` values in other time units are
