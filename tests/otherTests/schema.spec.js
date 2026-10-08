@@ -311,29 +311,37 @@ describe('HED schemas', () => {
       specs3 = new SchemasSpec().addSchemaSpec(spec210).addSchemaSpec(spec300)
     })
 
-    it('should fail when trying to merge incompatible schemas', async () => {
-      try {
-        await buildSchemas(specs1)
-        assert.fail('Incompatible schemas testlib_2.0.0 and testlib_2.1.0 were incorrectly merged without an error')
-      } catch (issueError) {
-        const issue = issueError.issue
-        assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'A-nonextension' }))
+    it('should fail when two versions of one library are in the same merge group', async () => {
+      const groups = [
+        [specs1, 'testlib_2.0.0 and testlib_2.1.0', '2.0.0, 2.1.0'],
+        [specs2, 'testlib_2.0.0 and testlib_3.0.0', '2.0.0, 3.0.0'],
+        [specs3, 'testlib_2.1.0 and testlib_3.0.0', '2.1.0, 3.0.0'],
+      ]
+      for (const [specs, label, versions] of groups) {
+        try {
+          await buildSchemas(specs)
+          assert.fail(`Schemas ${label} were incorrectly merged without an error`)
+        } catch (issueError) {
+          const issue = issueError.issue
+          assert.strictEqual(issue.hedCode, 'SCHEMA_LOAD_FAILED', `${label}: wrong error code`)
+          assert.include(
+            issue.message,
+            `different versions of library "testlib" in one merge group [${versions}]`,
+            `${label}: wrong message`,
+          )
+        }
       }
+    })
 
-      try {
-        await buildSchemas(specs3)
-        assert.fail('Incompatible schemas testlib_2.1.0 and testlib_3.0.0 were incorrectly merged without an error')
-      } catch (issueError) {
-        const issue = issueError.issue
-        assert.deepStrictEqual(issue, generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-sound' }))
-      }
-
-      const schemas = await buildSchemas(specs2)
-      assert.instanceOf(
-        schemas.getSchema('testlib'),
-        PartneredSchema,
-        'Parsed testlib schema (combined 2.0.0 and 3.0.0) is not an instance of PartneredSchema',
-      )
+    it('should ignore a schema listed twice in a merge group', async () => {
+      const spec200 = new SchemaSpec('testlib', '2.0.0', 'testlib', testLib200SchemaFile)
+      const spec200Again = new SchemaSpec('testlib', '2.0.0', 'testlib', testLib200SchemaFile)
+      const specs = new SchemasSpec().addSchemaSpec(spec200).addSchemaSpec(spec200Again)
+      const schemas = await buildSchemas(specs)
+      const schema = schemas.getSchema('testlib')
+      assert.isDefined(schema, 'testlib schema should load')
+      assert.isNotOk(schema instanceof PartneredSchema, 'a duplicate listing should not produce a merged schema')
+      assert.strictEqual(schema.version, '2.0.0')
     })
   })
 
@@ -371,7 +379,9 @@ describe('HED schemas', () => {
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
-        assert.instanceOf(schemas.baseSchema, PartneredSchema)
+        // The listed partner standard schema adds nothing: the library schema is the result.
+        assert.strictEqual(schemas.baseSchema.library, 'testlib')
+        assert.strictEqual(schemas.baseSchema.version, '2.0.0')
         assert.strictEqual(schemas.baseSchema.withStandard, '8.4.0')
       })
 

@@ -56,6 +56,7 @@ export class BidsHedTsvValidator extends BidsValidator {
 
     // Valid the HED column by itself.
     this._validateHedColumn()
+    this._validateSplicedValueColumns()
     if (this.errors.length > 0) {
       return
     }
@@ -146,6 +147,41 @@ export class BidsHedTsvValidator extends BidsValidator {
   }
 
   /**
+   * Validate the values of value columns that curly braces reference.
+   *
+   * A referenced column is spliced into other columns' strings rather than assembled on its own, so in a row
+   * whose selected template does not substitute it, its value would otherwise never be checked. Each distinct
+   * value is substituted into the column's sidecar string and checked at the tag level (no group rules), as a
+   * sidecar's own placeholder string is checked.
+   *
+   * @private
+   */
+  _validateSplicedValueColumns() {
+    const sidecar = this.tsvFile.mergedSidecar
+    if (!sidecar?.hasHedData || sidecar.columnSpliceReferences.size === 0) {
+      return
+    }
+    for (const columnName of sidecar.columnSpliceReferences) {
+      const columnData = sidecar.parsedHedData.get(columnName)
+      if (!(columnData instanceof ParsedHedString) || !this.tsvFile.parsedTsv.has(columnName)) {
+        continue
+      }
+      const checkedValues = new Set()
+      this.tsvFile.parsedTsv.get(columnName).forEach((columnValue, rowIndexMinusTwo) => {
+        if (BidsHedTsvParser.nullSet.has(columnValue) || checkedValues.has(columnValue)) {
+          return
+        }
+        checkedValues.add(columnValue)
+        const columnString = columnData.hedString.replace('#', columnValue)
+        const [, errorIssues, warningIssues] = parseHedString(columnString, this.hedSchemas, false, false, false)
+        const tsvLine = rowIndexMinusTwo + 2
+        this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: tsvLine }))
+        this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: tsvLine }))
+      })
+    }
+  }
+
+  /**
    * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
    */
   validateDataset(elements) {
@@ -170,6 +206,11 @@ export class BidsHedTsvValidator extends BidsValidator {
    * @private
    */
   _validateTemporal(elements) {
+    // Delay and Duration values must be convertible to seconds to be placed on the timeline.
+    this._checkTimeConversions(elements)
+    if (this.errors.length > 0) {
+      return
+    }
     // Check basic temporal conflicts such as Offset before Onset, or temporal tags with same def at same time.
     const eventManager = new EventManager()
     const [eventList, temporalIssues] = eventManager.parseEvents(elements)
@@ -181,6 +222,35 @@ export class BidsHedTsvValidator extends BidsValidator {
     this._checkDuplicatesAcrossRows(elements)
     if (this.errors.length === 0) {
       this.errors.push(...eventManager.validate(eventList))
+    }
+  }
+
+  /**
+   * Report Delay and Duration tags whose value cannot be converted to the default unit of their unit class.
+   *
+   * In a timeline file a Delay is added to the row's onset and a Duration gives the end time of its group, so
+   * both must convert to seconds. A non-numeric value, an invalid unit, or a unit with no conversionFactor
+   * (month and year in HED 8.4.0) cannot be placed on the timeline (specification Appendix B, TEMPORAL_TAG_ERROR).
+   * Non-timeline files never reach this check: Duration may use any valid unit there.
+   *
+   * @param {BidsTsvElement[]} elements - The elements representing the tsv file.
+   * @private
+   */
+  _checkTimeConversions(elements) {
+    const timeTags = new Set(['Delay', 'Duration'])
+    for (const element of elements) {
+      const tags = element.parsedHedString?.tags ?? []
+      for (const tag of tags) {
+        if (timeTags.has(tag.schemaTag.name) && tag.valueAsDefaultUnit() === null) {
+          this.errors.push(
+            BidsHedIssue.fromHedIssue(
+              generateIssue('temporalTagNoConversion', { tag: tag.toString(), string: element.hedString }),
+              element.file,
+              { tsvLine: element.tsvLine },
+            ),
+          )
+        }
+      }
     }
   }
 
@@ -469,13 +539,8 @@ export class BidsHedTsvParser {
     }
     // Only iterate over the column names that have splices
     for (const column of this.tsvFile.mergedSidecar.columnSpliceMapping.keys()) {
-      // if (!columnMap.has(column)) {
-      //   continue
-      // }
       const unspliced = columnMap.get(column)
-
       const result = this._replaceSplices(unspliced, columnMap)
-      //console.log(`Column ${column}: ${unspliced} => ${result}`)
       columnMap.set(column, result)
     }
   }

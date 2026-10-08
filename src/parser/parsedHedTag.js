@@ -70,6 +70,13 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   _units
 
   /**
+   * The schema unit matching the units, if any.
+   * @type {SchemaUnit|null}
+   * @private
+   */
+  _unit
+
+  /**
    * Constructor.
    *
    * @param {TagSpec} tagSpec The token for this tag.
@@ -138,6 +145,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
 
     // Resolve the units and check
     const [actualUnit, actualUnitString, actualValueString] = this._separateUnits(schemaTag, value)
+    this._unit = actualUnit
     this._units = actualUnitString
     this._value = actualValueString
 
@@ -163,13 +171,40 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     let actualUnit = null
     let actualUnitString = null
     let actualValueString = remainder // If no unit class, the remainder is the value
-    for (const unitClass of unitClasses) {
-      ;[actualUnit, actualUnitString, actualValueString] = unitClass.extractUnit(remainder)
-      if (actualUnit !== null) {
-        break // found the unit
+    // A unit listed outright in some class wins over one another class only derives: with several classes
+    // (unitClass=anyUnits) "dB" is the listed decibel, not "d" + "B" (byte).
+    for (const listedOnly of [true, false]) {
+      for (const unitClass of unitClasses) {
+        ;[actualUnit, actualUnitString, actualValueString] = unitClass.extractUnit(remainder, listedOnly)
+        if (actualUnit !== null) {
+          return [actualUnit, actualUnitString, actualValueString]
+        }
       }
     }
     return [actualUnit, actualUnitString, actualValueString]
+  }
+
+  /**
+   * Convert this tag's value to the default unit of its unit class.
+   *
+   * A value written without a unit is taken to be in the default unit already.
+   *
+   * @returns {number|null} The value in default units, or null if the value is not numeric, the tag has no
+   *     unit class, the unit is invalid, or the unit has no conversionFactor (such as month or year).
+   */
+  valueAsDefaultUnit() {
+    if (!this.takesValueTag || this._value === undefined || this._value === null) {
+      return null
+    }
+    const value = Number(this._value)
+    if (this._value === '' || !Number.isFinite(value)) {
+      return null
+    }
+    if (this._units === null) {
+      return value
+    }
+    const factor = this._unit?.conversionFactor(this._units) ?? null
+    return factor === null ? null : value * factor
   }
 
   /**

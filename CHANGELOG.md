@@ -15,6 +15,36 @@
 
 ### Fixed
 
+- `dateTimeClass` values are checked against the BIDS Datetime format (RFC 3339
+  with an optional offset, hour 00-23, fraction of 1 to 6 digits) and the date
+  must exist in the Gregorian calendar (hed-tests `value-invalid-date-time-format`).
+- Compound SI units such as `m-per-s` and `m^3` take one SI modifier per component:
+  `cm-per-us` and `mm^3` are valid, `kmm-per-s` is not. A `defaultUnits` value that
+  is a derived form (`mA`, `kOhm` in HED 8.5.0) resolves to its base unit. A placeholder
+  with `unitClass=anyUnits` (`Quantity` in HED 8.5.0) accepts a unit from any unit class,
+  preferring a listed unit over a derived one (hed-tests `units-invalid-compound-units`,
+  `units-invalid-any-units`).
+- In a timeline file, a `Delay` or `Duration` value that cannot be converted to seconds
+  (non-numeric value, invalid unit, or a unit with no `conversionFactor` such as `month`
+  or `year`) is reported as TEMPORAL_TAG_ERROR; `Delay` values in other time units are
+  converted before being added to the onset (hed-tests
+  `temporal-tag-error-delay-not-convertible`, `temporal-tag-error-duration-not-convertible`).
+- A value column referenced in curly braces has every distinct value checked, even in rows
+  whose selected template does not substitute it (hed-tests `bad-value-in-curly-column`).
+- Schema merge groups follow specification 3.1.2.4 (`src/schema/schemaMerger.js`): a schema
+  listed twice is ignored, two versions of one schema in a group is an error, every library in a
+  group must have the same standard partner, a listed standard schema of the partner version adds
+  nothing, and an unpartnered library must be alone in its namespace. Elements declared by several
+  libraries merge when the declarations are identical (attributes, description, ancestor path,
+  `#` child) and conflict otherwise, in the tags and in the auxiliary sections (unit classes and
+  units, unit modifiers, value classes, schema attributes). The issue codes `differentWithStandard`
+  and `lazyPartneredSchemasShareTag` are replaced by `schemaGroupInvalid` and `schemaElementConflict`
+  (both SCHEMA_LOAD_FAILED). Schema entries now carry their `description` and the `libraries` that
+  declare them. Fixes the 41 hed-tests SCHEMA_LOAD_FAILED cases, including a crash when loading an
+  unpartnered library schema with an empty definitions section.
+- `HED_RUN_SKIPPED=1 npm run testSpecs` runs the cases listed in `spec_tests/skippedTests.js`
+  instead of skipping them. The skip list is empty: every hed-tests validation case passes.
+
 ### Dependencies
 
 ## 4.2.0 — 2026-05-18
