@@ -153,16 +153,17 @@ export default class PartneredSchemaMerger {
     this._mergeNamedEntries(source.properties, destination.properties, 'properties')
     this._mergeNamedEntries(source.attributes, destination.attributes, 'schema attributes')
     const addedModifiers = this._mergeNamedEntries(source.unitModifiers, destination.unitModifiers, 'unit modifiers')
-    if (addedModifiers > 0) {
-      // Units build their accepted modified forms when constructed, so every unit already in the destination
-      // must learn the modifiers this library adds.
+    const addedUnits = this._mergeUnitClasses()
+    if (addedModifiers > 0 || addedUnits > 0) {
+      // Units build their accepted modified forms when constructed, against the modifiers of their own schema.
+      // After the merge, every unit in the destination (the ones already there and the ones this library adds)
+      // must know the merged set of modifiers, so the result does not depend on the merge order.
       for (const unitClass of destination.unitClasses.values()) {
         for (const unit of unitClass.units.values()) {
           unit.refreshModifiers(destination.unitModifiers)
         }
       }
     }
-    this._mergeUnitClasses()
     this._mergeNamedEntries(source.valueClasses, destination.valueClasses, 'value classes')
     this._mergeTags()
   }
@@ -195,10 +196,13 @@ export default class PartneredSchemaMerger {
 
   /**
    * Merge the unit classes and their units.
+   *
+   * @returns {number} The number of units added to the destination (the units of new classes included).
    * @private
    */
   _mergeUnitClasses() {
     const destinationClasses = this.destination.entries.unitClasses
+    let added = 0
     for (const unitClass of this.currentSource.entries.unitClasses.values()) {
       const target = destinationClasses.getEntry(unitClass.name)
       if (unitClass.libraries.length > 0 && target === undefined) {
@@ -210,6 +214,7 @@ export default class PartneredSchemaMerger {
         )
         copy.description = unitClass.description
         destinationClasses.addEntry(copy.name, copy)
+        added += copy.units.size
         continue
       }
       if (unitClass.libraries.length > 0 && !PartneredSchemaMerger._isUnitClassPlaceholder(unitClass)) {
@@ -226,11 +231,13 @@ export default class PartneredSchemaMerger {
         const existingUnit = target.units.get(unit.name)
         if (existingUnit === undefined) {
           target.addUnit(unit)
+          added++
         } else {
           this._checkCompatible(existingUnit, unit, 'units', this._entryDifferences(existingUnit, unit))
         }
       }
     }
+    return added
   }
 
   /**
