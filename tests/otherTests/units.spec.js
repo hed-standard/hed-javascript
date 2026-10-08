@@ -3,6 +3,7 @@ const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
 import { buildSchemasFromVersion } from '../../src/schema/init'
+import { SchemaEntryManager, SchemaUnitModifier } from '../../src/schema/entries'
 import { parseHedString } from '../../src/parser/parser'
 
 describe('Unit expansion and conversion', () => {
@@ -66,6 +67,25 @@ describe('Unit expansion and conversion', () => {
     ])('"%s" converts to seconds with factor %s', (unitString, expected) => {
       const unit = schemas820.baseSchema.entries.unitClasses.getEntry('timeUnits').units.get('s')
       assert.closeTo(unit.conversionFactor(unitString), expected, expected * 1e-9)
+    })
+  })
+
+  describe('SchemaUnit.refreshModifiers', () => {
+    it('should accept a modifier added after the unit was built', () => {
+      const entries = hedSchemas.baseSchema.entries
+      const unit = entries.unitClasses.getEntry('timeUnits').units.get('s')
+      assert.isFalse(unit.validateUnit('Xs'), 'X is not a modifier of 8.4.0')
+      const booleanAttributes = new Set([entries.attributes.getEntry('SIUnitSymbolModifier')])
+      const valueAttributes = new Map([[entries.attributes.getEntry('conversionFactor'), ['42']]])
+      const modifier = new SchemaUnitModifier('X', booleanAttributes, valueAttributes)
+      const modifiers = new SchemaEntryManager(new Map([...entries.unitModifiers.values()].map((m) => [m.name, m])))
+      modifiers.addEntry('X', modifier)
+      unit.refreshModifiers(modifiers)
+      assert.isTrue(unit.validateUnit('Xs'), 'the new modifier applies after the refresh')
+      assert.strictEqual(unit.conversionFactor('Xs'), 42)
+      assert.isTrue(unit.validateUnit('ms'), 'existing modifiers still apply')
+      unit.refreshModifiers(entries.unitModifiers)
+      assert.isFalse(unit.validateUnit('Xs'), 'restored')
     })
   })
 

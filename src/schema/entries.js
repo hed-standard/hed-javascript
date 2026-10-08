@@ -135,6 +135,17 @@ export class SchemaEntryManager extends Memoizer {
   }
 
   /**
+   * Add an entry (used when merging a schema group). Memoized views of the collection are discarded.
+   *
+   * @param {string} name The key of the entry.
+   * @param {T} entry The entry.
+   */
+  addEntry(name, entry) {
+    this._definitions.set(name, entry)
+    this._memoizedProperties.clear()
+  }
+
+  /**
    * Get a collection of entries with the given boolean attribute.
    *
    * @param {string} booleanAttributeName - The name of boolean attribute to filter on.
@@ -523,8 +534,19 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
    */
   constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
     super(name, booleanAttributes, valueAttributes)
+    this.refreshModifiers(unitModifiers)
+  }
 
-    this._derivativeUnits = [name]
+  /**
+   * Rebuild the accepted forms of this unit from a collection of unit modifiers.
+   *
+   * Called at construction, and again by the schema merger when a merged library adds unit modifiers after this
+   * unit was built.
+   *
+   * @param {SchemaEntryManager<SchemaUnitModifier>} unitModifiers The collection of unit modifiers.
+   */
+  refreshModifiers(unitModifiers) {
+    this._derivativeUnits = [this.name]
     this._modifierFactors = new Map()
     this._compoundComponents = null
     if (!this.isSIUnit) {
@@ -542,7 +564,7 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
     }
     const pluralUnit = this._pushPluralUnit()
     for (const modifierName of this._modifierFactors.keys()) {
-      this._derivativeUnits.push(modifierName + name)
+      this._derivativeUnits.push(modifierName + this.name)
       if (pluralUnit !== null) {
         this._derivativeUnits.push(modifierName + pluralUnit)
       }

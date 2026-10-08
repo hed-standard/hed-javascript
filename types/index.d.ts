@@ -507,6 +507,8 @@ export class SchemaEntryManager<T extends SchemaEntry> {
   getEntriesWithBooleanAttribute(booleanAttributeName: string): Map<string, T>
   filter(fn: (entry: [string, T]) => boolean): Map<string, T>
   get length(): number
+  /** Add an entry, discarding memoized views of the collection */
+  addEntry(name: string, entry: T): void
 }
 
 export class SchemaEntry {
@@ -594,8 +596,10 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
 
   /** Whether a unit string is a form of this unit (plural or SI-modified; one modifier per component of a compound unit) */
   validateUnit(value: string): boolean
-  /** The factor converting a value in the given form of this unit to the unit class's base unit, or null if none */
+  /** The factor converting a value in the given form of this unit to the unit class's default unit, or null if none */
   conversionFactor(value: string): number | null
+  /** Rebuild the accepted forms of this unit from a collection of unit modifiers */
+  refreshModifiers(unitModifiers: SchemaEntryManager<SchemaUnitModifier>): void
 }
 
 export class SchemaUnitClass extends SchemaEntryWithAttributes {

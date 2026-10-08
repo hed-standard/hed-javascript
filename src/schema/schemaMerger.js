@@ -152,7 +152,16 @@ export default class PartneredSchemaMerger {
     const destination = this.destination.entries
     this._mergeNamedEntries(source.properties, destination.properties, 'properties')
     this._mergeNamedEntries(source.attributes, destination.attributes, 'schema attributes')
-    this._mergeNamedEntries(source.unitModifiers, destination.unitModifiers, 'unit modifiers')
+    const addedModifiers = this._mergeNamedEntries(source.unitModifiers, destination.unitModifiers, 'unit modifiers')
+    if (addedModifiers > 0) {
+      // Units build their accepted modified forms when constructed, so every unit already in the destination
+      // must learn the modifiers this library adds.
+      for (const unitClass of destination.unitClasses.values()) {
+        for (const unit of unitClass.units.values()) {
+          unit.refreshModifiers(destination.unitModifiers)
+        }
+      }
+    }
     this._mergeUnitClasses()
     this._mergeNamedEntries(source.valueClasses, destination.valueClasses, 'value classes')
     this._mergeTags()
@@ -164,20 +173,24 @@ export default class PartneredSchemaMerger {
    * @param {SchemaEntryManager} sourceEntries The source section.
    * @param {SchemaEntryManager} destinationEntries The destination section.
    * @param {string} sectionName The section name for messages.
+   * @returns {number} The number of entries added to the destination.
    * @private
    */
   _mergeNamedEntries(sourceEntries, destinationEntries, sectionName) {
+    let added = 0
     for (const entry of sourceEntries.values()) {
       if (entry.libraries.length === 0) {
         continue
       }
       const existing = destinationEntries.getEntry(entry.name)
       if (existing === undefined) {
-        destinationEntries._definitions.set(entry.name, entry)
+        destinationEntries.addEntry(entry.name, entry)
+        added++
       } else {
         this._checkCompatible(existing, entry, sectionName, this._entryDifferences(existing, entry))
       }
     }
+    return added
   }
 
   /**
@@ -196,7 +209,7 @@ export default class PartneredSchemaMerger {
           new Map(unitClass.units),
         )
         copy.description = unitClass.description
-        destinationClasses._definitions.set(copy.name, copy)
+        destinationClasses.addEntry(copy.name, copy)
         continue
       }
       if (unitClass.libraries.length > 0 && !PartneredSchemaMerger._isUnitClassPlaceholder(unitClass)) {
@@ -392,6 +405,6 @@ export default class PartneredSchemaMerger {
       }
     }
 
-    this.destinationTags._definitions.set(newTag.name.toLowerCase(), newTag)
+    this.destinationTags.addEntry(newTag.name.toLowerCase(), newTag)
   }
 }

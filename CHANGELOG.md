@@ -38,7 +38,8 @@
   nothing, and an unpartnered library must be alone in its namespace. Elements declared by several
   libraries merge when the declarations are identical (attributes, description, ancestor path,
   `#` child) and conflict otherwise, in the tags and in the auxiliary sections (unit classes and
-  units, unit modifiers, value classes, schema attributes). The issue codes `differentWithStandard`
+  units, unit modifiers, value classes, schema attributes); units already built learn the unit
+  modifiers a merged library adds. The issue codes `differentWithStandard`
   and `lazyPartneredSchemasShareTag` are replaced by `schemaGroupInvalid` and `schemaElementConflict`
   (both SCHEMA_LOAD_FAILED). Schema entries now carry their `description` and the `libraries` that
   declare them. Fixes the 41 hed-tests SCHEMA_LOAD_FAILED cases, including a crash when loading an
