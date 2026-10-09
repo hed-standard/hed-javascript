@@ -210,6 +210,8 @@ function testParser(
   parsedHedTag.toString()
   parsedHedTag.hasAttribute('attribute')
   parsedHedTag.equivalent(parsedTag)
+  const valueInDefaultUnits: number | null = parsedHedTag.valueAsDefaultUnit()
+  console.log(valueInDefaultUnits)
 
   // ParsedHedGroup
   const parsedHedGroup = new ParsedHedGroup([parsedTag, parsedGroup], fakeHedString, [0, 1])
@@ -323,12 +325,24 @@ function testSchemaTypes(schemas: Schemas) {
     const unit: SchemaUnit = unitClass.units[0]
     if (unit) {
       console.log(unit.unitType, unit.siUnit, unit.defaultSiUnit, unit.unitSymbol)
+      const isUnit: boolean = unit.validateUnit('ms')
+      const factor: number | null = unit.conversionFactor('ms')
+      const description: string = unit.description
+      const libraries: string[] = unit.libraries
+      unit.addLibrary('lib')
+      console.log(isUnit, factor, description, libraries)
     }
   }
 
   // SchemaUnitClass
   if (unitClass) {
     console.log(unitClass.units)
+    const defaultUnit: SchemaUnit | undefined = unitClass.defaultUnit
+    const [extractedUnit, unitString, valueString] = unitClass.extractUnit('3 ms')
+    console.log(defaultUnit, extractedUnit, unitString, valueString)
+    if (defaultUnit) {
+      unitClass.addUnit(defaultUnit)
+    }
   }
 
   // SchemaUnitModifier

@@ -243,6 +243,11 @@ export default {
     level: 'error',
     message: stringTemplate`HED event string "${'string'}" has temporal tags on line(s) [${'tsvline'}] in a tsv file without an onset time.`,
   },
+  temporalTagNoConversion: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" in HED event string "${'string'}" cannot be converted to the default units of its unit class (non-numeric value, invalid unit, or a unit with no conversionFactor), so it cannot be placed on the timeline.`,
+  },
   duplicateTemporal: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
@@ -431,15 +436,15 @@ export default {
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is declared to use a library schema nicknamed "${'library'}" in the dataset's schema listing, but no such schema was found.`,
   },
-  differentWithStandard: {
+  schemaGroupInvalid: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`Could not merge lazy partnered schemas with different "withStandard" values: "${'first'}" and "${'second'}".`,
+    message: stringTemplate`Cannot combine schemas [${'versions'}] in one merge group: ${'problems'}.`,
   },
-  lazyPartneredSchemasShareTag: {
+  schemaElementConflict: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`Lazy partnered schemas are incompatible because they share the short tag "${'tag'}". These schemas require different prefixes.`,
+    message: stringTemplate`Element "${'element'}" in section "${'section'}" is declared incompatibly by "${'first'}" and "${'second'}": ${'differences'}.`,
   },
   deprecatedStandardSchemaVersion: {
     hedCode: 'VERSION_DEPRECATED',

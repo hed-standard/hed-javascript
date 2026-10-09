@@ -134,6 +134,16 @@ export default class SchemaParser {
   }
 
   /**
+   * Retrieve the description of an element.
+   *
+   * @param {Object} element An element in the schema tree.
+   * @returns {string} The description, or an empty string if it has none.
+   */
+  static getElementDescription(element) {
+    return element.description?._ ?? ''
+  }
+
+  /**
    * Retrieve all the tags in the schema.
    *
    * @returns {Map<Object, string>} The tag names and XML elements.
@@ -152,6 +162,7 @@ export default class SchemaParser {
     this.properties = new Map()
     for (const definition of propertyDefinitions) {
       const propertyName = SchemaParser.getElementTagName(definition)
+      const description = SchemaParser.getElementDescription(definition)
       if (this._versionDefinitions.categoryProperties?.has(propertyName)) {
         this.properties.set(
           propertyName,
@@ -171,6 +182,9 @@ export default class SchemaParser {
           new SchemaProperty(propertyName, 'roleProperty'),
         )
       }
+      if (this.properties.has(propertyName)) {
+        this.properties.get(propertyName).description = description
+      }
     }
     this._addCustomProperties()
   }
@@ -181,10 +195,41 @@ export default class SchemaParser {
     for (const definition of attributeDefinitions) {
       const attributeName = SchemaParser.getElementTagName(definition)
       const propertyElements = definition.property ?? []
-      const properties = propertyElements.map((element) => this.properties.get(SchemaParser.getElementTagName(element)))
-      this.attributes.set(attributeName, new SchemaAttribute(attributeName, properties))
+      // A property with a value (inLibrary) marks the library that declares the attribute; the others are the
+      // attribute's own properties.
+      const properties = propertyElements
+        .filter((element) => element.value === undefined)
+        .map((element) => this.properties.get(SchemaParser.getElementTagName(element)))
+      const attribute = new SchemaAttribute(attributeName, properties)
+      attribute.description = SchemaParser.getElementDescription(definition)
+      // Keep every declared property name (properties unknown to this version are dropped from the objects above).
+      attribute.propertyNames = new Set(
+        propertyElements.filter((element) => element.value === undefined).map(SchemaParser.getElementTagName),
+      )
+      for (const element of propertyElements) {
+        if (element.value !== undefined && SchemaParser.getElementTagName(element) === 'inLibrary') {
+          attribute.libraries = element.value.map((value) => value._)
+        }
+      }
+      this.attributes.set(attributeName, attribute)
     }
     this._addCustomAttributes()
+  }
+
+  /**
+   * Set the descriptions of the entries of a definition section.
+   *
+   * @param {string} category The definition category (e.g. "unitClass").
+   * @param {Map<string, SchemaEntry>} entries The entries, keyed by name.
+   * @private
+   */
+  _setDefinitionDescriptions(category, entries) {
+    for (const element of this._getDefinitionElements(category)) {
+      const entry = entries.get(SchemaParser.getElementTagName(element))
+      if (entry !== undefined) {
+        entry.description = SchemaParser.getElementDescription(element)
+      }
+    }
   }
 
   _getValueClassChars(name) {
@@ -208,6 +253,7 @@ export default class SchemaParser {
       const wordRegex = new RegExp(classRegex.class_words[name] ?? '^.+$')
       valueClasses.set(name, new SchemaValueClass(name, booleanAttributes, valueAttributes, charRegex, wordRegex))
     }
+    this._setDefinitionDescriptions('valueClass', valueClasses)
     this.valueClasses = new SchemaEntryManager(valueClasses)
   }
 
@@ -218,6 +264,7 @@ export default class SchemaParser {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       unitModifiers.set(name, new SchemaUnitModifier(name, booleanAttributes, valueAttributes))
     }
+    this._setDefinitionDescriptions('unitModifier', unitModifiers)
     this.unitModifiers = new SchemaEntryManager(unitModifiers)
   }
 
@@ -230,6 +277,7 @@ export default class SchemaParser {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       unitClasses.set(name, new SchemaUnitClass(name, booleanAttributes, valueAttributes, unitClassUnits.get(name)))
     }
+    this._setDefinitionDescriptions('unitClass', unitClasses)
     this.unitClasses = new SchemaEntryManager(unitClasses)
   }
 
@@ -251,6 +299,12 @@ export default class SchemaParser {
       for (const [name, valueAttributes] of unitValueAttributeDefinitions) {
         const booleanAttributes = unitBooleanAttributeDefinitions.get(name)
         units.set(name, new SchemaUnit(name, booleanAttributes, valueAttributes, unitModifiers))
+      }
+      for (const unitElement of element.unit) {
+        const unit = units.get(SchemaParser.getElementTagName(unitElement))
+        if (unit !== undefined) {
+          unit.description = SchemaParser.getElementDescription(unitElement)
+        }
       }
     }
     return unitClassUnits
@@ -320,6 +374,8 @@ export default class SchemaParser {
         tagUnitClassDefinitions.set(
           tagName,
           valueAttributes.get(tagUnitClassAttribute).map((unitClassName) => {
+            // The anyUnits pseudo class (HED 8.5.0) is kept as is; ParsedHedTag expands it to every unit
+            // class of the schema at parse time, so classes merged in later are included.
             return this.unitClasses.getEntry(unitClassName)
           }),
         )
@@ -427,6 +483,7 @@ export default class SchemaParser {
     for (const tagElement of tags.keys()) {
       const tagName = shortTags.get(tagElement)
       const parentTagName = shortTags.get(tagElement.$parent)
+      tagEntries.get(lc(tagName)).description = SchemaParser.getElementDescription(tagElement)
 
       if (parentTagName) {
         tagEntries.get(lc(tagName)).parent = tagEntries.get(lc(parentTagName))
@@ -446,7 +503,13 @@ export default class SchemaParser {
   _getDefinitionElements(category) {
     const categoryTagName = category + 'Definition'
     const categoryParentTagName = categoryTagName + 's'
-    return this.rootElement[categoryParentTagName][categoryTagName]
+    // An empty section (<propertyDefinitions/> in an unpartnered library) has no definition elements, and a
+    // section with a single definition is parsed as an object rather than an array.
+    const definitions = this.rootElement[categoryParentTagName]?.[categoryTagName]
+    if (definitions === undefined || definitions === null) {
+      return []
+    }
+    return (Array.isArray(definitions) ? definitions : [definitions]).filter((element) => typeof element === 'object')
   }
 
   _parseAttributeElements(elements, namer) {
