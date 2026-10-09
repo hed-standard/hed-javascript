@@ -134,9 +134,9 @@ export const schemaBuildTestData = [
         schemaError: null,
       },
       {
-        testname: 'good-lazy-partnered-remote-schema-build',
-        explanation: '["testlib_2.0.0", "testlib_3.0.0"] is lazy partnered and testlib_3.0.0 is remote',
-        schemaVersion: { Name: 'GoodLazyPartnered', HEDVersion: ['testlib_2.0.0', 'testlib_3.0.0'] },
+        testname: 'standard-partner-listed-with-library-build',
+        explanation: '["8.4.0", "testlib_2.0.0"] lists the partner standard schema, which adds nothing',
+        schemaVersion: { Name: 'PartnerListed', HEDVersion: ['8.4.0', 'testlib_2.0.0'] },
         schemaError: null,
       },
     ],
@@ -155,13 +155,35 @@ export const schemaBuildTestData = [
         testname: 'lazy-partnered-with wrong-standard-build',
         explanation: '["testlib_2.0.0", "8.3.0"] has wrong standard schema',
         schemaVersion: { Name: 'BadLazyPartnered', HEDVersion: ['testlib_2.0.0', '8.3.0'] },
-        schemaError: new IssueError(generateIssue('differentWithStandard', { first: '8.3.0', second: '8.4.0' })),
+        schemaError: new IssueError(
+          generateIssue('schemaGroupInvalid', {
+            versions: 'testlib_2.0.0, 8.3.0',
+            problems: 'standard schema "8.3.0" differs from the group partner "8.4.0"',
+          }),
+        ),
       },
       {
-        testname: 'lazy-partnered-with conflicting-tags-build',
-        explanation: '["testlib_2.1.0", "testlib_3.0.0"] have conflicting tags',
-        schemaVersion: { Name: 'BadLazyPartnered', HEDVersion: ['testlib_2.1.0', 'testlib_3.0.0'] },
-        schemaError: new IssueError(generateIssue('lazyPartneredSchemasShareTag', { tag: 'Piano-sound' })),
+        testname: 'two-versions-of-one-library-build',
+        explanation:
+          '["testlib_2.0.0", "testlib_3.0.0"] are two versions of the same library (testlib_3.0.0 is remote)',
+        schemaVersion: { Name: 'TwoVersions', HEDVersion: ['testlib_2.0.0', 'testlib_3.0.0'] },
+        schemaError: new IssueError(
+          generateIssue('schemaGroupInvalid', {
+            versions: 'testlib_2.0.0, testlib_3.0.0',
+            problems: 'different versions of library "testlib" in one merge group [2.0.0, 3.0.0]',
+          }),
+        ),
+      },
+      {
+        testname: 'two-versions-of-one-library-with-conflicting-tags-build',
+        explanation: '["testlib_2.1.0", "testlib_3.0.0"] are two versions of the same library',
+        schemaVersion: { Name: 'TwoVersions', HEDVersion: ['testlib_2.1.0', 'testlib_3.0.0'] },
+        schemaError: new IssueError(
+          generateIssue('schemaGroupInvalid', {
+            versions: 'testlib_2.1.0, testlib_3.0.0',
+            problems: 'different versions of library "testlib" in one merge group [2.1.0, 3.0.0]',
+          }),
+        ),
       },
     ],
   },

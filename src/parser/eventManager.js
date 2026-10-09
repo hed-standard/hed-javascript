@@ -98,8 +98,9 @@ export class Event {
       return 0
     }
     const tags = group.reservedTags.get('Delay')
-    const delay = Number(tags[0]._value)
-    return Number.isFinite(delay) ? delay : 0
+    // The delay is converted to the default unit of its unit class (seconds). A delay that cannot be
+    // converted is reported by the TSV validator before events are created; here it counts as 0.
+    return tags[0].valueAsDefaultUnit() ?? 0
   }
 }
 

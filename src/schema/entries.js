@@ -6,6 +6,7 @@ import pluralize from 'pluralize'
 pluralize.addUncountableRule('hertz')
 
 import { IssueError } from '../issues/issues'
+import { isExistingGregorianDate } from '../utils/dateTime'
 import Memoizer from '../utils/memoizer'
 
 /**
@@ -134,6 +135,17 @@ export class SchemaEntryManager extends Memoizer {
   }
 
   /**
+   * Add an entry (used when merging a schema group). Memoized views of the collection are discarded.
+   *
+   * @param {string} name The key of the entry.
+   * @param {T} entry The entry.
+   */
+  addEntry(name, entry) {
+    this._definitions.set(name, entry)
+    this._memoizedProperties.clear()
+  }
+
+  /**
    * Get a collection of entries with the given boolean attribute.
    *
    * @param {string} booleanAttributeName - The name of boolean attribute to filter on.
@@ -191,9 +203,23 @@ export class SchemaEntry extends Memoizer {
    */
   _name
 
+  /**
+   * The description of this schema entry.
+   * @type {string}
+   */
+  description
+
+  /**
+   * The names of the library schemas that declare this entry (empty for a standard schema entry).
+   * @type {string[]}
+   */
+  libraries
+
   constructor(name) {
     super()
     this._name = name
+    this.description = ''
+    this.libraries = []
   }
 
   /**
@@ -202,6 +228,17 @@ export class SchemaEntry extends Memoizer {
    */
   get name() {
     return this._name
+  }
+
+  /**
+   * Record that another library schema declares this entry (used when merging a schema group).
+   *
+   * @param {string} library The library name.
+   */
+  addLibrary(library) {
+    if (!this.libraries.includes(library)) {
+      this.libraries.push(library)
+    }
   }
 
   /**
@@ -298,8 +335,15 @@ export class SchemaAttribute extends SchemaEntry {
    * @param {string} name The name of the schema attribute.
    * @param {SchemaProperty[]} properties The properties assigned to this schema attribute.
    */
+  /**
+   * The names of the properties assigned to this schema attribute.
+   * @type {Set<string>}
+   */
+  propertyNames
+
   constructor(name, properties) {
     super(name, new Set(), new Map())
+    this.propertyNames = new Set(properties.filter((property) => property).map((property) => property.name))
 
     // Parse properties
     const categoryProperties = properties.filter((property) => property?.isCategoryProperty)
@@ -374,6 +418,24 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
     this.booleanAttributes = booleanAttributes
     this.valueAttributes = valueAttributes
     this._parseAttributeNames()
+    this.libraries = [...(this.getAttributeValue('inLibrary', true) ?? [])]
+  }
+
+  /**
+   * Record that another library schema declares this entry, in the inLibrary attribute as well.
+   *
+   * @param {string} library The library name.
+   */
+  addLibrary(library) {
+    if (this.libraries.includes(library)) {
+      return
+    }
+    this.libraries.push(library)
+    const attribute = [...this.valueAttributes.keys()].find((key) => key.name === 'inLibrary')
+    if (attribute !== undefined) {
+      this.valueAttributes.set(attribute, [...this.libraries])
+      this.valueAttributeNames.set('inLibrary', [...this.libraries])
+    }
   }
 
   /**
@@ -445,10 +507,22 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
  */
 export class SchemaUnit extends SchemaEntryWithAttributes {
   /**
-   * The legal derivatives of this unit.
+   * The legal derivatives of this unit (non-compound units only): the name, its plural, and modified forms.
    * @type {string[]}
    */
   _derivativeUnits
+
+  /**
+   * The SI modifiers this unit accepts, mapped to their conversion factors (null if a modifier has none).
+   * @type {Map<string, number|null>}
+   */
+  _modifierFactors
+
+  /**
+   * The components of a compound SI unit such as m-per-s^2, or null for every other unit.
+   * @type {Array<{base: string, exponent: number, text: string}>|null}
+   */
+  _compoundComponents
 
   /**
    * Constructor.
@@ -460,24 +534,112 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
    */
   constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
     super(name, booleanAttributes, valueAttributes)
+    this.refreshModifiers(unitModifiers)
+  }
 
-    this._derivativeUnits = [name]
+  /**
+   * Rebuild the accepted forms of this unit from a collection of unit modifiers.
+   *
+   * Called at construction, and again by the schema merger when a merged library adds unit modifiers after this
+   * unit was built.
+   *
+   * @param {SchemaEntryManager<SchemaUnitModifier>} unitModifiers The collection of unit modifiers.
+   */
+  refreshModifiers(unitModifiers) {
+    this._derivativeUnits = [this.name]
+    this._modifierFactors = new Map()
+    this._compoundComponents = null
     if (!this.isSIUnit) {
       this._pushPluralUnit()
       return
     }
-    if (this.isUnitSymbol) {
-      const SIUnitSymbolModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitSymbolModifier')
-      for (const modifierName of SIUnitSymbolModifiers.keys()) {
-        this._derivativeUnits.push(modifierName + name)
-      }
-    } else {
-      const SIUnitModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
-      const pluralUnit = this._pushPluralUnit()
-      for (const modifierName of SIUnitModifiers.keys()) {
-        this._derivativeUnits.push(modifierName + name, modifierName + pluralUnit)
+    const modifierAttribute = this.isUnitSymbol ? 'SIUnitSymbolModifier' : 'SIUnitModifier'
+    for (const [modifierName, modifier] of unitModifiers.getEntriesWithBooleanAttribute(modifierAttribute)) {
+      this._modifierFactors.set(modifierName, SchemaUnit._parseFactor(modifier))
+    }
+    this._compoundComponents = this._parseCompoundComponents()
+    if (this._compoundComponents !== null) {
+      // A compound unit takes one modifier per component and is matched by validateUnit, not from a list.
+      return
+    }
+    const pluralUnit = this._pushPluralUnit()
+    for (const modifierName of this._modifierFactors.keys()) {
+      this._derivativeUnits.push(modifierName + this.name)
+      if (pluralUnit !== null) {
+        this._derivativeUnits.push(modifierName + pluralUnit)
       }
     }
+  }
+
+  /**
+   * Parse the conversionFactor attribute of a unit or unit modifier.
+   *
+   * @param {SchemaEntryWithAttributes} entry A unit or unit modifier.
+   * @returns {number|null} The factor, or null if the entry has none or it is not a number.
+   * @private
+   */
+  static _parseFactor(entry) {
+    const text = entry.getAttributeValue('conversionFactor')
+    if (text === undefined) {
+      return null
+    }
+    // Schemas write factors as decimals (0.001), in e-notation (1e-6), or as powers (10^-6).
+    const [base, exponent, ...extra] = String(text).split('^')
+    const factor = exponent === undefined ? Number(base) : Number(base) ** Number(exponent)
+    return extra.length === 0 && Number.isFinite(factor) ? factor : null
+  }
+
+  /**
+   * Split a compound SI unit name (one containing "-per-" or "^") into its components.
+   *
+   * @returns {Array<{base: string, exponent: number, text: string}>|null} One entry per component in name order
+   *     (the first is the numerator, the rest are denominators), or null if this is not a compound unit.
+   * @private
+   */
+  _parseCompoundComponents() {
+    if (!this.name.includes('-per-') && !this.name.includes('^')) {
+      return null
+    }
+    const components = []
+    for (const text of this.name.split('-per-')) {
+      const [base, exponentText, ...extra] = text.split('^')
+      if (base === '' || extra.length > 0) {
+        return null
+      }
+      const exponent = exponentText === undefined ? 1 : Number(exponentText)
+      if (!Number.isInteger(exponent)) {
+        return null
+      }
+      components.push({ base: base, exponent: exponent, text: text })
+    }
+    return components
+  }
+
+  /**
+   * Match a unit string against this compound unit, allowing one SI modifier per component.
+   *
+   * @param {string} value The unit string.
+   * @returns {string[]|null} The modifier used for each component ('' for none), or null if no match.
+   * @private
+   */
+  _matchCompound(value) {
+    const parts = value.split('-per-')
+    if (parts.length !== this._compoundComponents.length) {
+      return null
+    }
+    const modifiers = []
+    for (const [index, part] of parts.entries()) {
+      const expected = this._compoundComponents[index].text
+      if (!part.endsWith(expected)) {
+        return null
+      }
+      const modifier = part.slice(0, part.length - expected.length)
+      if (modifier !== '' && !this._modifierFactors.has(modifier)) {
+        return null
+      }
+      modifiers.push(modifier)
+    }
+    return modifiers
   }
 
   _pushPluralUnit() {
@@ -520,13 +682,73 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
     if (this.isPrefixUnit) {
       return value.startsWith(this.name)
     }
-
+    if (this._compoundComponents !== null) {
+      return this._matchCompound(value) !== null
+    }
     for (const dUnit of this.derivativeUnits()) {
       if (value === dUnit) {
         return true
       }
     }
     return false
+  }
+
+  /**
+   * Get the factor that converts a value given in a form of this unit to the unit class's base unit.
+   *
+   * @param {string} value A unit string accepted by validateUnit.
+   * @returns {number|null} The conversion factor, or null if this unit has no conversionFactor, the string is not
+   *     a form of this unit, or a modifier used has no conversionFactor.
+   */
+  conversionFactor(value) {
+    const baseFactor = SchemaUnit._parseFactor(this)
+    if (baseFactor === null || !this.validateUnit(value)) {
+      return null
+    }
+    const modifierFactor =
+      this._compoundComponents === null ? this._simpleModifierFactor(value) : this._compoundModifierFactor(value)
+    return modifierFactor === null ? null : baseFactor * modifierFactor
+  }
+
+  /**
+   * Get the combined factor of the modifiers in a form of this compound unit.
+   *
+   * @param {string} value A unit string accepted by validateUnit.
+   * @returns {number|null} The factor (1 when no modifier is used), or null if a modifier used has no factor.
+   * @private
+   */
+  _compoundModifierFactor(value) {
+    let factor = 1
+    for (const [index, modifier] of this._matchCompound(value).entries()) {
+      if (modifier === '') {
+        continue
+      }
+      const modifierFactor = this._modifierFactors.get(modifier)
+      if (modifierFactor === null) {
+        return null
+      }
+      const exponent = this._compoundComponents[index].exponent
+      factor *= modifierFactor ** (index === 0 ? exponent : -exponent)
+    }
+    return factor
+  }
+
+  /**
+   * Get the factor of the modifier in a form of this non-compound unit.
+   *
+   * @param {string} value A unit string accepted by validateUnit.
+   * @returns {number|null} The factor (1 when no modifier is used), or null if the modifier used has no factor.
+   * @private
+   */
+  _simpleModifierFactor(value) {
+    const plainForms = this.isUnitSymbol ? [this.name] : [this.name, this._derivativeUnits[1]]
+    if (this.isPrefixUnit || plainForms.includes(value)) {
+      return 1
+    }
+    const modifier = [...this._modifierFactors.keys()].find(
+      (name) => value.startsWith(name) && plainForms.includes(value.slice(name.length)),
+    )
+    return modifier === undefined ? null : this._modifierFactors.get(modifier)
   }
 }
 
@@ -562,18 +784,34 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
   }
 
   /**
+   * Add a unit to this unit class (used when merging a schema group).
+   *
+   * @param {SchemaUnit} unit The unit to add.
+   */
+  addUnit(unit) {
+    this._units.set(unit.name, unit)
+  }
+
+  /**
    * Get the default unit for this unit class.
    * @returns {SchemaUnit}
    */
   get defaultUnit() {
-    return this._units.get(this.getAttributeValue('defaultUnits'))
+    const defaultUnits = this.getAttributeValue('defaultUnits')
+    if (defaultUnits === undefined) {
+      return undefined
+    }
+    // A listed unit wins; otherwise the unit that the default derives from (A for mA, Ohm for kOhm) is matched.
+    return this._units.get(defaultUnits) ?? [...this._units.values()].find((unit) => unit.validateUnit(defaultUnits))
   }
 
   /**
    * Extracts the Unit class and remainder
+   * @param {string} value The value part of a tag, possibly ending in a unit.
+   * @param {boolean} listedOnly Whether to match only unit names as listed in the schema (no plurals or modifiers).
    * @returns {Array} [SchemaUnit, string, string] containing unit class, unit string, and value string
    */
-  extractUnit(value) {
+  extractUnit(value, listedOnly = false) {
     let actualUnit = null // The Unit class of the value
     let actualValueString = null // The actual value part of the value
     let actualUnitString = null
@@ -590,7 +828,7 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
     actualValueString = firstPart
     actualUnitString = lastPart
     for (const unit of this._units.values()) {
-      if (!unit.isPrefixUnit && unit.validateUnit(lastPart)) {
+      if (!unit.isPrefixUnit && (listedOnly ? lastPart === unit.name : unit.validateUnit(lastPart))) {
         // Checking if it is non-prefixed unit
         actualValueString = firstPart
         actualUnitString = lastPart
@@ -660,7 +898,14 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
    * @returns {boolean} Whether the value conforms to this value class.
    */
   validateValue(value) {
-    return this._wordRegex.test(value) && this._charClassRegex.test(value)
+    if (!this._wordRegex.test(value) || !this._charClassRegex.test(value)) {
+      return false
+    }
+    if (this.name === 'dateTimeClass') {
+      // The regular expression fixes the shape; the date must also exist in the Gregorian calendar.
+      return isExistingGregorianDate(value.slice(0, 10))
+    }
+    return true
   }
 }
 
