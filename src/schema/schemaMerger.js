@@ -59,48 +59,22 @@ export default class PartneredSchemaMerger {
    * @private
    */
   _resolveGroup() {
-    const describe = (schema) => (schema.library ? `${schema.library}_${schema.version}` : schema.version)
     // A schema listed twice is ignored.
     const seen = new Set()
     const members = this.sourceSchemas.filter((schema) => {
-      const key = describe(schema)
+      const key = PartneredSchemaMerger._describe(schema)
       const isNew = !seen.has(key)
       seen.add(key)
       return isNew
     })
-    const problems = []
-    const versionsByLibrary = new Map()
-    for (const schema of members) {
-      versionsByLibrary.set(schema.library, [...(versionsByLibrary.get(schema.library) ?? []), schema.version])
-    }
-    for (const [library, versions] of versionsByLibrary) {
-      if (versions.length > 1) {
-        const what = library ? `library "${library}"` : 'the standard schema'
-        problems.push(`different versions of ${what} in one merge group [${versions.join(', ')}]`)
-      }
-    }
     const libraries = members.filter((schema) => schema.library)
-    const standards = members.filter((schema) => !schema.library)
-    if (members.length > 1) {
-      for (const schema of libraries) {
-        if (!schema.withStandard) {
-          problems.push(`unpartnered library schema "${describe(schema)}" must be alone in its namespace`)
-        }
-      }
-    }
-    const partners = [...new Set(libraries.map((schema) => schema.withStandard).filter(Boolean))].sort()
-    if (partners.length > 1) {
-      problems.push(`library schemas in one merge group have different partners [${partners.join(', ')}]`)
-    }
-    const partner = partners.length === 1 ? partners[0] : undefined
-    for (const schema of standards) {
-      if (partner !== undefined && schema.version !== partner) {
-        problems.push(`standard schema "${schema.version}" differs from the group partner "${partner}"`)
-      }
-    }
+    const problems = [
+      ...PartneredSchemaMerger._versionProblems(members),
+      ...PartneredSchemaMerger._partnerProblems(members, libraries),
+    ]
     if (problems.length > 0) {
       IssueError.generateAndThrow('schemaGroupInvalid', {
-        versions: this.sourceSchemas.map(describe).join(', '),
+        versions: this.sourceSchemas.map(PartneredSchemaMerger._describe).join(', '),
         problems: problems.join('; '),
       })
     }
@@ -109,6 +83,70 @@ export default class PartneredSchemaMerger {
     }
     // A listed standard schema of the partner version adds nothing: every library file already contains it.
     return libraries
+  }
+
+  /**
+   * Name a schema for messages.
+   *
+   * @param {Schema} schema A schema.
+   * @returns {string} "library_version" or "version".
+   * @private
+   */
+  static _describe(schema) {
+    return schema.library ? `${schema.library}_${schema.version}` : schema.version
+  }
+
+  /**
+   * Find the schemas listed in more than one version.
+   *
+   * @param {Schema[]} members The distinct schemas of the group.
+   * @returns {string[]} One problem per schema listed in several versions.
+   * @private
+   */
+  static _versionProblems(members) {
+    const versionsByLibrary = new Map()
+    for (const schema of members) {
+      versionsByLibrary.set(schema.library, [...(versionsByLibrary.get(schema.library) ?? []), schema.version])
+    }
+    const problems = []
+    for (const [library, versions] of versionsByLibrary) {
+      if (versions.length > 1) {
+        const what = library ? `library "${library}"` : 'the standard schema'
+        problems.push(`different versions of ${what} in one merge group [${versions.join(', ')}]`)
+      }
+    }
+    return problems
+  }
+
+  /**
+   * Check the partnering rules: an unpartnered library is alone, every library has the same partner, and a
+   * listed standard schema is that partner.
+   *
+   * @param {Schema[]} members The distinct schemas of the group.
+   * @param {Schema[]} libraries The library schemas among them.
+   * @returns {string[]} One problem per broken rule.
+   * @private
+   */
+  static _partnerProblems(members, libraries) {
+    const problems = []
+    if (members.length > 1) {
+      for (const schema of libraries.filter((library) => !library.withStandard)) {
+        const name = PartneredSchemaMerger._describe(schema)
+        problems.push(`unpartnered library schema "${name}" must be alone in its namespace`)
+      }
+    }
+    const partners = [...new Set(libraries.map((schema) => schema.withStandard).filter(Boolean))]
+    partners.sort((a, b) => a.localeCompare(b))
+    if (partners.length > 1) {
+      problems.push(`library schemas in one merge group have different partners [${partners.join(', ')}]`)
+    }
+    const partner = partners.length === 1 ? partners[0] : undefined
+    for (const schema of members.filter((member) => !member.library)) {
+      if (partner !== undefined && schema.version !== partner) {
+        problems.push(`standard schema "${schema.version}" differs from the group partner "${partner}"`)
+      }
+    }
+    return problems
   }
 
   /**
@@ -205,36 +243,59 @@ export default class PartneredSchemaMerger {
     let added = 0
     for (const unitClass of this.currentSource.entries.unitClasses.values()) {
       const target = destinationClasses.getEntry(unitClass.name)
-      if (unitClass.libraries.length > 0 && target === undefined) {
-        const copy = new SchemaUnitClass(
-          unitClass.name,
-          unitClass.booleanAttributes,
-          unitClass.valueAttributes,
-          new Map(unitClass.units),
-        )
-        copy.description = unitClass.description
-        destinationClasses.addEntry(copy.name, copy)
-        added += copy.units.size
+      const isDeclared = unitClass.libraries.length > 0
+      if (isDeclared && target === undefined) {
+        added += this._copyUnitClass(unitClass)
+      } else if (target !== undefined) {
+        if (isDeclared && !PartneredSchemaMerger._isUnitClassPlaceholder(unitClass)) {
+          // A redeclaration of an existing class; a bare one (inLibrary only) just adds units to it.
+          this._checkCompatible(target, unitClass, 'unit classes', this._entryDifferences(target, unitClass))
+        }
+        added += this._mergeUnits(target, unitClass)
+      }
+    }
+    return added
+  }
+
+  /**
+   * Copy a library-declared unit class, with its units, into the destination.
+   *
+   * @param {SchemaUnitClass} unitClass The unit class to copy.
+   * @returns {number} The number of units copied.
+   * @private
+   */
+  _copyUnitClass(unitClass) {
+    const copy = new SchemaUnitClass(
+      unitClass.name,
+      unitClass.booleanAttributes,
+      unitClass.valueAttributes,
+      new Map(unitClass.units),
+    )
+    copy.description = unitClass.description
+    this.destination.entries.unitClasses.addEntry(copy.name, copy)
+    return copy.units.size
+  }
+
+  /**
+   * Merge the library-declared units of a source unit class into the destination's class of that name.
+   *
+   * @param {SchemaUnitClass} target The destination's unit class.
+   * @param {SchemaUnitClass} unitClass The source's unit class.
+   * @returns {number} The number of units added.
+   * @private
+   */
+  _mergeUnits(target, unitClass) {
+    let added = 0
+    for (const unit of unitClass.units.values()) {
+      if (unit.libraries.length === 0) {
         continue
       }
-      if (unitClass.libraries.length > 0 && !PartneredSchemaMerger._isUnitClassPlaceholder(unitClass)) {
-        // A redeclaration of an existing class; a bare one (inLibrary only) just adds units to it.
-        this._checkCompatible(target, unitClass, 'unit classes', this._entryDifferences(target, unitClass))
-      }
-      if (target === undefined) {
-        continue
-      }
-      for (const unit of unitClass.units.values()) {
-        if (unit.libraries.length === 0) {
-          continue
-        }
-        const existingUnit = target.units.get(unit.name)
-        if (existingUnit === undefined) {
-          target.addUnit(unit)
-          added++
-        } else {
-          this._checkCompatible(existingUnit, unit, 'units', this._entryDifferences(existingUnit, unit))
-        }
+      const existingUnit = target.units.get(unit.name)
+      if (existingUnit === undefined) {
+        target.addUnit(unit)
+        added++
+      } else {
+        this._checkCompatible(existingUnit, unit, 'units', this._entryDifferences(existingUnit, unit))
       }
     }
     return added
@@ -342,13 +403,15 @@ export default class PartneredSchemaMerger {
    * @private
    */
   static _attributeSummary(entry) {
+    const byName = (a, b) => a.localeCompare(b)
     if (entry instanceof SchemaAttribute) {
-      return `{${[...entry.propertyNames].sort().join(', ')}}`
+      return `{${[...entry.propertyNames].sort(byName).join(', ')}}`
     }
-    const parts = [...(entry.booleanAttributeNames ?? [])].sort()
-    for (const [name, values] of [...(entry.valueAttributeNames ?? [])].sort(([a], [b]) => (a < b ? -1 : 1))) {
+    const parts = [...(entry.booleanAttributeNames ?? [])].sort(byName)
+    const valueAttributes = [...(entry.valueAttributeNames ?? [])].sort(([a], [b]) => byName(a, b))
+    for (const [name, values] of valueAttributes) {
       if (name !== 'inLibrary') {
-        parts.push(`${name}=${[...values].sort().join('|')}`)
+        parts.push(`${name}=${[...values].sort(byName).join('|')}`)
       }
     }
     if (entry instanceof SchemaTag && entry.hasUnitClasses) {

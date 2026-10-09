@@ -705,31 +705,50 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
     if (baseFactor === null || !this.validateUnit(value)) {
       return null
     }
-    if (this._compoundComponents !== null) {
-      let factor = baseFactor
-      for (const [index, modifier] of this._matchCompound(value).entries()) {
-        if (modifier === '') {
-          continue
-        }
-        const modifierFactor = this._modifierFactors.get(modifier)
-        if (modifierFactor === null) {
-          return null
-        }
-        const exponent = this._compoundComponents[index].exponent
-        factor *= modifierFactor ** (index === 0 ? exponent : -exponent)
+    const modifierFactor =
+      this._compoundComponents === null ? this._simpleModifierFactor(value) : this._compoundModifierFactor(value)
+    return modifierFactor === null ? null : baseFactor * modifierFactor
+  }
+
+  /**
+   * Get the combined factor of the modifiers in a form of this compound unit.
+   *
+   * @param {string} value A unit string accepted by validateUnit.
+   * @returns {number|null} The factor (1 when no modifier is used), or null if a modifier used has no factor.
+   * @private
+   */
+  _compoundModifierFactor(value) {
+    let factor = 1
+    for (const [index, modifier] of this._matchCompound(value).entries()) {
+      if (modifier === '') {
+        continue
       }
-      return factor
+      const modifierFactor = this._modifierFactors.get(modifier)
+      if (modifierFactor === null) {
+        return null
+      }
+      const exponent = this._compoundComponents[index].exponent
+      factor *= modifierFactor ** (index === 0 ? exponent : -exponent)
     }
+    return factor
+  }
+
+  /**
+   * Get the factor of the modifier in a form of this non-compound unit.
+   *
+   * @param {string} value A unit string accepted by validateUnit.
+   * @returns {number|null} The factor (1 when no modifier is used), or null if the modifier used has no factor.
+   * @private
+   */
+  _simpleModifierFactor(value) {
     const plainForms = this.isUnitSymbol ? [this.name] : [this.name, this._derivativeUnits[1]]
     if (this.isPrefixUnit || plainForms.includes(value)) {
-      return baseFactor
+      return 1
     }
-    for (const [modifier, modifierFactor] of this._modifierFactors) {
-      if (value.startsWith(modifier) && plainForms.includes(value.slice(modifier.length))) {
-        return modifierFactor === null ? null : baseFactor * modifierFactor
-      }
-    }
-    return null
+    const modifier = [...this._modifierFactors.keys()].find(
+      (name) => value.startsWith(name) && plainForms.includes(value.slice(name.length)),
+    )
+    return modifier === undefined ? null : this._modifierFactors.get(modifier)
   }
 }
 
