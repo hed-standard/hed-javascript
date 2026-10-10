@@ -53,6 +53,30 @@ export class IssueError extends Error {
   static generateAndThrowInternalError(message = 'Unknown internal error') {
     IssueError.generateAndThrow('internalError', { message: message })
   }
+  /**
+   * Generate and re-throw an error according to `generateFn`.
+   *
+   * @remarks
+   * This method will pass `error` to `generateFn`, unless it is not an {@link Error} object (in which case,
+   * it will generate an internal error via {@link IssueError.generateAndThrowInternalError}). generateFn` is
+   * expected to return an internal issue code and parameter object, which will be passed to
+   * {@link IssueError.generateAndThrow}. Failure to provide an internal issue code will also result in an internal error.
+   *
+   * @param error This is expected to be an object of {@link Error} or a subclass.
+   * @param generateFn A function which is passed the screened error object and returns an internal error code and parameter object.
+   * @param illegalErrorTypeMessage A message to be used for an illegal error type.
+   */
+  static generateAndRethrow(error, generateFn, illegalErrorTypeMessage = 'Unknown internal error') {
+    if (error instanceof Error) {
+      const [internalCode, parameters] = generateFn(error)
+      if (!internalCode) {
+        IssueError.generateAndThrowInternalError('Failed to provide valid internal code to re-throw static method')
+      }
+      IssueError.generateAndThrow(internalCode, parameters)
+    } else {
+      IssueError.generateAndThrowInternalError(illegalErrorTypeMessage)
+    }
+  }
 }
 
 /**

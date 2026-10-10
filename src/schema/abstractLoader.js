@@ -11,7 +11,7 @@ import { HedSchemaXMLCollection } from './xmlType'
 import { IssueError } from '../issues/issues'
 import * as files from '../utils/files'
 import { splitStringTrimAndRemoveBlanks } from '../utils/string'
-import { parseSchemaXML } from '../utils/xml'
+import parseSchemaXML from '../utils/xml'
 export default class AbstractHedSchemaLoader {
   /**
    * Build a schema collection object from a schema specification.

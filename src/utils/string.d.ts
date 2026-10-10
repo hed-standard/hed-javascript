@@ -2,8 +2,7 @@
  * String-related utility functions
  * @module utils/string
  */
-import { isJsonObject } from './types'
-import { IssueError } from '../issues/issues'
+import { type JsonObject } from './types'
 /**
  * Get number of instances of a character in a string.
  *
@@ -11,9 +10,7 @@ import { IssueError } from '../issues/issues'
  * @param characterToCount - The character to search for.
  * @returns The number of instances of the character in the string.
  */
-export function getCharacterCount(string, characterToCount) {
-  return string.split(characterToCount).length - 1
-}
+export declare function getCharacterCount(string: string, characterToCount: string): number
 /**
  * Split a string on a given delimiter, trim the substrings, and remove any blank substrings from the returned array.
  *
@@ -21,26 +18,19 @@ export function getCharacterCount(string, characterToCount) {
  * @param delimiter - The delimiter on which to split.
  * @returns The split string with blanks removed and the remaining entries trimmed.
  */
-export function splitStringTrimAndRemoveBlanks(string, delimiter = ',') {
-  return string
-    .split(delimiter)
-    .map((item) => item.trim())
-    .filter(Boolean)
-}
+export declare function splitStringTrimAndRemoveBlanks(string: string, delimiter?: string): string[]
 /**
  * Parse a JSON string.
  *
  * @param jsonText A JSON string.
  * @returns The parsed JSON object.
  */
-export function parseJson(jsonText) {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const jsonData = JSON.parse(jsonText)
-  if (!isJsonObject(jsonData)) {
-    IssueError.generateAndThrowInternalError('JSON data has wrong type')
-  }
-  return jsonData
-}
+export declare function parseJson(jsonText: string): JsonObject
+export type IssueMessageTemplateString = (
+  parameterValues: Record<string, string>,
+  start?: number,
+  end?: number,
+) => string
 /**
  * Parse a template literal string.
  *
@@ -50,14 +40,7 @@ export function parseJson(jsonText) {
  * @param parameterKeys - The keys of the closure arguments.
  * @returns A closure to fill the string template.
  */
-export function issueMessageTemplate(strings, ...parameterKeys) {
-  return function (parameterValues, start, end) {
-    const bounds = [start, end]
-    const result = [strings[0]]
-    parameterKeys.forEach((key, i) => {
-      const value = typeof key === 'number' ? String(bounds[key]) : parameterValues[key]
-      result.push(value, strings[i + 1])
-    })
-    return result.join('')
-  }
-}
+export declare function issueMessageTemplate(
+  strings: TemplateStringsArray,
+  ...parameterKeys: Array<number | string>
+): IssueMessageTemplateString

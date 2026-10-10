@@ -12,13 +12,14 @@ export default class SchemaUnit extends SchemaEntryWithAttributes {
   /**
    * Constructor.
    *
-   * @param name - The name of the unit.
+   * @param name - The name of this unit.
+   * @param description - The description of this tag.
    * @param booleanAttributes - This unit's boolean attributes.
    * @param valueAttributes - This unit's key-value attributes.
    * @param unitModifiers - The collection of unit modifiers.
    */
-  constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
-    super(name, booleanAttributes, valueAttributes)
+  constructor(name, description, booleanAttributes, valueAttributes, unitModifiers) {
+    super(name, description, booleanAttributes, valueAttributes)
     this._derivativeUnits = [name]
     if (!this.isSIUnit) {
       this._pushPluralUnit()

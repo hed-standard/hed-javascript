@@ -13,14 +13,6 @@ export declare class Schema {
    * This schema's prefix in the active schema set.
    */
   readonly prefix: string
-  /**
-   * Constructor.
-   *
-   * @param xmlData - The schema XML data.
-   * @param entries - A collection of schema entries.
-   * @param prefix - This schema's prefix in the active schema set.
-   */
-  constructor(xmlData: HedSchemaXMLObject, entries: SchemaEntries, prefix: string)
 
   /**
    * This was formerly the schema version.
@@ -51,6 +43,15 @@ export declare class Schema {
    * @returns An empty string.
    */
   get withStandard(): string
+
+  /**
+   * Constructor.
+   *
+   * @param xmlData - The schema XML data.
+   * @param entries - A collection of schema entries.
+   * @param prefix - This schema's prefix in the active schema set.
+   */
+  constructor(xmlData: HedSchemaXMLObject, entries: SchemaEntries, prefix: string)
 }
 /**
  * The collection of active HED schemas.

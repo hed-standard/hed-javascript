@@ -6,6 +6,13 @@ import { IssueError } from '../../issues/issues'
  */
 export default class SchemaEntryWithAttributes extends SchemaEntry {
   /**
+   * The set of attribute names to ignore when checking for equality.
+   */
+  static IGNORED_ATTRIBUTES = new Set([
+    'inLibrary', // Checked separately
+    'hedId', // Will always differ
+  ])
+  /**
    * The set of boolean attributes this schema entry has.
    */
   booleanAttributes
@@ -21,8 +28,8 @@ export default class SchemaEntryWithAttributes extends SchemaEntry {
    * The collection of value attribute names this schema entry has.
    */
   valueAttributeNames
-  constructor(name, booleanAttributes, valueAttributes) {
-    super(name)
+  constructor(name, description, booleanAttributes, valueAttributes) {
+    super(name, description)
     this.booleanAttributes = booleanAttributes
     this.valueAttributes = valueAttributes
     this.booleanAttributeNames = new Set()
@@ -57,14 +64,16 @@ export default class SchemaEntryWithAttributes extends SchemaEntry {
     if (this.valueAttributes.size !== other.valueAttributes.size) {
       return false
     }
-    const otherKeys = Array.from(other.valueAttributes.keys())
     for (const [key, value] of this.valueAttributes) {
-      const otherKey = otherKeys.find((otherKey) => key.equivalent(otherKey))
+      if (SchemaEntryWithAttributes.IGNORED_ATTRIBUTES.has(key.name)) {
+        continue
+      }
+      const otherValue = other.valueAttributes.get(key)
       if (
-        !otherKey ||
+        !otherValue ||
         !isEqual(
           value.toSorted((a, b) => a.localeCompare(b)),
-          other.valueAttributes.get(otherKey).toSorted((a, b) => a.localeCompare(b)),
+          otherValue.toSorted((a, b) => a.localeCompare(b)),
         )
       ) {
         return false

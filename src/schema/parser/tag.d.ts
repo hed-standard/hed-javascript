@@ -77,6 +77,7 @@ export default class TagParser extends SchemaEntryWithAttributesParser<SchemaTag
    *
    * @param booleanAttributeDefinitions - The map from shortened tag names to their boolean schema attributes.
    * @param valueAttributeDefinitions - The map from shortened tag names to their value schema attributes.
+   * @param descriptions - The map from shortened tag names to their descriptions.
    * @param tagUnitClassDefinitions - The map from shortened tag names to their unit classes.
    * @param tagValueClassDefinitions - The map from shortened tag names to their value classes.
    * @param parentMap - The map from each tag name to its parent tag name.

@@ -8,6 +8,7 @@ export default class ValueClassParser extends SchemaDefinitionEntryParser<Schema
   protected _getDefinitions(schemaXml: HedSchemaXMLObject): Iterable<DefinitionElement> | undefined
   protected _buildEntry(
     name: string,
+    description: string | undefined,
     booleanAttributes: Set<SchemaAttribute>,
     valueAttributes: Map<SchemaAttribute, string[]>,
   ): SchemaValueClass

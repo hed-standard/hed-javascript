@@ -1,5 +1,5 @@
 import SchemaEntryManager from '../entries/schemaEntryManager'
-import { getElementTagName } from '../xmlType'
+import { getElementName, getElementDescription } from '../xmlType'
 import { IssueError } from '../../issues/issues'
 /**
  * A parser for a specific {@link SchemaEntry} subtype.
@@ -31,12 +31,9 @@ export class SchemaEntryParser {
    * @internal
    */
   parse() {
-    this._parseSchema(this.xmlCollection.baseSchema)
-    for (const mergedSchema of this.xmlCollection.mergedSchemas) {
-      this._parseSchema(mergedSchema)
-    }
-    for (const unmergedSchema of this.xmlCollection.unmergedSchemas) {
-      this._parseSchema(unmergedSchema)
+    this._preprocessSchemas(this.xmlCollection)
+    for (const schema of this.xmlCollection) {
+      this._parseSchema(schema)
     }
     this._addCustomEntries()
     return new SchemaEntryManager(this.entryTypeMap)
@@ -57,6 +54,13 @@ export class SchemaEntryParser {
     }
   }
   /**
+   * Preprocess the schema collection.
+   *
+   * @param schemaXml - The XML collection.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _preprocessSchemas(schemaXml) {}
+  /**
    * Add any custom entries required by the platform to support old versions.
    */
   _addCustomEntries() {}
@@ -68,25 +72,27 @@ export class SchemaEntryWithAttributesParser extends SchemaEntryParser {
     this.attributes = attributes
   }
   _parseDefinitions(definitionElements) {
-    return this._parseAttributeElements(definitionElements, getElementTagName)
+    return this._parseAttributeElements(definitionElements, getElementName)
   }
   _parseAttributeElements(elements, namer) {
     const booleanAttributeDefinitions = new Map()
     const valueAttributeDefinitions = new Map()
+    const descriptions = new Map()
     for (const element of elements) {
       const [booleanAttributes, valueAttributes] = this._parseAttributeElement(element)
       const elementName = namer(element)
       booleanAttributeDefinitions.set(elementName, booleanAttributes)
       valueAttributeDefinitions.set(elementName, valueAttributes)
+      descriptions.set(elementName, getElementDescription(element))
     }
-    return [booleanAttributeDefinitions, valueAttributeDefinitions]
+    return [booleanAttributeDefinitions, valueAttributeDefinitions, descriptions]
   }
   _parseAttributeElement(element) {
     const booleanAttributes = new Set()
     const valueAttributes = new Map()
     const tagAttributes = element.attribute ?? []
     for (const tagAttribute of tagAttributes) {
-      const attributeName = getElementTagName(tagAttribute)
+      const attributeName = getElementName(tagAttribute)
       const attribute = this.attributes.getEntry(attributeName)
       if (!attribute) {
         IssueError.generateAndThrow('invalidSchema', { error: 'Referenced schema attribute was not found' })
@@ -103,17 +109,15 @@ export class SchemaEntryWithAttributesParser extends SchemaEntryParser {
 }
 export class SchemaDefinitionEntryParser extends SchemaEntryWithAttributesParser {
   _parseSchema(schemaXml) {
-    this._preprocessSchema(schemaXml)
     const definitions = this._getDefinitions(schemaXml)
     if (!definitions) {
       return
     }
-    const [booleanAttributeDefinitions, valueAttributeDefinitions] = this._parseDefinitions(definitions)
+    const [booleanAttributeDefinitions, valueAttributeDefinitions, descriptions] = this._parseDefinitions(definitions)
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name) ?? new Set()
-      this.addEntry(name, this._buildEntry(name, booleanAttributes, valueAttributes))
+      const description = descriptions.get(name)
+      this.addEntry(name, this._buildEntry(name, description, booleanAttributes, valueAttributes))
     }
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _preprocessSchema(schemaXml) {}
 }

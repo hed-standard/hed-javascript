@@ -9,10 +9,10 @@ export default class ValueClassParser extends SchemaDefinitionEntryParser {
   _getDefinitions(schemaXml) {
     return schemaXml.HED.valueClassDefinitions.valueClassDefinition
   }
-  _buildEntry(name, booleanAttributes, valueAttributes) {
+  _buildEntry(name, description, booleanAttributes, valueAttributes) {
     const charRegex = this._getValueClassChars(name)
     const wordRegex = new RegExp(classRegex.class_words[name] ?? '^.+$')
-    return new SchemaValueClass(name, booleanAttributes, valueAttributes, charRegex, wordRegex)
+    return new SchemaValueClass(name, description, booleanAttributes, valueAttributes, charRegex, wordRegex)
   }
   _getValueClassChars(name) {
     let classChars

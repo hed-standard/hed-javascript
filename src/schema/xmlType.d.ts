@@ -3,15 +3,21 @@ export type NamedElement = {
     _: string
   }
 }
+export type DescribedElement = {
+  description?: {
+    _: string
+  }
+}
 export type AttributeValue = string | number
 export type AttributeElement = NamedElement & {
   value?: {
     _: AttributeValue
   }[]
 }
-export type DefinitionElement = NamedElement & {
-  attribute?: AttributeElement[]
-}
+export type DefinitionElement = NamedElement &
+  DescribedElement & {
+    attribute?: AttributeElement[]
+  }
 export type NodeElement = DefinitionElement & {
   node?: NodeElement[]
   $parent?: NodeElement | null
@@ -19,9 +25,11 @@ export type NodeElement = DefinitionElement & {
 type UnitClassElement = DefinitionElement & {
   unit: DefinitionElement[]
 }
-type SchemaAttributeElement = NamedElement & {
-  property: AttributeElement[]
-}
+type SchemaAttributeElement = NamedElement &
+  DescribedElement & {
+    property: AttributeElement[]
+  }
+type PropertyElement = NamedElement & DescribedElement
 export type HedSchemaRootElement = {
   $: {
     version: string
@@ -45,7 +53,7 @@ export type HedSchemaRootElement = {
     schemaAttributeDefinition?: SchemaAttributeElement[]
   }
   propertyDefinitions: {
-    propertyDefinition?: NamedElement[]
+    propertyDefinition?: PropertyElement[]
   }
 }
 export type HedSchemaXMLObject = {
@@ -62,6 +70,7 @@ export declare class HedSchemaXMLCollection {
     mergedSchemas?: HedSchemaXMLObject[],
     unmergedSchemas?: HedSchemaXMLObject[],
   )
+  [Symbol.iterator](): Generator<HedSchemaXMLObject>
 }
 /**
  * Extract the name of an XML element.
@@ -69,5 +78,12 @@ export declare class HedSchemaXMLCollection {
  * @param element - An XML element.
  * @returns The name of the element.
  */
-export declare function getElementTagName(this: void, element: NamedElement): string
+export declare function getElementName(this: void, element: NamedElement): string
+/**
+ * Extract the description of an XML element.
+ *
+ * @param element - An XML element.
+ * @returns The description of the element.
+ */
+export declare function getElementDescription(this: void, element: DescribedElement): string | undefined
 export {}

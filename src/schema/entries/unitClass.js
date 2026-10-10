@@ -11,12 +11,13 @@ export default class SchemaUnitClass extends SchemaEntryWithAttributes {
    * Constructor.
    *
    * @param name - The name of this unit class.
+   * @param description - The description of this unit class.
    * @param booleanAttributes - The boolean attributes for this unit class.
    * @param valueAttributes - The value attributes for this unit class.
    * @param units - The units for this unit class.
    */
-  constructor(name, booleanAttributes, valueAttributes, units) {
-    super(name, booleanAttributes, valueAttributes)
+  constructor(name, description, booleanAttributes, valueAttributes, units) {
+    super(name, description, booleanAttributes, valueAttributes)
     this._units = units
   }
   /**

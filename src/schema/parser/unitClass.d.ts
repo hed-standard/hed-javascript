@@ -13,10 +13,11 @@ export default class UnitClassParser extends SchemaDefinitionEntryParser<SchemaU
     attributes: SchemaEntryManager<SchemaAttribute>,
     unitModifiers: SchemaEntryManager<SchemaUnitModifier>,
   )
-  protected _preprocessSchema(schemaXml: HedSchemaXMLObject): void
+  protected _preprocessSchemas(schemaXml: HedSchemaXMLCollection): void
   protected _getDefinitions(schemaXml: HedSchemaXMLObject): Iterable<DefinitionElement> | undefined
   protected _buildEntry(
     name: string,
+    description: string | undefined,
     booleanAttributes: Set<SchemaAttribute>,
     valueAttributes: Map<SchemaAttribute, string[]>,
   ): SchemaUnitClass

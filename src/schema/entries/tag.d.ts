@@ -28,6 +28,7 @@ export default class SchemaTag extends SchemaEntryWithAttributes {
    * Constructor.
    *
    * @param name - The name of this tag.
+   * @param description - The description of this tag.
    * @param parentTag - This tag's parent tag.
    * @param booleanAttributes - The boolean attributes for this tag.
    * @param valueAttributes - The value attributes for this tag.
@@ -36,6 +37,7 @@ export default class SchemaTag extends SchemaEntryWithAttributes {
    */
   constructor(
     name: string,
+    description: string | undefined,
     parentTag: SchemaTag | undefined,
     booleanAttributes: Set<SchemaAttribute>,
     valueAttributes: Map<SchemaAttribute, string[]>,

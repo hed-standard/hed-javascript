@@ -5,6 +5,10 @@ import type SchemaAttribute from './attribute'
  */
 export default class SchemaEntryWithAttributes extends SchemaEntry {
   /**
+   * The set of attribute names to ignore when checking for equality.
+   */
+  private static readonly IGNORED_ATTRIBUTES
+  /**
    * The set of boolean attributes this schema entry has.
    */
   readonly booleanAttributes: Set<SchemaAttribute>
@@ -20,7 +24,12 @@ export default class SchemaEntryWithAttributes extends SchemaEntry {
    * The collection of value attribute names this schema entry has.
    */
   readonly valueAttributeNames: Map<string, string[]>
-  constructor(name: string, booleanAttributes: Set<SchemaAttribute>, valueAttributes: Map<SchemaAttribute, string[]>)
+  constructor(
+    name: string,
+    description: string | undefined,
+    booleanAttributes: Set<SchemaAttribute>,
+    valueAttributes: Map<SchemaAttribute, string[]>,
+  )
   /**
    * Determine if this schema entry is equivalent to another schema entry.
    *

@@ -43,6 +43,12 @@ export declare abstract class SchemaEntryParser<T extends SchemaEntry> {
    */
   protected addEntry(newEntryName: string, newEntry: T): void
   /**
+   * Preprocess the schema collection.
+   *
+   * @param schemaXml - The XML collection.
+   */
+  protected _preprocessSchemas(schemaXml: HedSchemaXMLCollection): void
+  /**
    * Parse this entry type for a specific schema.
    *
    * @param schemaXml - The XML for a specific schema.
@@ -60,21 +66,21 @@ export declare abstract class SchemaEntryWithAttributesParser<
   protected constructor(xmlCollection: HedSchemaXMLCollection, attributes: SchemaEntryManager<SchemaAttribute>)
   protected _parseDefinitions(
     definitionElements: Iterable<DefinitionElement>,
-  ): [Map<string, Set<SchemaAttribute>>, Map<string, Map<SchemaAttribute, string[]>>]
+  ): [Map<string, Set<SchemaAttribute>>, Map<string, Map<SchemaAttribute, string[]>>, Map<string, string | undefined>]
   protected _parseAttributeElements(
     elements: Iterable<DefinitionElement>,
     namer: (element: NamedElement) => string,
-  ): [Map<string, Set<SchemaAttribute>>, Map<string, Map<SchemaAttribute, string[]>>]
+  ): [Map<string, Set<SchemaAttribute>>, Map<string, Map<SchemaAttribute, string[]>>, Map<string, string | undefined>]
   private _parseAttributeElement
 }
 export declare abstract class SchemaDefinitionEntryParser<
   T extends SchemaEntryWithAttributes,
 > extends SchemaEntryWithAttributesParser<T> {
   protected _parseSchema(schemaXml: HedSchemaXMLObject): void
-  protected _preprocessSchema(schemaXml: HedSchemaXMLObject): void
   protected abstract _getDefinitions(schemaXml: HedSchemaXMLObject): Iterable<DefinitionElement> | undefined
   protected abstract _buildEntry(
     name: string,
+    description: string | undefined,
     booleanAttributes: Set<SchemaAttribute>,
     valueAttributes: Map<SchemaAttribute, string[]>,
   ): T

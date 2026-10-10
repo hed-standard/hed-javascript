@@ -7,7 +7,7 @@ export default class UnitModifierParser extends SchemaDefinitionEntryParser {
   _getDefinitions(schemaXml) {
     return schemaXml.HED.unitModifierDefinitions.unitModifierDefinition
   }
-  _buildEntry(name, booleanAttributes, valueAttributes) {
-    return new SchemaUnitModifier(name, booleanAttributes, valueAttributes)
+  _buildEntry(name, description, booleanAttributes, valueAttributes) {
+    return new SchemaUnitModifier(name, description, booleanAttributes, valueAttributes)
   }
 }

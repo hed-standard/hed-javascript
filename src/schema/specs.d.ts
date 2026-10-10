@@ -36,6 +36,10 @@ export declare class SchemaSpec {
    */
   get localName(): string
   /**
+   * Compute the canonical form of this specification.
+   */
+  toString(): string
+  /**
    * Determine if this schema specification is equivalent to another schema specification.
    *
    * @remarks

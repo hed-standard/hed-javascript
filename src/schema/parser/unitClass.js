@@ -1,4 +1,4 @@
-import { getElementTagName } from '../xmlType'
+import { getElementName } from '../xmlType'
 import { SchemaDefinitionEntryParser } from './schemaEntry'
 import SchemaUnitClass from '../entries/unitClass'
 import SchemaUnit from '../entries/unit'
@@ -11,34 +11,41 @@ export default class UnitClassParser extends SchemaDefinitionEntryParser {
     super(xmlCollection, attributes)
     this.unitModifiers = unitModifiers
   }
-  _preprocessSchema(schemaXml) {
-    this.parseUnits(schemaXml)
+  _preprocessSchemas(schemaXml) {
+    this.unitClassesUnits = new Map()
+    for (const schema of schemaXml) {
+      this.parseUnits(schema)
+    }
   }
   _getDefinitions(schemaXml) {
     return schemaXml.HED.unitClassDefinitions.unitClassDefinition
   }
-  _buildEntry(name, booleanAttributes, valueAttributes) {
-    return new SchemaUnitClass(name, booleanAttributes, valueAttributes, this.unitClassesUnits.get(name) ?? new Map())
+  _buildEntry(name, description, booleanAttributes, valueAttributes) {
+    return new SchemaUnitClass(
+      name,
+      description,
+      booleanAttributes,
+      valueAttributes,
+      this.unitClassesUnits.get(name) ?? new Map(),
+    )
   }
   parseUnits(schemaXml) {
-    this.unitClassesUnits = new Map()
     const unitClassElements = schemaXml.HED.unitClassDefinitions.unitClassDefinition
     if (!unitClassElements) {
       return
     }
     for (const element of unitClassElements) {
-      const elementName = getElementTagName(element)
-      this.unitClassUnits = this.entryTypeMap.get(elementName)?.units ?? new Map()
+      const elementName = getElementName(element)
+      this.unitClassUnits = this.unitClassesUnits.get(elementName) ?? new Map()
       if (element.unit === undefined) {
         continue
       }
-      const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions] = this._parseAttributeElements(
-        element.unit,
-        getElementTagName,
-      )
+      const [unitBooleanAttributeDefinitions, unitValueAttributeDefinitions, unitValueDescriptions] =
+        this._parseAttributeElements(element.unit, getElementName)
       for (const [name, valueAttributes] of unitValueAttributeDefinitions) {
         const booleanAttributes = unitBooleanAttributeDefinitions.get(name) ?? new Set()
-        this.addUnit(name, new SchemaUnit(name, booleanAttributes, valueAttributes, this.unitModifiers))
+        const description = unitValueDescriptions.get(name)
+        this.addUnit(name, new SchemaUnit(name, description, booleanAttributes, valueAttributes, this.unitModifiers))
       }
       this.unitClassesUnits.set(elementName, this.unitClassUnits)
     }

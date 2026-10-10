@@ -1,4 +1,4 @@
-import { getElementTagName } from '../xmlType'
+import { getElementDescription, getElementName } from '../xmlType'
 import { SchemaEntryParser } from './schemaEntry'
 import SchemaAttribute from '../entries/attribute'
 export default class AttributeParser extends SchemaEntryParser {
@@ -27,13 +27,17 @@ export default class AttributeParser extends SchemaEntryParser {
       return
     }
     for (const definition of attributeDefinitions) {
-      const attributeName = getElementTagName(definition)
+      const attributeName = getElementName(definition)
+      const attributeDescription = getElementDescription(definition)
       const propertyElements = definition.property ?? []
       const properties = propertyElements
-        .map((element) => this.properties.getEntry(getElementTagName(element)))
+        .map((element) => this.properties.getEntry(getElementName(element)))
         .filter((property) => property !== undefined)
       const isRecursive = this._determineAttributeRecursion(properties)
-      this.addEntry(attributeName, new SchemaAttribute(attributeName, new Set(properties), isRecursive))
+      this.addEntry(
+        attributeName,
+        new SchemaAttribute(attributeName, attributeDescription, new Set(properties), isRecursive),
+      )
     }
   }
   /**

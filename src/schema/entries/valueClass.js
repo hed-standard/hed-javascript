@@ -16,13 +16,14 @@ export default class SchemaValueClass extends SchemaEntryWithAttributes {
    * Constructor.
    *
    * @param name - The name of this value class.
+   * @param description - The description of this value class.
    * @param booleanAttributes - The boolean attributes for this value class.
    * @param valueAttributes - The value attributes for this value class.
    * @param charClassRegex - The character class-based regular expression for this value class.
    * @param wordRegex - The "word form"-based regular expression for this value class.
    */
-  constructor(name, booleanAttributes, valueAttributes, charClassRegex, wordRegex) {
-    super(name, booleanAttributes, valueAttributes)
+  constructor(name, description, booleanAttributes, valueAttributes, charClassRegex, wordRegex) {
+    super(name, description, booleanAttributes, valueAttributes)
     this._charClassRegex = charClassRegex
     this._wordRegex = wordRegex
   }

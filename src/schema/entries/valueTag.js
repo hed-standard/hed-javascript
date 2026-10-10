@@ -13,16 +13,17 @@ export default class SchemaValueTag extends SchemaTag {
    * Constructor.
    *
    * @param name - The name of this tag.
+   * @param description - The description of this tag.
    * @param parentTag - This tag's parent tag.
    * @param booleanAttributes - The boolean attributes for this tag.
    * @param valueAttributes - The value attributes for this tag.
    * @param unitClasses - The unit classes for this tag.
    * @param valueClasses - The value classes for this tag.
    */
-  constructor(name, parentTag, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
-    super(name, parentTag, booleanAttributes, valueAttributes, unitClasses, valueClasses)
+  constructor(name, description, parentTag, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
+    super(name, description, parentTag, booleanAttributes, valueAttributes, unitClasses, valueClasses)
     if (parentTag === undefined) {
-      IssueError.generateAndThrowInternalError('Value tag must have parent')
+      IssueError.generateAndThrowInternalError(`Value tag "${name}" must have parent`)
     }
     parentTag.valueTag = this
   }

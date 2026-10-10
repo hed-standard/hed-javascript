@@ -6,14 +6,25 @@ export default class SchemaEntry {
    * The name of this schema entry.
    */
   _name
-  constructor(name) {
+  /**
+   * The description of this schema entry.
+   */
+  _description
+  constructor(name, description) {
     this._name = name
+    this._description = description
   }
   /**
    * The name of this schema entry.
    */
   get name() {
     return this._name
+  }
+  /**
+   * The description of this schema entry.
+   */
+  get description() {
+    return this._description
   }
   /**
    * Determine if this schema entry is equivalent to another schema entry.
@@ -29,7 +40,7 @@ export default class SchemaEntry {
     if (!(other instanceof SchemaEntry)) {
       return false
     }
-    return this.name === other.name
+    return this.name === other.name && this.description === other.description
   }
   /**
    * Comparator to sort schema entries by their names.

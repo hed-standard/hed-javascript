@@ -6,11 +6,19 @@ export default class SchemaEntry {
    * The name of this schema entry.
    */
   private readonly _name
-  constructor(name: string)
+  /**
+   * The description of this schema entry.
+   */
+  private readonly _description
+  constructor(name: string, description: string | undefined)
   /**
    * The name of this schema entry.
    */
   get name(): string
+  /**
+   * The description of this schema entry.
+   */
+  get description(): string | undefined
   /**
    * Determine if this schema entry is equivalent to another schema entry.
    *

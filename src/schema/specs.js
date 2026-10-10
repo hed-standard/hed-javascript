@@ -50,6 +50,16 @@ export class SchemaSpec {
     }
   }
   /**
+   * Compute the canonical form of this specification.
+   */
+  toString() {
+    if (!this.library) {
+      return this.version
+    } else {
+      return this.library + '_' + this.version
+    }
+  }
+  /**
    * Determine if this schema specification is equivalent to another schema specification.
    *
    * @remarks
@@ -168,7 +178,11 @@ export class SchemasSpec {
   addSchemaSpec(schemaSpec) {
     if (this.#data.has(schemaSpec.prefix)) {
       const existingPrefixSpecs = this.#data.get(schemaSpec.prefix)
-      if (!existingPrefixSpecs.some((spec) => schemaSpec.equivalent(spec))) {
+      if (
+        existingPrefixSpecs.some((spec) => schemaSpec.library === spec.library && schemaSpec.version !== spec.version)
+      ) {
+        IssueError.generateAndThrow('multipleVersionsOfSameLibrarySchema', { library: schemaSpec.library })
+      } else if (!existingPrefixSpecs.some((spec) => schemaSpec.equivalent(spec))) {
         this.#data.get(schemaSpec.prefix)?.push(schemaSpec)
       }
     } else {
