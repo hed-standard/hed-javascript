@@ -294,11 +294,13 @@ export class SchemaProperty extends SchemaEntry {
   /**
    * Determine if this schema property is equivalent to another schema property.
    *
+   * Properties are equivalent if they have the same name, description, and type.
+   *
    * @param {*} other A schema property to compare with this one.
    * @returns {boolean} Whether the other property is equivalent to this schema property.
    */
   equivalent(other) {
-    return other instanceof SchemaProperty && super.equivalent(other)
+    return other instanceof SchemaProperty && super.equivalent(other) && this._propertyType === other._propertyType
   }
 
   /**
