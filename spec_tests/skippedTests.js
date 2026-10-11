@@ -7,4 +7,8 @@
  *
  * Empty since 2026-10-07 (hed-tests 183c235): every validation case passes.
  */
-export const skippedTests = {}
+export const skippedTests = {
+  'duplicate-schema-in-merge-group':
+    'the case expects a schema listed twice to load; the specification now says a schema name may appear only once ' +
+    'in a merge group, whatever the versions (Kay, 2026-10-11; hed-tests PR pending)',
+}

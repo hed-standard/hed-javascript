@@ -42,10 +42,12 @@ export class Schema {
   /**
    * Constructor.
    *
-   * @param {Object} xmlData The schema XML data.
+   * @param {Object} xmlData The schema XML data (of the base schema when the schema is a merge group).
    * @param {SchemaEntries} entries A collection of schema entries.
+   * @param {string} [prefix] This schema's prefix in the active schema set.
    */
-  constructor(xmlData, entries) {
+  constructor(xmlData, entries, prefix = '') {
+    this.prefix = prefix
     const rootElement = xmlData.HED
     this.version = rootElement?.$?.version
     this.library = rootElement?.$?.library ?? ''
@@ -62,32 +64,6 @@ export class Schema {
       this.withStandard = xmlData.HED?.$?.withStandard
     }
     this.entries = entries
-  }
-}
-
-/**
- * An imported lazy partnered HED 3 schema.
- */
-export class PartneredSchema extends Schema {
-  /**
-   * The actual HED 3 schemas underlying this partnered schema.
-   * @type {Schema[]}
-   */
-  actualSchemas
-
-  /**
-   * Constructor.
-   *
-   * @param {Schema[]} actualSchemas The actual HED 3 schemas underlying this partnered schema.
-   */
-  constructor(actualSchemas) {
-    if (actualSchemas.length === 0) {
-      IssueError.generateAndThrowInternalError('A partnered schema set must contain at least one schema.')
-    }
-    super({}, actualSchemas[0].entries)
-    this.actualSchemas = actualSchemas
-    this.withStandard = actualSchemas[0].withStandard
-    this.library = undefined
   }
 }
 

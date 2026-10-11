@@ -327,10 +327,9 @@ function testSchemaTypes(schemas: Schemas) {
       console.log(unit.unitType, unit.siUnit, unit.defaultSiUnit, unit.unitSymbol)
       const isUnit: boolean = unit.validateUnit('ms')
       const factor: number | null = unit.conversionFactor('ms')
-      const description: string = unit.description
-      const libraries: string[] = unit.libraries
-      unit.addLibrary('lib')
-      console.log(isUnit, factor, description, libraries)
+      const description: string | undefined = unit.description
+      const same: boolean = unit.equivalent(unit)
+      console.log(isUnit, factor, description, same)
     }
   }
 

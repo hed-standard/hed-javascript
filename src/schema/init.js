@@ -7,38 +7,105 @@ import loadSchema from './loader'
 import { setParent } from '../utils/xml'
 
 import SchemaParser from './parser'
-import PartneredSchemaMerger from './schemaMerger'
+import { SchemaXmlCollection } from './xmlCollection'
 import { Schema, Schemas } from './containers'
 import { IssueError } from '../issues/issues'
 import { splitStringTrimAndRemoveBlanks } from '../utils/string'
-import { SchemasSpec } from './specs'
+import { SchemaSpec, SchemasSpec } from './specs'
 
 /**
- * Build a single schema container object from an XML file.
+ * Name a schema's XML data for messages.
  *
- * @param {Object} xmlData The schema's XML data
- * @returns {Schema} The HED schema object.
+ * @param {Object} xmlData The schema XML data.
+ * @returns {string} "library_version" or "version".
  */
-const buildSchemaObject = function (xmlData) {
-  const rootElement = xmlData.HED
-  setParent(rootElement, null)
-  const schemaEntries = new SchemaParser(rootElement).parse()
-  return new Schema(xmlData, schemaEntries)
+const describe = function (xmlData) {
+  const { library, version } = xmlData.HED.$
+  return library ? `${library}_${version}` : version
 }
 
 /**
- * Build a single merged schema container object from one or more XML files.
+ * Check the merge group rules that concern the listed schemas themselves (specification 3.1.2.4).
  *
+ * @param {string} prefix The prefix of the merge group.
  * @param {Object[]} xmlData The schemas' XML data.
- * @returns {Schema} The HED schema object.
+ * @throws {IssueError} If a schema name appears more than once, or an unpartnered library is not alone.
  */
-const buildSchemaObjects = function (xmlData) {
-  const schemas = xmlData.map((data) => buildSchemaObject(data))
-  if (schemas.length === 1) {
-    return schemas[0]
+const checkGroup = function (prefix, xmlData) {
+  // A schema name (a library name, or the standard schema) may appear only once in a merge group, whatever the
+  // versions.
+  const versionsByName = new Map()
+  for (const data of xmlData) {
+    const name = data.HED.$.library ?? ''
+    versionsByName.set(name, [...(versionsByName.get(name) ?? []), data.HED.$.version])
   }
-  const partneredSchemaMerger = new PartneredSchemaMerger(schemas)
-  return partneredSchemaMerger.mergeSchemas()
+  const problems = []
+  for (const [name, versions] of versionsByName) {
+    if (versions.length > 1) {
+      const what = name ? `library "${name}"` : 'the standard schema'
+      problems.push(`${what} is listed ${versions.length} times [${versions.join(', ')}]`)
+    }
+  }
+  if (problems.length > 0) {
+    IssueError.generateAndThrow('schemaGroupInvalid', {
+      versions: xmlData.map(describe).join(', '),
+      problems: problems.join('; '),
+    })
+  }
+  const isUnpartnered = (data) => data.HED.$.library !== undefined && data.HED.$.withStandard === undefined
+  if (xmlData.length > 1 && xmlData.some(isUnpartnered)) {
+    IssueError.generateAndThrow('nonPartneredSchemaWithAnotherSchema', { prefix })
+  }
+}
+
+/**
+ * Build a single merged schema container object from the XML data of one merge group.
+ *
+ * @param {string} prefix The prefix of the merge group.
+ * @param {Object[]} xmlData The schemas' XML data.
+ * @returns {Promise<Schema>} The HED schema object.
+ * @throws {IssueError} If the group breaks a merge group rule or two of its schemas conflict.
+ */
+const buildSchemaObjects = async function (prefix, xmlData) {
+  for (const data of xmlData) {
+    setParent(data.HED, null)
+  }
+  checkGroup(prefix, xmlData)
+
+  const standardSchemas = xmlData.filter((data) => data.HED.$.library === undefined)
+  const librarySchemas = xmlData.filter((data) => data.HED.$.library !== undefined)
+  if (librarySchemas.length === 1 && librarySchemas[0].HED.$.withStandard === undefined) {
+    const xmlCollection = new SchemaXmlCollection(librarySchemas[0])
+    return new Schema(librarySchemas[0], new SchemaParser(xmlCollection).parse(), prefix)
+  }
+  const mergedLibrarySchemas = librarySchemas.filter((data) => data.HED.$.unmerged === undefined)
+  const unmergedLibrarySchemas = librarySchemas.filter((data) => data.HED.$.unmerged !== undefined)
+
+  // Every partnered library must have the same standard partner, and a listed standard schema must be that partner.
+  const standardVersions = new Set([
+    ...standardSchemas.map((data) => data.HED.$.version),
+    ...librarySchemas.map((data) => data.HED.$.withStandard),
+  ])
+  if (standardVersions.size !== 1) {
+    IssueError.generateAndThrow('differentWithStandard', {
+      versions: [...standardVersions].sort((a, b) => a.localeCompare(b)).join(', '),
+    })
+  }
+  const standardVersion = [...standardVersions][0]
+
+  // The base is the listed standard schema, else the first merged library (a merged file contains its partner).
+  let baseSchemaXml = standardSchemas[0] ?? mergedLibrarySchemas.shift()
+  if (baseSchemaXml === undefined) {
+    baseSchemaXml = await loadSchema(new SchemaSpec(prefix, standardVersion))
+    setParent(baseSchemaXml.HED, null)
+  }
+  const xmlCollection = new SchemaXmlCollection(
+    baseSchemaXml,
+    standardVersion,
+    mergedLibrarySchemas,
+    unmergedLibrarySchemas,
+  )
+  return new Schema(baseSchemaXml, new SchemaParser(xmlCollection).parse(), prefix)
 }
 
 /**
@@ -57,7 +124,9 @@ export async function buildSchemas(schemaSpecs) {
       return Promise.all(specs.map((spec) => loadSchema(spec)))
     }),
   )
-  const schemaObjects = schemaXmlData.map(buildSchemaObjects)
+  const schemaObjects = await Promise.all(
+    schemaXmlData.map((xmlData, index) => buildSchemaObjects(schemaPrefixes[index], xmlData)),
+  )
   const schemas = new Map(zip(schemaPrefixes, schemaObjects))
   return new Schemas(schemas)
 }

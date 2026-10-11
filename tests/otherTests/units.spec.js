@@ -2,9 +2,11 @@ import chai from 'chai'
 const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
-import { buildSchemasFromVersion } from '../../src/schema/init'
-import { SchemaEntryManager, SchemaUnitModifier } from '../../src/schema/entries'
+import { buildSchemas, buildSchemasFromVersion } from '../../src/schema/init'
+import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { parseHedString } from '../../src/parser/parser'
+
+const testSchemasDir = 'spec_tests/hed-tests/json_test_data/test_schemas/hedxml'
 
 describe('Unit expansion and conversion', () => {
   let hedSchemas
@@ -70,22 +72,27 @@ describe('Unit expansion and conversion', () => {
     })
   })
 
-  describe('SchemaUnit.refreshModifiers', () => {
-    it('should accept a modifier added after the unit was built', () => {
-      const entries = hedSchemas.baseSchema.entries
-      const unit = entries.unitClasses.getEntry('timeUnits').units.get('s')
-      assert.isFalse(unit.validateUnit('Xs'), 'X is not a modifier of 8.4.0')
-      const booleanAttributes = new Set([entries.attributes.getEntry('SIUnitSymbolModifier')])
-      const valueAttributes = new Map([[entries.attributes.getEntry('conversionFactor'), ['42']]])
-      const modifier = new SchemaUnitModifier('X', booleanAttributes, valueAttributes)
-      const modifiers = new SchemaEntryManager(new Map([...entries.unitModifiers.values()].map((m) => [m.name, m])))
-      modifiers.addEntry('X', modifier)
-      unit.refreshModifiers(modifiers)
-      assert.isTrue(unit.validateUnit('Xs'), 'the new modifier applies after the refresh')
-      assert.strictEqual(unit.conversionFactor('Xs'), 42)
-      assert.isTrue(unit.validateUnit('ms'), 'existing modifiers still apply')
-      unit.refreshModifiers(entries.unitModifiers)
-      assert.isFalse(unit.validateUnit('Xs'), 'restored')
+  describe('Units of a merge group', () => {
+    let mergedSchemas
+
+    beforeAll(async () => {
+      // testaux declares the unit class auxUnits with two units; testclash 15.0.0 redeclares it identically with a
+      // third unit (hed-tests case aux-new-units-under-shared-class).
+      const specs = new SchemasSpec()
+        .addSchemaSpec(new SchemaSpec('', '1.0.0', 'testaux', `${testSchemasDir}/HED_testaux_1.0.0.xml`))
+        .addSchemaSpec(new SchemaSpec('', '15.0.0', 'testclash', `${testSchemasDir}/HED_testclash_15.0.0.xml`))
+      mergedSchemas = await buildSchemas(specs)
+    })
+
+    it('should merge the units of a unit class declared by two libraries', () => {
+      const unitClass = mergedSchemas.baseSchema.entries.unitClasses.getEntry('auxUnits')
+      assert.isDefined(unitClass)
+      assert.sameMembers([...unitClass.units.keys()], ['auxunit', 'bigauxunit', 'smallauxunit'])
+    })
+
+    it.each(['Aux-measure/2 smallauxunit', 'Aux-measure/5 auxunit'])('should accept "%s"', (tagString) => {
+      const [, errorIssues] = parseHedString(tagString, mergedSchemas, false, false, false)
+      assert.isEmpty(errorIssues, `"${tagString}" should parse without errors`)
     })
   })
 

@@ -473,7 +473,7 @@ export class Schema {
   /** The standard HED schema version this schema is linked to */
   withStandard: string
 
-  constructor(xmlData: object, entries: SchemaEntries)
+  constructor(xmlData: object, entries: SchemaEntries, prefix?: string)
 }
 
 export class SchemaEntries {
@@ -507,30 +507,28 @@ export class SchemaEntryManager<T extends SchemaEntry> {
   getEntriesWithBooleanAttribute(booleanAttributeName: string): Map<string, T>
   filter(fn: (entry: [string, T]) => boolean): Map<string, T>
   get length(): number
-  /** Add an entry, discarding memoized views of the collection */
-  addEntry(name: string, entry: T): void
+  /** A copy of the managed definition map */
+  get definitions(): Map<string, T>
 }
 
 export class SchemaEntry {
   /** The name of this schema entry */
   name: string
   /** The description of this schema entry */
-  description: string
-  /** The names of the library schemas that declare this entry (empty for a standard schema entry) */
-  libraries: string[]
+  description: string | undefined
 
-  constructor(name: string)
+  constructor(name: string, description: string | undefined)
 
   hasBooleanAttribute(attributeName: string): boolean
-  /** Record that another library schema declares this entry */
-  addLibrary(library: string): void
+  /** Whether another entry declares the same element (same name, description, and attributes, ignoring inLibrary and hedId) */
+  equivalent(other: unknown): boolean
 }
 
 export class SchemaProperty extends SchemaEntry {
   /** The type of the property */
   protected _propertyType: string
 
-  constructor(name: string, propertyType: string)
+  constructor(name: string, description: string | undefined, propertyType: string)
 
   /** Whether this property describes a schema category */
   get isCategoryProperty(): boolean
@@ -547,10 +545,15 @@ export class SchemaAttribute extends SchemaEntry {
   protected _typeProperty: SchemaProperty
   /** The set of role properties for this schema attribute */
   protected _roleProperties: Set<SchemaProperty>
-  /** The names of the properties assigned to this schema attribute */
+  /** The names of every property assigned to this schema attribute */
   propertyNames: Set<string>
 
-  constructor(name: string, properties: SchemaProperty[])
+  constructor(
+    name: string,
+    description: string | undefined,
+    properties: (SchemaProperty | undefined)[],
+    propertyNames?: Iterable<string>,
+  )
 
   /** The categories of elements this schema attribute applies to */
   get categoryProperty(): Set<SchemaProperty> | SchemaProperty | undefined
@@ -570,7 +573,12 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
   /** The collection of value attribute names this schema entry has */
   valueAttributeNames: Map<string, any>
 
-  constructor(name: string, booleanAttributes: Set<SchemaAttribute>, valueAttributes: Map<SchemaAttribute, any>)
+  constructor(
+    name: string,
+    description: string | undefined,
+    booleanAttributes: Set<SchemaAttribute>,
+    valueAttributes: Map<SchemaAttribute, any>,
+  )
 
   hasAttribute(attributeName: string): boolean
   hasBooleanAttribute(attributeName: string): boolean
@@ -589,17 +597,16 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
 
   constructor(
     name: string,
+    description: string | undefined,
     booleanAttributes: Set<SchemaAttribute>,
     valueAttributes: Map<SchemaAttribute, any>,
-    unitType: SchemaUnitClass,
+    unitModifiers: SchemaEntryManager<SchemaUnitModifier>,
   )
 
   /** Whether a unit string is a form of this unit (plural or SI-modified; one modifier per component of a compound unit) */
   validateUnit(value: string): boolean
   /** The factor converting a value in the given form of this unit to the unit class's default unit, or null if none */
   conversionFactor(value: string): number | null
-  /** Rebuild the accepted forms of this unit from a collection of unit modifiers */
-  refreshModifiers(unitModifiers: SchemaEntryManager<SchemaUnitModifier>): void
 }
 
 export class SchemaUnitClass extends SchemaEntryWithAttributes {
@@ -610,15 +617,14 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
 
   constructor(
     name: string,
+    description: string | undefined,
     booleanAttributes: Set<SchemaAttribute>,
     valueAttributes: Map<SchemaAttribute, any>,
-    units: SchemaUnit[],
+    units: Map<string, SchemaUnit>,
   )
 
   /** Split a value into [unit, unit string, value string]; unit is null when no unit of this class matches */
   extractUnit(value: string, listedOnly?: boolean): [SchemaUnit | null, string | null, string]
-  /** Add a unit to this unit class */
-  addUnit(unit: SchemaUnit): void
 }
 
 export class SchemaUnitModifier extends SchemaEntryWithAttributes {
@@ -629,10 +635,9 @@ export class SchemaUnitModifier extends SchemaEntryWithAttributes {
 
   constructor(
     name: string,
+    description: string | undefined,
     booleanAttributes: Set<SchemaAttribute>,
     valueAttributes: Map<SchemaAttribute, any>,
-    siPrefix: string,
-    factor: number,
   )
 }
 
@@ -640,13 +645,18 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {}
 
 export class SchemaTag extends SchemaEntryWithAttributes {
   /** The parent tag of this tag */
-  parent: SchemaTag
+  get parent(): SchemaTag | undefined
+  /** The value-taking child of this tag */
+  valueTag: SchemaValueTag | undefined
 
   constructor(
     name: string,
+    description: string | undefined,
+    parentTag: SchemaTag | undefined,
     booleanAttributes: Set<SchemaAttribute>,
     valueAttributes: Map<SchemaAttribute, any>,
-    parent: SchemaTag,
+    unitClasses: SchemaUnitClass[],
+    valueClasses: SchemaValueClass[],
   )
 
   get shortTagName(): string
@@ -655,6 +665,8 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   isTakesValueClass(): boolean
   parentHasAttribute(attributeName: string): boolean
 }
+
+export class SchemaValueTag extends SchemaTag {}
 
 export class Schemas {
   /** The imported HED schemas */

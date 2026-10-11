@@ -441,10 +441,30 @@ export default {
     level: 'error',
     message: stringTemplate`Cannot combine schemas [${'versions'}] in one merge group: ${'problems'}.`,
   },
-  schemaElementConflict: {
+  nonPartneredSchemaWithAnotherSchema: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`Element "${'element'}" in section "${'section'}" is declared incompatibly by "${'first'}" and "${'second'}": ${'differences'}.`,
+    message: stringTemplate`Could not combine a non-partnered schema and another schema with the same prefix "${'prefix'}".`,
+  },
+  differentWithStandard: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Could not merge lazy partnered schemas with different "withStandard" values: "${'versions'}".`,
+  },
+  lazyPartneredSchemaOverloadsStandardTag: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Could not merge lazy partnered schema because short tag "${'tag'}" overloads the same tag in the standard schema.`,
+  },
+  lazyPartneredSchemasShareTag: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Lazy partnered schemas are incompatible because they share the short tag "${'tag'}". These schemas require different prefixes.`,
+  },
+  lazyPartneredSchemasShareEntry: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Lazy partnered schemas are incompatible because they share the entry "${'entryName'}". These schemas require different prefixes.`,
   },
   deprecatedStandardSchemaVersion: {
     hedCode: 'VERSION_DEPRECATED',

@@ -55,8 +55,8 @@ export class SchemaEntries extends Memoizer {
    */
   constructor(schemaParser) {
     super()
-    this.properties = new SchemaEntryManager(schemaParser.properties)
-    this.attributes = new SchemaEntryManager(schemaParser.attributes)
+    this.properties = schemaParser.properties
+    this.attributes = schemaParser.attributes
     this.valueClasses = schemaParser.valueClasses
     this.unitClasses = schemaParser.unitClasses
     this.unitModifiers = schemaParser.unitModifiers
@@ -135,14 +135,12 @@ export class SchemaEntryManager extends Memoizer {
   }
 
   /**
-   * Add an entry (used when merging a schema group). Memoized views of the collection are discarded.
+   * A copy of the managed definition map.
    *
-   * @param {string} name The key of the entry.
-   * @param {T} entry The entry.
+   * @returns {Map<string, T>}
    */
-  addEntry(name, entry) {
-    this._definitions.set(name, entry)
-    this._memoizedProperties.clear()
+  get definitions() {
+    return new Map(this._definitions)
   }
 
   /**
@@ -205,21 +203,20 @@ export class SchemaEntry extends Memoizer {
 
   /**
    * The description of this schema entry.
-   * @type {string}
+   * @type {string|undefined}
    */
-  description
+  _description
 
   /**
-   * The names of the library schemas that declare this entry (empty for a standard schema entry).
-   * @type {string[]}
+   * Constructor.
+   *
+   * @param {string} name The name of this schema entry.
+   * @param {string|undefined} description The description of this schema entry.
    */
-  libraries
-
-  constructor(name) {
+  constructor(name, description) {
     super()
     this._name = name
-    this.description = ''
-    this.libraries = []
+    this._description = description
   }
 
   /**
@@ -231,14 +228,26 @@ export class SchemaEntry extends Memoizer {
   }
 
   /**
-   * Record that another library schema declares this entry (used when merging a schema group).
-   *
-   * @param {string} library The library name.
+   * The description of this schema entry.
+   * @returns {string|undefined}
    */
-  addLibrary(library) {
-    if (!this.libraries.includes(library)) {
-      this.libraries.push(library)
+  get description() {
+    return this._description
+  }
+
+  /**
+   * Determine if this schema entry is equivalent to another schema entry.
+   *
+   * Schema entries are equivalent if they have the same name and description. Subclasses compare more.
+   *
+   * @param {*} other A schema entry to compare with this one.
+   * @returns {boolean} Whether the other entry is equivalent to this schema entry.
+   */
+  equivalent(other) {
+    if (!(other instanceof SchemaEntry)) {
+      return false
     }
+    return this.name === other.name && this.description === other.description
   }
 
   /**
@@ -270,9 +279,26 @@ export class SchemaProperty extends SchemaEntry {
    */
   _propertyType
 
-  constructor(name, propertyType) {
-    super(name)
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this property.
+   * @param {string|undefined} description The description of this property.
+   * @param {string} propertyType The type of the property.
+   */
+  constructor(name, description, propertyType) {
+    super(name, description)
     this._propertyType = propertyType
+  }
+
+  /**
+   * Determine if this schema property is equivalent to another schema property.
+   *
+   * @param {*} other A schema property to compare with this one.
+   * @returns {boolean} Whether the other property is equivalent to this schema property.
+   */
+  equivalent(other) {
+    return other instanceof SchemaProperty && super.equivalent(other)
   }
 
   /**
@@ -303,9 +329,9 @@ export class SchemaProperty extends SchemaEntry {
 // Pseudo-properties
 
 // TODO: Switch back to class constant once upstream bug is fixed.
-export const nodeProperty = new SchemaProperty('nodeProperty', categoryProperty)
-export const schemaAttributeProperty = new SchemaProperty('schemaAttributeProperty', categoryProperty)
-const stringProperty = new SchemaProperty('stringProperty', typeProperty)
+export const nodeProperty = new SchemaProperty('nodeProperty', undefined, categoryProperty)
+export const schemaAttributeProperty = new SchemaProperty('schemaAttributeProperty', undefined, categoryProperty)
+const stringProperty = new SchemaProperty('stringProperty', undefined, typeProperty)
 
 /**
  * A schema attribute.
@@ -330,20 +356,28 @@ export class SchemaAttribute extends SchemaEntry {
   _roleProperties
 
   /**
-   * Constructor.
-   *
-   * @param {string} name The name of the schema attribute.
-   * @param {SchemaProperty[]} properties The properties assigned to this schema attribute.
-   */
-  /**
-   * The names of the properties assigned to this schema attribute.
+   * The names of every property assigned to this schema attribute, including properties this version does not model.
    * @type {Set<string>}
    */
   propertyNames
 
-  constructor(name, properties) {
-    super(name, new Set(), new Map())
-    this.propertyNames = new Set(properties.filter((property) => property).map((property) => property.name))
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of the schema attribute.
+   * @param {string|undefined} description The description of the schema attribute.
+   * @param {SchemaProperty[]} properties The properties assigned to this schema attribute (undefined entries are
+   *     properties this version does not model).
+   * @param {Iterable<string>} propertyNames The names of every property assigned to this schema attribute.
+   */
+  constructor(name, description, properties, propertyNames = []) {
+    super(name, description)
+    this.propertyNames = new Set(propertyNames)
+    for (const property of properties) {
+      if (property) {
+        this.propertyNames.add(property.name)
+      }
+    }
 
     // Parse properties
     const categoryProperties = properties.filter((property) => property?.isCategoryProperty)
@@ -383,6 +417,24 @@ export class SchemaAttribute extends SchemaEntry {
   get roleProperties() {
     return new Set(this._roleProperties)
   }
+
+  /**
+   * Determine if this schema attribute is equivalent to another schema attribute.
+   *
+   * Schema attributes are equivalent if they have the same name, description, and properties.
+   *
+   * @param {*} other A schema attribute to compare with this one.
+   * @returns {boolean} Whether the other attribute is equivalent to this schema attribute.
+   */
+  equivalent(other) {
+    if (!(other instanceof SchemaAttribute) || !super.equivalent(other)) {
+      return false
+    }
+    return (
+      this.propertyNames.size === other.propertyNames.size &&
+      [...this.propertyNames].every((name) => other.propertyNames.has(name))
+    )
+  }
 }
 
 /**
@@ -413,29 +465,60 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
    */
   valueAttributeNames
 
-  constructor(name, booleanAttributes, valueAttributes) {
-    super(name)
+  /**
+   * The attributes ignored when comparing two declarations of an element: inLibrary names the declaring library and
+   * hedId differs between schemas by construction.
+   * @type {Set<string>}
+   */
+  static IGNORED_ATTRIBUTES = new Set(['inLibrary', 'hedId'])
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this schema entry.
+   * @param {string|undefined} description The description of this schema entry.
+   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this schema entry.
+   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this schema entry.
+   */
+  constructor(name, description, booleanAttributes, valueAttributes) {
+    super(name, description)
     this.booleanAttributes = booleanAttributes
     this.valueAttributes = valueAttributes
     this._parseAttributeNames()
-    this.libraries = [...(this.getAttributeValue('inLibrary', true) ?? [])]
   }
 
   /**
-   * Record that another library schema declares this entry, in the inLibrary attribute as well.
+   * Determine if this schema entry is equivalent to another schema entry.
    *
-   * @param {string} library The library name.
+   * Entries with attributes are equivalent if they have the same name, description, boolean attributes, and value
+   * attributes, ignoring inLibrary and hedId.
+   *
+   * @param {*} other A schema entry to compare with this one.
+   * @returns {boolean} Whether the other entry is equivalent to this schema entry.
    */
-  addLibrary(library) {
-    if (this.libraries.includes(library)) {
-      return
+  equivalent(other) {
+    if (!(other instanceof SchemaEntryWithAttributes) || !super.equivalent(other)) {
+      return false
     }
-    this.libraries.push(library)
-    const attribute = [...this.valueAttributes.keys()].find((key) => key.name === 'inLibrary')
-    if (attribute !== undefined) {
-      this.valueAttributes.set(attribute, [...this.libraries])
-      this.valueAttributeNames.set('inLibrary', [...this.libraries])
+    if (
+      this.booleanAttributeNames.size !== other.booleanAttributeNames.size ||
+      ![...this.booleanAttributeNames].every((name) => other.booleanAttributeNames.has(name))
+    ) {
+      return false
     }
+    const compared = (entry) =>
+      [...entry.valueAttributeNames].filter(([name]) => !SchemaEntryWithAttributes.IGNORED_ATTRIBUTES.has(name))
+    const ours = compared(this)
+    const theirs = new Map(compared(other))
+    if (ours.length !== theirs.size) {
+      return false
+    }
+    const sorted = (values) =>
+      [...values]
+        .map(String)
+        .sort((a, b) => a.localeCompare(b))
+        .join('|')
+    return ours.every(([name, values]) => theirs.has(name) && sorted(theirs.get(name)) === sorted(values))
   }
 
   /**
@@ -528,24 +611,34 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
    * Constructor.
    *
    * @param {string} name The name of the unit.
+   * @param {string|undefined} description The description of the unit.
    * @param {Set<SchemaAttribute>} booleanAttributes This unit's boolean attributes.
    * @param {Map<SchemaAttribute, *>} valueAttributes This unit's key-value attributes.
-   * @param {SchemaEntryManager<SchemaUnitModifier>} unitModifiers The collection of unit modifiers.
+   * @param {SchemaEntryManager<SchemaUnitModifier>} unitModifiers The collection of unit modifiers (of every schema
+   *     in the merge group, since units are built after the unit modifiers have been merged).
    */
-  constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
-    super(name, booleanAttributes, valueAttributes)
-    this.refreshModifiers(unitModifiers)
+  constructor(name, description, booleanAttributes, valueAttributes, unitModifiers) {
+    super(name, description, booleanAttributes, valueAttributes)
+    this._buildForms(unitModifiers)
   }
 
   /**
-   * Rebuild the accepted forms of this unit from a collection of unit modifiers.
+   * Determine if this schema unit is equivalent to another schema unit.
    *
-   * Called at construction, and again by the schema merger when a merged library adds unit modifiers after this
-   * unit was built.
+   * @param {*} other A schema unit to compare with this one.
+   * @returns {boolean} Whether the other unit is equivalent to this schema unit.
+   */
+  equivalent(other) {
+    return other instanceof SchemaUnit && super.equivalent(other)
+  }
+
+  /**
+   * Build the accepted forms of this unit from the collection of unit modifiers.
    *
    * @param {SchemaEntryManager<SchemaUnitModifier>} unitModifiers The collection of unit modifiers.
+   * @private
    */
-  refreshModifiers(unitModifiers) {
+  _buildForms(unitModifiers) {
     this._derivativeUnits = [this.name]
     this._modifierFactors = new Map()
     this._compoundComponents = null
@@ -766,12 +859,13 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
    * Constructor.
    *
    * @param {string} name The name of this unit class.
+   * @param {string|undefined} description The description of this unit class.
    * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this unit class.
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this unit class.
    * @param {Map<string, SchemaUnit>} units The units for this unit class.
    */
-  constructor(name, booleanAttributes, valueAttributes, units) {
-    super(name, booleanAttributes, valueAttributes)
+  constructor(name, description, booleanAttributes, valueAttributes, units) {
+    super(name, description, booleanAttributes, valueAttributes)
     this._units = units
   }
 
@@ -784,12 +878,16 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
   }
 
   /**
-   * Add a unit to this unit class (used when merging a schema group).
+   * Determine if this schema unit class is equivalent to another schema unit class.
    *
-   * @param {SchemaUnit} unit The unit to add.
+   * The units are not compared: two declarations of a unit class may list different units, which are merged, and
+   * the units themselves are compared one by one by the parser.
+   *
+   * @param {*} other A schema unit class to compare with this one.
+   * @returns {boolean} Whether the other unit class is equivalent to this schema unit class.
    */
-  addUnit(unit) {
-    this._units.set(unit.name, unit)
+  equivalent(other) {
+    return other instanceof SchemaUnitClass && super.equivalent(other)
   }
 
   /**
@@ -853,8 +951,26 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
  * SchemaUnitModifier class
  */
 export class SchemaUnitModifier extends SchemaEntryWithAttributes {
-  constructor(name, booleanAttributes, valueAttributes) {
-    super(name, booleanAttributes, valueAttributes)
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this unit modifier.
+   * @param {string|undefined} description The description of this unit modifier.
+   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this unit modifier.
+   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this unit modifier.
+   */
+  constructor(name, description, booleanAttributes, valueAttributes) {
+    super(name, description, booleanAttributes, valueAttributes)
+  }
+
+  /**
+   * Determine if this schema unit modifier is equivalent to another schema unit modifier.
+   *
+   * @param {*} other A schema unit modifier to compare with this one.
+   * @returns {boolean} Whether the other unit modifier is equivalent to this schema unit modifier.
+   */
+  equivalent(other) {
+    return other instanceof SchemaUnitModifier && super.equivalent(other)
   }
 }
 
@@ -879,16 +995,34 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
    * Constructor.
    *
    * @param {string} name The name of this value class.
+   * @param {string|undefined} description The description of this value class.
    * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this value class.
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this value class.
    * @param {RegExp} charClassRegex The character class-based regular expression for this value class.
    * @param {RegExp} wordRegex The "word form"-based regular expression for this value class.
    */
-
-  constructor(name, booleanAttributes, valueAttributes, charClassRegex, wordRegex) {
-    super(name, booleanAttributes, valueAttributes)
+  constructor(name, description, booleanAttributes, valueAttributes, charClassRegex, wordRegex) {
+    super(name, description, booleanAttributes, valueAttributes)
     this._charClassRegex = charClassRegex
     this._wordRegex = wordRegex
+  }
+
+  /**
+   * Determine if this schema value class is equivalent to another schema value class.
+   *
+   * Value classes are equivalent if they have the same name, description, attributes, and regular expressions.
+   *
+   * @param {*} other A schema value class to compare with this one.
+   * @returns {boolean} Whether the other value class is equivalent to this schema value class.
+   */
+  equivalent(other) {
+    if (!(other instanceof SchemaValueClass) || !super.equivalent(other)) {
+      return false
+    }
+    return (
+      String(this._charClassRegex) === String(other._charClassRegex) &&
+      String(this._wordRegex) === String(other._wordRegex)
+    )
   }
 
   /**
@@ -945,13 +1079,16 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * Constructor.
    *
    * @param {string} name The name of this tag.
+   * @param {string|undefined} description The description of this tag.
+   * @param {SchemaTag|undefined} parentTag This tag's parent tag.
    * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this tag.
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this tag.
    * @param {SchemaUnitClass[]} unitClasses The unit classes for this tag.
    * @param {SchemaValueClass[]} valueClasses The value classes for this tag.
    */
-  constructor(name, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
-    super(name, booleanAttributes, valueAttributes)
+  constructor(name, description, parentTag, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
+    super(name, description, booleanAttributes, valueAttributes)
+    this._parent = parentTag
     this._unitClasses = unitClasses ?? []
     this._valueClasses = valueClasses ?? []
   }
@@ -990,11 +1127,20 @@ export class SchemaTag extends SchemaEntryWithAttributes {
 
   /**
    * Set the tag's value-taking child tag.
+   *
+   * A value tag registers itself here from its constructor. When several schemas of a merge group declare the same
+   * tag, the first registered value tag is kept and a later equivalent one is ignored; a different one is an error.
+   *
    * @param {SchemaValueTag} newValueTag The new value-taking child tag.
+   * @throws {IssueError} If this tag already has a different value tag.
    */
   set valueTag(newValueTag) {
-    if (!this._isPrivateFieldSet(this._valueTag, 'value tag')) {
+    if (this._valueTag === undefined) {
       this._valueTag = newValueTag
+    } else if (!this._valueTag.equivalent(newValueTag)) {
+      IssueError.generateAndThrowInternalError(
+        `Attempted to set value tag for schema tag ${this.longName} when it already has one.`,
+      )
     }
   }
 
@@ -1007,31 +1153,33 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   }
 
   /**
-   * Set the tag's parent tag.
-   * @param {SchemaTag} newParent The new parent tag.
-   */
-  set parent(newParent) {
-    if (!this._isPrivateFieldSet(this._parent, 'parent')) {
-      this._parent = newParent
-    }
-  }
-
-  /**
-   * Throw an error if a private field is already set.
+   * Determine if this schema tag is equivalent to another schema tag.
    *
-   * @param {*} field The field being set.
-   * @param {string} fieldName The name of the field (for error reporting).
-   * @return {boolean} Whether the field is set (never returns true).
-   * @throws {IssueError} If the field is already set.
-   * @private
+   * Tags are equivalent if they have the same name, description, and attributes, equivalent parents (so the same
+   * ancestor path), and either no value tag or equivalent value tags.
+   *
+   * @param {*} other A schema tag to compare with this one.
+   * @param {boolean} [compareParents] Whether to compare the parents (false when this tag is reached from its parent).
+   * @returns {boolean} Whether the other tag is equivalent to this schema tag.
    */
-  _isPrivateFieldSet(field, fieldName) {
-    if (field !== undefined) {
-      IssueError.generateAndThrowInternalError(
-        `Attempted to set ${fieldName} for schema tag ${this.longName} when it already has one.`,
-      )
+  equivalent(other, compareParents = true) {
+    if (!(other instanceof SchemaTag) || !super.equivalent(other)) {
+      return false
     }
-    return false
+    if (compareParents) {
+      if ((this.parent === undefined) !== (other.parent === undefined)) {
+        return false
+      }
+      if (this.parent !== undefined && this.parent !== other.parent && !this.parent.equivalent(other.parent)) {
+        return false
+      }
+    }
+    if ((this.valueTag === undefined) !== (other.valueTag === undefined)) {
+      return false
+    }
+    return (
+      this.valueTag === undefined || this.valueTag === other.valueTag || this.valueTag.equivalent(other.valueTag, false)
+    )
   }
 
   /**
@@ -1090,6 +1238,51 @@ export class SchemaTag extends SchemaEntryWithAttributes {
  * A value-taking tag in a HED schema.
  */
 export class SchemaValueTag extends SchemaTag {
+  /**
+   * Constructor.
+   *
+   * The value tag registers itself as its parent's value tag.
+   *
+   * @param {string} name The name of this tag.
+   * @param {string|undefined} description The description of this tag.
+   * @param {SchemaTag} parentTag This tag's parent tag.
+   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this tag.
+   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this tag.
+   * @param {SchemaUnitClass[]} unitClasses The unit classes for this tag.
+   * @param {SchemaValueClass[]} valueClasses The value classes for this tag.
+   * @throws {IssueError} If the tag has no parent.
+   */
+  constructor(name, description, parentTag, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
+    super(name, description, parentTag, booleanAttributes, valueAttributes, unitClasses, valueClasses)
+    if (parentTag === undefined) {
+      IssueError.generateAndThrowInternalError(`Value tag "${name}" must have a parent.`)
+    }
+    parentTag.valueTag = this
+  }
+
+  /**
+   * Determine if this schema value tag is equivalent to another schema value tag.
+   *
+   * Value tags also compare their unit classes and value classes (by name).
+   *
+   * @param {*} other A schema value tag to compare with this one.
+   * @param {boolean} [compareParents] Whether to compare the parents (false when this tag is reached from its parent).
+   * @returns {boolean} Whether the other value tag is equivalent to this schema value tag.
+   */
+  equivalent(other, compareParents = true) {
+    if (!(other instanceof SchemaValueTag) || !super.equivalent(other, compareParents)) {
+      return false
+    }
+    const names = (entries) =>
+      entries
+        .map((entry) => entry?.name ?? '')
+        .sort((a, b) => a.localeCompare(b))
+        .join('|')
+    return (
+      names(this._unitClasses) === names(other._unitClasses) && names(this._valueClasses) === names(other._valueClasses)
+    )
+  }
+
   /**
    * This tag's long name.
    * @returns {string}

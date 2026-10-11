@@ -38,24 +38,34 @@ testSpecs`.
 - A value column referenced in curly braces has every distinct value checked,
   even in rows whose selected template does not substitute it (hed-tests
   `bad-value-in-curly-column`).
-- Schema merge groups follow specification 3.1.2.4
-  (`src/schema/schemaMerger.js`): a schema listed twice is ignored, two versions
-  of one schema in a group is an error, every library in a group must have the
-  same standard partner, a listed standard schema of the partner version adds
-  nothing, and an unpartnered library must be alone in its namespace. Elements
-  declared by several libraries merge when the declarations are identical
-  (attributes, description, ancestor path, `#` child) and conflict otherwise, in
-  the tags and in the auxiliary sections (unit classes and units, unit
-  modifiers, value classes, schema attributes); units already built learn the
-  unit modifiers a merged library adds. The issue codes `differentWithStandard`
-  and `lazyPartneredSchemasShareTag` are replaced by `schemaGroupInvalid` and
-  `schemaElementConflict` (both SCHEMA_LOAD_FAILED). Schema entries now carry
-  their `description` and the `libraries` that declare them. Fixes the 41
-  hed-tests SCHEMA_LOAD_FAILED cases, including a crash when loading an
-  unpartnered library schema with an empty definitions section.
+- Schema merge groups follow specification 3.1.2.4, and the schemas of a group
+  are merged while they are parsed, as in hed-typescript (`src/schema/parser.js`,
+  `src/schema/init.js`): each entry-type parser runs over every schema of the
+  namespace and writes into one map, so a unit class declared by several
+  libraries is built once with all their units and every unit is built against
+  the merged unit modifiers. An element declared by several schemas is kept once
+  when the declarations are equivalent (same attributes, description, ancestor
+  path and `#` child, ignoring `inLibrary` and `hedId`) and is an error
+  otherwise, in the tags and in the auxiliary sections. A schema name (a library
+  or the standard schema) may be listed only once per merge group, whatever the
+  versions; every library in a group must have the same standard partner; a
+  listed standard schema must be that partner and becomes the base of the merged
+  schema; an unpartnered library must be alone in its namespace. The
+  `PartneredSchema` and `PartneredSchemaMerger` classes are gone. Schema entries
+  take their `description` in the constructor; `SchemaTag` takes its parent in
+  the constructor and a `SchemaValueTag` registers itself with its parent;
+  `SchemaEntryManager` is immutable after construction and offers a
+  `definitions` copy. Every entry has `equivalent(other)`. The issue codes are
+  those of hed-typescript (`nonPartneredSchemaWithAnotherSchema`,
+  `differentWithStandard`, `lazyPartneredSchemaOverloadsStandardTag`,
+  `lazyPartneredSchemasShareTag`, `lazyPartneredSchemasShareEntry`) plus
+  `schemaGroupInvalid` for a repeated schema name, all SCHEMA_LOAD_FAILED.
+  Fixes the hed-tests SCHEMA_LOAD_FAILED cases, including a crash when loading
+  an unpartnered library schema with an empty definitions section.
 - `HED_RUN_SKIPPED=1 npm run testSpecs` runs the cases listed in
-  `spec_tests/skippedTests.js` instead of skipping them. The skip list is empty:
-  every hed-tests validation case passes.
+  `spec_tests/skippedTests.js` instead of skipping them. One case is skipped:
+  `duplicate-schema-in-merge-group` expects a schema listed twice to load, which
+  the specification no longer allows.
 
 ### Dependencies
 

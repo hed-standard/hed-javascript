@@ -3,7 +3,6 @@ const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
 import { generateIssue } from '../../src/issues/issues'
-import { PartneredSchema } from '../../src/schema/containers'
 import { buildSchemas, buildSchemasFromVersion } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { buildSchemasSpec } from '../../src/bids/schema'
@@ -311,11 +310,16 @@ describe('HED schemas', () => {
       specs3 = new SchemasSpec().addSchemaSpec(spec210).addSchemaSpec(spec300)
     })
 
-    it('should fail when two versions of one library are in the same merge group', async () => {
+    it('should fail when a library is listed more than once in a merge group, whatever the versions', async () => {
+      const spec200Again = new SchemaSpec('testlib', '2.0.0', 'testlib', testLib200SchemaFile)
+      const specs4 = new SchemasSpec()
+        .addSchemaSpec(new SchemaSpec('testlib', '2.0.0', 'testlib', testLib200SchemaFile))
+        .addSchemaSpec(spec200Again)
       const groups = [
         [specs1, 'testlib_2.0.0 and testlib_2.1.0', '2.0.0, 2.1.0'],
         [specs2, 'testlib_2.0.0 and testlib_3.0.0', '2.0.0, 3.0.0'],
         [specs3, 'testlib_2.1.0 and testlib_3.0.0', '2.1.0, 3.0.0'],
+        [specs4, 'testlib_2.0.0 twice', '2.0.0, 2.0.0'],
       ]
       for (const [specs, label, versions] of groups) {
         try {
@@ -324,24 +328,9 @@ describe('HED schemas', () => {
         } catch (issueError) {
           const issue = issueError.issue
           assert.strictEqual(issue.hedCode, 'SCHEMA_LOAD_FAILED', `${label}: wrong error code`)
-          assert.include(
-            issue.message,
-            `different versions of library "testlib" in one merge group [${versions}]`,
-            `${label}: wrong message`,
-          )
+          assert.include(issue.message, `library "testlib" is listed 2 times [${versions}]`, `${label}: wrong message`)
         }
       }
-    })
-
-    it('should ignore a schema listed twice in a merge group', async () => {
-      const spec200 = new SchemaSpec('testlib', '2.0.0', 'testlib', testLib200SchemaFile)
-      const spec200Again = new SchemaSpec('testlib', '2.0.0', 'testlib', testLib200SchemaFile)
-      const specs = new SchemasSpec().addSchemaSpec(spec200).addSchemaSpec(spec200Again)
-      const schemas = await buildSchemas(specs)
-      const schema = schemas.getSchema('testlib')
-      assert.isDefined(schema, 'testlib schema should load')
-      assert.isNotOk(schema instanceof PartneredSchema, 'a duplicate listing should not produce a merged schema')
-      assert.strictEqual(schema.version, '2.0.0')
     })
   })
 
@@ -379,10 +368,15 @@ describe('HED schemas', () => {
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
-        // The listed partner standard schema adds nothing: the library schema is the result.
-        assert.strictEqual(schemas.baseSchema.library, 'testlib')
-        assert.strictEqual(schemas.baseSchema.version, '2.0.0')
+        // The listed standard schema is the base of the merge group; the library's tags are merged into it.
+        assert.strictEqual(schemas.baseSchema.library, '')
+        assert.strictEqual(schemas.baseSchema.version, '8.4.0')
         assert.strictEqual(schemas.baseSchema.withStandard, '8.4.0')
+        assert.isDefined(schemas.baseSchema.entries.tags.getEntry('event'), 'standard tags are present')
+        assert.isTrue(
+          [...schemas.baseSchema.entries.tags.values()].some((tag) => tag.hasAttribute('inLibrary')),
+          'library tags are present',
+        )
       })
 
       it('should build schemas from multiple partnered schemas', async () => {
@@ -390,9 +384,8 @@ describe('HED schemas', () => {
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
-        assert.instanceOf(schemas.baseSchema, PartneredSchema)
         assert.strictEqual(schemas.baseSchema.withStandard, '8.4.0')
-        assert.strictEqual(schemas.baseSchema.entries.tags._definitions.size, 1994)
+        assert.strictEqual(schemas.baseSchema.entries.tags.length, 1994)
       })
 
       it('should handle version strings with prefix', async () => {
