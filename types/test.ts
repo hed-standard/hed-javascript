@@ -339,9 +339,6 @@ function testSchemaTypes(schemas: Schemas) {
     const defaultUnit: SchemaUnit | undefined = unitClass.defaultUnit
     const [extractedUnit, unitString, valueString] = unitClass.extractUnit('3 ms')
     console.log(defaultUnit, extractedUnit, unitString, valueString)
-    if (defaultUnit) {
-      unitClass.addUnit(defaultUnit)
-    }
   }
 
   // SchemaUnitModifier

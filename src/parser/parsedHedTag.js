@@ -208,10 +208,12 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * Convert this tag's value to the default unit of its unit class.
    *
    * A value written without a unit is taken to be in the default unit already; a numeric value of a tag
-   * that has no unit class is returned unchanged.
+   * that has no unit class is returned unchanged. A placeholder with unitClass=anyUnits has no default unit,
+   * so its value converts only when a unit is written.
    *
    * @returns {number|null} The value in default units, or null if the tag takes no value, the value is not
-   *     numeric, the unit is invalid, or the unit has no conversionFactor (such as month or year).
+   *     numeric, the unit is invalid, the unit has no conversionFactor (such as month or year), or the value
+   *     is a bare number on an anyUnits placeholder.
    */
   valueAsDefaultUnit() {
     if (!this.takesValueTag || this._value === undefined || this._value === null) {
@@ -222,7 +224,8 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       return null
     }
     if (this._units === null) {
-      return value
+      const acceptsAnyUnits = this.takesValueTag.unitClasses.some((unitClass) => unitClass?.name === 'anyUnits')
+      return acceptsAnyUnits ? null : value
     }
     const factor = this._unit?.conversionFactor(this._units) ?? null
     return factor === null ? null : value * factor

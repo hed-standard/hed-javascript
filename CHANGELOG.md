@@ -29,15 +29,19 @@ testSpecs`.
   over a derived one (hed-tests `units-invalid-compound-units`,
   `units-invalid-any-units`). Conversion factors written as powers of ten
   (`10^-15`) are read as powers, not as `10e-15`.
-- In a timeline file, a `Delay` or `Duration` value that cannot be converted to
-  seconds (non-numeric value, invalid unit, or a unit with no `conversionFactor`
-  such as `month` or `year`) is reported as TEMPORAL_TAG_ERROR; `Delay` values
-  in other time units are converted before being added to the onset (hed-tests
+- In a timeline file, a `Delay` or `Duration` value whose unit has no
+  `conversionFactor` (such as `month` or `year`) cannot be converted to seconds
+  and is reported as TEMPORAL_TAG_ERROR; `Delay` values in other time units are
+  converted before being added to the onset (hed-tests
   `temporal-tag-error-delay-not-convertible`,
-  `temporal-tag-error-duration-not-convertible`).
+  `temporal-tag-error-duration-not-convertible`). A non-numeric value or an
+  invalid unit remains a VALUE_INVALID or UNITS_INVALID error.
 - A value column referenced in curly braces has every distinct value checked,
   even in rows whose selected template does not substitute it (hed-tests
   `bad-value-in-curly-column`).
+- A column value or a `Def/Name/value` value is substituted for the `#`
+  placeholder literally; a value containing `$` (such as `$5`, `$$` or `$&`)
+  was treated as a JavaScript replacement pattern.
 - Schema merge groups follow specification 3.1.2.4, and the schemas of a group
   are merged while they are parsed, as in hed-typescript (`src/schema/parser.js`,
   `src/schema/init.js`): each entry-type parser runs over every schema of the

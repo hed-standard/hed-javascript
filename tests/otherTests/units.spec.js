@@ -130,4 +130,27 @@ describe('Unit expansion and conversion', () => {
       assert.isNull(tag.valueAsDefaultUnit())
     })
   })
+
+  describe('ParsedHedTag.valueAsDefaultUnit with anyUnits', () => {
+    let schemas850
+
+    beforeAll(async () => {
+      const specs = new SchemasSpec().addSchemaSpec(new SchemaSpec('', '8.5.0', '', `${testSchemasDir}/HED8.5.0.xml`))
+      schemas850 = await buildSchemas(specs)
+    })
+
+    const parseTag850 = (tagString) => {
+      const [parsedString, errorIssues] = parseHedString(tagString, schemas850, false, false, false)
+      assert.isEmpty(errorIssues, `"${tagString}" should parse without errors`)
+      return parsedString.tags[0]
+    }
+
+    it('should not convert a bare value, which has no default unit', () => {
+      assert.isNull(parseTag850('Quantity/3').valueAsDefaultUnit())
+    })
+
+    it("should convert a value with a unit to the default unit of that unit's class", () => {
+      assert.closeTo(parseTag850('Quantity/300 ms').valueAsDefaultUnit(), 0.3, 1e-12)
+    })
+  })
 })

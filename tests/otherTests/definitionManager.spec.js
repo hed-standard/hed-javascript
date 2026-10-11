@@ -177,6 +177,22 @@ describe('Definition and DefinitionManager', () => {
         expect(warningIssues).toHaveLength(0)
       })
 
+      it('should substitute a value containing a dollar sign literally', async () => {
+        // "$&" is a JavaScript replacement pattern; a value is data, so it must appear unchanged.
+        const definitionString = '(Definition/TestDef/#, (Description/#, Blue))'
+        const [definition] = Definition.createDefinition(definitionString, hedSchemas)
+
+        const testTagString = 'Def/TestDef/$&'
+        const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)
+        const tag = parsedString.topLevelTags[0]
+
+        const [result, errorIssues, warningIssues] = definition.evaluateDefinition(tag, hedSchemas, false)
+
+        expect(errorIssues).toHaveLength(0)
+        expect(warningIssues).toHaveLength(0)
+        expect(result).toContain('$&')
+      })
+
       it('should return error for mismatched value levels', async () => {
         const testTagString = 'Def/TestDef/ExtraValue'
         const [parsedString] = parseHedString(testTagString, hedSchemas, false, false, true)

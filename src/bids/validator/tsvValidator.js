@@ -172,7 +172,8 @@ export class BidsHedTsvValidator extends BidsValidator {
           return
         }
         checkedValues.add(columnValue)
-        const columnString = columnData.hedString.replace('#', columnValue)
+        // A function replacer inserts the value literally: a value such as "$&" is data, not a replacement pattern.
+        const columnString = columnData.hedString.replace('#', () => columnValue)
         const [, errorIssues, warningIssues] = parseHedString(columnString, this.hedSchemas, false, false, false)
         const tsvLine = rowIndexMinusTwo + 2
         this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: tsvLine }))
@@ -229,8 +230,9 @@ export class BidsHedTsvValidator extends BidsValidator {
    * Report Delay and Duration tags whose value cannot be converted to the default unit of their unit class.
    *
    * In a timeline file a Delay is added to the row's onset and a Duration gives the end time of its group, so
-   * both must convert to seconds. A non-numeric value, an invalid unit, or a unit with no conversionFactor
-   * (month and year in HED 8.4.0) cannot be placed on the timeline (specification Appendix B, TEMPORAL_TAG_ERROR).
+   * both must convert to seconds. A valid unit that has no conversionFactor (month and year in HED 8.4.0)
+   * cannot be placed on the timeline (specification Appendix B, TEMPORAL_TAG_ERROR). A non-numeric value or an
+   * invalid unit is a VALUE_INVALID or UNITS_INVALID error when the string is parsed, before this check runs.
    * Non-timeline files never reach this check: Duration may use any valid unit there.
    *
    * @param {BidsTsvElement[]} elements - The elements representing the tsv file.
@@ -516,7 +518,7 @@ export class BidsHedTsvParser {
       }
 
       if (columnValues instanceof ParsedHedString) {
-        const columnString = columnValues.hedString.replace('#', rowColumnValue)
+        const columnString = columnValues.hedString.replace('#', () => rowColumnValue)
         columnMap.set(columnName, columnString)
       } else if (columnValues instanceof Map) {
         columnMap.set(columnName, columnValues.get(rowColumnValue)?.hedString)

@@ -246,7 +246,7 @@ export default {
   temporalTagNoConversion: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
-    message: stringTemplate`Tag "${'tag'}" in HED event string "${'string'}" cannot be converted to the default units of its unit class (non-numeric value, invalid unit, or a unit with no conversionFactor), so it cannot be placed on the timeline.`,
+    message: stringTemplate`Tag "${'tag'}" in HED event string "${'string'}" cannot be converted to the default units of its unit class (its unit has no conversionFactor), so it cannot be placed on the timeline.`,
   },
   duplicateTemporal: {
     hedCode: 'TEMPORAL_TAG_ERROR',
