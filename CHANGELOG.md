@@ -63,9 +63,8 @@ testSpecs`.
   Fixes the hed-tests SCHEMA_LOAD_FAILED cases, including a crash when loading
   an unpartnered library schema with an empty definitions section.
 - `HED_RUN_SKIPPED=1 npm run testSpecs` runs the cases listed in
-  `spec_tests/skippedTests.js` instead of skipping them. One case is skipped:
-  `duplicate-schema-in-merge-group` expects a schema listed twice to load, which
-  the specification no longer allows.
+  `spec_tests/skippedTests.js` instead of skipping them. The skip list is empty:
+  every hed-tests validation case passes (hed-tests 1ecc627).
 
 ### Dependencies
 

@@ -5,10 +5,6 @@
  * summary. Remove an entry once the case passes. Reasons record what was observed when the entry
  * was added, not a diagnosis. Set HED_RUN_SKIPPED=1 to run the listed cases anyway.
  *
- * Empty since 2026-10-07 (hed-tests 183c235): every validation case passes.
+ * Empty since 2026-10-11 (hed-tests 1ecc627): every validation case passes.
  */
-export const skippedTests = {
-  'duplicate-schema-in-merge-group':
-    'the case expects a schema listed twice to load; the specification now says a schema name may appear only once ' +
-    'in a merge group, whatever the versions (Kay, 2026-10-11; hed-tests PR pending)',
-}
+export const skippedTests = {}
