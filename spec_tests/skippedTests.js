@@ -5,6 +5,9 @@
  * summary. Remove an entry once the case passes. Reasons record what was observed when the entry
  * was added, not a diagnosis. Set HED_RUN_SKIPPED=1 to run the listed cases anyway.
  *
- * Empty since 2026-10-11 (hed-tests 1ecc627): every validation case passes.
  */
-export const skippedTests = {}
+export const skippedTests = {
+  'temporal-tag-error-delay-with-anchored-marker':
+    'two string_tests passes (a lone Inset and a lone Offset) fail: the runner validates each string as a one-row ' +
+    'timeline file, where an Offset or Inset with no earlier Onset is TEMPORAL_TAG_ERROR (hed-tests 07ac29a, 2026-10-12)',
+}
