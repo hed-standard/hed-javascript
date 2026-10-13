@@ -41,6 +41,8 @@ const runMap = new Map()
 const skipMap = new Map()
 // Restrict to some sub-test kinds while debugging, e.g. new Set(['stringFail']). Empty = all.
 const runOnly = new Set()
+// Set HED_RUN_SKIPPED=1 to run the cases listed in skippedTests.js instead of skipping them.
+const runSkipped = process.env.HED_RUN_SKIPPED === '1'
 
 function loadTestData() {
   if (!fs.existsSync(validationTestsFile)) {
@@ -279,7 +281,7 @@ describe('HED validation using the hed-tests JSON suite', () => {
         return
       }
 
-      if (name in skippedTests) {
+      if (name in skippedTests && !runSkipped) {
         test.skip(`Skipping ${error_code} [${name}]: ${skippedTests[name]}`, () => {})
         return
       }

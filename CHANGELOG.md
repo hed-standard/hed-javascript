@@ -1,19 +1,75 @@
 # Changelog
 
-## 4.2.1 — unreleased
+## 4.3.0 — unreleased
 
 ### Added
 
 ### Changed
 
 - Replaced action versions with hashes for security.
-- The JSON spec tests now come from the [hed-tests](https://github.com/hed-standard/hed-tests)
-  repository, checked out as the git submodule `spec_tests/hed-tests` instead of the vendored
-  `spec_tests/javascriptTests.json`. Cases this validator does not pass yet are skipped by name
-  in `spec_tests/skippedTests.js`. Clone with `--recurse-submodules` or run
-  `git submodule update --init` before `npm run testSpecs`.
+- The JSON spec tests now come from the
+  [hed-tests](https://github.com/hed-standard/hed-tests) repository, checked out
+  as the git submodule `spec_tests/hed-tests` instead of the vendored
+  `spec_tests/javascriptTests.json`. Cases this validator does not pass yet are
+  skipped by name in `spec_tests/skippedTests.js`. Clone with
+  `--recurse-submodules` or run `git submodule update --init` before `npm run
+testSpecs`.
 
 ### Fixed
+
+- `dateTimeClass` values are checked against the BIDS Datetime format (RFC 3339
+  with an optional offset, hour 00-23, fraction of 1 to 6 digits) and the date
+  must exist in the Gregorian calendar (hed-tests
+  `value-invalid-date-time-format`).
+- Compound SI units such as `m-per-s` and `m^3` take one SI modifier per
+  component: `cm-per-us` and `mm^3` are valid, `kmm-per-s` is not. A
+  `defaultUnits` value that is a derived form (`mA`, `kOhm` in HED 8.5.0)
+  resolves to its base unit. A placeholder with `unitClass=anyUnits` (`Quantity`
+  in HED 8.5.0) accepts a unit from any unit class, preferring a listed unit
+  over a derived one (hed-tests `units-invalid-compound-units`,
+  `units-invalid-any-units`). Conversion factors written as powers of ten
+  (`10^-15`) are read as powers, not as `10e-15`.
+- In a timeline file, a `Delay` or `Duration` value whose unit has no
+  `conversionFactor` (such as `month` or `year`) cannot be converted to seconds
+  and is reported as TEMPORAL_TAG_ERROR; `Delay` values in other time units are
+  converted before being added to the onset (hed-tests
+  `temporal-tag-error-delay-not-convertible`,
+  `temporal-tag-error-duration-not-convertible`). A non-numeric value or an
+  invalid unit remains a VALUE_INVALID or UNITS_INVALID error.
+- A value column referenced in curly braces has every distinct value checked,
+  even in rows whose selected template does not substitute it (hed-tests
+  `bad-value-in-curly-column`).
+- A column value or a `Def/Name/value` value is substituted for the `#`
+  placeholder literally; a value containing `$` (such as `$5`, `$$` or `$&`)
+  was treated as a JavaScript replacement pattern.
+- Schema merge groups follow specification 3.1.2.4, and the schemas of a group
+  are merged while they are parsed, as in hed-typescript (`src/schema/parser.js`,
+  `src/schema/init.js`): each entry-type parser runs over every schema of the
+  namespace and writes into one map, so a unit class declared by several
+  libraries is built once with all their units and every unit is built against
+  the merged unit modifiers. An element declared by several schemas is kept once
+  when the declarations are equivalent (same attributes, description, ancestor
+  path and `#` child, ignoring `inLibrary` and `hedId`) and is an error
+  otherwise, in the tags and in the auxiliary sections. A schema name (a library
+  or the standard schema) may be listed only once per merge group, whatever the
+  versions; every library in a group must have the same standard partner; a
+  listed standard schema must be that partner and becomes the base of the merged
+  schema; an unpartnered library must be alone in its namespace. The
+  `PartneredSchema` and `PartneredSchemaMerger` classes are gone. Schema entries
+  take their `description` in the constructor; `SchemaTag` takes its parent in
+  the constructor and a `SchemaValueTag` registers itself with its parent;
+  `SchemaEntryManager` is immutable after construction and offers a
+  `definitions` copy. Every entry has `equivalent(other)`. The issue codes are
+  those of hed-typescript (`nonPartneredSchemaWithAnotherSchema`,
+  `differentWithStandard`, `lazyPartneredSchemaOverloadsStandardTag`,
+  `lazyPartneredSchemasShareTag`, `lazyPartneredSchemasShareEntry`) plus
+  `schemaGroupInvalid` for a repeated schema name, all SCHEMA_LOAD_FAILED.
+  Fixes the hed-tests SCHEMA_LOAD_FAILED cases, including a crash when loading
+  an unpartnered library schema with an empty definitions section.
+- `HED_RUN_SKIPPED=1 npm run testSpecs` runs the cases listed in
+  `spec_tests/skippedTests.js` instead of skipping them. One case is skipped at
+  hed-tests 07ac29a: `temporal-tag-error-delay-with-anchored-marker`, whose
+  string tests expect a lone `Inset` and a lone `Offset` to pass.
 
 ### Dependencies
 

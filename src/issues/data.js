@@ -243,6 +243,11 @@ export default {
     level: 'error',
     message: stringTemplate`HED event string "${'string'}" has temporal tags on line(s) [${'tsvline'}] in a tsv file without an onset time.`,
   },
+  temporalTagNoConversion: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`Tag "${'tag'}" in HED event string "${'string'}" cannot be converted to the default units of its unit class (its unit has no conversionFactor), so it cannot be placed on the timeline.`,
+  },
   duplicateTemporal: {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
@@ -431,15 +436,35 @@ export default {
     level: 'error',
     message: stringTemplate`Tag "${'tag'}" is declared to use a library schema nicknamed "${'library'}" in the dataset's schema listing, but no such schema was found.`,
   },
+  schemaGroupInvalid: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Cannot combine schemas [${'versions'}] in one merge group: ${'problems'}.`,
+  },
+  nonPartneredSchemaWithAnotherSchema: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Could not combine a non-partnered schema and another schema with the same prefix "${'prefix'}".`,
+  },
   differentWithStandard: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: stringTemplate`Could not merge lazy partnered schemas with different "withStandard" values: "${'first'}" and "${'second'}".`,
+    message: stringTemplate`Could not merge lazy partnered schemas with different "withStandard" values: "${'versions'}".`,
+  },
+  lazyPartneredSchemaOverloadsStandardTag: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Could not merge lazy partnered schema because short tag "${'tag'}" overloads the same tag in the standard schema.`,
   },
   lazyPartneredSchemasShareTag: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
     message: stringTemplate`Lazy partnered schemas are incompatible because they share the short tag "${'tag'}". These schemas require different prefixes.`,
+  },
+  lazyPartneredSchemasShareEntry: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: stringTemplate`Lazy partnered schemas are incompatible because they share the entry "${'entryName'}". These schemas require different prefixes.`,
   },
   deprecatedStandardSchemaVersion: {
     hedCode: 'VERSION_DEPRECATED',

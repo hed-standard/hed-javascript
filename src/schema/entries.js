@@ -6,6 +6,7 @@ import pluralize from 'pluralize'
 pluralize.addUncountableRule('hertz')
 
 import { IssueError } from '../issues/issues'
+import { isExistingGregorianDate } from '../utils/dateTime'
 import Memoizer from '../utils/memoizer'
 
 /**
@@ -54,8 +55,8 @@ export class SchemaEntries extends Memoizer {
    */
   constructor(schemaParser) {
     super()
-    this.properties = new SchemaEntryManager(schemaParser.properties)
-    this.attributes = new SchemaEntryManager(schemaParser.attributes)
+    this.properties = schemaParser.properties
+    this.attributes = schemaParser.attributes
     this.valueClasses = schemaParser.valueClasses
     this.unitClasses = schemaParser.unitClasses
     this.unitModifiers = schemaParser.unitModifiers
@@ -134,6 +135,15 @@ export class SchemaEntryManager extends Memoizer {
   }
 
   /**
+   * A copy of the managed definition map.
+   *
+   * @returns {Map<string, T>}
+   */
+  get definitions() {
+    return new Map(this._definitions)
+  }
+
+  /**
    * Get a collection of entries with the given boolean attribute.
    *
    * @param {string} booleanAttributeName - The name of boolean attribute to filter on.
@@ -191,9 +201,22 @@ export class SchemaEntry extends Memoizer {
    */
   _name
 
-  constructor(name) {
+  /**
+   * The description of this schema entry.
+   * @type {string|undefined}
+   */
+  _description
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this schema entry.
+   * @param {string|undefined} description The description of this schema entry.
+   */
+  constructor(name, description) {
     super()
     this._name = name
+    this._description = description
   }
 
   /**
@@ -202,6 +225,29 @@ export class SchemaEntry extends Memoizer {
    */
   get name() {
     return this._name
+  }
+
+  /**
+   * The description of this schema entry.
+   * @returns {string|undefined}
+   */
+  get description() {
+    return this._description
+  }
+
+  /**
+   * Determine if this schema entry is equivalent to another schema entry.
+   *
+   * Schema entries are equivalent if they have the same name and description. Subclasses compare more.
+   *
+   * @param {*} other A schema entry to compare with this one.
+   * @returns {boolean} Whether the other entry is equivalent to this schema entry.
+   */
+  equivalent(other) {
+    if (!(other instanceof SchemaEntry)) {
+      return false
+    }
+    return this.name === other.name && this.description === other.description
   }
 
   /**
@@ -233,9 +279,28 @@ export class SchemaProperty extends SchemaEntry {
    */
   _propertyType
 
-  constructor(name, propertyType) {
-    super(name)
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this property.
+   * @param {string|undefined} description The description of this property.
+   * @param {string} propertyType The type of the property.
+   */
+  constructor(name, description, propertyType) {
+    super(name, description)
     this._propertyType = propertyType
+  }
+
+  /**
+   * Determine if this schema property is equivalent to another schema property.
+   *
+   * Properties are equivalent if they have the same name, description, and type.
+   *
+   * @param {*} other A schema property to compare with this one.
+   * @returns {boolean} Whether the other property is equivalent to this schema property.
+   */
+  equivalent(other) {
+    return other instanceof SchemaProperty && super.equivalent(other) && this._propertyType === other._propertyType
   }
 
   /**
@@ -266,9 +331,9 @@ export class SchemaProperty extends SchemaEntry {
 // Pseudo-properties
 
 // TODO: Switch back to class constant once upstream bug is fixed.
-export const nodeProperty = new SchemaProperty('nodeProperty', categoryProperty)
-export const schemaAttributeProperty = new SchemaProperty('schemaAttributeProperty', categoryProperty)
-const stringProperty = new SchemaProperty('stringProperty', typeProperty)
+export const nodeProperty = new SchemaProperty('nodeProperty', undefined, categoryProperty)
+export const schemaAttributeProperty = new SchemaProperty('schemaAttributeProperty', undefined, categoryProperty)
+const stringProperty = new SchemaProperty('stringProperty', undefined, typeProperty)
 
 /**
  * A schema attribute.
@@ -293,13 +358,28 @@ export class SchemaAttribute extends SchemaEntry {
   _roleProperties
 
   /**
+   * The names of every property assigned to this schema attribute, including properties this version does not model.
+   * @type {Set<string>}
+   */
+  propertyNames
+
+  /**
    * Constructor.
    *
    * @param {string} name The name of the schema attribute.
-   * @param {SchemaProperty[]} properties The properties assigned to this schema attribute.
+   * @param {string|undefined} description The description of the schema attribute.
+   * @param {SchemaProperty[]} properties The properties assigned to this schema attribute (undefined entries are
+   *     properties this version does not model).
+   * @param {Iterable<string>} propertyNames The names of every property assigned to this schema attribute.
    */
-  constructor(name, properties) {
-    super(name, new Set(), new Map())
+  constructor(name, description, properties, propertyNames = []) {
+    super(name, description)
+    this.propertyNames = new Set(propertyNames)
+    for (const property of properties) {
+      if (property) {
+        this.propertyNames.add(property.name)
+      }
+    }
 
     // Parse properties
     const categoryProperties = properties.filter((property) => property?.isCategoryProperty)
@@ -339,6 +419,24 @@ export class SchemaAttribute extends SchemaEntry {
   get roleProperties() {
     return new Set(this._roleProperties)
   }
+
+  /**
+   * Determine if this schema attribute is equivalent to another schema attribute.
+   *
+   * Schema attributes are equivalent if they have the same name, description, and properties.
+   *
+   * @param {*} other A schema attribute to compare with this one.
+   * @returns {boolean} Whether the other attribute is equivalent to this schema attribute.
+   */
+  equivalent(other) {
+    if (!(other instanceof SchemaAttribute) || !super.equivalent(other)) {
+      return false
+    }
+    return (
+      this.propertyNames.size === other.propertyNames.size &&
+      [...this.propertyNames].every((name) => other.propertyNames.has(name))
+    )
+  }
 }
 
 /**
@@ -369,11 +467,60 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
    */
   valueAttributeNames
 
-  constructor(name, booleanAttributes, valueAttributes) {
-    super(name)
+  /**
+   * The attributes ignored when comparing two declarations of an element: inLibrary names the declaring library and
+   * hedId differs between schemas by construction.
+   * @type {Set<string>}
+   */
+  static IGNORED_ATTRIBUTES = new Set(['inLibrary', 'hedId'])
+
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this schema entry.
+   * @param {string|undefined} description The description of this schema entry.
+   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this schema entry.
+   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this schema entry.
+   */
+  constructor(name, description, booleanAttributes, valueAttributes) {
+    super(name, description)
     this.booleanAttributes = booleanAttributes
     this.valueAttributes = valueAttributes
     this._parseAttributeNames()
+  }
+
+  /**
+   * Determine if this schema entry is equivalent to another schema entry.
+   *
+   * Entries with attributes are equivalent if they have the same name, description, boolean attributes, and value
+   * attributes, ignoring inLibrary and hedId.
+   *
+   * @param {*} other A schema entry to compare with this one.
+   * @returns {boolean} Whether the other entry is equivalent to this schema entry.
+   */
+  equivalent(other) {
+    if (!(other instanceof SchemaEntryWithAttributes) || !super.equivalent(other)) {
+      return false
+    }
+    if (
+      this.booleanAttributeNames.size !== other.booleanAttributeNames.size ||
+      ![...this.booleanAttributeNames].every((name) => other.booleanAttributeNames.has(name))
+    ) {
+      return false
+    }
+    const compared = (entry) =>
+      [...entry.valueAttributeNames].filter(([name]) => !SchemaEntryWithAttributes.IGNORED_ATTRIBUTES.has(name))
+    const ours = compared(this)
+    const theirs = new Map(compared(other))
+    if (ours.length !== theirs.size) {
+      return false
+    }
+    const sorted = (values) =>
+      [...values]
+        .map(String)
+        .sort((a, b) => a.localeCompare(b))
+        .join('|')
+    return ours.every(([name, values]) => theirs.has(name) && sorted(theirs.get(name)) === sorted(values))
   }
 
   /**
@@ -445,39 +592,149 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
  */
 export class SchemaUnit extends SchemaEntryWithAttributes {
   /**
-   * The legal derivatives of this unit.
+   * The legal derivatives of this unit (non-compound units only): the name, its plural, and modified forms.
    * @type {string[]}
    */
   _derivativeUnits
 
   /**
+   * The SI modifiers this unit accepts, mapped to their conversion factors (null if a modifier has none).
+   * @type {Map<string, number|null>}
+   */
+  _modifierFactors
+
+  /**
+   * The components of a compound SI unit such as m-per-s^2, or null for every other unit.
+   * @type {Array<{base: string, exponent: number, text: string}>|null}
+   */
+  _compoundComponents
+
+  /**
    * Constructor.
    *
    * @param {string} name The name of the unit.
+   * @param {string|undefined} description The description of the unit.
    * @param {Set<SchemaAttribute>} booleanAttributes This unit's boolean attributes.
    * @param {Map<SchemaAttribute, *>} valueAttributes This unit's key-value attributes.
-   * @param {SchemaEntryManager<SchemaUnitModifier>} unitModifiers The collection of unit modifiers.
+   * @param {SchemaEntryManager<SchemaUnitModifier>} unitModifiers The collection of unit modifiers (of every schema
+   *     in the merge group, since units are built after the unit modifiers have been merged).
    */
-  constructor(name, booleanAttributes, valueAttributes, unitModifiers) {
-    super(name, booleanAttributes, valueAttributes)
+  constructor(name, description, booleanAttributes, valueAttributes, unitModifiers) {
+    super(name, description, booleanAttributes, valueAttributes)
+    this._buildForms(unitModifiers)
+  }
 
-    this._derivativeUnits = [name]
+  /**
+   * Determine if this schema unit is equivalent to another schema unit.
+   *
+   * @param {*} other A schema unit to compare with this one.
+   * @returns {boolean} Whether the other unit is equivalent to this schema unit.
+   */
+  equivalent(other) {
+    return other instanceof SchemaUnit && super.equivalent(other)
+  }
+
+  /**
+   * Build the accepted forms of this unit from the collection of unit modifiers.
+   *
+   * @param {SchemaEntryManager<SchemaUnitModifier>} unitModifiers The collection of unit modifiers.
+   * @private
+   */
+  _buildForms(unitModifiers) {
+    this._derivativeUnits = [this.name]
+    this._modifierFactors = new Map()
+    this._compoundComponents = null
     if (!this.isSIUnit) {
       this._pushPluralUnit()
       return
     }
-    if (this.isUnitSymbol) {
-      const SIUnitSymbolModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitSymbolModifier')
-      for (const modifierName of SIUnitSymbolModifiers.keys()) {
-        this._derivativeUnits.push(modifierName + name)
-      }
-    } else {
-      const SIUnitModifiers = unitModifiers.getEntriesWithBooleanAttribute('SIUnitModifier')
-      const pluralUnit = this._pushPluralUnit()
-      for (const modifierName of SIUnitModifiers.keys()) {
-        this._derivativeUnits.push(modifierName + name, modifierName + pluralUnit)
+    const modifierAttribute = this.isUnitSymbol ? 'SIUnitSymbolModifier' : 'SIUnitModifier'
+    for (const [modifierName, modifier] of unitModifiers.getEntriesWithBooleanAttribute(modifierAttribute)) {
+      this._modifierFactors.set(modifierName, SchemaUnit._parseFactor(modifier))
+    }
+    this._compoundComponents = this._parseCompoundComponents()
+    if (this._compoundComponents !== null) {
+      // A compound unit takes one modifier per component and is matched by validateUnit, not from a list.
+      return
+    }
+    const pluralUnit = this._pushPluralUnit()
+    for (const modifierName of this._modifierFactors.keys()) {
+      this._derivativeUnits.push(modifierName + this.name)
+      if (pluralUnit !== null) {
+        this._derivativeUnits.push(modifierName + pluralUnit)
       }
     }
+  }
+
+  /**
+   * Parse the conversionFactor attribute of a unit or unit modifier.
+   *
+   * @param {SchemaEntryWithAttributes} entry A unit or unit modifier.
+   * @returns {number|null} The factor, or null if the entry has none or it is not a number.
+   * @private
+   */
+  static _parseFactor(entry) {
+    const text = entry.getAttributeValue('conversionFactor')
+    if (text === undefined) {
+      return null
+    }
+    // Schemas write factors as decimals (0.001), in e-notation (1e-6), or as powers (10^-6).
+    const [base, exponent, ...extra] = String(text).split('^')
+    const factor = exponent === undefined ? Number(base) : Number(base) ** Number(exponent)
+    return extra.length === 0 && Number.isFinite(factor) ? factor : null
+  }
+
+  /**
+   * Split a compound SI unit name (one containing "-per-" or "^") into its components.
+   *
+   * @returns {Array<{base: string, exponent: number, text: string}>|null} One entry per component in name order
+   *     (the first is the numerator, the rest are denominators), or null if this is not a compound unit.
+   * @private
+   */
+  _parseCompoundComponents() {
+    if (!this.name.includes('-per-') && !this.name.includes('^')) {
+      return null
+    }
+    const components = []
+    for (const text of this.name.split('-per-')) {
+      const [base, exponentText, ...extra] = text.split('^')
+      if (base === '' || extra.length > 0) {
+        return null
+      }
+      const exponent = exponentText === undefined ? 1 : Number(exponentText)
+      if (!Number.isInteger(exponent)) {
+        return null
+      }
+      components.push({ base: base, exponent: exponent, text: text })
+    }
+    return components
+  }
+
+  /**
+   * Match a unit string against this compound unit, allowing one SI modifier per component.
+   *
+   * @param {string} value The unit string.
+   * @returns {string[]|null} The modifier used for each component ('' for none), or null if no match.
+   * @private
+   */
+  _matchCompound(value) {
+    const parts = value.split('-per-')
+    if (parts.length !== this._compoundComponents.length) {
+      return null
+    }
+    const modifiers = []
+    for (const [index, part] of parts.entries()) {
+      const expected = this._compoundComponents[index].text
+      if (!part.endsWith(expected)) {
+        return null
+      }
+      const modifier = part.slice(0, part.length - expected.length)
+      if (modifier !== '' && !this._modifierFactors.has(modifier)) {
+        return null
+      }
+      modifiers.push(modifier)
+    }
+    return modifiers
   }
 
   _pushPluralUnit() {
@@ -520,13 +777,73 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
     if (this.isPrefixUnit) {
       return value.startsWith(this.name)
     }
-
+    if (this._compoundComponents !== null) {
+      return this._matchCompound(value) !== null
+    }
     for (const dUnit of this.derivativeUnits()) {
       if (value === dUnit) {
         return true
       }
     }
     return false
+  }
+
+  /**
+   * Get the factor that converts a value given in a form of this unit to the unit class's base unit.
+   *
+   * @param {string} value A unit string accepted by validateUnit.
+   * @returns {number|null} The conversion factor, or null if this unit has no conversionFactor, the string is not
+   *     a form of this unit, or a modifier used has no conversionFactor.
+   */
+  conversionFactor(value) {
+    const baseFactor = SchemaUnit._parseFactor(this)
+    if (baseFactor === null || !this.validateUnit(value)) {
+      return null
+    }
+    const modifierFactor =
+      this._compoundComponents === null ? this._simpleModifierFactor(value) : this._compoundModifierFactor(value)
+    return modifierFactor === null ? null : baseFactor * modifierFactor
+  }
+
+  /**
+   * Get the combined factor of the modifiers in a form of this compound unit.
+   *
+   * @param {string} value A unit string accepted by validateUnit.
+   * @returns {number|null} The factor (1 when no modifier is used), or null if a modifier used has no factor.
+   * @private
+   */
+  _compoundModifierFactor(value) {
+    let factor = 1
+    for (const [index, modifier] of this._matchCompound(value).entries()) {
+      if (modifier === '') {
+        continue
+      }
+      const modifierFactor = this._modifierFactors.get(modifier)
+      if (modifierFactor === null) {
+        return null
+      }
+      const exponent = this._compoundComponents[index].exponent
+      factor *= modifierFactor ** (index === 0 ? exponent : -exponent)
+    }
+    return factor
+  }
+
+  /**
+   * Get the factor of the modifier in a form of this non-compound unit.
+   *
+   * @param {string} value A unit string accepted by validateUnit.
+   * @returns {number|null} The factor (1 when no modifier is used), or null if the modifier used has no factor.
+   * @private
+   */
+  _simpleModifierFactor(value) {
+    const plainForms = this.isUnitSymbol ? [this.name] : [this.name, this._derivativeUnits[1]]
+    if (this.isPrefixUnit || plainForms.includes(value)) {
+      return 1
+    }
+    const modifier = [...this._modifierFactors.keys()].find(
+      (name) => value.startsWith(name) && plainForms.includes(value.slice(name.length)),
+    )
+    return modifier === undefined ? null : this._modifierFactors.get(modifier)
   }
 }
 
@@ -544,12 +861,13 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
    * Constructor.
    *
    * @param {string} name The name of this unit class.
+   * @param {string|undefined} description The description of this unit class.
    * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this unit class.
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this unit class.
    * @param {Map<string, SchemaUnit>} units The units for this unit class.
    */
-  constructor(name, booleanAttributes, valueAttributes, units) {
-    super(name, booleanAttributes, valueAttributes)
+  constructor(name, description, booleanAttributes, valueAttributes, units) {
+    super(name, description, booleanAttributes, valueAttributes)
     this._units = units
   }
 
@@ -562,18 +880,38 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
   }
 
   /**
+   * Determine if this schema unit class is equivalent to another schema unit class.
+   *
+   * The units are not compared: two declarations of a unit class may list different units, which are merged, and
+   * the units themselves are compared one by one by the parser.
+   *
+   * @param {*} other A schema unit class to compare with this one.
+   * @returns {boolean} Whether the other unit class is equivalent to this schema unit class.
+   */
+  equivalent(other) {
+    return other instanceof SchemaUnitClass && super.equivalent(other)
+  }
+
+  /**
    * Get the default unit for this unit class.
    * @returns {SchemaUnit}
    */
   get defaultUnit() {
-    return this._units.get(this.getAttributeValue('defaultUnits'))
+    const defaultUnits = this.getAttributeValue('defaultUnits')
+    if (defaultUnits === undefined) {
+      return undefined
+    }
+    // A listed unit wins; otherwise the unit that the default derives from (A for mA, Ohm for kOhm) is matched.
+    return this._units.get(defaultUnits) ?? [...this._units.values()].find((unit) => unit.validateUnit(defaultUnits))
   }
 
   /**
    * Extracts the Unit class and remainder
+   * @param {string} value The value part of a tag, possibly ending in a unit.
+   * @param {boolean} listedOnly Whether to match only unit names as listed in the schema (no plurals or modifiers).
    * @returns {Array} [SchemaUnit, string, string] containing unit class, unit string, and value string
    */
-  extractUnit(value) {
+  extractUnit(value, listedOnly = false) {
     let actualUnit = null // The Unit class of the value
     let actualValueString = null // The actual value part of the value
     let actualUnitString = null
@@ -590,7 +928,7 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
     actualValueString = firstPart
     actualUnitString = lastPart
     for (const unit of this._units.values()) {
-      if (!unit.isPrefixUnit && unit.validateUnit(lastPart)) {
+      if (!unit.isPrefixUnit && (listedOnly ? lastPart === unit.name : unit.validateUnit(lastPart))) {
         // Checking if it is non-prefixed unit
         actualValueString = firstPart
         actualUnitString = lastPart
@@ -615,8 +953,26 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
  * SchemaUnitModifier class
  */
 export class SchemaUnitModifier extends SchemaEntryWithAttributes {
-  constructor(name, booleanAttributes, valueAttributes) {
-    super(name, booleanAttributes, valueAttributes)
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this unit modifier.
+   * @param {string|undefined} description The description of this unit modifier.
+   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this unit modifier.
+   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this unit modifier.
+   */
+  constructor(name, description, booleanAttributes, valueAttributes) {
+    super(name, description, booleanAttributes, valueAttributes)
+  }
+
+  /**
+   * Determine if this schema unit modifier is equivalent to another schema unit modifier.
+   *
+   * @param {*} other A schema unit modifier to compare with this one.
+   * @returns {boolean} Whether the other unit modifier is equivalent to this schema unit modifier.
+   */
+  equivalent(other) {
+    return other instanceof SchemaUnitModifier && super.equivalent(other)
   }
 }
 
@@ -641,16 +997,34 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
    * Constructor.
    *
    * @param {string} name The name of this value class.
+   * @param {string|undefined} description The description of this value class.
    * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this value class.
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this value class.
    * @param {RegExp} charClassRegex The character class-based regular expression for this value class.
    * @param {RegExp} wordRegex The "word form"-based regular expression for this value class.
    */
-
-  constructor(name, booleanAttributes, valueAttributes, charClassRegex, wordRegex) {
-    super(name, booleanAttributes, valueAttributes)
+  constructor(name, description, booleanAttributes, valueAttributes, charClassRegex, wordRegex) {
+    super(name, description, booleanAttributes, valueAttributes)
     this._charClassRegex = charClassRegex
     this._wordRegex = wordRegex
+  }
+
+  /**
+   * Determine if this schema value class is equivalent to another schema value class.
+   *
+   * Value classes are equivalent if they have the same name, description, attributes, and regular expressions.
+   *
+   * @param {*} other A schema value class to compare with this one.
+   * @returns {boolean} Whether the other value class is equivalent to this schema value class.
+   */
+  equivalent(other) {
+    if (!(other instanceof SchemaValueClass) || !super.equivalent(other)) {
+      return false
+    }
+    return (
+      String(this._charClassRegex) === String(other._charClassRegex) &&
+      String(this._wordRegex) === String(other._wordRegex)
+    )
   }
 
   /**
@@ -660,7 +1034,14 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
    * @returns {boolean} Whether the value conforms to this value class.
    */
   validateValue(value) {
-    return this._wordRegex.test(value) && this._charClassRegex.test(value)
+    if (!this._wordRegex.test(value) || !this._charClassRegex.test(value)) {
+      return false
+    }
+    if (this.name === 'dateTimeClass') {
+      // The regular expression fixes the shape; the date must also exist in the Gregorian calendar.
+      return isExistingGregorianDate(value.slice(0, 10))
+    }
+    return true
   }
 }
 
@@ -700,13 +1081,16 @@ export class SchemaTag extends SchemaEntryWithAttributes {
    * Constructor.
    *
    * @param {string} name The name of this tag.
+   * @param {string|undefined} description The description of this tag.
+   * @param {SchemaTag|undefined} parentTag This tag's parent tag.
    * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this tag.
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this tag.
    * @param {SchemaUnitClass[]} unitClasses The unit classes for this tag.
    * @param {SchemaValueClass[]} valueClasses The value classes for this tag.
    */
-  constructor(name, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
-    super(name, booleanAttributes, valueAttributes)
+  constructor(name, description, parentTag, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
+    super(name, description, booleanAttributes, valueAttributes)
+    this._parent = parentTag
     this._unitClasses = unitClasses ?? []
     this._valueClasses = valueClasses ?? []
   }
@@ -745,11 +1129,20 @@ export class SchemaTag extends SchemaEntryWithAttributes {
 
   /**
    * Set the tag's value-taking child tag.
+   *
+   * A value tag registers itself here from its constructor. When several schemas of a merge group declare the same
+   * tag, the first registered value tag is kept and a later equivalent one is ignored; a different one is an error.
+   *
    * @param {SchemaValueTag} newValueTag The new value-taking child tag.
+   * @throws {IssueError} If this tag already has a different value tag.
    */
   set valueTag(newValueTag) {
-    if (!this._isPrivateFieldSet(this._valueTag, 'value tag')) {
+    if (this._valueTag === undefined) {
       this._valueTag = newValueTag
+    } else if (!this._valueTag.equivalent(newValueTag)) {
+      IssueError.generateAndThrowInternalError(
+        `Attempted to set value tag for schema tag ${this.longName} when it already has one.`,
+      )
     }
   }
 
@@ -762,31 +1155,33 @@ export class SchemaTag extends SchemaEntryWithAttributes {
   }
 
   /**
-   * Set the tag's parent tag.
-   * @param {SchemaTag} newParent The new parent tag.
-   */
-  set parent(newParent) {
-    if (!this._isPrivateFieldSet(this._parent, 'parent')) {
-      this._parent = newParent
-    }
-  }
-
-  /**
-   * Throw an error if a private field is already set.
+   * Determine if this schema tag is equivalent to another schema tag.
    *
-   * @param {*} field The field being set.
-   * @param {string} fieldName The name of the field (for error reporting).
-   * @return {boolean} Whether the field is set (never returns true).
-   * @throws {IssueError} If the field is already set.
-   * @private
+   * Tags are equivalent if they have the same name, description, and attributes, equivalent parents (so the same
+   * ancestor path), and either no value tag or equivalent value tags.
+   *
+   * @param {*} other A schema tag to compare with this one.
+   * @param {boolean} [compareParents] Whether to compare the parents (false when this tag is reached from its parent).
+   * @returns {boolean} Whether the other tag is equivalent to this schema tag.
    */
-  _isPrivateFieldSet(field, fieldName) {
-    if (field !== undefined) {
-      IssueError.generateAndThrowInternalError(
-        `Attempted to set ${fieldName} for schema tag ${this.longName} when it already has one.`,
-      )
+  equivalent(other, compareParents = true) {
+    if (!(other instanceof SchemaTag) || !super.equivalent(other)) {
+      return false
     }
-    return false
+    if (compareParents) {
+      if ((this.parent === undefined) !== (other.parent === undefined)) {
+        return false
+      }
+      if (this.parent !== undefined && this.parent !== other.parent && !this.parent.equivalent(other.parent)) {
+        return false
+      }
+    }
+    if ((this.valueTag === undefined) !== (other.valueTag === undefined)) {
+      return false
+    }
+    return (
+      this.valueTag === undefined || this.valueTag === other.valueTag || this.valueTag.equivalent(other.valueTag, false)
+    )
   }
 
   /**
@@ -845,6 +1240,51 @@ export class SchemaTag extends SchemaEntryWithAttributes {
  * A value-taking tag in a HED schema.
  */
 export class SchemaValueTag extends SchemaTag {
+  /**
+   * Constructor.
+   *
+   * The value tag registers itself as its parent's value tag.
+   *
+   * @param {string} name The name of this tag.
+   * @param {string|undefined} description The description of this tag.
+   * @param {SchemaTag} parentTag This tag's parent tag.
+   * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this tag.
+   * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this tag.
+   * @param {SchemaUnitClass[]} unitClasses The unit classes for this tag.
+   * @param {SchemaValueClass[]} valueClasses The value classes for this tag.
+   * @throws {IssueError} If the tag has no parent.
+   */
+  constructor(name, description, parentTag, booleanAttributes, valueAttributes, unitClasses, valueClasses) {
+    super(name, description, parentTag, booleanAttributes, valueAttributes, unitClasses, valueClasses)
+    if (parentTag === undefined) {
+      IssueError.generateAndThrowInternalError(`Value tag "${name}" must have a parent.`)
+    }
+    parentTag.valueTag = this
+  }
+
+  /**
+   * Determine if this schema value tag is equivalent to another schema value tag.
+   *
+   * Value tags also compare their unit classes and value classes (by name).
+   *
+   * @param {*} other A schema value tag to compare with this one.
+   * @param {boolean} [compareParents] Whether to compare the parents (false when this tag is reached from its parent).
+   * @returns {boolean} Whether the other value tag is equivalent to this schema value tag.
+   */
+  equivalent(other, compareParents = true) {
+    if (!(other instanceof SchemaValueTag) || !super.equivalent(other, compareParents)) {
+      return false
+    }
+    const names = (entries) =>
+      entries
+        .map((entry) => entry?.name ?? '')
+        .sort((a, b) => a.localeCompare(b))
+        .join('|')
+    return (
+      names(this._unitClasses) === names(other._unitClasses) && names(this._valueClasses) === names(other._valueClasses)
+    )
+  }
+
   /**
    * This tag's long name.
    * @returns {string}
