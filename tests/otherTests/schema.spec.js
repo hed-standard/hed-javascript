@@ -5,7 +5,7 @@ import { beforeAll, describe, it } from '@jest/globals'
 import { generateIssue } from '../../src/issues/issues'
 import { buildSchemas, buildSchemasFromVersion } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
-import { buildSchemasSpec } from '../../src/bids/schema'
+import { buildBidsSchemas } from '../../src/bids/schema'
 import { BidsJsonFile } from '../../src/bids/index.js'
 import { IssueError } from '../../src/issues/issues.js'
 import { getLocalSchemaVersions } from '../../src/schema/config.js'
@@ -542,55 +542,23 @@ describe('HED schemas', () => {
       })
     })
 
-    describe.skip('buildSchemasSpec', () => {
-      it('should build schemas spec from BidsJsonFile with HEDVersion', () => {
-        const jsonData = { HEDVersion: '8.0.0' }
-        const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, jsonData)
+    describe('buildBidsSchemas', () => {
+      it('should return null for BidsJsonFile without HEDVersion', async () => {
+        const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, { otherField: 'value' })
 
-        const specsObj = buildSchemasSpec(bidsFile)
-
-        assert.isNotNull(specsObj, 'Should return schemas spec object')
-        assert.instanceOf(specsObj, SchemasSpec, 'Should return SchemasSpec instance')
-        assert.strictEqual(specsObj.data.size, 1, 'Should contain one prefix entry')
-        const specs = specsObj.data.get('')
-        assert.lengthOf(specs, 1, 'Should contain one spec')
-        assert.strictEqual(specs[0].version, '8.0.0', 'Version should match')
+        assert.isNull(await buildBidsSchemas(bidsFile), 'Should return null when no HEDVersion')
       })
 
-      it('should build schemas spec from BidsJsonFile with array HEDVersion', () => {
-        const jsonData = { HEDVersion: ['8.0.0', 'testlib_2.0.0'] }
-        const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, jsonData)
-
-        const specsObj = buildSchemasSpec(bidsFile)
-
-        assert.isNotNull(specsObj, 'Should return schemas spec object')
-        const specs = specsObj.data.get('')
-        assert.lengthOf(specs, 2, 'Should contain two specs')
-      })
-
-      it('should return null for BidsJsonFile without HEDVersion', () => {
-        const jsonData = { otherField: 'value' }
-        const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, jsonData)
-
-        const specsObj = buildSchemasSpec(bidsFile)
-
-        assert.isNull(specsObj, 'Should return null when no HEDVersion')
-      })
-
-      it('should return null for BidsJsonFile with null jsonData', () => {
+      it('should return null for BidsJsonFile with null jsonData', async () => {
         const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, null)
 
-        const specsObj = buildSchemasSpec(bidsFile)
-
-        assert.isNull(specsObj, 'Should return null when jsonData is null')
+        assert.isNull(await buildBidsSchemas(bidsFile), 'Should return null when jsonData is null')
       })
 
-      it('should return null for BidsJsonFile with undefined jsonData', () => {
+      it('should return null for BidsJsonFile with undefined jsonData', async () => {
         const bidsFile = new BidsJsonFile('test', { path: 'test.json' }, undefined)
 
-        const specsObj = buildSchemasSpec(bidsFile)
-
-        assert.isNull(specsObj, 'Should return null when jsonData is undefined')
+        assert.isNull(await buildBidsSchemas(bidsFile), 'Should return null when jsonData is undefined')
       })
     })
   })
