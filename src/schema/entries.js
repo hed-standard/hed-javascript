@@ -850,9 +850,13 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
    * Determine whether a unit string is this unit written without an SI modifier.
    *
    * @param {string} value A unit string.
-   * @returns {boolean} True if the string is this unit's name or, for a unit that is not a symbol, its plural.
+   * @returns {boolean} True if the string is this unit's name (a compound unit such as m-per-s included) or, for a
+   *     unit that is not a symbol, its plural.
    */
   isUnmodifiedForm(value) {
+    if (value === this.name) {
+      return true
+    }
     return this._compoundComponents === null && this._plainForms().includes(value)
   }
 

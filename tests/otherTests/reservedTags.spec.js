@@ -242,6 +242,10 @@ describe('Reserved tags from the published reserved_tags.json', () => {
       assert.strictEqual(convert('Weight/3 gram'), 3)
       assert.isNull(convert('Weight/3 pound'))
       assert.isNull(convert('Weight/3 kg'))
+      // A compound default unit (speedUnits: m-per-s) is its own unmodified form; a modified component is not.
+      assert.strictEqual(convert('Speed/3 m-per-s'), 3)
+      assert.strictEqual(convert('Speed/3'), 3)
+      assert.isNull(convert('Speed/3 km-per-s'))
     })
 
     it('accepts any unit of the class in a descriptor table', () => {
