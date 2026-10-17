@@ -1,0 +1,2 @@
+# A verbatim copy of hed-specification's reserved_tags.json; reserved_tags.yml checks it byte for byte.
+src/data/json/reservedTags.json

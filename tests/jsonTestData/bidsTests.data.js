@@ -1990,11 +1990,11 @@ export const bidsTestData = [
         eventsString: 'onset\tduration\tspeed\n' + '19\t6\t5\n',
         sidecarErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidPlaceholderInDefinition', {
-              definition: '(Definition/GreenDef/Test, (Red, Triangle))',
+            generateIssue('invalidDefinition', {
+              definition: 'Definition/GreenDef/Test',
               filePath: 'invalid-definition-with-fixed-placeholder.json',
               sidecarKey: 'mydefs',
-              msg: 'The definition should have 1 placeholder but has 0 #s.',
+              msg: 'Only "#" may follow the definition name, not "Test".',
             }),
             {
               path: 'invalid-definition-with-fixed-placeholder.json',
@@ -2004,11 +2004,11 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidPlaceholderInDefinition', {
-              definition: '(Definition/GreenDef/Test, (Red, Triangle))',
+            generateIssue('invalidDefinition', {
+              definition: 'Definition/GreenDef/Test',
               filePath: 'invalid-definition-with-fixed-placeholder.tsv',
               sidecarKey: 'mydefs',
-              msg: 'The definition should have 1 placeholder but has 0 #s.',
+              msg: 'Only "#" may follow the definition name, not "Test".',
             }),
             {
               path: 'invalid-definition-with-fixed-placeholder.tsv',

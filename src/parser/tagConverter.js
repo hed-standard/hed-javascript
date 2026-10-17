@@ -175,6 +175,10 @@ export default class TagConverter {
         msg: `The tag "${this.schemaTag?.name}" requires a child tag, but none was provided.`,
       })
     }
+    // Delay and Duration lack requireChild before HED 8.3.0; the reserved-tag file requires their value.
+    if (this.special.requireValueTags.has(this.schemaTag?.name) && !this.remainder) {
+      IssueError.generateAndThrow('valueRequired', { tag: this.tagString })
+    }
   }
 
   _checkNameClass(index) {

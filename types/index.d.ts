@@ -607,6 +607,8 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
   validateUnit(value: string): boolean
   /** The factor converting a value in the given form of this unit to the unit class's default unit, or null if none */
   conversionFactor(value: string): number | null
+  /** Whether a unit string is this unit written without an SI modifier (its name or, unless a symbol, its plural) */
+  isUnmodifiedForm(value: string): boolean
 }
 
 export class SchemaUnitClass extends SchemaEntryWithAttributes {
@@ -614,6 +616,8 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
   units: SchemaUnit[]
   /** The default unit of this unit class (a derived defaultUnits value such as mA resolves to its base unit) */
   get defaultUnit(): SchemaUnit | undefined
+  /** Whether any unit of this class has a conversionFactor (none of the timeUnits of HED 8.0.0 does) */
+  get hasConversionFactors(): boolean
 
   constructor(
     name: string,

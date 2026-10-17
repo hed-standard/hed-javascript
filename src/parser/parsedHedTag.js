@@ -7,7 +7,6 @@ import { SchemaValueTag } from '../schema/entries'
 import TagConverter from './tagConverter'
 import { ReservedChecker } from './reservedChecker'
 
-const TWO_LEVEL_TAGS = new Set(['Definition', 'Def', 'Def-expand'])
 const allowedRegEx = /^[^{},]*$/
 
 /**
@@ -140,8 +139,15 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       IssueError.generateAndThrow('valueRequired', { tag: this.originalTag })
     }
     // Check if this could have a two-level value
-    const [value, rest] = this._getSplitValue(remainder)
+    const [value, rest] = this._getSplitValue(remainder, reserved)
     this._splitValue = rest
+    // After a Definition name only # may follow (specification 3.2.8.1, DEFINITION_INVALID l).
+    if (ReservedChecker.valueForms.get(this.schemaTag.name)?.secondPart === 'placeholder' && rest && rest !== '#') {
+      IssueError.generateAndThrow('invalidDefinition', {
+        definition: this.originalTag,
+        msg: `Only "#" may follow the definition name, not "${rest}".`,
+      })
+    }
 
     // Resolve the units and check
     const [actualUnit, actualUnitString, actualValueString] = this._separateUnits(schemaTag, value)
@@ -211,6 +217,10 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * that has no unit class is returned unchanged. A placeholder with unitClass=anyUnits has no default unit,
    * so its value converts only when a unit is written.
    *
+   * In a unit class none of whose units has a conversionFactor (timeUnits in HED 8.0.0), an unmodified form of
+   * the default unit or of an SI unit of the class (s, second, seconds) converts with factor 1 (specification
+   * 3.2.8.4); a modified form (ms) or another unit (minute) does not convert.
+   *
    * @returns {number|null} The value in default units, or null if the tag takes no value, the value is not
    *     numeric, the unit is invalid, the unit has no conversionFactor (such as month or year), or the value
    *     is a bare number on an anyUnits placeholder.
@@ -228,15 +238,38 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       return acceptsAnyUnits ? null : value
     }
     const factor = this._unit?.conversionFactor(this._units) ?? null
-    return factor === null ? null : value * factor
+    if (factor !== null) {
+      return value * factor
+    }
+    return this._isUnconvertedBaseUnit() ? value : null
   }
 
   /**
-   * Handle reserved three-level tags.
-   * @param {string} remainder - The remainder of the tag string after schema tag.
+   * Determine whether this tag's unit is a base unit of a unit class that defines no conversion factors.
+   *
+   * @returns {boolean} True if no unit of the unit class holding this tag's unit has a conversionFactor and the
+   *     unit is written unmodified as the default unit or an SI unit of that class.
+   * @private
    */
-  _getSplitValue(remainder) {
-    if (!TWO_LEVEL_TAGS.has(this.schemaTag.name)) {
+  _isUnconvertedBaseUnit() {
+    const unitClass = this._expandUnitClasses(this.takesValueTag.unitClasses).find(
+      (candidate) => candidate.units.get(this._unit?.name) === this._unit,
+    )
+    if (unitClass === undefined || unitClass.hasConversionFactors) {
+      return false
+    }
+    const isBaseUnit = this._unit === unitClass.defaultUnit || this._unit.isSIUnit
+    return isBaseUnit && this._unit.isUnmodifiedForm(this._units)
+  }
+
+  /**
+   * Split the value of a tag whose value has two parts (the valueForms of the reserved-tag file).
+   * @param {string} remainder - The remainder of the tag string after schema tag.
+   * @param {ReservedChecker} reserved - The reserved-tag checker.
+   * @returns {Array} - [string, string|null] the name and the part after it, or [remainder, null] for other tags.
+   */
+  _getSplitValue(remainder, reserved) {
+    if (!reserved.twoPartValueTags.has(this.schemaTag.name)) {
       return [remainder, null]
     }
     const [first, ...rest] = remainder.split('/')

@@ -168,6 +168,11 @@ export default {
     level: 'error',
     message: stringTemplate`The Definition or Def-expand tag "${'tag'} in "${'tagGroup'}" has multiple top tags or more than one top group.`,
   },
+  invalidDefExpandGroupStructure: {
+    hedCode: 'DEF_EXPAND_INVALID',
+    level: 'error',
+    message: stringTemplate`The Def-expand tag "${'tag'} in "${'tagGroup'}" has multiple top tags or more than one top group.`,
+  },
   invalidDefinitionForbidden: {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
@@ -227,6 +232,11 @@ export default {
     hedCode: 'TEMPORAL_TAG_ERROR',
     level: 'error',
     message: stringTemplate`${'tag'} found in tag group "${'tagGroup'}" with the wrong number of Def tags and Def-expand groups.`,
+  },
+  temporalWithWrongNumberOfGroups: {
+    hedCode: 'TEMPORAL_TAG_ERROR',
+    level: 'error',
+    message: stringTemplate`${'tag'} found in tag group "${'tagGroup'}" with too many or too few inner tag groups.`,
   },
   temporalWithoutDefinition: {
     hedCode: 'TEMPORAL_TAG_ERROR',
@@ -374,6 +384,11 @@ export default {
     hedCode: 'DEFINITION_INVALID',
     level: 'error',
     message: stringTemplate`Illegal curly brace expression "${'sidecarKey'}" found in HED string containing definition "${'definition'}".`,
+  },
+  curlyBracesInReservedGroup: {
+    hedCode: 'TAG_GROUP_ERROR',
+    level: 'error',
+    message: stringTemplate`Illegal curly brace expression "${'splice'}" found in the "${'tag'}" tag group "${'tagGroup'}".`,
   },
   curlyBracesInHedColumn: {
     hedCode: 'CHARACTER_INVALID',
