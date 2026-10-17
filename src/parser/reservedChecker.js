@@ -1,9 +1,46 @@
 /** This module holds the class for encapsulating the rules for "Reserved" tags.
+ *
+ * The rules come from src/data/json/reservedTags.json, a verbatim copy of the reserved_tags.json that the HED
+ * specification publishes (section 3.2.8, fields defined in Appendix A.6). Every row applies in every standard
+ * schema version >= 8.0.0, so no check here takes a version.
+ *
  * @module parser/reservedChecker
  */
 import reservedTags from '../data/json/reservedTags.json'
 import { generateIssue, IssueError } from '../issues/issues'
 import { getTagListString } from './parseUtils'
+
+/**
+ * The issues for a content error of a reserved-tag group, keyed by the governing row's ERROR_CODE (specification
+ * 3.2.8 rule 6): a wrong anchor, a wrong number of inner groups, and a column splice in a group whose row has
+ * allowSpliceInGroup false (every TEMPORAL_TAG_ERROR row allows splices). Each takes the governing tag, the group,
+ * and the splice.
+ */
+const CONTENT_ISSUES = {
+  DEFINITION_INVALID: {
+    anchor: (tag, group) => generateIssue('invalidDefinitionGroupStructure', { tag: tag, tagGroup: group }),
+    subgroups: (tag, group) => generateIssue('invalidDefinitionGroupStructure', { tag: tag, tagGroup: group }),
+    splice: (tag, group, splice) =>
+      generateIssue('curlyBracesInDefinition', { definition: tag.originalTag, sidecarKey: splice.originalTag }),
+  },
+  TAG_GROUP_ERROR: {
+    anchor: (tag, group) => generateIssue('tooManyGroupTopTags', { string: group.originalTag }),
+    subgroups: (tag, group) =>
+      generateIssue('invalidNumberOfSubgroups', { tag: tag.originalTag, string: group.originalTag }),
+    splice: (tag, group, splice) =>
+      generateIssue('curlyBracesInReservedGroup', {
+        tag: tag.originalTag,
+        tagGroup: group.originalTag,
+        splice: splice.originalTag,
+      }),
+  },
+  TEMPORAL_TAG_ERROR: {
+    anchor: (tag, group) =>
+      generateIssue('temporalWithWrongNumberDefs', { tag: tag.originalTag, tagGroup: group.originalTag }),
+    subgroups: (tag, group) =>
+      generateIssue('temporalWithWrongNumberOfGroups', { tag: tag.originalTag, tagGroup: group.originalTag }),
+  },
+}
 
 export class ReservedChecker {
   /**
@@ -12,7 +49,8 @@ export class ReservedChecker {
    * @private
    */
   static _instance = undefined
-  static reservedMap = new Map(Object.entries(reservedTags))
+  static reservedMap = new Map(Object.entries(reservedTags.tags))
+  static valueForms = new Map(Object.entries(reservedTags.valueForms))
 
   constructor() {
     if (ReservedChecker._instance) {
@@ -36,6 +74,7 @@ export class ReservedChecker {
     this.noExtensionTags = ReservedChecker._getReservedTagsByProperty('noExtension')
     this.requiresDefTags = ReservedChecker._getReservedTagsByProperty('requiresDef')
     this.timelineTags = ReservedChecker._getReservedTagsByProperty('requiresTimeline')
+    this.twoPartValueTags = new Set(ReservedChecker.valueForms.keys())
   }
 
   static _getReservedTagsByProperty(property) {
@@ -56,7 +95,6 @@ export class ReservedChecker {
       () => this.checkUnique(hedString),
       () => this.checkTagGroupLevels(hedString, fullValidation),
       () => this.checkTopGroupRequirements(hedString),
-      () => this.checkNonTopGroups(hedString),
     ]
     for (const check of checks) {
       const issues = check()
@@ -126,161 +164,128 @@ export class ReservedChecker {
   }
 
   /**
-   * Check the group conditions of the reserved tags. The top-level has already been verified.
+   * Check the group rules of the reserved tags. The levels have already been verified.
    *
    * @param {ParsedHedString} hedString - The HED string to check for group conflicts.
    * @returns {Issue[]} An array of `Issue` objects if there are violations; otherwise, an empty array.
    *
-   * Notes: These include the number of groups and top tag compatibility in the group
+   * Notes: Each group is checked against the row of its governing tag: the number of anchors and inner groups and
+   * the other tags allowed at its top level.
    */
   checkTopGroupRequirements(hedString) {
     const issues = []
     for (const group of hedString.tagGroups) {
       const reservedTags = [...group.reservedTags.values()].flat()
-      for (const reservedTag of reservedTags) {
-        const nextIssues = this._checkGroupRequirements(group, reservedTag)
-        issues.push(...nextIssues)
-        // If an error is found in this group -- there is no point looking for more.
-        if (nextIssues.length > 0) {
-          break
-        }
+      if (reservedTags.length > 0) {
+        issues.push(...this._checkGroupRequirements(group, reservedTags))
       }
     }
     return issues
   }
 
   /**
-   * Check the group tag requirements of a reserved Tag.
-   * @param {ParsedHedGroup} group - The group to check for tag requirements.
-   * @param {ParsedHedTag} reservedTag - A top-level reserved tag in group.
-   * @returns {Issue[]} - Returns an issue if the group requirements for this tag are not met.
+   * Return the reserved tag whose row gives the group rules (specification 3.2.8 rule 3).
+   *
+   * @param {ParsedHedTag[]} reservedTags - The top-level reserved tags of one group.
+   * @returns {ParsedHedTag|null} The only tag or, for two tags of which one lists the other in its secondaryWith,
+   *     that other tag; null for any other combination, which cannot share a group.
    */
-  _checkGroupRequirements(group, reservedTag) {
-    // Check that groups with tags that require a definition, have one.
-    if (group.requiresDefTag.length > 0 && group.defCount !== 1) {
+  static getGoverningTag(reservedTags) {
+    if (reservedTags.length === 1) {
+      return reservedTags[0]
+    }
+    if (reservedTags.length !== 2) {
+      return null
+    }
+    const [first, second] = reservedTags
+    if (ReservedChecker._isSecondaryWith(first, second)) {
+      return second
+    }
+    if (ReservedChecker._isSecondaryWith(second, first)) {
+      return first
+    }
+    return null
+  }
+
+  /**
+   * Indicate whether a reserved tag is secondary beside another reserved tag.
+   *
+   * @param {ParsedHedTag} secondary - The reserved tag that may be secondary.
+   * @param {ParsedHedTag} primary - The other reserved tag of the group.
+   * @returns {boolean} True if the row of secondary lists primary in its secondaryWith.
+   * @private
+   */
+  static _isSecondaryWith(secondary, primary) {
+    const secondaryWith = ReservedChecker.reservedMap.get(secondary.schemaTag.name).secondaryWith ?? []
+    return secondaryWith.includes(primary.schemaTag.name)
+  }
+
+  /**
+   * Check a group against the row of its governing tag.
+   *
+   * @param {ParsedHedGroup} group - The group to check for tag requirements.
+   * @param {ParsedHedTag[]} reservedTags - The top-level reserved tags in group.
+   * @returns {Issue[]} - Returns an issue if the group requirements are not met.
+   *
+   * Notes:
+   *  - A content error (a column splice where none is allowed, the anchor, the number of inner groups) carries the
+   *    row's ERROR_CODE; a top-level tag the row does not allow is a placement error, reported as TAG_GROUP_ERROR
+   *    (specification 3.2.8 rule 6).
+   *  - A group holding a column splice anywhere is checked again on the assembled annotation, after substitution
+   *    (rule 5), so what the substitution may repair is not an error here: a missing anchor, too few inner
+   *    groups, an inner group that holds only a splice (it fills or vanishes), and an anchor beside a tag whose
+   *    row is secondary to one that requires an anchor (the splice may supply that tag). The checks that no
+   *    substitution can repair are made: a splice where none is allowed, more than one anchor, a disallowed
+   *    tag, too many inner groups that cannot vanish.
+   * @private
+   */
+  _checkGroupRequirements(group, reservedTags) {
+    const governingTag = ReservedChecker.getGoverningTag(reservedTags)
+    if (governingTag === null) {
       return [
-        generateIssue('temporalWithWrongNumberDefs', { tag: group.requiresDefTag[0], tagGroup: group.originalTag }),
+        generateIssue('invalidGroupTopTags', { tags: getTagListString(group.topTags), string: group.originalTag }),
+      ]
+    }
+    const row = ReservedChecker.reservedMap.get(governingTag.schemaTag.name)
+    const contentIssues = CONTENT_ISSUES[row.ERROR_CODE]
+    const deferred = !group.columnSpliceIterator().next().done
+
+    // A column splice anywhere in a group whose row does not allow one (rule 5).
+    if (!row.allowSpliceInGroup) {
+      const splices = [...group.columnSpliceIterator()]
+      if (splices.length > 0) {
+        return [contentIssues.splice(governingTag, group, splices[0])]
+      }
+    }
+
+    // The anchor: exactly one Def tag or Def-expand group, or none at the top level of the group (rule 2). A
+    // splice may supply a tag that takes over the group (Onset beside Delay), so until then a row that can be
+    // secondary tolerates one anchor.
+    const anchorCount = group.defCount
+    const mayGainGovernor = deferred && (row.secondaryWith ?? []).length > 0
+    const anchorsAllowed = row.requiresDef || mayGainGovernor ? 1 : 0
+    if (anchorCount > anchorsAllowed || (row.requiresDef && anchorCount === 0 && !deferred)) {
+      return [contentIssues.anchor(governingTag, group)]
+    }
+
+    // Only the tags of the row's otherAllowedNonDefTags may stand beside the governing tag and its anchor.
+    const otherTags = group.topTags.filter((tag) => tag !== governingTag && !group.defTags.includes(tag))
+    if (otherTags.some((tag) => !row.otherAllowedNonDefTags.includes(tag.schemaTag.name))) {
+      return [
+        generateIssue('invalidGroupTopTags', { tags: getTagListString(group.topTags), string: group.originalTag }),
       ]
     }
 
-    const reservedRequirements = ReservedChecker.reservedMap.get(reservedTag.schemaTag.name)
-
-    // Check that only allowed tags are at the top level.
-    const issues = this._checkAllowedTags(group, reservedTag, reservedRequirements)
-    if (issues.length > 0) {
-      return issues
+    // The inner groups, not counting a Def-expand anchor group. An inner group that holds only splices may fill
+    // or vanish (an n/a column removes it), so only groups with a tag count toward the maximum before assembly.
+    const innerGroups = group.topGroups.filter((subgroup) => !group.defExpandChildren.includes(subgroup))
+    const stableGroups = innerGroups.filter((subgroup) => subgroup.allTags.length > 0)
+    const maxLimit = row.maxNonDefSubgroups ?? Infinity
+    if (stableGroups.length > maxLimit) {
+      return [contentIssues.subgroups(governingTag, group)]
     }
-    issues.push(...this._checkAllowedGroups(group, reservedTag, reservedRequirements))
-    return issues
-  }
-
-  /**
-   * Verify that the tags in the group are allowed with the reserved tag.
-   *
-   * @param {ParsedHedGroup} group - The enclosing tag group.
-   * @param {ParsedHedTag} reservedTag - The reserved tag whose tag requirements are to be checked.
-   * @param {Object} requirements - The requirements for this reserved tag.
-   * @returns {Issue[]} - Issues because
-   * @private
-   */
-  _checkAllowedTags(group, reservedTag, requirements) {
-    // The allowed tag requirement isn't applicable
-    if (requirements.otherAllowedNonDefTags === null || requirements.otherAllowedNonDefTags === undefined) {
-      return []
-    }
-    // Check for def or def-expand tags for a reserved tag that does not need them.
-    if (!requirements.requiresDef && group.requiresDefTag.length === 0 && group.defCount > 0) {
-      return [generateIssue('tooManyGroupTopTags', { string: group.originalTag })]
-    }
-
-    // Isolate the other top tags.
-    const otherTopTags = group.topTags.filter((tag) => tag !== reservedTag)
-    if (otherTopTags.length === 0) {
-      return []
-    }
-
-    const encountered = new Set()
-    for (const tag of otherTopTags) {
-      if (encountered.has(tag.schemaTag.name)) {
-        return [generateIssue('tooManyGroupTopTags', { string: group.originalTag })]
-      }
-      encountered.add(tag.schemaTag.name)
-      if (tag.schemaTag.name === 'Def' && group.requiresDefTag.length !== 0) {
-        continue
-      }
-      // This tag is not allowed with the reserved tag
-      if (!requirements.otherAllowedNonDefTags.includes(tag.schemaTag.name)) {
-        return [
-          generateIssue('invalidGroupTopTags', { tags: getTagListString(group.topTags), string: group.originalTag }),
-        ]
-      }
-    }
-    return []
-  }
-
-  /**
-   * Verify the group conditions are satisfied for a reserved tag.
-   *
-   * @param {ParsedHedGroup} group - The enclosing tag group.
-   * @param {ParsedHedTag} reservedTag - The reserved tag whose tag requirements are to be checked.
-   * @param {Object} requirements - The requirements for this reserved tag.
-   * @returns {Issue[]}
-   * @private
-   */
-  _checkAllowedGroups(group, reservedTag, requirements) {
-    // Proper Def and Def-expand count for a tag that requires a def is checked when group is created.
-    let defAdjustment = 0
-    if (group.defExpandChildren.length !== 0 && group.requiresDefTag.length > 0) {
-      defAdjustment = 1
-    }
-
-    // Check the group does not have more than the maximum allowed subgroups.
-    const maxLimit = requirements.maxNonDefSubgroups != null ? requirements.maxNonDefSubgroups : Infinity
-    if (group.topGroups.length - defAdjustment > maxLimit) {
-      return [generateIssue('invalidNumberOfSubgroups', { tag: reservedTag.originalTag, string: group.originalTag })]
-    }
-
-    // Check that the group has the correct minimum number of subgroups.
-    return this._checkMinGroupCount(group, reservedTag, requirements.minNonDefSubgroups, defAdjustment)
-  }
-
-  /**
-   * Verify that a group has the minimum required subgroups for its reserved tag.
-   * @param {ParsedHedGroup} group - The group to be checked.
-   * @param {ParsedHedTag} reservedTag - The reserved tags whose requirements are used.
-   * @param {Number | null} minLimit - The minimum number of non-def groups required or null if no requirement.
-   * @param {Number} defAdjustment - Either 0 or 1 depending on whether a def-expand is included.
-   * @returns {Issue[]} - Returns an issue list if the count requirement is violated.
-   * @private
-   */
-  _checkMinGroupCount(group, reservedTag, minLimit, defAdjustment) {
-    if (minLimit === null) {
-      return []
-    }
-    let nonEmptyGroups = 0
-    for (const subGroup of group.topGroups) {
-      if (subGroup.allTags.length > 0) {
-        nonEmptyGroups += 1
-      }
-    }
-    if (nonEmptyGroups < minLimit + defAdjustment) {
-      return [generateIssue('invalidNumberOfSubgroups', { tag: reservedTag.originalTag, string: group.originalTag })]
-    }
-
-    return []
-  }
-
-  /** Verify that there are no group tags at the top level of the string.
-   *
-   * @param {ParsedHedString} hedString - The HED string to be checked.
-   * @returns {Issue[]} - Returns issue list if there are top level tags that are group tags.
-   */
-  checkNonTopGroups(hedString) {
-    const group_tags = hedString.tags.filter(
-      (tag) => ReservedChecker.hasGroupAttribute(tag) && tag in hedString.topLevelTags,
-    )
-    if (group_tags.length > 0) {
-      return [generateIssue('missingTagGroup', { tag: getTagListString(group_tags) })]
+    if (!deferred && innerGroups.length < row.minNonDefSubgroups) {
+      return [contentIssues.subgroups(governingTag, group)]
     }
     return []
   }
@@ -311,6 +316,8 @@ export class ReservedChecker {
    * Note:  This checks both reserved and schema tag requirements.
    */
   static hasGroupAttribute(tag) {
-    return tag.schemaTag.hasAttribute('tagGroup')
+    return (
+      tag.schemaTag.hasAttribute('tagGroup') || ReservedChecker.reservedMap.get(tag.schemaTag.name)?.tagGroup === true
+    )
   }
 }

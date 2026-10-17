@@ -70,6 +70,28 @@ testSpecs`.
   `spec_tests/skippedTests.js` instead of skipping them. One case is skipped at
   hed-tests 07ac29a: `temporal-tag-error-delay-with-anchored-marker`, whose
   string tests expect a lone `Inset` and a lone `Offset` to pass.
+- `src/data/json/reservedTags.json` is a verbatim copy of the
+  `reserved_tags.json` that the HED specification publishes (section 3.2.8,
+  Appendix A.6); the new `reserved_tags.yml` workflow fails when it drifts from
+  hed-specification main. Its rules apply in every standard schema version:
+  - each reserved-tag group is checked against one governing row: `Delay` beside
+    `Onset`, `Offset`, `Inset` or `Duration` is secondary, and a `Delay` alone
+    needs exactly one inner group, so `(Delay/3 s)` is TEMPORAL_TAG_ERROR;
+  - a wrong anchor or number of inner groups carries the row's code
+    (TEMPORAL_TAG_ERROR for the temporal tags), a top-level tag the row does
+    not allow stays TAG_GROUP_ERROR;
+  - in a sidecar, a group holding a `{column}` splice is checked for its anchor
+    and its minimum of inner groups on the assembled annotation, so
+    `(Duration/3 s, {other})` is valid when `{other}` supplies the group;
+  - a `{column}` inside an `Event-context` group is TAG_GROUP_ERROR;
+  - `Definition/MyDef/3` is DEFINITION_INVALID (only `#` may follow the name);
+  - a bare `Delay` or `Duration` is TAG_REQUIRES_CHILD in schemas without
+    `requireChild` on them (8.0.0 to 8.2.0);
+  - a `Def-expand` group with extra tags is DEF_EXPAND_INVALID;
+  - in HED 8.0.0, whose time units have no `conversionFactor`, a timeline
+    `Delay` or `Duration` in `s`, `second`, `seconds` or no unit converts as is;
+    `ms` or `minute` is still TEMPORAL_TAG_ERROR.
+  The dead `ReservedChecker.checkNonTopGroups` is removed (hed-tests e2753fb).
 
 ### Dependencies
 

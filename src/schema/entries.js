@@ -836,7 +836,7 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
    * @private
    */
   _simpleModifierFactor(value) {
-    const plainForms = this.isUnitSymbol ? [this.name] : [this.name, this._derivativeUnits[1]]
+    const plainForms = this._plainForms()
     if (this.isPrefixUnit || plainForms.includes(value)) {
       return 1
     }
@@ -844,6 +844,30 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
       (name) => value.startsWith(name) && plainForms.includes(value.slice(name.length)),
     )
     return modifier === undefined ? null : this._modifierFactors.get(modifier)
+  }
+
+  /**
+   * Determine whether a unit string is this unit written without an SI modifier.
+   *
+   * @param {string} value A unit string.
+   * @returns {boolean} True if the string is this unit's name (a compound unit such as m-per-s included) or, for a
+   *     unit that is not a symbol, its plural.
+   */
+  isUnmodifiedForm(value) {
+    if (value === this.name) {
+      return true
+    }
+    return this._compoundComponents === null && this._plainForms().includes(value)
+  }
+
+  /**
+   * The forms of this non-compound unit without a modifier: the name and, unless it is a symbol, its plural.
+   *
+   * @returns {string[]} The unmodified forms.
+   * @private
+   */
+  _plainForms() {
+    return this.isUnitSymbol ? [this.name] : [this.name, this._derivativeUnits[1]]
   }
 }
 
@@ -890,6 +914,14 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
    */
   equivalent(other) {
     return other instanceof SchemaUnitClass && super.equivalent(other)
+  }
+
+  /**
+   * Whether any unit of this unit class has a conversionFactor (none of the timeUnits of HED 8.0.0 does).
+   * @returns {boolean}
+   */
+  get hasConversionFactors() {
+    return [...this._units.values()].some((unit) => unit.hasAttribute('conversionFactor'))
   }
 
   /**

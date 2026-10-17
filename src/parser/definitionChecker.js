@@ -137,7 +137,9 @@ export class DefinitionChecker {
 
     // Validate group structure: ensure one top tag and at most one top group.
     if (group.topTags.length > 1 || group.topGroups.length > 1) {
-      return [generateIssue('invalidDefinitionGroupStructure', { tag: errorTag, tagGroup: group })]
+      const issueCode =
+        errorTag.schemaTag.name === 'Definition' ? 'invalidDefinitionGroupStructure' : 'invalidDefExpandGroupStructure'
+      return [generateIssue(issueCode, { tag: errorTag, tagGroup: group })]
     }
 
     // Definition or Def-expand groups can not have any Def, Definition, or Def-expand tags in subgroups.

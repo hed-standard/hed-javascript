@@ -867,7 +867,7 @@ export const parseTestData = [
         definitionsAllowed: true,
         fullValidation: false,
         errors: [
-          generateIssue('invalidDefinitionGroupStructure', {
+          generateIssue('invalidDefExpandGroupStructure', {
             tagGroup: '(Def-expand/Acc/5.4, (Acceleration/5.4 m-per-s^2, Red), Blue)',
             tag: 'Def-expand/Acc/5.4',
           }),
@@ -1050,23 +1050,22 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('invalidNumberOfSubgroups', { string: '(Duration/10)', tag: 'Duration/10' })],
+        errors: [generateIssue('temporalWithWrongNumberOfGroups', { tagGroup: '(Duration/10)', tag: 'Duration/10' })],
         warnings: [],
       },
       {
-        testname: 'duration-without-a-group-with-a-splice',
+        testname: 'duration-with-a-group-holding-a-splice',
         explanation:
-          '"(Duration/10, ({event_code}))" should have a non-empty modifying group (column splices might be empty).',
+          '"(Duration/10, ({event_code}))" has its inner group: its contents are checked after the splice is substituted.',
         schemaVersion: '8.4.0',
         stringIn: '(Duration/10, ({event_code}))',
-        stringLong: null,
-        stringShort: null,
+        stringLong:
+          '(Property/Data-property/Data-value/Spatiotemporal-value/Temporal-value/Duration/10, ({event_code}))',
+        stringShort: '(Duration/10, ({event_code}))',
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [
-          generateIssue('invalidNumberOfSubgroups', { string: '(Duration/10, ({event_code}))', tag: 'Duration/10' }),
-        ],
+        errors: [],
         warnings: [],
       },
       {
@@ -1108,7 +1107,12 @@ export const parseTestData = [
         placeholdersAllowed: false,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [generateIssue('tooManyGroupTopTags', { string: '(Delay/5, (Def-expand/MyColor, (Label/Pie)))' })],
+        errors: [
+          generateIssue('temporalWithWrongNumberDefs', {
+            tagGroup: '(Delay/5, (Def-expand/MyColor, (Label/Pie)))',
+            tag: 'Delay/5',
+          }),
+        ],
         warnings: [],
       },
       {
@@ -1400,8 +1404,8 @@ export const parseTestData = [
         definitionsAllowed: false,
         fullValidation: false,
         errors: [
-          generateIssue('invalidNumberOfSubgroups', {
-            string: '((Def-expand/MyColor, (Label/Pie)), Offset, (Red))',
+          generateIssue('temporalWithWrongNumberOfGroups', {
+            tagGroup: '((Def-expand/MyColor, (Label/Pie)), Offset, (Red))',
             tag: 'Offset',
           }),
         ],
