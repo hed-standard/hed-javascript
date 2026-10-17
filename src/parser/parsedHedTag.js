@@ -248,7 +248,9 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * Determine whether this tag's unit is a base unit of a unit class that defines no conversion factors.
    *
    * @returns {boolean} True if no unit of the unit class holding this tag's unit has a conversionFactor and the
-   *     unit is written unmodified as the default unit or an SI unit of that class.
+   *     unit is written unmodified as the default unit or, when the default unit is itself an SI unit, as an SI
+   *     unit of that class (its other spelling: second beside s). A class whose default is not SI, such as
+   *     intensityUnits with default dB beside candela and cd, accepts only the default unit.
    * @private
    */
   _isUnconvertedBaseUnit() {
@@ -258,7 +260,8 @@ export default class ParsedHedTag extends ParsedHedSubstring {
     if (unitClass === undefined || unitClass.hasConversionFactors) {
       return false
     }
-    const isBaseUnit = this._unit === unitClass.defaultUnit || this._unit.isSIUnit
+    const defaultUnit = unitClass.defaultUnit
+    const isBaseUnit = this._unit === defaultUnit || (defaultUnit?.isSIUnit === true && this._unit.isSIUnit)
     return isBaseUnit && this._unit.isUnmodifiedForm(this._units)
   }
 

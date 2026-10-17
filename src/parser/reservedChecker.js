@@ -231,9 +231,12 @@ export class ReservedChecker {
    *  - A content error (a column splice where none is allowed, the anchor, the number of inner groups) carries the
    *    row's ERROR_CODE; a top-level tag the row does not allow is a placement error, reported as TAG_GROUP_ERROR
    *    (specification 3.2.8 rule 6).
-   *  - A group holding a column splice at its top level is checked again on the assembled annotation, after
-   *    substitution (rule 5), so a missing anchor and too few inner groups are not errors here: the splice may
-   *    supply them. The checks that substitution cannot repair are made.
+   *  - A group holding a column splice anywhere is checked again on the assembled annotation, after substitution
+   *    (rule 5), so what the substitution may repair is not an error here: a missing anchor, too few inner
+   *    groups, an inner group that holds only a splice (it fills or vanishes), and an anchor beside a tag whose
+   *    row is secondary to one that requires an anchor (the splice may supply that tag). The checks that no
+   *    substitution can repair are made: a splice where none is allowed, more than one anchor, a disallowed
+   *    tag, too many inner groups that cannot vanish.
    * @private
    */
   _checkGroupRequirements(group, reservedTags) {
@@ -245,7 +248,7 @@ export class ReservedChecker {
     }
     const row = ReservedChecker.reservedMap.get(governingTag.schemaTag.name)
     const contentIssues = CONTENT_ISSUES[row.ERROR_CODE]
-    const deferred = group.topSplices.length > 0
+    const deferred = !group.columnSpliceIterator().next().done
 
     // A column splice anywhere in a group whose row does not allow one (rule 5).
     if (!row.allowSpliceInGroup) {
@@ -255,9 +258,13 @@ export class ReservedChecker {
       }
     }
 
-    // The anchor: exactly one Def tag or Def-expand group, or none at the top level of the group (rule 2).
+    // The anchor: exactly one Def tag or Def-expand group, or none at the top level of the group (rule 2). A
+    // splice may supply a tag that takes over the group (Onset beside Delay), so until then a row that can be
+    // secondary tolerates one anchor.
     const anchorCount = group.defCount
-    if (row.requiresDef ? anchorCount > 1 || (anchorCount === 0 && !deferred) : anchorCount > 0) {
+    const mayGainGovernor = deferred && (row.secondaryWith ?? []).length > 0
+    const anchorsAllowed = row.requiresDef || mayGainGovernor ? 1 : 0
+    if (anchorCount > anchorsAllowed || (row.requiresDef && anchorCount === 0 && !deferred)) {
       return [contentIssues.anchor(governingTag, group)]
     }
 
@@ -269,17 +276,15 @@ export class ReservedChecker {
       ]
     }
 
-    // The inner groups, not counting a Def-expand anchor group.
+    // The inner groups, not counting a Def-expand anchor group. An inner group that holds only splices may fill
+    // or vanish (an n/a column removes it), so only groups with a tag count toward the maximum before assembly.
     const innerGroups = group.topGroups.filter((subgroup) => !group.defExpandChildren.includes(subgroup))
+    const stableGroups = innerGroups.filter((subgroup) => subgroup.allTags.length > 0)
     const maxLimit = row.maxNonDefSubgroups ?? Infinity
-    if (innerGroups.length > maxLimit) {
+    if (stableGroups.length > maxLimit) {
       return [contentIssues.subgroups(governingTag, group)]
     }
-    // An inner group holding only a column splice is filled when the splice is substituted.
-    const nonEmptyGroups = innerGroups.filter(
-      (subgroup) => subgroup.allTags.length > 0 || !subgroup.columnSpliceIterator().next().done,
-    )
-    if (!deferred && nonEmptyGroups.length < row.minNonDefSubgroups) {
+    if (!deferred && innerGroups.length < row.minNonDefSubgroups) {
       return [contentIssues.subgroups(governingTag, group)]
     }
     return []

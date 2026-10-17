@@ -146,11 +146,36 @@ describe('Reserved tags from the published reserved_tags.json', () => {
       assert.deepEqual(validateEvents(twoGroupEvents, twoGroups), ['TEMPORAL_TAG_ERROR'])
     })
 
+    it('defers what a splice may still change', () => {
+      // The splice may supply Onset, which then governs and requires the anchor (rule 3).
+      const marker = {
+        event_code: { HED: { face: '(Delay/3 s, Def/MyColor, {marker})' } },
+        marker: { HED: { on: 'Onset', off: 'Offset' } },
+      }
+      assert.isEmpty(validateSidecar(marker))
+      assert.isEmpty(validateEvents('onset\tduration\tevent_code\tmarker\n4.5\t0\tface\ton\n', marker))
+      // A splice-only inner group vanishes when its column is n/a, so two of them may become one.
+      const twoSplices = {
+        event_code: { HED: { face: '(Duration/3 s, ({a}), ({b}))' } },
+        a: { HED: { x: 'Red' } },
+        b: { HED: { y: 'Blue' } },
+      }
+      assert.isEmpty(validateSidecar(twoSplices))
+      const events = (b) => `onset\tduration\tevent_code\ta\tb\n4.5\t0\tface\tx\t${b}\n`
+      assert.isEmpty(validateEvents(events('n/a'), twoSplices))
+      assert.deepEqual(validateEvents(events('y'), twoSplices), ['TEMPORAL_TAG_ERROR'])
+    })
+
     it('still rejects what a substitution cannot repair', () => {
       const sidecar = (template) => ({ event_code: { HED: { face: template } }, other: { HED: { x: '(Red)' } } })
       assert.deepEqual(validateSidecar(sidecar('(Duration/3 s, Def/MyColor, {other})')), ['TEMPORAL_TAG_ERROR'])
       assert.deepEqual(validateSidecar(sidecar('(Offset, Def/MyColor, (Blue), {other})')), ['TEMPORAL_TAG_ERROR'])
       assert.deepEqual(validateSidecar(sidecar('(Onset, Def/MyColor, Red, {other})')), ['TAG_GROUP_ERROR'])
+      // Two anchors stay an error even where a splice could change the governing row.
+      assert.deepEqual(
+        validateSidecar(sidecar('(Delay/3 s, Def/MyColor, (Def-expand/MyColor, (Label/Pie)), {other})')),
+        ['TEMPORAL_TAG_ERROR'],
+      )
     })
   })
 
@@ -206,6 +231,17 @@ describe('Reserved tags from the published reserved_tags.json', () => {
     it('converts the default unit with factor 1', () => {
       const [parsedString] = parseHedString('Duration/3 second', schemasByVersion.get('8.0.0'), false, false, false)
       assert.strictEqual(parsedString.tags[0].valueAsDefaultUnit(), 3)
+    })
+
+    it('converts only the default unit and its SI spelling in another factorless class', () => {
+      // 8.0.0 weightUnits: default g (SI) with gram (SI) and pound (not SI). A class whose default is not SI
+      // (intensityUnits: dB beside candela and cd) accepts only the default; no 8.0.0 tag uses that class.
+      const convert = (text) =>
+        parseHedString(text, schemasByVersion.get('8.0.0'), false, false, false)[0].tags[0].valueAsDefaultUnit()
+      assert.strictEqual(convert('Weight/3 g'), 3)
+      assert.strictEqual(convert('Weight/3 gram'), 3)
+      assert.isNull(convert('Weight/3 pound'))
+      assert.isNull(convert('Weight/3 kg'))
     })
 
     it('accepts any unit of the class in a descriptor table', () => {
