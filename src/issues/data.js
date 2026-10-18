@@ -487,6 +487,11 @@ export default {
     message: stringTemplate`HED standard schema version ${'version'} is deprecated. Please upgrade to a newer version.`,
   },
   // BIDS issues
+  duplicateTsvColumn: {
+    hedCode: 'TABULAR_INVALID',
+    level: 'error',
+    message: stringTemplate`Column "${'column'}" appears more than once in the header of the tabular file.`,
+  },
   sidecarKeyMissing: {
     hedCode: 'SIDECAR_KEY_MISSING',
     level: 'warning',

@@ -89,6 +89,8 @@ export class BidsTsvFile {
   file: object | null
   /** This file's parsed TSV data */
   parsedTsv: Map<string, string[]>
+  /** The column names that appear more than once in the header (TABULAR_INVALID); empty for Map data */
+  duplicateColumns: string[]
   /** HED strings in the "HED" column of the TSV data */
   hedColumnHedStrings: string[]
   /** The pseudo-sidecar object representing the merged sidecar data */
@@ -690,9 +692,17 @@ export class Schemas {
  * Parse a TSV file contents into a column map.
  *
  * @param contents The raw text of a TSV file.
- * @returns A Map from column name to array of cell values.
+ * @returns A Map from column name to array of cell values. A repeated column name keeps only its first column.
  */
 export function parseTSV(contents: string): Map<string, string[]>
+
+/**
+ * Find the column names that appear more than once in the header of TSV contents (TABULAR_INVALID).
+ *
+ * @param contents The raw text of a TSV file.
+ * @returns Each repeated name once; empty when every name is unique.
+ */
+export function findDuplicateHeaders(contents: string): string[]
 
 // Schema exports
 export function getLocalSchemaVersions(): string[]
