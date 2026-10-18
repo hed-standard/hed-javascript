@@ -43,6 +43,11 @@ describe('Repeated TSV column names', () => {
       ['a\ta\ta\n1\t2\t3\n', ['a']],
       ['a\tb\ta\tb\tc\n1\t2\t3\t4\t5\n', ['a', 'b']],
       ['', []],
+      ['\uFEFFa\ta\n1\t2\n', ['a']],
+      ['a\ta\r\n1\t2\r\n', ['a']],
+      ['a\tb\ra\ta\r', []],
+      ['\n  \n a \t a\n1\t2\n', ['a']],
+      ['\n\n', []],
     ])('%j gives %j', (contents, expected) => {
       assert.deepEqual(findDuplicateHeaders(contents), expected)
     })

@@ -85,8 +85,35 @@ export function parseTSV(contents) {
  * @returns {string[]} Each repeated name once; empty when every name is unique.
  */
 export function findDuplicateHeaders(contents) {
-  const rows = splitRows(contents)
-  return repeatedNames(rows.length ? rows[0] : [])
+  return repeatedNames(headerCells(contents))
+}
+
+/**
+ * Return the trimmed cells of the first contentful line of TSV contents, without splitting the other lines.
+ *
+ * Line breaks are \r\n, \r or \n, as in {@link splitRows}, so the result equals the header row that
+ * {@link parseTSV} uses.
+ *
+ * @param {string} contents The contents of a TSV file.
+ * @returns {string[]} The header cells; empty when the contents have no contentful line.
+ */
+function headerCells(contents) {
+  const text = stripBOM(contents)
+  const lineBreak = /\r\n|\r|\n/g
+  let start = 0
+  while (start <= text.length) {
+    lineBreak.lastIndex = start
+    const match = lineBreak.exec(text)
+    const line = text.slice(start, match ? match.index : text.length)
+    if (isContentfulRow(line)) {
+      return line.split('\t').map((cell) => cell.trim())
+    }
+    if (!match) {
+      break
+    }
+    start = lineBreak.lastIndex
+  }
+  return []
 }
 
 /**
