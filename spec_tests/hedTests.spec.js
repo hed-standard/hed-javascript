@@ -218,11 +218,8 @@ describe('HED validation using the hed-tests JSON suite', () => {
         const header = `\n[${error_code} ${name}](${statusOf(expected)})\tSTRING: "${str}"`
         const hTsv = `onset\tHED\n5.4\t${str}\n`
         const issues = runValidation(() => {
-          const parsedTsv = parseTSV(hTsv)
-          assert.instanceOf(parsedTsv, Map, `${str} cannot be parsed`)
-          return new BidsTsvFile('string', { path: 'string test tsv' }, parsedTsv, {}, newDefManager()).validate(
-            hedSchemas,
-          )
+          assert.instanceOf(parseTSV(hTsv), Map, `${str} cannot be parsed`)
+          return new BidsTsvFile('string', { path: 'string test tsv' }, hTsv, {}, newDefManager()).validate(hedSchemas)
         })
         assertErrors(expected, issues, header)
       }
@@ -238,9 +235,9 @@ describe('HED validation using the hed-tests JSON suite', () => {
       const eventsValidator = function (events, expected) {
         const header = `\n[${error_code} ${name}](${statusOf(expected)})\tEvents:\n"${events}"`
         const issues = runValidation(() => {
-          const parsedTsv = parseTSV(events)
-          assert.instanceOf(parsedTsv, Map, `${events} cannot be parsed`)
-          return new BidsTsvFile('events', { path: 'events test' }, parsedTsv, {}, newDefManager()).validate(hedSchemas)
+          assert.instanceOf(parseTSV(events), Map, `${events} cannot be parsed`)
+          // The TSV text, not a parsed Map: a Map cannot hold a repeated column name (TABULAR_INVALID).
+          return new BidsTsvFile('events', { path: 'events test' }, events, {}, newDefManager()).validate(hedSchemas)
         })
         assertErrors(expected, issues, header)
       }
@@ -248,12 +245,11 @@ describe('HED validation using the hed-tests JSON suite', () => {
       const comboValidator = function (side, events, expected) {
         const header = `\n[${error_code} ${name}](${statusOf(expected)})\tCOMBO\t"${side}"\n"${events}"`
         const issues = runValidation(() => {
-          const parsedTsv = parseTSV(events)
-          assert.instanceOf(parsedTsv, Map, `${events} cannot be parsed`)
+          assert.instanceOf(parseTSV(events), Map, `${events} cannot be parsed`)
           return new BidsTsvFile(
             'events',
             { path: 'combo test tsv' },
-            parsedTsv,
+            events,
             JSON.parse(side),
             newDefManager(),
           ).validate(hedSchemas)

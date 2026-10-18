@@ -16,7 +16,7 @@ export {
 
 export { IssueError, Issue } from './src/issues/issues'
 
-export { parseTSV } from './src/bids/tsvParser'
+export { findDuplicateHeaders, parseTSV } from './src/bids/tsvParser'
 
 // Export parser functions for HED string validation
 

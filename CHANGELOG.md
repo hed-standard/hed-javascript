@@ -97,6 +97,15 @@ testSpecs`.
     `Delay` or `Duration` in `s`, `second`, `seconds` or no unit converts as is;
     `ms` or `minute` is still TEMPORAL_TAG_ERROR.
   The dead `ReservedChecker.checkNonTopGroups` is removed (hed-tests e2753fb).
+- A column name repeated in the header of a TSV file is TABULAR_INVALID, one
+  error per repeated name, and the file is not validated further
+  (specification 3.2.10; #896; hed-tests
+  `tabular-invalid-duplicate-column-name`). `parseTSV` and `convertParsedTSVData` merged
+  the repeated columns into one array, misaligning every row, and the merged
+  annotations surfaced as a misleading TAG_EXPRESSION_REPEATED or not at all;
+  they now keep only the first column of a repeated name. The new
+  `findDuplicateHeaders` export returns the repeated names, and `BidsTsvFile`
+  has a `duplicateColumns` property.
 
 ### Dependencies
 

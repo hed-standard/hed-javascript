@@ -6,7 +6,7 @@
 import isPlainObject from 'lodash/isPlainObject'
 
 import { BidsFile } from './file'
-import { convertParsedTSVData, parseTSV } from '../tsvParser'
+import { convertParsedTSVData, findDuplicateHeaders, findDuplicateParsedHeaders, parseTSV } from '../tsvParser'
 import { BidsSidecar } from './json'
 import BidsHedTsvValidator from '../validator/tsvValidator'
 import { IssueError } from '../../issues/issues'
@@ -20,6 +20,12 @@ export class BidsTsvFile extends BidsFile {
    * @type {Map<string, string[]>}
    */
   parsedTsv
+
+  /**
+   * The column names that appear more than once in the header (TABULAR_INVALID); empty for Map data.
+   * @type {string[]}
+   */
+  duplicateColumns
 
   /**
    * HED strings in the "HED" column of the TSV data.
@@ -38,10 +44,13 @@ export class BidsTsvFile extends BidsFile {
 
     if (typeof tsvData === 'string') {
       this.parsedTsv = parseTSV(tsvData)
+      this.duplicateColumns = findDuplicateHeaders(tsvData)
     } else if (tsvData instanceof Map) {
       this.parsedTsv = new Map(tsvData)
+      this.duplicateColumns = []
     } else if (isPlainObject(tsvData)) {
       this.parsedTsv = convertParsedTSVData(tsvData)
+      this.duplicateColumns = findDuplicateParsedHeaders(tsvData)
     } else {
       const msg = 'The tsvData was not a string, Map or plain object, so a BidsTsvFile could not be created.'
       IssueError.generateAndThrow('internalError', { message: msg, filePath: file.path })
