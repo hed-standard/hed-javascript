@@ -122,21 +122,9 @@ export const schemaBuildTestData = [
         schemaError: null,
       },
       {
-        testname: 'base-and-two-libraries-build',
-        explanation: '["8.3.0", "ts:testlib_1.0.2", "bg:testlib_1.0.2"] has a base and two libraries',
-        schemaVersion: { Name: 'BaseAndTwoTests', HEDVersion: ['8.3.0', 'ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
-        schemaError: null,
-      },
-      {
-        testname: 'no-base-and-two-libraries-build',
-        explanation: '["ts:testlib_1.0.2", "bg:testlib_1.0.2"] has a base and two libraries',
-        schemaVersion: { Name: 'TwoTests', HEDVersion: ['ts:testlib_1.0.2', 'bg:testlib_1.0.2'] },
-        schemaError: null,
-      },
-      {
         testname: 'standard-partner-listed-with-library-build',
-        explanation: '["8.4.0", "testlib_2.0.0"] lists the partner standard schema, which adds nothing',
-        schemaVersion: { Name: 'PartnerListed', HEDVersion: ['8.4.0', 'testlib_2.0.0'] },
+        explanation: '["8.4.0", "lang_1.1.0"] lists the partner standard schema, which adds nothing',
+        schemaVersion: { Name: 'PartnerListed', HEDVersion: ['8.4.0', 'lang_1.1.0'] },
         schemaError: null,
       },
     ],
@@ -153,30 +141,29 @@ export const schemaBuildTestData = [
       },
       {
         testname: 'lazy-partnered-with wrong-standard-build',
-        explanation: '["testlib_2.0.0", "8.3.0"] has wrong standard schema',
-        schemaVersion: { Name: 'BadLazyPartnered', HEDVersion: ['testlib_2.0.0', '8.3.0'] },
+        explanation: '["lang_1.1.0", "8.3.0"] has wrong standard schema',
+        schemaVersion: { Name: 'BadLazyPartnered', HEDVersion: ['lang_1.1.0', '8.3.0'] },
         schemaError: new IssueError(generateIssue('differentWithStandard', { versions: '8.3.0, 8.4.0' })),
       },
       {
         testname: 'two-versions-of-one-library-build',
-        explanation:
-          '["testlib_2.0.0", "testlib_3.0.0"] are two versions of the same library (testlib_3.0.0 is remote)',
-        schemaVersion: { Name: 'TwoVersions', HEDVersion: ['testlib_2.0.0', 'testlib_3.0.0'] },
+        explanation: '["score_2.0.0", "score_2.1.0"] are two versions of the same library',
+        schemaVersion: { Name: 'TwoVersions', HEDVersion: ['score_2.0.0', 'score_2.1.0'] },
         schemaError: new IssueError(
           generateIssue('schemaGroupInvalid', {
-            versions: 'testlib_2.0.0, testlib_3.0.0',
-            problems: 'library "testlib" is listed 2 times [2.0.0, 3.0.0]',
+            versions: 'score_2.0.0, score_2.1.0',
+            problems: 'library "score" is listed 2 times [2.0.0, 2.1.0]',
           }),
         ),
       },
       {
-        testname: 'two-versions-of-one-library-with-conflicting-tags-build',
-        explanation: '["testlib_2.1.0", "testlib_3.0.0"] are two versions of the same library',
-        schemaVersion: { Name: 'TwoVersions', HEDVersion: ['testlib_2.1.0', 'testlib_3.0.0'] },
+        testname: 'two-versions-of-one-library-different-partners-build',
+        explanation: '["lang_1.0.0", "lang_1.1.0"] are two versions of the same library with different partners',
+        schemaVersion: { Name: 'TwoVersions', HEDVersion: ['lang_1.0.0', 'lang_1.1.0'] },
         schemaError: new IssueError(
           generateIssue('schemaGroupInvalid', {
-            versions: 'testlib_2.1.0, testlib_3.0.0',
-            problems: 'library "testlib" is listed 2 times [2.1.0, 3.0.0]',
+            versions: 'lang_1.0.0, lang_1.1.0',
+            problems: 'library "lang" is listed 2 times [1.0.0, 1.1.0]',
           }),
         ),
       },

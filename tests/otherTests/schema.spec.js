@@ -10,6 +10,8 @@ import { BidsJsonFile } from '../../src/bids/index.js'
 import { IssueError } from '../../src/issues/issues.js'
 import { getLocalSchemaVersions } from '../../src/schema/config.js'
 
+const testSchemasDir = 'spec_tests/hed-tests/json_test_data/test_schemas/hedxml'
+
 describe('HED schemas', () => {
   describe('Schema loading', () => {
     describe('Bundled HED schemas', () => {
@@ -23,7 +25,7 @@ describe('HED schemas', () => {
       })
 
       it('a library schema can be loaded from locally stored schema', async () => {
-        const spec1 = new SchemaSpec('', '2.0.0', 'testlib', '')
+        const spec1 = new SchemaSpec('', '1.1.0', 'lang', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1)
 
         const hedSchemas = await buildSchemas(specs)
@@ -45,8 +47,8 @@ describe('HED schemas', () => {
 
       it('multiple local schemas can be loaded', async () => {
         const spec1 = new SchemaSpec('nk', '8.0.0', '', '')
-        const spec2 = new SchemaSpec('ts', '2.0.0', 'testlib', '')
-        const spec3 = new SchemaSpec('', '2.0.0', 'testlib', '')
+        const spec2 = new SchemaSpec('ts', '1.1.0', 'lang', '')
+        const spec3 = new SchemaSpec('', '1.1.0', 'lang', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1).addSchemaSpec(spec2).addSchemaSpec(spec3)
 
         const hedSchemas = await buildSchemas(specs)
@@ -68,7 +70,8 @@ describe('HED schemas', () => {
 
     describe('Remote HED schemas', () => {
       it('a HED 3 schema can be loaded remotely', async () => {
-        const spec1 = new SchemaSpec('', '2.1.0', 'testlib', '')
+        // score 1.1.0 is on hed-schemas but not bundled, so this test needs the network.
+        const spec1 = new SchemaSpec('', '1.1.0', 'score', '')
         const specs = new SchemasSpec().addSchemaSpec(spec1)
 
         const hedSchemas = await buildSchemas(specs)
@@ -93,9 +96,9 @@ describe('HED schemas', () => {
       })
 
       it('a library schema can be loaded from a path', async () => {
-        const localHedLibrarySchemaName = 'testlib'
+        const localHedLibrarySchemaName = 'testminimal'
         const localHedLibrarySchemaVersion = '2.0.0'
-        const localHedLibrarySchemaFile = 'tests/otherTestData/HED_testlib_2.0.0.xml'
+        const localHedLibrarySchemaFile = `${testSchemasDir}/HED_testminimal_2.0.0.xml`
         const schemaSpec = new SchemaSpec(localHedLibrarySchemaName, '', '', localHedLibrarySchemaFile)
         const schemasSpec = new SchemasSpec().addSchemaSpec(schemaSpec)
 
@@ -295,45 +298,6 @@ describe('HED schemas', () => {
     })
   })
 
-  describe('HED 3 partnered schemas', () => {
-    const testLib200SchemaFile = 'tests/otherTestData/HED_testlib_2.0.0.xml'
-    const testLib210SchemaFile = 'tests/otherTestData/HED_testlib_2.1.0.xml'
-    const testLib300SchemaFile = 'tests/otherTestData/HED_testlib_3.0.0.xml'
-    let specs1, specs2, specs3
-
-    beforeAll(() => {
-      const spec200 = new SchemaSpec('testlib', '2.0.0', 'testlib', testLib200SchemaFile)
-      const spec210 = new SchemaSpec('testlib', '2.1.0', 'testlib', testLib210SchemaFile)
-      const spec300 = new SchemaSpec('testlib', '3.0.0', 'testlib', testLib300SchemaFile)
-      specs1 = new SchemasSpec().addSchemaSpec(spec200).addSchemaSpec(spec210)
-      specs2 = new SchemasSpec().addSchemaSpec(spec200).addSchemaSpec(spec300)
-      specs3 = new SchemasSpec().addSchemaSpec(spec210).addSchemaSpec(spec300)
-    })
-
-    it('should fail when a library is listed more than once in a merge group, whatever the versions', async () => {
-      const spec200Again = new SchemaSpec('testlib', '2.0.0', 'testlib', testLib200SchemaFile)
-      const specs4 = new SchemasSpec()
-        .addSchemaSpec(new SchemaSpec('testlib', '2.0.0', 'testlib', testLib200SchemaFile))
-        .addSchemaSpec(spec200Again)
-      const groups = [
-        [specs1, 'testlib_2.0.0 and testlib_2.1.0', '2.0.0, 2.1.0'],
-        [specs2, 'testlib_2.0.0 and testlib_3.0.0', '2.0.0, 3.0.0'],
-        [specs3, 'testlib_2.1.0 and testlib_3.0.0', '2.1.0, 3.0.0'],
-        [specs4, 'testlib_2.0.0 twice', '2.0.0, 2.0.0'],
-      ]
-      for (const [specs, label, versions] of groups) {
-        try {
-          await buildSchemas(specs)
-          assert.fail(`Schemas ${label} were incorrectly merged without an error`)
-        } catch (issueError) {
-          const issue = issueError.issue
-          assert.strictEqual(issue.hedCode, 'SCHEMA_LOAD_FAILED', `${label}: wrong error code`)
-          assert.include(issue.message, `library "testlib" is listed 2 times [${versions}]`, `${label}: wrong message`)
-        }
-      }
-    })
-  })
-
   describe('Schema parsing and building functions', () => {
     describe('buildSchemasFromVersion', () => {
       it('should build schemas from a single version string', async () => {
@@ -346,16 +310,16 @@ describe('HED schemas', () => {
       })
 
       it('should build schemas from a library version string', async () => {
-        const versionString = 'testlib_2.0.0'
+        const versionString = 'lang_1.1.0'
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
-        assert.strictEqual(schemas.baseSchema.version, '2.0.0', 'Schema version should match')
-        assert.strictEqual(schemas.baseSchema.library, 'testlib', 'Schema library should match')
+        assert.strictEqual(schemas.baseSchema.version, '1.1.0', 'Schema version should match')
+        assert.strictEqual(schemas.baseSchema.library, 'lang', 'Schema library should match')
       })
 
       it('should build schemas from comma-separated version strings', async () => {
-        const versionString = '8.4.0, testlib_2.0.0'
+        const versionString = '8.4.0, lang_1.1.0'
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')
@@ -364,7 +328,7 @@ describe('HED schemas', () => {
       })
 
       it('should build schemas from comma-separated version strings with spaces', async () => {
-        const versionString = '  8.4.0  ,  testlib_2.0.0  '
+        const versionString = '  8.4.0  ,  score_2.1.0  '
         const schemas = await buildSchemasFromVersion(versionString)
 
         assert.isNotNull(schemas, 'Schemas should not be null')

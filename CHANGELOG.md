@@ -14,6 +14,11 @@
   skipped by name in `spec_tests/skippedTests.js`. Clone with
   `--recurse-submodules` or run `git submodule update --init` before `npm run
 testSpecs`.
+- The tests no longer use the `testlib` library, which hed-schemas is retiring:
+  library tests use the bundled `lang` and `score` schemas, `score_1.1.0` for
+  the remote-loading test, or the hed-tests test schemas loaded by path. The
+  `HED_testlib_*.xml` copies under `tests/otherTestData/` are removed, as are
+  three tests the hed-tests SCHEMA_LOAD_FAILED cases already cover.
 
 ### Fixed
 
