@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<HED version="2.1.0" library="testminimal" withStandard="8.5.0" unmerged="True">
+   <prologue>Test fixture: hed-tests testminimal 2.1.0 (unmerged) with a top-level Event tag added, which redeclares a tag of its standard partner 8.5.0. Loading it must fail.</prologue>
+   <schema>
+      <node>
+         <name>Event</name>
+         <description>A library redeclaration of the standard Event tag.</description>
+      </node>
+      <node>
+         <name>Mini-tag</name>
+         <description>The testminimal scaffold tag.</description>
+         <node>
+            <name>Mini-one</name>
+            <description>The first child of Mini-tag.</description>
+         </node>
+         <node>
+            <name>Mini-two</name>
+            <description>The second child of Mini-tag.</description>
+         </node>
+      </node>
+   </schema>
+   <unitClassDefinitions/>
+   <unitModifierDefinitions/>
+   <valueClassDefinitions/>
+   <schemaAttributeDefinitions/>
+   <propertyDefinitions/>
+   <epilogue>Part of the hed-tests test schema set. See json_test_data/test_schemas/README.md for the loading convention.</epilogue>
+   <schemaSources/>
+   <schemaPrefixes/>
+   <externalAnnotations/>
+</HED>

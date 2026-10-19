@@ -301,6 +301,31 @@ class SchemaEntryWithAttributesParser extends SchemaEntryParser {
   }
 
   /**
+   * Give the elements of an unmerged library schema the inLibrary attribute that its merged file carries.
+   *
+   * An unmerged file holds only its library's elements, except that it may name an element of an earlier schema
+   * of the group again to extend it (a partner unit class it adds units to); such an element keeps its declarer.
+   *
+   * @param {Object} rootElement The root XML element of the schema being parsed.
+   * @param {Map<string, Map<SchemaAttribute, string[]>>} valueAttributeDefinitions The value attributes by name,
+   *     modified in place.
+   * @param {function(string): boolean} isDeclared Whether an earlier schema of the group declared the named element.
+   * @protected
+   */
+  _addInLibrary(rootElement, valueAttributeDefinitions, isDeclared) {
+    const library = rootElement.$?.library
+    const inLibrary = this.attributes.getEntry('inLibrary')
+    if (rootElement.$?.unmerged === undefined || library === undefined || inLibrary === undefined) {
+      return
+    }
+    for (const [name, valueAttributes] of valueAttributeDefinitions) {
+      if (!isDeclared(name) && !valueAttributes.has(inLibrary)) {
+        valueAttributes.set(inLibrary, [library])
+      }
+    }
+  }
+
+  /**
    * Parse the attributes of one element.
    *
    * @param {Object} element The XML element.
@@ -348,6 +373,7 @@ class SchemaDefinitionEntryParser extends SchemaEntryWithAttributesParser {
       definitions,
       getElementName,
     )
+    this._addInLibrary(rootElement, valueAttributeDefinitions, (name) => this.entryTypeMap.has(name))
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const booleanAttributes = booleanAttributeDefinitions.get(name)
       this.addEntry(name, this._buildEntry(name, descriptions.get(name), booleanAttributes, valueAttributes))
@@ -449,6 +475,7 @@ class UnitClassParser extends SchemaDefinitionEntryParser {
         element.unit ?? [],
         getElementName,
       )
+      this._addInLibrary(rootElement, valueAttributeDefinitions, (name) => units.has(name))
       for (const [name, valueAttributes] of valueAttributeDefinitions) {
         const unit = new SchemaUnit(
           name,
@@ -543,6 +570,9 @@ class TagParser extends SchemaEntryWithAttributesParser {
       tags.keys(),
       (element) => shortTags.get(element),
     )
+    // A library never extends a tag of its partner by naming it again, so every tag of an unmerged file is marked;
+    // one that redeclares a partner tag is then rejected as in the merged form (addEntry).
+    this._addInLibrary(rootElement, valueAttributeDefinitions, () => false)
     this._processRootedTags(parentMap, valueAttributeDefinitions)
     const tagUnitClassDefinitions = this._processTagClasses(valueAttributeDefinitions, 'unitClass', this.unitClasses)
     const tagValueClassDefinitions = this._processTagClasses(
@@ -551,7 +581,7 @@ class TagParser extends SchemaEntryWithAttributesParser {
       this.valueClasses,
       false,
     )
-    this._processRecursiveAttributes(shortTags, booleanAttributeDefinitions)
+    this._processRecursiveAttributes(parentMap, booleanAttributeDefinitions)
     this._createSchemaTags(
       booleanAttributeDefinitions,
       valueAttributeDefinitions,
@@ -703,22 +733,48 @@ class TagParser extends SchemaEntryWithAttributesParser {
   /**
    * Propagate recursive boolean attributes to descendant tags.
    *
-   * @param {Map<Object, string>} shortTags The tag elements and their short names.
+   * Descendants follow the parent map, which includes the tags placed by a "rooted" attribute, so a tag whose parent
+   * an earlier schema of the group declared (a rooted tag of an unmerged library) inherits from that parent tag.
+   * "#" children inherit nothing, as before.
+   *
+   * @param {Map<string, string>} parentMap The parent map (lowercase short names), with the rooted tags placed.
    * @param {Map<string, Set<SchemaAttribute>>} booleanAttributeDefinitions The boolean attributes by short name,
    *     modified in place.
    * @private
    */
-  _processRecursiveAttributes(shortTags, booleanAttributeDefinitions) {
+  _processRecursiveAttributes(parentMap, booleanAttributeDefinitions) {
     const recursiveAttributes = this._getRecursiveAttributes()
-    for (const [tagElement, shortName] of shortTags) {
-      const tagRecursiveAttributes = booleanAttributeDefinitions.get(shortName)?.intersection(recursiveAttributes)
-      if (!tagRecursiveAttributes || tagRecursiveAttributes.size === 0) {
-        continue
+    const namesByKey = new Map([...booleanAttributeDefinitions.keys()].map((name) => [lc(name), name]))
+    // Names that differ only by case would make a tag its own parent ("Item" under "Item"); report them as
+    // _createSchemaTags does, before walking the parent map.
+    if (namesByKey.size !== booleanAttributeDefinitions.size) {
+      IssueError.generateAndThrow('duplicateTagsInSchema')
+    }
+    const passedDown = new Map()
+    // The recursive attributes a tag passes to its children: its own and those it inherits.
+    const passedDownBy = (key) => {
+      if (passedDown.has(key)) {
+        return passedDown.get(key)
       }
-      for (const childTag of TagParser._getAllChildTags(tagElement)) {
-        const childTagName = getElementName(childTag)
-        const childAttributes = booleanAttributeDefinitions.get(childTagName)?.union(tagRecursiveAttributes)
-        booleanAttributeDefinitions.set(childTagName, childAttributes)
+      // Marked before recursing, so a cycle in the parent map (rooted tags anchored on each other) ends.
+      passedDown.set(key, new Set())
+      const name = namesByKey.get(key)
+      let attributes
+      if (name === undefined) {
+        // A parent from an earlier schema of the group already carries everything it inherited.
+        attributes = this.entryTypeMap.get(key)?.booleanAttributes.intersection(recursiveAttributes) ?? new Set()
+      } else {
+        const own = booleanAttributeDefinitions.get(name).intersection(recursiveAttributes)
+        const parentKey = parentMap.get(key)
+        attributes = parentKey === undefined ? own : own.union(passedDownBy(parentKey))
+      }
+      passedDown.set(key, attributes)
+      return attributes
+    }
+    for (const name of booleanAttributeDefinitions.keys()) {
+      const parentKey = parentMap.get(lc(name))
+      if (parentKey !== undefined && !name.endsWith('-#')) {
+        booleanAttributeDefinitions.set(name, booleanAttributeDefinitions.get(name).union(passedDownBy(parentKey)))
       }
     }
   }
