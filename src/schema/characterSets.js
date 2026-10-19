@@ -32,6 +32,16 @@ export function codePoint(character) {
 const escapeRegExp = (character) => character.replace(/[\\^$.*+?()[\]{}|/]/g, '\\$&')
 
 /**
+ * The value of an object's own property, or undefined: a name such as "constructor" or "toString" (a library value
+ * class may be called anything) must not find a property inherited from Object.prototype.
+ *
+ * @param {Object} object The object.
+ * @param {string} key The property name.
+ * @returns {*} The own property's value, or undefined.
+ */
+const own = (object, key) => (Object.hasOwn(object, key) ? object[key] : undefined)
+
+/**
  * A read-only view of character_sets.json: named sets, aliases, defaults, whole-value rules and exclusions.
  */
 export class CharacterSets {
@@ -63,7 +73,7 @@ export class CharacterSets {
    * @returns {string} The canonical name.
    */
   canonicalName(name) {
-    return this.aliases[name] ?? name
+    return own(this.aliases, name) ?? name
   }
 
   /**
@@ -95,7 +105,7 @@ export class CharacterSets {
    * @returns {boolean}
    */
   isKnownName(name) {
-    return this.canonicalName(name) in this.sets || [...name].length === 1
+    return Object.hasOwn(this.sets, this.canonicalName(name)) || [...name].length === 1
   }
 
   /**
@@ -108,7 +118,7 @@ export class CharacterSets {
    */
   _regexPart(name) {
     const canonical = this.canonicalName(name)
-    if (canonical in this.sets) {
+    if (Object.hasOwn(this.sets, canonical)) {
       return this.sets[canonical].regex
     }
     if ([...name].length === 1) {
@@ -167,7 +177,7 @@ export class CharacterSets {
    */
   describe(names) {
     if (names.length === 1) {
-      const entry = this.sets[this.canonicalName(names[0])]
+      const entry = own(this.sets, this.canonicalName(names[0]))
       if (entry === undefined) {
         return this._literalName(names[0])
       }
@@ -185,7 +195,7 @@ export class CharacterSets {
    * @private
    */
   _literalName(name) {
-    if ([...name].length === 1 && !(name in this.sets) && !/^[\p{L}\p{N}]$/u.test(name)) {
+    if ([...name].length === 1 && !Object.hasOwn(this.sets, name) && !/^[\p{L}\p{N}]$/u.test(name)) {
       return `"${name}"`
     }
     return name
@@ -200,7 +210,7 @@ export class CharacterSets {
    */
   defaultsFor(className, standardVersion) {
     let chosen = []
-    for (const entry of this.valueClassDefaults[className] ?? []) {
+    for (const entry of own(this.valueClassDefaults, className) ?? []) {
       if (!standardVersion || !semver.lt(standardVersion, entry.from)) {
         chosen = entry.sets
       }
@@ -215,7 +225,7 @@ export class CharacterSets {
    * @returns {RegExp|null} The expression, or null.
    */
   wordRule(className) {
-    const entry = this.valueClassWords[className]
+    const entry = own(this.valueClassWords, className)
     return entry === undefined ? null : new RegExp(entry.regex, 'u')
   }
 

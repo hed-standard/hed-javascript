@@ -88,6 +88,15 @@ describe('Character sets from the published character_sets.json', () => {
       ])
     })
 
+    it('ignores names inherited from Object.prototype (a library class may be called "constructor")', () => {
+      assert.deepEqual(characterSets.defaultsFor('constructor', '8.5.0'), [])
+      assert.deepEqual(characterSets.defaultsFor('toString', null), [])
+      assert.isNull(characterSets.wordRule('toString'))
+      assert.strictEqual(characterSets.canonicalName('constructor'), 'constructor')
+      assert.isFalse(characterSets.isKnownName('hasOwnProperty'))
+      assert.strictEqual(characterSets.describe(['constructor']), 'constructor')
+    })
+
     it('can be built from other data', () => {
       const sets = new CharacterSets({ sets: { vowels: { regex: '[aeiou]', description: 'vowels' } } })
       assert.deepEqual(sets.problemCharacters('hello', ['vowels']), [
