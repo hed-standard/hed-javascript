@@ -7,6 +7,7 @@ pluralize.addUncountableRule('hertz')
 
 import { IssueError } from '../issues/issues'
 import { isExistingGregorianDate } from '../utils/dateTime'
+import { characterSets } from './characterSets'
 import Memoizer from '../utils/memoizer'
 
 /**
@@ -1013,14 +1014,14 @@ export class SchemaUnitModifier extends SchemaEntryWithAttributes {
  */
 export class SchemaValueClass extends SchemaEntryWithAttributes {
   /**
-   * The character class-based regular expression.
-   * @type {RegExp}
-   * @private
+   * The character set names (character_sets.json) that define this class's characters; empty for no constraint.
+   * @type {string[]}
    */
-  _charClassRegex
+  allowedNames
+
   /**
-   * The "word form"-based regular expression.
-   * @type {RegExp}
+   * The whole-value regular expression of this class (character_sets.json value_class_words), or null.
+   * @type {RegExp|null}
    * @private
    */
   _wordRegex
@@ -1032,19 +1033,18 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
    * @param {string|undefined} description The description of this value class.
    * @param {Set<SchemaAttribute>} booleanAttributes The boolean attributes for this value class.
    * @param {Map<SchemaAttribute, *>} valueAttributes The value attributes for this value class.
-   * @param {RegExp} charClassRegex The character class-based regular expression for this value class.
-   * @param {RegExp} wordRegex The "word form"-based regular expression for this value class.
+   * @param {string[]} allowedNames The character set names that define the class's characters.
    */
-  constructor(name, description, booleanAttributes, valueAttributes, charClassRegex, wordRegex) {
+  constructor(name, description, booleanAttributes, valueAttributes, allowedNames = []) {
     super(name, description, booleanAttributes, valueAttributes)
-    this._charClassRegex = charClassRegex
-    this._wordRegex = wordRegex
+    this.allowedNames = allowedNames
+    this._wordRegex = characterSets.wordRule(name)
   }
 
   /**
    * Determine if this schema value class is equivalent to another schema value class.
    *
-   * Value classes are equivalent if they have the same name, description, attributes, and regular expressions.
+   * Value classes are equivalent if they have the same name, description, attributes, and allowed characters.
    *
    * @param {*} other A schema value class to compare with this one.
    * @returns {boolean} Whether the other value class is equivalent to this schema value class.
@@ -1053,10 +1053,9 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
     if (!(other instanceof SchemaValueClass) || !super.equivalent(other)) {
       return false
     }
-    return (
-      String(this._charClassRegex) === String(other._charClassRegex) &&
-      String(this._wordRegex) === String(other._wordRegex)
-    )
+    // The order of a declaration does not matter, as for the attribute values compared above.
+    const sorted = (names) => [...names].sort((a, b) => a.localeCompare(b)).join('\u0000')
+    return sorted(this.allowedNames) === sorted(other.allowedNames)
   }
 
   /**
@@ -1066,14 +1065,27 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
    * @returns {boolean} Whether the value conforms to this value class.
    */
   validateValue(value) {
-    if (!this._wordRegex.test(value) || !this._charClassRegex.test(value)) {
-      return false
+    return this.valueProblem(value) === null
+  }
+
+  /**
+   * Say why a value fails this class, checking the whole-value rule before the characters, as hed-python does.
+   *
+   * @param {string} value A HED value.
+   * @returns {{rule: true}|{characters: Array<[number, string]>}|null} null if the value is valid; {rule: true} if
+   *     it is empty, breaks the class's whole-value rule, or (dateTimeClass) names a date that does not exist;
+   *     otherwise the characters the class does not allow, as [index, character] pairs.
+   */
+  valueProblem(value) {
+    if (value === '' || (this._wordRegex !== null && !this._wordRegex.test(value))) {
+      return { rule: true }
     }
-    if (this.name === 'dateTimeClass') {
+    if (this.name === 'dateTimeClass' && !isExistingGregorianDate(value.slice(0, 10))) {
       // The regular expression fixes the shape; the date must also exist in the Gregorian calendar.
-      return isExistingGregorianDate(value.slice(0, 10))
+      return { rule: true }
     }
-    return true
+    const characters = characterSets.problemCharacters(value, this.allowedNames)
+    return characters.length > 0 ? { characters: characters } : null
   }
 }
 

@@ -25,7 +25,7 @@ import {
 } from './entries'
 import { IssueError } from '../issues/issues'
 
-import classRegex from '../data/json/classRegex.json'
+import { characterSets } from './characterSets'
 
 const lc = (str) => str.toLowerCase()
 
@@ -502,27 +502,36 @@ class ValueClassParser extends SchemaDefinitionEntryParser {
   category = 'valueClass'
 
   _buildEntry(name, description, booleanAttributes, valueAttributes) {
-    const charRegex = ValueClassParser._getValueClassChars(name)
-    const wordRegex = new RegExp(classRegex.class_words[name] ?? '^.+$')
-    return new SchemaValueClass(name, description, booleanAttributes, valueAttributes, charRegex, wordRegex)
+    const allowedNames = this._allowedNames(name, valueAttributes)
+    return new SchemaValueClass(name, description, booleanAttributes, valueAttributes, allowedNames)
   }
 
   /**
-   * Build the character class regular expression of a value class.
+   * The character set names that define the characters of a value class (character_sets.json).
+   *
+   * From standard schema 8.5.0, and in libraries partnered with 8.5.0 or later, the class's own allowedCharacter
+   * declaration defines it, provided every name is a set, an alias, or a single character. Before that the
+   * file's value_class_defaults for the standard version define the standard classes, because their released
+   * declarations are incomplete. A class the file has no defaults for (a library's own class) always follows its
+   * declaration. This is hed-python's CharRexValidator.allowed_names.
    *
    * @param {string} name The value class name.
-   * @returns {RegExp} The regular expression.
+   * @param {Map<SchemaAttribute, string[]>} valueAttributes The class's value attributes.
+   * @returns {string[]} The names; empty when nothing constrains the characters.
    * @private
    */
-  static _getValueClassChars(name) {
-    let classChars
-    if (Array.isArray(classRegex.class_chars[name]) && classRegex.class_chars[name].length > 0) {
-      classChars =
-        '^(?:' + classRegex.class_chars[name].map((charClass) => classRegex.char_regex[charClass]).join('|') + ')+$'
-    } else {
-      classChars = '^.+$' // Any non-empty line or string.
+  _allowedNames(name, valueAttributes) {
+    const standardVersion = this.xmlCollection.standardVersion || null
+    const declarationWins = standardVersion !== null && !semver.lt(standardVersion, characterSets.declarationWinsFrom)
+    const defaults = characterSets.defaultsFor(name, standardVersion)
+    const allowedCharacter = this.attributes.getEntry('allowedCharacter')
+    const declared = characterSets.declaredNames(valueAttributes.get(allowedCharacter) ?? [])
+    if (declared.length > 0 && (declarationWins || defaults.length === 0)) {
+      if (declared.every((declaredName) => characterSets.isKnownName(declaredName))) {
+        return declared
+      }
     }
-    return new RegExp(classChars)
+    return defaults
   }
 }
 

@@ -125,6 +125,21 @@ testSpecs`.
 
   `tests/otherTests/unmergedSchemas.spec.js` compares both forms of every
   partnered hed-tests library (#676).
+- Value characters follow the specification's `character_sets.json`, copied
+  verbatim to `src/data/json/characterSets.json` (the new
+  `character_sets.yml` workflow checks the copy); `classRegex.json` is gone.
+  - From HED 8.5.0, a value class's own `allowedCharacter` declaration defines
+    its characters, so a library class such as testaux `auxClass` (`letters`)
+    no longer accepts any value; before 8.5.0 the file's per-version defaults
+    apply (#884).
+  - A value whose placeholder declares no value class is checked against
+    `value-text` (#886).
+  - A character a class does not allow is CHARACTER_INVALID, naming the
+    character, its code point, its index and what the class allows (#885); a
+    broken whole-value rule (numericClass, dateTimeClass) stays VALUE_INVALID.
+  - The characters no HED string may contain come from the file.
+  - Before HED 8.3.0, a non-ASCII character is allowed only where the value
+    class allows it, so `Label/café` is CHARACTER_INVALID under 8.2.0.
 
 ### Dependencies
 
