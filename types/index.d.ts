@@ -647,7 +647,14 @@ export class SchemaUnitModifier extends SchemaEntryWithAttributes {
   )
 }
 
-export class SchemaValueClass extends SchemaEntryWithAttributes {}
+export class SchemaValueClass extends SchemaEntryWithAttributes {
+  /** The character_sets.json names that define this class's characters; empty for no constraint */
+  allowedNames: string[]
+  /** Whether a value is valid for this class */
+  validateValue(value: string): boolean
+  /** Why a value fails this class: null if valid, the whole-value rule, or the rejected characters ([index, character]) */
+  valueProblem(value: string): { rule: true } | { characters: Array<[number, string]> } | null
+}
 
 export class SchemaTag extends SchemaEntryWithAttributes {
   /** The parent tag of this tag */

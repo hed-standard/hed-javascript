@@ -239,9 +239,12 @@ export const bidsTestData = [
         tsvErrors: [],
         comboErrors: [
           BidsHedIssue.fromHedIssue(
-            generateIssue('invalidValue', {
+            generateIssue('invalidValueCharacter', {
+              character: ' ',
+              codePoint: 'U+0020',
+              index: 11,
               tag: 'label/apple blank',
-              msg: 'Tag "Label" has value classes [nameClass] but its value "apple blank" is not in any of them.',
+              allows: 'nameClass allows letters, digits, hyphen, underscore, nonascii',
               tsvLine: '2',
             }),
             {

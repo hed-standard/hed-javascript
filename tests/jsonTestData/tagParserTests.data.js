@@ -557,9 +557,12 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: false,
-        error: generateIssue('invalidValue', {
+        error: generateIssue('invalidValueCharacter', {
+          character: ' ',
+          codePoint: 'U+0020',
+          index: 10,
           tag: 'Label/Blec h',
-          msg: 'Tag "Label" has value classes [nameClass] but its value "Blec h" is not in any of them.',
+          allows: 'nameClass allows letters, digits, hyphen, underscore, nonascii',
         }),
       },
     ],
