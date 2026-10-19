@@ -105,7 +105,10 @@ const buildSchemaObjects = async function (prefix, xmlData) {
     mergedLibrarySchemas,
     unmergedLibrarySchemas,
   )
-  return new Schema(baseSchemaXml, new SchemaParser(xmlCollection).parse(), prefix)
+  // The group is named after the listed standard schema, else its first library, merged or unmerged: an unmerged
+  // library is parsed into its loaded partner but keeps its own name and version, as its merged file would.
+  const identitySchemaXml = standardSchemas[0] ?? librarySchemas[0]
+  return new Schema(identitySchemaXml, new SchemaParser(xmlCollection).parse(), prefix)
 }
 
 /**

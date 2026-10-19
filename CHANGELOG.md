@@ -110,6 +110,17 @@ testSpecs`.
   they now keep only the first column of a repeated name. The new
   `findDuplicateHeaders` export returns the repeated names, and `BidsTsvFile`
   has a `duplicateColumns` property.
+- A partnered library loaded from its unmerged file now gives the same schema
+  as its merged file:
+  - its elements carry `inLibrary`, so redeclaring a tag of the standard partner
+    is rejected as in the merged form (#923);
+  - a tag placed by `rooted` inherits its anchor's attributes, such as
+    `extensionAllowed` (#924);
+  - a library loaded without a listed standard schema keeps its own name and
+    version instead of its partner's (#925).
+
+  `tests/otherTests/unmergedSchemas.spec.js` compares both forms of every
+  partnered hed-tests library (#676).
 
 ### Dependencies
 
