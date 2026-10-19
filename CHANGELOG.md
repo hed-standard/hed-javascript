@@ -4,6 +4,10 @@
 
 ### Added
 
+- Bundled HED 8.5.0 and its partnered libraries `lang_1.2.0` and
+  `score_2.2.0` (merged form, hed-schemas main), so these versions load
+  without a network request.
+
 ### Changed
 
 - Replaced action versions with hashes for security.
