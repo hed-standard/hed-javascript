@@ -5,12 +5,16 @@
 ### Added
 
 - Bundled HED 8.5.0 and its partnered libraries `lang_1.2.0` and
-  `score_2.2.0` (merged form, hed-schemas main), so these versions load
-  without a network request.
+  `score_2.2.0` (hed-schemas main), so these versions load without a network
+  request.
 
 ### Changed
 
 - Replaced action versions with hashes for security.
+- The bundled partnered libraries (`lang` 1.0.0-1.2.0, `score` 1.2.0-2.2.0) are
+  now their unmerged files, merged with the bundled standard partner when
+  loaded. Each loads to the same schema as its merged file, and the built
+  package is about 37% smaller.
 - The JSON spec tests now come from the
   [hed-tests](https://github.com/hed-standard/hed-tests) repository, checked out
   as the git submodule `spec_tests/hed-tests` instead of the vendored
