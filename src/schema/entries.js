@@ -1053,7 +1053,9 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
     if (!(other instanceof SchemaValueClass) || !super.equivalent(other)) {
       return false
     }
-    return this.allowedNames.join(',') === other.allowedNames.join(',')
+    // The order of a declaration does not matter, as for the attribute values compared above.
+    const sorted = (names) => [...names].sort((a, b) => a.localeCompare(b)).join('\u0000')
+    return sorted(this.allowedNames) === sorted(other.allowedNames)
   }
 
   /**

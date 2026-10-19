@@ -245,6 +245,7 @@ export const bidsTestData = [
               index: 11,
               tag: 'label/apple blank',
               allows: 'nameClass allows letters, digits, hyphen, underscore, nonascii',
+              charSet: 'letters, digits, hyphen, underscore, nonascii',
               tsvLine: '2',
             }),
             {

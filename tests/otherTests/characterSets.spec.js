@@ -7,6 +7,7 @@ import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { parseHedString } from '../../src/parser/parser'
 import { CharacterSets, characterSets, codePoint } from '../../src/schema/characterSets'
 import characterSetsData from '../../src/data/json/characterSets.json'
+import { SchemaValueClass } from '../../src/schema/entries'
 
 // src/data/json/characterSets.json is the specification's character_sets.json (section 2.2, Appendix B
 // CHARACTER_INVALID); these tests pin how hed-javascript reads it, following hed-python.
@@ -76,6 +77,17 @@ describe('Character sets from the published character_sets.json', () => {
       }
     })
 
+    it('reads an allowedCharacter declaration, keeping a single character such as a comma as its own name', () => {
+      assert.deepEqual(characterSets.declaredNames(['letters', 'digits']), ['letters', 'digits'])
+      assert.deepEqual(characterSets.declaredNames(['letters,digits', ' hyphen ']), ['letters', 'digits', 'hyphen'])
+      assert.deepEqual(characterSets.declaredNames([',']), [','])
+      assert.deepEqual(characterSets.declaredNames(['-', '$']), ['-', '$'])
+      assert.deepEqual(characterSets.problemCharacters('a,b', characterSets.declaredNames([','])), [
+        [0, 'a'],
+        [2, 'b'],
+      ])
+    })
+
     it('can be built from other data', () => {
       const sets = new CharacterSets({ sets: { vowels: { regex: '[aeiou]', description: 'vowels' } } })
       assert.deepEqual(sets.problemCharacters('hello', ['vowels']), [
@@ -130,6 +142,19 @@ describe('Character sets from the published character_sets.json', () => {
         issue.message,
         'Invalid character "?" (U+003F) at index 7 of "Label/a?b=1": nameClass allows letters, digits, underscore, hyphen, nonascii.',
       )
+    })
+
+    it('carries the code point and the character set names as issue parameters', () => {
+      const [issue] = errors('Label/a?b=1', schemasByVersion.get('8.5.0'))
+      assert.strictEqual(issue.parameters.codePoint, 'U+003F')
+      assert.strictEqual(issue.parameters.charSet, 'letters, digits, underscore, hyphen, nonascii')
+    })
+
+    it('treats two declarations of a class as equivalent whatever the order of their names', () => {
+      const declared = (names) => new SchemaValueClass('auxClass', 'A class.', new Set(), new Map(), names)
+      assert.isTrue(declared(['letters', 'digits']).equivalent(declared(['digits', 'letters'])))
+      assert.isFalse(declared(['letters', 'digits']).equivalent(declared(['letters'])))
+      assert.deepEqual(declared(['digits', 'letters']).allowedNames, ['digits', 'letters'], 'order kept for messages')
     })
 
     it('checks the whole-value rule before the characters (numericClass stays VALUE_INVALID)', () => {

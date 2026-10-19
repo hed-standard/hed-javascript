@@ -525,10 +525,7 @@ class ValueClassParser extends SchemaDefinitionEntryParser {
     const declarationWins = standardVersion !== null && !semver.lt(standardVersion, characterSets.declarationWinsFrom)
     const defaults = characterSets.defaultsFor(name, standardVersion)
     const allowedCharacter = this.attributes.getEntry('allowedCharacter')
-    const declared = (valueAttributes.get(allowedCharacter) ?? [])
-      .flatMap((value) => String(value).split(','))
-      .map((value) => value.trim())
-      .filter((value) => value !== '')
+    const declared = characterSets.declaredNames(valueAttributes.get(allowedCharacter) ?? [])
     if (declared.length > 0 && (declarationWins || defaults.length === 0)) {
       if (declared.every((declaredName) => characterSets.isKnownName(declaredName))) {
         return declared

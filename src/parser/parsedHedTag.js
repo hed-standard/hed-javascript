@@ -171,6 +171,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
         index: valueStart + index,
         tag: this.originalTag,
         allows: `${problem.subject} allows ${characterSets.describe(problem.names)}`,
+        charSet: problem.names.join(', '),
       })
     } else if (problem) {
       IssueError.generateAndThrow('invalidValue', { tag: this.originalTag, msg: problem.msg })

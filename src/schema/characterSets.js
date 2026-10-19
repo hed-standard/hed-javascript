@@ -67,6 +67,28 @@ export class CharacterSets {
   }
 
   /**
+   * The character set names of an allowedCharacter declaration.
+   *
+   * Each value of the attribute is one name; a value that is not a single character may also hold several names
+   * separated by commas. A single character, a comma included, names itself (literal_names).
+   *
+   * @param {Iterable<*>} values The values of the attribute.
+   * @returns {string[]} The names, in declaration order.
+   */
+  declaredNames(values) {
+    return [...values].flatMap((value) => {
+      const text = String(value)
+      if ([...text].length === 1) {
+        return [text]
+      }
+      return text
+        .split(',')
+        .map((name) => name.trim())
+        .filter((name) => name !== '')
+    })
+  }
+
+  /**
    * Whether a name is a set, an alias, or a single literal character (section 2.2, literal names).
    *
    * @param {string} name A character set name.

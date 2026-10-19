@@ -563,6 +563,7 @@ export const parsedHedTagTests = [
           index: 10,
           tag: 'Label/Blec h',
           allows: 'nameClass allows letters, digits, hyphen, underscore, nonascii',
+          charSet: 'letters, digits, hyphen, underscore, nonascii',
         }),
       },
     ],
