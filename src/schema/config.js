@@ -16,11 +16,14 @@ import HED8_1_0 from '../data/schemas/HED8.1.0.xml'
 import HED8_2_0 from '../data/schemas/HED8.2.0.xml'
 import HED8_3_0 from '../data/schemas/HED8.3.0.xml'
 import HED8_4_0 from '../data/schemas/HED8.4.0.xml'
+import HED8_5_0 from '../data/schemas/HED8.5.0.xml'
 import HED_lang_1_0_0 from '../data/schemas/HED_lang_1.0.0.xml'
 import HED_lang_1_1_0 from '../data/schemas/HED_lang_1.1.0.xml'
+import HED_lang_1_2_0 from '../data/schemas/HED_lang_1.2.0.xml'
 import HED_score_1_2_0 from '../data/schemas/HED_score_1.2.0.xml'
 import HED_score_2_0_0 from '../data/schemas/HED_score_2.0.0.xml'
 import HED_score_2_1_0 from '../data/schemas/HED_score_2.1.0.xml'
+import HED_score_2_2_0 from '../data/schemas/HED_score_2.2.0.xml'
 
 const bundledSchemas = [
   ['HED8.0.0', HED8_0_0],
@@ -28,11 +31,14 @@ const bundledSchemas = [
   ['HED8.2.0', HED8_2_0],
   ['HED8.3.0', HED8_3_0],
   ['HED8.4.0', HED8_4_0],
+  ['HED8.5.0', HED8_5_0],
   ['HED_lang_1.0.0', HED_lang_1_0_0],
   ['HED_lang_1.1.0', HED_lang_1_1_0],
+  ['HED_lang_1.2.0', HED_lang_1_2_0],
   ['HED_score_1.2.0', HED_score_1_2_0],
   ['HED_score_2.0.0', HED_score_2_0_0],
   ['HED_score_2.1.0', HED_score_2_1_0],
+  ['HED_score_2.2.0', HED_score_2_2_0],
 ]
 
 export const localSchemaNames = bundledSchemas.map(([name]) => name)
