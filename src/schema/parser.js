@@ -745,12 +745,19 @@ class TagParser extends SchemaEntryWithAttributesParser {
   _processRecursiveAttributes(parentMap, booleanAttributeDefinitions) {
     const recursiveAttributes = this._getRecursiveAttributes()
     const namesByKey = new Map([...booleanAttributeDefinitions.keys()].map((name) => [lc(name), name]))
+    // Names that differ only by case would make a tag its own parent ("Item" under "Item"); report them as
+    // _createSchemaTags does, before walking the parent map.
+    if (namesByKey.size !== booleanAttributeDefinitions.size) {
+      IssueError.generateAndThrow('duplicateTagsInSchema')
+    }
     const passedDown = new Map()
     // The recursive attributes a tag passes to its children: its own and those it inherits.
     const passedDownBy = (key) => {
       if (passedDown.has(key)) {
         return passedDown.get(key)
       }
+      // Marked before recursing, so a cycle in the parent map (rooted tags anchored on each other) ends.
+      passedDown.set(key, new Set())
       const name = namesByKey.get(key)
       let attributes
       if (name === undefined) {

@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<HED version="2.1.0" library="testminimal" withStandard="8.5.0" unmerged="True">
+   <prologue>Test fixture: hed-tests testminimal 2.1.0 (unmerged) with a child MINI-TAG added under Mini-tag, a duplicate of its parent name apart from case. Loading it must fail with SCHEMA_DUPLICATE_NODE.</prologue>
+   <schema>
+      <node>
+         <name>Mini-tag</name>
+         <description>The testminimal scaffold tag.</description>
+         <node>
+            <name>MINI-TAG</name>
+            <description>A child named like its parent apart from case.</description>
+         </node>
+         <node>
+            <name>Mini-one</name>
+            <description>The first child of Mini-tag.</description>
+         </node>
+         <node>
+            <name>Mini-two</name>
+            <description>The second child of Mini-tag.</description>
+         </node>
+      </node>
+   </schema>
+   <unitClassDefinitions/>
+   <unitModifierDefinitions/>
+   <valueClassDefinitions/>
+   <schemaAttributeDefinitions/>
+   <propertyDefinitions/>
+   <epilogue>Part of the hed-tests test schema set. See json_test_data/test_schemas/README.md for the loading convention.</epilogue>
+   <schemaSources/>
+   <schemaPrefixes/>
+   <externalAnnotations/>
+</HED>
