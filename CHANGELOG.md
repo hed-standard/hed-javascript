@@ -119,6 +119,21 @@ testSpecs`.
   they now keep only the first column of a repeated name. The new
   `findDuplicateHeaders` export returns the repeated names, and `BidsTsvFile`
   has a `duplicateColumns` property.
+- Column names and top-level sidecar keys are no longer trimmed: they are used
+  exactly as written (specification 3.2.10). A column name that begins or ends
+  with a blank, tab, LF or CR is TABULAR_INVALID (b), a blank column name is
+  TABULAR_INVALID (c), and a top-level sidecar key that begins or ends with one
+  of those characters is SIDECAR_INVALID (d), with or without a `"HED"` entry
+  (hed-tests `tabular-invalid-column-name-whitespace`,
+  `tabular-invalid-blank-column-name`, `sidecar-invalid-key-whitespace`). The
+  header is reported padded names first, then blank names by column position,
+  then repeated names, and the file is not validated further; a padded or blank
+  name is not also counted as a repeat. Before, `HED ` silently became the HED
+  column, `trial` beside `trial ` was reported as a repeat, and a blank name was
+  not reported. `BidsTsvFile` has `paddedColumns` and `blankColumns` properties,
+  checked for text, `Map` and `{headers, rows}` input alike. A file whose only
+  HED column is a padded `HED` is still validated, so its header is reported.
+  Cell values are trimmed as before.
 - A partnered library loaded from its unmerged file now gives the same schema
   as its merged file:
   - its elements carry `inLibrary`, so redeclaring a tag of the standard partner
