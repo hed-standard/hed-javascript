@@ -497,6 +497,16 @@ export default {
     level: 'error',
     message: stringTemplate`Column "${'column'}" appears more than once in the header of the tabular file.`,
   },
+  paddedTsvColumn: {
+    hedCode: 'TABULAR_INVALID',
+    level: 'error',
+    message: stringTemplate`Column name ${'column'} in the header of the tabular file begins or ends with whitespace.`,
+  },
+  blankTsvColumn: {
+    hedCode: 'TABULAR_INVALID',
+    level: 'error',
+    message: stringTemplate`Column ${'position'} in the header of the tabular file has a blank name.`,
+  },
   sidecarKeyMissing: {
     hedCode: 'SIDECAR_KEY_MISSING',
     level: 'warning',

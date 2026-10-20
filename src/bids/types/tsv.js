@@ -6,10 +6,11 @@
 import isPlainObject from 'lodash/isPlainObject'
 
 import { BidsFile } from './file'
-import { convertParsedTSVData, findDuplicateHeaders, findDuplicateParsedHeaders, parseTSV } from '../tsvParser'
+import { convertParsedTSVData, findHeaderProblems, parseTSV, parseTSVHeader } from '../tsvParser'
 import { BidsSidecar } from './json'
 import BidsHedTsvValidator from '../validator/tsvValidator'
 import { IssueError } from '../../issues/issues'
+import { stripNameWhitespace } from '../../utils/string'
 
 /**
  * A BIDS TSV file.
@@ -28,6 +29,18 @@ export class BidsTsvFile extends BidsFile {
   duplicateColumns
 
   /**
+   * The column names that begin or end with whitespace (TABULAR_INVALID), each once in header order.
+   * @type {string[]}
+   */
+  paddedColumns
+
+  /**
+   * The 1-based positions of the blank column names (TABULAR_INVALID).
+   * @type {number[]}
+   */
+  blankColumns
+
+  /**
    * HED strings in the "HED" column of the TSV data.
    * @type {string[]}
    */
@@ -42,19 +55,24 @@ export class BidsTsvFile extends BidsFile {
   constructor(name, file, tsvData, mergedDictionary = {}, defManager = null) {
     super(name, file, BidsHedTsvValidator)
 
+    let headers
     if (typeof tsvData === 'string') {
       this.parsedTsv = parseTSV(tsvData)
-      this.duplicateColumns = findDuplicateHeaders(tsvData)
+      headers = parseTSVHeader(tsvData)
     } else if (tsvData instanceof Map) {
       this.parsedTsv = new Map(tsvData)
-      this.duplicateColumns = []
+      headers = [...tsvData.keys()]
     } else if (isPlainObject(tsvData)) {
       this.parsedTsv = convertParsedTSVData(tsvData)
-      this.duplicateColumns = findDuplicateParsedHeaders(tsvData)
+      headers = tsvData.headers
     } else {
       const msg = 'The tsvData was not a string, Map or plain object, so a BidsTsvFile could not be created.'
       IssueError.generateAndThrow('internalError', { message: msg, filePath: file.path })
     }
+    const { padded, blank, duplicate } = findHeaderProblems(headers)
+    this.paddedColumns = padded
+    this.blankColumns = blank
+    this.duplicateColumns = duplicate
 
     this.mergedSidecar = new BidsSidecar(name, this.file, mergedDictionary, defManager)
     this._parseHedColumn()
@@ -79,7 +97,12 @@ export class BidsTsvFile extends BidsFile {
    * @returns {boolean}
    */
   get hasHedData() {
-    return this.parsedTsv.has('HED') || this.mergedSidecar.hasHedData
+    // A padded "HED" header is still the HED column, so the file is checked and its header reported.
+    return (
+      this.parsedTsv.has('HED') ||
+      this.paddedColumns.some((column) => stripNameWhitespace(column) === 'HED') ||
+      this.mergedSidecar.hasHedData
+    )
   }
 
   /**

@@ -91,6 +91,10 @@ export class BidsTsvFile {
   parsedTsv: Map<string, string[]>
   /** The column names that appear more than once in the header (TABULAR_INVALID); empty for Map data */
   duplicateColumns: string[]
+  /** The column names that begin or end with whitespace (TABULAR_INVALID), each once in header order */
+  paddedColumns: string[]
+  /** The 1-based positions of the blank column names (TABULAR_INVALID) */
+  blankColumns: number[]
   /** HED strings in the "HED" column of the TSV data */
   hedColumnHedStrings: string[]
   /** The pseudo-sidecar object representing the merged sidecar data */
@@ -705,6 +709,8 @@ export function parseTSV(contents: string): Map<string, string[]>
 
 /**
  * Find the column names that appear more than once in the header of TSV contents (TABULAR_INVALID).
+ *
+ * Names are compared exactly as written; padded and blank names are not counted, since they are reported as such.
  *
  * @param contents The raw text of a TSV file.
  * @returns Each repeated name once; empty when every name is unique.

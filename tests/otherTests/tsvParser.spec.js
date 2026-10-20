@@ -8,8 +8,11 @@ import {
   convertParsedTSVData,
   findDuplicateHeaders,
   findDuplicateParsedHeaders,
+  findHeaderProblems,
   parseTSV,
+  parseTSVHeader,
 } from '../../src/bids/tsvParser'
+import { isPaddedName, stripNameWhitespace } from '../../src/utils/string'
 
 // A repeated column name in a tabular file is TABULAR_INVALID (specification 3.2.10, Appendix B).
 describe('Repeated TSV column names', () => {
@@ -46,7 +49,10 @@ describe('Repeated TSV column names', () => {
       ['\uFEFFa\ta\n1\t2\n', ['a']],
       ['a\ta\r\n1\t2\r\n', ['a']],
       ['a\tb\ra\ta\r', []],
-      ['\n  \n a \t a\n1\t2\n', ['a']],
+      // Padded and blank names are reported as such (TABULAR_INVALID b and c), not as repeats.
+      ['\n  \n a \t a\n1\t2\n', []],
+      ['trial\ttrial \n1\t2\n', []],
+      ['a\t\t\tb\n1\t2\t3\t4\n', []],
       ['\n\n', []],
     ])('%j gives %j', (contents, expected) => {
       assert.deepEqual(findDuplicateHeaders(contents), expected)
@@ -114,6 +120,130 @@ describe('Repeated TSV column names', () => {
 
     it('validates a file with unique names as before', () => {
       assert.isEmpty(validate('onset\tduration\ttrial\n1.0\t0\tgo\n2.0\t0\tstop\n'))
+    })
+  })
+})
+
+// A column name or top-level sidecar key that begins or ends with whitespace, or a blank column name, is invalid
+// (specification 3.2.10, TABULAR_INVALID b and c, SIDECAR_INVALID d). Names are compared exactly as written.
+describe('Padded and blank TSV column names and sidecar keys', () => {
+  describe('isPaddedName and stripNameWhitespace', () => {
+    it.each([
+      ['trial', false, 'trial'],
+      ['trial ', true, 'trial'],
+      [' trial', true, 'trial'],
+      ['trial\t', true, 'trial'],
+      ['\r\ntrial\n', true, 'trial'],
+      ['trial type', false, 'trial type'],
+      [' ', true, ''],
+      ['', false, ''],
+      ['trial\u00A0', false, 'trial\u00A0'],
+      ['\uFEFFtrial', false, '\uFEFFtrial'],
+    ])('%j: padded %j, stripped %j', (name, padded, stripped) => {
+      assert.strictEqual(isPaddedName(name), padded)
+      assert.strictEqual(stripNameWhitespace(name), stripped)
+    })
+  })
+
+  describe('parseTSV and parseTSVHeader', () => {
+    it('keep the header cells as written and trim the data cells', () => {
+      const contents = 'onset\t HED\ttrial \t\n 1.0 \t Red \t go\t\n'
+      assert.deepEqual(parseTSVHeader(contents), ['onset', ' HED', 'trial ', ''])
+      assert.deepEqual(
+        [...parseTSV(contents).entries()],
+        [
+          ['onset', ['1.0']],
+          [' HED', ['Red']],
+          ['trial ', ['go']],
+          ['', ['']],
+        ],
+      )
+    })
+  })
+
+  describe('findHeaderProblems', () => {
+    it.each([
+      [['onset', 'duration', 'HED'], [], [], []],
+      [['onset', 'HED '], ['HED '], [], []],
+      [['onset', 'trial', 'trial '], ['trial '], [], []],
+      [['onset', 'trial ', 'trial '], ['trial '], [], []],
+      [['onset', ' ', 'HED'], [' '], [], []],
+      [['onset', 'duration', 'HED', ''], [], [4], []],
+      [['onset', '', '', 'HED'], [], [2, 3], []],
+      [['trial ', '', 'onset', 'onset', ' x'], ['trial ', ' x'], [2], ['onset']],
+      [['trial\u00A0', 'trial type'], [], [], []],
+    ])('%j gives padded %j, blank %j, repeated %j', (headers, padded, blank, duplicate) => {
+      assert.deepEqual(findHeaderProblems(headers), { padded, blank, duplicate })
+    })
+  })
+
+  describe('BidsTsvFile validation', () => {
+    let hedSchemas
+    const sidecar = { trial: { HED: { go: 'Experimental-trial', stop: 'Agent-action' } } }
+
+    beforeAll(async () => {
+      hedSchemas = await buildSchemasFromVersion('8.4.0')
+    })
+
+    const validate = (tsvData, dictionary = sidecar) =>
+      new BidsTsvFile('events', { path: 'events.tsv' }, tsvData, dictionary).validate(hedSchemas)
+    const describeIssues = (issues) => issues.map((issue) => [issue.subCode, issue.hedIssue.internalCode])
+
+    it('reports padded, then blank, then repeated names, and nothing else', () => {
+      const issues = validate('onset\ttrial \t\tduration\tduration\t\t HED\n1.0\tgo\t\t0\t0\t\tRed\n')
+      assert.deepEqual(describeIssues(issues), [
+        ['TABULAR_INVALID', 'paddedTsvColumn'],
+        ['TABULAR_INVALID', 'paddedTsvColumn'],
+        ['TABULAR_INVALID', 'blankTsvColumn'],
+        ['TABULAR_INVALID', 'blankTsvColumn'],
+        ['TABULAR_INVALID', 'duplicateTsvColumn'],
+      ])
+      assert.deepEqual(
+        issues.map((issue) => issue.hedIssue.parameters.column ?? issue.hedIssue.parameters.position),
+        ['"trial "', '" HED"', '3', '6', 'duration'],
+      )
+      assert.include(issues[0].issueMessage, 'Column name "trial " in the header')
+      assert.include(issues[2].issueMessage, 'Column 3 in the header of the tabular file has a blank name')
+    })
+
+    it('reports a name both padded and repeated once, as padded', () => {
+      assert.deepEqual(describeIssues(validate('onset\ttrial \ttrial \n1.0\tgo\tgo\n')), [
+        ['TABULAR_INVALID', 'paddedTsvColumn'],
+      ])
+    })
+
+    it('reports a padded HED column in a file with no sidecar', () => {
+      assert.deepEqual(describeIssues(validate('onset\tHED \n1.0\tRed\n', {})), [
+        ['TABULAR_INVALID', 'paddedTsvColumn'],
+      ])
+    })
+
+    it('does not check a file with no HED column and no HED sidecar', () => {
+      assert.isEmpty(validate('onset\ttrial \t\n1.0\tgo\t\n', {}))
+    })
+
+    it('checks Map and old-format input the same way', () => {
+      const map = new Map([
+        ['onset', ['1.0']],
+        ['trial ', ['go']],
+        ['', ['']],
+      ])
+      assert.deepEqual(describeIssues(validate(map)), [
+        ['TABULAR_INVALID', 'paddedTsvColumn'],
+        ['TABULAR_INVALID', 'blankTsvColumn'],
+      ])
+      const oldFormat = {
+        headers: ['onset', 'trial', 'HED '],
+        rows: [
+          ['onset', 'trial', 'HED '],
+          ['1.0', 'go', 'Red'],
+        ],
+      }
+      assert.deepEqual(describeIssues(validate(oldFormat, {})), [['TABULAR_INVALID', 'paddedTsvColumn']])
+    })
+
+    it('validates a name with an inner blank as before', () => {
+      assert.isEmpty(validate('onset\tduration\ttrial type\n1.0\t0\tgo\n', { 'trial type': sidecar.trial }))
     })
   })
 })

@@ -28,6 +28,41 @@ export function splitStringTrimAndRemoveBlanks(string, delimiter = ',') {
 }
 
 /**
+ * The whitespace that a column name or a top-level sidecar key must not begin or end with: blank, tab, LF and CR
+ * (specification 3.2.10). Other Unicode spaces, which String.prototype.trim also removes, are not in the set.
+ * @type {string}
+ */
+export const NAME_WHITESPACE = ' \t\n\r'
+
+/**
+ * Determine whether a name begins or ends with {@link NAME_WHITESPACE}.
+ *
+ * @param {string} name A column name or a top-level sidecar key.
+ * @returns {boolean} Whether the first or last character of the name is in {@link NAME_WHITESPACE}.
+ */
+export function isPaddedName(name) {
+  return name.length > 0 && (NAME_WHITESPACE.includes(name[0]) || NAME_WHITESPACE.includes(name[name.length - 1]))
+}
+
+/**
+ * Remove {@link NAME_WHITESPACE} from both ends of a name, leaving any other Unicode space in place.
+ *
+ * @param {string} name A column name or a top-level sidecar key.
+ * @returns {string} The name without leading or trailing blanks, tabs, LFs or CRs.
+ */
+export function stripNameWhitespace(name) {
+  let start = 0
+  let end = name.length
+  while (start < end && NAME_WHITESPACE.includes(name[start])) {
+    start++
+  }
+  while (end > start && NAME_WHITESPACE.includes(name[end - 1])) {
+    end--
+  }
+  return name.slice(start, end)
+}
+
+/**
  * Parse a template literal string.
  *
  * Copied from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals.

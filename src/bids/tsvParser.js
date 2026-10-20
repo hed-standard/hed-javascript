@@ -4,12 +4,17 @@
  * @module bids/tsvParser
  */
 
+import { isPaddedName } from '../utils/string'
+
 const stripBOM = (str) => str.replace(/^\uFEFF/, '')
 const normalizeEOL = (str) => str.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 const isContentfulRow = (row) => row && !/^\s*$/.test(row)
 
 /**
- * Split TSV contents into trimmed cells, one array per contentful row; the first row is the header.
+ * Split TSV contents into cells, one array per contentful row; the first row is the header.
+ *
+ * The header cells are the column names exactly as written (specification 3.2.10); the cells of the other rows
+ * are trimmed.
  *
  * @param {string} contents The contents of a TSV file.
  * @returns {string[][]} The rows of the file.
@@ -18,7 +23,10 @@ const splitRows = (contents) =>
   stripBOM(normalizeEOL(contents))
     .split('\n')
     .filter(isContentfulRow)
-    .map((str) => str.split('\t').map((cell) => cell.trim()))
+    .map((str, index) => {
+      const cells = str.split('\t')
+      return index === 0 ? cells : cells.map((cell) => cell.trim())
+    })
 
 /**
  * Build the column map of a table, keeping only the first column of a repeated header name.
@@ -50,6 +58,9 @@ function buildColumns(headers, rows) {
 /**
  * Return the names that appear more than once in a list of column names.
  *
+ * Names are compared exactly as written. Padded and blank names are left out: they are reported as such
+ * (see {@link findHeaderProblems}), not as repeats.
+ *
  * @param {string[]} headers The column names.
  * @returns {string[]} Each repeated name once, in order of its second appearance.
  */
@@ -57,6 +68,9 @@ function repeatedNames(headers) {
   const seen = new Set()
   const repeated = new Set()
   for (const header of headers) {
+    if (header === '' || isPaddedName(header)) {
+      continue
+    }
     if (seen.has(header)) {
       repeated.add(header)
     }
@@ -66,9 +80,24 @@ function repeatedNames(headers) {
 }
 
 /**
+ * Find the column names that break the rules for the first line of a tabular file (specification 3.2.10).
+ *
+ * @param {string[]} headers The column names, exactly as written.
+ * @returns {{padded: string[], blank: number[], duplicate: string[]}} Each name that begins or ends with
+ *   whitespace once, in header order; the 1-based positions of the blank names; and each other name that
+ *   appears more than once (see {@link findDuplicateHeaders}).
+ */
+export function findHeaderProblems(headers) {
+  const padded = [...new Set(headers.filter(isPaddedName))]
+  const blank = headers.flatMap((header, index) => (header === '' ? [index + 1] : []))
+  return { padded, blank, duplicate: repeatedNames(headers) }
+}
+
+/**
  * Parse a TSV file
  *
- * A column name repeated in the header keeps only its first column (see {@link findDuplicateHeaders}).
+ * The column names are kept exactly as written. A column name repeated in the header keeps only its first column
+ * (see {@link findDuplicateHeaders}).
  *
  * @param {string} contents The contents of a TSV file.
  * @returns {Map<string, string[]>} The parsed contents of the TSV file.
@@ -81,23 +110,25 @@ export function parseTSV(contents) {
 /**
  * Find the column names that appear more than once in the header of TSV contents.
  *
+ * Names are compared exactly as written; padded and blank names are not counted (see {@link findHeaderProblems}).
+ *
  * @param {string} contents The contents of a TSV file.
  * @returns {string[]} Each repeated name once; empty when every name is unique.
  */
 export function findDuplicateHeaders(contents) {
-  return repeatedNames(headerCells(contents))
+  return repeatedNames(parseTSVHeader(contents))
 }
 
 /**
- * Return the trimmed cells of the first contentful line of TSV contents, without splitting the other lines.
+ * Return the cells of the first contentful line of TSV contents, without splitting the other lines.
  *
  * Line breaks are \r\n, \r or \n, as in {@link splitRows}, so the result equals the header row that
- * {@link parseTSV} uses.
+ * {@link parseTSV} uses. The cells are not trimmed.
  *
  * @param {string} contents The contents of a TSV file.
  * @returns {string[]} The header cells; empty when the contents have no contentful line.
  */
-function headerCells(contents) {
+export function parseTSVHeader(contents) {
   const text = stripBOM(contents)
   const lineBreak = /\r\n|\r|\n/g
   let start = 0
@@ -106,7 +137,7 @@ function headerCells(contents) {
     const match = lineBreak.exec(text)
     const line = text.slice(start, match ? match.index : text.length)
     if (isContentfulRow(line)) {
-      return line.split('\t').map((cell) => cell.trim())
+      return line.split('\t')
     }
     if (!match) {
       break

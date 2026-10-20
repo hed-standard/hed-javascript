@@ -43,10 +43,17 @@ export class BidsHedTsvValidator extends BidsValidator {
    * Validate a BIDS TSV file. This method returns the complete issue list for convenience.
    */
   validate() {
-    // A repeated column name makes the rows unassemblable: report it and stop (specification 3.2.10).
-    if (this.tsvFile.duplicateColumns.length > 0) {
-      for (const column of this.tsvFile.duplicateColumns) {
-        this.errors.push(BidsHedIssue.fromHedIssue(generateIssue('duplicateTsvColumn', { column }), this.tsvFile.file))
+    // A padded, blank or repeated column name makes the rows unassemblable: report it and stop (specification 3.2.10).
+    const headerIssues = [
+      ...this.tsvFile.paddedColumns.map((column) =>
+        generateIssue('paddedTsvColumn', { column: JSON.stringify(column) }),
+      ),
+      ...this.tsvFile.blankColumns.map((position) => generateIssue('blankTsvColumn', { position })),
+      ...this.tsvFile.duplicateColumns.map((column) => generateIssue('duplicateTsvColumn', { column })),
+    ]
+    if (headerIssues.length > 0) {
+      for (const issue of headerIssues) {
+        this.errors.push(BidsHedIssue.fromHedIssue(issue, this.tsvFile.file))
       }
       return
     }
