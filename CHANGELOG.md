@@ -11,6 +11,8 @@
 ### Changed
 
 - Replaced action versions with hashes for security.
+- Removed the custom `browserFilesAlias` configuration; the ESM build handling
+  is simplified.
 - The bundled partnered libraries (`lang` 1.0.0-1.2.0, `score` 1.2.0-2.2.0) are
   now their unmerged files, merged with the bundled standard partner when
   loaded. Each loads to the same schema as its merged file, and the built
@@ -30,6 +32,9 @@ testSpecs`.
 
 ### Fixed
 
+- esbuild 0.28.1 and later work with `esbuild-plugins-node-modules-polyfill`:
+  `legacy-peer-deps` is enabled in `.npmrc`.
+- Improved error reporting for duplicate tags.
 - `dateTimeClass` values are checked against the BIDS Datetime format (RFC 3339
   with an optional offset, hour 00-23, fraction of 1 to 6 digits) and the date
   must exist in the Gregorian calendar (hed-tests
@@ -142,6 +147,8 @@ testSpecs`.
     class allows it, so `Label/café` is CHARACTER_INVALID under 8.2.0.
 
 ### Dependencies
+
+- `js-yaml` upgraded to 4.2.0 or later to address a security vulnerability.
 
 ## 4.2.0 — 2026-05-18
 
