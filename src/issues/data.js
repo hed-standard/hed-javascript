@@ -527,6 +527,11 @@ export default {
     level: 'error',
     message: stringTemplate`The string 'HED' or 'n/a' was illegally used as a top-level sidecar key.`,
   },
+  paddedSidecarKey: {
+    hedCode: 'SIDECAR_INVALID',
+    level: 'error',
+    message: stringTemplate`Top-level sidecar key ${'sidecarKey'} begins or ends with whitespace.`,
+  },
   illegalSidecarData: {
     hedCode: 'SIDECAR_INVALID',
     level: 'error',

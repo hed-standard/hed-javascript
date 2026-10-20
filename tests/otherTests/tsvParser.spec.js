@@ -3,7 +3,7 @@ const assert = chai.assert
 import { beforeAll, describe, it } from '@jest/globals'
 
 import { buildSchemasFromVersion } from '../../src/schema/init'
-import { BidsTsvFile } from '../../src/bids'
+import { BidsSidecar, BidsTsvFile } from '../../src/bids'
 import {
   convertParsedTSVData,
   findDuplicateHeaders,
@@ -12,6 +12,7 @@ import {
   parseTSV,
   parseTSVHeader,
 } from '../../src/bids/tsvParser'
+import { IssueError } from '../../src/issues/issues'
 import { isPaddedName, stripNameWhitespace } from '../../src/utils/string'
 
 // A repeated column name in a tabular file is TABULAR_INVALID (specification 3.2.10, Appendix B).
@@ -244,6 +245,39 @@ describe('Padded and blank TSV column names and sidecar keys', () => {
 
     it('validates a name with an inner blank as before', () => {
       assert.isEmpty(validate('onset\tduration\ttrial type\n1.0\t0\tgo\n', { 'trial type': sidecar.trial }))
+    })
+  })
+
+  describe('BidsSidecar keys', () => {
+    const construct = (data) => new BidsSidecar('sidecar', { path: 'sidecar.json' }, data)
+    const thrownIssue = (data) => {
+      try {
+        construct(data)
+      } catch (error) {
+        assert.instanceOf(error, IssueError)
+        return [error.issue.hedCode, error.issue.internalCode, error.issue.parameters.sidecarKey]
+      }
+      assert.fail('the sidecar was constructed without an error')
+    }
+
+    it.each([
+      ['a trailing blank', { 'trial ': { HED: { go: 'Red' } } }, '"trial "'],
+      ['a leading blank', { ' response_time': { HED: 'Label/#' } }, '" response_time"'],
+      ['a trailing tab', { 'trial\t': { HED: { go: 'Red' } } }, '"trial\\t"'],
+      ['an entry without HED', { 'trial ': { Description: 'The trial type.' } }, '"trial "'],
+      ['a padded HED key', { 'HED ': { HED: 'Red' } }, '"HED "'],
+      ['the first of several', { trial: { HED: { go: 'Red' } }, ' a': {}, 'b ': {} }, '" a"'],
+    ])('reports %s as SIDECAR_INVALID', (_, data, sidecarKey) => {
+      assert.deepEqual(thrownIssue(data), ['SIDECAR_INVALID', 'paddedSidecarKey', sidecarKey])
+    })
+
+    it('still reports an unpadded HED key as illegalSidecarHedKey', () => {
+      assert.deepEqual(thrownIssue({ HED: { HED: 'Red' } }), ['SIDECAR_INVALID', 'illegalSidecarHedKey', 'HED'])
+    })
+
+    it('keeps an unpadded key, including one with an inner blank, as written', () => {
+      const sidecar = construct({ 'trial type': { HED: { go: 'Red' } }, trial: { HED: { go: 'Blue' } } })
+      assert.deepEqual([...sidecar.sidecarKeys.keys()], ['trial type', 'trial'])
     })
   })
 })
