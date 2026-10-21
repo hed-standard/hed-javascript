@@ -456,6 +456,15 @@ describe('Padded values and categorical keys', () => {
       assert.deepEqual(describeIssues(issues), [['SIDECAR_KEY_MISSING', 'sidecarKeyMissing']])
     })
 
+    it.each([['go\u00a0'], ['xyz']])(
+      'reports the value %j with no categorical key as missing when its annotation holds a splice',
+      (cell) => {
+        const dictionary = { trial: { HED: { go: '{HED}' } } }
+        const issues = validate([`${cell}\tRed`], dictionary, 'trial\tHED')
+        assert.deepEqual(describeIssues(issues), [['SIDECAR_KEY_MISSING', 'sidecarKeyMissing']])
+      },
+    )
+
     it('refuses a padded categorical key when the sidecar is built', () => {
       // Thrown as paddedSidecarKey is; dataset validation turns the throw into an issue.
       for (const key of ['go ', ' go', 'go\t']) {

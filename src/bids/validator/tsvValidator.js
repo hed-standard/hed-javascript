@@ -603,7 +603,8 @@ export class BidsHedTsvParser {
     }
     // Only iterate over the column names that have splices
     for (const column of this.tsvFile.mergedSidecar.columnSpliceMapping.keys()) {
-      const unspliced = columnMap.get(column)
+      // A value with no categorical key has no annotation (SIDECAR_KEY_MISSING), as in hed-typescript.
+      const unspliced = columnMap.get(column) ?? ''
       const result = this._replaceSplices(unspliced, columnMap)
       columnMap.set(column, result)
     }

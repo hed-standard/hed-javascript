@@ -155,7 +155,9 @@ testSpecs`.
   such as ` \t`, is a row and its cells are checked; an empty line or a line of
   blanks without a tab is skipped, as hed-python reads it. Onsets are grouped
   without their surrounding whitespace when duplicate tags across rows are
-  checked, so `19` with or without blanks around it is one onset.
+  checked, so `19` with or without blanks around it is one onset. A categorical
+  value with no key in a column whose annotation holds a `{column}` splice is
+  SIDECAR_KEY_MISSING, as in other columns; it was an INTERNAL_ERROR.
 - A partnered library loaded from its unmerged file now gives the same schema
   as its merged file:
   - its elements carry `inLibrary`, so redeclaring a tag of the standard partner
