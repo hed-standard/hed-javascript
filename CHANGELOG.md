@@ -134,6 +134,30 @@ testSpecs`.
   checked for text, `Map` and `{headers, rows}` input alike. A file whose only
   HED column is a padded `HED` is still validated, so its header is reported.
   Cell values are trimmed as before.
+- The column names of `Map` and `{headers, rows}` TSV input are converted to
+  text, as in a text file: a whole number is written without a decimal point
+  (`1` and `1.0` become `"1"`), and `null`, `undefined` or `NaN` becomes `""`,
+  a blank name. So `1` beside `"1"` is a repeated name, a numeric name matches
+  the sidecar key `"1"`, and a `null` name no longer throws a TypeError.
+- Cell values are no longer trimmed: they are used exactly as written
+  (specification 3.2.9.1), as `Map` and `{headers, rows}` input already were.
+  A value that begins or ends with a blank, tab, LF or CR in a column with
+  HED annotations is TABULAR_INVALID (`paddedTsvValue`, specification 3.2.10.2,
+  hed-tests `tabular-invalid-value-whitespace`), reported once per distinct
+  value at its first line, before the HED column and assembly, and the file is
+  not validated further; a value of only blanks and `n/a ` count, `''` and
+  `n/a` are missing values, and the HED column is not checked. A key under
+  `"HED"` in a categorical sidecar entry that begins or ends with one of those
+  characters is SIDECAR_INVALID (`paddedSidecarCategoricalKey`, hed-tests
+  `sidecar-invalid-value-key-whitespace`). Before, `go ` was trimmed to `go`
+  and annotated silently. A HED-column cell such as `n/a ` or a blanks-only cell
+  is still a missing value (`isMissingTsvValue`). A data line that holds a tab,
+  such as ` \t`, is a row and its cells are checked; an empty line or a line of
+  blanks without a tab is skipped, as hed-python reads it. Onsets are grouped
+  without their surrounding whitespace when duplicate tags across rows are
+  checked, so `19` with or without blanks around it is one onset. A categorical
+  value with no key in a column whose annotation holds a `{column}` splice is
+  SIDECAR_KEY_MISSING, as in other columns; it was an INTERNAL_ERROR.
 - A partnered library loaded from its unmerged file now gives the same schema
   as its merged file:
   - its elements carry `inLibrary`, so redeclaring a tag of the standard partner

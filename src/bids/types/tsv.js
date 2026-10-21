@@ -6,11 +6,11 @@
 import isPlainObject from 'lodash/isPlainObject'
 
 import { BidsFile } from './file'
-import { convertParsedTSVData, findHeaderProblems, parseTSV, parseTSVHeader } from '../tsvParser'
+import { convertParsedTSVData, findHeaderProblems, isMissingTsvValue, parseTSV, parseTSVHeader } from '../tsvParser'
 import { BidsSidecar } from './json'
 import BidsHedTsvValidator from '../validator/tsvValidator'
 import { IssueError } from '../../issues/issues'
-import { stripNameWhitespace } from '../../utils/string'
+import { columnNameText, stripNameWhitespace } from '../../utils/string'
 
 /**
  * A BIDS TSV file.
@@ -60,11 +60,19 @@ export class BidsTsvFile extends BidsFile {
       this.parsedTsv = parseTSV(tsvData)
       headers = parseTSVHeader(tsvData)
     } else if (tsvData instanceof Map) {
-      this.parsedTsv = new Map(tsvData)
-      headers = [...tsvData.keys()]
+      // Names become text, as in a text file; two keys that become the same name keep the first column.
+      this.parsedTsv = new Map()
+      headers = []
+      for (const [key, values] of tsvData) {
+        const name = columnNameText(key)
+        headers.push(name)
+        if (!this.parsedTsv.has(name)) {
+          this.parsedTsv.set(name, values)
+        }
+      }
     } else if (isPlainObject(tsvData)) {
-      this.parsedTsv = convertParsedTSVData(tsvData)
-      headers = tsvData.headers
+      headers = tsvData.headers.map(columnNameText)
+      this.parsedTsv = convertParsedTSVData({ headers, rows: tsvData.rows })
     } else {
       const msg = 'The tsvData was not a string, Map or plain object, so a BidsTsvFile could not be created.'
       IssueError.generateAndThrow('internalError', { message: msg, filePath: file.path })
@@ -87,7 +95,7 @@ export class BidsTsvFile extends BidsFile {
     if (hedColumn === undefined) {
       this.hedColumnHedStrings = []
     } else {
-      this.hedColumnHedStrings = hedColumn.map((hedCell) => (hedCell && hedCell !== 'n/a' ? hedCell : ''))
+      this.hedColumnHedStrings = hedColumn.map((hedCell) => (isMissingTsvValue(hedCell) ? '' : hedCell))
     }
   }
 

@@ -4,29 +4,55 @@
  * @module bids/tsvParser
  */
 
-import { isPaddedName } from '../utils/string'
+import { isPaddedName, stripNameWhitespace } from '../utils/string'
 
 const stripBOM = (str) => str.replace(/^\uFEFF/, '')
 const normalizeEOL = (str) => str.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 const isContentfulRow = (row) => row && !/^\s*$/.test(row)
+// A line with a tab has at least two columns, so it is a row even when every cell is blank or padded. An empty line
+// or a line of blanks without a tab is skipped, as pandas reads it in hed-python (skip_blank_lines).
+const isTableRow = (row) => row.includes('\t') || isContentfulRow(row)
 
 /**
- * Split TSV contents into cells, one array per contentful row; the first row is the header.
+ * Split TSV contents into cells: the first row, which is the header, then one array per row after it.
  *
- * The header cells are the column names exactly as written (specification 3.2.10); the cells of the other rows
- * are trimmed.
+ * The header cells are the column names and the other cells the values, all exactly as written (specification
+ * 3.2.9.1 and 3.2.10): nothing is trimmed, as for Map and {headers, rows} input. Header and data rows are found by
+ * the same rule, so a data line such as ` \t` is a row and its padded value is checked.
  *
  * @param {string} contents The contents of a TSV file.
  * @returns {string[][]} The rows of the file.
  */
-const splitRows = (contents) =>
-  stripBOM(normalizeEOL(contents))
-    .split('\n')
-    .filter(isContentfulRow)
-    .map((str, index) => {
-      const cells = str.split('\t')
-      return index === 0 ? cells : cells.map((cell) => cell.trim())
-    })
+const splitRows = (contents) => {
+  const lines = stripBOM(normalizeEOL(contents)).split('\n')
+  const headerIndex = lines.findIndex(isTableRow)
+  if (headerIndex < 0) {
+    return []
+  }
+  const dataRows = lines
+    .slice(headerIndex + 1)
+    .filter(isTableRow)
+    .map((str) => str.split('\t'))
+  return [lines[headerIndex].split('\t'), ...dataRows]
+}
+
+/**
+ * Determine whether a TSV cell is a missing value: empty or `n/a` once any leading or trailing blank, tab, line feed
+ * or carriage return is removed.
+ *
+ * Used for the HED column and in assembly, where a cell such as `n/a ` is missing, as hedtools reads it. A padded
+ * value in a column with HED annotations never gets this far: it is reported as TABULAR_INVALID first.
+ *
+ * @param {*} value A cell value.
+ * @returns {boolean} Whether the cell holds no value.
+ */
+export function isMissingTsvValue(value) {
+  if (value === null || value === undefined) {
+    return true
+  }
+  const text = stripNameWhitespace(String(value))
+  return text === '' || text === 'n/a'
+}
 
 /**
  * Build the column map of a table, keeping only the first column of a repeated header name.
@@ -120,13 +146,13 @@ export function findDuplicateHeaders(contents) {
 }
 
 /**
- * Return the cells of the first contentful line of TSV contents, without splitting the other lines.
+ * Return the cells of the first header line of TSV contents (see {@link splitRows}), without splitting the other lines.
  *
  * Line breaks are \r\n, \r or \n, as in {@link splitRows}, so the result equals the header row that
  * {@link parseTSV} uses. The cells are not trimmed.
  *
  * @param {string} contents The contents of a TSV file.
- * @returns {string[]} The header cells; empty when the contents have no contentful line.
+ * @returns {string[]} The header cells; empty when the contents have no header line.
  */
 export function parseTSVHeader(contents) {
   const text = stripBOM(contents)
@@ -136,7 +162,7 @@ export function parseTSVHeader(contents) {
     lineBreak.lastIndex = start
     const match = lineBreak.exec(text)
     const line = text.slice(start, match ? match.index : text.length)
-    if (isContentfulRow(line)) {
+    if (isTableRow(line)) {
       return line.split('\t')
     }
     if (!match) {

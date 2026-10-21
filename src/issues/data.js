@@ -507,6 +507,11 @@ export default {
     level: 'error',
     message: stringTemplate`Column ${'position'} in the header of the tabular file has a blank name.`,
   },
+  paddedTsvValue: {
+    hedCode: 'TABULAR_INVALID',
+    level: 'error',
+    message: stringTemplate`Value ${'value'} in column "${'column'}", which has HED annotations, begins or ends with whitespace; values are used exactly as written.`,
+  },
   sidecarKeyMissing: {
     hedCode: 'SIDECAR_KEY_MISSING',
     level: 'warning',
@@ -531,6 +536,11 @@ export default {
     hedCode: 'SIDECAR_INVALID',
     level: 'error',
     message: stringTemplate`Top-level sidecar key ${'sidecarKey'} begins or ends with whitespace.`,
+  },
+  paddedSidecarCategoricalKey: {
+    hedCode: 'SIDECAR_INVALID',
+    level: 'error',
+    message: stringTemplate`Key ${'categoricalKey'} under HED in the categorical entry "${'sidecarKey'}" begins or ends with whitespace, so it can match no column value.`,
   },
   illegalSidecarData: {
     hedCode: 'SIDECAR_INVALID',

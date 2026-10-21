@@ -394,6 +394,17 @@ export class BidsSidecarKey {
       IssueError.generateAndThrow('illegalSidecarHedType', { sidecarKey: key, filePath: sidecar?.file?.path })
     } else {
       this.categoryMap = new Map(Object.entries(data))
+      // A column value matches a key only when identical (specification 3.2.9.1), so a padded key could only match a
+      // padded value, which is itself an error: it can never annotate a row.
+      for (const categoricalKey of this.categoryMap.keys()) {
+        if (isPaddedName(categoricalKey)) {
+          IssueError.generateAndThrow('paddedSidecarCategoricalKey', {
+            sidecarKey: key,
+            categoricalKey: JSON.stringify(categoricalKey),
+            filePath: sidecar?.file?.path,
+          })
+        }
+      }
     }
   }
 
@@ -449,8 +460,8 @@ export class BidsSidecarKey {
     const warnings = []
 
     for (const [value, string] of this.categoryMap) {
-      const trimmedValue = value.trim()
-      if (ILLEGAL_SIDECAR_KEYS.has(trimmedValue.toLowerCase())) {
+      // Keys are never trimmed: a padded key was already refused when this key was constructed.
+      if (ILLEGAL_SIDECAR_KEYS.has(value.toLowerCase())) {
         IssueError.generateAndThrow('illegalSidecarHedCategoricalValue', {
           sidecarKey: this.name,
           filePath: this.sidecar?.file?.path,

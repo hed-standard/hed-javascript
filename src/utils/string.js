@@ -41,7 +41,34 @@ export const NAME_WHITESPACE = ' \t\n\r'
  * @returns {boolean} Whether the first or last character of the name is in {@link NAME_WHITESPACE}.
  */
 export function isPaddedName(name) {
-  return name.length > 0 && (NAME_WHITESPACE.includes(name[0]) || NAME_WHITESPACE.includes(name[name.length - 1]))
+  return (
+    typeof name === 'string' &&
+    name.length > 0 &&
+    (NAME_WHITESPACE.includes(name[0]) || NAME_WHITESPACE.includes(name[name.length - 1]))
+  )
+}
+
+/**
+ * Return a column name as text, as a text header would hold it.
+ *
+ * A string is returned unchanged. `null`, `undefined` and `NaN` become `''` (a blank name). A whole number is
+ * written without a decimal point and in full digits (`1` and `1.0` both become `'1'`), as hedtools writes
+ * it; anything else goes through `String` (`1.5` becomes `'1.5'`).
+ *
+ * @param {*} name A column name from a Map key or an old-format header.
+ * @returns {string} The name as text.
+ */
+export function columnNameText(name) {
+  if (typeof name === 'string') {
+    return name
+  }
+  if (name === null || name === undefined || Number.isNaN(name)) {
+    return ''
+  }
+  if (Number.isInteger(name)) {
+    return BigInt(name).toString()
+  }
+  return String(name)
 }
 
 /**
