@@ -13,7 +13,7 @@ import {
   parseTSVHeader,
 } from '../../src/bids/tsvParser'
 import { IssueError } from '../../src/issues/issues'
-import { isPaddedName, stripNameWhitespace } from '../../src/utils/string'
+import { columnNameText, isPaddedName, stripNameWhitespace } from '../../src/utils/string'
 
 // A repeated column name in a tabular file is TABULAR_INVALID (specification 3.2.10, Appendix B).
 describe('Repeated TSV column names', () => {
@@ -144,6 +144,27 @@ describe('Padded and blank TSV column names and sidecar keys', () => {
       assert.strictEqual(isPaddedName(name), padded)
       assert.strictEqual(stripNameWhitespace(name), stripped)
     })
+
+    it('treats a name that is not a string as not padded', () => {
+      assert.isFalse(isPaddedName(null))
+      assert.isFalse(isPaddedName(1))
+    })
+  })
+
+  describe('columnNameText', () => {
+    it.each([
+      ['trial ', 'trial '],
+      [1, '1'],
+      [1.0, '1'],
+      [-0, '0'],
+      [1.5, '1.5'],
+      [1e21, '1000000000000000000000'],
+      [null, ''],
+      [undefined, ''],
+      [NaN, ''],
+    ])('%j becomes %j', (name, text) => {
+      assert.strictEqual(columnNameText(name), text)
+    })
   })
 
   describe('parseTSV and parseTSVHeader', () => {
@@ -263,6 +284,33 @@ describe('Padded and blank TSV column names and sidecar keys', () => {
         ],
       }
       assert.deepEqual(describeIssues(validate(oldFormat, {})), [['TABULAR_INVALID', 'paddedTsvColumn']])
+    })
+
+    it('checks Map keys and old-format headers as text', () => {
+      const map = new Map([
+        ['onset', ['1.0']],
+        [1, ['go']],
+        ['1', ['stop']],
+        ['HED', ['Red']],
+      ])
+      assert.deepEqual(describeIssues(validate(map, {})), [['TABULAR_INVALID', 'duplicateTsvColumn']])
+      const oldFormat = (headers) => ({ headers, rows: [headers, ['1.0', 'go', 'Red']] })
+      assert.deepEqual(describeIssues(validate(oldFormat([1, 1.0, 'HED']), {})), [
+        ['TABULAR_INVALID', 'duplicateTsvColumn'],
+      ])
+      assert.deepEqual(describeIssues(validate(oldFormat(['onset', null, 'HED']), {})), [
+        ['TABULAR_INVALID', 'blankTsvColumn'],
+      ])
+    })
+
+    it('matches a numeric name to its sidecar key', () => {
+      const map = new Map([
+        ['onset', ['1.0']],
+        [1, ['go']],
+      ])
+      const file = new BidsTsvFile('events', { path: 'events.tsv' }, map, { 1: { HED: { go: 'Red' } } })
+      assert.deepEqual([...file.parsedTsv.keys()], ['onset', '1'])
+      assert.isEmpty(file.validate(hedSchemas))
     })
 
     it('validates a name with an inner blank as before', () => {

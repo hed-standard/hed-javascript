@@ -134,6 +134,11 @@ testSpecs`.
   checked for text, `Map` and `{headers, rows}` input alike. A file whose only
   HED column is a padded `HED` is still validated, so its header is reported.
   Cell values are trimmed as before.
+- The column names of `Map` and `{headers, rows}` TSV input are converted to
+  text, as in a text file: a whole number is written without a decimal point
+  (`1` and `1.0` become `"1"`), and `null`, `undefined` or `NaN` becomes `""`,
+  a blank name. So `1` beside `"1"` is a repeated name, a numeric name matches
+  the sidecar key `"1"`, and a `null` name no longer throws a TypeError.
 - A partnered library loaded from its unmerged file now gives the same schema
   as its merged file:
   - its elements carry `inLibrary`, so redeclaring a tag of the standard partner
