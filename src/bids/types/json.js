@@ -11,6 +11,7 @@ import { BidsFile } from './file'
 import BidsHedSidecarValidator from '../validator/sidecarValidator'
 import { IssueError, updateIssueParameters } from '../../issues/issues'
 import { DefinitionManager, Definition } from '../../parser/definitionManager'
+import { isPaddedName } from '../../utils/string'
 
 const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
 
@@ -185,17 +186,22 @@ export class BidsSidecar extends BidsJsonFile {
     this.sidecarKeys = new Map(
       Object.entries(this.jsonData)
         .map(([key, value]) => {
-          const trimmedKey = key.trim()
-          const lowerKey = trimmedKey.toLowerCase()
-          if (ILLEGAL_SIDECAR_KEYS.has(lowerKey)) {
+          // A key is a column name exactly as written (specification 3.2.10), so it is never trimmed.
+          if (isPaddedName(key)) {
+            IssueError.generateAndThrow('paddedSidecarKey', {
+              filePath: this.file?.path,
+              sidecarKey: JSON.stringify(key),
+            })
+          }
+          if (ILLEGAL_SIDECAR_KEYS.has(key.toLowerCase())) {
             IssueError.generateAndThrow('illegalSidecarHedKey', {
               filePath: this.file?.path,
-              sidecarKey: trimmedKey,
+              sidecarKey: key,
             })
           }
 
           if (BidsSidecar._sidecarValueHasHed(value)) {
-            return [trimmedKey, new BidsSidecarKey(trimmedKey, value.HED, this)]
+            return [key, new BidsSidecarKey(key, value.HED, this)]
           }
 
           this._verifyKeyHasNoDeepHed(key, value, key)
