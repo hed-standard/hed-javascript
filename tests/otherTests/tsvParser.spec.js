@@ -9,6 +9,7 @@ import {
   findDuplicateHeaders,
   findDuplicateParsedHeaders,
   findHeaderProblems,
+  isMissingTsvValue,
   parseTSV,
   parseTSVHeader,
 } from '../../src/bids/tsvParser'
@@ -168,15 +169,15 @@ describe('Padded and blank TSV column names and sidecar keys', () => {
   })
 
   describe('parseTSV and parseTSVHeader', () => {
-    it('keep the header cells as written and trim the data cells', () => {
+    it('keep the header cells and the data cells as written', () => {
       const contents = 'onset\t HED\ttrial \t\n 1.0 \t Red \t go\t\n'
       assert.deepEqual(parseTSVHeader(contents), ['onset', ' HED', 'trial ', ''])
       assert.deepEqual(
         [...parseTSV(contents).entries()],
         [
-          ['onset', ['1.0']],
-          [' HED', ['Red']],
-          ['trial ', ['go']],
+          ['onset', [' 1.0 ']],
+          [' HED', [' Red ']],
+          ['trial ', [' go']],
           ['', ['']],
         ],
       )
@@ -348,6 +349,102 @@ describe('Padded and blank TSV column names and sidecar keys', () => {
     it('keeps an unpadded key, including one with an inner blank, as written', () => {
       const sidecar = construct({ 'trial type': { HED: { go: 'Red' } }, trial: { HED: { go: 'Blue' } } })
       assert.deepEqual([...sidecar.sidecarKeys.keys()], ['trial type', 'trial'])
+    })
+  })
+})
+
+// A padded value in a column with HED annotations is TABULAR_INVALID (specification 3.2.10.2, Appendix B reason d),
+// and a padded key under HED in a categorical entry is SIDECAR_INVALID (3.2.9.2, reason e).
+describe('Padded values and categorical keys', () => {
+  let hedSchemas
+  const sidecar = {
+    trial: { HED: { go: 'Experimental-trial', stop: 'Agent-action' } },
+    age: { HED: 'Age/#' },
+  }
+  const header = 'onset\tduration\ttrial\tage\tHED'
+
+  beforeAll(async () => {
+    hedSchemas = await buildSchemasFromVersion('8.4.0')
+  })
+
+  const validate = (rows, dictionary = sidecar, firstLine = header) =>
+    new BidsTsvFile('events', { path: 'events.tsv' }, [firstLine, ...rows].join('\n') + '\n', dictionary).validate(
+      hedSchemas,
+    )
+  const describeIssues = (issues) => issues.map((issue) => [issue.subCode, issue.hedIssue.internalCode])
+
+  describe('isMissingTsvValue', () => {
+    it.each([
+      ['', true],
+      ['n/a', true],
+      ['n/a ', true],
+      [' ', true],
+      [null, true],
+      ['go', false],
+      ['n/a ', false],
+    ])('%j is missing: %j', (value, missing) => {
+      assert.strictEqual(isMissingTsvValue(value), missing)
+    })
+  })
+
+  describe('BidsTsvFile validation', () => {
+    it.each([['go '], [' go'], [' '], ['n/a ']])('reports the categorical value %j and nothing else', (cell) => {
+      const issues = validate([`1.0\t0\t${cell}\t30\tRed`])
+      assert.deepEqual(describeIssues(issues), [['TABULAR_INVALID', 'paddedTsvValue']])
+      assert.strictEqual(issues[0].hedIssue.parameters.column, 'trial')
+      assert.strictEqual(issues[0].hedIssue.parameters.value, JSON.stringify(cell))
+      assert.strictEqual(issues[0].hedIssue.parameters.tsvLine, '2')
+    })
+
+    it.each([['30 '], [' 30']])('reports the value-column value %j instead of a value error', (cell) => {
+      const issues = validate([`1.0\t0\tgo\t${cell}\tRed`])
+      assert.deepEqual(describeIssues(issues), [['TABULAR_INVALID', 'paddedTsvValue']])
+      assert.strictEqual(issues[0].hedIssue.parameters.column, 'age')
+    })
+
+    it('reports each distinct value once and stops before the HED column', () => {
+      const issues = validate(['1.0\t0\tgo \t30\tInvalidTagXYZ', '2.0\t0\tgo \t30\tRed', '3.0\t0\tstop \t30\tRed'])
+      assert.deepEqual(describeIssues(issues), [
+        ['TABULAR_INVALID', 'paddedTsvValue'],
+        ['TABULAR_INVALID', 'paddedTsvValue'],
+      ])
+      assert.deepEqual(
+        issues.map((issue) => issue.hedIssue.parameters.tsvLine),
+        ['2', '4'],
+      )
+    })
+
+    it('passes clean values, missing values, a padded HED cell and an unannotated column', () => {
+      assert.isEmpty(validate(['1.0\t0\tgo\t30\t Red ', '2.0\t0\tn/a\t\tBlue', '3.0\t0\tstop\t30\tn/a ']))
+      assert.isEmpty(validate(['1.0\t0\tgo\tx \tRed'], sidecar, 'onset\tduration\ttrial\tnote\tHED'))
+    })
+
+    it('treats a value ending with a no-break space as a value without an annotation', () => {
+      const issues = validate(['1.0\t0\tgo \t30\tRed'])
+      assert.deepEqual(describeIssues(issues), [['SIDECAR_KEY_MISSING', 'sidecarKeyMissing']])
+    })
+
+    it('refuses a padded categorical key when the sidecar is built', () => {
+      // Thrown as paddedSidecarKey is; dataset validation turns the throw into an issue.
+      for (const key of ['go ', ' go', 'go\t']) {
+        try {
+          new BidsSidecar('sidecar', { path: 'sidecar.json' }, { trial: { HED: { [key]: 'Experimental-trial' } } })
+          assert.fail(`the sidecar with key ${JSON.stringify(key)} was built without an error`)
+        } catch (error) {
+          assert.instanceOf(error, IssueError)
+          assert.deepEqual(
+            [error.issue.hedCode, error.issue.internalCode, error.issue.parameters.categoricalKey],
+            ['SIDECAR_INVALID', 'paddedSidecarCategoricalKey', JSON.stringify(key)],
+          )
+        }
+      }
+    })
+
+    it('does not check the keys of a Levels dictionary or an inner blank', () => {
+      const dictionary = {
+        trial: { Levels: { 'go ': 'A go trial' }, HED: { go: 'Experimental-trial', 'go now': 'Agent-action' } },
+      }
+      assert.isEmpty(validate(['1.0\t0\tgo\tRed'], dictionary, 'onset\tduration\ttrial\tHED'))
     })
   })
 })

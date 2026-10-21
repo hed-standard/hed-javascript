@@ -6,7 +6,7 @@
 import isPlainObject from 'lodash/isPlainObject'
 
 import { BidsFile } from './file'
-import { convertParsedTSVData, findHeaderProblems, parseTSV, parseTSVHeader } from '../tsvParser'
+import { convertParsedTSVData, findHeaderProblems, isMissingTsvValue, parseTSV, parseTSVHeader } from '../tsvParser'
 import { BidsSidecar } from './json'
 import BidsHedTsvValidator from '../validator/tsvValidator'
 import { IssueError } from '../../issues/issues'
@@ -95,7 +95,7 @@ export class BidsTsvFile extends BidsFile {
     if (hedColumn === undefined) {
       this.hedColumnHedStrings = []
     } else {
-      this.hedColumnHedStrings = hedColumn.map((hedCell) => (hedCell && hedCell !== 'n/a' ? hedCell : ''))
+      this.hedColumnHedStrings = hedColumn.map((hedCell) => (isMissingTsvValue(hedCell) ? '' : hedCell))
     }
   }
 

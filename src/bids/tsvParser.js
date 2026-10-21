@@ -4,7 +4,7 @@
  * @module bids/tsvParser
  */
 
-import { isPaddedName } from '../utils/string'
+import { isPaddedName, stripNameWhitespace } from '../utils/string'
 
 const stripBOM = (str) => str.replace(/^\uFEFF/, '')
 const normalizeEOL = (str) => str.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
@@ -15,8 +15,8 @@ const isHeaderRow = (row) => row.includes('\t') || isContentfulRow(row)
 /**
  * Split TSV contents into cells: the first header row, then one array per contentful row after it.
  *
- * The header cells are the column names exactly as written (specification 3.2.10); the cells of the other rows
- * are trimmed.
+ * The header cells are the column names and the other cells the values, all exactly as written (specification
+ * 3.2.9.1 and 3.2.10): nothing is trimmed, as for Map and {headers, rows} input.
  *
  * @param {string} contents The contents of a TSV file.
  * @returns {string[][]} The rows of the file.
@@ -30,8 +30,26 @@ const splitRows = (contents) => {
   const dataRows = lines
     .slice(headerIndex + 1)
     .filter(isContentfulRow)
-    .map((str) => str.split('\t').map((cell) => cell.trim()))
+    .map((str) => str.split('\t'))
   return [lines[headerIndex].split('\t'), ...dataRows]
+}
+
+/**
+ * Determine whether a TSV cell is a missing value: empty or `n/a` once any leading or trailing blank, tab, line feed
+ * or carriage return is removed.
+ *
+ * Used for the HED column and in assembly, where a cell such as `n/a ` is missing, as hedtools reads it. A padded
+ * value in a column with HED annotations never gets this far: it is reported as TABULAR_INVALID first.
+ *
+ * @param {*} value A cell value.
+ * @returns {boolean} Whether the cell holds no value.
+ */
+export function isMissingTsvValue(value) {
+  if (value === null || value === undefined) {
+    return true
+  }
+  const text = stripNameWhitespace(String(value))
+  return text === '' || text === 'n/a'
 }
 
 /**

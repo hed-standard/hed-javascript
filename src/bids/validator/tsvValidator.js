@@ -2,6 +2,8 @@
  * @module bids/validator/tsvValidator
  */
 import { BidsHedIssue } from '../types/issues'
+import { isMissingTsvValue } from '../tsvParser'
+import { isPaddedName } from '../../utils/string'
 import { BidsTsvElement, BidsTsvRow } from '../types/tsv'
 import { BidsValidator } from './validator'
 import { parseHedString, parseStandaloneString } from '../../parser/parser'
@@ -69,6 +71,12 @@ export class BidsHedTsvValidator extends BidsValidator {
       }
     }
 
+    // A padded value in a column with HED annotations is reported before any value is checked or assembled.
+    this._validatePaddedValues()
+    if (this.errors.length > 0) {
+      return
+    }
+
     // Valid the HED column by itself.
     this._validateHedColumn()
     this._validateSplicedValueColumns()
@@ -124,6 +132,43 @@ export class BidsHedTsvValidator extends BidsValidator {
           ),
         )
       }
+    }
+  }
+
+  /**
+   * Report the values with leading or trailing whitespace in the columns that the sidecar annotates with HED.
+   *
+   * Values are used exactly as written (specification 3.2.9.1), so a padded value would match no categorical key or
+   * be substituted with its whitespace; it is TABULAR_INVALID (specification 3.2.10.2). Each distinct padded value
+   * of a column is reported once, at its first line. The HED column and columns without HED annotations are not
+   * checked; `''` and `n/a` are missing values, while a blanks-only value and `n/a ` are padded.
+   *
+   * @private
+   */
+  _validatePaddedValues() {
+    const sidecar = this.tsvFile.mergedSidecar
+    if (!sidecar?.hasHedData) {
+      return
+    }
+    for (const columnName of sidecar.hedData.keys()) {
+      const columnValues = this.tsvFile.parsedTsv.get(columnName)
+      if (columnValues === undefined) {
+        continue
+      }
+      const reported = new Set()
+      columnValues.forEach((columnValue, rowIndexMinusTwo) => {
+        if (typeof columnValue !== 'string' || reported.has(columnValue) || !isPaddedName(columnValue)) {
+          return
+        }
+        reported.add(columnValue)
+        this.errors.push(
+          BidsHedIssue.fromHedIssue(
+            generateIssue('paddedTsvValue', { column: columnName, value: JSON.stringify(columnValue) }),
+            this.tsvFile.file,
+            { tsvLine: rowIndexMinusTwo + 2 },
+          ),
+        )
+      })
     }
   }
 
@@ -485,18 +530,15 @@ export class BidsHedTsvParser {
 
     for (const [columnName, columnValue] of rowCells.entries()) {
       // If a splice, it can't be used in an assembled HED string.
-      if (
-        this.tsvFile.mergedSidecar.columnSpliceReferences.has(columnName) ||
-        BidsHedTsvParser.nullSet.has(columnValue)
-      ) {
+      if (this.tsvFile.mergedSidecar.columnSpliceReferences.has(columnName) || isMissingTsvValue(columnValue)) {
         continue
       }
-      if (columnMap.has(columnName) && !BidsHedTsvParser.nullSet.has(columnMap.get(columnName))) {
+      if (columnMap.has(columnName) && !isMissingTsvValue(columnMap.get(columnName))) {
         hedStringParts.push(columnMap.get(columnName))
       }
     }
     const hedString = hedStringParts.join(',')
-    if (hedString === '' || hedString === 'n/a') {
+    if (isMissingTsvValue(hedString)) {
       return null
     }
     return new BidsTsvRow(hedString, this.tsvFile, tsvLine, rowCells)
@@ -513,7 +555,8 @@ export class BidsHedTsvParser {
     const columnMap = new Map()
 
     if (rowCells.has('HED')) {
-      columnMap.set('HED', rowCells.get('HED'))
+      const hedCell = rowCells.get('HED')
+      columnMap.set('HED', isMissingTsvValue(hedCell) ? '' : hedCell)
     }
 
     if (!this.tsvFile.mergedSidecar.hasHedData) {
@@ -527,7 +570,7 @@ export class BidsHedTsvParser {
         continue
       }
       const rowColumnValue = rowCells.get(columnName)
-      if (rowColumnValue === 'n/a' || rowColumnValue === '') {
+      if (isMissingTsvValue(rowColumnValue)) {
         columnMap.set(columnName, '')
         continue
       }

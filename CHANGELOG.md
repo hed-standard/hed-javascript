@@ -139,6 +139,19 @@ testSpecs`.
   (`1` and `1.0` become `"1"`), and `null`, `undefined` or `NaN` becomes `""`,
   a blank name. So `1` beside `"1"` is a repeated name, a numeric name matches
   the sidecar key `"1"`, and a `null` name no longer throws a TypeError.
+- Cell values are no longer trimmed: they are used exactly as written
+  (specification 3.2.9.1), as `Map` and `{headers, rows}` input already were.
+  A value that begins or ends with a blank, tab, LF or CR in a column with
+  HED annotations is TABULAR_INVALID (`paddedTsvValue`, specification 3.2.10.2,
+  hed-tests `tabular-invalid-value-whitespace`), reported once per distinct
+  value at its first line, before the HED column and assembly, and the file is
+  not validated further; a value of only blanks and `n/a ` count, `''` and
+  `n/a` are missing values, and the HED column is not checked. A key under
+  `"HED"` in a categorical sidecar entry that begins or ends with one of those
+  characters is SIDECAR_INVALID (`paddedSidecarCategoricalKey`, hed-tests
+  `sidecar-invalid-value-key-whitespace`). Before, `go ` was trimmed to `go`
+  and annotated silently. A HED-column cell such as `n/a ` or a blanks-only cell
+  is still a missing value (`isMissingTsvValue`).
 - A partnered library loaded from its unmerged file now gives the same schema
   as its merged file:
   - its elements carry `inLibrary`, so redeclaring a tag of the standard partner
