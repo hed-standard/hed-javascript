@@ -192,6 +192,17 @@ describe('Padded and blank TSV column names and sidecar keys', () => {
     it('still skip blank lines before the header', () => {
       assert.deepEqual(parseTSVHeader('\n  \nonset\tHED\n1\tRed\n'), ['onset', 'HED'])
     })
+
+    it('keep a data line with a tab as a row, and skip an empty line or blanks without a tab', () => {
+      // As pandas reads it in hed-python (skip_blank_lines): ` \t` is a row; '' and '   ' are not.
+      assert.deepEqual(
+        [...parseTSV('trial\tHED\n \t\n\n   \ngo\tRed\n').entries()],
+        [
+          ['trial', [' ', 'go']],
+          ['HED', ['', 'Red']],
+        ],
+      )
+    })
   })
 
   describe('findHeaderProblems', () => {
@@ -412,6 +423,27 @@ describe('Padded values and categorical keys', () => {
         issues.map((issue) => issue.hedIssue.parameters.tsvLine),
         ['2', '4'],
       )
+    })
+
+    it('reports a padded value on a data line of blanks and tabs, as for Map input', () => {
+      const dictionary = { trial: { HED: { go: 'Experimental-trial' } } }
+      const textIssues = validate([' \t'], dictionary, 'trial\tHED')
+      assert.deepEqual(describeIssues(textIssues), [['TABULAR_INVALID', 'paddedTsvValue']])
+      assert.strictEqual(textIssues[0].hedIssue.parameters.tsvLine, '2')
+      const mapInput = new Map([
+        ['trial', [' ']],
+        ['HED', ['']],
+      ])
+      const mapIssues = new BidsTsvFile('events', { path: 'events.tsv' }, mapInput, dictionary).validate(hedSchemas)
+      assert.deepEqual(describeIssues(mapIssues), describeIssues(textIssues))
+    })
+
+    it('groups onsets that differ only by surrounding whitespace when checking duplicates across rows', () => {
+      const onsetHeader = 'onset\tduration\tHED'
+      const plain = validate(['19\t0\tRed', '19\t0\tRed'], {}, onsetHeader)
+      assert.isNotEmpty(plain, 'two rows with the same onset and the same tag report a duplicate')
+      const padded = validate(['19\t0\tRed', ' 19 \t0\tRed'], {}, onsetHeader)
+      assert.deepEqual(describeIssues(padded), describeIssues(plain))
     })
 
     it('passes clean values, missing values, a padded HED cell and an unannotated column', () => {

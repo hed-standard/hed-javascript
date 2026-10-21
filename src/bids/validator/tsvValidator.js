@@ -3,7 +3,7 @@
  */
 import { BidsHedIssue } from '../types/issues'
 import { isMissingTsvValue } from '../tsvParser'
-import { isPaddedName } from '../../utils/string'
+import { isPaddedName, stripNameWhitespace } from '../../utils/string'
 import { BidsTsvElement, BidsTsvRow } from '../types/tsv'
 import { BidsValidator } from './validator'
 import { parseHedString, parseStandaloneString } from '../../parser/parser'
@@ -345,6 +345,9 @@ export class BidsHedTsvValidator extends BidsValidator {
   /**
    * Get map of onsets to BidsTsvElements.
    *
+   * Cells are kept as written, so an onset is grouped by its text without surrounding whitespace: `19` and ` 19 ` are
+   * the same onset. The stored cells are not changed.
+   *
    * @param {BidsTsvElement[]} elements - The elements representing the tsv file.
    * @returns {Map} - Map of onset value to a list of elements with that onset.
    * @private
@@ -355,10 +358,11 @@ export class BidsHedTsvValidator extends BidsValidator {
       if (!element.hedString) {
         continue
       }
-      if (onsetMap.has(element.onset)) {
-        onsetMap.get(element.onset).push(element)
+      const onset = typeof element.onset === 'string' ? stripNameWhitespace(element.onset) : element.onset
+      if (onsetMap.has(onset)) {
+        onsetMap.get(onset).push(element)
       } else {
-        onsetMap.set(element.onset, [element])
+        onsetMap.set(onset, [element])
       }
     }
     return onsetMap

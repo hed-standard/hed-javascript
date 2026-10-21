@@ -9,27 +9,29 @@ import { isPaddedName, stripNameWhitespace } from '../utils/string'
 const stripBOM = (str) => str.replace(/^\uFEFF/, '')
 const normalizeEOL = (str) => str.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 const isContentfulRow = (row) => row && !/^\s*$/.test(row)
-// A line with a tab has at least two columns, so it is a header even when every name is blank or padded.
-const isHeaderRow = (row) => row.includes('\t') || isContentfulRow(row)
+// A line with a tab has at least two columns, so it is a row even when every cell is blank or padded. An empty line
+// or a line of blanks without a tab is skipped, as pandas reads it in hed-python (skip_blank_lines).
+const isTableRow = (row) => row.includes('\t') || isContentfulRow(row)
 
 /**
- * Split TSV contents into cells: the first header row, then one array per contentful row after it.
+ * Split TSV contents into cells: the first row, which is the header, then one array per row after it.
  *
  * The header cells are the column names and the other cells the values, all exactly as written (specification
- * 3.2.9.1 and 3.2.10): nothing is trimmed, as for Map and {headers, rows} input.
+ * 3.2.9.1 and 3.2.10): nothing is trimmed, as for Map and {headers, rows} input. Header and data rows are found by
+ * the same rule, so a data line such as ` \t` is a row and its padded value is checked.
  *
  * @param {string} contents The contents of a TSV file.
  * @returns {string[][]} The rows of the file.
  */
 const splitRows = (contents) => {
   const lines = stripBOM(normalizeEOL(contents)).split('\n')
-  const headerIndex = lines.findIndex(isHeaderRow)
+  const headerIndex = lines.findIndex(isTableRow)
   if (headerIndex < 0) {
     return []
   }
   const dataRows = lines
     .slice(headerIndex + 1)
-    .filter(isContentfulRow)
+    .filter(isTableRow)
     .map((str) => str.split('\t'))
   return [lines[headerIndex].split('\t'), ...dataRows]
 }
@@ -160,7 +162,7 @@ export function parseTSVHeader(contents) {
     lineBreak.lastIndex = start
     const match = lineBreak.exec(text)
     const line = text.slice(start, match ? match.index : text.length)
-    if (isHeaderRow(line)) {
+    if (isTableRow(line)) {
       return line.split('\t')
     }
     if (!match) {
