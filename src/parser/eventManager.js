@@ -1,8 +1,10 @@
-/** This module holds the classes for managing events in BIDS datasets.
+/**
+ * This module holds the classes for managing events in BIDS datasets.
  * @module parser/eventManager
  */
-import { generateIssue } from '../issues/issues'
-import { BidsHedIssue } from '../bids/types/issues.js'
+
+import { BidsHedIssue } from '../bids/types/issues'
+import { generateIssue, IssueError } from '../issues/issues'
 
 export class Event {
   /**
@@ -24,17 +26,33 @@ export class Event {
   type
 
   /**
-   * The parsed HED group representing the definition
+   * The parsed HED group representing the definition.
    * @type {ParsedHedGroup}
    */
   group
 
   /**
-   * The tsv element source of this event.
-   * @type {BidsTsvElement}
+   * The file this element belongs to (usually just the path).
+   * @type {object}
    */
-  element
+  file
 
+  /**
+   * The line number(s) (including the header) represented by this element.
+   * @type {string}
+   */
+  tsvLine
+
+  /**
+   * Constructor. Use {@link Event.createEvent} instead.
+   *
+   * @param {string} defName - The name of the definition.
+   * @param {string} eventType - The short name of the tag representing this event.
+   * @param {number} onset - The onset of the event.
+   * @param {ParsedHedGroup} group - The group representing this event.
+   * @param {BidsTsvElement} element - The element in which this group appears.
+   * @private
+   */
   constructor(defName, eventType, onset, group, element) {
     this.defName = defName
     this.type = eventType
@@ -46,9 +64,10 @@ export class Event {
 
   /**
    * Create an event from a ParsedHedGroup.
+   *
    * @param {ParsedHedGroup} group - A group to extract an event from a temporal group, if it is a group.
    * @param {BidsTsvElement} element - The element in which this group appears.
-   * @returns {Array} - Returns [Event, BidsHedIssue[]] representing the extracted event and issues.
+   * @returns {Array} A tuple [Event|null, BidsHedIssue[]] representing the extracted event and issues.
    */
   static createEvent(group, element) {
     if (group.requiresDefTag.length === 0 && !group.reservedTags.has('Delay')) {
@@ -74,9 +93,9 @@ export class Event {
     const eventType = group.requiresDefTag[0].schemaTag.name
     let defName = null
     if (group.defTags.length === 1) {
-      defName = group.defTags[0]._remainder.toLowerCase()
+      defName = group.defTags[0].remainder.toLowerCase()
     } else if (group.defExpandChildren.length === 1) {
-      defName = group.defExpandChildren[0].topTags[0]._remainder.toLowerCase()
+      defName = group.defExpandChildren[0].topTags[0].remainder.toLowerCase()
     } else {
       return [
         null,
@@ -93,11 +112,18 @@ export class Event {
     return [event, []]
   }
 
+  /**
+   * Extract the delay of a temporal group.
+   *
+   * @param {ParsedHedGroup} group - The group.
+   * @returns {number} The delay in seconds, or 0 if the group has no convertible Delay.
+   * @private
+   */
   static extractDelay(group) {
-    if (!group.reservedTags.has('Delay')) {
+    const tags = group.reservedTags.get('Delay')
+    if (tags === undefined) {
       return 0
     }
-    const tags = group.reservedTags.get('Delay')
     // The delay is converted to the default unit of its unit class (seconds). A delay that cannot be
     // converted is reported by the TSV validator before events are created; here it counts as 0.
     return tags[0].valueAsDefaultUnit() ?? 0
@@ -106,12 +132,12 @@ export class Event {
 
 export class EventManager {
   static TOLERANCE = 1e-7
-  constructor() {}
 
   /**
    * Create a list of temporal events from BIDS elements.
+   *
    * @param {BidsTsvElement[]} elements - The elements representing the contents of a tsv file.
-   * @returns {Array} - Returns [Event[], BidsHedIssue[]], the parsed event and any issues.
+   * @returns {Array} A tuple [Event[], BidsHedIssue[]] with the parsed event and any issues.
    */
   parseEvents(elements) {
     const eventList = []
@@ -123,7 +149,7 @@ export class EventManager {
       for (const group of element.parsedHedString.tagGroups) {
         const [event, eventIssues] = Event.createEvent(group, element)
         if (eventIssues.length > 0) {
-          return [null, eventIssues]
+          return [[], eventIssues]
         }
         if (event) {
           eventList.push(event)
@@ -134,6 +160,12 @@ export class EventManager {
     return [eventList, []]
   }
 
+  /**
+   * Validate a list of temporal events.
+   *
+   * @param {Event[]} eventList - The events, sorted by onset.
+   * @returns {BidsHedIssue[]} Any issues found.
+   */
   validate(eventList) {
     const currentMap = new Map()
     for (const event of eventList) {
@@ -158,8 +190,19 @@ export class EventManager {
     return []
   }
 
+  /**
+   * Resolve an event against the current event for its definition.
+   *
+   * @param {Map<string, Event>} currentMap - The current event for each definition.
+   * @param {Event} event - The new event.
+   * @returns {BidsHedIssue[]} Any issues found.
+   * @private
+   */
   _resolveConflicts(currentMap, event) {
     const currentEvent = currentMap.get(event.defName)
+    if (currentEvent === undefined) {
+      IssueError.generateAndThrowInternalError('currentMap is resolving a conflict with an undefined event')
+    }
     // Make sure that these events are not at the same time
     if (Math.abs(currentEvent.onset - event.onset) < EventManager.TOLERANCE) {
       return [

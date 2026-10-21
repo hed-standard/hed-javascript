@@ -76,13 +76,13 @@ export class BidsDataset {
    * Constructor for a BIDS dataset.
    *
    * @param {BidsFileAccessor} accessor An instance of BidsFileAccessor (or its subclasses).
-   * @throws {Error} If accessor is not an instance of BidsFileAccessor.
+   * @throws {IssueError} If accessor is not an instance of BidsFileAccessor.
    * @private
    * @see BidsDataset.create
    */
   constructor(accessor) {
     if (!(accessor instanceof BidsFileAccessor)) {
-      throw new Error('BidsDataset constructor requires an instance of BidsFileAccessor.\n')
+      IssueError.generateAndThrowInternalError('BidsDataset constructor requires an instance of BidsFileAccessor')
     }
     this.fileAccessor = accessor
     this.datasetRootDirectory = accessor.datasetRootDirectory // Set from fileAccessor
@@ -110,21 +110,10 @@ export class BidsDataset {
       dataset = new BidsDataset(accessor)
       const schemaIssues = await dataset.setHedSchemas()
       issues.push(...schemaIssues)
-      if (dataset.hedSchemas === null) {
-        return [null, issues]
-      }
       const sidecarIssues = await dataset.setSidecars()
       issues.push(...sidecarIssues)
     } catch (error) {
-      if (error instanceof IssueError) {
-        issues.push(error.issue)
-      } else {
-        issues.push({
-          code: 'INTERNAL_ERROR',
-          message: `An unexpected error occurred while creating the BidsDataset: ${error.message}`,
-          location: typeof rootOrFiles === 'string' ? rootOrFiles : 'Uploaded files',
-        })
-      }
+      issues.push(...BidsHedIssue.fromHedIssues(error, null))
     }
     if (issues.length > 0) {
       dataset = null
@@ -147,7 +136,7 @@ export class BidsDataset {
     try {
       const descriptionContentString = await this.fileAccessor.getFileContent('dataset_description.json')
       if (descriptionContentString === null || typeof descriptionContentString === 'undefined') {
-        throw new IssueError(generateIssue('missingSchemaSpecification', { file: 'dataset_description.json' }))
+        IssueError.generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
       }
       description = {
         jsonData: JSON.parse(descriptionContentString),
@@ -156,23 +145,19 @@ export class BidsDataset {
       if (e instanceof IssueError) {
         throw e
       }
-      throw new IssueError(generateIssue('missingSchemaSpecification', { file: 'dataset_description.json' }))
+      IssueError.generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
     }
 
     try {
       this.hedSchemas = await this.fileAccessor.schemaBuilder(description)
       if (this.hedSchemas === null) {
-        throw new IssueError(
-          generateIssue('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null }),
-        )
+        IssueError.generateAndThrow('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null })
       }
     } catch (e) {
       if (e instanceof IssueError) {
         throw e
       }
-      throw new IssueError(
-        generateIssue('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null }),
-      )
+      IssueError.generateAndThrow('invalidSchemaSpecification', { spec: description.jsonData?.HEDVersion || null })
     }
     return []
   }

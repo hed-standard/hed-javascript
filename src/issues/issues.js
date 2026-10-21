@@ -1,26 +1,26 @@
-/** This module holds the issue classes.
+/**
+ * This module holds the issue classes.
  * @module issues/issues
  */
-import mapValues from 'lodash/mapValues'
 
 import issueData from './data'
+import { isNumberPair } from '../utils/types'
 
 export class IssueError extends Error {
   /**
    * The associated HED issue.
-   * @type {import('./issues.js').Issue}
+   * @type {Issue}
    */
   issue
 
   /**
    * Constructor.
    *
-   * @param {Issue} issue The associated HED issue.
-   * @param {...*} params Extra parameters (to be forwarded to the {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error | Error} constructor).
+   * @param {Issue} issue - The associated HED issue.
    */
-  constructor(issue, ...params) {
+  constructor(issue) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
-    super(issue.message, ...params)
+    super(issue.message)
 
     // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
@@ -36,8 +36,8 @@ export class IssueError extends Error {
   /**
    * Generate a new {@link Issue} object and immediately throw it as an {@link IssueError}.
    *
-   * @param {string} internalCode The internal error code.
-   * @param {Object<string, (string|number[])>?} parameters The error string parameters.
+   * @param {string} internalCode - The internal error code.
+   * @param {Object<string, *>} parameters - The error string parameters.
    * @throws {IssueError} Corresponding to the generated {@link Issue}.
    */
   static generateAndThrow(internalCode, parameters = {}) {
@@ -47,11 +47,36 @@ export class IssueError extends Error {
   /**
    * Generate a new {@link Issue} object for an internal error and immediately throw it as an {@link IssueError}.
    *
-   * @param {string} message A message describing the internal error.
+   * @param {string} message - A message describing the internal error. The message should not end with any punctuation.
    * @throws {IssueError} Corresponding to the generated internal error {@link Issue}.
    */
   static generateAndThrowInternalError(message = 'Unknown internal error') {
     IssueError.generateAndThrow('internalError', { message: message })
+  }
+
+  /**
+   * Generate and re-throw an error according to `generateFn`.
+   *
+   * This method will pass `error` to `generateFn`, unless it is not an {@link Error} object (in which case,
+   * it will generate an internal error via {@link IssueError.generateAndThrowInternalError}). generateFn` is
+   * expected to return an internal issue code and parameter object, which will be passed to
+   * {@link IssueError.generateAndThrow}. Failure to provide an internal issue code will also result in an internal error.
+   *
+   * @param {*} error - This is expected to be an object of {@link Error} or a subclass.
+   * @param {function(Error): Array} generateFn - A function which is passed the screened error object and returns an internal error code and parameter object.
+   * @param {string} illegalErrorTypeMessage - A message to be used for an illegal error type.
+   * @throws {IssueError} The generated issue.
+   */
+  static generateAndRethrow(error, generateFn, illegalErrorTypeMessage = 'Unknown internal error') {
+    if (error instanceof Error) {
+      const [internalCode, parameters] = generateFn(error)
+      if (!internalCode) {
+        IssueError.generateAndThrowInternalError('Failed to provide valid internal code to re-throw static method')
+      }
+      IssueError.generateAndThrow(internalCode, parameters)
+    } else {
+      IssueError.generateAndThrowInternalError(illegalErrorTypeMessage)
+    }
   }
 }
 
@@ -85,31 +110,30 @@ export class Issue {
   level
 
   /**
-   * The detailed error message.
-   * @type {string}
+   * The bounds of this issue.
+   * @type {number[]|undefined}
    */
-  message
+  _bounds
 
   /**
-   * The parameters to the error message template. Object with string and map parameters.
-   * @type {Object}
+   * The parameters to the error message template.
+   * @type {Object<string, string>}
    */
-  parameters
+  _parameters
 
   /**
    * Constructor.
    *
-   * @param {string} internalCode The internal error code.
-   * @param {string} hedCode The HED 3 error code.
-   * @param {string} level The issue level (error or warning).
-   * @param {Object} parameters The error string parameters.
+   * @param {string} internalCode - The internal error code.
+   * @param {string} hedCode - The HED 3 error code.
+   * @param {string} level - The issue level (error or warning).
+   * @param {Object<string, *>} parameters - The error string parameters.
    */
   constructor(internalCode, hedCode, level, parameters) {
     this.internalCode = internalCode
     this.hedCode = hedCode
     this.level = level
     this.parameters = parameters
-    this.generateMessage()
   }
 
   /**
@@ -122,24 +146,110 @@ export class Issue {
   }
 
   /**
-   * (Re-)generate the issue message.
+   * Generate the detailed error message.
+   *
+   * @returns {string} This issue's message.
    */
-  generateMessage() {
-    this._stringifyParameters()
+  get message() {
     const baseMessage = this._parseMessageTemplate()
     const specialParameterMessages = this._parseSpecialParameters()
     const hedSpecLink = this._generateHedSpecificationLink()
 
-    this.message = `${this.level.toUpperCase()}: [${this.hedCode}] ${baseMessage} ${specialParameterMessages} (${hedSpecLink}.)`
+    return `${this.level.toUpperCase()}: [${this.hedCode}] ${baseMessage} ${specialParameterMessages} (${hedSpecLink}.)`
   }
 
   /**
-   * Convert all parameters except the substring bounds (an integer array) to their string forms.
+   * Get the issue parameters.
+   *
+   * @returns {Object<string, string>} The issue parameters.
+   */
+  get parameters() {
+    return this._parameters
+  }
+
+  /**
+   * Get the issue's bounds.
+   *
+   * @returns {number[]|undefined} The issue bounds within the parent string.
+   */
+  get bounds() {
+    return this._bounds
+  }
+
+  /**
+   * Validate and set the issue's bounds.
+   *
+   * @param {*} value - The issue bounds within the parent string.
    * @private
    */
-  _stringifyParameters() {
-    this.parameters = mapValues(this.parameters, (value, key) => (key === 'bounds' ? value : String(value)))
+  set bounds(value) {
+    if (this._bounds) {
+      return
+    }
+    if (isNumberPair(value)) {
+      this._bounds = value
+    } else {
+      IssueError.generateAndThrowInternalError('Bounds must be a numeric pair')
+    }
   }
+
+  /**
+   * Set new parameters by converting all parameters except the substring bounds (an integer array) to their string forms.
+   *
+   * @param {Object<string, *>} parameters - The new issue parameters.
+   */
+  set parameters(parameters) {
+    this._parameters = {}
+    this.addParameters(parameters ?? {})
+  }
+
+  /**
+   * Determine whether this issue has a given parameter.
+   *
+   * @param {string} name - The parameter name to check.
+   * @returns {boolean} Whether this issue already has a parameter by that name.
+   */
+  hasParameter(name) {
+    if (name === 'bounds') {
+      return this._bounds !== undefined
+    }
+    return Object.hasOwn(this._parameters, name)
+  }
+
+  /**
+   * Add a new parameter value.
+   *
+   * @param {string} name - The parameter name.
+   * @param {*} value - The new parameter value.
+   */
+  addParameter(name, value) {
+    if (this.hasParameter(name)) {
+      return
+    }
+    if (name === 'bounds') {
+      this.bounds = value
+      return
+    }
+    this._parameters[name] = String(value)
+  }
+
+  /**
+   * Add multiple parameters for this Issue.
+   *
+   * @param {Object<string, *>} parameters - The new values of the parameters.
+   */
+  addParameters(parameters) {
+    for (const [key, value] of Object.entries(parameters)) {
+      this.addParameter(key, value)
+    }
+  }
+
+  /**
+   * (Re-)generate the issue message.
+   *
+   * @deprecated The message is a getter computed from the current parameters, so there is nothing to regenerate.
+   */
+  generateMessage() {}
 
   /**
    * Find and parse the appropriate message template.
@@ -148,8 +258,8 @@ export class Issue {
    * @private
    */
   _parseMessageTemplate() {
-    const bounds = this.parameters.bounds ?? []
     const issueCodeData = issueData[this.internalCode]
+    const bounds = this._bounds ?? []
     if (issueCodeData === undefined) {
       const messageTemplate = issueData.genericError.message
       const tempParameters = {
@@ -159,7 +269,7 @@ export class Issue {
       return messageTemplate(tempParameters)
     }
     const messageTemplate = issueCodeData.message
-    return messageTemplate(...bounds, this.parameters)
+    return messageTemplate(this.parameters, ...bounds)
   }
 
   /**
@@ -193,11 +303,11 @@ export class Issue {
 /**
  * Generate a new issue object.
  *
- * @param {string} internalCode The internal error code.
- * @param {Object} parameters The error string parameters.
+ * @param {string} internalCode - The internal error code.
+ * @param {Object<string, *>} parameters - The error string parameters.
  * @returns {Issue} An object representing the issue.
  */
-export const generateIssue = function (internalCode, parameters = {}) {
+export function generateIssue(internalCode, parameters = {}) {
   const issueCodeData = issueData[internalCode] ?? issueData.genericError
   const { hedCode, level } = issueCodeData
   if (issueCodeData === issueData.genericError) {
@@ -212,41 +322,22 @@ export const generateIssue = function (internalCode, parameters = {}) {
 /**
  * Update the parameters of a list of issues.
  *
- * @param {IssueError[] | Issue[]} issues The list of issues (different types can be intermixed).
- * @param {Object<string, string>} parameters The parameters to add.
+ * @param {Array<Issue|IssueError>} issues - The list of issues (different types can be intermixed).
+ * @param {Object<string, *>} parameters - The parameters to add.
  */
-export const updateIssueParameters = function (issues, parameters) {
+export function addIssueParameters(issues, parameters) {
   for (const thisIssue of issues) {
     if (thisIssue instanceof IssueError) {
-      _updateIssueParameters(thisIssue.issue, parameters)
+      thisIssue.issue.addParameters(parameters)
     } else if (thisIssue instanceof Issue) {
-      _updateIssueParameters(thisIssue, parameters)
+      thisIssue.addParameters(parameters)
     }
   }
 }
 
 /**
- * Update the parameters for an Issue.
+ * Update the parameters of a list of issues.
  *
- * Note: the issue is modified in place.
- *
- * @param {Issue} issue The issue to be updated.
- * @param {Object<string, string>} parameters The parameters to add.
+ * @deprecated Use {@link addIssueParameters}.
  */
-const _updateIssueParameters = function (issue, parameters) {
-  if (!issue.parameters) {
-    issue.parameters = {}
-  }
-
-  let changed = false
-  for (const [key, value] of Object.entries(parameters)) {
-    if (!Object.hasOwn(issue.parameters, key)) {
-      issue.parameters[key] = value
-      changed = true
-    }
-  }
-
-  if (changed) {
-    issue.generateMessage()
-  }
-}
+export const updateIssueParameters = addIssueParameters

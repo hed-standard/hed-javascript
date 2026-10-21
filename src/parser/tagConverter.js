@@ -1,9 +1,11 @@
-/** This module holds the classes for converting a tag specification into a schema-based tag object.
+/**
+ * This module holds the classes for converting a tag specification into a schema-based tag object.
  * @module parser/tagConverter
  */
+
+import { ReservedChecker } from './reservedChecker'
 import { IssueError } from '../issues/issues'
 import { getTagSlashIndices } from '../utils/hedStrings'
-import { ReservedChecker } from './reservedChecker'
 
 /**
  * @typedef {import('../schema/entries.js').SchemaTag} SchemaTag
@@ -18,18 +20,21 @@ export default class TagConverter {
   /**
    * A parsed tag token.
    * @type {TagSpec}
+   * @private
    */
   tagSpec
 
   /**
    * The tag string to convert.
    * @type {string}
+   * @private
    */
   tagString
 
   /**
    * The tag string split by slashes.
    * @type {string[]}
+   * @private
    */
   tagLevels
 
@@ -42,48 +47,59 @@ export default class TagConverter {
   /**
    * A HED schema collection.
    * @type {Schemas}
+   * @private
    */
   hedSchemas
 
   /**
    * The entry manager for the tags in the active schema.
-   * @type {SchemaEntryManager<SchemaTag>}
+   * @type {SchemaEntryManager<SchemaTag>|undefined}
+   * @private
    */
   tagMapping
 
   /**
    * The converted tag in the schema.
    * @type {SchemaTag}
+   * @private
    */
   schemaTag
 
   /**
    * The remainder (e.g. value, extension) of the tag string.
    * @type {string}
+   * @private
    */
   remainder
 
   /**
+   * The special tag checker.
+   * @type {ReservedChecker}
+   * @private
+   */
+  special
+
+  /**
    * Constructor.
    *
-   * @param {TagSpec} tagSpec The tag specification to convert.
-   * @param {Schemas} hedSchemas The HED schema collection.
+   * @param {TagSpec} tagSpec - The tag specification to convert.
+   * @param {Schemas} hedSchemas - The HED schema collection.
    */
   constructor(tagSpec, hedSchemas) {
     this.hedSchemas = hedSchemas
-    this.tagMapping = hedSchemas.getSchema(tagSpec.library).entries.tags
+    this.tagMapping = hedSchemas.getSchema(tagSpec.library)?.entries.tags
     this.tagSpec = tagSpec
     this.tagString = tagSpec.tag
     this.tagLevels = this.tagString.split('/')
     this.tagSlashes = getTagSlashIndices(this.tagString)
-    this.remainder = undefined
+    this.remainder = ''
     this.special = ReservedChecker.getInstance()
   }
 
   /**
    * Retrieve the {@link SchemaTag} object for a tag specification.
    *
-   * @returns {[SchemaTag, string]} The schema's corresponding tag object and the remainder of the tag string.
+   * @returns {Array} A tuple [SchemaTag, string] of the schema's corresponding tag object and the remainder of the tag string.
    * @throws {IssueError} If tag conversion fails.
    */
   convert() {
@@ -105,6 +121,15 @@ export default class TagConverter {
     return [this.schemaTag, this.remainder]
   }
 
+  /**
+   * Validate the schema tag at a level of the tag string against its parent.
+   *
+   * @param {SchemaTag|undefined} parentTag - The schema tag of the previous level.
+   * @param {number} tagLevelIndex - The index of the level.
+   * @returns {SchemaTag|undefined} The schema tag of this level, or undefined if it is an extension.
+   * @throws {IssueError} If the level is not a valid child or extension.
+   * @private
+   */
   _validateChildTag(parentTag, tagLevelIndex) {
     const childTag = this._getSchemaTag(tagLevelIndex)
     if (childTag === undefined) {
@@ -141,6 +166,13 @@ export default class TagConverter {
     return childTag
   }
 
+  /**
+   * Check the levels of an extension.
+   *
+   * @param {number} tagLevelIndex - The index of the first extension level.
+   * @throws {IssueError} If a level is a schema tag or not in the name class.
+   * @private
+   */
   _checkExtensions(tagLevelIndex) {
     // A non-tag has been detected --- from here on must be non-tags.
     this._checkNameClass(tagLevelIndex) // This is an extension
@@ -158,13 +190,28 @@ export default class TagConverter {
     }
   }
 
+  /**
+   * Get the schema tag for a level of the tag string.
+   *
+   * @param {number} tagLevelIndex - The index of the level.
+   * @returns {SchemaTag|undefined} The schema tag, if any.
+   * @private
+   */
   _getSchemaTag(tagLevelIndex) {
     const tagLevel = this.tagLevels[tagLevelIndex].toLowerCase()
-    return this.tagMapping.getEntry(tagLevel)
+    return this.tagMapping?.getEntry(tagLevel)
   }
 
+  /**
+   * Set the converted schema tag and the remainder, if not already set.
+   *
+   * @param {SchemaTag|undefined} schemaTag - The schema tag.
+   * @param {number} remainderStartLevelIndex - The index of the first level of the remainder.
+   * @throws {IssueError} If the tag requires a child or a value and has none.
+   * @private
+   */
   _setSchemaTag(schemaTag, remainderStartLevelIndex) {
-    if (this.schemaTag !== undefined) {
+    if (this.schemaTag !== undefined || schemaTag === undefined) {
       return
     }
     this.schemaTag = schemaTag
@@ -181,10 +228,17 @@ export default class TagConverter {
     }
   }
 
+  /**
+   * Check that a level of the tag string is in the name class.
+   *
+   * @param {number} index - The index of the level.
+   * @throws {IssueError} If the level is not in the name class.
+   * @private
+   */
   _checkNameClass(index) {
     // Check whether the tagLevel is a valid name class
-    const valueClasses = this.hedSchemas.getSchema(this.tagSpec.library).entries.valueClasses
-    if (!valueClasses._definitions.get('nameClass').validateValue(this.tagLevels[index])) {
+    const valueClasses = this.hedSchemas.getSchema(this.tagSpec.library)?.entries.valueClasses
+    if (!valueClasses?.definitions?.get('nameClass')?.validateValue(this.tagLevels[index])) {
       IssueError.generateAndThrow('invalidExtension', {
         tag: this.tagLevels[index],
         parentTag: this.tagLevels.slice(0, index).join('/'),

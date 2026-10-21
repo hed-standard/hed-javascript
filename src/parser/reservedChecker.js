@@ -6,9 +6,9 @@
  *
  * @module parser/reservedChecker
  */
+import { getTagListString } from './parseUtils'
 import reservedTags from '../data/json/reservedTags.json'
 import { generateIssue, IssueError } from '../issues/issues'
-import { getTagListString } from './parseUtils'
 
 /**
  * The issues for a content error of a reserved-tag group, keyed by the governing row's ERROR_CODE (specification
@@ -46,41 +46,92 @@ export class ReservedChecker {
   /**
    * Singleton instance of ReservedChecker.
    * @type {ReservedChecker}
-   * @private
    */
-  static _instance = undefined
+  static #instance
+
+  /**
+   * The rows of the reserved-tag file, keyed by tag name.
+   * @type {Map<string, Object>}
+   */
   static reservedMap = new Map(Object.entries(reservedTags.tags))
+
+  /**
+   * The value forms of the tags whose value has two parts, keyed by tag name.
+   * @type {Map<string, Object>}
+   */
   static valueForms = new Map(Object.entries(reservedTags.valueForms))
 
+  /**
+   * @type {Set<string>}
+   */
+  reservedNames
+
+  /**
+   * @type {Set<string>}
+   */
+  requireValueTags
+
+  /**
+   * @type {Set<string>}
+   */
+  noExtensionTags
+
+  /**
+   * @type {Set<string>}
+   */
+  requiresDefTags
+
+  /**
+   * @type {Set<string>}
+   */
+  timelineTags
+
+  /**
+   * @type {Set<string>}
+   */
+  twoPartValueTags
+
+  /**
+   * Constructor. Use {@link ReservedChecker.getInstance} instead.
+   *
+   * @private
+   */
   constructor() {
-    if (ReservedChecker._instance) {
+    if (ReservedChecker.#instance) {
       IssueError.generateAndThrowInternalError('Use ReservedChecker.getInstance() to get an instance of this class.')
     }
 
-    this._initializeReservedTags()
-  }
-
-  // Static method to control access to the singleton instance
-  static getInstance() {
-    if (!ReservedChecker._instance) {
-      ReservedChecker._instance = new ReservedChecker()
-    }
-    return ReservedChecker._instance
-  }
-
-  _initializeReservedTags() {
     this.reservedNames = new Set(ReservedChecker.reservedMap.keys())
-    this.requireValueTags = ReservedChecker._getReservedTagsByProperty('requireValue')
-    this.noExtensionTags = ReservedChecker._getReservedTagsByProperty('noExtension')
-    this.requiresDefTags = ReservedChecker._getReservedTagsByProperty('requiresDef')
-    this.timelineTags = ReservedChecker._getReservedTagsByProperty('requiresTimeline')
+    this.requireValueTags = this._getReservedTagsByProperty('requireValue')
+    this.noExtensionTags = this._getReservedTagsByProperty('noExtension')
+    this.requiresDefTags = this._getReservedTagsByProperty('requiresDef')
+    this.timelineTags = this._getReservedTagsByProperty('requiresTimeline')
     this.twoPartValueTags = new Set(ReservedChecker.valueForms.keys())
   }
 
-  static _getReservedTagsByProperty(property) {
+  /**
+   * Get the names of the reserved tags with a given property.
+   *
+   * @param {string} property - The property to check.
+   * @returns {Set<string>} The names of the reserved tags whose row has the property set to true.
+   * @private
+   */
+  _getReservedTagsByProperty(property) {
     return new Set(
       [...ReservedChecker.reservedMap.values()].filter((value) => value[property] === true).map((value) => value.name),
     )
+  }
+
+  /**
+   * Static method to control access to the singleton instance.
+   *
+   * @returns {ReservedChecker} The singleton instance of this class.
+   */
+  static getInstance() {
+    if (!ReservedChecker.#instance) {
+      ReservedChecker.#instance = new ReservedChecker()
+    }
+    return ReservedChecker.#instance
   }
 
   /**
@@ -88,7 +139,7 @@ export class ReservedChecker {
    *
    * @param {ParsedHedString} hedString - The HED string to be checked.
    * @param {boolean} fullValidation - If true, perform full validation; otherwise, perform a quick check.
-   * @returns {Issue[]} - An array of issues if violations are found otherwise, an empty array.
+   * @returns {Issue[]} An array of issues if violations are found otherwise, an empty array.
    */
   checkHedString(hedString, fullValidation) {
     const checks = [
@@ -115,10 +166,10 @@ export class ReservedChecker {
     const uniqueTags = hedString.tags.filter((tag) => tag.hasAttribute('unique'))
     const uniqueNames = new Set()
     for (const tag of uniqueTags) {
-      if (uniqueNames.has(tag.schemaTag._name)) {
+      if (uniqueNames.has(tag.schemaTag.name)) {
         return [generateIssue('multipleUniqueTags', { tag: tag.originalTag, string: hedString.hedString })]
       }
-      uniqueNames.add(tag.schemaTag._name)
+      uniqueNames.add(tag.schemaTag.name)
     }
     return []
   }
@@ -132,7 +183,7 @@ export class ReservedChecker {
    */
   checkTagGroupLevels(hedString, fullValidation) {
     const issues = []
-    const topGroupTags = hedString.topLevelGroupTags.flat()
+    const topGroupTags = hedString.topLevelGroupTags
 
     // Check for top-level violations because tag is deep
     hedString.tags.forEach((tag) => {

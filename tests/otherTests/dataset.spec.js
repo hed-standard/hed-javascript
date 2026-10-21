@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import { toMatchIssue } from '../testHelpers/toMatchIssue'
 import { BidsDataset } from '../../src/bids/types/dataset'
 import { BidsDirectoryAccessor, BidsFileAccessor } from '../../src/bids/datasetParser'
+import { BidsHedIssue } from '../../src/bids/types/issues'
 import { Schemas } from '../../src/schema/containers'
 
 expect.extend({
@@ -37,8 +38,26 @@ describe('BidsDataset', () => {
       fs.mkdirSync(emptyDir, { recursive: true })
       const [, issues] = await BidsDataset.create(emptyDir, BidsDirectoryAccessor)
       expect(issues.length).toBe(1)
-      expect(issues[0].internalCode).toBe('missingSchemaSpecification')
-      expect(issues[0].hedCode).toBe('SCHEMA_LOAD_FAILED')
+      expect(issues[0]).toBeInstanceOf(BidsHedIssue)
+      expect(issues[0].hedIssue.internalCode).toBe('missingSchemaSpecification')
+      expect(issues[0].subCode).toBe('SCHEMA_LOAD_FAILED')
+      expect(issues[0].severity).toBe('error')
+    })
+
+    it('should report an unexpected error as a BidsHedIssue with a severity', async () => {
+      class ThrowingAccessor {
+        static async create() {
+          throw new Error('accessor failure')
+        }
+      }
+      const [dataset, issues] = await BidsDataset.create('/some/dataset', ThrowingAccessor)
+      expect(dataset).toBeNull()
+      expect(issues.length).toBe(1)
+      expect(issues[0]).toBeInstanceOf(BidsHedIssue)
+      expect(issues[0].severity).toBe('error')
+      expect(issues[0].code).toBe('HED_ERROR')
+      expect(issues[0].hedIssue.internalCode).toBe('internalError')
+      expect(issues[0].issueMessage).toContain('accessor failure')
     })
   })
 

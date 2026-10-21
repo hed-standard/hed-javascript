@@ -120,6 +120,9 @@ async function testBids(schemas: Schemas) {
     bidsHedIssue.line,
     bidsHedIssue.location,
   )
+  const bidsHedIssueMessage: string = bidsHedIssue.toString()
+  BidsHedIssue.addIssueParameters([bidsHedIssue], { tsvLine: 2 })
+  console.log(bidsHedIssueMessage)
 
   // BidsFileAccessor
   const fileAccessor = await BidsFileAccessor.create(fakePath)
@@ -147,6 +150,10 @@ function testIssues() {
   console.log(issue.internalCode, issue.hedCode, issue.level, issue.message, issue.parameters)
   issue.generateMessage()
   console.log(issue.toString())
+  issue.addParameters({ tsvLine: 2 })
+  issue.addParameter('sidecarKey', 'event_code')
+  const hasLine: boolean = issue.hasParameter('tsvLine')
+  console.log(hasLine, issue.bounds)
 
   // IssueError
   try {
@@ -158,6 +165,13 @@ function testIssues() {
   }
   try {
     IssueError.generateAndThrowInternalError('internal error message')
+  } catch (e: unknown) {
+    if (e instanceof IssueError) {
+      console.log((e as IssueError).issue)
+    }
+  }
+  try {
+    IssueError.generateAndRethrow(new Error('cause'), (error) => ['internalError', { message: error.message }])
   } catch (e: unknown) {
     if (e instanceof IssueError) {
       console.log((e as IssueError).issue)
@@ -195,7 +209,7 @@ function testParser(
 
   // ParsedHedTag
   const tagSpec: TagSpec = { tag: 'tag', library: 'lib', start: 0, end: 3 }
-  const parsedHedTag = new ParsedHedTag(tagSpec, schemas, fakeHedString)
+  const parsedHedTag = new ParsedHedTag(tagSpec, schemas)
   const schema: Schema = parsedHedTag.schema
   const schemaTag: SchemaTag = parsedHedTag.schemaTag
   console.log(
@@ -212,6 +226,13 @@ function testParser(
   parsedHedTag.equivalent(parsedTag)
   const valueInDefaultUnits: number | null = parsedHedTag.valueAsDefaultUnit()
   console.log(valueInDefaultUnits)
+  const tagValue: string = parsedHedTag.value
+  const tagSplitValue: string | null = parsedHedTag.splitValue
+  const tagRemainder: string = parsedHedTag.remainder
+  const tagTakesValue: boolean = parsedHedTag.takesValue
+  const tagHasUnitClass: boolean = parsedHedTag.hasUnitClass
+  const tagUnitClasses: SchemaUnitClass[] = parsedHedTag.unitClasses
+  console.log(tagValue, tagSplitValue, tagRemainder, tagTakesValue, tagHasUnitClass, tagUnitClasses)
 
   // ParsedHedGroup
   const parsedHedGroup = new ParsedHedGroup([parsedTag, parsedGroup], fakeHedString, [0, 1])
