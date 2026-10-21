@@ -160,6 +160,16 @@ describe('Padded and blank TSV column names and sidecar keys', () => {
         ],
       )
     })
+
+    it('keep a header of tabs only as blank names, not skip it', () => {
+      const contents = '\n\t\n1\tgo\n'
+      assert.deepEqual(parseTSVHeader(contents), ['', ''])
+      assert.deepEqual([...parseTSV(contents).entries()], [['', ['1']]])
+    })
+
+    it('still skip blank lines before the header', () => {
+      assert.deepEqual(parseTSVHeader('\n  \nonset\tHED\n1\tRed\n'), ['onset', 'HED'])
+    })
   })
 
   describe('findHeaderProblems', () => {
@@ -217,6 +227,18 @@ describe('Padded and blank TSV column names and sidecar keys', () => {
       assert.deepEqual(describeIssues(validate('onset\tHED \n1.0\tRed\n', {})), [
         ['TABULAR_INVALID', 'paddedTsvColumn'],
       ])
+    })
+
+    it('reports every name of a header of tabs only as blank', () => {
+      const issues = validate('\t\n1\tgo\n')
+      assert.deepEqual(describeIssues(issues), [
+        ['TABULAR_INVALID', 'blankTsvColumn'],
+        ['TABULAR_INVALID', 'blankTsvColumn'],
+      ])
+      assert.deepEqual(
+        issues.map((issue) => issue.hedIssue.parameters.position),
+        ['1', '2'],
+      )
     })
 
     it('does not check a file with no HED column and no HED sidecar', () => {

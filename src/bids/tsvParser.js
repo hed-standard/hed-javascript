@@ -9,9 +9,11 @@ import { isPaddedName } from '../utils/string'
 const stripBOM = (str) => str.replace(/^\uFEFF/, '')
 const normalizeEOL = (str) => str.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 const isContentfulRow = (row) => row && !/^\s*$/.test(row)
+// A line with a tab has at least two columns, so it is a header even when every name is blank or padded.
+const isHeaderRow = (row) => row.includes('\t') || isContentfulRow(row)
 
 /**
- * Split TSV contents into cells, one array per contentful row; the first row is the header.
+ * Split TSV contents into cells: the first header row, then one array per contentful row after it.
  *
  * The header cells are the column names exactly as written (specification 3.2.10); the cells of the other rows
  * are trimmed.
@@ -19,14 +21,18 @@ const isContentfulRow = (row) => row && !/^\s*$/.test(row)
  * @param {string} contents The contents of a TSV file.
  * @returns {string[][]} The rows of the file.
  */
-const splitRows = (contents) =>
-  stripBOM(normalizeEOL(contents))
-    .split('\n')
+const splitRows = (contents) => {
+  const lines = stripBOM(normalizeEOL(contents)).split('\n')
+  const headerIndex = lines.findIndex(isHeaderRow)
+  if (headerIndex < 0) {
+    return []
+  }
+  const dataRows = lines
+    .slice(headerIndex + 1)
     .filter(isContentfulRow)
-    .map((str, index) => {
-      const cells = str.split('\t')
-      return index === 0 ? cells : cells.map((cell) => cell.trim())
-    })
+    .map((str) => str.split('\t').map((cell) => cell.trim()))
+  return [lines[headerIndex].split('\t'), ...dataRows]
+}
 
 /**
  * Build the column map of a table, keeping only the first column of a repeated header name.
@@ -120,13 +126,13 @@ export function findDuplicateHeaders(contents) {
 }
 
 /**
- * Return the cells of the first contentful line of TSV contents, without splitting the other lines.
+ * Return the cells of the first header line of TSV contents (see {@link splitRows}), without splitting the other lines.
  *
  * Line breaks are \r\n, \r or \n, as in {@link splitRows}, so the result equals the header row that
  * {@link parseTSV} uses. The cells are not trimmed.
  *
  * @param {string} contents The contents of a TSV file.
- * @returns {string[]} The header cells; empty when the contents have no contentful line.
+ * @returns {string[]} The header cells; empty when the contents have no header line.
  */
 export function parseTSVHeader(contents) {
   const text = stripBOM(contents)
@@ -136,7 +142,7 @@ export function parseTSVHeader(contents) {
     lineBreak.lastIndex = start
     const match = lineBreak.exec(text)
     const line = text.slice(start, match ? match.index : text.length)
-    if (isContentfulRow(line)) {
+    if (isHeaderRow(line)) {
       return line.split('\t')
     }
     if (!match) {
