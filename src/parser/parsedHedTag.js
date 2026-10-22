@@ -343,19 +343,23 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   /**
    * The part of a two-part value after the name (the "#" or value of Definition, Def and Def-expand), or null.
    *
+   * A tag without a value never sets the backing field, so this returns null for it, as declared.
+   *
    * @returns {string|null}
    */
   get splitValue() {
-    return this._splitValue
+    return this._splitValue ?? null
   }
 
   /**
-   * The value of the tag, if any.
+   * The value of the tag, or an empty string for a tag without a value.
+   *
+   * A tag without a value never sets the backing field, so this returns '' for it, as declared.
    *
    * @returns {string}
    */
   get value() {
-    return this._value
+    return this._value ?? ''
   }
 
   /**

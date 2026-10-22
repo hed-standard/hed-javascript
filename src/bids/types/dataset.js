@@ -113,7 +113,10 @@ export class BidsDataset {
       const sidecarIssues = await dataset.setSidecars()
       issues.push(...sidecarIssues)
     } catch (error) {
-      issues.push(...BidsHedIssue.fromHedIssues(error, null))
+      // Only errors about the dataset as a whole reach here (sidecar errors are caught per file), so they are
+      // located at the dataset root, as before the realignment.
+      const datasetFile = { path: typeof rootOrFiles === 'string' ? rootOrFiles : 'Uploaded files' }
+      issues.push(...BidsHedIssue.fromHedIssues(error, datasetFile))
     }
     if (issues.length > 0) {
       dataset = null

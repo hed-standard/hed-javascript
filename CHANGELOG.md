@@ -31,7 +31,8 @@ testSpecs`.
   three tests the hed-tests SCHEMA_LOAD_FAILED cases already cover.
 - The parser and issue classes follow hed-typescript's idioms (realignment
   phases 1 and 2): `ParsedHedTag` has `value`, `splitValue`, `remainder`,
-  `takesValue` and `hasUnitClass` getters and a two-argument constructor;
+  `takesValue` and `hasUnitClass` getters (`value` is `''` and `splitValue`
+  `null` for a tag without a value) and a two-argument constructor;
   `Issue.message` is computed from the parameters, which `addParameters` adds
   without overwriting (`generateMessage` is now a no-op);
   `addIssueParameters` replaces `updateIssueParameters`, which stays as an
@@ -197,7 +198,8 @@ testSpecs`.
   yielded every group instead of those with the named tag; the sidecar
   validator's second error check never stopped validation before the
   full-validation pass; and an internal error during `BidsDataset.create` was
-  reported as a plain object without a severity instead of a `BidsHedIssue`.
+  reported as a plain object without a severity instead of a `BidsHedIssue`
+  (it keeps its location, the dataset root or `Uploaded files`).
 
 ### Dependencies
 
