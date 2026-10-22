@@ -175,7 +175,7 @@ export class BidsDirectoryAccessor extends BidsFileAccessor {
   constructor(datasetRootDirectory, fileMap) {
     if (typeof datasetRootDirectory !== 'string' || !datasetRootDirectory) {
       const message = `Bids validation requires a non-empty string for the dataset root directory but received: ${datasetRootDirectory}`
-      IssueError.generateAndThrow('fileReadError', { filename: datasetRootDirectory, message: `${message}` })
+      IssueError.generateAndThrow('fileReadError', { fileName: datasetRootDirectory, message: `${message}` })
     }
     super(datasetRootDirectory, fileMap)
     this.schemaBuilder = buildBidsSchemas

@@ -42,6 +42,7 @@ describe('BidsDataset', () => {
       expect(issues[0].hedIssue.internalCode).toBe('missingSchemaSpecification')
       expect(issues[0].subCode).toBe('SCHEMA_LOAD_FAILED')
       expect(issues[0].severity).toBe('error')
+      expect(issues[0].location).toBe(emptyDir)
     })
 
     it('should report an unexpected error as a BidsHedIssue with a severity', async () => {
@@ -58,6 +59,9 @@ describe('BidsDataset', () => {
       expect(issues[0].code).toBe('HED_ERROR')
       expect(issues[0].hedIssue.internalCode).toBe('internalError')
       expect(issues[0].issueMessage).toContain('accessor failure')
+      expect(issues[0].location).toBe('/some/dataset')
+      const [, uploadIssues] = await BidsDataset.create([], ThrowingAccessor)
+      expect(uploadIssues[0].location).toBe('Uploaded files')
     })
   })
 
@@ -143,6 +147,7 @@ describe('BidsDataset', () => {
       expect(issues.length).toBe(1)
       expect(issues[0].code).toBe('HED_ERROR')
       expect(issues[0].hedIssue.internalCode).toBe('fileReadError')
+      expect(issues[0].issueMessage).toContain('file or directory "task-testing_events.json"')
       expect(issues[0].location).toBe('task-testing_events.json')
 
       getFileContentSpy.mockRestore()

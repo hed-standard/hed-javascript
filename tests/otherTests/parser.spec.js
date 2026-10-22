@@ -65,6 +65,13 @@ describe('Parser layer', () => {
       assert.isNull(labelTag.splitValue)
       assert.strictEqual(labelTag.remainder, 'abc')
     })
+
+    it('should give an empty value and a null split value for a tag without a value', () => {
+      const redTag = parse('Red').tags[0]
+      assert.strictEqual(redTag.value, '')
+      assert.isNull(redTag.splitValue)
+      assert.strictEqual(redTag.remainder, '')
+    })
   })
 
   describe('ParsedHedGroup.subParsedGroupIterator', () => {

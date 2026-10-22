@@ -330,7 +330,7 @@ export function addIssueParameters(issues, parameters) {
   for (const thisIssue of issues) {
     if (thisIssue instanceof IssueError) {
       thisIssue.issue.addParameters(parameters)
-    } else if (thisIssue instanceof Issue) {
+    } else {
       thisIssue.addParameters(parameters)
     }
   }

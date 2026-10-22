@@ -25,4 +25,16 @@ describe('BidsHedSidecarValidator', () => {
       ['missingDefinitionForDef'],
     )
   })
+
+  it('should add the sidecar key and file path to definition and placeholder issues', () => {
+    const sidecar = new BidsSidecar(
+      'task-test_events.json',
+      { path: 'task-test_events.json' },
+      { event_code: { HED: { face: 'Def/Missing-def' } } },
+    )
+    const [issue] = sidecar.validate(hedSchemas)
+    assert.strictEqual(issue.hedIssue.parameters.sidecarKey, 'event_code')
+    assert.strictEqual(issue.hedIssue.parameters.filePath, 'task-test_events.json')
+    assert.include(issue.issueMessage, 'File path: "task-test_events.json"')
+  })
 })

@@ -113,7 +113,10 @@ export class BidsDataset {
       const sidecarIssues = await dataset.setSidecars()
       issues.push(...sidecarIssues)
     } catch (error) {
-      issues.push(...BidsHedIssue.fromHedIssues(error, null))
+      // Only errors about the dataset as a whole reach here (sidecar errors are caught per file), so they are
+      // located at the dataset root, as before the realignment.
+      const datasetFile = { path: typeof rootOrFiles === 'string' ? rootOrFiles : 'Uploaded files' }
+      issues.push(...BidsHedIssue.fromHedIssues(error, datasetFile))
     }
     if (issues.length > 0) {
       dataset = null
@@ -194,7 +197,7 @@ export class BidsDataset {
               const errorMessage = `Could not read JSON file: ${jsonPath}`
               sidecarIssues.push(
                 BidsHedIssue.fromHedIssue(
-                  generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
+                  generateIssue('fileReadError', { fileName: `${jsonPath}`, message: `${errorMessage}` }),
                   { file: jsonPath, name: fileName },
                 ),
               )
@@ -216,7 +219,7 @@ export class BidsDataset {
                 const errorMessage = `Could not parse the JSON file: ${jsonPath}`
                 sidecarIssues.push(
                   BidsHedIssue.fromHedIssue(
-                    generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
+                    generateIssue('fileReadError', { fileName: `${jsonPath}`, message: `${errorMessage}` }),
                     { path: jsonPath, name: fileName },
                   ),
                 )
@@ -228,7 +231,7 @@ export class BidsDataset {
             const errorMessage = `Unexpected exception '${e.message}' occurred when setting sidecar: ${jsonPath}`
             return [
               BidsHedIssue.fromHedIssue(
-                generateIssue('fileReadError', { filename: `${jsonPath}`, message: `${errorMessage}` }),
+                generateIssue('fileReadError', { fileName: `${jsonPath}`, message: `${errorMessage}` }),
                 { path: jsonPath, name: fileName },
               ),
             ]
@@ -322,7 +325,7 @@ export class BidsDataset {
     if (tsvContents === null) {
       const message = `Could not read TSV file: ${tsvPath}`
       return [
-        BidsHedIssue.fromHedIssue(generateIssue('fileReadError', { filename: tsvPath, message: `${message}` }), {
+        BidsHedIssue.fromHedIssue(generateIssue('fileReadError', { fileName: tsvPath, message: `${message}` }), {
           path: tsvPath,
           name: parsedPath.base,
         }),
