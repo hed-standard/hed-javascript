@@ -251,6 +251,7 @@ export class BidsHedIssue {
       const hedIssue = issue.hedIssue
       hedIssue.addParameters(parameters)
       issue.issueMessage = hedIssue.message
+      issue.line = hedIssue.parameters?.tsvLine
     }
   }
 }

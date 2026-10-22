@@ -138,6 +138,8 @@ describe('BidsHedIssue', () => {
       BidsHedIssue.addIssueParameters([bidsIssue], { sidecarKey: 'event_code' })
       assert.strictEqual(bidsIssue.hedIssue.parameters.sidecarKey, 'event_code')
       assert.include(bidsIssue.issueMessage, 'Sidecar key: "event_code"')
+      BidsHedIssue.addIssueParameters([bidsIssue], { tsvLine: 2 })
+      assert.strictEqual(bidsIssue.line, '2')
     })
   })
 })

@@ -294,6 +294,15 @@ describe('Issue', () => {
     }
   })
 
+  it('should drop the old bounds when the parameters are replaced', () => {
+    const issue = new Issue('internalError', 'INTERNAL_ERROR', 'error', { message: 'x', bounds: [1, 2] })
+    expect(issue.bounds).toEqual([1, 2])
+    issue.parameters = { message: 'y', bounds: [3, 4] }
+    expect(issue.bounds).toEqual([3, 4])
+    issue.parameters = { message: 'z' }
+    expect(issue.bounds).toBeUndefined()
+  })
+
   it('should construct with no parameters', () => {
     const issue = new Issue('internalError', 'INTERNAL_ERROR', 'error')
     expect(issue.parameters).toEqual({})

@@ -199,6 +199,7 @@ export class Issue {
    * @param {Object<string, *>} parameters - The new issue parameters.
    */
   set parameters(parameters) {
+    this._bounds = undefined
     this._parameters = {}
     this.addParameters(parameters ?? {})
   }

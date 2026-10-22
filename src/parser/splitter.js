@@ -75,6 +75,11 @@ export default class HedStringSplitter {
    * @private
    */
   _splitHedString() {
+    if (typeof this.hedString !== 'string') {
+      this.parsedTags = null
+      this.issues.push(generateIssue('invalidTagString', {}))
+      return
+    }
     if (this.hedString === '') {
       this.parsedTags = []
       return

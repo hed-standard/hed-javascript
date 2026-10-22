@@ -31,6 +31,9 @@ export function recursiveMap(array, fn) {
  * @yields {T[]} The list of combinations as tuples.
  */
 export function* iteratePairwiseCombinations(array) {
-  const pairs = array.flatMap((first, index) => array.slice(index + 1).map((second) => [first, second]))
-  yield* pairs
+  for (let firstIndex = 0; firstIndex < array.length; firstIndex++) {
+    for (let secondIndex = firstIndex + 1; secondIndex < array.length; secondIndex++) {
+      yield [array[firstIndex], array[secondIndex]]
+    }
+  }
 }

@@ -96,6 +96,17 @@ describe('Parser layer', () => {
     })
   })
 
+  describe('parseHedString', () => {
+    it('should report a HED string that is not a string', () => {
+      const [parsedString, errors] = parseHedString(42, hedSchemas, false, true, true)
+      assert.isNull(parsedString)
+      assert.deepStrictEqual(
+        errors.map((issue) => issue.internalCode),
+        ['invalidTagString'],
+      )
+    })
+  })
+
   describe('GroupSpec', () => {
     it('should default the end bound to -1 and the children to an empty list', () => {
       const groupSpec = new GroupSpec(3)
