@@ -283,32 +283,6 @@ export class Issue {
   generateMessage(): void
 }
 
-/**
- * Generate a new issue object.
- *
- * @param internalCode The internal error code.
- * @param parameters The error string parameters.
- * @returns An object representing the issue.
- */
-export function generateIssue(internalCode: string, parameters?: Record<string, any>): Issue
-
-/**
- * Add parameters to a list of issues; an existing parameter is kept.
- *
- * @param issues The list of issues (different types can be intermixed).
- * @param parameters The parameters to add.
- */
-export function addIssueParameters(issues: (IssueError | Issue)[], parameters: Record<string, any>): void
-
-/**
- * Update the parameters of a list of issues.
- *
- * @deprecated Use {@link addIssueParameters}.
- * @param issues The list of issues (different types can be intermixed).
- * @param parameters The parameters to add.
- */
-export function updateIssueParameters(issues: (IssueError | Issue)[], parameters: Record<string, any>): void
-
 // Parser exports
 export class Definition {
   /** The name of the definition */

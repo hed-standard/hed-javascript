@@ -48,7 +48,6 @@ import {
   // Schema functions
   getLocalSchemaVersions,
   buildSchemasFromVersion,
-  generateIssue,
 } from 'hed-validator'
 
 // This is a type-only test file.
@@ -108,7 +107,7 @@ async function testBids(schemas: Schemas) {
   bidsTsvFile.validate(schemas)
 
   // BidsHedIssue
-  const issue = generateIssue('genericError', { hedCode: 'code' })
+  const issue = new Issue('genericError', 'INTERNAL_ERROR', 'error', { hedCode: 'code' })
   const bidsHedIssue = new BidsHedIssue(issue, fakeFile)
   console.log(
     bidsHedIssue.file,
@@ -146,7 +145,7 @@ async function testBids(schemas: Schemas) {
 
 function testIssues() {
   // Issue
-  const issue = generateIssue('genericError', { a: 1 })
+  const issue = new Issue('genericError', 'INTERNAL_ERROR', 'error', { a: 1 })
   console.log(issue.internalCode, issue.hedCode, issue.level, issue.message, issue.parameters)
   issue.generateMessage()
   console.log(issue.toString())
