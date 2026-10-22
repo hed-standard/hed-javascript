@@ -200,6 +200,10 @@ testSpecs`.
   full-validation pass; and an internal error during `BidsDataset.create` was
   reported as a plain object without a severity instead of a `BidsHedIssue`
   (it keeps its location, the dataset root or `Uploaded files`).
+- A file that could not be read or parsed during BIDS dataset creation is named
+  in its I/O error message; the file name was blank. Definition and placeholder
+  issues found in a sidecar now carry its file path, as other sidecar issues
+  do.
 
 ### Dependencies
 

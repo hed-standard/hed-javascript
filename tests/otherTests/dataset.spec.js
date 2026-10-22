@@ -147,6 +147,7 @@ describe('BidsDataset', () => {
       expect(issues.length).toBe(1)
       expect(issues[0].code).toBe('HED_ERROR')
       expect(issues[0].hedIssue.internalCode).toBe('fileReadError')
+      expect(issues[0].issueMessage).toContain('file or directory "task-testing_events.json"')
       expect(issues[0].location).toBe('task-testing_events.json')
 
       getFileContentSpy.mockRestore()
