@@ -2,7 +2,7 @@ import chai from 'chai'
 const assert = chai.assert
 import { describe, test } from '@jest/globals'
 import { BidsHedIssue } from '../../src/bids/types/issues'
-import { Issue } from '../../src/issues/issues'
+import { generateIssue, Issue } from '../../src/issues/issues'
 
 describe('BidsHedIssue', () => {
   describe('splitErrors', () => {
@@ -88,6 +88,58 @@ describe('BidsHedIssue', () => {
       const categorized = BidsHedIssue.categorizeByCode(issues)
       assert.isTrue(categorized instanceof Map)
       assert.strictEqual(categorized.size, 0)
+    })
+  })
+
+  describe('fromHedIssue', () => {
+    test('should not overwrite a parameter the issue already has', () => {
+      const hedIssue = generateIssue('internalError', { message: 'x', tsvLine: 3 })
+      const bidsIssue = BidsHedIssue.fromHedIssue(
+        hedIssue,
+        { path: 'file1.tsv' },
+        { tsvLine: 7, filePath: 'file1.tsv' },
+      )
+      assert.strictEqual(bidsIssue.line, '3')
+      assert.strictEqual(hedIssue.parameters.filePath, 'file1.tsv')
+      assert.include(bidsIssue.issueMessage, 'TSV line: "3"')
+    })
+  })
+
+  describe('fromHedIssues', () => {
+    test('should turn anything that is not an Error or an Issue array into an internal error', () => {
+      for (const bad of [null, 'text', [{ code: 'X' }]]) {
+        const bidsIssues = BidsHedIssue.fromHedIssues(bad, null)
+        assert.lengthOf(bidsIssues, 1)
+        assert.strictEqual(bidsIssues[0].hedIssue.internalCode, 'internalError')
+        assert.strictEqual(bidsIssues[0].severity, 'error')
+      }
+    })
+  })
+
+  describe('reduceIssues', () => {
+    test('should keep the copied HED issue an Issue', () => {
+      const hedIssue = generateIssue('internalError', { message: 'x' })
+      const issues = [
+        new BidsHedIssue(hedIssue, { path: 'file1.tsv' }),
+        new BidsHedIssue(hedIssue, { path: 'file2.tsv' }),
+      ]
+      const [reduced] = BidsHedIssue.reduceIssues(issues)
+      assert.instanceOf(reduced.hedIssue, Issue)
+      assert.notStrictEqual(reduced.hedIssue, hedIssue)
+      assert.isFunction(reduced.hedIssue.generateMessage)
+      assert.strictEqual(reduced.hedIssue.message, hedIssue.message)
+    })
+  })
+
+  describe('toString and addIssueParameters', () => {
+    test('should give the message and add parameters to the wrapped issues', () => {
+      const bidsIssue = new BidsHedIssue(generateIssue('internalError', { message: 'x' }), { path: 'file1.tsv' })
+      assert.strictEqual(bidsIssue.toString(), bidsIssue.issueMessage)
+      BidsHedIssue.addIssueParameters([bidsIssue], { sidecarKey: 'event_code' })
+      assert.strictEqual(bidsIssue.hedIssue.parameters.sidecarKey, 'event_code')
+      assert.include(bidsIssue.issueMessage, 'Sidecar key: "event_code"')
+      BidsHedIssue.addIssueParameters([bidsIssue], { tsvLine: 2 })
+      assert.strictEqual(bidsIssue.line, '2')
     })
   })
 })

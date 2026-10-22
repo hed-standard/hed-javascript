@@ -1,10 +1,9 @@
-/** This module holds the column splice class.
+/**
+ * This module holds the column splice class.
  * @module parser/parsedHedColumnSplice
  */
 
 import ParsedHedSubstring from './parsedHedSubstring'
-import ParsedHedGroup from './parsedHedGroup'
-import ParsedHedString from './parsedHedString'
 
 /**
  * A template for an inline column splice in a HED string.
@@ -12,7 +11,7 @@ import ParsedHedString from './parsedHedString'
  * @see {@link ParsedHedString}
  * @see {@link ParsedHedGroup}
  */
-export class ParsedHedColumnSplice extends ParsedHedSubstring {
+export default class ParsedHedColumnSplice extends ParsedHedSubstring {
   /**
    * The normalized string representation of this column splice.
    * @type {string}
@@ -23,8 +22,8 @@ export class ParsedHedColumnSplice extends ParsedHedSubstring {
   /**
    * Constructor.
    *
-   * @param {string} columnName The token for this tag.
-   * @param {number[]} bounds The collection of HED schemas.
+   * @param {string} columnName - The name of the referenced column.
+   * @param {number[]} bounds - The bounds of the column splice.
    */
   constructor(columnName, bounds) {
     super(columnName, bounds) // Sets originalTag and originalBounds
@@ -43,23 +42,22 @@ export class ParsedHedColumnSplice extends ParsedHedSubstring {
   /**
    * Nicely format this column splice template.
    *
-   * @param {boolean} long Whether the tags should be in long form.
+   * @param {boolean} long - Whether the tags should be in long form.
    * @returns {string} The formatted column splice template.
    */
+
   // eslint-disable-next-line no-unused-vars
-  format(long = true) {
+  format(long) {
     return '{' + this.originalTag + '}'
   }
 
   /**
    * Determine if this column splice is equivalent to another.
    *
-   * @param {ParsedHedColumnSplice} other The other column splice.
+   * @param {*} other - The other column splice.
    * @returns {boolean} Whether the two column splices are equivalent.
    */
   equivalent(other) {
     return other instanceof ParsedHedColumnSplice && this.originalTag === other.originalTag
   }
 }
-
-export default ParsedHedColumnSplice

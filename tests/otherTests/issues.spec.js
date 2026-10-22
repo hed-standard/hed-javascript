@@ -1,5 +1,5 @@
 import { BidsHedIssue } from '../../src/bids/types/issues.js'
-import { Issue, IssueError, generateIssue } from '../../src/issues/issues.js'
+import { Issue, IssueError, addIssueParameters, generateIssue, updateIssueParameters } from '../../src/issues/issues.js'
 
 describe('BidsHedIssue', () => {
   describe('transformToBids', () => {
@@ -245,5 +245,66 @@ describe('BidsHedIssue', () => {
       expect(error1.issueMessage).toContain('There are 2 total issues of this type in 2 unique files.')
       expect(warning1.issueMessage).toContain('There are 1 total issues of this type in 1 unique files.')
     })
+  })
+})
+
+describe('Issue', () => {
+  it('should insert parameters literally, including replacement patterns such as $&', () => {
+    const issue = generateIssue('invalidTag', { tag: 'Label/a$&b', msg: "$1 $' $$" })
+    expect(issue.message).toContain(`Invalid tag - "Label/a$&b". $1 $' $$`)
+  })
+
+  it('should compute the message from the current parameters', () => {
+    const issue = generateIssue('internalError', { message: 'x' })
+    expect(issue.message).not.toContain('TSV line')
+    issue.addParameters({ tsvLine: 4 })
+    expect(issue.message).toContain('TSV line: "4"')
+    expect(issue.hasParameter('tsvLine')).toBe(true)
+    expect(issue.hasParameter('bounds')).toBe(false)
+  })
+
+  it('should keep the first value of a parameter', () => {
+    const issue = generateIssue('internalError', { message: 'first' })
+    issue.addParameter('message', 'second')
+    expect(issue.parameters.message).toBe('first')
+  })
+
+  it('should keep updateIssueParameters as an alias of addIssueParameters', () => {
+    expect(updateIssueParameters).toBe(addIssueParameters)
+    const issue = generateIssue('internalError', { message: 'x' })
+    const issueError = new IssueError(generateIssue('internalError', { message: 'y' }))
+    addIssueParameters([issue, issueError], { filePath: 'a.json' })
+    expect(issue.parameters.filePath).toBe('a.json')
+    expect(issueError.issue.parameters.filePath).toBe('a.json')
+  })
+
+  it('should re-throw an Error as an IssueError and anything else as an internal error', () => {
+    const generate = (error) => ['fileReadError', { fileName: 'a.json', message: error.message }]
+    expect(() => IssueError.generateAndRethrow(new Error('gone'), generate)).toThrow(IssueError)
+    try {
+      IssueError.generateAndRethrow(new Error('gone'), generate)
+    } catch (error) {
+      expect(error.issue.internalCode).toBe('fileReadError')
+      expect(error.issue.parameters.message).toBe('gone')
+    }
+    try {
+      IssueError.generateAndRethrow('not an error', generate)
+    } catch (error) {
+      expect(error.issue.internalCode).toBe('internalError')
+    }
+  })
+
+  it('should drop the old bounds when the parameters are replaced', () => {
+    const issue = new Issue('internalError', 'INTERNAL_ERROR', 'error', { message: 'x', bounds: [1, 2] })
+    expect(issue.bounds).toEqual([1, 2])
+    issue.parameters = { message: 'y', bounds: [3, 4] }
+    expect(issue.bounds).toEqual([3, 4])
+    issue.parameters = { message: 'z' }
+    expect(issue.bounds).toBeUndefined()
+  })
+
+  it('should construct with no parameters', () => {
+    const issue = new Issue('internalError', 'INTERNAL_ERROR', 'error')
+    expect(issue.parameters).toEqual({})
   })
 })

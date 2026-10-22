@@ -4,7 +4,7 @@
 
 import { BidsHedIssue } from '../types/issues'
 import ParsedHedString from '../../parser/parsedHedString'
-import { generateIssue, IssueError, updateIssueParameters } from '../../issues/issues'
+import { addIssueParameters, generateIssue, IssueError } from '../../issues/issues'
 import { getCharacterCount } from '../../utils/string.js'
 import { BidsValidator } from './validator'
 
@@ -43,7 +43,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
     }
 
     this.errors.push(...this._validateStrings(), ...this._validateCurlyBraces())
-    if (errorIssues.length > 0) {
+    if (this.errors.length > 0) {
       return
     }
 
@@ -91,7 +91,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
   _checkDetails(sidecarKeyName, hedString) {
     const issues = this._checkDefs(sidecarKeyName, hedString, true)
     issues.push(...this._checkPlaceholders(sidecarKeyName, hedString))
-    updateIssueParameters(issues, { sidecarKey: sidecarKeyName, filePath: this.sidecar?.file?.path })
+    addIssueParameters(issues, { sidecarKey: sidecarKeyName, filePath: this.sidecar?.file?.path })
     return issues
   }
 

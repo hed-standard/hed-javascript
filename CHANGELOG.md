@@ -29,6 +29,14 @@ testSpecs`.
   the remote-loading test, or the hed-tests test schemas loaded by path. The
   `HED_testlib_*.xml` copies under `tests/otherTestData/` are removed, as are
   three tests the hed-tests SCHEMA_LOAD_FAILED cases already cover.
+- The parser and issue classes follow hed-typescript's idioms (realignment
+  phases 1 and 2): `ParsedHedTag` has `value`, `splitValue`, `remainder`,
+  `takesValue` and `hasUnitClass` getters and a two-argument constructor;
+  `Issue.message` is computed from the parameters, which `addParameters` adds
+  without overwriting (`generateMessage` is now a no-op);
+  `addIssueParameters` replaces `updateIssueParameters`, which stays as an
+  alias; `BidsHedIssue` gains `toString` and `addIssueParameters`; internal
+  errors are thrown as `IssueError`.
 
 ### Fixed
 
@@ -184,6 +192,12 @@ testSpecs`.
   - The characters no HED string may contain come from the file.
   - Before HED 8.3.0, a non-ASCII character is allowed only where the value
     class allows it, so `Label/café` is CHARACTER_INVALID under 8.2.0.
+- `ParsedHedTag.unitClasses` was always empty; `parseHedStrings` ignored its
+  `fullValidation` argument; `ParsedHedGroup.subParsedGroupIterator(tagName)`
+  yielded every group instead of those with the named tag; the sidecar
+  validator's second error check never stopped validation before the
+  full-validation pass; and an internal error during `BidsDataset.create` was
+  reported as a plain object without a severity instead of a `BidsHedIssue`.
 
 ### Dependencies
 

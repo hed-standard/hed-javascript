@@ -1,9 +1,11 @@
-/** This module holds classes to encapsulate and manage HED definitions.
+/**
+ * This module holds classes to encapsulate and manage HED definitions.
  * @module parser/definitionManager
  */
-import { generateIssue } from '../issues/issues'
+
 import { parseHedString } from './parser'
 import { filterByTagName } from './parseUtils'
+import { generateIssue, IssueError } from '../issues/issues'
 
 export class Definition {
   /**
@@ -25,19 +27,19 @@ export class Definition {
   defGroup
 
   /**
-   * The definition contents group
-   * @type {ParsedHedGroup}
+   * The definition contents group.
+   * @type {ParsedHedGroup|null}
    */
   defContents
 
   /**
    * If definition, this is the second value, otherwise empty string.
-   * @type {string}
+   * @type {string|null}
    */
   placeholder
 
   /**
-   * A single definition
+   * A single definition.
    *
    * @param {ParsedHedGroup} definitionGroup - the parsedHedGroup representing the definition.
    * @param {boolean} _isPrivateConstruction - Internal parameter to prevent direct construction
@@ -45,7 +47,7 @@ export class Definition {
    */
   constructor(definitionGroup, _isPrivateConstruction = false) {
     if (!_isPrivateConstruction) {
-      throw new Error(
+      IssueError.generateAndThrowInternalError(
         'Definition instances must be created using Definition.createDefinition() or Definition.createDefinitionFromGroup() static methods',
       )
     }
@@ -54,28 +56,29 @@ export class Definition {
 
   /**
    * Return the evaluated definition contents and any issues.
+   *
    * @param {ParsedHedTag} tag - The parsed HED tag whose details should be checked.
    * @param {Schemas} hedSchema - The HED schemas used to validate against.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
-   * @returns {Array} - Returns [string, Issue[], Issue[]] containing the evaluated normalized definition string and any issues in the evaluation,
+   * @returns {Array} A tuple [string|null, Issue[], Issue[]] containing the evaluated normalized definition string and any issues in the evaluation,
    */
   evaluateDefinition(tag, hedSchema, placeholderAllowed) {
     // Check that the level of the value of tag agrees with the definition
-    if (!!this.defTag._splitValue !== !!tag._splitValue) {
+    if (!!this.defTag.splitValue !== !!tag.splitValue) {
       const errorType = tag.schemaTag.name === 'Def' ? 'missingDefinitionForDef' : 'missingDefinitionForDefExpand'
-      return [null, [generateIssue(errorType, { definition: tag._value })], []]
+      return [null, [generateIssue(errorType, { definition: tag.value })], []]
     }
     // Check that the evaluated definition contents okay (if two-level value)
     if (!this.defContents) {
       return ['', [], []]
     }
-    if (!this.defTag._splitValue || (placeholderAllowed && tag._splitValue === '#')) {
+    if (!this.defTag.splitValue || (placeholderAllowed && tag.splitValue === '#')) {
       return [this.defContents.normalized, [], []]
     }
     // A function replacer inserts the value literally: a value such as "$5" is data, not a replacement pattern.
-    const evalString = this.defContents.originalTag.replace('#', () => tag._splitValue)
+    const evalString = this.defContents.originalTag.replace('#', () => tag.splitValue)
     const [normalizedValue, errorIssues, warningIssues] = parseHedString(evalString, hedSchema, false, false, true)
-    if (errorIssues.length > 0) {
+    if (normalizedValue === null) {
       return [null, errorIssues, warningIssues]
     }
     return [normalizedValue.normalized, [], []]
@@ -83,11 +86,14 @@ export class Definition {
 
   /**
    * Return true if this definition is the same as the other.
-   * @param {Definition} other - Another definition to compare with this one.
-   * @returns {boolean} - True if the definitions are equivalent
+   *
+   * @param {*} other - Another definition to compare with this one.
+   * @returns {boolean} True if the definitions are equivalent
    */
   equivalent(other) {
-    if (this.name !== other.name || this.defTag._splitValue !== other.defTag._splitValue) {
+    if (!(other instanceof Definition)) {
+      return false
+    } else if (this.name !== other.name || this.defTag.splitValue !== other.defTag.splitValue) {
       return false
     } else if (this.defContents?.normalized !== other.defContents?.normalized) {
       return false
@@ -97,7 +103,8 @@ export class Definition {
 
   /**
    * Verify that the placeholder count is correct in the definition.
-   * @returns {string} - The empty string if the placeholder count is correct, otherwise an error message.
+   *
+   * @returns {string} The empty string if the placeholder count is correct, otherwise an error message.
    * @private
    */
   _checkDefinitionPlaceholderCount() {
@@ -115,11 +122,11 @@ export class Definition {
    *
    * @param {string} hedString - A string representing a definition.
    * @param {Schemas} hedSchemas - The HED schemas to use in creation.
-   * @returns {Array} - Returns [Definition, Issue[], Issue[]] with the definition and any issues.
+   * @returns {Array} A tuple [Definition|null, Issue[], Issue[]] with the definition and any issues.
    */
   static createDefinition(hedString, hedSchemas) {
     const [parsedString, errorIssues, warningIssues] = parseHedString(hedString, hedSchemas, true, true, true)
-    if (errorIssues.length > 0) {
+    if (parsedString === null) {
       return [null, errorIssues, warningIssues]
     }
     if (parsedString.topLevelTags.length !== 0) {
@@ -151,8 +158,9 @@ export class Definition {
 
   /**
    * Create a definition from a ParsedHedGroup.
+   *
    * @param {ParsedHedGroup} group - The group to create a definition from.
-   * @returns {Array} - Returns [Definition, Issue[], Issue[]] with the definition and any issues. (The definition will be null if issues.)
+   * @returns {Array} A tuple [Definition|null, Issue[], Issue[]] with the definition and any issues. (The definition will be null if issues.)
    */
   static createDefinitionFromGroup(group) {
     const def = new Definition(group, true)
@@ -164,8 +172,8 @@ export class Definition {
       ]
     }
     def.defTag = group.topTags[0]
-    def.name = def.defTag._value
-    def.placeholder = def.defTag._splitValue
+    def.name = def.defTag.value
+    def.placeholder = def.defTag.splitValue
     def.defContents = group.topGroups.length > 0 ? group.topGroups[0] : null
     const countErrorMsg = def._checkDefinitionPlaceholderCount()
     if (countErrorMsg.length === 0) {
@@ -181,8 +189,8 @@ export class Definition {
 
 export class DefinitionManager {
   /**
-   * Definitions for this manager (string --> Definition).
-   * @type {Map}
+   * Definitions for this manager.
+   * @type {Map<string, Definition>}
    */
   definitions
 
@@ -193,7 +201,7 @@ export class DefinitionManager {
   /**
    * Add the non-null definitions to this manager.
    * @param {Definition[]} defs - The list of definitions to add to this manager.
-   * @returns {Issue[]} - Issues encountered in adding the definition.
+   * @returns {Issue[]} Issues encountered in adding the definitions.
    */
   addDefinitions(defs) {
     const issues = []
@@ -204,9 +212,10 @@ export class DefinitionManager {
   }
 
   /**
-   * Add a Definition object to this manager
+   * Add a Definition object to this manager.
+   *
    * @param {Definition} definition - The definition to be added.
-   * @returns {Issue[]}
+   * @returns {Issue[]} Issues encountered in adding the definition.
    */
   addDefinition(definition) {
     const lowerName = definition.name.toLowerCase()
@@ -227,10 +236,11 @@ export class DefinitionManager {
 
   /**
    * Check the Def tags in a HED string for missing or incorrectly used Def tags.
+   *
    * @param {ParsedHedString} hedString - A parsed HED string to be checked.
    * @param {Schemas} hedSchemas - Schemas to validate against.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
-   * @returns {Issue[]} - If there is no matching definition or definition applied incorrectly.
+   * @returns {Issue[]} If there is no matching definition or definition applied incorrectly.
    */
   validateDefs(hedString, hedSchemas, placeholderAllowed) {
     const defTags = filterByTagName(hedString.tags, 'Def')
@@ -246,10 +256,11 @@ export class DefinitionManager {
 
   /**
    * Check the Def tags in a HED string for missing or incorrectly used Def-expand tags.
+   *
    * @param {ParsedHedString} hedString - A parsed HED string to be checked.
    * @param {Schemas} hedSchemas - Schemas to validate against.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
-   * @returns {Issue[]} - If there is no matching definition or definition applied incorrectly.
+   * @returns {Issue[]} If there is no matching definition or definition applied incorrectly.
    */
   validateDefExpands(hedString, hedSchemas, placeholderAllowed) {
     //Def-expand tags should be rare, so don't look if there aren't any Def-expand tags
@@ -266,29 +277,32 @@ export class DefinitionManager {
 
   /**
    * Evaluate the definition based on a parsed HED tag.
+   *
    * @param {ParsedHedTag} tag - The tag to evaluate against the definitions.
    * @param {Schemas} hedSchemas - The schemas to be used to assist in the evaluation.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
-   * @returns {Array} - Returns [string, Issue[]] with definition contents for this tag and any issues.
+   * @returns {Array} A tuple [string|null, Issue[]] with definition contents for this tag and any issues.
    *
    * Note: If the tag is not a Def or Def-expand, this returns null for the string and [] for the issues.
    */
   evaluateTag(tag, hedSchemas, placeholderAllowed) {
     const [definition, missingIssues] = this.findDefinition(tag)
-    if (missingIssues.length > 0) {
+    if (definition === null) {
       return [null, missingIssues]
     } else if (definition) {
-      return definition.evaluateDefinition(tag, hedSchemas, placeholderAllowed)
+      const [evaluatedDefinition, errors] = definition.evaluateDefinition(tag, hedSchemas, placeholderAllowed)
+      return [evaluatedDefinition, errors]
     }
     return [null, []]
   }
 
   /**
    * Recursively check for Def-expand groups in this group.
+   *
    * @param {ParsedHedGroup} topGroup - a top group in a HED string to be evaluated for Def-expand groups.
    * @param {Schemas} hedSchemas - The HED schemas to used in the check.
    * @param {boolean} placeholderAllowed - If true then placeholder is allowed in the def tag.
-   * @returns {Issue[]}
+   * @returns {Issue[]} Any issues found.
    * @private
    */
   _checkDefExpandGroup(topGroup, hedSchemas, placeholderAllowed) {
@@ -322,21 +336,22 @@ export class DefinitionManager {
   }
 
   /**
-   * Find the definition associated with a tag, if any
+   * Find the definition associated with a tag, if any.
+   *
    * @param {ParsedHedTag} tag - The parsed HEd tag to be checked.
-   * @returns {Array} -Returns [Definition, Issue[]]. If no match is found, the first element is null.
+   * @returns {Array} A tuple [Definition|null, Issue[]] with the definition and any issues found. If no match is found, the first element is null.
    */
   findDefinition(tag) {
-    if (tag.schemaTag._name !== 'Def' && tag.schemaTag.name !== 'Def-expand') {
+    if (tag.schemaTag.name !== 'Def' && tag.schemaTag.name !== 'Def-expand') {
       return [null, []]
     }
-    const name = tag._value.toLowerCase()
+    const name = tag.value.toLowerCase()
     const existingDefinition = this.definitions.get(name)
     const errorType = tag.schemaTag.name === 'Def' ? 'missingDefinitionForDef' : 'missingDefinitionForDefExpand'
     if (!existingDefinition) {
       return [null, [generateIssue(errorType, { definition: name })]]
     }
-    if (!!existingDefinition.defTag._splitValue !== !!tag._splitValue) {
+    if (Boolean(existingDefinition.defTag.splitValue) !== Boolean(tag.splitValue)) {
       return [null, [generateIssue(errorType, { definition: name })]]
     }
     return [existingDefinition, []]
@@ -347,7 +362,7 @@ export class DefinitionManager {
    *
    * @param {string[]} defStrings - A list of string definitions.
    * @param {Schemas} hedSchemas - The HED schemas to use in creation.
-   * @returns {Array} - Returns [Definition[], Issue[]] with a definition list and any issues found.
+   * @returns {Array} A tuple [Definition[], Issue[]] with a definition list and any issues found.
    */
   static createDefinitions(defStrings, hedSchemas) {
     const defList = []

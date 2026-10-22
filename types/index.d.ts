@@ -142,6 +142,9 @@ export class BidsHedIssue {
 
   constructor(hedIssue: Issue, file: object | null)
 
+  /** Override of Object.prototype.toString: the issue message */
+  toString(): string
+
   /**
    * Converts one or more HED issues into BIDS-compatible issues.
    */
@@ -150,6 +153,12 @@ export class BidsHedIssue {
     file: object | null,
     extraParameters?: Record<string, any>,
   ): BidsHedIssue[]
+
+  /**
+   * Add parameters to the underlying HED issues of a list of BIDS issues (an existing parameter is kept) and
+   * regenerate their messages.
+   */
+  static addIssueParameters(issues: BidsHedIssue[], parameters: Record<string, any>): void
 }
 
 export class BidsFileAccessor {
@@ -220,13 +229,23 @@ export class IssueError extends Error {
   /** The associated HED issue */
   issue: Issue
 
-  protected constructor(issue: Issue, ...params: any[])
+  protected constructor(issue: Issue)
 
   /** Generate a new Issue and immediately throw it as an IssueError */
-  static generateAndThrow(internalCode: string, parameters?: Record<string, string | number[]>): never
+  static generateAndThrow(internalCode: string, parameters?: Record<string, any>): never
 
   /** Generate and throw an internal error */
   static generateAndThrowInternalError(message?: string): never
+
+  /**
+   * Generate and re-throw an error: `generateFn` maps an Error to an internal issue code and parameters; anything
+   * that is not an Error becomes an internal error.
+   */
+  static generateAndRethrow(
+    error: unknown,
+    generateFn: (error: Error) => [string, Record<string, any>],
+    illegalErrorTypeMessage?: string,
+  ): never
 }
 
 export class Issue {
@@ -236,36 +255,33 @@ export class Issue {
   hedCode: string
   /** Issue severity level */
   level: 'error' | 'warning'
-  /** The detailed error message */
-  message: string
-  /** Additional parameters */
-  parameters: Record<string, any>
+  /** The detailed error message, computed from the current parameters */
+  readonly message: string
+  /** The parameters, as strings. Setting them replaces all of them. */
+  parameters: Record<string, string>
+  /** The bounds of this issue within the parent string, if any */
+  readonly bounds: [number, number] | undefined
 
   constructor(internalCode: string, hedCode: string, level: 'error' | 'warning', parameters?: Record<string, any>)
 
   /** Override of Object.prototype.toString */
   toString(): string
 
-  /** (Re-)generate the issue message */
+  /** Determine whether this issue has a given parameter */
+  hasParameter(name: string): boolean
+
+  /** Add a parameter; an existing parameter is kept */
+  addParameter(name: string, value: any): void
+
+  /** Add parameters; existing parameters are kept */
+  addParameters(parameters: Record<string, any>): void
+
+  /**
+   * (Re-)generate the issue message.
+   * @deprecated The message is computed from the current parameters; this does nothing.
+   */
   generateMessage(): void
 }
-
-/**
- * Generate a new issue object.
- *
- * @param internalCode The internal error code.
- * @param parameters The error string parameters.
- * @returns An object representing the issue.
- */
-export function generateIssue(internalCode: string, parameters?: Record<string, any>): Issue
-
-/**
- * Update the parameters of a list of issues.
- *
- * @param issues The list of issues (different types can be intermixed).
- * @param parameters The parameters to add.
- */
-export function updateIssueParameters(issues: (IssueError | Issue)[], parameters: Record<string, string>): void
 
 // Parser exports
 export class Definition {
@@ -367,19 +383,40 @@ export class ParsedHedTag {
   schema: Schema
   /** The schema's representation of this tag */
   schemaTag: SchemaTag
-  /** The tag value */
+  /**
+   * The tag value
+   * @deprecated Use {@link ParsedHedTag.value}.
+   */
   _value: string
-  /** Split value for two-level tags */
-  _splitValue?: string
+  /**
+   * Split value for two-level tags
+   * @deprecated Use {@link ParsedHedTag.splitValue}.
+   */
+  _splitValue?: string | null
   /** The normalized tag */
-  normalized: string
-  /** The remaining part of the tag after the portion actually in the schema */
+  readonly normalized: string
+  /**
+   * The remaining part of the tag after the portion actually in the schema
+   * @deprecated Use {@link ParsedHedTag.remainder}.
+   */
   _remainder: string
   /** The units if any */
-  _units: string
+  _units: string | null
+  /** The tag value */
+  readonly value: string
+  /** The part of a two-part value after the name (Definition, Def, Def-expand), or null */
+  readonly splitValue: string | null
+  /** The remaining part of the tag after the portion actually in the schema */
+  readonly remainder: string
+  /** Whether this tag takes a value */
+  readonly takesValue: boolean
+  /** Whether this tag has any unit classes */
+  readonly hasUnitClass: boolean
+  /** The unit classes of this tag (empty if none) */
+  readonly unitClasses: SchemaUnitClass[]
 
   /** Constructor for ParsedHedTag */
-  constructor(tagSpec: TagSpec, hedSchemas: Schemas, hedString: string)
+  constructor(tagSpec: TagSpec, hedSchemas: Schemas)
 
   /** Format this tag nicely */
   format(long?: boolean): string
@@ -433,8 +470,8 @@ export class ParsedHedGroup {
   toString(): string
   /** Check if this group is equivalent to another */
   equivalent(other: ParsedHedGroup): boolean
-  /** Generator that yields subgroups containing a specific tag name */
-  subParsedGroupIterator(tagName: string): Generator<ParsedHedGroup>
+  /** Generator that yields this group and its subgroups, or only those with the named tag at their top level */
+  subParsedGroupIterator(tagName?: string | null): Generator<ParsedHedGroup>
   /** Generator that yields all column splices in this group and subgroups */
   columnSpliceIterator(): Generator<ParsedHedColumnSplice>
 }

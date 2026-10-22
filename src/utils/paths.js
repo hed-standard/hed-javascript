@@ -5,6 +5,11 @@
 
 import path from 'node:path'
 
+import zip from 'lodash/zip'
+
+import { iteratePairwiseCombinations } from './array'
+import { IssueError } from '../issues/issues'
+
 /**
  * Checks if one path is a subpath of another.
  *
@@ -356,23 +361,21 @@ export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
  *
  * @param {string} dir - The directory path being tested
  * @param {string[]} sidecarsInDir - Array of sidecar filenames in the directory
- * @throws {Error} Throws an error if any two sidecars are hierarchically related
+ * @throws {IssueError} Throws an error if any two sidecars are hierarchically related
  * @private
  */
-const _testSameDir = (dir, sidecarsInDir) => {
-  for (let i = 0; i < sidecarsInDir.length; i++) {
-    for (let j = i + 1; j < sidecarsInDir.length; j++) {
-      const aParsed = parseBidsFilename(sidecarsInDir[i])
-      const bParsed = parseBidsFilename(sidecarsInDir[j])
-      const aEntities = Object.keys(aParsed.entities)
-      const bEntities = Object.keys(bParsed.entities)
-      const aIsSubset = aEntities.every((k) => bEntities.includes(k) && aParsed.entities[k] === bParsed.entities[k])
-      const bIsSubset = bEntities.every((k) => aEntities.includes(k) && bParsed.entities[k] === aParsed.entities[k])
-      if (aIsSubset === bIsSubset) {
-        throw new Error(
-          `BIDS inheritance conflict in directory '${dir}': sidecars '${sidecarsInDir[i]}' and '${sidecarsInDir[j]}' are not hierarchically related.`,
-        )
-      }
+function _testSameDir(dir, sidecarsInDir) {
+  const parsedBidsFileNames = sidecarsInDir.map((path) => parseBidsFilename(path))
+  const iterator = iteratePairwiseCombinations(zip(sidecarsInDir, parsedBidsFileNames))
+  const isSubset = (first, second) =>
+    Object.keys(first.entities).every(
+      (key) => Object.hasOwn(second.entities, key) && first.entities[key] === second.entities[key],
+    )
+  for (const [[firstName, firstParsed], [secondName, secondParsed]] of iterator) {
+    if (isSubset(firstParsed, secondParsed) === isSubset(secondParsed, firstParsed)) {
+      IssueError.generateAndThrowInternalError(
+        `BIDS inheritance conflict in directory '${dir}': sidecars '${firstName}' and '${secondName}' are not hierarchically related.`,
+      )
     }
   }
 }

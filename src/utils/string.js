@@ -92,18 +92,18 @@ export function stripNameWhitespace(name) {
 /**
  * Parse a template literal string.
  *
- * Copied from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals.
+ * Adapted from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals.
  *
- * @param {string[]} strings The literal parts of the template string.
- * @param {(number|string)} keys The keys of the closure arguments.
- * @returns {function(...[*]): string} A closure to fill the string template.
+ * @param {string[]} strings - The literal parts of the template string.
+ * @param {...(number|string)} parameterKeys - The keys of the closure arguments.
+ * @returns {function(Object<string, string>, number=, number=): string} A closure to fill the string template.
  */
-export function stringTemplate(strings, ...keys) {
-  return function (...values) {
-    const dict = values[values.length - 1] ?? {}
+export function issueMessageTemplate(strings, ...parameterKeys) {
+  return function (parameterValues, start, end) {
+    const bounds = [start, end]
     const result = [strings[0]]
-    keys.forEach((key, i) => {
-      const value = Number.isInteger(key) ? values[key] : dict[key]
+    parameterKeys.forEach((key, i) => {
+      const value = typeof key === 'number' ? String(bounds[key]) : parameterValues[key]
       result.push(value, strings[i + 1])
     })
     return result.join('')
