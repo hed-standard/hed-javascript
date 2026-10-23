@@ -265,7 +265,8 @@ export default class TagConverter {
    *
    * A letter is A-Z or a-z, or any Unicode letter when the schema's name class allows non-ASCII characters
    * (standard schema 8.3.0 and later). A term without one (3, 1-2, an Arabic-Indic digit) reads as a value
-   * (specification 3.2.5 rule 6).
+   * (specification 3.2.5 rule 6). The letter test is the Unicode one for every schema: a name class without
+   * non-ASCII characters has already rejected them, so only ASCII letters can count there.
    *
    * @param {number} index - The index of the level.
    * @throws {IssueError} If the level is not in the name class or has no letter.
@@ -283,8 +284,7 @@ export default class TagConverter {
         msg: `The tag extension "${tagLevel}" is not in the HED name class, so it cannot be used as a tag extension.`,
       })
     }
-    const letter = nameClass.allowedNames.includes('nonascii') ? /\p{L}/u : /[A-Za-z]/
-    if (!letter.test(tagLevel)) {
+    if (!/\p{L}/u.test(tagLevel)) {
       IssueError.generateAndThrow('invalidExtension', {
         tag: tagLevel,
         parentTag: this.tagLevels.slice(0, index).join('/'),
