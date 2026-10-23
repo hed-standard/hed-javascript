@@ -79,7 +79,7 @@ const inLibraryEntries = (schema) => {
   for (const manager of entryManagers) {
     for (const [name, entry] of schema.entries[manager]) {
       if (entry.hasAttribute?.('inLibrary')) {
-        found.push(`${manager}:${name}=${entry.getAttributeValue('inLibrary')}`)
+        found.push(`${manager}:${name}=${entry.getSingleAttributeValue('inLibrary')}`)
       }
     }
   }

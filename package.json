@@ -45,7 +45,6 @@
   },
   "homepage": "https://github.com/hed-standard/hed-javascript",
   "dependencies": {
-    "core-js-pure": "^3.50.0",
     "fast-xml-parser": "^5.11.1",
     "lodash": "^4.18.1",
     "pluralize": "^8.0.0",

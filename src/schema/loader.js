@@ -5,7 +5,7 @@
 /* Imports */
 import * as files from '../utils/files'
 import { IssueError } from '../issues/issues'
-import { parseSchemaXML } from '../utils/xml'
+import parseSchemaXML from '../utils/xml'
 
 import { localSchemaMap, localSchemaNames } from './config' // Changed from localSchemaList
 

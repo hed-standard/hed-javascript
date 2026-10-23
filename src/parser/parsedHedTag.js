@@ -8,7 +8,7 @@ import { ReservedChecker } from './reservedChecker'
 import TagConverter from './tagConverter'
 import { IssueError } from '../issues/issues'
 import { characterSets, codePoint } from '../schema/characterSets'
-import { SchemaValueTag } from '../schema/entries'
+import SchemaValueTag from '../schema/entries/valueTag'
 
 // The characters of a value whose placeholder declares no valueClass (character_sets.json; hed-python does the same).
 const UNCLASSED_VALUE_SETS = ['value-text']

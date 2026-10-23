@@ -26,6 +26,8 @@ import {
   ParsedHedColumnSplice,
 
   // Schema
+  HedSchema,
+  HedSchemas,
   Schema,
   SchemaEntries,
   SchemaEntryManager,
@@ -59,7 +61,7 @@ const fakePath = '/fake/path'
 const fakeFile: object = { name: 'fake.json', path: fakePath }
 const fakeHedString = 'Event'
 
-async function testBids(schemas: Schemas) {
+async function testBids(schemas: HedSchemas) {
   // BidsDataset
   const [dataset, bidsIssues] = await BidsDataset.create(fakePath, BidsDirectoryAccessor)
   if (dataset) {
@@ -179,7 +181,7 @@ function testIssues() {
 }
 
 function testParser(
-  schemas: Schemas,
+  schemas: HedSchemas,
   parsedString: ParsedHedString,
   parsedTag: ParsedHedTag,
   parsedGroup: ParsedHedGroup,
@@ -274,13 +276,18 @@ function testParser(
   parsedHedString.toString()
 }
 
-function testSchemaTypes(schemas: Schemas) {
-  // Schema
-  const schema: Schema = schemas.getSchema('')
+function testSchemaTypes(schemas: HedSchemas) {
+  // HedSchema
+  const schema: HedSchema = schemas.getSchema('')
   if (!schema) {
     return
   }
   console.log(schema.version, schema.library, schema.prefix, schema.entries, schema.withStandard)
+
+  // The former names (deprecated aliases)
+  const formerSchemas: Schemas = schemas
+  const formerSchema: Schema = formerSchemas.baseSchema
+  console.log(formerSchema instanceof Schema, formerSchemas instanceof Schemas)
 
   // SchemaEntries
   const entries: SchemaEntries = schema.entries
@@ -309,20 +316,22 @@ function testSchemaTypes(schemas: Schemas) {
   // SchemaEntry
   const entry: SchemaEntry = manager.getEntry('entry')
   if (entry) {
-    console.log(entry.name)
+    console.log(entry.name, entry.description, SchemaEntry.sortByName(entry, entry))
     entry.hasBooleanAttribute('attribute')
   }
 
   // SchemaProperty
   const property: SchemaProperty = entries.properties.values().next().value
   if (property) {
-    console.log(property.isCategoryProperty, property.isTypeProperty, property.isRoleProperty)
+    console.log(property.name, property.description)
   }
 
   // SchemaAttribute
   const attribute: SchemaAttribute = entries.attributes.values().next().value
   if (attribute) {
-    console.log(attribute.categoryProperty, attribute.typeProperty, attribute.roleProperties)
+    const properties: Set<SchemaProperty> = attribute.properties
+    const recursive: boolean = attribute.recursive
+    console.log(properties, recursive)
   }
 
   // SchemaEntryWithAttributes
@@ -336,15 +345,16 @@ function testSchemaTypes(schemas: Schemas) {
     )
     entryWithAttrs.hasAttribute('attribute')
     entryWithAttrs.hasBooleanAttribute('attribute')
-    entryWithAttrs.getValue('attribute')
+    entryWithAttrs.getSingleAttributeValue('attribute')
+    entryWithAttrs.getAttributeValues('attribute')
   }
 
   // SchemaUnit
   const unitClass: SchemaUnitClass = entries.unitClasses.values().next().value
   if (unitClass) {
-    const unit: SchemaUnit = unitClass.units[0]
+    const unit: SchemaUnit | undefined = unitClass.units.values().next().value
     if (unit) {
-      console.log(unit.unitType, unit.siUnit, unit.defaultSiUnit, unit.unitSymbol)
+      console.log(unit.isPrefixUnit, unit.isSIUnit, unit.isUnitSymbol, [...unit.derivativeUnits()])
       const isUnit: boolean = unit.validateUnit('ms')
       const factor: number | null = unit.conversionFactor('ms')
       const description: string | undefined = unit.description
@@ -355,29 +365,27 @@ function testSchemaTypes(schemas: Schemas) {
 
   // SchemaUnitClass
   if (unitClass) {
-    console.log(unitClass.units)
+    const units: Map<string, SchemaUnit> = unitClass.units
     const defaultUnit: SchemaUnit | undefined = unitClass.defaultUnit
     const [extractedUnit, unitString, valueString] = unitClass.extractUnit('3 ms')
-    console.log(defaultUnit, extractedUnit, unitString, valueString)
+    console.log(units, defaultUnit, extractedUnit, unitString, valueString, unitClass.hasConversionFactors)
   }
 
   // SchemaUnitModifier
   const unitModifier: SchemaUnitModifier = entries.unitModifiers.values().next().value
   if (unitModifier) {
-    console.log(unitModifier.siPrefix, unitModifier.factor)
+    console.log(unitModifier.name, unitModifier.getSingleAttributeValue('conversionFactor'))
   }
 
   // SchemaValueClass
   const valueClass: SchemaValueClass = entries.valueClasses.values().next().value
-  console.log(valueClass.name)
+  console.log(valueClass.name, valueClass.allowedNames, valueClass.validateValue('x'), valueClass.valueProblem('x'))
 
   // SchemaTag
   const tag: SchemaTag = entries.tags.values().next().value
   if (tag) {
-    console.log(tag.parent, tag.shortTagName, tag.longTagName)
-    tag.isUnitClass()
-    tag.isTakesValueClass()
-    tag.parentHasAttribute('attribute')
+    console.log(tag.parent, tag.ancestors, tag.longName, tag.valueTag, tag.unitClasses, tag.valueClasses)
+    console.log(tag.hasUnitClasses, tag.extend('x'), tag.longExtend('x'))
   }
 }
 

@@ -8,8 +8,8 @@ import { IssueError } from '../issues/issues'
 import { getTagSlashIndices } from '../utils/hedStrings'
 
 /**
- * @typedef {import('../schema/entries.js').SchemaTag} SchemaTag
- * @typedef {import('../schema/containers.js').Schemas} Schemas
+ * @typedef {import('../schema/entries/tag.js').default} SchemaTag
+ * @typedef {import('../schema/containers.js').HedSchemas} Schemas
  * @typedef {import('./tokenizer.js').TagSpec} TagSpec
  */
 

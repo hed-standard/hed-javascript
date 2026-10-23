@@ -38,8 +38,35 @@ testSpecs`.
   `addIssueParameters` replaces `updateIssueParameters`, which stays as an
   alias; `BidsHedIssue` gains `toString` and `addIssueParameters`; internal
   errors are thrown as `IssueError`.
+- The schema layer follows hed-typescript's layout (realignment phase 3):
+  `src/schema/entries.js` and `src/schema/parser.js` are split into one file
+  per class under `src/schema/entries/` and `src/schema/parser/`; `Schema`,
+  `Schemas` and `SchemaXmlCollection` are renamed `HedSchema`, `HedSchemas` and
+  `HedSchemaXMLCollection`, and the old names stay as aliases through 4.x. A
+  schema attribute holds one set of properties and a `recursive` flag; every
+  property a schema defines is registered (8.3.0 and later gain 13
+  domain/range properties); `getSingleAttributeValue` and `getAttributeValues`
+  replace `getAttributeValue`. Removed with the old property model:
+  `SchemaProperty.isCategoryProperty`, `isTypeProperty`, `isRoleProperty`,
+  `SchemaAttribute.categoryProperty`, `typeProperty`, `roleProperties`,
+  `propertyNames`, and `getAttributeValue`. This is not a major version change
+  because the schema entry classes were never exported by the package: they
+  are reachable only inside the object `buildSchemasFromVersion` returns, no
+  known consumer uses the removed members, and the schema class declarations
+  in `types/index.d.ts` are to be withdrawn from the public declarations before
+  this release. Those declarations now match the runtime (members that never
+  existed, such as `getValue` and `SchemaTag.isUnitClass`, are gone, and
+  `SchemaUnitClass.units` is a `Map`). A schema that uses an undefined
+  attribute or gives `rooted` two values reports `invalidSchema`
+  (SCHEMA_LOAD_FAILED) instead of an internal error. `core-js-pure` is no
+  longer a dependency, so building a schema in a browser needs the native
+  `Set` methods (2024 browsers and later).
 
 ### Fixed
+
+- A schema file that is well-formed XML but has no `HED` root or no `schema`
+  element is reported as `localSchemaLoadFailed` (SCHEMA_LOAD_FAILED) instead of
+  throwing a bare `TypeError`.
 
 - esbuild 0.28.1 and later work with `esbuild-plugins-node-modules-polyfill`:
   `legacy-peer-deps` is enabled in `.npmrc`.

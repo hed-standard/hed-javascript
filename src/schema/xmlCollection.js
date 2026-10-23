@@ -8,7 +8,7 @@
  * The schemas are merged while they are parsed: every entry-type parser runs over the whole collection and writes
  * into one map, so the merged schema is built once and never copied.
  */
-export class SchemaXmlCollection {
+export class HedSchemaXMLCollection {
   /**
    * The XML data of the base schema: the standard schema when one is listed, else the first merged library.
    * @type {Object}
@@ -59,3 +59,9 @@ export class SchemaXmlCollection {
     yield* this.unmergedSchemas
   }
 }
+
+/**
+ * The former name of {@link HedSchemaXMLCollection}.
+ * @deprecated Use HedSchemaXMLCollection. Kept through 4.x.
+ */
+export const SchemaXmlCollection = HedSchemaXMLCollection
