@@ -7,7 +7,7 @@ import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { parseHedString } from '../../src/parser/parser'
 import { CharacterSets, characterSets, codePoint } from '../../src/schema/characterSets'
 import characterSetsData from '../../src/data/json/characterSets.json'
-import { SchemaValueClass } from '../../src/schema/entries'
+import SchemaValueClass from '../../src/schema/entries/valueClass'
 
 // src/data/json/characterSets.json is the specification's character_sets.json (section 2.2, Appendix B
 // CHARACTER_INVALID); these tests pin how hed-javascript reads it, following hed-python.

@@ -40,8 +40,10 @@ Source code is plain JavaScript (`.js`) in `src/`. TypeScript type declarations 
   - `tagConverter.js`, `eventManager.js`
 
 - `schema/` — HED schema loading, parsing, and merging
-  - `loader.js`, `parser.js`, `schemaMerger.js`
-  - `config.js`, `containers.js`, `entries.js`, `specs.js`, `init.js`
+  - `loader.js`, `init.js`, `config.js`, `containers.js`, `specs.js`, `xmlCollection.js`, `xmlType.js`,
+    `characterSets.js`
+  - `entries/` - one schema entry class per file, as hed-typescript `src/schema/entries/`
+  - `parser/` - one entry-type parser per file (`schemaParser.js` runs them), as hed-typescript `src/schema/parser/`
 
 - `issues/` — Issue codes and formatting
   - `issues.js`, `data.js`
@@ -49,7 +51,7 @@ Source code is plain JavaScript (`.js`) in `src/`. TypeScript type declarations 
 - `data/` — Bundled JSON configs and XML schema files
 
 - `utils/` — General utilities
-  - `array.js`, `string.js`, `files.js`, `paths.js`, `hedStrings.js`, `memoizer.js`, `xml.js`
+  - `array.js`, `string.js`, `files.js`, `paths.js`, `hedStrings.js`, `xml.js`
 
 ## Common commands
 

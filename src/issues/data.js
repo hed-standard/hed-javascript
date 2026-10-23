@@ -487,6 +487,11 @@ const issueData = {
     level: 'error',
     message: issueMessageTemplate`Lazy partnered schemas are incompatible because they share the entry "${'entryName'}". These schemas require different prefixes.`,
   },
+  invalidSchema: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: issueMessageTemplate`The HED schema is invalid - "${'error'}".`,
+  },
   deprecatedStandardSchemaVersion: {
     hedCode: 'VERSION_DEPRECATED',
     level: 'error',

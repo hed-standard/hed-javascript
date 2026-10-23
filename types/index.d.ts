@@ -8,7 +8,7 @@ export class BidsDataset {
   sidecarMap: Map<string, BidsSidecar>
 
   /** The HED schemas used to validate this dataset */
-  hedSchemas: Schemas | null
+  hedSchemas: HedSchemas | null
 
   /** Factory method to create a BidsDataset */
   static create(
@@ -38,7 +38,7 @@ export class BidsJsonFile {
   constructor(name: string, file: object | null, jsonData: Record<string, any>)
 
   /** Validate this file against HED schemas */
-  validate(schemas: Schemas | undefined): BidsHedIssue[]
+  validate(schemas: HedSchemas | undefined): BidsHedIssue[]
 
   /** Whether this file has any HED data */
   get hasHedData(): boolean
@@ -73,10 +73,10 @@ export class BidsSidecar extends BidsJsonFile {
   get hasHedData(): boolean
 
   /** Parse this sidecar's HED strings within the sidecar structure */
-  parseSidecarKeys(hedSchemas: Schemas, fullValidation?: boolean): [Issue[], Issue[]]
+  parseSidecarKeys(hedSchemas: HedSchemas, fullValidation?: boolean): [Issue[], Issue[]]
 
   /** Validate this file against HED schemas */
-  validate(schemas: Schemas | undefined): BidsHedIssue[]
+  validate(schemas: HedSchemas | undefined): BidsHedIssue[]
 
   /** The validator class used to validate this file */
   get validatorClass(): any
@@ -116,7 +116,7 @@ export class BidsTsvFile {
   get isTimelineFile(): boolean
 
   /** Validate this file against HED schemas */
-  validate(schemas: Schemas | undefined): BidsHedIssue[]
+  validate(schemas: HedSchemas | undefined): BidsHedIssue[]
 
   /** The validator class used to validate this file */
   get validatorClass(): any
@@ -222,7 +222,7 @@ export class BidsWebAccessor extends BidsFileAccessor {
   getFileContent(relativePath: string): Promise<string | null>
 }
 
-export function buildBidsSchemas(datasetDescription: BidsJsonFile): Promise<Schemas | null>
+export function buildBidsSchemas(datasetDescription: BidsJsonFile): Promise<HedSchemas | null>
 
 // Issues exports
 export class IssueError extends Error {
@@ -297,7 +297,7 @@ export class Definition {
   /** Evaluate the definition and return contents with any issues */
   evaluateDefinition(
     tag: ParsedHedTag,
-    hedSchema: Schemas,
+    hedSchema: HedSchemas,
     placeholderAllowed: boolean,
   ): [string | null, Issue[], Issue[]]
 
@@ -305,7 +305,7 @@ export class Definition {
   equivalent(other: Definition): boolean
 
   /** Create a definition from a HED string */
-  static createDefinition(hedString: string, hedSchemas: Schemas): [Definition | null, Issue[], Issue[]]
+  static createDefinition(hedString: string, hedSchemas: HedSchemas): [Definition | null, Issue[], Issue[]]
 
   /** Factory method to create a Definition from a group */
   static createDefinitionFromGroup(definitionGroup: ParsedHedGroup): [Definition | null, Issue[], Issue[]]
@@ -324,10 +324,10 @@ export class DefinitionManager {
   addDefinition(definition: Definition): Issue[]
 
   /** Check Def tags in a HED string for missing or incorrectly used definitions */
-  validateDefs(hedString: ParsedHedString, hedSchemas: Schemas, placeholderAllowed: boolean): Issue[]
+  validateDefs(hedString: ParsedHedString, hedSchemas: HedSchemas, placeholderAllowed: boolean): Issue[]
 
   /** Check Def-expand tags in a HED string for missing or incorrectly used definitions */
-  validateDefExpands(hedString: ParsedHedString, hedSchemas: Schemas, placeholderAllowed: boolean): Issue[]
+  validateDefExpands(hedString: ParsedHedString, hedSchemas: HedSchemas, placeholderAllowed: boolean): Issue[]
 }
 
 // Parsed HED types (used by Definition)
@@ -380,7 +380,7 @@ export class ParsedHedTag {
   /** The canonical form of the HED tag */
   canonicalTag: string
   /** The HED schema this tag belongs to */
-  schema: Schema
+  schema: HedSchema
   /** The schema's representation of this tag */
   schemaTag: SchemaTag
   /**
@@ -416,7 +416,7 @@ export class ParsedHedTag {
   readonly unitClasses: SchemaUnitClass[]
 
   /** Constructor for ParsedHedTag */
-  constructor(tagSpec: TagSpec, hedSchemas: Schemas)
+  constructor(tagSpec: TagSpec, hedSchemas: HedSchemas)
 
   /** Format this tag nicely */
   format(long?: boolean): string
@@ -504,10 +504,16 @@ export class ParsedHedString {
 }
 
 // Schema types
-export class Schema {
+/**
+ * An imported HED schema (a merge group under one prefix).
+ *
+ * The schema classes below are not exported by the package at runtime; they are the shapes of the objects that
+ * buildSchemasFromVersion returns.
+ */
+export class HedSchema {
   /** The HED schema version */
   version: string
-  /** The HED library schema name */
+  /** The HED library schema name ('' for a standard schema) */
   library: string
   /** This schema's prefix in the active schema set */
   prefix: string
@@ -518,6 +524,11 @@ export class Schema {
 
   constructor(xmlData: object, entries: SchemaEntries, prefix?: string)
 }
+
+/** @deprecated Use {@link HedSchema}. Kept through 4.x. */
+export type Schema = HedSchema
+/** @deprecated Use {@link HedSchema}. Kept through 4.x. */
+export declare const Schema: typeof HedSchema
 
 export class SchemaEntries {
   /** The schema's properties */
@@ -530,7 +541,7 @@ export class SchemaEntries {
   unitClasses: SchemaEntryManager<SchemaUnitClass>
   /** The schema's unit modifiers */
   unitModifiers: SchemaEntryManager<SchemaUnitModifier>
-  /** The schema's tags */
+  /** The schema's tags (keyed by lowercase short name; a value tag as "parent-#") */
   tags: SchemaEntryManager<SchemaTag>
 
   constructor(schemaParser: object)
@@ -542,6 +553,8 @@ export class SchemaEntryManager<T extends SchemaEntry> {
 
   constructor(definitions: Map<string, T>)
 
+  /** A copy of the managed definition map */
+  get definitions(): Map<string, T>
   [Symbol.iterator](): IterableIterator<[string, T]>
   keys(): IterableIterator<string>
   values(): IterableIterator<T>
@@ -550,60 +563,33 @@ export class SchemaEntryManager<T extends SchemaEntry> {
   getEntriesWithBooleanAttribute(booleanAttributeName: string): Map<string, T>
   filter(fn: (entry: [string, T]) => boolean): Map<string, T>
   get length(): number
-  /** A copy of the managed definition map */
-  get definitions(): Map<string, T>
 }
 
 export class SchemaEntry {
-  /** The name of this schema entry */
-  name: string
-  /** The description of this schema entry */
-  description: string | undefined
-
   constructor(name: string, description: string | undefined)
+
+  /** The name of this schema entry */
+  get name(): string
+  /** The description of this schema entry */
+  get description(): string | undefined
+
+  /** Comparator to sort schema entries by their names */
+  static sortByName(a: SchemaEntry, b: SchemaEntry): number
 
   hasBooleanAttribute(attributeName: string): boolean
   /** Whether another entry declares the same element (same name, description, and attributes, ignoring inLibrary and hedId) */
   equivalent(other: unknown): boolean
 }
 
-export class SchemaProperty extends SchemaEntry {
-  /** The type of the property */
-  protected _propertyType: string
-
-  constructor(name: string, description: string | undefined, propertyType: string)
-
-  /** Whether this property describes a schema category */
-  get isCategoryProperty(): boolean
-  /** Whether this property describes a data type */
-  get isTypeProperty(): boolean
-  /** Whether this property describes a role */
-  get isRoleProperty(): boolean
-}
+export class SchemaProperty extends SchemaEntry {}
 
 export class SchemaAttribute extends SchemaEntry {
-  /** The categories of elements this schema attribute applies to */
-  protected _categoryProperties: Set<SchemaProperty>
-  /** The data type of this schema attribute */
-  protected _typeProperty: SchemaProperty
-  /** The set of role properties for this schema attribute */
-  protected _roleProperties: Set<SchemaProperty>
-  /** The names of every property assigned to this schema attribute */
-  propertyNames: Set<string>
+  constructor(name: string, description: string | undefined, properties: Set<SchemaProperty>, recursive: boolean)
 
-  constructor(
-    name: string,
-    description: string | undefined,
-    properties: (SchemaProperty | undefined)[],
-    propertyNames?: Iterable<string>,
-  )
-
-  /** The categories of elements this schema attribute applies to */
-  get categoryProperty(): Set<SchemaProperty> | SchemaProperty | undefined
-  /** The data type property of this schema attribute */
-  get typeProperty(): SchemaProperty
-  /** The set of role properties for this schema attribute */
-  get roleProperties(): Set<SchemaProperty>
+  /** The properties named in this attribute's declaration (a name the schema does not define is an unregistered property) */
+  get properties(): Set<SchemaProperty>
+  /** Whether a tag passes this attribute to its descendants */
+  get recursive(): boolean
 }
 
 export class SchemaEntryWithAttributes extends SchemaEntry {
@@ -625,19 +611,13 @@ export class SchemaEntryWithAttributes extends SchemaEntry {
 
   hasAttribute(attributeName: string): boolean
   hasBooleanAttribute(attributeName: string): boolean
-  getValue(attributeName: string): any
+  /** The value of a value attribute; throws an IssueError if it has more than one */
+  getSingleAttributeValue(attributeName: string): any
+  /** All values of a value attribute */
+  getAttributeValues(attributeName: string): any[] | undefined
 }
 
 export class SchemaUnit extends SchemaEntryWithAttributes {
-  /** The type of this unit */
-  unitType: SchemaUnitClass
-  /** The SI unit this unit is based on */
-  siUnit: string
-  /** The default SI unit for this unit's type */
-  defaultSiUnit: string
-  /** The unit symbol */
-  unitSymbol: string
-
   constructor(
     name: string,
     description: string | undefined,
@@ -646,6 +626,14 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
     unitModifiers: SchemaEntryManager<SchemaUnitModifier>,
   )
 
+  /** Whether this unit is written before the value ($ 3) */
+  get isPrefixUnit(): boolean
+  /** Whether this unit takes SI modifiers */
+  get isSIUnit(): boolean
+  /** Whether this unit is a symbol (no plural; symbol modifiers) */
+  get isUnitSymbol(): boolean
+  /** The listed forms of this unit: its name, plural, and modified forms */
+  derivativeUnits(): Generator<string, void, void>
   /** Whether a unit string is a form of this unit (plural or SI-modified; one modifier per component of a compound unit) */
   validateUnit(value: string): boolean
   /** The factor converting a value in the given form of this unit to the unit class's default unit, or null if none */
@@ -655,13 +643,6 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
 }
 
 export class SchemaUnitClass extends SchemaEntryWithAttributes {
-  /** The units in this class */
-  units: SchemaUnit[]
-  /** The default unit of this unit class (a derived defaultUnits value such as mA resolves to its base unit) */
-  get defaultUnit(): SchemaUnit | undefined
-  /** Whether any unit of this class has a conversionFactor (none of the timeUnits of HED 8.0.0 does) */
-  get hasConversionFactors(): boolean
-
   constructor(
     name: string,
     description: string | undefined,
@@ -670,27 +651,31 @@ export class SchemaUnitClass extends SchemaEntryWithAttributes {
     units: Map<string, SchemaUnit>,
   )
 
+  /** The units in this class, by name */
+  get units(): Map<string, SchemaUnit>
+  /** The default unit of this unit class (a derived defaultUnits value such as mA resolves to its base unit) */
+  get defaultUnit(): SchemaUnit | undefined
+  /** Whether any unit of this class has a conversionFactor (none of the timeUnits of HED 8.0.0 does) */
+  get hasConversionFactors(): boolean
+
   /** Split a value into [unit, unit string, value string]; unit is null when no unit of this class matches */
   extractUnit(value: string, listedOnly?: boolean): [SchemaUnit | null, string | null, string]
 }
 
-export class SchemaUnitModifier extends SchemaEntryWithAttributes {
-  /** The SI prefix for this unit modifier */
-  siPrefix: string
-  /** The factor this unit modifier represents */
-  factor: number
+export class SchemaUnitModifier extends SchemaEntryWithAttributes {}
+
+export class SchemaValueClass extends SchemaEntryWithAttributes {
+  /** The character_sets.json names that define this class's characters; empty for no constraint */
+  allowedNames: string[]
 
   constructor(
     name: string,
     description: string | undefined,
     booleanAttributes: Set<SchemaAttribute>,
     valueAttributes: Map<SchemaAttribute, any>,
+    allowedNames?: string[],
   )
-}
 
-export class SchemaValueClass extends SchemaEntryWithAttributes {
-  /** The character_sets.json names that define this class's characters; empty for no constraint */
-  allowedNames: string[]
   /** Whether a value is valid for this class */
   validateValue(value: string): boolean
   /** Why a value fails this class: null if valid, the whole-value rule, or the rejected characters ([index, character]) */
@@ -698,11 +683,6 @@ export class SchemaValueClass extends SchemaEntryWithAttributes {
 }
 
 export class SchemaTag extends SchemaEntryWithAttributes {
-  /** The parent tag of this tag */
-  get parent(): SchemaTag | undefined
-  /** The value-taking child of this tag */
-  valueTag: SchemaValueTag | undefined
-
   constructor(
     name: string,
     description: string | undefined,
@@ -713,27 +693,48 @@ export class SchemaTag extends SchemaEntryWithAttributes {
     valueClasses: SchemaValueClass[],
   )
 
-  get shortTagName(): string
-  get longTagName(): string
-  isUnitClass(): boolean
-  isTakesValueClass(): boolean
-  parentHasAttribute(attributeName: string): boolean
+  /** The parent tag of this tag */
+  get parent(): SchemaTag | undefined
+  /** This tag's ancestors, nearest first */
+  get ancestors(): SchemaTag[]
+  /** The value-taking child of this tag */
+  get valueTag(): SchemaValueTag | undefined
+  /** This tag's unit classes (an entry is undefined for a class the schema does not define) */
+  get unitClasses(): SchemaUnitClass[]
+  /** Whether this tag has any unit classes */
+  get hasUnitClasses(): boolean
+  /** This tag's value classes */
+  get valueClasses(): SchemaValueClass[]
+  /** This tag's long name (its ancestors' names and its own, joined by "/") */
+  get longName(): string
+  /** This tag's short name extended by an extension */
+  extend(extension: string): string
+  /** This tag's long name extended by an extension */
+  longExtend(extension: string): string
 }
 
 export class SchemaValueTag extends SchemaTag {}
 
-export class Schemas {
-  /** The imported HED schemas */
-  schemas: Map<string, Schema>
+/**
+ * The collection of active HED schemas.
+ */
+export class HedSchemas {
+  /** The imported HED schemas, by prefix ('' for the schema with no prefix) */
+  schemas: Map<string, HedSchema>
 
-  constructor(schemas: Schema | Map<string, Schema>)
+  constructor(schemas: HedSchema | Map<string, HedSchema>)
 
-  /** Get schema by name */
-  getSchema(name?: string): Schema
+  /** Get schema by prefix */
+  getSchema(name?: string): HedSchema
 
   /** The base schema, i.e. the schema with no prefix, if one is defined. */
-  get baseSchema(): Schema
+  get baseSchema(): HedSchema
 }
+
+/** @deprecated Use {@link HedSchemas}. Kept through 4.x. */
+export type Schemas = HedSchemas
+/** @deprecated Use {@link HedSchemas}. Kept through 4.x. */
+export declare const Schemas: typeof HedSchemas
 
 // BIDS utilities
 /**
@@ -757,7 +758,7 @@ export function findDuplicateHeaders(contents: string): string[]
 // Schema exports
 export function getLocalSchemaVersions(): string[]
 
-export function buildSchemasFromVersion(version: string): Promise<Schemas>
+export function buildSchemasFromVersion(version: string): Promise<HedSchemas>
 
 // Parser exports
 /**
@@ -772,7 +773,7 @@ export function buildSchemasFromVersion(version: string): Promise<Schemas>
  */
 export function parseHedString(
   hedString: string | ParsedHedString,
-  hedSchemas: Schemas,
+  hedSchemas: HedSchemas,
   definitionsAllowed: boolean,
   placeholdersAllowed: boolean,
   fullValidation: boolean,
@@ -788,7 +789,7 @@ export function parseHedString(
  */
 export function parseStandaloneString(
   hedString: string | ParsedHedString,
-  hedSchemas: Schemas,
+  hedSchemas: HedSchemas,
   defManager?: DefinitionManager | null,
 ): [ParsedHedString, Issue[], Issue[]]
 
@@ -804,7 +805,7 @@ export function parseStandaloneString(
  */
 export function parseHedStrings(
   hedStrings: (string | ParsedHedString)[],
-  hedSchemas: Schemas,
+  hedSchemas: HedSchemas,
   definitionsAllowed: boolean,
   placeholdersAllowed: boolean,
   fullValidation: boolean,

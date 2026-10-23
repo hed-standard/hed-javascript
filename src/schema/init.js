@@ -4,11 +4,10 @@
 import zip from 'lodash/zip'
 
 import loadSchema from './loader'
-import { setParent } from '../utils/xml'
 
-import SchemaParser from './parser'
-import { SchemaXmlCollection } from './xmlCollection'
-import { Schema, Schemas } from './containers'
+import SchemaParser from './parser/schemaParser'
+import { HedSchemaXMLCollection } from './xmlCollection'
+import { HedSchema, HedSchemas } from './containers'
 import { IssueError } from '../issues/issues'
 import { splitStringTrimAndRemoveBlanks } from '../utils/string'
 import { SchemaSpec, SchemasSpec } from './specs'
@@ -63,20 +62,17 @@ const checkGroup = function (prefix, xmlData) {
  *
  * @param {string} prefix The prefix of the merge group.
  * @param {Object[]} xmlData The schemas' XML data.
- * @returns {Promise<Schema>} The HED schema object.
+ * @returns {Promise<HedSchema>} The HED schema object.
  * @throws {IssueError} If the group breaks a merge group rule or two of its schemas conflict.
  */
 const buildSchemaObjects = async function (prefix, xmlData) {
-  for (const data of xmlData) {
-    setParent(data.HED, null)
-  }
   checkGroup(prefix, xmlData)
 
   const standardSchemas = xmlData.filter((data) => data.HED.$.library === undefined)
   const librarySchemas = xmlData.filter((data) => data.HED.$.library !== undefined)
   if (librarySchemas.length === 1 && librarySchemas[0].HED.$.withStandard === undefined) {
-    const xmlCollection = new SchemaXmlCollection(librarySchemas[0])
-    return new Schema(librarySchemas[0], new SchemaParser(xmlCollection).parse(), prefix)
+    const xmlCollection = new HedSchemaXMLCollection(librarySchemas[0])
+    return new HedSchema(librarySchemas[0], new SchemaParser(xmlCollection).parse(), prefix)
   }
   const mergedLibrarySchemas = librarySchemas.filter((data) => data.HED.$.unmerged === undefined)
   const unmergedLibrarySchemas = librarySchemas.filter((data) => data.HED.$.unmerged !== undefined)
@@ -97,9 +93,8 @@ const buildSchemaObjects = async function (prefix, xmlData) {
   let baseSchemaXml = standardSchemas[0] ?? mergedLibrarySchemas.shift()
   if (baseSchemaXml === undefined) {
     baseSchemaXml = await loadSchema(new SchemaSpec(prefix, standardVersion))
-    setParent(baseSchemaXml.HED, null)
   }
-  const xmlCollection = new SchemaXmlCollection(
+  const xmlCollection = new HedSchemaXMLCollection(
     baseSchemaXml,
     standardVersion,
     mergedLibrarySchemas,
@@ -108,14 +103,14 @@ const buildSchemaObjects = async function (prefix, xmlData) {
   // The group is named after the listed standard schema, else its first library, merged or unmerged: an unmerged
   // library is parsed into its loaded partner but keeps its own name and version, as its merged file would.
   const identitySchemaXml = standardSchemas[0] ?? librarySchemas[0]
-  return new Schema(identitySchemaXml, new SchemaParser(xmlCollection).parse(), prefix)
+  return new HedSchema(identitySchemaXml, new SchemaParser(xmlCollection).parse(), prefix)
 }
 
 /**
  * Build a schema collection object from a schema specification.
  *
  * @param {SchemasSpec} schemaSpecs The description of which schemas to use.
- * @returns {Promise<Schemas>} The schema container object and any issues found.
+ * @returns {Promise<HedSchemas>} The schema container object and any issues found.
  */
 export async function buildSchemas(schemaSpecs) {
   const schemaPrefixes = Array.from(schemaSpecs.data.keys())
@@ -131,14 +126,14 @@ export async function buildSchemas(schemaSpecs) {
     schemaXmlData.map((xmlData, index) => buildSchemaObjects(schemaPrefixes[index], xmlData)),
   )
   const schemas = new Map(zip(schemaPrefixes, schemaObjects))
-  return new Schemas(schemas)
+  return new HedSchemas(schemas)
 }
 
 /**
  * Build HED schemas from a version specification string.
  *
  * @param {string} hedVersionString The HED version specification string (can contain comma-separated versions).
- * @returns {Promise<Schemas>} A Promise that resolves to the built schemas.
+ * @returns {Promise<HedSchemas>} A Promise that resolves to the built schemas.
  * @throws {IssueError} If the schema specification is invalid or schemas cannot be built.
  */
 export async function buildSchemasFromVersion(hedVersionString) {

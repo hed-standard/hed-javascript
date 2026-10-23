@@ -463,13 +463,7 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [
-          generateIssue('invalidExtension', {
-            tag: '#',
-            parentTag: 'Object',
-            msg: `The tag extension "#" is not in the HED name class, so it cannot be used as a tag extension.`,
-          }),
-        ],
+        errors: [generateIssue('invalidPlaceholder', { tag: 'Object/#' })],
         warnings: [],
       },
       {
@@ -482,13 +476,7 @@ export const parseTestData = [
         placeholdersAllowed: true,
         definitionsAllowed: false,
         fullValidation: false,
-        errors: [
-          generateIssue('invalidExtension', {
-            parentTag: 'Object/Thingie',
-            tag: '#',
-            msg: `The tag extension "#" is not in the HED name class, so it cannot be used as a tag extension.`,
-          }),
-        ],
+        errors: [generateIssue('invalidPlaceholder', { tag: 'Object/Thingie/#' })],
         warnings: [],
       },
       {
