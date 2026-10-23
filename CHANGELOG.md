@@ -67,7 +67,15 @@ testSpecs`.
 - A schema file that is well-formed XML but has no `HED` root or no `schema`
   element is reported as `localSchemaLoadFailed` (SCHEMA_LOAD_FAILED) instead of
   throwing a bare `TypeError`.
-
+- Tag extensions follow specification 3.2.5 rules 5 and 6 (hed-tests
+  `placeholder-invalid-after-extension`, `tag-extension-invalid-no-letter`): a
+  `#` after an extension term or in place of one (`Item/Blech/#`, `Item/#`) is
+  PLACEHOLDER_INVALID in a sidecar as in an events file (it was
+  TAG_EXTENSION_INVALID), while `Onset/#` stays TAG_EXTENSION_INVALID; and an
+  extension term must contain a letter, so `Item/Blech/3` and `Item/1-2` are
+  TAG_EXTENSION_INVALID for every schema version. A letter is A-Z or a-z, or any
+  Unicode letter from standard schema 8.3.0. The spec tests now use hed-tests
+  54f137e.
 - esbuild 0.28.1 and later work with `esbuild-plugins-node-modules-polyfill`:
   `legacy-peer-deps` is enabled in `.npmrc`.
 - Improved error reporting for duplicate tags.

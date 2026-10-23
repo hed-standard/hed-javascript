@@ -402,11 +402,7 @@ export const parsedHedTagTests = [
         formattedTag: undefined,
         canonicalTag: undefined,
         takesValue: false,
-        error: generateIssue('invalidExtension', {
-          parentTag: 'object',
-          tag: '#',
-          msg: `The tag extension "#" is not in the HED name class, so it cannot be used as a tag extension.`,
-        }),
+        error: generateIssue('invalidPlaceholder', { tag: 'object/#' }),
       },
       {
         testname: 'invalid-tag-bad-parent',
