@@ -111,6 +111,14 @@ describe('Schema layer (realignment phase 3)', () => {
       assert.isFalse(first.equivalent(other))
     })
 
+    it('compares attribute values item by item, so a value containing "|" is not two values', () => {
+      const tags = new SchemaAttribute('relatedTag', undefined, new Set(), false)
+      const entry = (values) => new SchemaUnitModifier('k', undefined, new Set(), new Map([[tags, values]]))
+      assert.isTrue(entry(['a|b', 'c']).equivalent(entry(['c', 'a|b'])))
+      assert.isFalse(entry(['a|b', 'c']).equivalent(entry(['a', 'b|c'])))
+      assert.isFalse(entry(['a', 'b']).equivalent(entry(['a', 'b', 'b'])))
+    })
+
     it('gives a single attribute value and throws when there are several', () => {
       const factor = new SchemaAttribute('conversionFactor', undefined, new Set(), false)
       const modifier = new SchemaUnitModifier('k', undefined, new Set(), new Map([[factor, ['1000']]]))
