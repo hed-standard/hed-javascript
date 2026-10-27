@@ -254,7 +254,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       return null
     }
     if (this._units === null) {
-      const acceptsAnyUnits = this.takesValueTag.unitClasses.some((unitClass) => unitClass?.name === 'anyUnits')
+      const acceptsAnyUnits = this.takesValueTag.unitClasses.some((unitClass) => unitClass.name === 'anyUnits')
       return acceptsAnyUnits ? null : value
     }
     const factor = this._unit?.conversionFactor(this._units) ?? null
@@ -510,29 +510,28 @@ export default class ParsedHedTag extends ParsedHedSubstring {
       // Placeholders work
       return null
     }
-    const valueClassNames = this._schemaTag.valueAttributeNames?.get('valueClass')
-    if (!valueClassNames) {
+    const valueClasses = this.takesValueTag.valueClasses
+    if (valueClasses.length === 0) {
       const characters = characterSets.problemCharacters(value, UNCLASSED_VALUE_SETS)
       if (characters.length === 0) {
         return null
       }
       return { characters: characters, subject: 'a value with no value class', names: UNCLASSED_VALUE_SETS }
     }
-    const entryManager = this.schema.entries.valueClasses
     let characterProblem = null
-    for (const valueClassName of valueClassNames) {
-      const valueClass = entryManager.getEntry(valueClassName)
+    for (const valueClass of valueClasses) {
       const problem = valueClass.valueProblem(value)
       if (problem === null) {
         return null
       }
       if (problem.characters && characterProblem === null) {
-        characterProblem = { characters: problem.characters, subject: valueClassName, names: valueClass.allowedNames }
+        characterProblem = { characters: problem.characters, subject: valueClass.name, names: valueClass.allowedNames }
       }
     }
     if (characterProblem !== null) {
       return characterProblem
     }
+    const valueClassNames = valueClasses.map((valueClass) => valueClass.name)
     return {
       msg: `Tag "${this.schemaTag.name}" has value classes [${valueClassNames.join(', ')}] but its value "${value}" is not in any of them.`,
     }

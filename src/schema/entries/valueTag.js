@@ -80,14 +80,10 @@ export default class SchemaValueTag extends SchemaTag {
     if (!SchemaEntryWithAttributes.prototype.equivalent.call(this.parent, other.parent)) {
       return false
     }
-    // A class without an entry (anyUnits before HED 8.5.0) is compared as ''.
-    const names = (entries) =>
-      entries
-        .map((entry) => entry?.name ?? '')
-        .sort((a, b) => a.localeCompare(b))
-        .join('|')
+    const names = (entries) => entries.map((entry) => entry.name)
     return (
-      names(this.unitClasses) === names(other.unitClasses) && names(this.valueClasses) === names(other.valueClasses)
+      SchemaEntryWithAttributes.sameValues(names(this.unitClasses), names(other.unitClasses)) &&
+      SchemaEntryWithAttributes.sameValues(names(this.valueClasses), names(other.valueClasses))
     )
   }
 }

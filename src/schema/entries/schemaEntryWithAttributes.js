@@ -84,12 +84,29 @@ export default class SchemaEntryWithAttributes extends SchemaEntry {
     if (ours.length !== theirs.size) {
       return false
     }
-    const sorted = (values) =>
-      [...values]
-        .map(String)
-        .sort((a, b) => a.localeCompare(b))
-        .join('|')
-    return ours.every(([name, values]) => theirs.has(name) && sorted(theirs.get(name)) === sorted(values))
+    return ours.every(
+      ([name, values]) => theirs.has(name) && SchemaEntryWithAttributes.sameValues(theirs.get(name), values),
+    )
+  }
+
+  /**
+   * Determine whether two lists of attribute values hold the same values in any order.
+   *
+   * The values are compared as strings, item by item after sorting, so a value containing "|" is not confused with
+   * two values.
+   *
+   * @param {Array} first The first list of values.
+   * @param {Array} second The second list of values.
+   * @returns {boolean} Whether the two lists hold the same values.
+   */
+  static sameValues(first, second) {
+    if (first.length !== second.length) {
+      return false
+    }
+    const sorted = (values) => [...values].map(String).sort((a, b) => a.localeCompare(b))
+    const sortedFirst = sorted(first)
+    const sortedSecond = sorted(second)
+    return sortedFirst.every((value, index) => value === sortedSecond[index])
   }
 
   /**
