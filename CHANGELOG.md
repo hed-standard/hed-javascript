@@ -61,6 +61,13 @@ testSpecs`.
   (SCHEMA_LOAD_FAILED) instead of an internal error. `core-js-pure` is no
   longer a dependency, so building a schema in a browser needs the native
   `Set` methods (2024 browsers and later).
+- A `unitClass` or `valueClass` name the schema does not define is dropped
+  when the schema is built, as in hed-typescript, instead of being kept as an
+  undefined entry in the tag's class list.
+- Value validation reads a tag's value classes from its value-taking schema
+  tag (`SchemaTag.valueClasses`) instead of the raw `valueClass` attribute,
+  which is no longer kept among the tag's value attributes (as `unitClass`
+  already was not).
 
 ### Fixed
 
@@ -153,7 +160,9 @@ testSpecs`.
   - in HED 8.0.0, whose time units have no `conversionFactor`, a timeline
     `Delay` or `Duration` in `s`, `second`, `seconds` or no unit converts as is;
     `ms` or `minute` is still TEMPORAL_TAG_ERROR.
+
   The dead `ReservedChecker.checkNonTopGroups` is removed (hed-tests e2753fb).
+
 - A column name repeated in the header of a TSV file is TABULAR_INVALID, one
   error per repeated name, and the file is not validated further
   (specification 3.2.10; #896; hed-tests
@@ -213,6 +222,7 @@ testSpecs`.
 
   `tests/otherTests/unmergedSchemas.spec.js` compares both forms of every
   partnered hed-tests library (#676).
+
 - Value characters follow the specification's `character_sets.json`, copied
   verbatim to `src/data/json/characterSets.json` (the new
   `character_sets.yml` workflow checks the copy); `classRegex.json` is gone.
@@ -239,6 +249,9 @@ testSpecs`.
   in its I/O error message; the file name was blank. Definition and placeholder
   issues found in a sidecar now carry its file path, as other sidecar issues
   do.
+- Comparing two declarations of a schema entry joined attribute values with
+  `|`, so `["a|b", "c"]` matched `["a", "b|c"]`; values are now compared item
+  by item.
 
 ### Dependencies
 

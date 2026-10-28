@@ -67,12 +67,7 @@ export default class TagParser extends SchemaEntryWithAttributesParser {
     this.processRootedElements(parentMap, valueAttributeDefinitions)
 
     const tagUnitClassDefinitions = this.processTagClasses(valueAttributeDefinitions, 'unitClass', this.unitClasses)
-    const tagValueClassDefinitions = this.processTagClasses(
-      valueAttributeDefinitions,
-      'valueClass',
-      this.valueClasses,
-      false,
-    )
+    const tagValueClassDefinitions = this.processTagClasses(valueAttributeDefinitions, 'valueClass', this.valueClasses)
     this.processRecursiveAttributes(parentMap, booleanAttributeDefinitions)
 
     this.createSchemaTags(
@@ -224,10 +219,11 @@ export default class TagParser extends SchemaEntryWithAttributesParser {
       if (classNames === undefined) {
         continue
       }
-      // A class name without an entry (anyUnits before HED 8.5.0) is kept as undefined.
+      // A class name the schema does not define is dropped, as in hed-typescript; the specification requires a
+      // defined class or anyUnits, and the validator assumes a valid schema.
       tagClassDefinitions.set(
         tagName,
-        classNames.map((className) => classes.getEntry(className)),
+        classNames.map((className) => classes.getEntry(className)).filter((entry) => entry !== undefined),
       )
       if (removeAttribute) {
         valueAttributes.delete(attribute)
