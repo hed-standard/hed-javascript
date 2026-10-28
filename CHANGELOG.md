@@ -7,6 +7,7 @@
 - Bundled HED 8.5.0 and its partnered libraries `lang_1.2.0` and
   `score_2.2.0` (hed-schemas main), so these versions load without a network
   request.
+- Bundled the `mouse_1.0.0` library schema (unmerged, partnered with 8.5.0).
 
 ### Changed
 
