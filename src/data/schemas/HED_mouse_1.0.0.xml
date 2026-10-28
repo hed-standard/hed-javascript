@@ -1,0 +1,382 @@
+<?xml version="1.0" ?>
+<HED version="1.0.0" library="mouse" withStandard="8.5.0" unmerged="True">
+   <prologue>The HED MOUSE HED library schema is designed to standardize the annotation of rodent behavioral experiments.</prologue>
+   <schema>
+      <node>
+         <name>Lick</name>
+         <description>Touch tongue to an object.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Move-face</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102001</value>
+         </attribute>
+      </node>
+      <node>
+         <name>Move-whiskers</name>
+         <description>Move the whiskers.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Move-face</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102002</value>
+         </attribute>
+      </node>
+      <node>
+         <name>Groom</name>
+         <description>Engage in self-hygiene.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Perform</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102003</value>
+         </attribute>
+      </node>
+      <node>
+         <name>Nose-poke</name>
+         <description>Nose enters or occupies a defined port/aperture location.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Perform</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102004</value>
+         </attribute>
+      </node>
+      <node>
+         <name>Fore-limb</name>
+         <description>Either of the front pair of limbs in a quadruped.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Body-part</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102005</value>
+         </attribute>
+      </node>
+      <node>
+         <name>Fore-limb-part</name>
+         <description>A part of the fore-limb.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Body-part</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102006</value>
+         </attribute>
+         <node>
+            <name>Manus</name>
+            <description>The distal segment of the fore-limb, homologous to the hand.</description>
+            <attribute>
+               <name>hedId</name>
+               <value>HED_0102007</value>
+            </attribute>
+         </node>
+      </node>
+      <node>
+         <name>Whiskers</name>
+         <description>Long, stiff, specialized hairs on the face used for tactile sensing.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Face-part</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102008</value>
+         </attribute>
+      </node>
+      <node>
+         <name>Hind-limb</name>
+         <description>Either of the rear pair of limbs in a quadruped.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Body-part</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102009</value>
+         </attribute>
+      </node>
+      <node>
+         <name>Hind-limb-part</name>
+         <description>A part of the hind-limb.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Body-part</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102010</value>
+         </attribute>
+         <node>
+            <name>Pes</name>
+            <description>The distal segment of the hind-limb, homologous to the foot.</description>
+            <attribute>
+               <name>hedId</name>
+               <value>HED_0102011</value>
+            </attribute>
+         </node>
+      </node>
+      <node>
+         <name>Tail</name>
+         <description>The posterior appendage extending from the base of the spine.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Body-part</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102012</value>
+         </attribute>
+      </node>
+      <node>
+         <name>Cell</name>
+         <description>The smallest basic structural and functional unit of all living organisms, capable of independent existence and self-replication.</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Anatomical-item</value>
+         </attribute>
+         <attribute>
+            <name>annotation</name>
+            <value>dc:source Wikipedia https://en.wikipedia.org/wiki/Cell_(biology)</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102013</value>
+         </attribute>
+         <node>
+            <name>Neuron</name>
+            <description>An electrically excitable cell specialized for the initiation, conduction, and transmission of information throughout the body.</description>
+            <attribute>
+               <name>annotation</name>
+               <value>dc:source Wikipedia https://en.wikipedia.org/wiki/Neuron</value>
+            </attribute>
+            <attribute>
+               <name>hedId</name>
+               <value>HED_0102014</value>
+            </attribute>
+         </node>
+      </node>
+      <node>
+         <name>Lick-spout</name>
+         <description>Device that delivers reward</description>
+         <attribute>
+            <name>rooted</name>
+            <value>Measurement-device</value>
+         </attribute>
+         <attribute>
+            <name>hedId</name>
+            <value>HED_0102015</value>
+         </attribute>
+      </node>
+   </schema>
+   <unitClassDefinitions/>
+   <unitModifierDefinitions/>
+   <valueClassDefinitions/>
+   <schemaAttributeDefinitions/>
+   <propertyDefinitions/>
+   <schemaSources>
+      <schemaSource>
+         <name>Original</name>
+         <link>https://www.hedtags.org</link>
+         <description>The definition was written by the schema authors and has no external source.</description>
+      </schemaSource>
+      <schemaSource>
+         <name>Wikipedia</name>
+         <link>https://en.wikipedia.org</link>
+         <description>General definitions of concepts.</description>
+      </schemaSource>
+   </schemaSources>
+   <schemaPrefixes>
+      <schemaPrefix>
+         <name>dc:</name>
+         <namespace>http://purl.org/dc/elements/1.1/#</namespace>
+         <description>The Dublin Core elements</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>foaf:</name>
+         <namespace>http://xmlns.com/foaf/0.1/#</namespace>
+         <description>Friend-of-a-Friend http://xmlns.com/foaf/spec/</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>iao:</name>
+         <namespace>http://purl.obolibrary.org/obo/iao.owl</namespace>
+         <description>Information Artifact Ontology (IAO)</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>ncit:</name>
+         <namespace>http://purl.obolibrary.org/obo/ncit.owl</namespace>
+         <description>NCI Thesaurus OBO Edition</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>obogo:</name>
+         <namespace>http://www.geneontology.org/formats/oboInOwl</namespace>
+         <description>The OBO Format Namespace</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>owl:</name>
+         <namespace>http://www.w3.org/2002/07/owl</namespace>
+         <description>The OWL namespace [OWL2-OVERVIEW]</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>prov:</name>
+         <namespace>http://www.w3.org/ns/prov</namespace>
+         <description>The PROV namespace [PROV-DM]</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>rdf:</name>
+         <namespace>http://www.w3.org/1999/02/22-rdf-syntax-ns</namespace>
+         <description>The RDF namespace [RDF-CONCEPTS]</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>rdfs:</name>
+         <namespace>http://www.w3.org/2000/01/rdf-schema</namespace>
+         <description>The RDF Schema namespace [RDFS]</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>skos:</name>
+         <namespace>http://www.w3.org/2004/02/skos/core</namespace>
+         <description>SKOS (Simple Knowledge Organization System) Vocabulary</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>terms:</name>
+         <namespace>http://purl.org/dc/terms/#</namespace>
+         <description>The Dublin Core terms</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>xml:</name>
+         <namespace>http://www.w3.org/XML/1998/namespace</namespace>
+         <description>XML Namespace [XML]</description>
+      </schemaPrefix>
+      <schemaPrefix>
+         <name>xsd:</name>
+         <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+         <description>XML Schema Namespace [XMLSCHEMA11-2]</description>
+      </schemaPrefix>
+   </schemaPrefixes>
+   <externalAnnotations>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>contributor</id>
+         <iri>http://purl.org/dc/elements/1.1/contributor</iri>
+         <description>An entity responsible for making contributions to the resource.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>creator</id>
+         <iri>http://purl.org/dc/elements/1.1/creator</iri>
+         <description>An entity primarily responsible for making the resource.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>date</id>
+         <iri>http://purl.org/dc/elements/1.1/date</iri>
+         <description>A point or period of time associated with an event in the lifecycle of the resource.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>description</id>
+         <iri>http://purl.org/dc/elements/1.1/description</iri>
+         <description>An account of the resource.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>format</id>
+         <iri>http://purl.org/dc/elements/1.1/format</iri>
+         <description>The file format</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>identifier</id>
+         <iri>http://purl.org/dc/elements/1.1/identifier</iri>
+         <description>An unambiguous reference to the resource within a given context.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>language</id>
+         <iri>http://purl.org/dc/elements/1.1/language</iri>
+         <description>A language of the resource.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>publisher</id>
+         <iri>http://purl.org/dc/elements/1.1/publisher</iri>
+         <description>An entity responsible for making the resource available.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>relation</id>
+         <iri>http://purl.org/dc/elements/1.1/relation</iri>
+         <description>A related resource.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>source</id>
+         <iri>http://purl.org/dc/elements/1.1/source</iri>
+         <description>A related resource from which the described resource is derived.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>subject</id>
+         <iri>http://purl.org/dc/elements/1.1/subject</iri>
+         <description>The topic of the resource.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>title</id>
+         <iri>http://purl.org/dc/elements/1.1/title</iri>
+         <description>A name given to the resource.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>dc:</name>
+         <id>type</id>
+         <iri>http://purl.org/dc/elements/1.1/type</iri>
+         <description>The nature or genre of the resource.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>foaf:</name>
+         <id>homepage</id>
+         <iri>http://xmlns.com/foaf/0.1/homepage</iri>
+         <description>A homepage for some thing.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>obogo:</name>
+         <id>has_dbxref</id>
+         <iri>http://www.geneontology.org/formats/oboInOwl#hasDbXref</iri>
+         <description>Property indicating that an ontology term has a cross-reference to a database.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>rdfs:</name>
+         <id>comment</id>
+         <iri>http://www.w3.org/2000/01/rdf-schema#comment</iri>
+         <description>Standard way to provide a human-readable description.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>skos:</name>
+         <id>closeMatch</id>
+         <iri>http://www.w3.org/2004/02/skos/core#closeMatch</iri>
+         <description>The element denotes a concept close enough to the external term given as the value to be used interchangeably in most applications.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>skos:</name>
+         <id>exactMatch</id>
+         <iri>http://www.w3.org/2004/02/skos/core#exactMatch</iri>
+         <description>The element denotes the same concept as the external term given as the value.</description>
+      </externalAnnotation>
+      <externalAnnotation>
+         <name>terms:</name>
+         <id>license</id>
+         <iri>http://purl.org/dc/terms/license</iri>
+         <description>A legal document giving official permission to do something with the resource.</description>
+      </externalAnnotation>
+   </externalAnnotations>
+</HED>

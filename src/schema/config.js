@@ -20,6 +20,7 @@ import HED8_5_0 from '../data/schemas/HED8.5.0.xml'
 import HED_lang_1_0_0 from '../data/schemas/HED_lang_1.0.0.xml'
 import HED_lang_1_1_0 from '../data/schemas/HED_lang_1.1.0.xml'
 import HED_lang_1_2_0 from '../data/schemas/HED_lang_1.2.0.xml'
+import HED_mouse_1_0_0 from '../data/schemas/HED_mouse_1.0.0.xml'
 import HED_score_1_2_0 from '../data/schemas/HED_score_1.2.0.xml'
 import HED_score_2_0_0 from '../data/schemas/HED_score_2.0.0.xml'
 import HED_score_2_1_0 from '../data/schemas/HED_score_2.1.0.xml'
@@ -35,6 +36,7 @@ const bundledSchemas = [
   ['HED_lang_1.0.0', HED_lang_1_0_0],
   ['HED_lang_1.1.0', HED_lang_1_1_0],
   ['HED_lang_1.2.0', HED_lang_1_2_0],
+  ['HED_mouse_1.0.0', HED_mouse_1_0_0],
   ['HED_score_1.2.0', HED_score_1_2_0],
   ['HED_score_2.0.0', HED_score_2_0_0],
   ['HED_score_2.1.0', HED_score_2_1_0],
