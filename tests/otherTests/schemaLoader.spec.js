@@ -7,12 +7,13 @@ import HedSchemaBrowserLoader from '../../src/schema/browserLoader'
 import HedSchemaLoader from '../../src/schema/loader'
 import MockHedSchemaLoader from '../../src/schema/__mocks__/loader'
 import * as config from '../../src/schema/config'
-import { SchemaSpec } from '../../src/schema/specs'
+import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { HedSchemas } from '../../src/schema/containers'
 import { IssueError } from '../../src/issues/issues'
 import * as files from '../../src/utils/files'
 
-const bundledSchemaFile = path.join(__dirname, '../../src/data/schemas/HED8.4.0.xml')
+const localSchemaFile = (name) => path.join(__dirname, '../../src/data/schemas', name)
+const bundledSchemaFile = localSchemaFile('HED8.4.0.xml')
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -70,6 +71,26 @@ describe('HedSchemaLoader', () => {
     expect(error).toBeInstanceOf(IssueError)
     expect(error.issue.internalCode).toBe('remoteSchemaLoadFailed')
     expect(error.issue.parameters.error).toContain('404')
+  })
+
+  it('merges a standard and a library schema given only by local path', async () => {
+    const spec = new SchemasSpec()
+      .addSchemaSpec(new SchemaSpec('', '', '', bundledSchemaFile))
+      .addSchemaSpec(new SchemaSpec('', '', '', localSchemaFile('HED_lang_1.1.0.xml')))
+    const schemas = await new HedSchemaLoader().buildSchemas(spec)
+    expect(schemas.baseSchema.version).toBe('8.4.0')
+    expect(schemas.baseSchema.entries.tags.hasEntry('language-item')).toBe(true)
+  })
+
+  it('rejects a schema name given twice by local path once the files are read', async () => {
+    const spec = new SchemasSpec()
+      .addSchemaSpec(new SchemaSpec('', '', '', localSchemaFile('HED_lang_1.1.0.xml')))
+      .addSchemaSpec(new SchemaSpec('', '', '', localSchemaFile('HED_score_2.1.0.xml')))
+      .addSchemaSpec(new SchemaSpec('', '', '', localSchemaFile('HED_lang_1.1.0.xml')))
+    const error = await new HedSchemaLoader().buildSchemas(spec).catch((caught) => caught)
+    expect(error).toBeInstanceOf(IssueError)
+    expect(error.issue.internalCode).toBe('multipleVersionsOfSameLibrarySchema')
+    expect(error.issue.parameters).toEqual({ schema: 'library "lang"', prefix: '' })
   })
 
   it('reports a null specification as invalidSchemaSpecification', async () => {
