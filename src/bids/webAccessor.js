@@ -6,8 +6,20 @@
  *
  * @module bids/webAccessor
  */
-import { BidsFileAccessor } from './datasetParser.js'
+import { BidsFileAccessor } from './datasetParser'
 import { buildBidsSchemas } from './schema'
+import HedSchemaBrowserLoader from '../schema/browserLoader'
+
+/**
+ * Build a HED schema collection for a dataset uploaded to a browser, never reading a local file.
+ *
+ * @param {BidsJsonFile} datasetDescription The description of the BIDS dataset being validated.
+ * @returns {Promise<HedSchemas|null>} A Promise with the schema collection, or null if the specification is missing.
+ * @throws {IssueError} If the schema specification is invalid.
+ */
+function buildBrowserBidsSchemas(datasetDescription) {
+  return buildBidsSchemas(datasetDescription, new HedSchemaBrowserLoader())
+}
 
 /**
  * Processes a list of files to determine the dataset root and create a relative file map.
@@ -87,8 +99,7 @@ export class BidsWebAccessor extends BidsFileAccessor {
    * @param {Map<string, File>} fileMap Map of relative file paths to browser File objects.
    */
   constructor(datasetRootDirectory, fileMap) {
-    super(datasetRootDirectory, fileMap)
-    this.schemaBuilder = buildBidsSchemas
+    super(datasetRootDirectory, fileMap, buildBrowserBidsSchemas)
   }
 
   /**

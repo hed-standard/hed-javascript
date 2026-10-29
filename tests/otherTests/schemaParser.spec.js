@@ -7,7 +7,7 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { HedSchema, HedSchemas, Schema, Schemas } from '../../src/schema/containers'
-import { HedSchemaXMLCollection, SchemaXmlCollection } from '../../src/schema/xmlCollection'
+import { HedSchemaXMLCollection, SchemaXmlCollection } from '../../src/schema/xmlType'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { buildSchemas, buildSchemasFromVersion } from '../../src/schema/init'
 import SchemaParser from '../../src/schema/parser/schemaParser'

@@ -3,7 +3,9 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { toMatchIssue } from '../testHelpers/toMatchIssue'
 import { BidsDataset } from '../../src/bids/types/dataset'
-import { BidsDirectoryAccessor, BidsFileAccessor } from '../../src/bids/datasetParser'
+import { BidsFileAccessor } from '../../src/bids/datasetParser'
+import { BidsDirectoryAccessor } from '../../src/bids/directoryAccessor'
+import { BidsDirectoryAccessor as BrowserDirectoryAccessor } from '../../src/bids/directoryAccessor.browser'
 import { BidsHedIssue } from '../../src/bids/types/issues'
 import { Schemas } from '../../src/schema/containers'
 
@@ -178,5 +180,17 @@ describe('BidsDataset', () => {
       const tissues = await dataset.validate()
       expect(tissues).toEqual([])
     })
+  })
+})
+
+describe('BidsDirectoryAccessor in the browser build', () => {
+  it('cannot read a directory, and BidsDataset.create reports it', async () => {
+    await expect(BrowserDirectoryAccessor.create(demoDataRoot)).rejects.toMatchIssue('internalError', {
+      message: `BidsDirectoryAccessor cannot read '${demoDataRoot}': it needs Node.js file system access, which this build does not have. Use BidsWebAccessor in a browser.`,
+    })
+    const [dataset, issues] = await BidsDataset.create(demoDataRoot, BrowserDirectoryAccessor)
+    expect(dataset).toBeNull()
+    expect(issues).toHaveLength(1)
+    expect(issues[0].hedIssue.internalCode).toBe('internalError')
   })
 })

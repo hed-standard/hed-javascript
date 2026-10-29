@@ -9,14 +9,15 @@
  * Schema loading convention (hed-tests json_test_data/test_schemas/README.md): every version
  * string in a case's "schema" field is resolved against test_schemas/hedxml by its cache-convention
  * file name (HED<version>.xml or HED_<library>_<version>.xml) when such a file exists, and
- * otherwise against the schemas bundled in src/data/schemas. A schema build that throws becomes
+ * otherwise against the schemas bundled in src/data/schemas; the mock schema loader
+ * (src/schema/__mocks__/loader.js) does the resolving. A schema build that throws becomes
  * the issue list of every sub-test of that case, so SCHEMA_LOAD_FAILED cases are expressible.
  *
  * Cases this validator does not pass yet are listed by name in skippedTests.js.
  */
 import chai from 'chai'
 const assert = chai.assert
-import { beforeAll, describe, test } from '@jest/globals'
+import { beforeAll, describe, jest, test } from '@jest/globals'
 import path from 'node:path'
 import fs from 'node:fs'
 
@@ -30,8 +31,10 @@ import parseTSV from '../src/bids/tsvParser'
 import { shouldRun } from '../tests/testHelpers/testUtilities'
 import { skippedTests } from './skippedTests'
 
+// The hed-tests test schemas are served by the mock loader (src/schema/__mocks__/loader.js).
+jest.mock('../src/schema/loader')
+
 const hedTestsDataDir = path.join(__dirname, 'hed-tests', 'json_test_data')
-const testSchemasDir = path.join(hedTestsDataDir, 'test_schemas', 'hedxml')
 const validationTestsFile = path.join(hedTestsDataDir, 'validation_tests.json')
 
 // Debugging hooks: set runAll to false and list the cases to run in runMap, or keep runAll and
@@ -66,12 +69,7 @@ function buildTestSchemas(schemaVersions) {
   const versions = typeof schemaVersions === 'string' ? [schemaVersions] : schemaVersions
   const specs = new SchemasSpec()
   for (const version of versions) {
-    const spec = SchemaSpec.parseVersionSpec(version)
-    const localFile = path.join(testSchemasDir, spec.localName + '.xml')
-    if (fs.existsSync(localFile)) {
-      spec.localPath = localFile
-    }
-    specs.addSchemaSpec(spec)
+    specs.addSchemaSpec(SchemaSpec.parseVersionSpec(version))
   }
   return buildSchemas(specs)
 }

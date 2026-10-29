@@ -190,7 +190,7 @@ class HedStringParser {
    * @param {boolean} definitionsAllowed - True if definitions are allowed
    * @param {boolean} placeholdersAllowed - True if placeholders are allowed
    * @param {boolean} fullValidation - True if full validation is required.
-   * @returns {Array} A tuple [Array<ParsedHedString|null>|null, Issue[], Issue[]] representing the parsed HED strings and any errors and warnings.
+   * @returns {Array} A tuple [ParsedHedString[]|null, Issue[], Issue[]] representing the parsed HED strings and any errors and warnings. The list is null if any string could not be parsed.
    */
   static parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed, fullValidation) {
     if (!hedSchemas) {
@@ -211,7 +211,11 @@ class HedStringParser {
       warnings.push(...warningIssues)
     }
 
-    return [parsedStrings, errors, warnings]
+    if (parsedStrings.every((parsedString) => parsedString !== null)) {
+      return [parsedStrings, errors, warnings]
+    } else {
+      return [null, errors, warnings]
+    }
   }
 }
 
@@ -246,14 +250,14 @@ export function parseStandaloneString(hedString, hedSchemas, defManager = null) 
 /**
  * Parse a list of HED strings.
  *
- * Now separates errors and warnings for easier handling. A string that fails to parse has null in its place.
+ * Now separates errors and warnings for easier handling. If any string fails to parse, the list is null.
  *
  * @param {string[]|ParsedHedString[]} hedStrings - A list of HED strings.
  * @param {Schemas} hedSchemas - The collection of HED schemas.
  * @param {boolean} definitionsAllowed - True if definitions are allowed
  * @param {boolean} placeholdersAllowed - True if placeholders are allowed
  * @param {boolean} fullValidation - True if full validation is required.
- * @returns {Array} A tuple [Array<ParsedHedString|null>|null, Issue[], Issue[]] representing the parsed HED strings and any issues found.
+ * @returns {Array} A tuple [ParsedHedString[]|null, Issue[], Issue[]] representing the parsed HED strings and any issues found.
  */
 export function parseHedStrings(hedStrings, hedSchemas, definitionsAllowed, placeholdersAllowed, fullValidation) {
   return HedStringParser.parseHedStrings(

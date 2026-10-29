@@ -168,8 +168,12 @@ export class BidsFileAccessor {
   /** Organized paths */
   organizedPaths: Map<string, Map<string, string[]>>
 
-  /** Constructor for BidsDirectoryAccessor */
-  constructor(datasetRootDirectory: string, fileMap: Map<string, string>)
+  /** Constructor for BidsFileAccessor; a subclass passes its HED schema builder */
+  constructor(
+    datasetRootDirectory: string,
+    fileMap: Map<string, string>,
+    schemaBuilder?: ((datasetDescription: BidsJsonFile) => Promise<HedSchemas | null>) | null,
+  )
 
   /** Factory method to create a BidsFileAccessor */
   static create(rootOrFiles: string | object): Promise<BidsFileAccessor>
@@ -801,7 +805,7 @@ export function parseStandaloneString(
  * @param definitionsAllowed True if definitions are allowed
  * @param placeholdersAllowed True if placeholders are allowed
  * @param fullValidation True if full validation is required.
- * @returns The parsed HED strings and any issues found.
+ * @returns The parsed HED strings and any issues found. The list is null if any string could not be parsed.
  */
 export function parseHedStrings(
   hedStrings: (string | ParsedHedString)[],
@@ -809,4 +813,4 @@ export function parseHedStrings(
   definitionsAllowed: boolean,
   placeholdersAllowed: boolean,
   fullValidation: boolean,
-): [ParsedHedString[], Issue[], Issue[]]
+): [ParsedHedString[] | null, Issue[], Issue[]]

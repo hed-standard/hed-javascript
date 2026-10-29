@@ -1,9 +1,13 @@
+import path from 'node:path'
+
 import {
+  getDirName,
   getMergedSidecarData,
   isSubpath,
   organizePaths,
   parseBidsFilename,
   organizedPathsGenerator,
+  parseRelativePath,
   _getCandidates,
   _sortCandidates,
 } from '../../src/utils/paths'
@@ -567,5 +571,27 @@ describe('paths utils', () => {
       const result = Array.from(organizedPathsGenerator(testMap, '.json'))
       expect(result).toEqual([])
     })
+  })
+})
+
+describe('getDirName and parseRelativePath', () => {
+  // The forms the accessors produce: '/'-separated paths relative to the dataset root.
+  const relativePaths = [
+    'dataset_description.json',
+    'task-test_events.json',
+    'participants.tsv',
+    'sub-01/sub-01_scans.tsv',
+    'sub-01/ses-01/func/sub-01_ses-01_task-test_run-1_events.tsv',
+    'phenotype/measure.tsv',
+    'stimuli/images/cat.jpg.json',
+    'sub-01/.hidden',
+    'noextension',
+    '/rooted.tsv',
+  ]
+
+  test.each(relativePaths)('match POSIX path.dirname and path.parse for %s', (relativePath) => {
+    expect(getDirName(relativePath)).toBe(path.posix.dirname(relativePath))
+    const { dir, base, name } = path.posix.parse(relativePath)
+    expect(parseRelativePath(relativePath)).toEqual({ dir, base, name })
   })
 })

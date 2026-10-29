@@ -1,8 +1,8 @@
 /**
  * This module contains classes for representing BIDS TSV files and their components.
- *
  * @module bids/types/tsv
  */
+
 import isPlainObject from 'lodash/isPlainObject'
 
 import { BidsFile } from './file'
@@ -18,7 +18,7 @@ import { columnNameText, stripNameWhitespace } from '../../utils/string'
 export class BidsTsvFile extends BidsFile {
   /**
    * This file's parsed TSV data.
-   * @type {Map<string, string[]>}
+   * @type {ParsedTSV}
    */
   parsedTsv
 
@@ -52,50 +52,72 @@ export class BidsTsvFile extends BidsFile {
    */
   mergedSidecar
 
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this file.
+   * @param {Object} file The Object representing this file data.
+   * @param {string|ParsedTSV|OldParsedTSV} tsvData This file's TSV data.
+   * @param {Object} [mergedDictionary] This file's merged JSON dictionary.
+   * @param {DefinitionManager|null} [defManager] This file's definition manager.
+   */
   constructor(name, file, tsvData, mergedDictionary = {}, defManager = null) {
     super(name, file, BidsHedTsvValidator)
 
-    let headers
-    if (typeof tsvData === 'string') {
-      this.parsedTsv = parseTSV(tsvData)
-      headers = parseTSVHeader(tsvData)
-    } else if (tsvData instanceof Map) {
-      // Names become text, as in a text file; two keys that become the same name keep the first column.
-      this.parsedTsv = new Map()
-      headers = []
-      for (const [key, values] of tsvData) {
-        const name = columnNameText(key)
-        headers.push(name)
-        if (!this.parsedTsv.has(name)) {
-          this.parsedTsv.set(name, values)
-        }
-      }
-    } else if (isPlainObject(tsvData)) {
-      headers = tsvData.headers.map(columnNameText)
-      this.parsedTsv = convertParsedTSVData({ headers, rows: tsvData.rows })
-    } else {
-      const msg = 'The tsvData was not a string, Map or plain object, so a BidsTsvFile could not be created.'
-      IssueError.generateAndThrow('internalError', { message: msg, filePath: file.path })
-    }
+    const [parsedTsv, headers] = this._parseTsv(tsvData, file)
+    this.parsedTsv = parsedTsv
     const { padded, blank, duplicate } = findHeaderProblems(headers)
     this.paddedColumns = padded
     this.blankColumns = blank
     this.duplicateColumns = duplicate
-
+    this.hedColumnHedStrings = this._parseHedColumn()
     this.mergedSidecar = new BidsSidecar(name, this.file, mergedDictionary, defManager)
-    this._parseHedColumn()
+  }
+
+  /**
+   * Parse the TSV file.
+   *
+   * @param {string|ParsedTSV|OldParsedTSV} tsvData This file's TSV data.
+   * @param {Object} file The Object representing this file data.
+   * @returns {[ParsedTSV, string[]]} The parsed TSV data and the column names as written.
+   * @private
+   */
+  _parseTsv(tsvData, file) {
+    if (typeof tsvData === 'string') {
+      return [parseTSV(tsvData), parseTSVHeader(tsvData)]
+    } else if (tsvData instanceof Map) {
+      // Names become text, as in a text file; two keys that become the same name keep the first column.
+      const parsedTsv = new Map()
+      const headers = []
+      for (const [key, values] of tsvData) {
+        const name = columnNameText(key)
+        headers.push(name)
+        if (!parsedTsv.has(name)) {
+          parsedTsv.set(name, values)
+        }
+      }
+      return [parsedTsv, headers]
+    } else if (isPlainObject(tsvData)) {
+      const headers = tsvData.headers.map(columnNameText)
+      return [convertParsedTSVData({ headers, rows: tsvData.rows }), headers]
+    } else {
+      const msg = 'The tsvData was not a string, Map or plain object, so a BidsTsvFile could not be created.'
+      IssueError.generateAndThrow('internalError', { message: msg, filePath: file.path })
+    }
   }
 
   /**
    * Parse the HED column from the TSV data.
+   *
+   * @returns {string[]} The parsed HED column.
    * @private
    */
   _parseHedColumn() {
     const hedColumn = this.parsedTsv.get('HED')
     if (hedColumn === undefined) {
-      this.hedColumnHedStrings = []
+      return []
     } else {
-      this.hedColumnHedStrings = hedColumn.map((hedCell) => (isMissingTsvValue(hedCell) ? '' : hedCell))
+      return hedColumn.map((hedCell) => (isMissingTsvValue(hedCell) ? '' : hedCell))
     }
   }
 

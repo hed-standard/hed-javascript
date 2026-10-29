@@ -14,6 +14,20 @@ import { cleanupEmpties, getTagListString } from '../../parser/parseUtils'
 import { EventManager } from '../../parser/eventManager'
 
 /**
+ * Add the issues found on one or more TSV lines to lists of errors and warnings.
+ *
+ * @param {{errors: BidsHedIssue[], warnings: BidsHedIssue[]}} target The lists of errors and warnings to add to.
+ * @param {Issue[]} errorIssues The HED errors found.
+ * @param {Issue[]} warningIssues The HED warnings found.
+ * @param {Object} file The Object representing the TSV file.
+ * @param {number|string} tsvLine The TSV line number, or a comma-separated list of line numbers.
+ */
+const addTsvLineIssues = function (target, errorIssues, warningIssues, file, tsvLine) {
+  target.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, file, { tsvLine }))
+  target.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, file, { tsvLine }))
+}
+
+/**
  * Validator for HED data in BIDS TSV files.
  */
 export class BidsHedTsvValidator extends BidsValidator {
@@ -91,7 +105,7 @@ export class BidsHedTsvValidator extends BidsValidator {
     if (this.errors.length > 0) {
       return
     }
-    this.validateDataset(bidsEvents)
+    this.#validateDataset(bidsEvents)
     if (this.errors.length === 0 && this.tsvFile.mergedSidecar?.hasHedData) {
       this._checkMissingHedWarning()
       this._checkMissingValueWarnings()
@@ -196,14 +210,13 @@ export class BidsHedTsvValidator extends BidsValidator {
     if (!hedString) {
       return
     }
-    const [parsedString, errorIssues, warningIssues] = parseStandaloneString(
+    const [, errorIssues, warningIssues] = parseStandaloneString(
       hedString,
       this.hedSchemas,
       this.tsvFile.mergedSidecar.definitions,
     )
 
-    this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: rowIndex }))
-    this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: rowIndex }))
+    addTsvLineIssues(this, errorIssues, warningIssues, this.tsvFile.file, rowIndex)
   }
 
   /**
@@ -235,17 +248,17 @@ export class BidsHedTsvValidator extends BidsValidator {
         // A function replacer inserts the value literally: a value such as "$&" is data, not a replacement pattern.
         const columnString = columnData.hedString.replace('#', () => columnValue)
         const [, errorIssues, warningIssues] = parseHedString(columnString, this.hedSchemas, false, false, false)
-        const tsvLine = rowIndexMinusTwo + 2
-        this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: tsvLine }))
-        this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: tsvLine }))
+        addTsvLineIssues(this, errorIssues, warningIssues, this.tsvFile.file, rowIndexMinusTwo + 2)
       })
     }
   }
 
   /**
    * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
+   *
+   * @param {BidsTsvElement[]} elements The elements representing the tsv file.
    */
-  validateDataset(elements) {
+  #validateDataset(elements) {
     // Final top-tag detection cannot be done until the strings are fully assembled and finalized.
     this._checkNoTopTags(elements)
     if (this.errors.length > 0) {
@@ -337,8 +350,7 @@ export class BidsHedTsvValidator extends BidsValidator {
       const rowString = elementList.map((element) => element.hedString).join(',')
       const [, errorIssues, warningIssues] = parseHedString(rowString, this.hedSchemas, false, false, true)
       const tsvLines = BidsTsvElement.getTsvLines(elementList)
-      this.errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: tsvLines }))
-      this.warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: tsvLines }))
+      addTsvLineIssues(this, errorIssues, warningIssues, this.tsvFile.file, tsvLines)
     }
   }
 
@@ -414,7 +426,7 @@ export class BidsHedTsvValidator extends BidsValidator {
  */
 export class BidsHedTsvParser {
   static nullSet = new Set([null, undefined, '', 'n/a'])
-  static braceRegEx = /\{([^{}]*?)\}/g
+  static #braceRegEx = /\{([^{}]*?)\}/g
 
   /**
    * The BIDS TSV file being parsed.
@@ -474,8 +486,7 @@ export class BidsHedTsvParser {
         true,
       )
       element.parsedHedString = parsedHedString
-      errors.push(...BidsHedIssue.fromHedIssues(errorIssues, this.tsvFile.file, { tsvLine: element.tsvLine }))
-      warnings.push(...BidsHedIssue.fromHedIssues(warningIssues, this.tsvFile.file, { tsvLine: element.tsvLine }))
+      addTsvLineIssues({ errors, warnings }, errorIssues, warningIssues, this.tsvFile.file, element.tsvLine)
     }
     return [errors, warnings]
   }
@@ -530,7 +541,7 @@ export class BidsHedTsvParser {
   _parseHedRow(rowCells, tsvLine) {
     const hedStringParts = []
     const columnMap = this._getColumnMapping(rowCells)
-    this.spliceValues(columnMap)
+    this.#spliceValues(columnMap)
 
     for (const [columnName, columnValue] of rowCells.entries()) {
       // If a splice, it can't be used in an assembled HED string.
@@ -597,7 +608,7 @@ export class BidsHedTsvParser {
    *
    * Note: Updates the map in place.
    */
-  spliceValues(columnMap) {
+  #spliceValues(columnMap) {
     if (!(this.tsvFile.mergedSidecar?.columnSpliceMapping?.size > 0)) {
       return
     }
@@ -619,7 +630,7 @@ export class BidsHedTsvParser {
    * @private
    */
   _replaceSplices(unspliced, columnMap) {
-    const result = unspliced.replace(BidsHedTsvParser.braceRegEx, (match, content) => {
+    const result = unspliced.replace(BidsHedTsvParser.#braceRegEx, (match, content) => {
       // Resolve the replacement value
       const resolved = columnMap.has(content) ? columnMap.get(content) : ''
       // Replace with resolved value or empty string if in nullSet

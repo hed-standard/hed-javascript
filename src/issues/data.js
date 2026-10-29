@@ -457,10 +457,10 @@ const issueData = {
     level: 'error',
     message: issueMessageTemplate`Tag "${'tag'}" is declared to use a library schema nicknamed "${'prefix'}" in the dataset's schema listing, but no such schema was found.`,
   },
-  schemaGroupInvalid: {
+  multipleVersionsOfSameLibrarySchema: {
     hedCode: 'SCHEMA_LOAD_FAILED',
     level: 'error',
-    message: issueMessageTemplate`Cannot combine schemas [${'versions'}] in one merge group: ${'problems'}.`,
+    message: issueMessageTemplate`The supplied HED schema specification is invalid because it lists ${'schema'} more than once in the merge group with prefix "${'prefix'}".`,
   },
   nonPartneredSchemaWithAnotherSchema: {
     hedCode: 'SCHEMA_LOAD_FAILED',

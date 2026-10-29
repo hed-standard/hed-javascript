@@ -1,9 +1,7 @@
 /**
  * This module contains classes for representing BIDS JSON files, including {@link BidsJsonFile} and {@link BidsSidecar}.
- *
  * @module bids/types/json
  */
-import isPlainObject from 'lodash/isPlainObject'
 
 import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
@@ -12,6 +10,7 @@ import BidsHedSidecarValidator from '../validator/sidecarValidator'
 import { IssueError, addIssueParameters } from '../../issues/issues'
 import { DefinitionManager, Definition } from '../../parser/definitionManager'
 import { isPaddedName } from '../../utils/string'
+import { isJsonObject } from '../../utils/types'
 
 const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
 
@@ -228,7 +227,7 @@ export class BidsSidecar extends BidsJsonFile {
         sidecarKey: topKey,
       })
     }
-    if (!isPlainObject(value)) {
+    if (!isJsonObject(value)) {
       return
     }
     for (const [subkey, subvalue] of Object.entries(value)) {
@@ -390,7 +389,7 @@ export class BidsSidecarKey {
     this.sidecar = sidecar
     if (typeof data === 'string') {
       this.valueString = data
-    } else if (!isPlainObject(data)) {
+    } else if (!isJsonObject(data)) {
       IssueError.generateAndThrow('illegalSidecarHedType', { sidecarKey: key, filePath: sidecar?.file?.path })
     } else {
       this.categoryMap = new Map(Object.entries(data))

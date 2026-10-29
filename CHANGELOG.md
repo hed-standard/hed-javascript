@@ -69,6 +69,24 @@ testSpecs`.
   tag (`SchemaTag.valueClasses`) instead of the raw `valueClass` attribute,
   which is no longer kept among the tag's value attributes (as `unitClass`
   already was not).
+- Realignment phase 4 (loader, BIDS layer, utils), as hed-typescript: schemas
+  load through a loader class (`AbstractHedSchemaLoader` with a Node.js and a
+  browser loader); the ESM build selects the browser loader and a browser
+  stand-in for `BidsDirectoryAccessor` (now in its own module) through the
+  `browser` field of `package.json`, so it bundles no Node.js module and no
+  longer polyfills them; the BIDS classes follow hed-typescript's shapes
+  (`BidsFileAccessor` takes the schema builder in its constructor,
+  `OrganizedBidsCandidates`, `BidsPathOrganizer`). In the ESM build
+  `BidsDirectoryAccessor.create` now throws instead of returning an empty
+  dataset. The default export of `src/bids/index.js` is gone (the package
+  exports were always named).
+- Bundled schemas load on demand; the ESM build ships one chunk per schema.
+- A schema listed twice in one merge group, whatever the version and including
+  the standard schema, is reported as `multipleVersionsOfSameLibrarySchema`
+  when the version string is parsed (same SCHEMA_LOAD_FAILED code), replacing
+  `schemaGroupInvalid` after loading.
+- `parseHedStrings` returns `null` for the whole list when any string fails to
+  parse, as hed-typescript.
 
 ### Fixed
 

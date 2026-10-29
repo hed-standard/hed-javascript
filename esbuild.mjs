@@ -1,8 +1,7 @@
 import path from 'node:path'
 import esbuild from 'esbuild'
-import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill'
 
-// Node.js target build
+// Node.js target build. The bundled schemas are inlined (esbuild cannot split CommonJS output).
 await esbuild.build({
   entryPoints: [path.join(process.cwd(), 'index.js')],
   loader: { '.xml': 'text' },
@@ -17,11 +16,11 @@ await esbuild.build({
 })
 
 // Browser target build — output is consumed by Vite/Webpack browser bundlers.
-// files.js is redirected to files.browser.js via the "browser" field in
-// package.json; esbuild honours that field automatically when platform is set
-// to 'browser'. Note: node:fs/promises is still polyfilled (as an empty stub)
-// because src/bids/datasetParser.js imports it directly — that code path is
-// Node-only and is never reached in a browser context.
+// The "browser" field in package.json redirects the two Node-only modules (src/schema/loader.js and
+// src/bids/directoryAccessor.js) to their browser versions; esbuild honours that field automatically
+// when platform is set to 'browser'. No Node.js module is bundled, so none is polyfilled.
+// Each bundled schema is split into its own chunk (dist/esm/schemas/), loaded on first use. chunkNames applies to
+// every split-out file, so esbuild's shared runtime helpers also land there as schemas/chunk.js.
 await esbuild.build({
   entryPoints: [path.join(process.cwd(), 'index.js')],
   loader: { '.xml': 'text' },
@@ -29,7 +28,8 @@ await esbuild.build({
   bundle: true,
   sourcemap: true,
   format: 'esm',
+  splitting: true,
+  chunkNames: 'schemas/[name]',
   external: ['pluralize'],
   platform: 'browser',
-  plugins: [nodeModulesPolyfillPlugin()],
 })
