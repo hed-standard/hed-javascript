@@ -57,6 +57,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
    * Validate this sidecar's HED strings.
    *
    * @returns {BidsHedIssue[]} All issues found.
+   * @private
    */
   _validateStrings() {
     const issues = []
@@ -113,6 +114,14 @@ export class BidsHedSidecarValidator extends BidsValidator {
     return BidsHedIssue.fromHedIssues(issues, this.sidecar.file, { sidecarKey: sidecarKeyName })
   }
 
+  /**
+   * Validate the placeholders.
+   *
+   * @param {string} sidecarKeyName - Name of the sidecar key for this HED string
+   * @param {ParsedHedString} hedString - The parsed HED string object associated with this key.
+   * @returns {BidsHedIssue[]} Issues encountered relating to invalid placeholders.
+   * @private
+   */
   _checkPlaceholders(sidecarKeyName, hedString) {
     const numberPlaceholders = getCharacterCount(hedString.hedString, '#')
     const sidecarKey = this.sidecar.sidecarKeys.get(sidecarKeyName)
@@ -146,6 +155,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
    * Validate this sidecar's curly braces -- checking recursion and missing columns.
    *
    * @returns {BidsHedIssue[]} All issues found.
+   * @private
    */
   _validateCurlyBraces() {
     const issues = []

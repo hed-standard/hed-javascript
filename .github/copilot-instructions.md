@@ -29,7 +29,8 @@ Source code is plain JavaScript (`.js`) in `src/`. TypeScript type declarations 
 **Source Modules** (`src/`):
 
 - `bids/` — BIDS dataset and TSV/sidecar parsing and validation
-  - `datasetParser.js`, `tsvParser.js`, `schema.js`, `index.js`
+  - `datasetParser.js` (`BidsFileAccessor`), `directoryAccessor.js` (+ `.browser.js`), `webAccessor.js`, `tsvParser.js`,
+    `schema.js`, `index.js`
   - `types/` — BIDS-specific type helpers
   - `validator/` — BIDS validation logic
 
@@ -40,7 +41,8 @@ Source code is plain JavaScript (`.js`) in `src/`. TypeScript type declarations 
   - `tagConverter.js`, `eventManager.js`
 
 - `schema/` — HED schema loading, parsing, and merging
-  - `loader.js`, `init.js`, `config.js`, `containers.js`, `specs.js`, `xmlCollection.js`, `xmlType.js`,
+  - `abstractLoader.js`, `loader.js` (Node.js), `browserLoader.js`, `__mocks__/loader.js` (hed-tests schemas),
+    `init.js`, `config.js`, `containers.js`, `specs.js`, `xmlType.js`,
     `characterSets.js`
   - `entries/` - one schema entry class per file, as hed-typescript `src/schema/entries/`
   - `parser/` - one entry-type parser per file (`schemaParser.js` runs them), as hed-typescript `src/schema/parser/`

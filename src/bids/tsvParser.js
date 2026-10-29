@@ -1,10 +1,19 @@
 /**
  * This module provides functions for parsing TSV files.
- *
  * @module bids/tsvParser
  */
 
 import { isPaddedName, stripNameWhitespace } from '../utils/string'
+
+/**
+ * Parsed TSV data: each column name with the column's cells.
+ * @typedef {Map<string, string[]>} ParsedTSV
+ */
+
+/**
+ * Parsed TSV data in the old BIDS format.
+ * @typedef {{headers: string[], rows: string[][]}} OldParsedTSV
+ */
 
 const stripBOM = (str) => str.replace(/^\uFEFF/, '')
 const normalizeEOL = (str) => str.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
@@ -62,9 +71,9 @@ export function isMissingTsvValue(value) {
  *
  * @param {string[]} headers The column names.
  * @param {string[][]} rows The rows; rows[0] is skipped as the header row.
- * @returns {Map<string, string[]>} The cells of each column.
+ * @returns {ParsedTSV} The cells of each column.
  */
-function buildColumns(headers, rows) {
+function createTsvMap(headers, rows) {
   const firstIndex = new Map()
   headers.forEach((header, index) => {
     if (!firstIndex.has(header)) {
@@ -126,11 +135,11 @@ export function findHeaderProblems(headers) {
  * (see {@link findDuplicateHeaders}).
  *
  * @param {string} contents The contents of a TSV file.
- * @returns {Map<string, string[]>} The parsed contents of the TSV file.
+ * @returns {ParsedTSV} The parsed contents of the TSV file.
  */
 export function parseTSV(contents) {
   const rows = splitRows(contents)
-  return buildColumns(rows.length ? rows[0] : [], rows)
+  return createTsvMap(rows.length ? rows[0] : [], rows)
 }
 
 /**
@@ -176,7 +185,7 @@ export function parseTSVHeader(contents) {
 /**
  * Find the column names that appear more than once in parsed TSV data in the old BIDS format.
  *
- * @param {{headers: string[], rows: string[][]}} oldParsedTsv Parsed TSV data using the old format
+ * @param {OldParsedTSV} oldParsedTsv Parsed TSV data using the old format
  * @returns {string[]} Each repeated name once; empty when every name is unique.
  */
 export function findDuplicateParsedHeaders(oldParsedTsv) {
@@ -188,11 +197,11 @@ export function findDuplicateParsedHeaders(oldParsedTsv) {
  *
  * A column name repeated in the headers keeps only its first column (see {@link findDuplicateParsedHeaders}).
  *
- * @param {{headers: string[], rows: string[][]}} oldParsedTsv Parsed TSV data using the old format
- * @returns {Map<string, string[]>} The parsed contents of the TSV file, using the new format.
+ * @param {OldParsedTSV} oldParsedTsv Parsed TSV data using the old format
+ * @returns {ParsedTSV} The parsed contents of the TSV file, using the new format.
  */
 export function convertParsedTSVData(oldParsedTsv) {
-  return buildColumns(oldParsedTsv.headers, oldParsedTsv.rows)
+  return createTsvMap(oldParsedTsv.headers, oldParsedTsv.rows)
 }
 
 export default parseTSV

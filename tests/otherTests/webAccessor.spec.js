@@ -1,5 +1,7 @@
-import { describe, it, expect } from '@jest/globals'
+import { describe, it, expect, jest } from '@jest/globals'
 import { BidsWebAccessor } from '../../src/bids/webAccessor'
+import { buildBidsSchemas } from '../../src/bids/schema'
+import HedSchemaBrowserLoader from '../../src/schema/browserLoader'
 
 // Minimal mock of the browser File API used by BidsWebAccessor.
 class MockFile {
@@ -74,9 +76,18 @@ describe('BidsWebAccessor.create — _processFileList prefix stripping', () => {
     expect(accessor.fileMap.has('dataset_description.json')).toBe(true)
   })
 
-  it('sets schemaBuilder to the package buildBidsSchemas function', async () => {
+  it('sets schemaBuilder to a builder that uses the browser schema loader', async () => {
     const accessor = await BidsWebAccessor.create([])
     expect(typeof accessor.schemaBuilder).toBe('function')
+    expect(accessor.schemaBuilder).not.toBe(buildBidsSchemas)
+    const loaderSpy = jest.spyOn(HedSchemaBrowserLoader.prototype, 'buildSchemas')
+    try {
+      const schemas = await accessor.schemaBuilder({ jsonData: { HEDVersion: '8.4.0' } })
+      expect(schemas.baseSchema.version).toBe('8.4.0')
+      expect(loaderSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      loaderSpy.mockRestore()
+    }
   })
 })
 

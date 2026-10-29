@@ -3,8 +3,6 @@
  * @module
  */
 
-import path from 'node:path'
-
 import zip from 'lodash/zip'
 
 import { iteratePairwiseCombinations } from './array'
@@ -66,7 +64,182 @@ export function isSubpath(potentialChild, potentialParent) {
 }
 
 /**
- * Organizes a list of relative file paths based on BIDS naming conventions.
+ * A collection of categorized BIDS file paths.
+ */
+class OrganizedBidsCandidates {
+  /**
+   * A list of all file paths that were successfully categorized.
+   * @type {string[]}
+   */
+  candidates
+
+  /**
+   * A Map where keys are the suffixes and special directories.
+   *   Each value is a Map with 'tsv' and 'json' properties, containing the corresponding
+   *   file paths. Keys will be present even if no files are found for them.
+   * @type {Map<string, Map<string, string[]>>}
+   */
+  organizedPaths
+
+  /**
+   * Initialize the organized paths map.
+   *
+   * @param {string[]} keys The keys to initialize the map with.
+   */
+  constructor(keys) {
+    this.candidates = []
+    this.organizedPaths = new Map()
+    for (const key of keys) {
+      this.organizedPaths.set(
+        key,
+        new Map([
+          ['json', []],
+          ['tsv', []],
+        ]),
+      )
+    }
+  }
+
+  /**
+   * Add a candidate.
+   *
+   * @param {string} relativePath The candidate's relative path.
+   * @param {string} suffix The candidate's suffix.
+   * @param {string} ext The candidate's extension.
+   */
+  addCandidate(relativePath, suffix, ext) {
+    this.candidates.push(relativePath)
+    const suffixPaths = this.organizedPaths.get(suffix)
+    if (suffixPaths === undefined) {
+      IssueError.generateAndThrowInternalError(`Uninitialized BIDS suffix key "${suffix}"`)
+    }
+    const extPaths = suffixPaths.get(ext)
+    if (extPaths === undefined) {
+      IssueError.generateAndThrowInternalError(`Uninitialized BIDS extension "${ext}" for suffix "${suffix}"`)
+    }
+    extPaths.push(relativePath)
+  }
+}
+
+class BidsPathOrganizer {
+  /**
+   * A list of relative file paths to organize.
+   * @type {string[]}
+   * @private
+   */
+  relativeFilePaths
+
+  /**
+   * A list of filename suffixes to categorize by (e.g., 'events').
+   * @type {string[]}
+   * @private
+   */
+  suffixes
+
+  /**
+   * A list of special directory names (e.g., 'phenotype').
+   * @type {string[]}
+   * @private
+   */
+  specialDirs
+
+  /**
+   * The relative file paths organized according to BIDS naming conventions.
+   * @type {OrganizedBidsCandidates}
+   * @private
+   */
+  candidates
+
+  /**
+   * Whether the candidates have already been organized.
+   * @type {boolean}
+   */
+  #alreadyOrganized
+
+  /**
+   * Build the organizer.
+   *
+   * @param {string[]} relativeFilePaths A list of relative file paths to organize.
+   * @param {string[]} suffixes A list of filename suffixes to categorize by (e.g., 'events').
+   * @param {string[]} specialDirs A list of special directory names (e.g., 'phenotype').
+   */
+  constructor(relativeFilePaths, suffixes, specialDirs) {
+    this.relativeFilePaths = relativeFilePaths
+    this.suffixes = suffixes
+    this.specialDirs = specialDirs
+    this.candidates = new OrganizedBidsCandidates([...suffixes, ...specialDirs])
+    this.#alreadyOrganized = false
+  }
+
+  /**
+   * Organize a list of relative file paths based on BIDS naming conventions.
+   *
+   * This function filters and categorizes file paths into a structured object. It identifies files
+   * based on whether they are in special directories (like 'phenotype'), are top-level files, or
+   * are located within subject-specific directories ('sub-xxx').
+   *
+   * Files are categorized by matching their filename against a list of suffixes (e.g., 'events',
+   * 'participants') or by their presence in a special directory. Only files with '.tsv' or '.json'
+   * extensions are considered.
+   *
+   * @returns {OrganizedBidsCandidates} The relative file paths organized according to BIDS naming conventions.
+   */
+  organizePaths() {
+    if (this.#alreadyOrganized) {
+      return this.candidates
+    }
+
+    for (const relativePath of this.relativeFilePaths) {
+      // Basic validation and extension check
+      if (typeof relativePath !== 'string' || (!relativePath.endsWith('.tsv') && !relativePath.endsWith('.json'))) {
+        continue
+      }
+      this._organizePath(relativePath)
+    }
+
+    this.#alreadyOrganized = true
+
+    return this.candidates
+  }
+
+  /**
+   * Helper function for organizing an individual path.
+   *
+   * @param {string} relativePath A relative file path to organize.
+   * @private
+   */
+  _organizePath(relativePath) {
+    const pathParts = relativePath.split('/')
+    const firstComponent = pathParts[0]
+    const ext = relativePath.endsWith('.tsv') ? 'tsv' : 'json'
+
+    // Rule 1: Check if the file is in a special directory.
+    if (this.specialDirs.includes(firstComponent)) {
+      this.candidates.addCandidate(relativePath, firstComponent, ext)
+      return
+    }
+
+    // Rule 2: Check if it's a top-level file or in a subject directory.
+    const isToplevel = pathParts.length === 1
+    const inSubDir = firstComponent.startsWith('sub-')
+    if (!isToplevel && !inSubDir) {
+      return
+    }
+
+    // Rule 3: Either it is the suffix or the suffix starts with an underscore and matches the end of the filename.
+    const basename = pathParts[pathParts.length - 1]
+    const filenameNoExt = basename.substring(0, basename.lastIndexOf('.'))
+    const matchingSuffix = this.suffixes.find(
+      (suffix) => filenameNoExt === suffix || (suffix.startsWith('_') && filenameNoExt.endsWith(suffix)),
+    )
+    if (matchingSuffix) {
+      this.candidates.addCandidate(relativePath, matchingSuffix, ext)
+    }
+  }
+}
+
+/**
+ * Organize a list of relative file paths based on BIDS naming conventions.
  *
  * This function filters and categorizes file paths into a structured object. It identifies files
  * based on whether they are in special directories (like 'phenotype'), are top-level files, or
@@ -79,67 +252,15 @@ export function isSubpath(potentialChild, potentialParent) {
  * @param {string[]} relativeFilePaths - A list of relative file paths to organize.
  * @param {string[]} suffixes - A list of filename suffixes to categorize by (e.g., 'events').
  * @param {string[]} specialDirs - A list of special directory names (e.g., 'phenotype').
- * @returns {{candidates: string[], organizedPaths: Map<string, Map<string, string[]>>}}
- *          An object containing two properties:
- *          - `candidates`: A list of all file paths that were successfully categorized.
- *          - `organizedPaths`: A Map where keys are the suffixes and special directories.
- *            Each value is a Map with 'tsv' and 'json' properties, containing the corresponding
- *            file paths. Keys will be present even if no files are found for them.
+ * @returns {OrganizedBidsCandidates} The relative file paths organized according to BIDS naming conventions:
+ *          `candidates`, a list of all file paths that were successfully categorized, and `organizedPaths`, a Map
+ *          where keys are the suffixes and special directories. Each value is a Map with 'tsv' and 'json'
+ *          properties, containing the corresponding file paths. Keys will be present even if no files are found for
+ *          them.
  */
 export function organizePaths(relativeFilePaths, suffixes, specialDirs) {
-  const candidates = []
-  // Use helper function to initialize organizedPaths
-  const organizedPaths = _initializeOrganizedPaths([...suffixes, ...specialDirs])
-
-  for (const relativePath of relativeFilePaths) {
-    // Basic validation and extension check
-    if (typeof relativePath !== 'string' || (!relativePath.endsWith('.tsv') && !relativePath.endsWith('.json'))) {
-      continue
-    }
-
-    const pathParts = relativePath.split('/')
-    const basename = pathParts[pathParts.length - 1]
-    const firstComponent = pathParts[0]
-
-    const ext = relativePath.endsWith('.tsv') ? 'tsv' : 'json'
-
-    let categorized = false
-
-    // Rule 1: Check if the file is in a special directory.
-    if (specialDirs.includes(firstComponent)) {
-      organizedPaths.get(firstComponent).get(ext).push(relativePath)
-      categorized = true
-    } else {
-      // Rule 2: Check if it's a top-level file or in a subject directory.
-      const isToplevel = pathParts.length === 1
-      const inSubDir = firstComponent.startsWith('sub-')
-
-      if (isToplevel || inSubDir) {
-        // Rule 3: Either it is the suffix or the suffix starts with an underscore and matches the end of the filename.
-        const filenameNoExt = basename.substring(0, basename.lastIndexOf('.'))
-        for (const suffix of suffixes) {
-          let match = false
-          if (filenameNoExt === suffix) {
-            match = true
-          } else if (suffix.startsWith('_') && filenameNoExt.endsWith(suffix)) {
-            match = true
-          }
-          if (match) {
-            organizedPaths.get(suffix).get(ext).push(relativePath)
-            categorized = true
-            break // Stop after first suffix match.
-          }
-        }
-      }
-    }
-
-    // If the file was categorized, add it to the candidates list.
-    if (categorized) {
-      candidates.push(relativePath)
-    }
-  }
-
-  return { candidates, organizedPaths }
+  const organizer = new BidsPathOrganizer(relativeFilePaths, suffixes, specialDirs)
+  return organizer.organizePaths()
 }
 
 /**
@@ -231,14 +352,37 @@ export function parseBidsFilename(filePath) {
 }
 
 /**
- * Get the directory part of a path.
- * @param {string} path The path.
- * @returns {string} The directory part of the path.
- * @private
+ * Get the directory name of a relative BIDS path ('/' separators), as POSIX `path.dirname` gives it.
+ *
+ * BIDS relative paths always use '/', in Node.js and in a browser, so no platform path module is needed.
+ *
+ * @param {string} relativePath The relative path of a file.
+ * @returns {string} The directory part of the path, or '.' for a file at the top level.
  */
-export function getDir(path) {
-  const lastSlash = path.lastIndexOf('/')
-  return lastSlash === -1 ? '' : path.substring(0, lastSlash)
+export function getDirName(relativePath) {
+  const lastSlash = relativePath.lastIndexOf('/')
+  if (lastSlash === -1) {
+    return '.'
+  } else if (lastSlash === 0) {
+    return '/'
+  }
+  return relativePath.substring(0, lastSlash)
+}
+
+/**
+ * Split a relative BIDS path ('/' separators) into its parts, as POSIX `path.parse` gives them.
+ *
+ * @param {string} relativePath The relative path of a file.
+ * @returns {{dir: string, base: string, name: string}} The directory ('' at the top level), the file name, and the
+ *     file name without its extension.
+ */
+export function parseRelativePath(relativePath) {
+  const lastSlash = relativePath.lastIndexOf('/')
+  const dir = lastSlash === -1 ? '' : lastSlash === 0 ? '/' : relativePath.substring(0, lastSlash)
+  const base = relativePath.substring(lastSlash + 1)
+  const lastDot = base.lastIndexOf('.')
+  const name = lastDot > 0 ? base.substring(0, lastDot) : base
+  return { dir, base, name }
 }
 
 /**
@@ -251,7 +395,7 @@ export function getDir(path) {
  */
 export function _getCandidates(jsonList, tsvDir, tsvParsed) {
   return jsonList.filter((jsonPath) => {
-    const jsonDir = path.dirname(jsonPath)
+    const jsonDir = getDirName(jsonPath)
 
     // Sidecar must be in the tsv file's directory hierarchy.
     if (!isSubpath(tsvDir, jsonDir)) {
@@ -286,8 +430,8 @@ export function _getCandidates(jsonList, tsvDir, tsvParsed) {
  */
 export function _sortCandidates(candidates) {
   candidates.sort((a, b) => {
-    const aDir = path.dirname(a)
-    const bDir = path.dirname(b)
+    const aDir = getDirName(a)
+    const bDir = getDirName(b)
     if (aDir.length !== bDir.length) {
       return aDir.length - bDir.length
     }
@@ -315,7 +459,7 @@ export function _sortCandidates(candidates) {
  * @throws {Error} If a BIDS inheritance conflict is detected.
  */
 export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
-  const tsvDir = path.dirname(tsvPath)
+  const tsvDir = getDirName(tsvPath)
   const tsvParsed = parseBidsFilename(tsvPath)
 
   // 1. Filter to find applicable sidecars
@@ -325,7 +469,7 @@ export function getMergedSidecarData(tsvPath, jsonList, sidecarMap) {
   _sortCandidates(candidates)
   // 3. Check for conflicts
   const groupedByDir = candidates.reduce((acc, xpath) => {
-    const dir = path.dirname(xpath)
+    const dir = getDirName(xpath)
     if (!acc.has(dir)) {
       acc.set(dir, [])
     }
@@ -400,25 +544,4 @@ export function* organizedPathsGenerator(organizedPaths, targetExtension) {
       }
     }
   }
-}
-
-/**
- * Initialize the organized paths map.
- *
- * @param {string[]} keys The keys to initialize the map with.
- * @returns {Map<string, Map<string, string[]>>} The initialized map.
- * @private
- */
-const _initializeOrganizedPaths = (keys) => {
-  const map = new Map()
-  for (const key of keys) {
-    map.set(
-      key,
-      new Map([
-        ['json', []],
-        ['tsv', []],
-      ]),
-    )
-  }
-  return map
 }

@@ -13,22 +13,11 @@ import { BidsJsonFile, BidsSidecar } from './types/json'
 import { BidsTsvFile } from './types/tsv'
 import { BidsDataset } from './types/dataset'
 import { BidsHedIssue } from './types/issues'
-import { BidsFileAccessor, BidsDirectoryAccessor } from './datasetParser'
+import { BidsFileAccessor } from './datasetParser'
+import { BidsDirectoryAccessor } from './directoryAccessor'
 import { BidsWebAccessor } from './webAccessor'
 
 export {
-  BidsDataset,
-  BidsTsvFile,
-  BidsJsonFile,
-  BidsSidecar,
-  BidsHedIssue,
-  buildBidsSchemas,
-  BidsFileAccessor,
-  BidsDirectoryAccessor,
-  BidsWebAccessor,
-}
-
-export default {
   BidsDataset,
   BidsTsvFile,
   BidsJsonFile,

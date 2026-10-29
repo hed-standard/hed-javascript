@@ -206,15 +206,21 @@ export class SchemasSpec {
   /**
    * Add a schema to this specification.
    *
-   * The specification is appended to its prefix's list; a schema listed twice in one group is reported when the
-   * group is built (schemaGroupInvalid).
+   * A schema name (a library name, or the standard schema) may appear only once in a merge group, whatever the
+   * versions (specification 3.1.2.4).
    *
    * @param {SchemaSpec} schemaSpec A schema specification.
    * @returns {SchemasSpec} This object.
+   * @throws {IssueError} If the schema's name is already listed under its prefix.
    */
   addSchemaSpec(schemaSpec) {
     if (this.#data.has(schemaSpec.prefix)) {
-      this.#data.get(schemaSpec.prefix).push(schemaSpec)
+      const existingPrefixSpecs = this.#data.get(schemaSpec.prefix)
+      if (existingPrefixSpecs.some((spec) => schemaSpec.library === spec.library)) {
+        const schema = schemaSpec.library ? `library "${schemaSpec.library}"` : 'the standard schema'
+        IssueError.generateAndThrow('multipleVersionsOfSameLibrarySchema', { schema, prefix: schemaSpec.prefix })
+      }
+      existingPrefixSpecs.push(schemaSpec)
     } else {
       this.#data.set(schemaSpec.prefix, [schemaSpec])
     }

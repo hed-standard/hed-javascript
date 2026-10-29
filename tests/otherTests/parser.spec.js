@@ -94,12 +94,23 @@ describe('Parser layer', () => {
       const [parsedFull, errorsFull] = parseHedStrings(['Onset'], hedSchemas, false, false, true)
       assert.lengthOf(errorsFull, 1)
       assert.strictEqual(errorsFull[0].hedCode, 'TAG_GROUP_ERROR')
-      assert.deepStrictEqual(parsedFull, [null])
+      assert.isNull(parsedFull)
 
       const [parsedPartial, errorsPartial] = parseHedStrings(['Onset'], hedSchemas, false, false, false)
       assert.lengthOf(errorsPartial, 0)
       assert.lengthOf(parsedPartial, 1)
       assert.isNotNull(parsedPartial[0])
+    })
+
+    it('should return null for the whole list when one string fails', () => {
+      const [parsed, errors] = parseHedStrings(['Red, Blue', 'Blech/Red'], hedSchemas, false, false, true)
+      assert.isNull(parsed)
+      assert.lengthOf(errors, 1)
+      assert.strictEqual(errors[0].hedCode, 'TAG_INVALID')
+
+      const [parsedAll, errorsAll] = parseHedStrings(['Red', 'Blue'], hedSchemas, false, false, true)
+      assert.lengthOf(errorsAll, 0)
+      assert.lengthOf(parsedAll, 2)
     })
   })
 

@@ -1,6 +1,12 @@
 /**
  * Validator base class for HED data in BIDS TSV files.
- * @abstract bids/validator/validator
+ * @module bids/validator/validator
+ */
+
+/**
+ * Validator base class for HED data in BIDS TSV files.
+ *
+ * @abstract
  */
 export class BidsValidator {
   /**
@@ -10,7 +16,7 @@ export class BidsValidator {
   hedSchemas
 
   /**
-   * The issues found during validation.
+   * The errors found during validation.
    * @type {BidsHedIssue[]}
    */
   errors

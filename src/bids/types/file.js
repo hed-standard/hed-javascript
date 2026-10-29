@@ -1,6 +1,5 @@
 /**
  * This module contains the {@link BidsFile} class, which is the base class for BIDS files.
- *
  * @module bids/types/file
  */
 
@@ -26,18 +25,34 @@ export class BidsFile {
 
   /**
    * The validator class used to validate this file.
-   * @private
+   * @type {function}
    */
-  _validatorClass
+  #validatorClass
 
+  /**
+   * Constructor.
+   *
+   * @param {string} name The name of this file.
+   * @param {Object} file The Object representing this file data.
+   * @param {function} validatorClass The validator class used to validate this file.
+   */
   constructor(name, file, validatorClass) {
     this.name = name
     this.file = file
-    this._validatorClass = validatorClass
+    this.#validatorClass = validatorClass
   }
 
   /**
-   * Validate this validator's tsv file.
+   * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
+   *
+   * @returns {string} The file name.
+   */
+  toString() {
+    return this.name
+  }
+
+  /**
+   * Validate this validator's file.
    *
    * @param {Schemas} schemas - The HED schemas used to validate this file.
    * @returns {BidsHedIssue[]} - Any issues found during validation of this TSV file.
@@ -70,7 +85,7 @@ export class BidsFile {
   /**
    * Determine whether this file has any HED data.
    *
-   * @returns {boolean}
+   * @returns {boolean} Whether this file has any HED data.
    */
   get hasHedData() {
     return false
@@ -82,6 +97,6 @@ export class BidsFile {
    * @returns {function} The validator class used to validate this file.
    */
   get validatorClass() {
-    return this._validatorClass
+    return this.#validatorClass
   }
 }

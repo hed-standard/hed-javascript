@@ -1,6 +1,10 @@
-/** String-related utility functions
+/**
+ * String-related utility functions.
  * @module utils/string
- * */
+ */
+
+import { isJsonObject } from './types'
+import { IssueError } from '../issues/issues'
 
 /**
  * Get number of instances of a character in a string.
@@ -25,6 +29,21 @@ export function splitStringTrimAndRemoveBlanks(string, delimiter = ',') {
     .split(delimiter)
     .map((item) => item.trim())
     .filter(Boolean)
+}
+
+/**
+ * Parse a JSON string.
+ *
+ * @param {string} jsonText A JSON string.
+ * @returns {Object} The parsed JSON object.
+ * @throws {IssueError} If the JSON data is not an object.
+ */
+export function parseJson(jsonText) {
+  const jsonData = JSON.parse(jsonText)
+  if (!isJsonObject(jsonData)) {
+    IssueError.generateAndThrowInternalError('JSON data has wrong type')
+  }
+  return jsonData
 }
 
 /**

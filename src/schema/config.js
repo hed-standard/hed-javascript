@@ -1,53 +1,56 @@
-/** Bundled HED schema configuration.
+/**
+ * Bundled HED schema configuration.
  * @module schema/config
- * */
+ */
 
-// Static imports of bundled HED schema XML files. These are resolved at build
-// time by esbuild (loader: { '.xml': 'text' }) for the published bundles, and
-// at test time by xml-transformer.js (Jest transform). The XML strings are
-// inlined into the resulting bundle in both Node and browser builds, so the
+// Dynamic imports of bundled HED schema XML files, one per schema, so a schema is read only when it is first used.
+// They are resolved at build time by esbuild (loader: { '.xml': 'text' }) for the published bundles, and at test
+// time by xml-transformer.js (Jest transform). The ESM build writes each schema to its own chunk
+// (dist/esm/schemas/), loaded from the installed package; the CommonJS build inlines them. Either way the
 // "local cache" of standard schemas is available offline in every environment.
 //
-// To add a new bundled schema: drop the XML file in src/data/schemas/ and add
-// the matching import + map entry below.
+// To add a new bundled schema: drop the XML file in src/data/schemas/ and add the matching entry below.
 
-import HED8_0_0 from '../data/schemas/HED8.0.0.xml'
-import HED8_1_0 from '../data/schemas/HED8.1.0.xml'
-import HED8_2_0 from '../data/schemas/HED8.2.0.xml'
-import HED8_3_0 from '../data/schemas/HED8.3.0.xml'
-import HED8_4_0 from '../data/schemas/HED8.4.0.xml'
-import HED8_5_0 from '../data/schemas/HED8.5.0.xml'
-import HED_lang_1_0_0 from '../data/schemas/HED_lang_1.0.0.xml'
-import HED_lang_1_1_0 from '../data/schemas/HED_lang_1.1.0.xml'
-import HED_lang_1_2_0 from '../data/schemas/HED_lang_1.2.0.xml'
-import HED_mouse_1_0_0 from '../data/schemas/HED_mouse_1.0.0.xml'
-import HED_score_1_2_0 from '../data/schemas/HED_score_1.2.0.xml'
-import HED_score_2_0_0 from '../data/schemas/HED_score_2.0.0.xml'
-import HED_score_2_1_0 from '../data/schemas/HED_score_2.1.0.xml'
-import HED_score_2_2_0 from '../data/schemas/HED_score_2.2.0.xml'
+const bundledSchemas = {
+  'HED8.0.0': () => import('../data/schemas/HED8.0.0.xml'),
+  'HED8.1.0': () => import('../data/schemas/HED8.1.0.xml'),
+  'HED8.2.0': () => import('../data/schemas/HED8.2.0.xml'),
+  'HED8.3.0': () => import('../data/schemas/HED8.3.0.xml'),
+  'HED8.4.0': () => import('../data/schemas/HED8.4.0.xml'),
+  'HED8.5.0': () => import('../data/schemas/HED8.5.0.xml'),
+  'HED_lang_1.0.0': () => import('../data/schemas/HED_lang_1.0.0.xml'),
+  'HED_lang_1.1.0': () => import('../data/schemas/HED_lang_1.1.0.xml'),
+  'HED_lang_1.2.0': () => import('../data/schemas/HED_lang_1.2.0.xml'),
+  'HED_mouse_1.0.0': () => import('../data/schemas/HED_mouse_1.0.0.xml'),
+  'HED_score_1.2.0': () => import('../data/schemas/HED_score_1.2.0.xml'),
+  'HED_score_2.0.0': () => import('../data/schemas/HED_score_2.0.0.xml'),
+  'HED_score_2.1.0': () => import('../data/schemas/HED_score_2.1.0.xml'),
+  'HED_score_2.2.0': () => import('../data/schemas/HED_score_2.2.0.xml'),
+}
 
-const bundledSchemas = [
-  ['HED8.0.0', HED8_0_0],
-  ['HED8.1.0', HED8_1_0],
-  ['HED8.2.0', HED8_2_0],
-  ['HED8.3.0', HED8_3_0],
-  ['HED8.4.0', HED8_4_0],
-  ['HED8.5.0', HED8_5_0],
-  ['HED_lang_1.0.0', HED_lang_1_0_0],
-  ['HED_lang_1.1.0', HED_lang_1_1_0],
-  ['HED_lang_1.2.0', HED_lang_1_2_0],
-  ['HED_mouse_1.0.0', HED_mouse_1_0_0],
-  ['HED_score_1.2.0', HED_score_1_2_0],
-  ['HED_score_2.0.0', HED_score_2_0_0],
-  ['HED_score_2.1.0', HED_score_2_1_0],
-  ['HED_score_2.2.0', HED_score_2_2_0],
-]
+/**
+ * This list defines the base names of HED XML schema files that are considered "bundled" with the library.
+ * The actual loading mechanism is handled by the schema loader.
+ */
+export const localSchemaNames = Object.freeze(Object.keys(bundledSchemas))
 
-export const localSchemaNames = bundledSchemas.map(([name]) => name)
+/**
+ * Retrieve the XML data of a bundled schema, loading it on first use.
+ *
+ * @param {string} name The base name of the bundled schema file, such as "HED8.4.0".
+ * @returns {Promise<string>} The raw schema XML data.
+ */
+export async function getBundledSchema(name) {
+  const schemaModule = await bundledSchemas[name]()
+  return schemaModule.default
+}
 
-export const localSchemaMap = new Map(bundledSchemas)
-
-export const getLocalSchemaVersions = function () {
+/**
+ * Return a copy of the bundled schema names without the "HED" prefix.
+ *
+ * @returns {string[]} The list of unprefixed bundled schema names.
+ */
+export function getLocalSchemaVersions() {
   // Return a copy of the local schema names to avoid external modifications
   return localSchemaNames.map((name) => name.replace(/^HED_?/, ''))
 }

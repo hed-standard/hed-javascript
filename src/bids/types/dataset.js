@@ -3,12 +3,11 @@
  * @module bids/types/dataset
  */
 import { BidsFileAccessor } from '../datasetParser'
-import { BidsSidecar } from './json'
+import { BidsJsonFile, BidsSidecar } from './json'
 import { BidsTsvFile } from './tsv'
 import { generateIssue, IssueError } from '../../issues/issues'
-import { getMergedSidecarData, organizedPathsGenerator } from '../../utils/paths'
+import { getMergedSidecarData, organizedPathsGenerator, parseRelativePath } from '../../utils/paths'
 import { BidsHedIssue } from './issues'
-import path from 'node:path'
 
 /**
  * A BIDS dataset.
@@ -134,21 +133,21 @@ export class BidsDataset {
    * @throws {IssueError} If `dataset_description.json` is missing or contains an invalid HED specification.
    */
   async setHedSchemas() {
+    const datasetDescriptionFileName = 'dataset_description.json'
     let description
 
     try {
-      const descriptionContentString = await this.fileAccessor.getFileContent('dataset_description.json')
+      const descriptionContentString = await this.fileAccessor.getFileContent(datasetDescriptionFileName)
       if (descriptionContentString === null || typeof descriptionContentString === 'undefined') {
-        IssueError.generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
+        IssueError.generateAndThrow('missingSchemaSpecification', { file: datasetDescriptionFileName })
       }
-      description = {
-        jsonData: JSON.parse(descriptionContentString),
-      }
+      // JSON.parse, not parseJson: a description that is not an object reaches the schema builder, as before.
+      description = new BidsJsonFile(datasetDescriptionFileName, {}, JSON.parse(descriptionContentString))
     } catch (e) {
       if (e instanceof IssueError) {
         throw e
       }
-      IssueError.generateAndThrow('missingSchemaSpecification', { file: 'dataset_description.json' })
+      IssueError.generateAndThrow('missingSchemaSpecification', { file: datasetDescriptionFileName })
     }
 
     try {
@@ -320,7 +319,7 @@ export class BidsDataset {
    */
   async _validateTsvFile(tsvPath, category, jsonPaths) {
     // Read the TSV file content -- if none do not proceed.
-    const parsedPath = path.parse(tsvPath)
+    const parsedPath = parseRelativePath(tsvPath)
     const tsvContents = await this.fileAccessor.getFileContent(tsvPath)
     if (tsvContents === null) {
       const message = `Could not read TSV file: ${tsvPath}`
@@ -356,7 +355,7 @@ export class BidsDataset {
    * @private
    */
   _getSidecarData(tsvPath, category, jsonPaths) {
-    const parsedPath = path.parse(tsvPath)
+    const parsedPath = parseRelativePath(tsvPath)
 
     if (BidsFileAccessor.SPECIAL_DIRS.includes(category)) {
       const expectedJsonPath = `${parsedPath.dir ? parsedPath.dir + '/' : ''}${parsedPath.name}.json`
