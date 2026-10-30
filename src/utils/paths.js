@@ -153,8 +153,9 @@ class BidsPathOrganizer {
   /**
    * Whether the candidates have already been organized.
    * @type {boolean}
+   * @private
    */
-  #alreadyOrganized
+  _alreadyOrganized
 
   /**
    * Build the organizer.
@@ -168,7 +169,7 @@ class BidsPathOrganizer {
     this.suffixes = suffixes
     this.specialDirs = specialDirs
     this.candidates = new OrganizedBidsCandidates([...suffixes, ...specialDirs])
-    this.#alreadyOrganized = false
+    this._alreadyOrganized = false
   }
 
   /**
@@ -185,7 +186,7 @@ class BidsPathOrganizer {
    * @returns {OrganizedBidsCandidates} The relative file paths organized according to BIDS naming conventions.
    */
   organizePaths() {
-    if (this.#alreadyOrganized) {
+    if (this._alreadyOrganized) {
       return this.candidates
     }
 
@@ -197,7 +198,7 @@ class BidsPathOrganizer {
       this._organizePath(relativePath)
     }
 
-    this.#alreadyOrganized = true
+    this._alreadyOrganized = true
 
     return this.candidates
   }

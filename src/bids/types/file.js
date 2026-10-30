@@ -26,8 +26,9 @@ export class BidsFile {
   /**
    * The validator class used to validate this file.
    * @type {function}
+   * @private
    */
-  #validatorClass
+  _validatorClass
 
   /**
    * Constructor.
@@ -39,7 +40,7 @@ export class BidsFile {
   constructor(name, file, validatorClass) {
     this.name = name
     this.file = file
-    this.#validatorClass = validatorClass
+    this._validatorClass = validatorClass
   }
 
   /**
@@ -97,6 +98,6 @@ export class BidsFile {
    * @returns {function} The validator class used to validate this file.
    */
   get validatorClass() {
-    return this.#validatorClass
+    return this._validatorClass
   }
 }

@@ -105,7 +105,7 @@ export class BidsHedTsvValidator extends BidsValidator {
     if (this.errors.length > 0) {
       return
     }
-    this.#validateDataset(bidsEvents)
+    this._validateDataset(bidsEvents)
     if (this.errors.length === 0 && this.tsvFile.mergedSidecar?.hasHedData) {
       this._checkMissingHedWarning()
       this._checkMissingValueWarnings()
@@ -257,8 +257,9 @@ export class BidsHedTsvValidator extends BidsValidator {
    * Validate the HED data in a combined event TSV file/sidecar BIDS data collection.
    *
    * @param {BidsTsvElement[]} elements The elements representing the tsv file.
+   * @private
    */
-  #validateDataset(elements) {
+  _validateDataset(elements) {
     // Final top-tag detection cannot be done until the strings are fully assembled and finalized.
     this._checkNoTopTags(elements)
     if (this.errors.length > 0) {
@@ -426,7 +427,13 @@ export class BidsHedTsvValidator extends BidsValidator {
  */
 export class BidsHedTsvParser {
   static nullSet = new Set([null, undefined, '', 'n/a'])
-  static #braceRegEx = /\{([^{}]*?)\}/g
+
+  /**
+   * Matches one curly-brace column reference, capturing the column name.
+   * @type {RegExp}
+   * @private
+   */
+  static _braceRegEx = /\{([^{}]*?)\}/g
 
   /**
    * The BIDS TSV file being parsed.
@@ -541,7 +548,7 @@ export class BidsHedTsvParser {
   _parseHedRow(rowCells, tsvLine) {
     const hedStringParts = []
     const columnMap = this._getColumnMapping(rowCells)
-    this.#spliceValues(columnMap)
+    this._spliceValues(columnMap)
 
     for (const [columnName, columnValue] of rowCells.entries()) {
       // If a splice, it can't be used in an assembled HED string.
@@ -607,8 +614,9 @@ export class BidsHedTsvParser {
    * @param {Map} columnMap - Map of column name to HED string for a row.
    *
    * Note: Updates the map in place.
+   * @private
    */
-  #spliceValues(columnMap) {
+  _spliceValues(columnMap) {
     if (!(this.tsvFile.mergedSidecar?.columnSpliceMapping?.size > 0)) {
       return
     }
@@ -630,7 +638,7 @@ export class BidsHedTsvParser {
    * @private
    */
   _replaceSplices(unspliced, columnMap) {
-    const result = unspliced.replace(BidsHedTsvParser.#braceRegEx, (match, content) => {
+    const result = unspliced.replace(BidsHedTsvParser._braceRegEx, (match, content) => {
       // Resolve the replacement value
       const resolved = columnMap.has(content) ? columnMap.get(content) : ''
       // Replace with resolved value or empty string if in nullSet

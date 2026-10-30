@@ -80,8 +80,9 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   /**
    * The normalized string representation of this tag.
    * @type {string}
+   * @private
    */
-  #normalized
+  _normalized
 
   /**
    * Constructor.
@@ -93,7 +94,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   constructor(tagSpec, hedSchemas) {
     super(tagSpec.tag, tagSpec.bounds) // Sets originalTag and originalBounds
     this._convertTag(hedSchemas, tagSpec)
-    this.#normalized = this.format(false) // Sets various forms of the tag.
+    this._normalized = this.format(false) // Sets various forms of the tag.
   }
 
   /**
@@ -328,7 +329,7 @@ export default class ParsedHedTag extends ParsedHedSubstring {
    * @returns {string} The normalized version of this tag.
    */
   get normalized() {
-    return this.#normalized
+    return this._normalized
   }
 
   /**

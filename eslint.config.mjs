@@ -53,6 +53,13 @@ export default [
       'no-unmodified-loop-condition': 'warn',
       'no-unreachable-loop': 'error',
       'no-unused-private-class-members': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'PrivateIdentifier',
+          message: 'Use _x with a JSDoc @private tag, not #x (issue 946).',
+        },
+      ],
 
       'prefer-arrow-callback': [
         'error',
