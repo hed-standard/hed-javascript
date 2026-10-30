@@ -16,7 +16,7 @@ expect.extend({
 })
 
 const demoDataRoot = path.resolve(__dirname, '../bidsDemoData')
-const invalidDataRoot = path.resolve(__dirname, '../otherTestData/invalidDataset')
+const invalidDataRoot = path.resolve(__dirname, '../schemaData/invalidDataset')
 
 describe('BidsDataset', () => {
   afterEach(() => {

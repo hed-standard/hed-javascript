@@ -8,7 +8,7 @@ This directory runs the official HED JSON test suite from the
 The suite lives in the git submodule `spec_tests/hed-tests`, pinned to a specific hed-tests
 commit. It is empty in a plain clone until you fetch it:
 
-```powershell
+```shell
 git submodule update --init
 ```
 
@@ -17,7 +17,7 @@ the submodule is missing.
 
 ## Running the tests
 
-```powershell
+```shell
 npm run testSpecs
 ```
 
@@ -25,7 +25,7 @@ This is equivalent to `npx jest --testPathPatterns='/spec_tests/'`.
 
 ## Files
 
-- **hedTests.spec.js** - the runner. Reads
+- **jsonTests.spec.js** - the runner. Reads
   `hed-tests/json_test_data/validation_tests.json` and runs every case's string, sidecar,
   events and sidecar+events sub-tests through the BIDS validation entry points. A failing case
   passes when one of its `error_code` or `alt_codes` is among the errors returned (among the
@@ -51,13 +51,13 @@ sub-test of the case, which is how the SCHEMA_LOAD_FAILED cases are checked.
 ## Schema tests are not run
 
 hed-tests also ships `schema_tests.json`, which checks that validators detect errors in HED
-schema files themselves (the cases are mediawiki schema source text). hed-javascript assumes the
+schema files themselves (the cases are mediawiki schema source text). This validator assumes the
 schemas it loads are valid and does not implement schema validation, so that file is skipped as a
-block in `hedTests.spec.js` and is not part of this validator's conformance target.
+block in `jsonTests.spec.js` and is not part of this validator's conformance target.
 
 ## Updating the pin
 
-```powershell
+```shell
 git -C spec_tests/hed-tests fetch origin
 git -C spec_tests/hed-tests checkout <commit-or-origin/main>
 npm run testSpecs
@@ -68,7 +68,7 @@ submodule pointer together with the skip-list change.
 
 ## Debugging one case
 
-At the top of `hedTests.spec.js`, set `runAll` to `false` and put the error code and case names
+At the top of `jsonTests.spec.js`, set `runAll` to `false` and put the error code and case names
 in `runMap`, or keep `runAll` and list cases in `skipMap`. `runOnly` restricts the sub-test kinds
 (`stringPass`, `stringFail`, `sidecarPass`, `sidecarFail`, `eventsPass`, `eventsFail`,
 `comboPass`, `comboFail`).

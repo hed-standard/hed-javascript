@@ -21,17 +21,28 @@ const testSchemasDir = path.join(
   'hedxml',
 )
 
-/**
- * Compute the path of a schema's file among the hed-tests test schemas.
- *
- * @param {SchemaSpec} schemaDef The description of which schema to use.
- * @returns {string} The path to the schema's XML file, which may not exist.
- */
-const testSchemaPath = function (schemaDef) {
-  return path.join(testSchemasDir, `${schemaDef.localName}.xml`)
-}
-
 export default class MockHedSchemaLoader extends loaderModule.default {
+  /**
+   * The schema names found in testSchemasDir, read once.
+   * @type {Set<string>|null}
+   * @private
+   */
+  static _testSchemaNames = null
+
+  /**
+   * Determine whether a schema has a file among the hed-tests test schemas.
+   *
+   * @param {SchemaSpec} schemaDef The description of which schema to use.
+   * @returns {boolean} Whether testSchemasDir holds a file for this schema.
+   * @private
+   */
+  static _hasTestSchema(schemaDef) {
+    MockHedSchemaLoader._testSchemaNames ??= new Set(
+      fs.readdirSync(testSchemasDir).map((file) => path.basename(file, '.xml')),
+    )
+    return MockHedSchemaLoader._testSchemaNames.has(schemaDef.localName)
+  }
+
   /**
    * Determine whether this validator bundles a particular schema.
    *
@@ -41,7 +52,7 @@ export default class MockHedSchemaLoader extends loaderModule.default {
    * @override
    */
   hasBundledSchema(schemaDef) {
-    return fs.existsSync(testSchemaPath(schemaDef)) || super.hasBundledSchema(schemaDef)
+    return MockHedSchemaLoader._hasTestSchema(schemaDef) || super.hasBundledSchema(schemaDef)
   }
 
   /**
@@ -53,11 +64,9 @@ export default class MockHedSchemaLoader extends loaderModule.default {
    * @override
    */
   async getBundledSchema(schemaDef) {
-    const filePath = testSchemaPath(schemaDef)
-    if (fs.existsSync(filePath)) {
-      return files.readFile(filePath)
-    } else {
+    if (!MockHedSchemaLoader._hasTestSchema(schemaDef)) {
       return super.getBundledSchema(schemaDef)
     }
+    return files.readFile(path.join(testSchemasDir, `${schemaDef.localName}.xml`))
   }
 }

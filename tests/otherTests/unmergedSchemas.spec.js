@@ -155,7 +155,7 @@ describe('Unmerged partnered library schemas', () => {
     })
 
     it('rejects a tag whose name repeats its parent apart from case (SCHEMA_DUPLICATE_NODE)', async () => {
-      const path = 'tests/otherTestData/HED_testminimal_2.1.0_duplicate_child.xml'
+      const path = 'tests/schemaData/HED_testminimal_2.1.0_duplicate_child.xml'
       try {
         await build([['testminimal', '2.1.0', path]])
         assert.fail('the duplicate MINI-TAG was accepted')
@@ -165,7 +165,7 @@ describe('Unmerged partnered library schemas', () => {
     })
 
     it('rejects an unmerged library that redeclares a tag of its standard partner', async () => {
-      const path = 'tests/otherTestData/HED_testminimal_2.1.0_redeclares_event.xml'
+      const path = 'tests/schemaData/HED_testminimal_2.1.0_redeclares_event.xml'
       try {
         await build([['testminimal', '2.1.0', path]])
         assert.fail('the redeclaration of Event was accepted')
