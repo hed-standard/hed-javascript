@@ -175,14 +175,15 @@ export class SchemasSpec {
   /**
    * The specification mapping data.
    * @type {Map<string, SchemaSpec[]>}
+   * @private
    */
-  #data
+  _data
 
   /**
    * Constructor.
    */
   constructor() {
-    this.#data = new Map()
+    this._data = new Map()
   }
 
   /**
@@ -191,7 +192,7 @@ export class SchemasSpec {
    * @returns {Map<string, SchemaSpec[]>} A copy of the map from prefixes to the specifications listed under them.
    */
   get data() {
-    return new Map(this.#data)
+    return new Map(this._data)
   }
 
   /**
@@ -200,7 +201,7 @@ export class SchemasSpec {
    * @yields {[string, SchemaSpec[]]} Each prefix and its specifications.
    */
   *[Symbol.iterator]() {
-    yield* this.#data.entries()
+    yield* this._data.entries()
   }
 
   /**
@@ -215,8 +216,8 @@ export class SchemasSpec {
    * @throws {IssueError} If the schema's name is already listed under its prefix.
    */
   addSchemaSpec(schemaSpec) {
-    if (this.#data.has(schemaSpec.prefix)) {
-      const existingPrefixSpecs = this.#data.get(schemaSpec.prefix)
+    if (this._data.has(schemaSpec.prefix)) {
+      const existingPrefixSpecs = this._data.get(schemaSpec.prefix)
       const sameName = (spec) => !spec.localPath && !schemaSpec.localPath && spec.library === schemaSpec.library
       if (existingPrefixSpecs.some(sameName)) {
         const schema = schemaSpec.library ? `library "${schemaSpec.library}"` : 'the standard schema'
@@ -224,7 +225,7 @@ export class SchemasSpec {
       }
       existingPrefixSpecs.push(schemaSpec)
     } else {
-      this.#data.set(schemaSpec.prefix, [schemaSpec])
+      this._data.set(schemaSpec.prefix, [schemaSpec])
     }
     return this
   }

@@ -115,6 +115,11 @@ do not remove it or those imports will fail in tests.
 - `esbuild.mjs` — Build configuration
 - `.status/` — Local summaries and environment notes (not published)
 
+## Private class members
+
+Write private members as `_x` with a JSDoc `@private` tag, never as ECMAScript `#x` (issue #946; hed-typescript uses
+`private _x`). ESLint's `no-restricted-syntax` rule rejects `#x`.
+
 ## CI checks (all must pass on PRs)
 
 CI runs on every push/PR to `main`. Replicate these locally before opening a PR:

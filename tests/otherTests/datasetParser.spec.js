@@ -25,7 +25,7 @@ describe('BidsFileAccessor', () => {
     expect(accessor.fileMap.size).toBe(0)
     // Seven BIDS suffixes (dataset_description, participants, _events, _beh, _scans, _sessions, samples) and the
     // special directories.
-    expect(accessor.organizedPaths.size).toBe(7 + BidsFileAccessor.SPECIAL_DIRS.length)
+    expect(accessor.organizedPaths.size).toBe(BidsFileAccessor._SUFFIXES.length + BidsFileAccessor.SPECIAL_DIRS.length)
     accessor.organizedPaths.forEach((category) => {
       expect(category.get('json')).toEqual([])
       expect(category.get('tsv')).toEqual([])
