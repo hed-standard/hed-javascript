@@ -71,7 +71,7 @@ be done as PRs (pull requests) to the `main` branch.
 The JSON spec tests in `spec_tests/` read the [hed-tests](https://github.com/hed-standard/hed-tests)
 suite from the git submodule `spec_tests/hed-tests`, so check it out before running them:
 
-```code
+```shell
 git clone --recurse-submodules https://github.com/hed-standard/hed-javascript
 cd hed-javascript
 npm install
@@ -86,7 +86,7 @@ In an existing clone, `git submodule update --init` fetches the submodule. See
 
 The browser app has moved to the [hed-web](https://github.com/hed-standard/hed-web) repository.
 
-```code
+```shell
 git clone https://github.com/hed-standard/hed-web
 cd hed-web
 npm install

@@ -3,14 +3,14 @@
  * validator.
  *
  * Only validation_tests.json is run. The suite's schema_tests.json validates HED schema files
- * themselves (mediawiki source text); hed-javascript assumes the schemas it loads are valid and
+ * themselves (mediawiki source text); this validator assumes the schemas it loads are valid and
  * does not implement schema validation, so that file is skipped as a block below.
  *
  * Schema loading convention (hed-tests json_test_data/test_schemas/README.md): every version
  * string in a case's "schema" field is resolved against test_schemas/hedxml by its cache-convention
  * file name (HED<version>.xml or HED_<library>_<version>.xml) when such a file exists, and
  * otherwise against the schemas bundled in src/data/schemas; the mock schema loader
- * (src/schema/__mocks__/loader.js) does the resolving. A schema build that throws becomes
+ * (src/schema/__mocks__/loader) does the resolving. A schema build that throws becomes
  * the issue list of every sub-test of that case, so SCHEMA_LOAD_FAILED cases are expressible.
  *
  * Cases this validator does not pass yet are listed by name in skippedTests.js.
@@ -31,7 +31,7 @@ import parseTSV from '../src/bids/tsvParser'
 import { shouldRun } from '../tests/testHelpers/testUtilities'
 import { skippedTests } from './skippedTests'
 
-// The hed-tests test schemas are served by the mock loader (src/schema/__mocks__/loader.js).
+// The hed-tests test schemas are served by the mock loader (src/schema/__mocks__/loader).
 jest.mock('../src/schema/loader')
 
 const hedTestsDataDir = path.join(__dirname, 'hed-tests', 'json_test_data')
@@ -336,5 +336,5 @@ describe('HED validation using the hed-tests JSON suite', () => {
 })
 
 describe('HED schema tests from the hed-tests JSON suite', () => {
-  test.skip('schema_tests.json is not run: hed-javascript assumes the schemas it loads are valid and does not validate schema files', () => {})
+  test.skip('schema_tests.json is not run: this validator assumes the schemas it loads are valid and does not validate schema files', () => {})
 })

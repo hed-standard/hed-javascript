@@ -82,7 +82,7 @@ tests/
   jsonTests/          # JSON-driven validation tests (spec files)
   jsonTestData/       # Data files for JSON tests (.data.js)
   otherTests/         # Additional spec files (bids, schema, issues, etc.)
-  otherTestData/      # Data files for other tests
+  schemaData/         # Schema files for other tests
   testHelpers/        # Shared test utilities
   bidsDemoData/       # Sample BIDS dataset used in integration tests
 spec_tests/
