@@ -48,7 +48,7 @@ name = "checkov"
 name = "eslint"
 version = "9.31.0"
 package_file = "package.json"
-package_filters = ["eslint", "jest", "prettier"]
+package_filters = ["eslint", "jest", "prettier", "global"]
 
 [[plugin]]
 name = "markdownlint"
