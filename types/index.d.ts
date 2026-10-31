@@ -162,6 +162,12 @@ export class BidsHedIssue {
 }
 
 export class BidsFileAccessor {
+  /** BIDS filename suffixes used to organize the dataset's files */
+  static readonly SUFFIXES: readonly string[]
+
+  /** BIDS special directories */
+  static readonly SPECIAL_DIRS: readonly string[]
+
   /** Map of relative file paths to file representations */
   fileMap: Map<string, object>
 

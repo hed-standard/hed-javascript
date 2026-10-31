@@ -129,6 +129,8 @@ async function testBids(schemas: HedSchemas) {
   const fileAccessor = await BidsFileAccessor.create(fakePath)
   console.log(fileAccessor.fileMap, fileAccessor.organizedPaths)
   fileAccessor.getFileContent('file.txt')
+  const suffixCount: number = BidsFileAccessor.SUFFIXES.length + BidsFileAccessor.SPECIAL_DIRS.length
+  console.log(suffixCount)
 
   // BidsDirectoryAccessor
   const directoryAccessor = await BidsDirectoryAccessor.create(fakePath)

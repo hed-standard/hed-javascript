@@ -8,6 +8,9 @@
   `score_2.2.0` (hed-schemas main), so these versions load without a network
   request.
 - Bundled the `mouse_1.0.0` library schema (unmerged, partnered with 8.5.0).
+- `BidsFileAccessor.SUFFIXES` and `BidsFileAccessor.SPECIAL_DIRS` are declared
+  in `types/index.d.ts` as `static readonly ...: readonly string[]`, as in
+  hed-typescript.
 
 ### Changed
 
@@ -87,6 +90,10 @@ testSpecs`.
   `schemaGroupInvalid` after loading.
 - `parseHedStrings` returns `null` for the whole list when any string fails to
   parse, as hed-typescript.
+- The `BidsFileAccessor` modules moved to `src/bids/accessors/` (#950):
+  `datasetParser.js` -> `file.js`, `directoryAccessor.js` (and `.browser.js`)
+  -> `directory.js` (and `.browser.js`), `webAccessor.js` -> `web.js`. The
+  package exports only its root, so imports from `hed-validator` are unchanged.
 
 ### Fixed
 

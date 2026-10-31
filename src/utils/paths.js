@@ -131,14 +131,14 @@ class BidsPathOrganizer {
 
   /**
    * A list of filename suffixes to categorize by (e.g., 'events').
-   * @type {string[]}
+   * @type {readonly string[]}
    * @private
    */
   suffixes
 
   /**
    * A list of special directory names (e.g., 'phenotype').
-   * @type {string[]}
+   * @type {readonly string[]}
    * @private
    */
   specialDirs
@@ -161,8 +161,8 @@ class BidsPathOrganizer {
    * Build the organizer.
    *
    * @param {string[]} relativeFilePaths A list of relative file paths to organize.
-   * @param {string[]} suffixes A list of filename suffixes to categorize by (e.g., 'events').
-   * @param {string[]} specialDirs A list of special directory names (e.g., 'phenotype').
+   * @param {readonly string[]} suffixes A list of filename suffixes to categorize by (e.g., 'events').
+   * @param {readonly string[]} specialDirs A list of special directory names (e.g., 'phenotype').
    */
   constructor(relativeFilePaths, suffixes, specialDirs) {
     this.relativeFilePaths = relativeFilePaths
@@ -251,8 +251,8 @@ class BidsPathOrganizer {
  * extensions are considered.
  *
  * @param {string[]} relativeFilePaths - A list of relative file paths to organize.
- * @param {string[]} suffixes - A list of filename suffixes to categorize by (e.g., 'events').
- * @param {string[]} specialDirs - A list of special directory names (e.g., 'phenotype').
+ * @param {readonly string[]} suffixes - A list of filename suffixes to categorize by (e.g., 'events').
+ * @param {readonly string[]} specialDirs - A list of special directory names (e.g., 'phenotype').
  * @returns {OrganizedBidsCandidates} The relative file paths organized according to BIDS naming conventions:
  *          `candidates`, a list of all file paths that were successfully categorized, and `organizedPaths`, a Map
  *          where keys are the suffixes and special directories. Each value is a Map with 'tsv' and 'json'

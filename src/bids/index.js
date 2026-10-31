@@ -13,9 +13,9 @@ import { BidsJsonFile, BidsSidecar } from './types/json'
 import { BidsTsvFile } from './types/tsv'
 import { BidsDataset } from './types/dataset'
 import { BidsHedIssue } from './types/issues'
-import { BidsFileAccessor } from './datasetParser'
-import { BidsDirectoryAccessor } from './directoryAccessor'
-import { BidsWebAccessor } from './webAccessor'
+import { BidsFileAccessor } from './accessors/file'
+import { BidsDirectoryAccessor } from './accessors/directory'
+import { BidsWebAccessor } from './accessors/web'
 
 export {
   BidsDataset,
