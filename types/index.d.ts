@@ -188,7 +188,7 @@ export class BidsFileAccessor {
   getFileContent(filePath: string): Promise<string | null>
 }
 
-export class BidsDirectoryAccessor {
+export class BidsDirectoryAccessor extends BidsFileAccessor {
   /** Map of relative file paths to file representations */
   fileMap: Map<string, object>
 
