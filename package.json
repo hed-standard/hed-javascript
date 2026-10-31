@@ -25,7 +25,7 @@
     "lint": "eslint ./src/**/*.js",
     "test": "jest --testPathPatterns='/tests/'",
     "testSpecs": "jest --testPathPatterns='/spec_tests/' --silent --noStackTrace",
-    "test-types": "npx tsx types/test.ts",
+    "test-types": "npx tsc --noEmit --project types/tsconfig.json && npx tsx types/test.ts",
     "test-types-local": "node scripts/test-types-local.js",
     "test-types-local-windows": "powershell -ExecutionPolicy Bypass -File ./scripts/test-types-local-windows.ps1",
     "test-types-local-unix": "sh ./scripts/test-types-local-unix.sh",
