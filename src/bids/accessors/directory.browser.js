@@ -1,15 +1,15 @@
 /**
  * Browser stand-in for the local directory access of BIDS datasets.
  *
- * The ESM (browser) build uses this module in place of {@link module:bids/directoryAccessor} through the "browser"
+ * The ESM (browser) build uses this module in place of {@link module:bids/accessors/directory} through the "browser"
  * field of package.json, so that no Node.js file system code is bundled. The class keeps its name so that the
  * package exports stay the same in every build.
  *
- * @module bids/directoryAccessor.browser
+ * @module bids/accessors/directory.browser
  */
 
-import { BidsFileAccessor } from './datasetParser'
-import { IssueError } from '../issues/issues'
+import { BidsFileAccessor } from './file'
+import { IssueError } from '../../issues/issues'
 
 /**
  * A BIDS file accessor for local directory environments, which are not available in this build.

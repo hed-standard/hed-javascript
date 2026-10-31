@@ -2,14 +2,14 @@
  * Provides file access for BIDS datasets.
  *
  * This module contains the {@link BidsFileAccessor} base class. Its subclasses read files from a BIDS dataset in
- * different environments: {@link BidsDirectoryAccessor} (module bids/directoryAccessor) a local directory,
- * {@link BidsWebAccessor} (module bids/webAccessor) the files uploaded to a web browser.
+ * different environments: {@link BidsDirectoryAccessor} (module bids/accessors/directory) a local directory,
+ * {@link BidsWebAccessor} (module bids/accessors/web) the files uploaded to a web browser.
  *
- * @module bids/datasetParser
+ * @module bids/accessors/file
  */
 
-import { IssueError } from '../issues/issues'
-import { organizePaths } from '../utils/paths'
+import { IssueError } from '../../issues/issues'
+import { organizePaths } from '../../utils/paths'
 
 /**
  * Base class for BIDS file accessors.
@@ -44,14 +44,13 @@ export class BidsFileAccessor {
 
   /**
    * BIDS suffixes.
-   * @type {string[]}
-   * @private
+   * @type {readonly string[]}
    */
-  static _SUFFIXES = ['dataset_description', 'participants', '_events', '_beh', '_scans', '_sessions', 'samples']
+  static SUFFIXES = ['dataset_description', 'participants', '_events', '_beh', '_scans', '_sessions', 'samples']
 
   /**
    * BIDS special directories.
-   * @type {string[]}
+   * @type {readonly string[]}
    */
   static SPECIAL_DIRS = ['phenotype', 'stimuli']
 
@@ -105,7 +104,7 @@ export class BidsFileAccessor {
     const relativeFilePaths = Array.from(fileMap.keys())
     const { candidates, organizedPaths } = organizePaths(
       relativeFilePaths,
-      BidsFileAccessor._SUFFIXES,
+      BidsFileAccessor.SUFFIXES,
       BidsFileAccessor.SPECIAL_DIRS,
     )
     this.organizedPaths = organizedPaths

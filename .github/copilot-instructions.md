@@ -29,8 +29,8 @@ Source code is plain JavaScript (`.js`) in `src/`. TypeScript type declarations 
 **Source Modules** (`src/`):
 
 - `bids/` — BIDS dataset and TSV/sidecar parsing and validation
-  - `datasetParser.js` (`BidsFileAccessor`), `directoryAccessor.js` (+ `.browser.js`), `webAccessor.js`, `tsvParser.js`,
-    `schema.js`, `index.js`
+  - `accessors/` - `file.js` (`BidsFileAccessor`), `directory.js` (+ `.browser.js`), `web.js`
+  - `tsvParser.js`, `schema.js`, `index.js`
   - `types/` — BIDS-specific type helpers
   - `validator/` — BIDS validation logic
 

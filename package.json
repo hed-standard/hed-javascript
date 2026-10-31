@@ -82,7 +82,7 @@
   "browser": {
     "fs": false,
     "./src/schema/loader.js": "./src/schema/browserLoader.js",
-    "./src/bids/directoryAccessor.js": "./src/bids/directoryAccessor.browser.js"
+    "./src/bids/accessors/directory.js": "./src/bids/accessors/directory.browser.js"
   },
   "files": [
     "dist/*",

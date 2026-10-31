@@ -1,7 +1,6 @@
-// filepath: i:\HEDJavascript\hed-javascript\tests\otherTests\datasetParser.spec.js
 import { describe, it, expect, beforeAll } from '@jest/globals'
-import { BidsFileAccessor } from '../../src/bids/datasetParser'
-import { BidsDirectoryAccessor } from '../../src/bids/directoryAccessor'
+import { BidsFileAccessor } from '../../src/bids/accessors/file'
+import { BidsDirectoryAccessor } from '../../src/bids/accessors/directory'
 import path from 'node:path'
 
 describe('BidsFileAccessor', () => {
@@ -25,7 +24,7 @@ describe('BidsFileAccessor', () => {
     expect(accessor.fileMap.size).toBe(0)
     // Seven BIDS suffixes (dataset_description, participants, _events, _beh, _scans, _sessions, samples) and the
     // special directories.
-    expect(accessor.organizedPaths.size).toBe(BidsFileAccessor._SUFFIXES.length + BidsFileAccessor.SPECIAL_DIRS.length)
+    expect(accessor.organizedPaths.size).toBe(BidsFileAccessor.SUFFIXES.length + BidsFileAccessor.SPECIAL_DIRS.length)
     accessor.organizedPaths.forEach((category) => {
       expect(category.get('json')).toEqual([])
       expect(category.get('tsv')).toEqual([])

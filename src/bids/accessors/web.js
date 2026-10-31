@@ -4,11 +4,11 @@
  * Reads dataset files from browser {@link https://developer.mozilla.org/en-US/docs/Web/API/File | File}
  * objects provided via a `<input webkitdirectory>` or drag-and-drop upload.
  *
- * @module bids/webAccessor
+ * @module bids/accessors/web
  */
-import { BidsFileAccessor } from './datasetParser'
-import { buildBidsSchemas } from './schema'
-import HedSchemaBrowserLoader from '../schema/browserLoader'
+import { BidsFileAccessor } from './file'
+import { buildBidsSchemas } from '../schema'
+import HedSchemaBrowserLoader from '../../schema/browserLoader'
 
 /**
  * Build a HED schema collection for a dataset uploaded to a browser, never reading a local file.

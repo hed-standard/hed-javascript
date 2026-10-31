@@ -2,17 +2,17 @@
  * Provides local directory access for BIDS datasets.
  *
  * This module holds {@link BidsDirectoryAccessor}, the only BIDS code that reads the file system. The ESM (browser)
- * build replaces it by {@link module:bids/directoryAccessor.browser} through the "browser" field of package.json.
+ * build replaces it by {@link module:bids/accessors/directory.browser} through the "browser" field of package.json.
  *
- * @module bids/directoryAccessor
+ * @module bids/accessors/directory
  */
 
 import fsp from 'node:fs/promises'
 import path from 'node:path'
 
-import { BidsFileAccessor } from './datasetParser'
-import { buildBidsSchemas } from './schema'
-import { IssueError } from '../issues/issues'
+import { BidsFileAccessor } from './file'
+import { buildBidsSchemas } from '../schema'
+import { IssueError } from '../../issues/issues'
 
 /**
  * A BIDS file accessor for local directory environments (e.g., Node.js).

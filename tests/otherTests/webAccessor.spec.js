@@ -1,5 +1,5 @@
 import { describe, it, expect, jest } from '@jest/globals'
-import { BidsWebAccessor } from '../../src/bids/webAccessor'
+import { BidsWebAccessor } from '../../src/bids/accessors/web'
 import { buildBidsSchemas } from '../../src/bids/schema'
 import HedSchemaBrowserLoader from '../../src/schema/browserLoader'
 
