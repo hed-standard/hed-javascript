@@ -20,8 +20,8 @@ exclude_patterns = [
   "**/.gitignore",
   "**/README*",
   "**/LICENSE",
-  ".codespellrc",
-  "tests/*Data/**"
+  "tests/*Data/**",
+  "spec_tests/hed-tests/**"
 ]
 
 test_patterns = [

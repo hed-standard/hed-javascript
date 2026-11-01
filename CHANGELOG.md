@@ -282,6 +282,9 @@ testSpecs`.
 ### Dependencies
 
 - `js-yaml` upgraded to 4.2.0 or later to address a security vulnerability.
+- TypeScript is installed as in hed-typescript: version 7 as `@typescript/native`
+  (provides `tsc`) and version 6 as `typescript` (used by TypeDoc), so the
+  documentation workflow no longer downgrades TypeScript before running TypeDoc.
 
 ## 4.2.0 — 2026-05-18
 
