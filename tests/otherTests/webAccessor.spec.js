@@ -55,6 +55,19 @@ describe('BidsWebAccessor.create — _processFileList prefix stripping', () => {
     expect(accessor.fileMap.has('task-A_events.json')).toBe(true)
   })
 
+  it('takes the root from the shallowest dataset_description.json, whatever the upload order', async () => {
+    const files = makeFiles({
+      'ds/derivatives/pipeline/dataset_description.json': '{}',
+      'ds/my_dataset_description.json': '{}',
+      'ds/dataset_description.json': '{}',
+      'ds/sub-01/sub-01_task-A_events.tsv': 'onset\tduration\n',
+    })
+    const accessor = await BidsWebAccessor.create(files)
+    expect(accessor.datasetRootDirectory).toBe('ds')
+    expect(accessor.fileMap.has('dataset_description.json')).toBe(true)
+    expect(accessor.fileMap.has('sub-01/sub-01_task-A_events.tsv')).toBe(true)
+  })
+
   it('falls back to first-path root segment when no dataset_description.json', async () => {
     const files = makeFiles({
       'my-dataset/participants.tsv': 'participant_id\nsub-01',
@@ -106,6 +119,15 @@ describe('BidsWebAccessor.getFileContent', () => {
     const accessor = await BidsWebAccessor.create([])
     const content = await accessor.getFileContent('nonexistent.json')
     expect(content).toBeNull()
+  })
+
+  it('returns null when the file cannot be read', async () => {
+    const unreadable = new MockFile('', 'ds/sub-01/sub-01_task-A_events.tsv')
+    unreadable.text = async () => {
+      throw new Error('NotReadableError')
+    }
+    const accessor = await BidsWebAccessor.create([...makeFiles({ 'ds/dataset_description.json': '{}' }), unreadable])
+    await expect(accessor.getFileContent('sub-01/sub-01_task-A_events.tsv')).resolves.toBeNull()
   })
 
   it('throws when the File object lacks a text() method', async () => {
