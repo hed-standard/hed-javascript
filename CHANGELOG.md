@@ -94,6 +94,11 @@ testSpecs`.
   `datasetParser.js` -> `file.js`, `directoryAccessor.js` (and `.browser.js`)
   -> `directory.js` (and `.browser.js`), `webAccessor.js` -> `web.js`. The
   package exports only its root, so imports from `hed-validator` are unchanged.
+- The packaged `reservedTags.json` is refreshed from hed-specification and now
+  carries `specificationVersion` and `fileVersion`. The validator refuses
+  `reservedTags.json` or `characterSets.json` (an `IssueError` with code
+  `internalError` when the module loads) when its file version major number is
+  not 1, as HED specification Appendix A.6.1 requires (#955).
 
 ### Fixed
 
