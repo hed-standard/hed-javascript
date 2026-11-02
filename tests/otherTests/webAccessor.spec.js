@@ -56,14 +56,15 @@ describe('BidsWebAccessor.create — _processFileList prefix stripping', () => {
   })
 
   it('takes the root from the shallowest dataset_description.json, whatever the upload order', async () => {
+    // The decoy sits above the real description, so matching on the suffix alone would give the root 'upload'.
     const files = makeFiles({
-      'ds/derivatives/pipeline/dataset_description.json': '{}',
-      'ds/my_dataset_description.json': '{}',
-      'ds/dataset_description.json': '{}',
-      'ds/sub-01/sub-01_task-A_events.tsv': 'onset\tduration\n',
+      'upload/ds/derivatives/pipeline/dataset_description.json': '{}',
+      'upload/my_dataset_description.json': '{}',
+      'upload/ds/dataset_description.json': '{}',
+      'upload/ds/sub-01/sub-01_task-A_events.tsv': 'onset\tduration\n',
     })
     const accessor = await BidsWebAccessor.create(files)
-    expect(accessor.datasetRootDirectory).toBe('ds')
+    expect(accessor.datasetRootDirectory).toBe('upload/ds')
     expect(accessor.fileMap.has('dataset_description.json')).toBe(true)
     expect(accessor.fileMap.has('sub-01/sub-01_task-A_events.tsv')).toBe(true)
   })
