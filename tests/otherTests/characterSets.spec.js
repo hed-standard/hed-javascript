@@ -8,6 +8,7 @@ import { parseHedString } from '../../src/parser/parser'
 import { CharacterSets, characterSets, codePoint } from '../../src/schema/characterSets'
 import characterSetsData from '../../src/data/json/characterSets.json'
 import SchemaValueClass from '../../src/schema/entries/valueClass'
+import { IssueError } from '../../src/issues/issues'
 
 // src/data/json/characterSets.json is the specification's character_sets.json (section 2.2, Appendix B
 // CHARACTER_INVALID); these tests pin how hed-javascript reads it, following hed-python.
@@ -98,12 +99,48 @@ describe('Character sets from the published character_sets.json', () => {
     })
 
     it('can be built from other data', () => {
-      const sets = new CharacterSets({ sets: { vowels: { regex: '[aeiou]', description: 'vowels' } } })
+      const sets = new CharacterSets({
+        file_version: '1.0.0',
+        sets: { vowels: { regex: '[aeiou]', description: 'vowels' } },
+      })
       assert.deepEqual(sets.problemCharacters('hello', ['vowels']), [
         [0, 'h'],
         [2, 'l'],
         [3, 'l'],
       ])
+    })
+  })
+
+  // Specification Appendix A.6.1: refuse a file whose file version major number is not 1.
+  describe('file version', () => {
+    const withVersion = (fields) => {
+      const data = { ...characterSetsData, ...fields }
+      for (const [key, value] of Object.entries(fields)) {
+        if (value === undefined) {
+          delete data[key]
+        }
+      }
+      return data
+    }
+
+    it('the packaged file carries an X.Y.Z specification_version and a file_version with major 1', () => {
+      assert.match(characterSetsData.specification_version, /^\d+\.\d+\.\d+$/)
+      assert.match(characterSetsData.file_version, /^1\.\d+\.\d+$/)
+    })
+
+    it.each(['1.0.0', '1.2.3', '1.10.0'])('builds from file_version %s', (version) => {
+      assert.doesNotThrow(() => new CharacterSets(withVersion({ file_version: version })))
+    })
+
+    it.each([
+      ['major 2', { file_version: '2.0.0' }, '"2.0.0"'],
+      ['major 0', { file_version: '0.1.0' }, '"0.1.0"'],
+      ['no file_version', { file_version: undefined }, 'missing'],
+      ['the reserved-tags spelling', { file_version: undefined, fileVersion: '1.0.0' }, 'missing'],
+    ])('refuses %s', (title, fields, shown) => {
+      const error = assert.throws(() => new CharacterSets(withVersion(fields)), IssueError)
+      assert.strictEqual(error.issue.internalCode, 'internalError')
+      assert.include(error.message, `character_sets.json has file_version ${shown}`)
     })
   })
 

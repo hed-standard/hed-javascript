@@ -3,13 +3,15 @@
  * src/data/json/characterSets.json is a verbatim copy of the character_sets.json that the HED specification
  * publishes (docs/source/_static/character_sets.json); the character_sets.yml workflow fails when it drifts. Both
  * validators load the same file, so the named sets, the per-class defaults, the whole-value rules and the
- * characters forbidden in a HED string cannot drift between them or from the specification text.
+ * characters forbidden in a HED string cannot drift between them or from the specification text. A file whose
+ * file_version major number is not 1 is refused (Appendix A.6.1).
  *
  * @module schema/characterSets
  */
 import semver from 'semver'
 
 import characterSetsData from '../data/json/characterSets.json'
+import { checkFileVersion } from '../utils/specFiles'
 
 /**
  * The U+XXXX form of a single character, for messages.
@@ -55,8 +57,10 @@ export class CharacterSets {
    * Constructor.
    *
    * @param {Object} data The parsed content of a character_sets.json file.
+   * @throws {IssueError} An internalError if the file's file_version major number is not 1.
    */
   constructor(data) {
+    checkFileVersion(data, 'file_version', 'character_sets.json')
     this.sets = data.sets
     this.aliases = data.aliases ?? {}
     this.valueClassDefaults = data.value_class_defaults ?? {}
