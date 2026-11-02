@@ -130,7 +130,7 @@ CI runs on every push/PR to `main`. Replicate these locally before opening a PR:
 | `tests.yml`      | `npm ci ; npm run testSpecs`                        | Runs `spec_tests/` suite                           |
 | `test-types.yml` | `npm ci ; npm run build ; npm pack` then type-check | **Build required before type check**               |
 | `codeql.yml`     | automatic                                           | CodeQL security scan (JavaScript)                  |
-| `codespell.yaml` | automatic                                           | Spell check source files                           |
+| `typos.yaml`     | automatic                                           | Spell check (typos, configured via `.typos.toml`)  |
 | `links.yml`      | automatic                                           | Lychee link checker (configured via `lychee.toml`) |
 
 **Type-check locally (without packing):**

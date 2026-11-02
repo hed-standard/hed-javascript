@@ -278,10 +278,20 @@ testSpecs`.
 - Comparing two declarations of a schema entry joined attribute values with
   `|`, so `["a|b", "c"]` matched `["a", "b|c"]`; values are now compared item
   by item.
+- `BidsWebAccessor` took the dataset root from the first uploaded file whose
+  path ended in `dataset_description.json`, so a derivative description (or a
+  `my_dataset_description.json`) uploaded before the raw one became the root
+  and the raw files were dropped. The root is now the directory of the
+  shallowest file named exactly `dataset_description.json`. A file whose
+  `File.text()` rejects now reads as `null`, giving a file read error instead
+  of rejecting the whole validation.
 
 ### Dependencies
 
 - `js-yaml` upgraded to 4.2.0 or later to address a security vulnerability.
+- TypeScript is installed as in hed-typescript: version 7 as `@typescript/native`
+  (provides `tsc`) and version 6 as `typescript` (used by TypeDoc), so the
+  documentation workflow no longer downgrades TypeScript before running TypeDoc.
 
 ## 4.2.0 — 2026-05-18
 

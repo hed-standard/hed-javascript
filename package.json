@@ -58,6 +58,7 @@
     "@eslint/js": "^10.0.1",
     "@jest/globals": "^30.5.1",
     "@types/node": "^26.5.1",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "babel-jest": "^30.5.1",
     "chai": "^4.3.6",
     "esbuild": "^0.28.2",
@@ -74,7 +75,7 @@
     "pretty-quick": "^4.2.2",
     "tsx": "^4.23.13",
     "typedoc": "^0.28.20",
-    "typescript": "^7.0.2"
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   },
   "overrides": {
     "js-yaml": "^4.3.2"
