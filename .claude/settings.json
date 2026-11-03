@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm test)",
+      "Bash(npm run testSpecs)",
+      "Bash(npm run lint)",
+      "Bash(npm run type-check)",
+      "Bash(npm run build)",
+      "Bash(npm run coverage)",
+      "Bash(npm run docs)",
+      "Bash(npm run test-types-local)",
+      "Bash(npx jest *)",
+      "Bash(npx eslint *)",
+      "Bash(npx prettier --check *)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(node --version)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git log)",
+      "Bash(git log *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git branch)",
+      "Bash(git ls-files *)",
+      "Bash(git submodule status)",
+      "Bash(ls)",
+      "Bash(ls *)",
+      "Bash(wc *)"
+    ],
+    "ask": [
+      "Bash(npm ci)",
+      "Bash(git submodule update *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git checkout -- *)",
+      "Bash(git restore *)",
+      "Bash(git stash *)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.envrc)",
+      "Read(.status/archive/**)",
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(npm install)",
+      "Bash(npm install *)",
+      "Bash(npm i *)",
+      "Bash(npm uninstall *)",
+      "Bash(npm publish *)",
+      "Bash(curl *)",
+      "Bash(wget *)"
+    ]
+  }
+}

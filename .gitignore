@@ -3,13 +3,27 @@ node_modules
 .directory
 .idea
 dist/
-.status/
 /venv/
 spec_tests/*.txt
 spec_tests/temp*.json
 spec_tests/temp.spec.js
 tests/temp.spec.js
-.vscode/
+
+# IDEs; .vscode/settings.json is committed (portable settings only)
+.vscode/*
+!.vscode/settings.json
+
+# Working notes, plans, and decision records. Deliberately not committed:
+# this repo is public and .status/ holds half-formed thinking. It lives on one
+# machine only and is absent from fresh clones and worktrees.
+.status/
+
+# Personal Claude Code notes and settings (absolute paths)
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Real tokens and machine values
+.env
 
 # Ignore local build output
 /build/

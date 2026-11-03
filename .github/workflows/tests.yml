@@ -23,6 +23,12 @@ jobs:
         with:
           # The unit tests load test schemas from the hed-tests submodule as well.
           submodules: true
+      - name: No CRLF line endings in tracked files
+        run: |
+          if git ls-files --eol | grep -E '^i/(crlf|mixed)' | grep -v 'attr/-text'; then
+            echo "CRLF found in the files above; .gitattributes requires LF."
+            exit 1
+          fi
       - name: Set up with Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:

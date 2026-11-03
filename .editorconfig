@@ -1,6 +1,16 @@
+# Editor defaults for every file in this repository, including gitignored
+# working files that git never sees. LF only on every OS: .gitattributes
+# enforces it at commit time, this file at edit time.
+#
+# Trailing whitespace is trimmed in Markdown too: write a hard line break as
+# a trailing backslash, not two trailing spaces.
+#
+# Formatting options (quotes, semicolons, line width) belong to
+# .prettierrc.yaml, which takes precedence over this file for prettier.
 root = true
 
 [*]
 end_of_line = lf
 insert_final_newline = true
+trim_trailing_whitespace = true
 charset = utf-8

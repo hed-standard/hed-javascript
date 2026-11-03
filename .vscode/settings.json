@@ -1,0 +1,11 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "jestrunner.jestCommand": "npx jest",
+  "jestrunner.runOptions": ["--no-coverage"],
+  "jest.jestCommandLine": "npx jest",
+  "jest.runMode": "on-demand"
+}
