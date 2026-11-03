@@ -6,7 +6,7 @@ Purpose: the `hed-validator` npm package, a JavaScript validator for HED (Hierar
 
 Test framework: Jest (with babel-jest). Tests are `*.spec.js` files. Never convert the suite to another framework as a side effect of other work.
 
-- Install dev env: `npm install` (CI uses `npm ci`). Node.js 22 or later.
+- Install dev env: `npm ci` (its `prepare` script also installs the husky hook and builds `dist/`). Node.js 22 or later. Adding or upgrading a dependency (`npm install <pkg>`) is left to a person; `.claude/settings.json` denies it.
 - Fetch the spec test submodule: `git submodule update --init` (`spec_tests/hed-tests`).
 - Run unit tests: `npm test` (everything under `tests/`).
 - Run spec tests: `npm run testSpecs` (the hed-tests suite through `spec_tests/jsonTests.spec.js`; skips are listed in `spec_tests/skippedTests.js`).
