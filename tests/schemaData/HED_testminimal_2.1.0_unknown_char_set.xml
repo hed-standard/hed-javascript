@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<HED version="2.1.0" library="testminimal" withStandard="8.5.0" unmerged="True">
+   <prologue>Test fixture: hed-tests testminimal 2.1.0 (unmerged) with a value class miniClass whose allowedCharacter names letters and no-such-set, which is not a character set, and a tag Mini-value whose value takes miniClass. The validators never refuse a schema for a compliance fault: loading must succeed, and miniClass must fall back to textClass characters.</prologue>
+   <schema>
+      <node>
+         <name>Mini-tag</name>
+         <description>The testminimal scaffold tag.</description>
+         <node>
+            <name>Mini-one</name>
+            <description>The first child of Mini-tag.</description>
+         </node>
+         <node>
+            <name>Mini-two</name>
+            <description>The second child of Mini-tag.</description>
+         </node>
+      </node>
+      <node>
+         <name>Mini-value</name>
+         <description>A tag that takes a value of the miniClass value class.</description>
+         <node>
+            <name>#</name>
+            <description>Value of Mini-value.</description>
+            <attribute>
+               <name>takesValue</name>
+            </attribute>
+            <attribute>
+               <name>valueClass</name>
+               <value>miniClass</value>
+            </attribute>
+         </node>
+      </node>
+   </schema>
+   <unitClassDefinitions/>
+   <unitModifierDefinitions/>
+   <valueClassDefinitions>
+      <valueClassDefinition>
+         <name>miniClass</name>
+         <description>A value class whose allowedCharacter names an unknown character set.</description>
+         <attribute>
+            <name>allowedCharacter</name>
+            <value>letters</value>
+            <value>no-such-set</value>
+         </attribute>
+      </valueClassDefinition>
+   </valueClassDefinitions>
+   <schemaAttributeDefinitions/>
+   <propertyDefinitions/>
+   <epilogue>Part of the hed-tests test schema set. See json_test_data/test_schemas/README.md for the loading convention.</epilogue>
+   <schemaSources/>
+   <schemaPrefixes/>
+   <externalAnnotations/>
+</HED>

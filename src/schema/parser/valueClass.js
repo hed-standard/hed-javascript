@@ -24,11 +24,14 @@ export default class ValueClassParser extends SchemaDefinitionEntryParser {
    * declaration defines it, provided every name is a set, an alias, or a single character. Before that the
    * file's value_class_defaults for the standard version define the standard classes, because their released
    * declarations are incomplete. A class the file has no defaults for (a library's own class) always follows its
-   * declaration. This is hed-python's CharRexValidator.allowed_names.
+   * declaration. This is hed-python's CharRexValidator.allowed_names, with one difference: a declaration with an
+   * unknown name is a compliance fault, and the schema is never refused for one. A standard class then keeps its
+   * defaults; a class with no defaults takes the textClass characters of the standard version instead of no
+   * constraint, as does a class with no usable declaration at all.
    *
    * @param {string} name The value class name.
    * @param {Map<SchemaAttribute, string[]>} valueAttributes The class's value attributes.
-   * @returns {string[]} The names; empty when nothing constrains the characters.
+   * @returns {string[]} The names.
    * @private
    */
   _allowedNames(name, valueAttributes) {
@@ -42,6 +45,6 @@ export default class ValueClassParser extends SchemaDefinitionEntryParser {
         return declared
       }
     }
-    return defaults
+    return defaults.length > 0 ? defaults : characterSets.defaultsFor('textClass', standardVersion)
   }
 }

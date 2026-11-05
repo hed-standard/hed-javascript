@@ -214,17 +214,20 @@ export default class TagParser extends SchemaEntryWithAttributesParser {
       return tagClassDefinitions
     }
 
+    // A class the schema does not define is a compliance fault, and older published schemas have such faults
+    // (HED 8.0.0 gives Parameter-label/# and Timbre/# the undefined labelClass). The schema is never refused for
+    // one: an undefined value class is treated as textClass, or dropped if the schema has no textClass; an
+    // undefined unit class is dropped. This matches hed-typescript.
+    const fallback = attributeName === 'valueClass' ? classes.getEntry('textClass') : undefined
     for (const [tagName, valueAttributes] of valueAttributeDefinitions) {
       const classNames = valueAttributes.get(attribute)
       if (classNames === undefined) {
         continue
       }
-      // A class name the schema does not define is dropped, as in hed-typescript; the specification requires a
-      // defined class or anyUnits, and the validator assumes a valid schema.
-      tagClassDefinitions.set(
-        tagName,
-        classNames.map((className) => classes.getEntry(className)).filter((entry) => entry !== undefined),
-      )
+      const entries = classNames
+        .map((className) => classes.getEntry(className) ?? fallback)
+        .filter((entry) => entry !== undefined)
+      tagClassDefinitions.set(tagName, [...new Set(entries)])
       if (removeAttribute) {
         valueAttributes.delete(attribute)
       }
