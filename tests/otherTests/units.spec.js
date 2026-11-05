@@ -101,6 +101,24 @@ describe('Unit expansion and conversion', () => {
       const unitClass = hedSchemas.baseSchema.entries.unitClasses.getEntry('speedUnits')
       assert.strictEqual(unitClass.defaultUnit.name, 'm-per-s')
     })
+
+    describe('with a default derived from a listed unit (HED 8.5.0)', () => {
+      let schemas850
+
+      beforeAll(async () => {
+        const specs = new SchemasSpec().addSchemaSpec(new SchemaSpec('', '8.5.0', '', `${testSchemasDir}/HED8.5.0.xml`))
+        schemas850 = await buildSchemas(specs)
+      })
+
+      it.each([
+        ['currentUnits', 'mA', 'A'],
+        ['resistanceUnits', 'kOhm', 'Ohm'],
+      ])('%s with default %s should return the unit %s', (unitClassName, defaultUnits, expected) => {
+        const unitClass = schemas850.baseSchema.entries.unitClasses.getEntry(unitClassName)
+        assert.strictEqual(unitClass.getSingleAttributeValue('defaultUnits'), defaultUnits)
+        assert.strictEqual(unitClass.defaultUnit.name, expected)
+      })
+    })
   })
 
   describe('ParsedHedTag.valueAsDefaultUnit', () => {
