@@ -67,15 +67,15 @@ describe('DefinitionManager tests', () => {
 
   describe.each(definitionTestData)('$name : $description', ({ name, schemaVersion, definitions, tests }) => {
     let thisSchema
-    let defManager
 
     beforeAll(async () => {
       thisSchema = schemaMap.get(schemaVersion)
+      // The suite's definitions must be valid and must add to a manager without issues.
       const [defList, issues] = DefinitionManager.createDefinitions(definitions, thisSchema)
       if (issues.length > 0) {
         throw new Error(`Invalid test definitions: ${definitions}`)
       }
-      defManager = new DefinitionManager()
+      const defManager = new DefinitionManager()
       const addIssues = defManager.addDefinitions(defList)
       if (addIssues.length > 0) {
         throw new Error(`Invalid test definitions: ${definitions}`)
