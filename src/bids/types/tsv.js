@@ -23,7 +23,7 @@ export class BidsTsvFile extends BidsFile {
   parsedTsv
 
   /**
-   * The column names that appear more than once in the header (TABULAR_INVALID); empty for Map data.
+   * The column names that appear more than once in the header (TABULAR_INVALID).
    * @type {string[]}
    */
   duplicateColumns

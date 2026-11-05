@@ -1,3 +1,4 @@
+import { globalIgnores } from 'eslint/config'
 import prettier from 'eslint-plugin-prettier'
 import globals from 'globals'
 import path from 'node:path'
@@ -14,6 +15,12 @@ const compat = new FlatCompat({
 })
 
 export default [
+  globalIgnores(['dist/**/*'], 'Ignore Build Directory'),
+  globalIgnores(['docs/**/*'], 'Ignore Documentation Directory'),
+  globalIgnores(['tests/bidsDemoData/**/*'], 'Ignore BIDS Demo Data Directory'),
+  globalIgnores(['src/data/*'], 'Ignore Source Data Directory'),
+  globalIgnores(['spec_tests/hed-tests/**/*'], 'Ignore hed-tests Submodule'),
+  globalIgnores(['.status/**/*'], 'Ignore Working Notes Directory'),
   ...compat.extends('eslint:recommended', 'prettier'),
   {
     plugins: {
@@ -67,6 +74,13 @@ export default [
           allowUnboundThis: false,
         },
       ],
+    },
+  },
+  {
+    // Command-line runners report progress and failures on the console.
+    files: ['scripts/**/*.js'],
+    rules: {
+      'no-console': 'off',
     },
   },
 ]

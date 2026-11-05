@@ -22,7 +22,7 @@
   "scripts": {
     "build": "node esbuild.mjs",
     "prepublishOnly": "npm run build",
-    "lint": "eslint ./src/**/*.js",
+    "lint": "eslint",
     "test": "jest --testPathPatterns='/tests/'",
     "testSpecs": "jest --testPathPatterns='/spec_tests/' --silent --noStackTrace",
     "test-types": "npx tsc --noEmit --project types/tsconfig.json && npx tsx types/test.ts",
