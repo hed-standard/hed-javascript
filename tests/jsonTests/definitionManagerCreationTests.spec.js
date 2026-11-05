@@ -15,16 +15,13 @@ const skipMap = new Map()
 const runAll = true
 const runMap = new Map([['definition-creation-validation', ['valid-definition-creation-from-string']]])
 
-const testDefinitions = function (test, thisSchema, defManager) {
+const testDefinitions = function (test, thisSchema) {
   const status = test.errors.length === 0 ? 'Expect pass' : 'Expect fail'
   const header = `[${test.testname} (${status})]`
   assert.isDefined(thisSchema, `header: ${test.schemaVersion} is not available in test ${test.testname}`)
 
-  let thisDefManager
-  if (!test.definition) {
-    thisDefManager = defManager
-  } else {
-    thisDefManager = new DefinitionManager()
+  if (test.definition) {
+    const thisDefManager = new DefinitionManager()
     const [defsToAdd, defIssues] = DefinitionManager.createDefinitions([test.definition], thisSchema)
     if (defIssues.length > 0) {
       throw new Error(`Invalid test definitions: ${test.definition}`)
@@ -89,7 +86,7 @@ describe('DefinitionManager tests', () => {
 
     test.each(tests)('$testname: $explanation ', (test) => {
       if (shouldRun(name, test.testname, runAll, runMap, skipMap)) {
-        testDefinitions(test, thisSchema, defManager)
+        testDefinitions(test, thisSchema)
       } else {
         // eslint-disable-next-line no-console
         console.log(`----Skipping definitionManagerTest ${name}: ${test.testname}`)
