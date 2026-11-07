@@ -694,7 +694,7 @@ export const bidsTestData = [
       {
         testname: 'invalid-duplicate-tags-on-data-rows-1-and-3',
         explanation:
-          'Duplicate tags on data rows 1 and 3 (TSV lines 2 and 4) — verifies both line numbers are reported',
+          'Duplicate tags on data rows 1 and 3 (TSV lines 2 and 4) - verifies both line numbers are reported',
         schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
@@ -723,7 +723,7 @@ export const bidsTestData = [
       },
       {
         testname: 'valid-same-onset-rows-1-and-3-no-duplicate-tags',
-        explanation: 'Data rows 1 and 3 share the same onset time but have no duplicate tags — should pass',
+        explanation: 'Data rows 1 and 3 share the same onset time but have no duplicate tags - should pass',
         schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
@@ -734,7 +734,7 @@ export const bidsTestData = [
       },
       {
         testname: 'verify-tsv-line-number-on-row-three',
-        explanation: 'Duplicate tag on the third row — verifies the reported tsvLine is 3, not 2',
+        explanation: 'Duplicate tag on the third row - verifies the reported tsvLine is 3, not 2',
         schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {},
@@ -758,7 +758,7 @@ export const bidsTestData = [
       {
         testname: 'verify-sidecar-key-name-in-error',
         explanation:
-          'Sidecar has two HED keys; only one has a duplicate — verifies the correct key name is reported in the error',
+          'Sidecar has two HED keys; only one has a duplicate - verifies the correct key name is reported in the error',
         schemaVersion: '8.4.0',
         definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
         sidecar: {
@@ -1603,6 +1603,62 @@ export const bidsTestData = [
         sidecarErrors: [],
         tsvErrors: [],
         comboErrors: [],
+      },
+      {
+        testname: 'invalid-def-value-in-value-column',
+        explanation: 'A value column value substituted into Def/Acc/# is invalid for the definition',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          speed: {
+            HED: 'Def/Acc/#',
+          },
+        },
+        eventsString: 'onset\tduration\tspeed\n' + '19\t6\tabc\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidValue', {
+              tag: 'Acceleration/abc m-per-s^2',
+              msg: 'Tag "Acceleration" has value classes [numericClass] but its value "abc" is not in any of them.',
+              tsvLine: '2',
+            }),
+            { path: 'invalid-def-value-in-value-column.tsv' },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-def-value-in-unspliced-row',
+        explanation:
+          'A Def/Acc/# value invalid for the definition is reported once, at its first row, when not spliced',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          speed: {
+            HED: 'Def/Acc/#',
+          },
+          event_code: {
+            HED: {
+              ball: '{speed}, Blue',
+              face: 'Green',
+            },
+          },
+        },
+        eventsString:
+          'onset\tduration\tevent_code\tspeed\n' + '19\t6\tball\t3.5\n' + '20\t6\tface\tabc\n' + '21\t6\tface\tabc\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('invalidValue', {
+              tag: 'Acceleration/abc m-per-s^2',
+              msg: 'Tag "Acceleration" has value classes [numericClass] but its value "abc" is not in any of them.',
+              tsvLine: '3',
+            }),
+            { path: 'invalid-def-value-in-unspliced-row.tsv' },
+          ),
+        ],
       },
       {
         testname: 'valid-definition-with-nested-placeholder',
