@@ -225,7 +225,8 @@ export class BidsHedTsvValidator extends BidsValidator {
    * A referenced column is spliced into other columns' strings rather than assembled on its own, so in a row
    * whose selected template does not substitute it, its value would otherwise never be checked. Each distinct
    * value is substituted into the column's sidecar string and checked at the tag level (no group rules), as a
-   * sidecar's own placeholder string is checked.
+   * sidecar's own placeholder string is checked. A value that reaches a `Def` tag is also checked against the
+   * definition's contents.
    *
    * @private
    */
@@ -247,7 +248,18 @@ export class BidsHedTsvValidator extends BidsValidator {
         checkedValues.add(columnValue)
         // A function replacer inserts the value literally: a value such as "$&" is data, not a replacement pattern.
         const columnString = columnData.hedString.replace('#', () => columnValue)
-        const [, errorIssues, warningIssues] = parseHedString(columnString, this.hedSchemas, false, false, false)
+        const [parsedString, errorIssues, warningIssues] = parseHedString(
+          columnString,
+          this.hedSchemas,
+          false,
+          false,
+          false,
+        )
+        if (parsedString !== null) {
+          const defIssues = sidecar.definitions.validateDefs(parsedString, this.hedSchemas, false)
+          errorIssues.push(...defIssues.filter((issue) => issue.level === 'error'))
+          warningIssues.push(...defIssues.filter((issue) => issue.level === 'warning'))
+        }
         addTsvLineIssues(this, errorIssues, warningIssues, this.tsvFile.file, rowIndexMinusTwo + 2)
       })
     }
@@ -473,6 +485,9 @@ export class BidsHedTsvParser {
   /**
    * Parse element HED strings.
    *
+   * The `Def` tags of each assembled string are evaluated against the sidecar's definitions, so a value that a
+   * value column substitutes into `Def/Name/#` is checked against the definition's contents.
+   *
    * @param {BidsTsvElement[]} elements - The objects representing tsv rows with their parsed HEd strings.
    * @returns {Array} -  [BidsHedIssue[], BidsHedIssue[]] The errors and warnings resulting in creating the parsed HED strings.
    */
@@ -492,6 +507,11 @@ export class BidsHedTsvParser {
         false,
         true,
       )
+      if (parsedHedString !== null) {
+        const defIssues = this.tsvFile.mergedSidecar.definitions.validateDefs(parsedHedString, this.hedSchemas, false)
+        errorIssues.push(...defIssues.filter((issue) => issue.level === 'error'))
+        warningIssues.push(...defIssues.filter((issue) => issue.level === 'warning'))
+      }
       element.parsedHedString = parsedHedString
       addTsvLineIssues({ errors, warnings }, errorIssues, warningIssues, this.tsvFile.file, element.tsvLine)
     }
