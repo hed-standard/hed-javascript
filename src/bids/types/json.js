@@ -200,6 +200,12 @@ export class BidsSidecar extends BidsJsonFile {
           }
 
           if (BidsSidecar._sidecarValueHasHed(value)) {
+            // The second-level HED key is valid, but a HED key deeper in the same entry is not.
+            for (const [subkey, subvalue] of Object.entries(value)) {
+              if (subkey !== 'HED') {
+                this._verifyKeyHasNoDeepHed(subkey, subvalue, key)
+              }
+            }
             return [key, new BidsSidecarKey(key, value.HED, this)]
           }
 

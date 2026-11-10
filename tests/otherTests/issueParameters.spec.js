@@ -98,6 +98,29 @@ describe('Issue Parameters Tests', () => {
       expect(thrownError.issue.parameters.key).toBe('event_code')
     })
 
+    test.each([
+      ['in a sibling object', { trial: { HED: 'Red', metadata: { HED: 'Blue' } } }],
+      ['deep in a sibling object', { trial: { HED: { face: 'Red' }, extra: { inner: { HED: 'Blue' } } } }],
+    ])('should throw error for a deep HED key %s beside a valid second-level HED', (_, invalidData) => {
+      const thrownError = captureError(invalidData)
+
+      expectError(thrownError, 'illegalSidecarHedDeepKey', 'SIDECAR_INVALID')
+      expect(thrownError.issue.parameters.key).toBe('trial')
+      expect(thrownError.issue.parameters.sidecarKey).toBe('trial')
+    })
+
+    test('should not throw error for sibling metadata without HED beside a valid second-level HED', () => {
+      const sidecar = new BidsSidecar(
+        'test.json',
+        { path: 'test.json' },
+        {
+          trial: { HED: { face: 'Red' }, Levels: { face: 'A face' }, Description: 'Trial type' },
+        },
+      )
+      expect(sidecar).toBeInstanceOf(BidsSidecar)
+      expect(sidecar.sidecarKeys.has('trial')).toBe(true)
+    })
+
     test('should validate complete error structure and message', () => {
       const invalidData = createInvalidData(3)
       const thrownError = captureError(invalidData)
