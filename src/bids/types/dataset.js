@@ -9,6 +9,9 @@ import { generateIssue, IssueError } from '../../issues/issues'
 import { getMergedSidecarData, organizedPathsGenerator, parseRelativePath } from '../../utils/paths'
 import { BidsHedIssue } from './issues'
 
+/** Matches a "HED" key in raw JSON text, allowing whitespace before the colon. */
+const HED_KEY_PATTERN = /"HED"\s*:/
+
 /**
  * A BIDS dataset.
  *
@@ -202,7 +205,7 @@ export class BidsDataset {
               )
               return sidecarIssues
             }
-            if (!jsonText.includes('"HED":')) {
+            if (!HED_KEY_PATTERN.test(jsonText)) {
               return sidecarIssues
             }
             try {
