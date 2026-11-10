@@ -154,6 +154,24 @@ describe('BidsDataset', () => {
 
       getFileContentSpy.mockRestore()
     })
+
+    it.each([
+      ['a space', '{ "trial_type": { "HED" : { "go": "Sensory-event" } } }'],
+      ['a line break', '{ "trial_type": { "HED"\n: { "go": "Sensory-event" } } }'],
+    ])('should load a sidecar with %s before the colon after "HED"', async (_, jsonText) => {
+      class SpacedHedAccessor extends BidsFileAccessor {
+        async getFileContent() {
+          return jsonText
+        }
+      }
+      const accessor = new SpacedHedAccessor('/fake/dir', new Map([['task-testing_events.json', {}]]))
+      const dataset = new BidsDataset(accessor)
+      const issues = await dataset.setSidecars()
+
+      expect(issues.length).toBe(0)
+      expect(dataset.sidecarMap.has('task-testing_events.json')).toBe(true)
+      expect(dataset.sidecarMap.get('task-testing_events.json').sidecarKeys.has('trial_type')).toBe(true)
+    })
   })
 
   describe('validate', () => {
