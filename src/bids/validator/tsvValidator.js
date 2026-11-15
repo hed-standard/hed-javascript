@@ -74,6 +74,21 @@ export class BidsHedTsvValidator extends BidsValidator {
       return
     }
 
+    // An empty line or a wrong cell count: report every offending line and do not validate the rows (3.2.10).
+    const rowIssues = [
+      ...this.tsvFile.emptyLines.map((line) => ({ line, issue: generateIssue('emptyTsvLine', { line }) })),
+      ...this.tsvFile.badCellCounts.map(({ line, cells, expected }) => ({
+        line,
+        issue: generateIssue('tsvCellCount', { line, cells, expected }),
+      })),
+    ].sort((a, b) => a.line - b.line)
+    if (rowIssues.length > 0) {
+      for (const { line, issue } of rowIssues) {
+        this.errors.push(BidsHedIssue.fromHedIssue(issue, this.tsvFile.file, { tsvLine: line }))
+      }
+      return
+    }
+
     // Validate the BIDS sidecar if it exists and return if there are errors
     if (this.tsvFile.mergedSidecar) {
       const issues = this.tsvFile.mergedSidecar.validate(this.hedSchemas)

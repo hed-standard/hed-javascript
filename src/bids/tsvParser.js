@@ -17,33 +17,39 @@ import { isPaddedName, stripNameWhitespace } from '../utils/string'
 
 const stripBOM = (str) => str.replace(/^\uFEFF/, '')
 const normalizeEOL = (str) => str.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-const isContentfulRow = (row) => row && !/^\s*$/.test(row)
-// A line with a tab has at least two columns, so it is a row even when every cell is blank or padded. An empty line
-// or a line of blanks without a tab is skipped, as pandas reads it in hed-python (skip_blank_lines).
-const isTableRow = (row) => row.includes('\t') || isContentfulRow(row)
 
 /**
- * Split TSV contents into cells: the first row, which is the header, then one array per row after it.
+ * Split TSV contents into lines (specification 3.2.10).
+ *
+ * Line breaks are \r\n, \r or \n. One line break at the end of the contents ends the last line and is not itself a
+ * line; any other empty line is kept, so that it can be reported. Line 1 is always the first line, even when empty.
+ *
+ * @param {string} contents The contents of a TSV file.
+ * @returns {string[]} The lines of the file; empty when the contents are empty.
+ */
+const splitLines = (contents) => {
+  const text = stripBOM(normalizeEOL(contents))
+  if (text.length === 0) {
+    return []
+  }
+  const lines = text.split('\n')
+  if (lines[lines.length - 1] === '') {
+    lines.pop()
+  }
+  return lines
+}
+
+/**
+ * Split TSV contents into cells: the first line, which is the header, then one array per line after it.
  *
  * The header cells are the column names and the other cells the values, all exactly as written (specification
- * 3.2.9.1 and 3.2.10): nothing is trimmed, as for Map and {headers, rows} input. Header and data rows are found by
- * the same rule, so a data line such as ` \t` is a row and its padded value is checked.
+ * 3.2.9.1 and 3.2.10): nothing is trimmed, as for Map and {headers, rows} input. Every line is kept, so that row
+ * index i is file line i + 1; an empty line becomes the row `['']` (see {@link findRowProblems}).
  *
  * @param {string} contents The contents of a TSV file.
  * @returns {string[][]} The rows of the file.
  */
-const splitRows = (contents) => {
-  const lines = stripBOM(normalizeEOL(contents)).split('\n')
-  const headerIndex = lines.findIndex(isTableRow)
-  if (headerIndex < 0) {
-    return []
-  }
-  const dataRows = lines
-    .slice(headerIndex + 1)
-    .filter(isTableRow)
-    .map((str) => str.split('\t'))
-  return [lines[headerIndex].split('\t'), ...dataRows]
-}
+const splitRows = (contents) => splitLines(contents).map((line) => line.split('\t'))
 
 /**
  * Determine whether a TSV cell is a missing value: empty or `n/a` once any leading or trailing blank, tab, line feed
@@ -155,31 +161,84 @@ export function findDuplicateHeaders(contents) {
 }
 
 /**
- * Return the cells of the first header line of TSV contents (see {@link splitRows}), without splitting the other lines.
+ * Return the cells of the first line of TSV contents, the header (see {@link splitRows}), without splitting the other
+ * lines.
  *
  * Line breaks are \r\n, \r or \n, as in {@link splitRows}, so the result equals the header row that
- * {@link parseTSV} uses. The cells are not trimmed.
+ * {@link parseTSV} uses. The cells are not trimmed. An empty first line is one blank column name, `['']`.
  *
  * @param {string} contents The contents of a TSV file.
- * @returns {string[]} The header cells; empty when the contents have no header line.
+ * @returns {string[]} The header cells; empty when the contents are empty.
  */
 export function parseTSVHeader(contents) {
   const text = stripBOM(contents)
-  const lineBreak = /\r\n|\r|\n/g
-  let start = 0
-  while (start <= text.length) {
-    lineBreak.lastIndex = start
-    const match = lineBreak.exec(text)
-    const line = text.slice(start, match ? match.index : text.length)
-    if (isTableRow(line)) {
-      return line.split('\t')
-    }
-    if (!match) {
-      break
-    }
-    start = lineBreak.lastIndex
+  if (text.length === 0) {
+    return []
   }
-  return []
+  const match = /\r\n|\r|\n/.exec(text)
+  return text.slice(0, match ? match.index : text.length).split('\t')
+}
+
+/**
+ * Determine whether a cell of the first non-empty line of TSV contents is `HED` once its leading and trailing
+ * whitespace is removed.
+ *
+ * Such a file carries HED even when a malformed first line hides its HED column (specification 3.2.10), so it is
+ * validated and the malformed line reported.
+ *
+ * @param {string} contents The contents of a TSV file.
+ * @returns {boolean} Whether the first non-empty line names a HED column.
+ */
+export function firstNonEmptyLineHasHed(contents) {
+  const line = splitLines(contents).find((text) => text !== '')
+  return line !== undefined && line.split('\t').some((cell) => stripNameWhitespace(cell) === 'HED')
+}
+
+/**
+ * The lines of a tabular file that break the line rules of specification 3.2.10.
+ * @typedef {Object} TsvRowProblems
+ * @property {number[]} emptyLines The 1-based numbers of the empty lines other than the first.
+ * @property {{line: number, cells: number, expected: number}[]} badCellCounts Each other line whose number of
+ *   tab-separated cells differs from the first line's.
+ */
+
+/**
+ * Find the lines other than the first that are empty or have a different number of cells than the first line
+ * (specification 3.2.10, TABULAR_INVALID).
+ *
+ * An empty line is reported as an empty line only, not also as a wrong cell count. For text contents, an empty line
+ * is a line with no characters; for {headers, rows} data, a row with no cells, since a row `['']` is one empty
+ * cell. In {headers, rows} data, rows[0] is the header row and the expected count is the number of headers.
+ *
+ * @param {string|OldParsedTSV} data The contents of a TSV file, or parsed TSV data in the old BIDS format.
+ * @returns {TsvRowProblems} The empty lines and the lines with a wrong cell count, by 1-based file line number.
+ */
+export function findRowProblems(data) {
+  const problems = { emptyLines: [], badCellCounts: [] }
+  let expected
+  let rows
+  if (typeof data === 'string') {
+    const lines = splitLines(data)
+    if (lines.length === 0) {
+      return problems
+    }
+    expected = lines[0].split('\t').length
+    rows = lines.map((line) => (line === '' ? null : line.split('\t')))
+  } else {
+    expected = data.headers.length
+    rows = data.rows.map((row) => (row.length === 0 ? null : row))
+  }
+  rows.forEach((row, index) => {
+    if (index === 0) {
+      return
+    }
+    if (row === null) {
+      problems.emptyLines.push(index + 1)
+    } else if (row.length !== expected) {
+      problems.badCellCounts.push({ line: index + 1, cells: row.length, expected })
+    }
+  })
+  return problems
 }
 
 /**

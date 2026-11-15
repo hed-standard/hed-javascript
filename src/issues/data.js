@@ -513,6 +513,16 @@ const issueData = {
     level: 'error',
     message: issueMessageTemplate`Column ${'position'} in the header of the tabular file has a blank name.`,
   },
+  emptyTsvLine: {
+    hedCode: 'TABULAR_INVALID',
+    level: 'error',
+    message: issueMessageTemplate`Line ${'line'} of the tabular file is empty; only the first line may be empty.`,
+  },
+  tsvCellCount: {
+    hedCode: 'TABULAR_INVALID',
+    level: 'error',
+    message: issueMessageTemplate`Line ${'line'} of the tabular file has a tab-separated cell count of ${'cells'}, but the first line has a count of ${'expected'}.`,
+  },
   paddedTsvValue: {
     hedCode: 'TABULAR_INVALID',
     level: 'error',

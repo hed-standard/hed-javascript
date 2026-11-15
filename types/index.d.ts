@@ -95,6 +95,10 @@ export class BidsTsvFile {
   paddedColumns: string[]
   /** The 1-based positions of the blank column names (TABULAR_INVALID) */
   blankColumns: number[]
+  /** The 1-based numbers of the empty lines other than the first (TABULAR_INVALID) */
+  emptyLines: number[]
+  /** The lines other than the first whose number of cells differs from the first line's (TABULAR_INVALID) */
+  badCellCounts: { line: number; cells: number; expected: number }[]
   /** HED strings in the "HED" column of the TSV data */
   hedColumnHedStrings: string[]
   /** The pseudo-sidecar object representing the merged sidecar data */
