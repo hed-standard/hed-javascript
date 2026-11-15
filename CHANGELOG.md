@@ -235,13 +235,30 @@ testSpecs`.
   characters is SIDECAR_INVALID (`paddedSidecarCategoricalKey`, hed-tests
   `sidecar-invalid-value-key-whitespace`). Before, `go ` was trimmed to `go`
   and annotated silently. A HED-column cell such as `n/a ` or a blanks-only cell
-  is still a missing value (`isMissingTsvValue`). A data line that holds a tab,
-  such as ` \t`, is a row and its cells are checked; an empty line or a line of
-  blanks without a tab is skipped, as hed-python reads it. Onsets are grouped
+  is still a missing value (`isMissingTsvValue`). A data line is a row and its
+  cells are checked, whether or not it holds a tab: ` \t` is a row, and so is a
+  line of one blank (a one-column table has no wrong cell count). An empty line
+  is reported, not skipped (see the line rules below). Onsets are grouped
   without their surrounding whitespace when duplicate tags across rows are
   checked, so `19` with or without blanks around it is one onset. A categorical
   value with no key in a column whose annotation holds a `{column}` splice is
   SIDECAR_KEY_MISSING, as in other columns; it was an INTERNAL_ERROR.
+- The line rules of a tabular file (specification 3.2.10, as in hed-typescript,
+  hed-tests `tabular-invalid-blank-column-name`, `tabular-invalid-empty-line`
+  and `tabular-invalid-cell-count`): the header is always line 1, so an empty
+  first line is one blank column name (`blankTsvColumn`) instead of being
+  skipped. One line break at the end of the contents is not a line; any other
+  empty line is TABULAR_INVALID (`emptyTsvLine`), and a line whose number of
+  tab-separated cells differs from line 1 is TABULAR_INVALID (`tsvCellCount`).
+  Each offending line is reported with its `tsvLine`, in line order, after any
+  header problem and before the sidecar is checked, and the rows are not
+  validated further. `{headers, rows}` input is checked too (`rows[0]` is the
+  header row; a row with no cells is an empty line); `Map` input has no rows to
+  check. `BidsTsvFile` has the new fields `emptyLines` and `badCellCounts`.
+  These checks run only on a file that carries HED: a column or sidecar entry
+  named `HED`, or a cell of the first non-empty line of text data that is `HED`
+  once trimmed, so an empty first line does not hide the HED column. A blank
+  column name alone does not.
 - A partnered library loaded from its unmerged file now gives the same schema
   as its merged file:
   - its elements carry `inLibrary`, so redeclaring a tag of the standard partner

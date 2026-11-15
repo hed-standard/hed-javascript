@@ -9,6 +9,8 @@ import {
   findDuplicateHeaders,
   findDuplicateParsedHeaders,
   findHeaderProblems,
+  findRowProblems,
+  firstNonEmptyLineHasHed,
   isMissingTsvValue,
   parseTSV,
   parseTSVHeader,
@@ -183,25 +185,80 @@ describe('Padded and blank TSV column names and sidecar keys', () => {
       )
     })
 
-    it('keep a header of tabs only as blank names, not skip it', () => {
-      const contents = '\n\t\n1\tgo\n'
+    it('keep a header of tabs only as blank names', () => {
+      const contents = '\t\n1\tgo\n'
       assert.deepEqual(parseTSVHeader(contents), ['', ''])
       assert.deepEqual([...parseTSV(contents).entries()], [['', ['1']]])
     })
 
-    it('still skip blank lines before the header', () => {
-      assert.deepEqual(parseTSVHeader('\n  \nonset\tHED\n1\tRed\n'), ['onset', 'HED'])
+    // Specification 3.2.10: the first line is the header, even when empty; an empty first line is one blank name.
+    it('take the header from line 1, even when it is empty or blank', () => {
+      assert.deepEqual(parseTSVHeader('\n  \nonset\tHED\n1\tRed\n'), [''])
+      assert.deepEqual(parseTSVHeader('  \nonset\tHED\n'), ['  '])
+      assert.deepEqual(parseTSVHeader('\r\nonset\tHED\r\n'), [''])
+      assert.deepEqual(parseTSVHeader('\n'), [''])
+      assert.deepEqual(parseTSVHeader(''), [])
     })
 
-    it('keep a data line with a tab as a row, and skip an empty line or blanks without a tab', () => {
-      // As pandas reads it in hed-python (skip_blank_lines): ` \t` is a row; '' and '   ' are not.
+    it('keep every line after the header as a row, empty or not', () => {
+      // Row i is file line i + 2; the empty line 3 and the one-cell line 4 are reported by findRowProblems.
       assert.deepEqual(
         [...parseTSV('trial\tHED\n \t\n\n   \ngo\tRed\n').entries()],
         [
-          ['trial', [' ', 'go']],
-          ['HED', ['', 'Red']],
+          ['trial', [' ', '', '   ', 'go']],
+          ['HED', ['', undefined, undefined, 'Red']],
         ],
       )
+    })
+  })
+
+  describe('findRowProblems', () => {
+    it.each([
+      ['a file with no problems', 'trial\tHED\ngo\tRed\n', [], []],
+      ['no final line break', 'trial\tHED\ngo\tRed', [], []],
+      ['a row of tabs with the right count', 'trial\tHED\n\t\n', [], []],
+      ['an empty line between rows', 'trial\tHED\ngo\tRed\n\nstop\tBlue\n', [3], []],
+      ['two line breaks at the end', 'trial\tHED\ngo\tRed\n\n', [3], []],
+      ['CRLF line breaks', 'trial\tHED\r\ngo\tRed\r\n\r\n', [3], []],
+      ['a short row', 'trial\tHED\ngo\n', [], [{ line: 2, cells: 1, expected: 2 }]],
+      ['a long row', 'trial\tHED\ngo\tRed\tx\n', [], [{ line: 2, cells: 3, expected: 2 }]],
+      ['a line of one blank', 'trial\tHED\n \n', [], [{ line: 2, cells: 1, expected: 2 }]],
+      ['a line of one blank, one column', 'trial\n \n', [], []],
+      ['an empty line in one column', 'trial\n\ngo\n', [2], []],
+      [
+        'an empty first line',
+        '\nresponse\tHED\na\tRed\n',
+        [],
+        [
+          { line: 2, cells: 2, expected: 1 },
+          { line: 3, cells: 2, expected: 1 },
+        ],
+      ],
+      ['empty contents', '', [], []],
+    ])('%s', (_, contents, emptyLines, badCellCounts) => {
+      assert.deepEqual(findRowProblems(contents), { emptyLines, badCellCounts })
+    })
+
+    it('reads old-format rows, where rows[0] is the header and a row with no cells is an empty line', () => {
+      const headers = ['trial', 'HED']
+      assert.deepEqual(findRowProblems({ headers, rows: [headers, ['go', 'Red'], [], ['go'], ['', '']] }), {
+        emptyLines: [3],
+        badCellCounts: [{ line: 4, cells: 1, expected: 2 }],
+      })
+    })
+  })
+
+  describe('firstNonEmptyLineHasHed', () => {
+    it.each([
+      ['response\tHED\n', true],
+      ['\nresponse\tHED\n', true],
+      ['\n\nresponse\t HED \n', true],
+      ['\nresponse\ttrial\nHED\tRed\n', false],
+      ['  \nresponse\tHED\n', false],
+      ['\nresponse\tHEDx\n', false],
+      ['', false],
+    ])('%j: %j', (contents, expected) => {
+      assert.strictEqual(firstNonEmptyLineHasHed(contents), expected)
     })
   })
 
@@ -276,6 +333,76 @@ describe('Padded and blank TSV column names and sidecar keys', () => {
 
     it('does not check a file with no HED column and no HED sidecar', () => {
       assert.isEmpty(validate('onset\ttrial \t\n1.0\tgo\t\n', {}))
+    })
+
+    // Specification 3.2.10: a line other than the first must not be empty (reason e) and must have as many cells as
+    // the first (reason f); every offending line is reported, in line order, and the rows are not validated.
+    it('reports each empty line and wrong cell count by line, and does not validate the rows', () => {
+      const issues = validate('trial\tHED\ngo\tInvalidTagXYZ\n\nstop\nmaybe\tRed\tx\n\n')
+      assert.deepEqual(describeIssues(issues), [
+        ['TABULAR_INVALID', 'emptyTsvLine'],
+        ['TABULAR_INVALID', 'tsvCellCount'],
+        ['TABULAR_INVALID', 'tsvCellCount'],
+        ['TABULAR_INVALID', 'emptyTsvLine'],
+      ])
+      assert.deepEqual(
+        issues.map((issue) => issue.hedIssue.parameters.tsvLine),
+        ['3', '4', '5', '6'],
+      )
+      assert.include(issues[0].issueMessage, 'Line 3 of the tabular file is empty')
+      assert.include(
+        issues[1].issueMessage,
+        'Line 4 of the tabular file has a tab-separated cell count of 1, but the first line has a count of 2',
+      )
+    })
+
+    it('accepts one line break at the end and a row of tabs with the right count', () => {
+      assert.isEmpty(validate('trial\tHED\ngo\tRed\n\t\n'))
+    })
+
+    it('reports header problems before row problems, and only them', () => {
+      assert.deepEqual(describeIssues(validate('trial\tHED\t\ngo\tRed\n\n')), [['TABULAR_INVALID', 'blankTsvColumn']])
+    })
+
+    it('does not check the rows of a file with no HED', () => {
+      assert.isEmpty(validate('onset\ttrial\n1.0\n\n2.0\tgo\tx\n', {}))
+    })
+
+    it('reports a wrong cell count in old-format input but not in a Map', () => {
+      const oldFormat = { headers: ['trial', 'HED'], rows: [['trial', 'HED'], ['go']] }
+      assert.deepEqual(describeIssues(validate(oldFormat)), [['TABULAR_INVALID', 'tsvCellCount']])
+      const file = new BidsTsvFile('events', { path: 'events.tsv' }, new Map([['HED', ['Red']]]), {})
+      assert.deepEqual([file.emptyLines, file.badCellCounts], [[], []])
+    })
+
+    // Specification 3.2.10: a file counts as having a HED column when a cell of its first non-empty line is HED once
+    // trimmed, so a broken first line does not hide it; the header is still line 1.
+    describe('the HED gate with a broken first line', () => {
+      it('checks a file whose empty first line is followed by a HED header', () => {
+        const file = new BidsTsvFile('events', { path: 'events.tsv' }, '\nresponse\tHED\na\tRed\n', {})
+        assert.isTrue(file.hasHedData)
+        assert.deepEqual(describeIssues(file.validate(hedSchemas)), [['TABULAR_INVALID', 'blankTsvColumn']])
+      })
+
+      it('checks a file whose two empty first lines are followed by a HED header', () => {
+        const file = new BidsTsvFile('events', { path: 'events.tsv' }, '\n\nresponse\tHED\na\tRed\n', {})
+        assert.isTrue(file.hasHedData)
+        const issues = file.validate(hedSchemas)
+        assert.deepEqual(describeIssues(issues), [['TABULAR_INVALID', 'blankTsvColumn']])
+        assert.strictEqual(issues[0].hedIssue.parameters.position, '1')
+      })
+
+      it('skips a file with an empty first line and no HED anywhere', () => {
+        const file = new BidsTsvFile('events', { path: 'events.tsv' }, '\nresponse\ttrial\na\tgo\n', {})
+        assert.isFalse(file.hasHedData)
+        assert.isEmpty(file.validate(hedSchemas))
+      })
+
+      it('does not open the gate for a blank column name alone', () => {
+        const file = new BidsTsvFile('events', { path: 'events.tsv' }, 'response\t\na\tgo\n', {})
+        assert.isFalse(file.hasHedData)
+        assert.isEmpty(file.validate(hedSchemas))
+      })
     })
 
     it('checks Map and old-format input the same way', () => {
