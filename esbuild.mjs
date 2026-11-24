@@ -30,6 +30,5 @@ await esbuild.build({
   format: 'esm',
   splitting: true,
   chunkNames: 'schemas/[name]',
-  external: ['pluralize'],
   platform: 'browser',
 })

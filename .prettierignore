@@ -1,7 +1,9 @@
 # A verbatim copy of hed-specification's reserved_tags.json; reserved_tags.yml checks it byte for byte.
-src/data/json/reservedTags.json
+src/data/json/reserved_tags.json
 # A verbatim copy of hed-specification's character_sets.json; character_sets.yml checks it byte for byte.
-src/data/json/characterSets.json
+src/data/json/character_sets.json
+# A verbatim copy of hed-specification's unit_plurals.json; unit_plurals.yml checks it byte for byte.
+src/data/json/unit_plurals.json
 # Standard wording shared by every repository; prettier's singleQuote would rewrite the double-quoted YAML frontmatter.
 .claude/rules/status_conduct.md
 .github/instructions/status_conduct.instructions.md

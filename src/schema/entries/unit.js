@@ -1,7 +1,29 @@
-import pluralize from 'pluralize'
-pluralize.addUncountableRule('hertz')
-
 import SchemaEntryWithAttributes from './schemaEntryWithAttributes'
+import unitPluralsData from '../../data/json/unit_plurals.json'
+import { checkFileVersion } from '../../utils/specFiles'
+
+/**
+ * Read the plurals of unit names from the content of a unit_plurals.json file.
+ *
+ * src/data/json/unit_plurals.json is a verbatim copy of the unit_plurals.json that the HED specification publishes
+ * (docs/source/_static/unit_plurals.json); the unit_plurals.yml workflow fails when it drifts. No plural is derived
+ * by a rule (specification section 3.1.4.4): a unit name that is a key has that plural, a unit name that is not a
+ * key has none, and a unit symbol is never a key.
+ *
+ * @param {Object} data The parsed content of a unit_plurals.json file.
+ * @returns {Map<string, string>} The plural of each listed unit name, by name (case-sensitive).
+ * @throws {IssueError} An internalError if the file's file_version major number is not 1 (Appendix A.6.1).
+ */
+export function readUnitPlurals(data) {
+  checkFileVersion(data, 'file_version', 'unit_plurals.json')
+  return new Map(Object.entries(data.plurals ?? {}))
+}
+
+/**
+ * The plurals of unit names, from the specification's unit_plurals.json.
+ * @type {Map<string, string>}
+ */
+const unitPlurals = readUnitPlurals(unitPluralsData)
 
 /**
  * A schema unit.
@@ -12,6 +34,12 @@ export default class SchemaUnit extends SchemaEntryWithAttributes {
    * @type {string[]}
    */
   _derivativeUnits
+
+  /**
+   * The plural of this unit's name from unit_plurals.json, or null if it has none other than the name.
+   * @type {string|null}
+   */
+  _pluralUnit
 
   /**
    * The SI modifiers this unit accepts, mapped to their conversion factors (null if a modifier has none).
@@ -48,6 +76,7 @@ export default class SchemaUnit extends SchemaEntryWithAttributes {
    */
   _buildForms(unitModifiers) {
     this._derivativeUnits = [this.name]
+    this._pluralUnit = null
     this._modifierFactors = new Map()
     this._compoundComponents = null
     if (!this.isSIUnit) {
@@ -144,18 +173,23 @@ export default class SchemaUnit extends SchemaEntryWithAttributes {
   }
 
   /**
-   * Add the plural of this unit's name to its derivatives, unless the unit is a symbol.
+   * Add the plural of this unit's name to its derivatives, if unit_plurals.json lists one.
    *
-   * @returns {string|null} The plural, or null for a unit symbol.
+   * A unit symbol has no plural, a name that is not a key of the file has none, and a name that is its own plural
+   * (hertz) adds no second form.
+   *
+   * @returns {string|null} The plural, or null if this unit has no plural other than its name.
    * @private
    */
   _pushPluralUnit() {
-    if (!this.isUnitSymbol) {
-      const pluralUnit = pluralize.plural(this.name)
-      this._derivativeUnits.push(pluralUnit)
-      return pluralUnit
+    const pluralUnit = this.isUnitSymbol ? undefined : unitPlurals.get(this.name)
+    if (pluralUnit === undefined || pluralUnit === this.name) {
+      this._pluralUnit = null
+      return null
     }
-    return null
+    this._pluralUnit = pluralUnit
+    this._derivativeUnits.push(pluralUnit)
+    return pluralUnit
   }
 
   /**
@@ -293,12 +327,12 @@ export default class SchemaUnit extends SchemaEntryWithAttributes {
   }
 
   /**
-   * The forms of this non-compound unit without a modifier: the name and, unless it is a symbol, its plural.
+   * The forms of this non-compound unit without a modifier: the name and its plural, if it has one.
    *
    * @returns {string[]} The unmodified forms.
    * @private
    */
   _plainForms() {
-    return this.isUnitSymbol ? [this.name] : [this.name, this._derivativeUnits[1]]
+    return this._pluralUnit === null ? [this.name] : [this.name, this._pluralUnit]
   }
 }

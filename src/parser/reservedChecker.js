@@ -1,6 +1,6 @@
 /** This module holds the class for encapsulating the rules for "Reserved" tags.
  *
- * The rules come from src/data/json/reservedTags.json, a verbatim copy of the reserved_tags.json that the HED
+ * The rules come from src/data/json/reserved_tags.json, a verbatim copy of the reserved_tags.json that the HED
  * specification publishes (section 3.2.8, fields defined in Appendix A.6). Every row applies in every standard
  * schema version >= 8.0.0, so no check here takes a version. The file is refused when this module loads if its
  * fileVersion major number is not 1 (Appendix A.6.1).
@@ -8,7 +8,7 @@
  * @module parser/reservedChecker
  */
 import { getTagListString } from './parseUtils'
-import reservedTags from '../data/json/reservedTags.json'
+import reservedTags from '../data/json/reserved_tags.json'
 import { generateIssue, IssueError } from '../issues/issues'
 import { checkFileVersion } from '../utils/specFiles'
 
