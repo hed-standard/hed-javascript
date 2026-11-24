@@ -1,6 +1,6 @@
 name: Character sets copy check
 
-# src/data/json/characterSets.json is a verbatim copy of the file hed-specification publishes
+# src/data/json/character_sets.json is a verbatim copy of the file hed-specification publishes
 # (its docs/source/_static/character_sets.json, served at
 # https://www.hedtags.org/hed-specification/_static/character_sets.json). The file has one home, so
 # this check fails when the copy drifts from hed-specification main. It runs when the copy or this
@@ -11,11 +11,11 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - src/data/json/characterSets.json
+      - src/data/json/character_sets.json
       - .github/workflows/character_sets.yml
   pull_request:
     paths:
-      - src/data/json/characterSets.json
+      - src/data/json/character_sets.json
       - .github/workflows/character_sets.yml
   schedule:
     # Weekly on Sundays at 4:45 AM UTC, after the reserved tags check
@@ -37,4 +37,4 @@ jobs:
         run: |
           curl -fsSL -o /tmp/character_sets.json \
             https://raw.githubusercontent.com/hed-standard/hed-specification/main/docs/source/_static/character_sets.json
-          cmp /tmp/character_sets.json src/data/json/characterSets.json
+          cmp /tmp/character_sets.json src/data/json/character_sets.json

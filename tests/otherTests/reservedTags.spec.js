@@ -8,11 +8,11 @@ import parseTSV from '../../src/bids/tsvParser'
 import { Definition, DefinitionManager } from '../../src/parser/definitionManager'
 import { parseHedString } from '../../src/parser/parser'
 import { ReservedChecker } from '../../src/parser/reservedChecker'
-import reservedTagsData from '../../src/data/json/reservedTags.json'
+import reservedTagsData from '../../src/data/json/reserved_tags.json'
 import { IssueError } from '../../src/issues/issues'
 import { checkFileVersion } from '../../src/utils/specFiles'
 
-// The rules of src/data/json/reservedTags.json (the specification's reserved_tags.json, section 3.2.8).
+// The rules of src/data/json/reserved_tags.json (the specification's reserved_tags.json, section 3.2.8).
 describe('Reserved tags from the published reserved_tags.json', () => {
   const schemaVersions = ['8.0.0', '8.1.0', '8.2.0', '8.4.0']
   const schemasByVersion = new Map()
@@ -308,7 +308,7 @@ describe('File version of reserved_tags.json', () => {
 
   it('refuses the packaged file when the module loads', async () => {
     await jest.isolateModulesAsync(async () => {
-      jest.doMock('../../src/data/json/reservedTags.json', () => ({ ...reservedTagsData, fileVersion: '2.0.0' }))
+      jest.doMock('../../src/data/json/reserved_tags.json', () => ({ ...reservedTagsData, fileVersion: '2.0.0' }))
       const IsolatedIssueError = (await import('../../src/issues/issues')).IssueError
       let caught = null
       try {
@@ -320,6 +320,6 @@ describe('File version of reserved_tags.json', () => {
       assert.strictEqual(caught.issue.internalCode, 'internalError')
       assert.include(caught.message, 'reserved_tags.json has fileVersion "2.0.0"')
     })
-    jest.dontMock('../../src/data/json/reservedTags.json')
+    jest.dontMock('../../src/data/json/reserved_tags.json')
   })
 })

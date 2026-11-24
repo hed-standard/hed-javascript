@@ -99,6 +99,22 @@ testSpecs`.
   `reservedTags.json` or `characterSets.json` (an `IssueError` with code
   `internalError` when the module loads) when its file version major number is
   not 1, as HED specification Appendix A.6.1 requires (#955).
+- The packaged copies of the specification's files take the specification's
+  names: `src/data/json/reserved_tags.json` and
+  `src/data/json/character_sets.json` (#987). `character_sets.json` is
+  refreshed from hed-specification `main`, which removed the unused set
+  `numeric`.
+- Unit plurals come from the specification's `unit_plurals.json`, packaged
+  verbatim as `src/data/json/unit_plurals.json`, instead of being derived by
+  the `pluralize` package (HED specification 3.1.4.4, #986). A unit name that
+  the file lists has that plural, any other unit name has none, and a unit
+  symbol has none. So `degrees-Celsius` and `millidegrees-Celsius` are now
+  valid and `degree-Celsiuses` is UNITS_INVALID; `uVS` (score), which
+  `pluralize` derived from the unit `uV`, is now UNITS_INVALID. A
+  `unit_plurals.json` whose file version major number is not 1 is refused.
+- The hed-tests submodule moved to `6dcdc18`. The ten new cases this
+  validator does not pass yet are skipped in `spec_tests/skippedTests.js`,
+  each naming its issue (#993, #994, #995, #996, #997).
 
 ### Fixed
 
@@ -310,6 +326,7 @@ testSpecs`.
 
 ### Dependencies
 
+- `pluralize` is no longer a dependency (#986).
 - `js-yaml` upgraded to 4.2.0 or later to address a security vulnerability.
 - TypeScript is installed as in hed-typescript: version 7 as `@typescript/native`
   (provides `tsc`) and version 6 as `typescript` (used by TypeDoc), so the

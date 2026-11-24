@@ -44,7 +44,7 @@ The husky pre-commit hook runs pretty-quick on staged `src/` files, `npm test` a
 
 ## Rules that are easy to get wrong
 
-- `src/data/json/reservedTags.json` and `src/data/json/characterSets.json` are verbatim copies of hed-specification files. `reserved_tags.yml` and `character_sets.yml` check them byte for byte, and `.prettierignore` keeps Prettier off them. Never edit or reformat them; replace them with the upstream file.
+- `src/data/json/reserved_tags.json`, `src/data/json/character_sets.json`, and `src/data/json/unit_plurals.json` are verbatim copies of the hed-specification files of the same names. `reserved_tags.yml`, `character_sets.yml`, and `unit_plurals.yml` check them byte for byte, and `.prettierignore` keeps Prettier off them. Never edit or reformat them; replace them with the upstream file.
 - `jest.config.js` has a `transformIgnorePatterns` entry that lets `unicode-name` and `semver` be transformed. Removing it breaks those imports in tests.
 - `npm run testSpecs` and part of `npm test` read schemas from the `spec_tests/hed-tests` submodule. A checkout without the submodule fails there; CI checks it out with `submodules: true`.
 - The type-declaration tests need a fresh `npm run build` first.

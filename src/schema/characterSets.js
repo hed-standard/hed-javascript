@@ -1,6 +1,6 @@
 /** The HED character sets of specification section 2.2, loaded from the specification's own file.
  *
- * src/data/json/characterSets.json is a verbatim copy of the character_sets.json that the HED specification
+ * src/data/json/character_sets.json is a verbatim copy of the character_sets.json that the HED specification
  * publishes (docs/source/_static/character_sets.json); the character_sets.yml workflow fails when it drifts. Both
  * validators load the same file, so the named sets, the per-class defaults, the whole-value rules and the
  * characters forbidden in a HED string cannot drift between them or from the specification text. A file whose
@@ -10,7 +10,7 @@
  */
 import semver from 'semver'
 
-import characterSetsData from '../data/json/characterSets.json'
+import characterSetsData from '../data/json/character_sets.json'
 import { checkFileVersion } from '../utils/specFiles'
 
 /**

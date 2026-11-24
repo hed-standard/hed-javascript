@@ -1,6 +1,6 @@
 name: Reserved tags copy check
 
-# src/data/json/reservedTags.json is a verbatim copy of the file hed-specification publishes
+# src/data/json/reserved_tags.json is a verbatim copy of the file hed-specification publishes
 # (its docs/source/_static/reserved_tags.json, served at
 # https://www.hedtags.org/hed-specification/_static/reserved_tags.json). The file has one home, so
 # this check fails when the copy drifts from hed-specification main. It runs when the copy or this
@@ -11,11 +11,11 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - src/data/json/reservedTags.json
+      - src/data/json/reserved_tags.json
       - .github/workflows/reserved_tags.yml
   pull_request:
     paths:
-      - src/data/json/reservedTags.json
+      - src/data/json/reserved_tags.json
       - .github/workflows/reserved_tags.yml
   schedule:
     # Weekly on Sundays at 4:30 AM UTC
@@ -37,4 +37,4 @@ jobs:
         run: |
           curl -fsSL -o /tmp/reserved_tags.json \
             https://raw.githubusercontent.com/hed-standard/hed-specification/main/docs/source/_static/reserved_tags.json
-          cmp /tmp/reserved_tags.json src/data/json/reservedTags.json
+          cmp /tmp/reserved_tags.json src/data/json/reserved_tags.json

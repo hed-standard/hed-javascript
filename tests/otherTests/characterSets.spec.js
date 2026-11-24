@@ -6,11 +6,11 @@ import { buildSchemas, buildSchemasFromVersion } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { parseHedString } from '../../src/parser/parser'
 import { CharacterSets, characterSets, codePoint } from '../../src/schema/characterSets'
-import characterSetsData from '../../src/data/json/characterSets.json'
+import characterSetsData from '../../src/data/json/character_sets.json'
 import SchemaValueClass from '../../src/schema/entries/valueClass'
 import { IssueError } from '../../src/issues/issues'
 
-// src/data/json/characterSets.json is the specification's character_sets.json (section 2.2, Appendix B
+// src/data/json/character_sets.json is the specification's character_sets.json (section 2.2, Appendix B
 // CHARACTER_INVALID); these tests pin how hed-javascript reads it, following hed-python.
 describe('Character sets from the published character_sets.json', () => {
   describe('the loader', () => {
