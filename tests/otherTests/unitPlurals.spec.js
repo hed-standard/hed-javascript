@@ -39,6 +39,29 @@ describe('Unit plurals from unit_plurals.json', () => {
     assert.deepStrictEqual(errorCodes(hedString), ['UNITS_INVALID'])
   })
 
+  // HED 8.4.0's uV has no unitSymbol attribute and is not a key of unit_plurals.json, so it has no plural.
+  // pluralize derived uVS from it.
+  describe('a unit name that the file does not list', () => {
+    let uV
+
+    beforeAll(async () => {
+      const schemas840 = await buildSchemasFromVersion('8.4.0')
+      uV = schemas840.baseSchema.entries.unitClasses.getEntry('electricPotentialUnits').units.get('uV')
+    })
+
+    it('is not a unit symbol', () => {
+      assert.isFalse(uV.isUnitSymbol)
+    })
+
+    it.each([
+      ['uV', true],
+      ['uVS', false],
+      ['uVs', false],
+    ])('"%s" is a form of uV: %s', (unitString, expected) => {
+      assert.strictEqual(uV.validateUnit(unitString), expected)
+    })
+  })
+
   // Specification Appendix A.6.1: refuse a file whose file version major number is not 1.
   describe('file version', () => {
     const withVersion = (fileVersion) => ({ ...unitPluralsData, file_version: fileVersion })
