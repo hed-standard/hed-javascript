@@ -87,13 +87,19 @@ export class Definition {
   /**
    * Return true if this definition is the same as the other.
    *
+   * Two definitions are the same when their names match without case, they have the same placeholder form, and their
+   * contents have one normalized form (specification 3.2.3 and 3.2.8.1, DEFINITION_INVALID i).
+   *
    * @param {*} other - Another definition to compare with this one.
    * @returns {boolean} True if the definitions are equivalent
    */
   equivalent(other) {
     if (!(other instanceof Definition)) {
       return false
-    } else if (this.name !== other.name || this.defTag.splitValue !== other.defTag.splitValue) {
+    } else if (
+      this.name.toLowerCase() !== other.name.toLowerCase() ||
+      this.defTag.splitValue !== other.defTag.splitValue
+    ) {
       return false
     } else if (this.defContents?.normalized !== other.defContents?.normalized) {
       return false

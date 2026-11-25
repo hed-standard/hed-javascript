@@ -112,9 +112,22 @@ testSpecs`.
   valid and `degree-Celsiuses` is UNITS_INVALID; `uVS` (score), which
   `pluralize` derived from the unit `uV`, is now UNITS_INVALID. A
   `unit_plurals.json` whose file version major number is not 1 is refused.
+- Repeated tag expressions are compared under the case rule of HED
+  specification 3.2.3 (#995): a tag extension and the name of a definition are
+  compared without case, a value as written. So `Red/Blech, Red/blech`,
+  `Def/MyColor, Def/mycolor` and `Def/Acc/4.5, def/acc/4.5` are now
+  TAG_EXPRESSION_REPEATED, while `Label/abc, Label/ABC` stays valid. The
+  `duplicateTag` message shows the compared form, with the extension or name
+  lowercased.
+- Definition names match without case, and identical `Definition` groups in
+  one string are one definition, not a repeat (HED specification 3.2.8.1,
+  DEFINITION_INVALID i; #993). `(Definition/X, (Red)), (Definition/X, (Red))`
+  and definitions of `X` and `x` with the same contents are now valid;
+  different contents under one name stay DEFINITION_INVALID.
 - The hed-tests submodule moved to `6dcdc18`. The ten new cases this
   validator does not pass yet are skipped in `spec_tests/skippedTests.js`,
-  each naming its issue (#993, #994, #995, #996, #997).
+  each naming its issue (#993, #994, #995, #996, #997); the three for #993
+  and #995 are removed again.
 
 ### Fixed
 

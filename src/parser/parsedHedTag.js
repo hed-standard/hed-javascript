@@ -94,7 +94,33 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   constructor(tagSpec, hedSchemas) {
     super(tagSpec.tag, tagSpec.bounds) // Sets originalTag and originalBounds
     this._convertTag(hedSchemas, tagSpec)
-    this._normalized = this.format(false) // Sets various forms of the tag.
+    this._normalized = this._normalize()
+  }
+
+  /**
+   * Build the normalized form of this tag: its short form under the case rule of specification 3.2.3.
+   *
+   * The schema part is in the schema's case. A tag extension and the name of a definition (the part after
+   * Definition, Def or Def-expand) are lowercased; a value, including the value after a definition name, is kept as
+   * written. So Red/Blech and Red/blech, and Def/Acc/4.5 and def/acc/4.5, have one normalized form, while Label/abc
+   * and Label/ABC do not.
+   *
+   * @returns {string} The normalized form.
+   * @private
+   */
+  _normalize() {
+    if (this._schemaTag === undefined) {
+      return this.format(false)
+    }
+    let remainder = this._remainder
+    if (!(this._schemaTag instanceof SchemaValueTag)) {
+      remainder = remainder.toLowerCase()
+    } else if (ReservedChecker.getInstance().twoPartValueTags.has(this.schemaTag.name)) {
+      const [name, ...rest] = remainder.split('/')
+      remainder = [name.toLowerCase(), ...rest].join('/')
+    }
+    const tagName = this._schemaTag.extend(remainder)
+    return this.schema?.prefix ? this.schema.prefix + ':' + tagName : tagName
   }
 
   /**

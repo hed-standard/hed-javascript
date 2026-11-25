@@ -668,7 +668,7 @@ export const bidsTestData = [
         tsvErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
-              tags: '[(Def/MyColor,Onset)]',
+              tags: '[(Def/mycolor,Onset)]',
               string: '(Onset, Def/MyColor),(Def/MyColor, Onset)',
             }),
             {
@@ -680,7 +680,7 @@ export const bidsTestData = [
         comboErrors: [
           BidsHedIssue.fromHedIssue(
             generateIssue('duplicateTag', {
-              tags: '[(Def/MyColor,Onset)]',
+              tags: '[(Def/mycolor,Onset)]',
               string:
                 '(Green, ((Blue, Orange, (Black, Purple))), White), Blue, Orange,(Onset, Def/MyColor),(Def/MyColor, Onset)',
             }),
@@ -790,6 +790,87 @@ export const bidsTestData = [
             { sidecarKey: 'category_b', filePath: 'verify-sidecar-key-name-in-error.tsv' },
           ),
         ],
+      },
+      {
+        testname: 'invalid-duplicate-extension-case',
+        explanation: 'Tag extensions that differ only in case are the same tag expression (3.2.3)',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tRed/Blech, Red/blech\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Red/blech]', string: 'Red/Blech, Red/blech' }),
+            { path: 'invalid-duplicate-extension-case.tsv' },
+            { tsvLine: '2' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Red/blech]', string: 'Red/Blech, Red/blech' }),
+            { path: 'invalid-duplicate-extension-case.tsv' },
+            { tsvLine: '2' },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-duplicate-def-name-case',
+        explanation: 'Definition names that differ only in case are the same tag expression (3.2.3)',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tDef/MyColor, Def/mycolor\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Def/mycolor]', string: 'Def/MyColor, Def/mycolor' }),
+            { path: 'invalid-duplicate-def-name-case.tsv' },
+            { tsvLine: '2' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Def/mycolor]', string: 'Def/MyColor, Def/mycolor' }),
+            { path: 'invalid-duplicate-def-name-case.tsv' },
+            { tsvLine: '2' },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-duplicate-def-name-case-with-value',
+        explanation: 'The name part of a Def is compared without case and its value exactly (3.2.3)',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tDef/Acc/4.5, def/acc/4.5\n',
+        sidecarErrors: [],
+        tsvErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Def/acc/4.5]', string: 'Def/Acc/4.5, def/acc/4.5' }),
+            { path: 'invalid-duplicate-def-name-case-with-value.tsv' },
+            { tsvLine: '2' },
+          ),
+        ],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Def/acc/4.5]', string: 'Def/Acc/4.5, def/acc/4.5' }),
+            { path: 'invalid-duplicate-def-name-case-with-value.tsv' },
+            { tsvLine: '2' },
+          ),
+        ],
+      },
+      {
+        testname: 'valid-values-differ-in-case',
+        explanation:
+          'Values are compared as written: Label/abc and Label/ABC differ, so do Def/Acc/4.5 and Def/Acc/4.6 (3.2.3)',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {},
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tLabel/abc, Label/ABC, Def/Acc/4.5, Def/Acc/4.6\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
       },
     ],
   },
@@ -2195,6 +2276,124 @@ export const bidsTestData = [
             {
               path: 'invalid-definition-not-isolated.tsv',
             },
+          ),
+        ],
+      },
+      {
+        testname: 'valid-identical-definitions-in-one-string',
+        explanation: 'Identical Definition groups in one string are one definition, not a repeat (3.2.8.1)',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          mydefs: {
+            HED: {
+              deflist: '(Definition/X, (Red)), (Definition/X, (Red))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tBlue\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-definition-names-differ-in-case',
+        explanation: 'Definitions of X and x with the same contents are one definition (3.2.8.1)',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          defs1: {
+            HED: {
+              deflist: '(Definition/X, (Red))',
+            },
+          },
+          defs2: {
+            HED: {
+              deflist: '(Definition/x, (Red))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tBlue\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'invalid-definition-names-differ-in-case',
+        explanation: 'Definitions of X and x with different contents conflict (DEFINITION_INVALID i)',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          defs1: {
+            HED: {
+              deflist: '(Definition/X, (Red))',
+            },
+          },
+          defs2: {
+            HED: {
+              deflist: '(Definition/x, (Blue))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tBlue\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('conflictingDefinitions', {
+              definition1: 'Definition/x',
+              definition2: '(Definition/X, (Red))',
+              filePath: 'invalid-definition-names-differ-in-case.json',
+              sidecarKey: 'defs2',
+            }),
+            { path: 'invalid-definition-names-differ-in-case.json' },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('conflictingDefinitions', {
+              definition1: 'Definition/x',
+              definition2: '(Definition/X, (Red))',
+              filePath: 'invalid-definition-names-differ-in-case.tsv',
+              sidecarKey: 'defs2',
+            }),
+            { path: 'invalid-definition-names-differ-in-case.tsv' },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-different-definitions-in-one-string',
+        explanation: 'Two definitions of X with different contents in one string conflict (DEFINITION_INVALID i)',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          mydefs: {
+            HED: {
+              deflist: '(Definition/X, (Red)), (Definition/X, (Blue))',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tHED\n' + '19\t6\tBlue\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('conflictingDefinitions', {
+              definition1: 'Definition/X',
+              definition2: '(Definition/X, (Red))',
+              filePath: 'invalid-different-definitions-in-one-string.json',
+              sidecarKey: 'mydefs',
+            }),
+            { path: 'invalid-different-definitions-in-one-string.json' },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('conflictingDefinitions', {
+              definition1: 'Definition/X',
+              definition2: '(Definition/X, (Red))',
+              filePath: 'invalid-different-definitions-in-one-string.tsv',
+              sidecarKey: 'mydefs',
+            }),
+            { path: 'invalid-different-definitions-in-one-string.tsv' },
           ),
         ],
       },
