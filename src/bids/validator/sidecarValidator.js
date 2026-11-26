@@ -69,6 +69,9 @@ export class BidsHedSidecarValidator extends BidsValidator {
       } else if (hedData instanceof Map) {
         // Categorical options have HED as a Map.
         for (const valueString of hedData.values()) {
+          if (valueString === null) {
+            continue
+          }
           issues.push(...this._checkDetails(sidecarKeyName, valueString))
         }
       } else {

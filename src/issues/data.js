@@ -32,6 +32,11 @@ const issueData = {
     level: 'warning',
     message: issueMessageTemplate`Tags "${'tags'}" in "${'string'}" are deprecated. Please see tag description for instructions on replacement.`,
   },
+  deprecatedUnit: {
+    hedCode: 'ELEMENT_DEPRECATED',
+    level: 'warning',
+    message: issueMessageTemplate`Tags "${'tags'}" in "${'string'}" use the deprecated units or unit modifiers "${'units'}". Please see their descriptions for instructions on replacement.`,
+  },
   duplicateTag: {
     hedCode: 'TAG_EXPRESSION_REPEATED',
     level: 'error',
@@ -562,6 +567,11 @@ const issueData = {
     hedCode: 'SIDECAR_INVALID',
     level: 'error',
     message: issueMessageTemplate`The data associated with sidecar key "${'sidecarKey'}" cannot be parsed.`,
+  },
+  emptySidecarCategoricalAnnotation: {
+    hedCode: 'SIDECAR_INVALID',
+    level: 'error',
+    message: issueMessageTemplate`The annotation of ${'categoricalKey'} in the categorical entry "${'sidecarKey'}" is empty or only blanks; give a column value with no HED annotation the annotation "n/a".`,
   },
   illegalSidecarHedCategoricalValue: {
     hedCode: 'SIDECAR_INVALID',

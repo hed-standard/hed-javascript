@@ -428,6 +428,8 @@ export class ParsedHedTag {
   readonly hasUnitClass: boolean
   /** The unit classes of this tag (empty if none) */
   readonly unitClasses: SchemaUnitClass[]
+  /** The names of the deprecated unit and unit modifiers in this tag's value (empty if none) */
+  readonly deprecatedUnitElements: string[]
 
   /** Constructor for ParsedHedTag */
   constructor(tagSpec: TagSpec, hedSchemas: HedSchemas)
@@ -654,6 +656,8 @@ export class SchemaUnit extends SchemaEntryWithAttributes {
   conversionFactor(value: string): number | null
   /** Whether a unit string is this unit written without an SI modifier (its name or, unless a symbol, its plural) */
   isUnmodifiedForm(value: string): boolean
+  /** The SI modifiers a unit string uses, in written order (empty if none, or if the string is not a form of this unit) */
+  modifiersUsed(value: string): SchemaUnitModifier[]
 }
 
 export class SchemaUnitClass extends SchemaEntryWithAttributes {

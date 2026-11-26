@@ -154,6 +154,18 @@ class HedStringParser {
         generateIssue('deprecatedTag', { tags: '[' + deprecated.join(', ') + ']', string: parsedString.hedString }),
       )
     }
+    // Check for deprecated units and unit modifiers
+    const unitTags = parsedString.tags.filter((tag) => tag.deprecatedUnitElements.length > 0)
+    if (unitTags.length > 0) {
+      const elements = [...new Set(unitTags.flatMap((tag) => tag.deprecatedUnitElements))]
+      warnings.push(
+        generateIssue('deprecatedUnit', {
+          tags: '[' + unitTags.map((tag) => tag.toString()).join(', ') + ']',
+          units: '[' + elements.join(', ') + ']',
+          string: parsedString.hedString,
+        }),
+      )
+    }
     // Check for tag extensions
     const extendedTags = parsedString.tags.filter((tag) => tag.isExtended)
     if (extendedTags.length > 0) {

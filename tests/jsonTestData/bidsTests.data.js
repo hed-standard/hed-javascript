@@ -3096,4 +3096,237 @@ export const bidsTestData = [
       },
     ],
   },
+  {
+    name: 'sidecar-annotation-tests',
+    description: 'Empty, blank and n/a annotations in sidecar entries (specification 3.2.9.2).',
+    tests: [
+      {
+        testname: 'valid-categorical-annotation-n/a',
+        explanation: 'A categorical value annotated n/a has an entry and contributes nothing to its row',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Red',
+              ball: 'n/a',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tHED\n4.5\t0\tface\tBlue\n5.0\t0\tball\tGreen\n5.5\t0\tball\tn/a\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'valid-categorical-annotation-n/a-spliced',
+        explanation: 'A categorical value annotated n/a contributes nothing where its column is spliced',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Red, ({ball_type})',
+            },
+          },
+          ball_type: {
+            HED: {
+              small: 'Small',
+              none: 'n/a',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\tball_type\n4.5\t0\tface\tsmall\n5.0\t0\tface\tnone\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [],
+      },
+      {
+        testname: 'invalid-categorical-annotation-empty',
+        explanation: 'A categorical annotation must not be empty',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Red',
+              ball: '',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\n4.5\t0\tface\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('emptySidecarCategoricalAnnotation', {
+              categoricalKey: '"ball"',
+              sidecarKey: 'event_code',
+              filePath: 'invalid-categorical-annotation-empty.json',
+            }),
+            { path: 'invalid-categorical-annotation-empty.json' },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('emptySidecarCategoricalAnnotation', {
+              categoricalKey: '"ball"',
+              sidecarKey: 'event_code',
+              filePath: 'invalid-categorical-annotation-empty.tsv',
+            }),
+            { path: 'invalid-categorical-annotation-empty.tsv' },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-categorical-annotation-blank',
+        explanation: 'A categorical annotation must not consist only of blanks',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Red',
+              ball: '   ',
+            },
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\n4.5\t0\tface\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('emptySidecarCategoricalAnnotation', {
+              categoricalKey: '"ball"',
+              sidecarKey: 'event_code',
+              filePath: 'invalid-categorical-annotation-blank.json',
+            }),
+            { path: 'invalid-categorical-annotation-blank.json' },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('emptySidecarCategoricalAnnotation', {
+              categoricalKey: '"ball"',
+              sidecarKey: 'event_code',
+              filePath: 'invalid-categorical-annotation-blank.tsv',
+            }),
+            { path: 'invalid-categorical-annotation-blank.tsv' },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-value-annotation-empty',
+        explanation: 'The annotation of a value entry must contain exactly one #',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Red',
+            },
+          },
+          rt: {
+            HED: '',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\trt\n4.5\t0\tface\t3\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingPlaceholder', {
+              string: '',
+              sidecarKey: 'rt',
+              filePath: 'invalid-value-annotation-empty.json',
+            }),
+            { path: 'invalid-value-annotation-empty.json' },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingPlaceholder', {
+              string: '',
+              sidecarKey: 'rt',
+              filePath: 'invalid-value-annotation-empty.tsv',
+            }),
+            { path: 'invalid-value-annotation-empty.tsv' },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-value-annotation-blank',
+        explanation: 'The annotation of a value entry must contain exactly one #',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Red',
+            },
+          },
+          rt: {
+            HED: ' ',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\trt\n4.5\t0\tface\t3\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingPlaceholder', {
+              string: ' ',
+              sidecarKey: 'rt',
+              filePath: 'invalid-value-annotation-blank.json',
+            }),
+            { path: 'invalid-value-annotation-blank.json' },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingPlaceholder', {
+              string: ' ',
+              sidecarKey: 'rt',
+              filePath: 'invalid-value-annotation-blank.tsv',
+            }),
+            { path: 'invalid-value-annotation-blank.tsv' },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-value-annotation-n/a',
+        explanation: 'The annotation of a value entry must contain exactly one #',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: {
+            HED: {
+              face: 'Red',
+            },
+          },
+          rt: {
+            HED: 'n/a',
+          },
+        },
+        eventsString: 'onset\tduration\tevent_code\trt\n4.5\t0\tface\t3\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingPlaceholder', {
+              string: 'n/a',
+              sidecarKey: 'rt',
+              filePath: 'invalid-value-annotation-n/a.json',
+            }),
+            { path: 'invalid-value-annotation-n/a.json' },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('missingPlaceholder', {
+              string: 'n/a',
+              sidecarKey: 'rt',
+              filePath: 'invalid-value-annotation-n/a.tsv',
+            }),
+            { path: 'invalid-value-annotation-n/a.tsv' },
+          ),
+        ],
+      },
+    ],
+  },
 ]
