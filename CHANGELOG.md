@@ -144,6 +144,9 @@ testSpecs`.
 
 ### Fixed
 
+- A sidecar warning (such as `extendedTag` or `deprecatedUnit`) is reported
+  once, not once for each of the two passes that `BidsHedSidecarValidator`
+  makes over the annotations.
 - A schema file that is well-formed XML but has no `HED` root or no `schema`
   element is reported as `localSchemaLoadFailed` (SCHEMA_LOAD_FAILED) instead of
   throwing a bare `TypeError`.

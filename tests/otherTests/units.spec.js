@@ -6,6 +6,8 @@ import { buildSchemas, buildSchemasFromVersion } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { parseHedString } from '../../src/parser/parser'
 import { generateIssue } from '../../src/issues/issues'
+import { BidsSidecar } from '../../src/bids/types/json'
+import { BidsHedSidecarValidator } from '../../src/bids/validator/sidecarValidator'
 
 const testSchemasDir = 'spec_tests/hed-tests/json_test_data/test_schemas/hedxml'
 
@@ -149,6 +151,24 @@ describe('Unit expansion and conversion', () => {
 
     it.each(['Aux-measure/3 auxunit', 'Aux-measure/3 auxsiunit'])('should not warn for "%s"', (hedString) => {
       assert.deepStrictEqual(parseAux(hedString), [[], []])
+    })
+
+    // The sidecar validator parses each annotation twice; the warning is reported once.
+    it.each([
+      ['Aux-measure/3 bigauxunit', []],
+      ['Aux-measure/3 bigauxunit, Def/Missing', ['missingDefinitionForDef']],
+    ])('should warn once for the sidecar annotation "%s"', (hedString, errorCodes) => {
+      const sidecar = new BidsSidecar('thisOne', { path: 'thisOne.json' }, { code: { HED: { go: hedString } } })
+      const validator = new BidsHedSidecarValidator(sidecar, auxSchemas)
+      validator.validate()
+      assert.deepStrictEqual(
+        validator.errors.map((issue) => issue.hedIssue.internalCode),
+        errorCodes,
+      )
+      assert.deepStrictEqual(
+        validator.warnings.map((issue) => issue.hedIssue.internalCode),
+        ['deprecatedUnit'],
+      )
     })
   })
 

@@ -50,7 +50,21 @@ export class BidsHedSidecarValidator extends BidsValidator {
     // Columns that aren't splices should have an annotation that stands on its own.
     const [errors, warnings] = this.sidecar.parseSidecarKeys(this.hedSchemas, true)
     this.errors.push(...BidsHedIssue.fromHedIssues(errors, this.sidecar.file))
-    this.warnings.push(...BidsHedIssue.fromHedIssues(warnings, this.sidecar.file))
+    // The second pass parses the same strings again, so it repeats the warnings of the first pass.
+    const firstPassWarnings = new Set(warningIssues.map((issue) => BidsHedSidecarValidator._issueKey(issue)))
+    const newWarnings = warnings.filter((issue) => !firstPassWarnings.has(BidsHedSidecarValidator._issueKey(issue)))
+    this.warnings.push(...BidsHedIssue.fromHedIssues(newWarnings, this.sidecar.file))
+  }
+
+  /**
+   * A key that is the same for two issues with the same code and parameters.
+   *
+   * @param {Issue} issue - The issue.
+   * @returns {string} The key.
+   * @private
+   */
+  static _issueKey(issue) {
+    return JSON.stringify([issue.internalCode, issue.parameters])
   }
 
   /**
