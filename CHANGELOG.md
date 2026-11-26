@@ -144,6 +144,11 @@ testSpecs`.
 
 ### Fixed
 
+- A schema with two tags of exactly the same name (such as `Mini-tag` under
+  `Mini-tag`) is rejected as `duplicateTagsInSchema`; before, only names that
+  differ by case were caught.
+- The `unmerged` header attribute is read in any case, and a library file
+  marked `unmerged="False"` loads as merged instead of unmerged.
 - A sidecar warning (such as `extendedTag` or `deprecatedUnit`) is reported
   once, not once for each of the two passes that `BidsHedSidecarValidator`
   makes over the annotations.
