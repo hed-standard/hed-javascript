@@ -48,6 +48,13 @@ export default class SchemaUnit extends SchemaEntryWithAttributes {
   _modifierFactors
 
   /**
+   * The SI modifiers this unit accepts, by name.
+   * @type {Map<string, SchemaUnitModifier>}
+   * @private
+   */
+  _modifiers
+
+  /**
    * The components of a compound SI unit such as m-per-s^2, or null for every other unit.
    * @type {Array<{base: string, exponent: number, text: string}>|null}
    */
@@ -78,6 +85,7 @@ export default class SchemaUnit extends SchemaEntryWithAttributes {
     this._derivativeUnits = [this.name]
     this._pluralUnit = null
     this._modifierFactors = new Map()
+    this._modifiers = new Map()
     this._compoundComponents = null
     if (!this.isSIUnit) {
       this._pushPluralUnit()
@@ -86,6 +94,7 @@ export default class SchemaUnit extends SchemaEntryWithAttributes {
     const modifierAttribute = this.isUnitSymbol ? 'SIUnitSymbolModifier' : 'SIUnitModifier'
     for (const [modifierName, modifier] of unitModifiers.getEntriesWithBooleanAttribute(modifierAttribute)) {
       this._modifierFactors.set(modifierName, SchemaUnit._parseFactor(modifier))
+      this._modifiers.set(modifierName, modifier)
     }
     this._compoundComponents = this._parseCompoundComponents()
     if (this._compoundComponents !== null) {
@@ -302,14 +311,47 @@ export default class SchemaUnit extends SchemaEntryWithAttributes {
    * @private
    */
   _simpleModifierFactor(value) {
+    const modifier = this._simpleModifier(value)
+    if (modifier === null) {
+      return null
+    }
+    return modifier === '' ? 1 : this._modifierFactors.get(modifier)
+  }
+
+  /**
+   * Get the SI modifier in a form of this non-compound unit.
+   *
+   * @param {string} value A unit string.
+   * @returns {string|null} The modifier's name, '' when the string is the unit without a modifier, or null if the
+   *     string is not a form of this unit.
+   * @private
+   */
+  _simpleModifier(value) {
     const plainForms = this._plainForms()
     if (this.isPrefixUnit || plainForms.includes(value)) {
-      return 1
+      return ''
     }
     const modifier = [...this._modifierFactors.keys()].find(
       (name) => value.startsWith(name) && plainForms.includes(value.slice(name.length)),
     )
-    return modifier === undefined ? null : this._modifierFactors.get(modifier)
+    return modifier ?? null
+  }
+
+  /**
+   * Get the SI modifiers a form of this unit uses.
+   *
+   * @param {string} value A unit string.
+   * @returns {SchemaUnitModifier[]} The modifiers in the order they are written (one per component of a compound unit
+   *     at most), or an empty array if none is used or the string is not a form of this unit.
+   */
+  modifiersUsed(value) {
+    if (!this.validateUnit(value)) {
+      return []
+    }
+    const names = this._compoundComponents === null ? [this._simpleModifier(value)] : this._matchCompound(value)
+    return (names ?? [])
+      .map((name) => (name ? this._modifiers.get(name) : undefined))
+      .filter((modifier) => modifier !== undefined)
   }
 
   /**

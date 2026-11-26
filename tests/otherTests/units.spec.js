@@ -5,6 +5,9 @@ import { beforeAll, describe, it } from '@jest/globals'
 import { buildSchemas, buildSchemasFromVersion } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { parseHedString } from '../../src/parser/parser'
+import { generateIssue } from '../../src/issues/issues'
+import { BidsSidecar } from '../../src/bids/types/json'
+import { BidsHedSidecarValidator } from '../../src/bids/validator/sidecarValidator'
 
 const testSchemasDir = 'spec_tests/hed-tests/json_test_data/test_schemas/hedxml'
 
@@ -93,6 +96,79 @@ describe('Unit expansion and conversion', () => {
     it.each(['Aux-measure/2 smallauxunit', 'Aux-measure/5 auxunit'])('should accept "%s"', (tagString) => {
       const [, errorIssues] = parseHedString(tagString, mergedSchemas, false, false, false)
       assert.isEmpty(errorIssues, `"${tagString}" should parse without errors`)
+    })
+  })
+
+  describe('SchemaUnit.modifiersUsed', () => {
+    const unitOf = (unitClassName, unitName) =>
+      hedSchemas.baseSchema.entries.unitClasses.getEntry(unitClassName).units.get(unitName)
+    const names = (modifiers) => modifiers.map((modifier) => modifier.name)
+
+    it.each([
+      ['timeUnits', 's', 's', []],
+      ['timeUnits', 's', 'ms', ['m']],
+      ['timeUnits', 'second', 'milliseconds', ['milli']],
+      ['accelerationUnits', 'm-per-s^2', 'km-per-ms^2', ['k', 'm']],
+      ['accelerationUnits', 'm-per-s^2', 'm-per-ms^2', ['m']],
+      ['timeUnits', 's', 'xs', []],
+    ])('%s unit %s gives "%s" the modifiers %j', (unitClassName, unitName, value, expected) => {
+      assert.deepStrictEqual(names(unitOf(unitClassName, unitName).modifiersUsed(value)), expected)
+    })
+  })
+
+  // Specification 3.1.6 and Appendix B ELEMENT_DEPRECATED (b): a deprecated unit or unit modifier stays valid and is
+  // warned about. In testaux 1.1.0 the unit bigauxunit and the unit modifier auxMod are deprecated.
+  describe('Deprecated units and unit modifiers', () => {
+    let auxSchemas
+
+    beforeAll(async () => {
+      const specs = new SchemasSpec().addSchemaSpec(
+        new SchemaSpec('', '1.1.0', 'testaux', `${testSchemasDir}/HED_testaux_1.1.0.xml`),
+      )
+      auxSchemas = await buildSchemas(specs)
+    })
+
+    const parseAux = (hedString) => {
+      const [, errorIssues, warningIssues] = parseHedString(hedString, auxSchemas, false, false, true)
+      return [errorIssues, warningIssues]
+    }
+
+    it.each([
+      ['Aux-measure/3 bigauxunit', '[Aux-measure/3 bigauxunit]', '[bigauxunit]'],
+      ['Aux-measure/3 auxModauxsiunit', '[Aux-measure/3 auxModauxsiunit]', '[auxMod]'],
+      [
+        'Aux-measure/3 bigauxunit, Aux-measure/4 auxModauxsiunit',
+        '[Aux-measure/3 bigauxunit, Aux-measure/4 auxModauxsiunit]',
+        '[bigauxunit, auxMod]',
+      ],
+    ])('should warn ELEMENT_DEPRECATED for "%s"', (hedString, tags, units) => {
+      const [errorIssues, warningIssues] = parseAux(hedString)
+      assert.isEmpty(errorIssues)
+      assert.deepStrictEqual(warningIssues, [
+        generateIssue('deprecatedUnit', { tags: tags, units: units, string: hedString }),
+      ])
+    })
+
+    it.each(['Aux-measure/3 auxunit', 'Aux-measure/3 auxsiunit'])('should not warn for "%s"', (hedString) => {
+      assert.deepStrictEqual(parseAux(hedString), [[], []])
+    })
+
+    // The sidecar validator parses each annotation twice; the warning is reported once.
+    it.each([
+      ['Aux-measure/3 bigauxunit', []],
+      ['Aux-measure/3 bigauxunit, Def/Missing', ['missingDefinitionForDef']],
+    ])('should warn once for the sidecar annotation "%s"', (hedString, errorCodes) => {
+      const sidecar = new BidsSidecar('thisOne', { path: 'thisOne.json' }, { code: { HED: { go: hedString } } })
+      const validator = new BidsHedSidecarValidator(sidecar, auxSchemas)
+      validator.validate()
+      assert.deepStrictEqual(
+        validator.errors.map((issue) => issue.hedIssue.internalCode),
+        errorCodes,
+      )
+      assert.deepStrictEqual(
+        validator.warnings.map((issue) => issue.hedIssue.internalCode),
+        ['deprecatedUnit'],
+      )
     })
   })
 

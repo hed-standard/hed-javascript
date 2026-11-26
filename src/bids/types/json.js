@@ -7,10 +7,10 @@ import { parseHedString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { BidsFile } from './file'
 import BidsHedSidecarValidator from '../validator/sidecarValidator'
-import { IssueError, addIssueParameters } from '../../issues/issues'
+import { IssueError, addIssueParameters, generateIssue } from '../../issues/issues'
 import { DefinitionManager, Definition } from '../../parser/definitionManager'
 import { isPaddedName } from '../../utils/string'
-import { isJsonObject } from '../../utils/types'
+import { isJsonObject, isStringRecord } from '../../utils/types'
 
 const ILLEGAL_SIDECAR_KEYS = new Set(['hed', 'n/a'])
 
@@ -354,7 +354,7 @@ export class BidsSidecarKey {
 
   /**
    * The parsed category mapping.
-   * @type {Map<string, ParsedHedString>}
+   * @type {Map<string, ParsedHedString|null>}
    */
   parsedCategoryMap
 
@@ -395,7 +395,7 @@ export class BidsSidecarKey {
     this.sidecar = sidecar
     if (typeof data === 'string') {
       this.valueString = data
-    } else if (!isJsonObject(data)) {
+    } else if (!isStringRecord(data)) {
       IssueError.generateAndThrow('illegalSidecarHedType', { sidecarKey: key, filePath: sidecar?.file?.path })
     } else {
       this.categoryMap = new Map(Object.entries(data))
@@ -441,6 +441,12 @@ export class BidsSidecarKey {
    * @private
    */
   _parseValueString(hedSchemas, fullValidation) {
+    // The annotation of a value entry has exactly one # (specification 3.2.9.2), so an empty, blank or n/a one is
+    // PLACEHOLDER_INVALID (c).
+    if (this.valueString.trim() === '' || this.valueString === 'n/a') {
+      this.parsedValueString = null
+      return [[generateIssue('missingPlaceholder', { string: this.valueString, sidecarKey: this.name })], []]
+    }
     const [parsedString, errorIssues, warningIssues] = parseHedString(
       this.valueString,
       hedSchemas,
@@ -471,17 +477,22 @@ export class BidsSidecarKey {
           sidecarKey: this.name,
           filePath: this.sidecar?.file?.path,
         })
-      } else if (typeof string !== 'string') {
-        IssueError.generateAndThrow('illegalSidecarHedType', {
-          sidecarKey: this.name,
-          filePath: this.sidecar?.file?.path,
-        })
+      }
+      if (string === 'n/a') {
+        // A column value with no HED annotation has an entry but contributes nothing to a row (specification 3.2.9.2).
+        this.parsedCategoryMap.set(value, null)
+        continue
+      }
+      if (string.trim() === '') {
+        errors.push(generateIssue('emptySidecarCategoricalAnnotation', { categoricalKey: JSON.stringify(value) }))
+        this.parsedCategoryMap.set(value, null)
+        continue
       }
       const [parsedString, errorIssues, warningIssues] = parseHedString(string, hedSchemas, true, true, fullValidation)
       this.parsedCategoryMap.set(value, parsedString)
       warnings.push(...warningIssues)
       errors.push(...errorIssues)
-      if (errorIssues.length === 0) {
+      if (parsedString !== null) {
         const defIssues = this._checkDefinitions(parsedString)
         errors.push(...defIssues)
       }
@@ -503,7 +514,7 @@ export class BidsSidecarKey {
       }
       this.hasDefinitions = true
       const [def, defIssues] = Definition.createDefinitionFromGroup(group)
-      if (defIssues.length > 0) {
+      if (def === null) {
         errors.push(...defIssues)
       } else {
         errors.push(...this.sidecar.definitions.addDefinition(def))
@@ -517,6 +528,6 @@ export class BidsSidecarKey {
    * @returns {boolean}
    */
   get isValueKey() {
-    return Boolean(this.valueString)
+    return typeof this.valueString === 'string'
   }
 }

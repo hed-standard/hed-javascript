@@ -124,13 +124,29 @@ testSpecs`.
   DEFINITION_INVALID i; #993). `(Definition/X, (Red)), (Definition/X, (Red))`
   and definitions of `X` and `x` with the same contents are now valid;
   different contents under one name stay DEFINITION_INVALID.
+- Sidecar annotations follow HED specification 3.2.9.2 (#996): a categorical
+  value annotated `n/a` has an entry and contributes nothing to its row (it was
+  TAG_INVALID); an empty or blank categorical annotation is SIDECAR_INVALID
+  (`emptySidecarCategoricalAnnotation`); and the annotation of a value entry
+  that is empty, blank or `n/a` is PLACEHOLDER_INVALID (`missingPlaceholder`;
+  an empty one was INTERNAL_ERROR).
+- A deprecated unit or unit modifier gives the warning ELEMENT_DEPRECATED
+  (`deprecatedUnit`, #994). `SchemaUnit.modifiersUsed(value)` returns the SI
+  modifiers a unit string uses, and `ParsedHedTag.deprecatedUnitElements`
+  the names of a tag's deprecated unit and modifiers.
+- A sidecar entry whose annotation is not a string is refused when the entry
+  is read, and definitions are collected from every categorical annotation
+  that parses, as in hed-typescript.
 - The hed-tests submodule moved to `6dcdc18`. The ten new cases this
   validator does not pass yet are skipped in `spec_tests/skippedTests.js`,
-  each naming its issue (#993, #994, #995, #996, #997); the three for #993
-  and #995 are removed again.
+  each naming its issue (#993, #994, #995, #996, #997); the seven for #993,
+  #994, #995 and #996 are removed again.
 
 ### Fixed
 
+- A sidecar warning (such as `extendedTag` or `deprecatedUnit`) is reported
+  once, not once for each of the two passes that `BidsHedSidecarValidator`
+  makes over the annotations.
 - A schema file that is well-formed XML but has no `HED` root or no `schema`
   element is reported as `localSchemaLoadFailed` (SCHEMA_LOAD_FAILED) instead of
   throwing a bare `TypeError`.

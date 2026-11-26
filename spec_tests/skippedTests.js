@@ -7,12 +7,6 @@
  *
  */
 export const skippedTests = {
-  'element-deprecated-unit': 'No ELEMENT_DEPRECATED warning for a deprecated unit or unit modifier (issue #994).',
-  'sidecar-invalid-annotation-empty':
-    'An n/a annotation gives TAG_INVALID; empty and blank annotations are not SIDECAR_INVALID (issue #996).',
-  'placeholder-invalid-json-value-column':
-    'An empty, blank, or n/a value-column annotation is not PLACEHOLDER_INVALID (issue #996).',
-  'sidecar-key-missing': 'An n/a annotation gives TAG_INVALID (issue #996).',
   'tag-expression-repeated-hed-column-reference':
     'Curly-brace substitutions of a sidecar annotation are not checked (issue #997, rule 10 of 3.2.9.3).',
   'tag-expression-repeated-reference-removed':

@@ -446,6 +446,20 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
+   * The names of the deprecated unit and unit modifiers in this tag's value (ELEMENT_DEPRECATED b).
+   *
+   * @returns {string[]} The unit's name if it has deprecatedFrom, then the name of each SI modifier used that has it.
+   */
+  get deprecatedUnitElements() {
+    if (!this._unit || !this._units) {
+      return []
+    }
+    return [this._unit, ...this._unit.modifiersUsed(this._units)]
+      .filter((element) => element.hasAttribute('deprecatedFrom'))
+      .map((element) => element.name)
+  }
+
+  /**
    * Indicates whether the tag is extended.
    * @returns {boolean}
    */
