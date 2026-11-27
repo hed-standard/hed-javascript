@@ -231,7 +231,7 @@ export class SchemaEntryWithAttributesParser extends SchemaEntryParser {
   _addInLibrary(schemaXml, valueAttributeDefinitions, isDeclared) {
     const library = schemaXml.HED.$?.library
     const inLibrary = this.attributes.getEntry('inLibrary')
-    if (schemaXml.HED.$?.unmerged === undefined || library === undefined || inLibrary === undefined) {
+    if (schemaXml.HED.$?.unmerged !== true || library === undefined || inLibrary === undefined) {
       return
     }
     for (const [name, valueAttributes] of valueAttributeDefinitions) {

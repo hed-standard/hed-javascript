@@ -51,11 +51,18 @@ export default class TagParser extends SchemaEntryWithAttributesParser {
    * Parse the schema's tags.
    *
    * @param {Object} schemaXml The XML for a specific schema.
+   * @throws {IssueError} If two tag names are equal apart from case.
    * @protected
    */
   _parseSchema(schemaXml) {
     const tags = this.getAllTags(schemaXml)
     const shortTags = this.getShortTags(tags)
+    // Two tags of one name, or of names that differ only by case ("Item" under "Item"), would collapse into one entry
+    // or make a tag its own parent; report them first.
+    const tagKeys = [...shortTags.values()].map(lc)
+    if (new Set(tagKeys).size !== tagKeys.length) {
+      IssueError.generateAndThrow('duplicateTagsInSchema')
+    }
     const parentMap = this.generateParentMap(shortTags)
     const [booleanAttributeDefinitions, valueAttributeDefinitions, descriptions] = this._parseAttributeElements(
       tags.keys(),
@@ -246,17 +253,12 @@ export default class TagParser extends SchemaEntryWithAttributesParser {
    * @param {Map<string, string>} parentMap The parent map (lowercase short names), with the rooted tags placed.
    * @param {Map<string, Set<SchemaAttribute>>} booleanAttributeDefinitions The boolean attributes by short name,
    *     modified in place.
-   * @throws {IssueError} If two tag names differ only by case.
    * @private
    */
   processRecursiveAttributes(parentMap, booleanAttributeDefinitions) {
     const recursiveAttributes = new Set(this.attributes.filter(([, attribute]) => attribute.recursive).values())
+    // The names are unique apart from case (_parseSchema).
     const namesByKey = new Map([...booleanAttributeDefinitions.keys()].map((name) => [lc(name), name]))
-    // Names that differ only by case would make a tag its own parent ("Item" under "Item"); report them as
-    // createSchemaTags does, before walking the parent map.
-    if (namesByKey.size !== booleanAttributeDefinitions.size) {
-      IssueError.generateAndThrow('duplicateTagsInSchema')
-    }
     const passedDown = new Map()
     // The recursive attributes a tag passes to its children: its own and those it inherits.
     const passedDownBy = (key) => {
@@ -299,7 +301,7 @@ export default class TagParser extends SchemaEntryWithAttributesParser {
    * @param {Map<string, SchemaUnitClass[]>} tagUnitClassDefinitions The unit classes by short name.
    * @param {Map<string, SchemaValueClass[]>} tagValueClassDefinitions The value classes by short name.
    * @param {Map<string, string>} parentMap The parent map.
-   * @throws {IssueError} If two tags of the schema share a name, or a "#" child is added to an earlier schema's tag.
+   * @throws {IssueError} If a "#" child is added to an earlier schema's tag.
    * @private
    */
   createSchemaTags(
@@ -314,9 +316,6 @@ export default class TagParser extends SchemaEntryWithAttributesParser {
 
     for (const [name, valueAttributes] of valueAttributeDefinitions) {
       const key = lc(name)
-      if (this.schemaTags.has(key)) {
-        IssueError.generateAndThrow('duplicateTagsInSchema')
-      }
       const booleanAttributes = booleanAttributeDefinitions.get(name) ?? new Set()
       const description = descriptions.get(name)
       const unitClasses = tagUnitClassDefinitions.get(name) ?? []

@@ -5,6 +5,7 @@ import { describe, it } from '@jest/globals'
 import { buildSchemas } from '../../src/schema/init'
 import { SchemaSpec, SchemasSpec } from '../../src/schema/specs'
 import { parseHedString } from '../../src/parser/parser'
+import parseSchemaXML from '../../src/utils/xml'
 
 // A partnered library schema distributed in unmerged form (header unmerged="True") is merged with its standard
 // partner while it is parsed (src/schema/init.js). Loading the unmerged file must give the same schema as loading
@@ -83,6 +84,13 @@ const inLibraryEntries = (schema) => {
       }
     }
   }
+  for (const [className, unitClass] of schema.entries.unitClasses) {
+    for (const [name, unit] of unitClass.units) {
+      if (unit.hasAttribute('inLibrary')) {
+        found.push(`units of ${className}:${name}=${unit.getSingleAttributeValue('inLibrary')}`)
+      }
+    }
+  }
   return found.sort()
 }
 
@@ -138,6 +146,35 @@ describe('Unmerged partnered library schemas', () => {
       assert.deepEqual(differences(allMerged, allUnmerged), [], 'both unmerged')
       assert.deepEqual(differences(allMerged, mixed), [], 'one merged, one unmerged')
     })
+
+    it('hangs a new tag of the second library under the tag the first one declared', async () => {
+      // Both libraries declare Event (from their standard partner); only testconflict has Event/Rooted-tag.
+      for (const [minimalPath, conflictPath] of [
+        [mergedPath('testminimal', '2.1.0'), mergedPath('testconflict', '2.1.0')],
+        [mergedPath('testminimal', '2.1.0'), unmergedPath('testconflict', '2.1.0')],
+        [unmergedPath('testminimal', '2.1.0'), unmergedPath('testconflict', '2.1.0')],
+      ]) {
+        const schemas = await build([
+          ['testminimal', '2.1.0', minimalPath],
+          ['testconflict', '2.1.0', conflictPath],
+        ])
+        const tags = schemas.baseSchema.entries.tags
+        assert.strictEqual(tags.getEntry('rooted-tag').parent, tags.getEntry('event'), conflictPath)
+        const [, errors] = parseHedString('Event/Rooted-tag', schemas, false, false, true)
+        assert.isEmpty(errors, conflictPath)
+      }
+    })
+  })
+
+  describe('the unmerged header attribute', () => {
+    it('is read as a boolean in either case', () => {
+      for (const value of ['True', 'true']) {
+        const xml = parseSchemaXML(
+          `<HED version="1.0.0" library="x" withStandard="8.4.0" unmerged="${value}"><schema></schema></HED>`,
+        )
+        assert.strictEqual(xml.HED.$.unmerged, true, value)
+      }
+    })
   })
 
   describe('validation with an unmerged library', () => {
@@ -159,6 +196,16 @@ describe('Unmerged partnered library schemas', () => {
       try {
         await build([['testminimal', '2.1.0', path]])
         assert.fail('the duplicate MINI-TAG was accepted')
+      } catch (error) {
+        assert.strictEqual(error.issue?.internalCode, 'duplicateTagsInSchema', error.message)
+      }
+    })
+
+    it('rejects a tag whose name repeats its parent exactly (SCHEMA_DUPLICATE_NODE)', async () => {
+      const path = 'tests/schemaData/HED_testminimal_2.1.0_duplicate_exact.xml'
+      try {
+        await build([['testminimal', '2.1.0', path]])
+        assert.fail('the duplicate Mini-tag was accepted')
       } catch (error) {
         assert.strictEqual(error.issue?.internalCode, 'duplicateTagsInSchema', error.message)
       }

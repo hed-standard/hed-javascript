@@ -32,11 +32,12 @@ export default function parseSchemaXML(data) {
     ignoreDeclaration: true,
     ignorePiTags: true,
     attributesGroupName: '$',
+    // Header flags such as unmerged are written "True" by the schema tools; accept any case.
     attributeValueProcessor: (_, attrValue) => {
-      if (attrValue === 'True') {
+      if (attrValue.toLowerCase() === 'true') {
         return true
       }
-      if (attrValue === 'False') {
+      if (attrValue.toLowerCase() === 'false') {
         return false
       }
       return attrValue
