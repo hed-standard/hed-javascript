@@ -155,6 +155,14 @@ testSpecs`.
 - A schema file that is well-formed XML but has no `HED` root or no `schema`
   element is reported as `localSchemaLoadFailed` (SCHEMA_LOAD_FAILED) instead of
   throwing a bare `TypeError`.
+- A schema file that is not well-formed XML, or that lacks one of the sections
+  `schema`, `unitClassDefinitions`, `unitModifierDefinitions`,
+  `valueClassDefinitions`, `schemaAttributeDefinitions` and
+  `propertyDefinitions`, fails to load with SCHEMA_LOAD_FAILED (#985); the
+  message names the XML error or the section, with the new internal codes
+  `schemaXmlNotWellFormed` and `missingSchemaSection`. A missing section used to
+  load as if it were empty. An empty section still loads, and the sources,
+  prefixes and external annotations sections may still be missing.
 - Tag extensions follow specification 3.2.5 rules 5 and 6 (hed-tests
   `placeholder-invalid-after-extension`, `tag-extension-invalid-no-letter`): a
   `#` after an extension term or in place of one (`Item/Blech/#`, `Item/#`) is

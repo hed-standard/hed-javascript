@@ -170,7 +170,9 @@ describe('Unmerged partnered library schemas', () => {
     it('is read as a boolean in either case', () => {
       for (const value of ['True', 'true']) {
         const xml = parseSchemaXML(
-          `<HED version="1.0.0" library="x" withStandard="8.4.0" unmerged="${value}"><schema></schema></HED>`,
+          `<HED version="1.0.0" library="x" withStandard="8.4.0" unmerged="${value}"><schema></schema>` +
+            '<unitClassDefinitions/><unitModifierDefinitions/><valueClassDefinitions/>' +
+            '<schemaAttributeDefinitions/><propertyDefinitions/></HED>',
         )
         assert.strictEqual(xml.HED.$.unmerged, true, value)
       }
