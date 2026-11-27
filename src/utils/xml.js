@@ -3,15 +3,39 @@
  * @module
  */
 
-import { XMLParser } from 'fast-xml-parser'
+import { XMLParser, XMLValidator } from 'fast-xml-parser'
+
+import { IssueError } from '../issues/issues'
+
+/**
+ * The section elements every schema file has, empty or not (HED specification A.3.1). The sources, prefixes and
+ * external annotations sections may be missing.
+ * @type {string[]}
+ */
+const requiredSections = [
+  'schema',
+  'unitClassDefinitions',
+  'unitModifierDefinitions',
+  'valueClassDefinitions',
+  'schemaAttributeDefinitions',
+  'propertyDefinitions',
+]
 
 /**
  * Parse the schema XML data.
  *
  * @param {string} data The XML data.
  * @returns {Object} The schema XML data.
+ * @throws {IssueError} If the data is not well-formed XML or lacks a required section.
  */
 export default function parseSchemaXML(data) {
+  const validation = XMLValidator.validate(data)
+  if (validation !== true) {
+    IssueError.generateAndThrow('schemaXmlNotWellFormed', {
+      error: validation.err.msg,
+      line: String(validation.err.line),
+    })
+  }
   const alwaysArray = new Set([
     'node',
     'property',
@@ -48,8 +72,27 @@ export default function parseSchemaXML(data) {
   })
 
   const xmlData = parser.parse(data)
+  checkSections(xmlData)
   setParent(xmlData.HED)
   return xmlData
+}
+
+/**
+ * Check that the root element is HED and has every required section.
+ *
+ * @param {Object} xmlData The parsed XML data.
+ * @throws {IssueError} If the HED element or a required section is missing.
+ */
+function checkSections(xmlData) {
+  const root = xmlData?.HED
+  if (root === undefined) {
+    IssueError.generateAndThrow('missingSchemaSection', { section: 'HED' })
+  }
+  for (const section of requiredSections) {
+    if (typeof root !== 'object' || root === null || !(section in root)) {
+      IssueError.generateAndThrow('missingSchemaSection', { section })
+    }
+  }
 }
 
 /**

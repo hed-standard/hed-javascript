@@ -497,6 +497,16 @@ const issueData = {
     level: 'error',
     message: issueMessageTemplate`The HED schema is invalid - "${'error'}".`,
   },
+  schemaXmlNotWellFormed: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: issueMessageTemplate`The schema file is not well-formed XML - "${'error'}" (line ${'line'}).`,
+  },
+  missingSchemaSection: {
+    hedCode: 'SCHEMA_LOAD_FAILED',
+    level: 'error',
+    message: issueMessageTemplate`The schema file has no "${'section'}" element. Every section but sources, prefixes and external annotations is required, even if empty.`,
+  },
   deprecatedStandardSchemaVersion: {
     hedCode: 'VERSION_DEPRECATED',
     level: 'error',
