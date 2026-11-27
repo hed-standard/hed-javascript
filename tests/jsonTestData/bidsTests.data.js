@@ -1730,6 +1730,62 @@ export const bidsTestData = [
           ),
         ],
       },
+      {
+        testname: 'invalid-substitution-repeat-blanks-in-braces',
+        explanation: 'Blanks inside the braces do not change the column referred to: { color } is color',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: { event_code: { HED: { face: '(Red, { color })' } }, color: { HED: { warm: 'Red', cool: 'Blue' } } },
+        eventsString: 'onset\tduration\tevent_code\tcolor\n4.5\t0\tface\tcool\n',
+        sidecarErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTagInSubstitution', {
+              tags: '[Red]',
+              annotation: '(Red, { color })',
+              sidecarKey: 'event_code',
+              substitution: '"{color}" is replaced by the annotation of "warm"',
+              string: '(Red, Red)',
+              filePath: 'invalid-substitution-repeat-blanks-in-braces.json',
+            }),
+            { path: 'invalid-substitution-repeat-blanks-in-braces.json' },
+          ),
+        ],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTagInSubstitution', {
+              tags: '[Red]',
+              annotation: '(Red, { color })',
+              sidecarKey: 'event_code',
+              substitution: '"{color}" is replaced by the annotation of "warm"',
+              string: '(Red, Red)',
+              filePath: 'invalid-substitution-repeat-blanks-in-braces.tsv',
+            }),
+            { path: 'invalid-substitution-repeat-blanks-in-braces.tsv' },
+          ),
+        ],
+      },
+      {
+        testname: 'invalid-row-repeat-blanks-in-braces',
+        explanation: 'A reference with blanks inside the braces is substituted when the row is assembled',
+        schemaVersion: '8.4.0',
+        definitions: ['(Definition/Acc/#, (Acceleration/# m-per-s^2, Red))', '(Definition/MyColor, (Label/Pie))'],
+        sidecar: {
+          event_code: { HED: { face: '({ color }, {shade })' } },
+          color: { HED: { warm: 'Red', cool: 'Blue' } },
+          shade: { HED: { x: 'Red', y: 'Green' } },
+        },
+        eventsString: 'onset\tduration\tevent_code\tcolor\tshade\n4.5\t0\tface\twarm\tx\n',
+        sidecarErrors: [],
+        tsvErrors: [],
+        comboErrors: [
+          BidsHedIssue.fromHedIssue(
+            generateIssue('duplicateTag', { tags: '[Red]', string: '(Red, Red)' }),
+            { path: 'invalid-row-repeat-blanks-in-braces.tsv' },
+            { tsvLine: '2' },
+          ),
+        ],
+      },
     ],
   },
   {
