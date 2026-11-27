@@ -10,7 +10,7 @@ import { parseHedString, parseStandaloneString } from '../../parser/parser'
 import ParsedHedString from '../../parser/parsedHedString'
 import { generateIssue } from '../../issues/issues'
 import { ReservedChecker } from '../../parser/reservedChecker'
-import { cleanupEmpties, getTagListString } from '../../parser/parseUtils'
+import { getTagListString, replaceColumnReferences } from '../../parser/parseUtils'
 import { EventManager } from '../../parser/eventManager'
 
 /**
@@ -456,13 +456,6 @@ export class BidsHedTsvParser {
   static nullSet = new Set([null, undefined, '', 'n/a'])
 
   /**
-   * Matches one curly-brace column reference, capturing the column name.
-   * @type {RegExp}
-   * @private
-   */
-  static _braceRegEx = /\{([^{}]*?)\}/g
-
-  /**
    * The BIDS TSV file being parsed.
    * @type {BidsTsvFile}
    */
@@ -673,13 +666,7 @@ export class BidsHedTsvParser {
    * @private
    */
   _replaceSplices(unspliced, columnMap) {
-    const result = unspliced.replace(BidsHedTsvParser._braceRegEx, (match, content) => {
-      // Resolve the replacement value
-      const resolved = columnMap.has(content) ? columnMap.get(content) : ''
-      // Replace with resolved value or empty string if in nullSet
-      return BidsHedTsvParser.nullSet.has(resolved) ? '' : resolved
-    })
-    return cleanupEmpties(result)
+    return replaceColumnReferences(unspliced, (columnName) => columnMap.get(columnName))
   }
 }
 

@@ -141,6 +141,24 @@ testSpecs`.
   validator does not pass yet are skipped in `spec_tests/skippedTests.js`,
   each naming its issue (#993, #994, #995, #996, #997); the seven for #993,
   #994, #995 and #996 are removed again.
+- A sidecar annotation with curly braces is checked under rule 10 of HED
+  specification 3.2.9.3 (#997): with every reference removed, and with each
+  annotation of each referenced column substituted, one column at a time and
+  the other references removed (a value column with its `#` unfilled; `{HED}`
+  is only removed). A repeated expression in any of these is
+  TAG_EXPRESSION_REPEATED in the sidecar alone (`duplicateTagInSubstitution`,
+  once per annotation, naming the substitution). So `(Red, {HED}), (Red)` and
+  `(Red, {color})` with an annotation `Red` of `color` are now invalid. The
+  number of strings checked is the sum, not the product, of the referenced
+  columns' annotations; repeats that need two columns filled at once are found
+  in the assembled row. Row assembly and this check remove a reference with
+  the same function, `replaceColumnReferences` in `src/parser/parseUtils.js`.
+- A tag or group that holds a `#` placeholder is not a repeated expression:
+  `Label/#, Label/#` can only repeat once its values are known, in the
+  assembled row.
+- The hed-tests submodule moved to `7169b09`. The rule-10 skips are removed;
+  five new cases are skipped (namespace names without case, HED specification
+  3.1.1; blanks next to a slash inside a value, TAG_INVALID b).
 
 ### Fixed
 

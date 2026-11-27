@@ -4,6 +4,8 @@
 
 import { BidsHedIssue } from '../types/issues'
 import ParsedHedString from '../../parser/parsedHedString'
+import { parseHedString } from '../../parser/parser'
+import { replaceColumnReferences } from '../../parser/parseUtils'
 import { generateIssue, IssueError } from '../../issues/issues'
 import { getCharacterCount } from '../../utils/string.js'
 import { BidsValidator } from './validator'
@@ -46,6 +48,7 @@ export class BidsHedSidecarValidator extends BidsValidator {
     if (this.errors.length > 0) {
       return
     }
+    this.errors.push(...this._validateSubstitutions())
 
     // Columns that aren't splices should have an annotation that stands on its own.
     const [errors, warnings] = this.sidecar.parseSidecarKeys(this.hedSchemas, true)
@@ -200,6 +203,92 @@ export class BidsHedSidecarValidator extends BidsValidator {
     }
 
     return issues
+  }
+
+  /**
+   * Check each annotation with curly braces under the substitutions of specification 3.2.9.3 rule 10.
+   *
+   * An annotation is checked with every reference removed, then with each annotation of each referenced column
+   * substituted, one referenced column at a time, every other reference removed. A referenced value column is
+   * substituted with its template, `#` unfilled; `{HED}` is only removed, since its content is known only per row.
+   * So the number of strings checked is one more than the sum of the referenced columns' annotations, not their
+   * product. Only repeated expressions are checked: the reserved-tag group rules and anything else that depends on
+   * the other columns of a row are checked when the row is assembled (rule 9).
+   *
+   * @returns {BidsHedIssue[]} One issue for each annotation that has a repeated expression under some substitution.
+   * @private
+   */
+  _validateSubstitutions() {
+    const issues = []
+    for (const columnName of this.sidecar.columnSpliceMapping.keys()) {
+      const hedData = this.sidecar.parsedHedData.get(columnName)
+      const annotations = hedData instanceof Map ? [...hedData.values()] : [hedData]
+      for (const annotation of annotations) {
+        if (annotation instanceof ParsedHedString && annotation.columnSplices.length > 0) {
+          issues.push(...this._checkSubstitutions(columnName, annotation))
+        }
+      }
+    }
+    return issues
+  }
+
+  /**
+   * Check one annotation under the substitutions of rule 10 and report the first repeated expression found.
+   *
+   * @param {string} columnName - The column whose annotation is checked.
+   * @param {ParsedHedString} annotation - The annotation, with curly-brace references.
+   * @returns {BidsHedIssue[]} An issue for the first substitution that has a repeated expression, or none.
+   * @private
+   */
+  _checkSubstitutions(columnName, annotation) {
+    for (const [substitution, substituted] of this._substitutions(annotation)) {
+      if (substituted === '') {
+        continue
+      }
+      const [, errorIssues] = parseHedString(substituted, this.hedSchemas, false, true, false)
+      const repeat = errorIssues.find((issue) => issue.internalCode === 'duplicateTag')
+      if (repeat !== undefined) {
+        const issue = generateIssue('duplicateTagInSubstitution', {
+          tags: repeat.parameters.tags,
+          annotation: annotation.hedString,
+          sidecarKey: columnName,
+          substitution: substitution,
+          string: substituted,
+        })
+        return [BidsHedIssue.fromHedIssue(issue, this.sidecar.file, { filePath: this.sidecar?.file?.path })]
+      }
+    }
+    return []
+  }
+
+  /**
+   * The substitutions of rule 10 for one annotation, the removal of every reference first.
+   *
+   * @param {ParsedHedString} annotation - The annotation, with curly-brace references.
+   * @yields {Array} A description of each substitution and the substituted string.
+   * @private
+   */
+  *_substitutions(annotation) {
+    const template = annotation.hedString
+    yield ['every curly-brace reference is removed', replaceColumnReferences(template, () => undefined)]
+    const references = new Set(annotation.columnSplices.map((splice) => splice.originalTag))
+    for (const reference of references) {
+      const referencedData = this.sidecar.parsedHedData.get(reference)
+      const replacements = []
+      if (referencedData instanceof ParsedHedString) {
+        replacements.push(['its template', referencedData.hedString])
+      } else if (referencedData instanceof Map) {
+        for (const [value, valueAnnotation] of referencedData) {
+          if (valueAnnotation !== null) {
+            replacements.push([`the annotation of "${value}"`, valueAnnotation.hedString])
+          }
+        }
+      }
+      for (const [description, replacement] of replacements) {
+        const substituted = replaceColumnReferences(template, (name) => (name === reference ? replacement : undefined))
+        yield [`"{${reference}}" is replaced by ${description}`, substituted]
+      }
+    }
   }
 }
 

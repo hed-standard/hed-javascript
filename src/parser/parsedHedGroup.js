@@ -226,13 +226,38 @@ export default class ParsedHedGroup extends ParsedHedSubstring {
    * Items are compared by their normalized forms, so under the case rule of specification 3.2.3 (3.2.7.4).
    * Identical Definition groups are not repeated expressions (3.2.8.1): each is a definition of its own, and the
    * definition manager decides whether copies of one name agree (DEFINITION_INVALID i).
+   * A tag or group that holds a `#` placeholder is not a repeated expression either: the placeholder can stand
+   * for any value, so whether it repeats is known only when a row is assembled (3.2.9.3 rule 10).
    *
    * @param {ParsedHedSubstring[]} items - The items of one level.
    * @returns {string[]} The normalized forms that occur more than once, sorted, each listed once.
    */
   static findRepeatedExpressions(items) {
-    const compared = items.filter((item) => !(item instanceof ParsedHedGroup && item.isDefinitionGroup))
+    const compared = items.filter(
+      (item) => !(item instanceof ParsedHedGroup && item.isDefinitionGroup) && !ParsedHedGroup._holdsPlaceholder(item),
+    )
     return getDuplicates(compared.map((item) => item.normalized).toSorted())
+  }
+
+  /**
+   * Whether an item is, or contains at any depth, a tag that holds a `#` placeholder.
+   *
+   * @param {ParsedHedSubstring} item - A tag, group, or column splice.
+   * @returns {boolean} True if the item holds a placeholder.
+   * @private
+   */
+  static _holdsPlaceholder(item) {
+    if (item instanceof ParsedHedTag) {
+      return item.hasPlaceholder
+    }
+    if (item instanceof ParsedHedGroup) {
+      for (const tag of item.tagIterator()) {
+        if (tag.hasPlaceholder) {
+          return true
+        }
+      }
+    }
+    return false
   }
 
   /**

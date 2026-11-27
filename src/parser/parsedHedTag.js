@@ -390,6 +390,15 @@ export default class ParsedHedTag extends ParsedHedSubstring {
   }
 
   /**
+   * Whether this tag holds a `#` placeholder as its value or after a definition name.
+   *
+   * @returns {boolean} True if the value or the second part of the value is a placeholder.
+   */
+  get hasPlaceholder() {
+    return this._value === '#' || this._splitValue === '#'
+  }
+
+  /**
    * Override of {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString | Object.prototype.toString}.
    *
    * @returns {string} The original form of this HED tag.
