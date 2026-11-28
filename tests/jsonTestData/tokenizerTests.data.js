@@ -470,6 +470,29 @@ export const tokenizerTests = [
         errors: [],
       },
       {
+        testname: 'blank-after-slash-before-placeholder',
+        explanation: '"Label/ #" records the blank instead of reporting an invalid placeholder',
+        string: 'Label/ #',
+        tagSpecs: [new TagSpec('Label/ #', 0, 8, '', [{ slash: 5, index: 6, string: 'Label/ #', msg: blankAfter }])],
+        groupSpec: new GroupSpec(0, 8, []),
+        errors: [],
+      },
+      {
+        testname: 'blank-after-definition-slash-before-placeholder',
+        explanation: '"(Definition/Note/ #, (Red))" records the blank instead of reporting an invalid placeholder',
+        string: '(Definition/Note/ #, (Red))',
+        tagSpecs: [
+          [
+            new TagSpec('Definition/Note/ #', 1, 19, '', [
+              { slash: 15, index: 17, string: '(Definition/Note/ #, (Red))', msg: blankAfter },
+            ]),
+            [new TagSpec('Red', 22, 25, '')],
+          ],
+        ],
+        groupSpec: new GroupSpec(0, 27, [new GroupSpec(0, 27, [new GroupSpec(21, 26, [])])]),
+        errors: [],
+      },
+      {
         testname: 'blank-before-path-slash',
         explanation: '"Event /Sensory-event" records the blank before the slash of the tag path',
         string: 'Event /Sensory-event',
