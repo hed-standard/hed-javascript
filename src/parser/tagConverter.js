@@ -154,7 +154,7 @@ export default class TagConverter {
    * @private
    */
   _checkSlashBlanks(lastPathSlash) {
-    const blank = this.tagSpec.slashBlanks.find((slashBlank) => slashBlank.slash <= lastPathSlash)
+    const blank = (this.tagSpec.slashBlanks ?? []).find((slashBlank) => slashBlank.slash <= lastPathSlash)
     if (blank !== undefined) {
       IssueError.generateAndThrow('extraBlank', { index: blank.index, string: blank.string, msg: blank.msg })
     }
