@@ -159,6 +159,17 @@ testSpecs`.
 - The hed-tests submodule moved to `7169b09`. The rule-10 skips are removed;
   five new cases are skipped (namespace names without case, HED specification
   3.1.1; blanks next to a slash inside a value, TAG_INVALID b).
+- A blank next to a slash inside a value is allowed (specification 3.2.2,
+  TAG_INVALID b; #1009): `Description/left / right` and `Def/Note/left / right`
+  are valid, and the blanks are judged by the value's class. A blank next to a
+  slash of the tag path, the slash that begins the value, or the slash before
+  the second part of a `Definition`, `Def` or `Def-expand` value is still
+  TAG_INVALID (`Event /Sensory-event`, `Label/ abc`, `Def/Note/ left`). The
+  tokenizer records these blanks and the tag converter decides once the tag is
+  matched to the schema. A slash followed only by blanks before a comma or
+  parenthesis (`Label/abc/ ,`, `Label/abc/,`) is TAG_INVALID, as at the end of
+  the string. The hed-tests case `tag-blank-next-to-slash-in-value` is no
+  longer skipped.
 
 ### Fixed
 

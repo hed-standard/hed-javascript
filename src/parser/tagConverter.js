@@ -107,6 +107,7 @@ export default class TagConverter {
     for (let tagLevelIndex = 0; tagLevelIndex < this.tagLevels.length; tagLevelIndex++) {
       if (parentTag?.valueTag) {
         // It is a value tag
+        this._checkSlashBlanks(this._lastPathSlash(parentTag, tagLevelIndex))
         this._setSchemaTag(parentTag.valueTag, tagLevelIndex)
         return [this.schemaTag, this.remainder]
       }
@@ -117,8 +118,46 @@ export default class TagConverter {
       }
       parentTag = childTag
     }
+    this._checkSlashBlanks(Infinity) // No value: every slash is in the tag path.
     this._setSchemaTag(parentTag, this.tagLevels.length + 1) // Fix the ending
     return [this.schemaTag, this.remainder]
+  }
+
+  /**
+   * Find the last slash of the tag path of a value tag.
+   *
+   * That is the slash that begins the value, or, for Definition, Def and Def-expand, the slash before the second part
+   * of the value (specification 3.2.2).
+   *
+   * @param {SchemaTag} parentTag - The schema tag that takes the value.
+   * @param {number} valueLevelIndex - The index of the level where the value begins.
+   * @returns {number} The index of the slash in the tag string.
+   * @private
+   */
+  _lastPathSlash(parentTag, valueLevelIndex) {
+    if (this.special.twoPartValueTags.has(parentTag.name) && valueLevelIndex < this.tagSlashes.length) {
+      return this.tagSlashes[valueLevelIndex]
+    }
+    return this.tagSlashes[valueLevelIndex - 1]
+  }
+
+  /**
+   * Report a blank next to a slash of the tag path (specification 3.2.2, TAG_INVALID b).
+   *
+   * The tokenizer records every blank next to a slash. One next to a slash of the tag path, including the slash that
+   * begins the value, is TAG_INVALID; one next to a slash inside the value is part of the value and is left to the
+   * value rules. A tag that does not match the schema has no value, so every slash counts as the tag path, and the
+   * blank is reported before the reason the tag does not match.
+   *
+   * @param {number} lastPathSlash - The index of the last slash of the tag path, or Infinity if every slash is in it.
+   * @throws {IssueError} If a blank is next to a slash of the tag path.
+   * @private
+   */
+  _checkSlashBlanks(lastPathSlash) {
+    const blank = this.tagSpec.slashBlanks.find((slashBlank) => slashBlank.slash <= lastPathSlash)
+    if (blank !== undefined) {
+      IssueError.generateAndThrow('extraBlank', { index: blank.index, string: blank.string, msg: blank.msg })
+    }
   }
 
   /**
@@ -132,6 +171,10 @@ export default class TagConverter {
    */
   _validateChildTag(parentTag, tagLevelIndex) {
     const childTag = this._getSchemaTag(tagLevelIndex)
+    if (childTag === undefined || (tagLevelIndex > 0 && childTag.parent !== parentTag)) {
+      // The tag path does not match the schema from here on, so no value follows.
+      this._checkSlashBlanks(Infinity)
+    }
     if (childTag === undefined) {
       // This is an extended tag
       if (tagLevelIndex === 0) {

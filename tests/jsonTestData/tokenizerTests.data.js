@@ -1,6 +1,9 @@
 import { generateIssue } from '../../src/issues/issues'
 import { ColumnSpliceSpec, GroupSpec, TagSpec } from '../../src/parser/tokenizer'
 
+const blankBefore = 'Blank before an internal slash -- often a slash in a value.'
+const blankAfter = 'Blank after a slash.'
+
 export const tokenizerTests = [
   {
     name: 'valid-single-tags',
@@ -344,16 +347,44 @@ export const tokenizerTests = [
         ],
       },
       {
-        testname: 'value-slash',
-        explanation: '"x /y" should not have extra blanks before slash',
-        string: 'x /y',
+        testname: 'trailing-slash-before-comma',
+        explanation: '"x/,y" should not have a slash at the end of a tag',
+        string: 'x/,y',
         tagSpecs: [],
         groupSpec: null,
         errors: [
-          generateIssue('extraBlank', {
+          generateIssue('extraSlash', {
             index: '1',
-            string: 'x /y',
-            msg: 'Blank before an internal slash -- often a slash in a value.',
+            string: 'x/,y',
+            msg: 'Usually the result of multiple consecutive slashes or a slash at the end.',
+          }),
+        ],
+      },
+      {
+        testname: 'trailing-slash-and-blank-before-comma',
+        explanation: '"x/ ,y" should not have a slash followed only by a blank at the end of a tag',
+        string: 'x/ ,y',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [
+          generateIssue('extraSlash', {
+            index: '1',
+            string: 'x/ ,y',
+            msg: 'Usually the result of multiple consecutive slashes or a slash at the end.',
+          }),
+        ],
+      },
+      {
+        testname: 'trailing-slash-and-blank-before-closing-group',
+        explanation: '"(x/ )" should not have a slash followed only by a blank at the end of a tag',
+        string: '(x/ )',
+        tagSpecs: [],
+        groupSpec: null,
+        errors: [
+          generateIssue('extraSlash', {
+            index: '2',
+            string: '(x/ )',
+            msg: 'Usually the result of multiple consecutive slashes or a slash at the end.',
           }),
         ],
       },
@@ -364,6 +395,106 @@ export const tokenizerTests = [
         tagSpecs: [],
         groupSpec: null,
         errors: [generateIssue('extraSlash', { index: '1', string: '(/x)', msg: '"/" at the beginning of tag.' })],
+      },
+    ],
+  },
+  {
+    name: 'blanks-next-to-slashes',
+    description:
+      'A blank next to a slash is recorded on the tag, not reported: whether it is an error depends on where the value starts',
+    tests: [
+      {
+        testname: 'blank-before-slash',
+        explanation: '"x /y" records the blank before the slash',
+        string: 'x /y',
+        tagSpecs: [new TagSpec('x /y', 0, 4, '', [{ slash: 2, index: 1, string: 'x /y', msg: blankBefore }])],
+        groupSpec: new GroupSpec(0, 4, []),
+        errors: [],
+      },
+      {
+        testname: 'blanks-around-slash-in-value',
+        explanation: '"Description/left / right" records the blank before the second slash only',
+        string: 'Description/left / right',
+        tagSpecs: [
+          new TagSpec('Description/left / right', 0, 24, '', [
+            { slash: 17, index: 16, string: 'Description/left / right', msg: blankBefore },
+          ]),
+        ],
+        groupSpec: new GroupSpec(0, 24, []),
+        errors: [],
+      },
+      {
+        testname: 'blank-before-slash-in-value',
+        explanation: '"Description/left /right" records the blank before the second slash',
+        string: 'Description/left /right',
+        tagSpecs: [
+          new TagSpec('Description/left /right', 0, 23, '', [
+            { slash: 17, index: 16, string: 'Description/left /right', msg: blankBefore },
+          ]),
+        ],
+        groupSpec: new GroupSpec(0, 23, []),
+        errors: [],
+      },
+      {
+        testname: 'blank-after-slash-in-value',
+        explanation: '"Description/left/ right" records the blank after the second slash',
+        string: 'Description/left/ right',
+        tagSpecs: [
+          new TagSpec('Description/left/ right', 0, 23, '', [
+            { slash: 16, index: 17, string: 'Description/left/ right', msg: blankAfter },
+          ]),
+        ],
+        groupSpec: new GroupSpec(0, 23, []),
+        errors: [],
+      },
+      {
+        testname: 'blank-after-value-slash',
+        explanation: '"Description/ abc" records the blank after the slash that begins the value',
+        string: 'Description/ abc',
+        tagSpecs: [
+          new TagSpec('Description/ abc', 0, 16, '', [
+            { slash: 11, index: 12, string: 'Description/ abc', msg: blankAfter },
+          ]),
+        ],
+        groupSpec: new GroupSpec(0, 16, []),
+        errors: [],
+      },
+      {
+        testname: 'blank-after-label-slash',
+        explanation: '"Label/ abc" records the blank after the slash that begins the value',
+        string: 'Label/ abc',
+        tagSpecs: [
+          new TagSpec('Label/ abc', 0, 10, '', [{ slash: 5, index: 6, string: 'Label/ abc', msg: blankAfter }]),
+        ],
+        groupSpec: new GroupSpec(0, 10, []),
+        errors: [],
+      },
+      {
+        testname: 'blank-before-path-slash',
+        explanation: '"Event /Sensory-event" records the blank before the slash of the tag path',
+        string: 'Event /Sensory-event',
+        tagSpecs: [
+          new TagSpec('Event /Sensory-event', 0, 20, '', [
+            { slash: 6, index: 5, string: 'Event /Sensory-event', msg: blankBefore },
+          ]),
+        ],
+        groupSpec: new GroupSpec(0, 20, []),
+        errors: [],
+      },
+      {
+        testname: 'blank-after-slash-in-group',
+        explanation: '"(Duration/ 3 s, (Red))" records the slash relative to the start of the tag',
+        string: '(Duration/ 3 s, (Red))',
+        tagSpecs: [
+          [
+            new TagSpec('Duration/ 3 s', 1, 14, '', [
+              { slash: 8, index: 10, string: '(Duration/ 3 s, (Red))', msg: blankAfter },
+            ]),
+            [new TagSpec('Red', 17, 20, '')],
+          ],
+        ],
+        groupSpec: new GroupSpec(0, 22, [new GroupSpec(0, 22, [new GroupSpec(16, 21, [])])]),
+        errors: [],
       },
     ],
   },
