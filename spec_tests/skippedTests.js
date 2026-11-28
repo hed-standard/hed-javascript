@@ -7,10 +7,14 @@
  *
  */
 export const skippedTests = {
-  'tag-expression-repeated-hed-column-reference':
-    'Curly-brace substitutions of a sidecar annotation are not checked (issue #997, rule 10 of 3.2.9.3).',
-  'tag-expression-repeated-reference-removed':
-    'Curly-brace substitutions of a sidecar annotation are not checked (issue #997, rule 10 of 3.2.9.3).',
-  'tag-expression-repeated-curly-brace-substitution':
-    'Curly-brace substitutions of a sidecar annotation are not checked (issue #997, rule 10 of 3.2.9.3).',
+  'tag-namespace-prefix-case-insensitive':
+    'Namespace prefixes are matched with case (namespace names are case-insensitive since specification 3.1.1).',
+  'tag-namespace_prefix-with-colon-values':
+    'Namespace prefixes are matched with case (namespace names are case-insensitive since specification 3.1.1).',
+  'tag-expression-repeated-namespace-case':
+    'Namespace prefixes are matched with case (namespace names are case-insensitive since specification 3.1.1).',
+  'standard-version-twice-in-namespace-differing-case':
+    'Namespace prefixes are matched with case (namespace names are case-insensitive since specification 3.1.1).',
+  'tag-blank-next-to-slash-in-value':
+    'A blank next to a slash inside a value is reported as TAG_INVALID (specification TAG_INVALID b).',
 }

@@ -42,6 +42,11 @@ const issueData = {
     level: 'error',
     message: issueMessageTemplate`Duplicate tags - "${'tags'}" in "${'string'}".`,
   },
+  duplicateTagInSubstitution: {
+    hedCode: 'TAG_EXPRESSION_REPEATED',
+    level: 'error',
+    message: issueMessageTemplate`Duplicate tags - "${'tags'}" in the annotation "${'annotation'}" of sidecar key "${'sidecarKey'}" when ${'substitution'} - "${'string'}".`,
+  },
   extendedTag: {
     hedCode: 'TAG_EXTENDED',
     level: 'warning',
