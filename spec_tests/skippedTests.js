@@ -15,6 +15,4 @@ export const skippedTests = {
     'Namespace prefixes are matched with case (namespace names are case-insensitive since specification 3.1.1).',
   'standard-version-twice-in-namespace-differing-case':
     'Namespace prefixes are matched with case (namespace names are case-insensitive since specification 3.1.1).',
-  'tag-blank-next-to-slash-in-value':
-    'A blank next to a slash inside a value is reported as TAG_INVALID (specification TAG_INVALID b).',
 }

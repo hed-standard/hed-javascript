@@ -354,6 +354,20 @@ export interface TagSpec {
   start: number
   /** End position in the original string */
   end: number
+  /** The blanks next to a slash of this tag, in string order; the tag converter decides which are errors */
+  slashBlanks?: SlashBlank[]
+}
+
+/** A blank directly before or after a slash of a tag, recorded by the tokenizer */
+export interface SlashBlank {
+  /** The index of the slash in the tag string */
+  slash: number
+  /** The index of the blank in the HED string */
+  index: number
+  /** The HED string */
+  string: string
+  /** Which side of the slash the blank is on, as the issue message */
+  msg: string
 }
 
 export interface ParsedHedSubstring {
